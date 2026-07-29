@@ -31,6 +31,7 @@ class PosCategory(models.Model):
     color = fields.Integer('Color', required=False, default=get_default_color)
     hour_until = fields.Float(string='Availability Until', default=24.0, help="The product will be available until this hour for online order and self order.")
     hour_after = fields.Float(string='Availability After', default=0.0, help="The product will be available after this hour for online order and self order.")
+    pos_config_ids = fields.Many2many('pos.config', string='Linked PoS Configurations')
 
     # During loading of data, the image is not loaded so we expose a lighter
     # field to determine whether a pos.category has an image or not.
@@ -40,9 +41,7 @@ class PosCategory(models.Model):
     def _load_pos_data_domain(self, data, config):
         domain = []
         if config.limit_categories:
-            preparation_categories = [printer['product_categories_ids'] for printer in data['pos.printer']]
-            flattened_preparation_categories = [item for sublist in preparation_categories for item in sublist]
-            domain += [('id', 'in', flattened_preparation_categories + config.iface_available_categ_ids.ids)]
+            domain += [('id', 'in', config.iface_available_categ_ids.ids)]
         return domain
 
     @api.model
@@ -61,9 +60,9 @@ class PosCategory(models.Model):
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_session_open(self):
-        if self.search_count([('id', 'in', self.ids)]):
-            if self.env['pos.session'].sudo().search_count([('state', '!=', 'closed')]):
-                raise UserError(_('You cannot delete a point of sale category while a session is still opened.'))
+        for record in self:
+            if record.pos_config_ids:
+                raise UserError(_('You cannot delete a category which is currently in use in a point of sale.'))
 
     @api.depends('has_image')
     def _compute_has_image(self):
@@ -86,3 +85,11 @@ class PosCategory(models.Model):
                 raise ValidationError(_('The Availability After must be set between 00:00 and 24:00'))
             if category.hour_until and category.hour_after and category.hour_until < category.hour_after:
                 raise ValidationError(_('The Availability Until must be greater than Availability After.'))
+
+    def copy_data(self, default=None):
+        default = dict(default or {})
+        vals_list = super().copy_data(default=default)
+        if 'name' not in default:
+            for pos_category, vals in zip(self, vals_list):
+                vals['name'] = _("%s (copy)", pos_category.name)
+        return vals_list

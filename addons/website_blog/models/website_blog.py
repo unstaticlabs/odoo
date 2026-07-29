@@ -18,6 +18,7 @@ class BlogBlog(models.Model):
         'mail.thread',
         'website.seo.metadata',
         'website.multi.mixin',
+        'website.located.mixin',
         'website.cover_properties.mixin',
         'website.searchable.mixin',
     ]
@@ -35,6 +36,12 @@ class BlogBlog(models.Model):
     content = fields.Html('Content', translate=html_translate, sanitize=False)
     blog_post_ids = fields.One2many('blog.post', 'blog_id', 'Blog Posts')
     blog_post_count = fields.Integer("Posts", compute='_compute_blog_post_count')
+
+    def _compute_website_url(self):
+        super()._compute_website_url()
+        for record in self:
+            if record.id:
+                record.website_url = '/blog/%s' % self.env['ir.http']._slug(record)
 
     @api.depends('blog_post_ids')
     def _compute_blog_post_count(self):
@@ -194,9 +201,6 @@ class BlogPost(models.Model):
 
     # creation / update stuff
     create_date = fields.Datetime('Created on', readonly=True)
-    published_date = fields.Datetime('Published Date')
-    post_date = fields.Datetime('Publishing date', compute='_compute_post_date', inverse='_set_post_date', store=True,
-                                help="The blog post will be visible for your visitors as of this date on the website if it is set as published.")
     create_uid = fields.Many2one('res.users', 'Created by', readonly=True)
     write_date = fields.Datetime('Last Updated on', readonly=True)
     write_uid = fields.Many2one('res.users', 'Last Contributor', readonly=True)
@@ -224,53 +228,28 @@ class BlogPost(models.Model):
                 blog_post.update_field_translations('teaser_manual', {'en_US': ''})
             blog_post.teaser_manual = blog_post.teaser
 
-    @api.depends('create_date', 'published_date')
-    def _compute_post_date(self):
-        for blog_post in self:
-            if blog_post.published_date:
-                blog_post.post_date = blog_post.published_date
-            else:
-                blog_post.post_date = blog_post.create_date
-
-    def _set_post_date(self):
-        for blog_post in self:
-            blog_post.published_date = blog_post.post_date
-            if not blog_post.published_date:
-                blog_post.post_date = blog_post.create_date
-
-    def _check_for_publication(self, vals):
-        if vals.get('is_published'):
-            for post in self.filtered(lambda p: p.active):
-                post.blog_id.message_post_with_source(
-                    'website_blog.blog_post_template_new_post',
-                    subject=post.name,
-                    render_values={'post': post},
-                    subtype_xmlid='website_blog.mt_blog_blog_published',
-                )
-            return True
-        return False
+    def _check_for_action_post_publish(self):
+        """Send notification when a post goes live for the first time."""
+        self.ensure_one()
+        force_publish = self.env.context.get('force_website_published')
+        if (force_publish or self.website_published) and self.active and not self.published_date:
+            return self.blog_id.message_post_with_source(
+                'website_blog.blog_post_template_new_post',
+                subject=self.name,
+                render_values={'post': self},
+                subtype_xmlid='website_blog.mt_blog_blog_published',
+            )
+        return self.env['mail.message']
 
     @api.model_create_multi
     def create(self, vals_list):
-        posts = super(BlogPost, self.with_context(mail_create_nolog=True)).create(vals_list)
-        for post, vals in zip(posts, vals_list):
-            post._check_for_publication(vals)
-        return posts
+        return super(BlogPost, self.with_context(mail_create_nolog=True)).create(vals_list)
 
     def write(self, vals):
-        result = True
-        # archiving a blog post, unpublished the blog post
-        if 'active' in vals and not vals['active']:
-            vals['is_published'] = False
-        for post in self:
-            copy_vals = dict(vals)
-            published_in_vals = set(vals.keys()) & {'is_published', 'website_published'}
-            if (published_in_vals and 'published_date' not in vals and
-                    (not post.published_date or post.published_date <= fields.Datetime.now())):
-                copy_vals['published_date'] = vals[list(published_in_vals)[0]] and fields.Datetime.now() or False
-            result &= super(BlogPost, post).write(copy_vals)
-        self._check_for_publication(vals)
-        return result
+        new_vals = dict(vals)
+        if new_vals.get('active') is False:
+            new_vals['is_published'] = False
+        return super().write(new_vals)
 
     def copy_data(self, default=None):
         vals_list = super().copy_data(default=default)
@@ -316,14 +295,14 @@ class BlogPost(models.Model):
 
     def _default_website_meta(self):
         res = super(BlogPost, self)._default_website_meta()
-        res['default_opengraph']['og:description'] = res['default_twitter']['twitter:description'] = self.subtitle
+        res['default_opengraph']['og:description'] = self.subtitle
         res['default_opengraph']['og:type'] = 'article'
-        res['default_opengraph']['article:published_time'] = self.post_date
+        res['default_opengraph']['article:published_time'] = self.published_date
         res['default_opengraph']['article:modified_time'] = self.write_date
         res['default_opengraph']['article:tag'] = self.tag_ids.mapped('name')
         # background-image might contain single quotes eg `url('/my/url')`
-        res['default_opengraph']['og:image'] = res['default_twitter']['twitter:image'] = json_scriptsafe.loads(self.cover_properties).get('background-image', 'none')[4:-1].strip("\"'")
-        res['default_opengraph']['og:title'] = res['default_twitter']['twitter:title'] = self.name
+        res['default_opengraph']['og:image'] = json_scriptsafe.loads(self.cover_properties).get('background-image', 'none')[4:-1].strip("\"'")
+        res['default_opengraph']['og:title'] = self.name
         res['default_meta_description'] = self.subtitle
         return res
 
@@ -344,22 +323,22 @@ class BlogPost(models.Model):
             if active_tag_ids:
                 domain.append([('tag_ids', 'in', active_tag_ids)])
         if date_begin and date_end:
-            domain.append([("post_date", ">=", date_begin), ("post_date", "<=", date_end)])
+            domain.append([("published_date", ">=", date_begin), ("published_date", "<=", date_end)])
         if self.env.user.has_group('website.group_website_designer'):
             if state == "published":
-                domain.append([("website_published", "=", True), ("post_date", "<=", fields.Datetime.now())])
+                domain.append([("website_published", "=", True)])
             elif state == "unpublished":
-                domain.append(['|', ("website_published", "=", False), ("post_date", ">", fields.Datetime.now())])
+                domain.append([("website_published", "=", False), ("publish_on", "=", False)])
+            elif state == "scheduled":
+                domain.append([("publish_on", "!=", False)])
         else:
-            domain.append([("post_date", "<=", fields.Datetime.now())])
-        search_fields = ['name', 'author_name']
-        def search_in_tags(env, search_term):
-            tags_like_search = env['blog.tag'].search([('name', 'ilike', search_term)])
-            return [('tag_ids', 'in', tags_like_search.ids)]
-        fetch_fields = ['name', 'website_url']
+            domain.append([("website_published", "=", True)])
+        search_fields = ['name', 'author_name', 'tag_ids.name']
+        fetch_fields = ['name', 'website_url', 'tag_ids']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
+            'tags': {'name': 'tag_ids', 'type': 'tags', 'match': True},
         }
         if with_description:
             search_fields.append('content')
@@ -372,8 +351,13 @@ class BlogPost(models.Model):
             'model': 'blog.post',
             'base_domain': domain,
             'search_fields': search_fields,
-            'search_extra': search_in_tags,
             'fetch_fields': fetch_fields,
             'mapping': mapping,
             'icon': 'fa-rss',
         }
+
+    def _search_render_results(self, fetch_fields, mapping, icon, limit):
+        results_data = super()._search_render_results(fetch_fields, mapping, icon, limit)
+        for post, data in zip(self, results_data):
+            data['tag_ids'] = post.tag_ids.read(['name'])
+        return results_data

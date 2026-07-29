@@ -26,25 +26,26 @@
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
 # Ediz Duman <neps1192@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Deniz Guvener Unal (degu)" <degu@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 10:37+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/project/"
-"tr/>\n"
+"PO-Revision-Date: 2026-04-11 14:33+0000\n"
+"Last-Translator: \"Deniz Guvener Unal (degu)\" <degu@odoo.com>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-2/"
+"project/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: project
 #: model:ir.model.fields.selection,name:project.selection__project_project__privacy_visibility__portal
@@ -70,19 +71,6 @@ msgid "%(closedCount)s sub-tasks closed out of %(totalCount)s"
 msgstr "%(totalCount)s alt görevden %(closedCount)s adedi kapatıldı"
 
 #. module: project
-#. odoo-python
-#: code:addons/project/models/project_project.py:0
-msgid "%(closed_task_count)s / %(task_count)s"
-msgstr "%(closed_task_count)s / %(task_count)s"
-
-#. module: project
-#. odoo-python
-#: code:addons/project/models/project_project.py:0
-msgid "%(closed_task_count)s / %(task_count)s (%(closed_rate)s%%)"
-msgstr ""
-"%(task_count)s görevden %(closed_task_count)s kapandı (%(closed_rate)s%%)"
-
-#. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/views/widget/subtask_counter.js:0
 msgid "%(count1)s/%(count2)s"
@@ -91,8 +79,8 @@ msgstr "%(count1)s/%(count2)s"
 #. module: project
 #. odoo-python
 #: code:addons/project/models/project_project.py:0
-msgid "%(name)s Dashboard"
-msgstr "Kontrol Paneli"
+msgid "%(name)s Updates"
+msgstr ""
 
 #. module: project
 #. odoo-python
@@ -425,11 +413,10 @@ msgid ""
 "t>,<br/>\n"
 "    It is my pleasure to let you know that we have successfully completed "
 "the project \"<strong t-out=\"object.name or ''\">Renovations</strong>\".\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>\n"
 "<br/><span style=\"margin: 0px 0px 0px 0px; font-size: 12px; opacity: 0.5; "
@@ -438,23 +425,6 @@ msgid ""
 "out=\"object.stage_id.name or ''\">Done</b></span>\n"
 "            "
 msgstr ""
-"<div>\n"
-"    Sayın <t t-out=\"object.partner_id.name or 'customer'\">Brandon Freeman</"
-"t>,<br/>\n"
-"    \"<strong t-out=\"object.name or ''\">Renovasyonlar</strong>\" Proje "
-"Yönetimi'ni başarıyla tamamladığımızı bildirmekten memnuniyet duyuyorum.\n"
-"   <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
-"        <br/>\n"
-"       <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
-"   </t>\n"
-"</div>\n"
-"<br/><span style=\"margin: 0px 0px 0px 0px; font-size: 12px; opacity: 0.5; "
-"color: #454748;\" groups=\"project.group_project_stages\">Bu e-postayı "
-"alıyorsunuz çünkü projeniz <b t-out=\"object.stage_id.name or ''\">Done "
-"aşamasına taşındı.</b></span>\n"
-"            "
 
 #. module: project
 #: model:mail.template,body_html:project.mail_template_data_project_task
@@ -470,36 +440,29 @@ msgid ""
 "not hesitate to let us know. We are here to help.<br/><br/>\n"
 "    Thank you for your patience.<br/>\n"
 "    Best regards,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>\n"
 "        "
 msgstr ""
-"<div>\n"
-"    Sayın <t t-out=\"object.partner_id.name or 'customer'\">Brandon Freeman</"
-"t>,<br/><br/>\n"
-"    Bizimle iletişime geçtiğiniz için teşekkür ederiz. Ürünlerimize/"
-"hizmetlerimize gösterdiğiniz ilgi için teşekkür ederiz.<br/>\n"
-"    Ekibimiz şu anda sorunuzu inceliyor ve e-postanıza mümkün olan en kısa "
-"sürede yanıt verecek.<br/>\n"
-"    Bu arada başka sorularınız veya endişeleriniz olursa, lütfen bize "
-"bildirmekten çekinmeyin. Size yardımcı olmak için buradayız.<br/><br/>\n"
-"    Sabrınız için teşekkür ederiz.<br/>\n"
-"    Saygılarımla,\n"
-"   <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
-"        <br/>\n"
-"       <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
-"   </t>\n"
-"</div>\n"
-"        "
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid ""
+"<i class=\"fa fa-envelope pe-2\" title=\"Email\" invisible=\"not "
+"partner_email\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<i class=\"fa fa-envelope pe-2\" title=\"Email\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
 #: model_terms:ir.ui.view,arch_db:project.view_task_form2
 msgid ""
 "<i class=\"fa fa-fw o_button_icon fa-smile-o text-success\" "
@@ -530,8 +493,43 @@ msgstr "<i class=\"fa fa-lock\"/> Özel"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid ""
+"<i class=\"fa fa-phone pe-2\" title=\"Phone\" invisible=\"not "
+"partner_phone\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<i class=\"fa fa-phone pe-2\" title=\"Phone\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<i class=\"fa fa-tag pe-2\" title=\"Tags\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<i class=\"fa fa-user pe-2\" title=\"Customer\" name=\"partner_id\"/>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
 msgid "<i class=\"fa fa-warning pe-2\" title=\"Warning\"/>"
 msgstr "<i class=\"fa fa-warning pe-2\" title=\"Warning\"/>"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid ""
+"<i class=\"fa o_button_icon fa-check\" invisible=\"next_milestone_status == "
+"False or next_milestone_status != 'on_track'\" title=\"On Track\"/>\n"
+"                            <i class=\"fa o_button_icon fa-check text-"
+"success\" invisible=\"next_milestone_status != 'next_track'\" title=\"On "
+"Track\"/>\n"
+"                            <i class=\"fa o_button_icon fa-check text-"
+"danger\" invisible=\"next_milestone_status != 'off_track'\" title=\"Off "
+"Track\"/>"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_sharing_project_task_view_form
@@ -590,14 +588,63 @@ msgid "<span class=\"fw-normal\"> Tasks</span>"
 msgstr "<span class=\"fw-normal\">Görecler</span>"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid ""
+"<span class=\"o_field_widget ps-1\" invisible=\"closed_task_count == 0\">(</"
+"span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_field_widget ps-1\">(</span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_field_widget ps-2\">)</span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid ""
+"<span class=\"o_field_widget\" invisible=\"closed_task_count == 0\"> ) </"
+"span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_field_widget\"> / 5 </span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_field_widget\"> / </span>"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_field_widget\">%)</span>"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_sharing_project_task_view_form
 msgid "<span class=\"o_stat_text\">Blocked Tasks</span>"
 msgstr "<span class=\"o_stat_text\">Engellenen Görevler</span>"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_stat_text\">Burndown<br/> Chart</span>"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.view_task_form2
 msgid "<span class=\"o_stat_text\">Last Rating</span>"
 msgstr "<span class=\"o_stat_text\">Son Değerlendirme</span>"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_stat_text\">Milestones</span>"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_sharing_project_task_view_form
@@ -606,40 +653,14 @@ msgid "<span class=\"o_stat_text\">Parent Task</span>"
 msgstr "<span class=\"o_stat_text\">Üst Görev</span>"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "<span class=\"o_stat_text\">Rating</span>"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.view_task_form2
 msgid "<span class=\"o_stat_text\">Sub-tasks</span>"
 msgstr "<span class=\"o_stat_text\">Alt görevler</span>"
-
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.task_type_edit
-msgid ""
-"<span colspan=\"2\" class=\"text-muted o_row ps-1\">\n"
-"                                            <i class=\"fa fa-lightbulb-o "
-"pe-2\"/>\n"
-"                                            <span "
-"name=\"rating_status_helper\">\n"
-"                                                <span "
-"invisible=\"rating_status == 'periodic'\">A rating request will be sent as "
-"soon as a task reaches this stage.</span>\n"
-"                                                <span "
-"invisible=\"rating_status == 'stage'\">Rating requests will be sent as long "
-"as the task remains in this stage.</span>\n"
-"                                            </span>\n"
-"                                        </span>"
-msgstr ""
-"<span colspan=\"2\" class=\"text-muted o_row ps-1\">\n"
-"                                            <i class=\"fa fa-lightbulb-o "
-"pe-2\"/>\n"
-"                                           <span "
-"name=\"rating_status_helper\">\n"
-"                                                <span "
-"invisible=\"rating_status == 'periodic'\">Bir görev bu aşamaya ulaşır "
-"ulaşmaz bir derecelendirme talebi gönderilecektir.</span>\n"
-"                                                <span "
-"invisible=\"rating_status == 'stage'\">Görev bu aşamada kaldığı sürece "
-"derecelendirme talepleri gönderilecektir.</span>\n"
-"                                            </span>\n"
-"                                       </span>"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_update_view_kanban
@@ -660,6 +681,12 @@ msgstr "<span>Durum</span>"
 #: model_terms:ir.ui.view,arch_db:project.view_project_kanban
 msgid "<span>View</span>"
 msgstr "<span>Görünüm</span>"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "<span>days</span>"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.portal_my_task
@@ -688,11 +715,6 @@ msgstr "<u>Kilometre Taşları</u>"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "<u>Profitability</u>"
-msgstr "<u>Karlılık</u>"
-
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
 msgid "=&gt;"
 msgstr "=&gt;"
 
@@ -713,18 +735,6 @@ msgid ""
 msgstr ""
 "Proje paylaşım erişiminde bir ortak çalışan birden fazla seçilemez. Lütfen "
 "yinelenenleri kaldırın ve tekrar deneyin."
-
-#. module: project
-#. odoo-python
-#: code:addons/project/models/project_task.py:0
-msgid "A new task has been created and is not part of any project."
-msgstr "Yeni bir görev oluşturuldu ve herhangi bir projenin parçası değil."
-
-#. module: project
-#. odoo-python
-#: code:addons/project/models/project_task.py:0
-msgid "A new task has been created in the \"%(project_name)s\" project."
-msgstr "\"%(project_name)s\" projesinde yeni bir görev oluşturuldu."
 
 #. module: project
 #. odoo-python
@@ -798,6 +808,11 @@ msgid "Activities of"
 msgstr "Faaliyetleri"
 
 #. module: project
+#: model:ir.model,name:project.model_mail_activity
+msgid "Activity"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__activity_exception_decoration
 #: model:ir.model.fields,field_description:project.field_project_task__activity_exception_decoration
 #: model:ir.model.fields,field_description:project.field_project_update__activity_exception_decoration
@@ -806,6 +821,9 @@ msgstr "Etkinlik İstisna Dekorasyonu"
 
 #. module: project
 #: model:ir.actions.act_window,name:project.mail_activity_plan_action_config_project_task_plan
+#: model:ir.model.fields,field_description:project.field_project_project__activity_plans_ids
+#: model:ir.model.fields,field_description:project.field_project_task__activity_plans_ids
+#: model:ir.model.fields,field_description:project.field_project_update__activity_plans_ids
 #: model:ir.ui.menu,name:project.mail_activity_plan_menu_config_project
 msgid "Activity Plans"
 msgstr "Aktivite Planları"
@@ -845,12 +863,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project.view_task_search_form_project_base
 msgid "Activity type"
 msgstr "Aktivite  Türü"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
-msgid "Add Milestones"
-msgstr "Kilometre Taşları Ekleme"
 
 #. module: project
 #. odoo-javascript
@@ -1085,14 +1097,20 @@ msgstr "Bu aşamaları silmek istediğinize emin misiniz?"
 #. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/components/subtask_one2many_field/subtask_list_renderer.js:0
-msgid "Are you sure you want to delete this record?"
-msgstr "Bu kaydı silmek istediğinizden emin misiniz?"
+msgid ""
+"Are you sure you want to delete this subtask? All its content will be lost."
+msgstr ""
 
 #. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/views/project_task_form/project_task_form_controller.js:0
 msgid "Are you sure you want to restore this version ?"
 msgstr "Bu sürümü geri yüklemek istediğinize emin misiniz?"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Ask for Ratings"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -1146,6 +1164,11 @@ msgstr "Atananlar"
 #: model:ir.model.fields,field_description:project.field_project_task__date_assign
 msgid "Assigning Date"
 msgstr "Atama Tarihi"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
+msgid "Assignment"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_task_burndown_chart_report__date_assign
@@ -1230,8 +1253,6 @@ msgstr ""
 "ulaştığında müşterilere otomatik olarak bir e-posta gönderin"
 
 #. module: project
-#. odoo-python
-#: code:addons/project/models/project_project.py:0
 #: model:ir.model.fields,field_description:project.field_project_project__rating_avg
 #: model:ir.model.fields,field_description:project.field_project_task__rating_avg
 msgid "Average Rating"
@@ -1287,13 +1308,6 @@ msgstr ""
 "projeleri düzenlemeniz gerekir!"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Billed"
-msgstr "Faturalanan"
-
-#. module: project
 #: model:ir.model.fields,field_description:project.field_report_project_task_user__dependent_ids
 msgid "Block"
 msgstr "Engelle"
@@ -1328,9 +1342,9 @@ msgid "Bug"
 msgstr "Bug"
 
 #. module: project
-#. odoo-python
-#: code:addons/project/models/project_project.py:0
 #: model:ir.actions.act_window,name:project.action_project_task_burndown_chart_report
+#: model:ir.embedded.actions,name:project.project_embedded_action_project_burndown_chart
+#: model:ir.embedded.actions,name:project.project_embedded_action_update_burndown_chart
 #: model:ir.model,name:project.model_project_task_burndown_chart_report
 #: model_terms:ir.ui.view,arch_db:project.project_task_burndown_chart_report_view_graph
 #: model_terms:ir.ui.view,arch_db:project.project_task_burndown_chart_report_view_search
@@ -1595,13 +1609,6 @@ msgid "Copywriting"
 msgstr "Reklam Yazarlığı"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Costs"
-msgstr "Maliyetler"
-
-#. module: project
 #: model:ir.model.fields,field_description:project.field_project_task__displayed_image_id
 msgid "Cover Image"
 msgstr "Kapak Resmi"
@@ -1685,11 +1692,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified
 msgid "Create tasks by email:"
 msgstr "E-posta ile görevler oluşturun:"
-
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
-msgid "Create tasks by sending an email to"
-msgstr "Bir e-posta göndererek görevler oluşturun"
 
 #. module: project
 #: model_terms:digest.tip,tip_description:project.digest_tip_project_1
@@ -1785,11 +1787,6 @@ msgid "Customer Portal URL"
 msgstr "Müşteri Portal URL"
 
 #. module: project
-#: model_terms:ir.ui.view,arch_db:project.task_type_edit
-msgid "Customer Rating"
-msgstr "Müşteri Memnuniyeti"
-
-#. module: project
 #: model:ir.actions.act_window,name:project.rating_rating_action_project_report
 #: model:ir.ui.menu,name:project.rating_rating_menu_project
 msgid "Customer Ratings"
@@ -1822,13 +1819,6 @@ msgstr "Müşteriler, proje ve görevlerinin takipçilerine eklenecektir."
 #: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status_period__daily
 msgid "Daily"
 msgstr "Günlük"
-
-#. module: project
-#: model:ir.actions.act_window,name:project.project_update_all_action
-#: model:ir.embedded.actions,name:project.project_embedded_action_project_updates
-#: model_terms:ir.ui.view,arch_db:project.project_view_kanban_inherit_project
-msgid "Dashboard"
-msgstr "Kontrol Paneli"
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_task_burndown_chart_report__date
@@ -1873,6 +1863,12 @@ msgstr ""
 "istatistikler elde edebilirsiniz."
 
 #. module: project
+#: model:ir.model.fields,help:project.field_project_project_stage__rotting_threshold_days
+msgid ""
+"Day count before projects in this stage become stale. Set to 0 to disable."
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,help:project.field_project_task_type__rotting_threshold_days
 msgid ""
 "Day count before tasks in this stage become stale. Set to 0 to "
@@ -1909,6 +1905,7 @@ msgid "Days to Deadline"
 msgstr "# Zaman Sınırı Günü"
 
 #. module: project
+#: model:ir.model.fields,field_description:project.field_project_project_stage__rotting_threshold_days
 #: model:ir.model.fields,field_description:project.field_project_task_type__rotting_threshold_days
 msgid "Days to rot"
 msgstr "Atıl kalmaya kalan günler"
@@ -1929,6 +1926,11 @@ msgstr "Zaman Sınırı"
 #: model_terms:ir.ui.view,arch_db:project.project_message_user_assigned
 msgid "Dear"
 msgstr "Sayın"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Default"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__alias_defaults
@@ -1965,6 +1967,8 @@ msgstr ""
 "tanımlayın."
 
 #. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/components/subtask_one2many_field/subtask_list_renderer.js:0
 #: model:ir.actions.server,name:project.unlink_project_stage_action
 #: model:ir.actions.server,name:project.unlink_task_type_action
 #: model_terms:ir.ui.view,arch_db:project.project_role_view_kanban
@@ -1989,6 +1993,12 @@ msgstr "Proje Aşamasını Sil"
 #: model_terms:ir.ui.view,arch_db:project.view_project_task_type_unarchive_wizard
 msgid "Delete Stage"
 msgstr "Aşamayı Sil"
+
+#. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/components/subtask_one2many_field/subtask_list_renderer.js:0
+msgid "Delete Subtask"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,help:project.field_project_task__milestone_id
@@ -2042,6 +2052,11 @@ msgid "Design"
 msgstr "Tasarım"
 
 #. module: project
+#: model:project.role,name:project.project_role_2
+msgid "Design Architect"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.edit_project
 msgid "Determine the order in which to perform tasks"
 msgstr "Görevlerin gerçekleştirileceği sırayı belirleyin"
@@ -2065,21 +2080,7 @@ msgstr "Dijital Pazarlama"
 
 #. module: project
 #. odoo-javascript
-#: code:addons/project/static/src/actions/client_actions.js:0
-#: code:addons/project/static/src/core/web/follower_list_patch.js:0
-#: code:addons/project/static/src/views/analytic_account_form/analytic_account_form_controller.js:0
 #: code:addons/project/static/src/views/analytic_account_list/analytic_account_list_controller.js:0
-#: model_terms:ir.ui.view,arch_db:project.portal_task_share_wizard
-#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_footer
-#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
-#: model_terms:ir.ui.view,arch_db:project.project_share_wizard_confirm_form
-#: model_terms:ir.ui.view,arch_db:project.project_share_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:project.project_task_convert_to_subtask_view_form
-#: model_terms:ir.ui.view,arch_db:project.view_project_project_stage_delete_wizard
-#: model_terms:ir.ui.view,arch_db:project.view_project_project_stage_unarchive_wizard
-#: model_terms:ir.ui.view,arch_db:project.view_project_task_type_delete_confirmation_wizard
-#: model_terms:ir.ui.view,arch_db:project.view_project_task_type_delete_wizard
-#: model_terms:ir.ui.view,arch_db:project.view_project_task_type_unarchive_wizard
 msgid "Discard"
 msgstr "Sil"
 
@@ -2087,6 +2088,7 @@ msgstr "Sil"
 #: model:ir.model.fields,field_description:project.field_account_analytic_account__display_name
 #: model:ir.model.fields,field_description:project.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:project.field_ir_ui_menu__display_name
+#: model:ir.model.fields,field_description:project.field_mail_activity__display_name
 #: model:ir.model.fields,field_description:project.field_mail_message__display_name
 #: model:ir.model.fields,field_description:project.field_portal_share__display_name
 #: model:ir.model.fields,field_description:project.field_project_collaborator__display_name
@@ -2117,12 +2119,6 @@ msgid "Display Name"
 msgstr "İsim Göster"
 
 #. module: project
-#. odoo-python
-#: code:addons/project/models/digest_digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Erişiminiz yok, kullanıcı e-mail özeti için bu veriyi atlayın"
-
-#. module: project
 #. odoo-javascript
 #. odoo-python
 #: code:addons/project/models/project_task.py:0
@@ -2142,12 +2138,6 @@ msgstr "Yapıldı"
 #: code:addons/project/static/src/views/project_task_kanban/project_task_kanban_examples.js:0
 msgid "Draft"
 msgstr "Taslak"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/views/project_task_calendar/project_task_calendar_list_to_plan/project_task_calendar_list_to_plan.xml:0
-msgid "Drag Tasks to Schedule"
-msgstr "Görevleri Takvime Sürükleyin"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.view_project_kanban
@@ -2170,12 +2160,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project.project_role_view_kanban
 msgid "Edit"
 msgstr "Düzenle"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
-msgid "Edit Milestones"
-msgstr "Kilometre Taşlarını Düzenle"
 
 #. module: project
 #: model:ir.model.fields.selection,name:project.selection__project_share_collaborator_wizard__access_mode__edit_limited
@@ -2208,8 +2192,12 @@ msgid "Editing"
 msgstr "Düzenleme"
 
 #. module: project
+#: model:project.role,name:project.project_role_5
+msgid "Electrician"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__alias_email
-#: model_terms:ir.ui.view,arch_db:project.edit_project
 msgid "Email Alias"
 msgstr "E-Posta Rumuzu"
 
@@ -2223,21 +2211,6 @@ msgstr "Tarafından E-mail"
 #: model:ir.model.fields,field_description:project.field_project_task_type__mail_template_id
 msgid "Email Template"
 msgstr "E-posta Şablonu"
-
-#. module: project
-#: model:ir.model.fields,help:project.field_project_task__email_cc
-msgid ""
-"Email addresses that were in the CC of the incoming emails from this task "
-"and that are not currently linked to an existing customer."
-msgstr ""
-"Bu görevden gelen e-postaların CC'sinde bulunan ve şu anda mevcut bir "
-"müşteriyle bağlantılı olmayan e-posta adresleri."
-
-#. module: project
-#: model:ir.model.fields,field_description:project.field_project_task__email_cc
-#: model:ir.model.fields,field_description:project.field_project_update__email_cc
-msgid "Email cc"
-msgstr "E-posta cc"
 
 #. module: project
 #: model:ir.model.fields,help:project.field_project_project__alias_domain
@@ -2273,13 +2246,6 @@ msgstr "Hata! Yinelemeli görevler hiyerarşisi oluşturamazsınız."
 #: code:addons/project/static/src/xml/project_task_kanban_examples.xml:0
 msgid "Everyone can propose ideas, and the Editor marks the best ones as"
 msgstr "Herkes fikir önerebilir ve Editör en iyilerini şu şekilde işaretler:"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Expected"
-msgstr "Beklenen"
 
 #. module: project
 #: model:project.tags,name:project.project_tags_02
@@ -2325,6 +2291,12 @@ msgid "Finance"
 msgstr "Finans"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Fold by Default"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,field_description:project.field_project_project_stage__fold
 #: model:ir.model.fields,field_description:project.field_project_task_type__fold
 msgid "Folded"
@@ -2337,12 +2309,12 @@ msgid "Follow"
 msgstr "Takip Et"
 
 #. module: project
-#: model_terms:ir.ui.view,arch_db:project.portal_my_home
-msgid "Follow and comment on tasks in your projects"
-msgstr "Proje Yönetiminizdeki görevleri takip edin ve yorum yapın"
+#: model:portal.entry,description:project.portal_tasks
+msgid "Follow and comments tasks of your projects"
+msgstr ""
 
 #. module: project
-#: model_terms:ir.ui.view,arch_db:project.portal_my_home
+#: model:portal.entry,description:project.portal_projects
 msgid "Follow the evolution of your projects"
 msgstr "Projelerinizin ilerlemesini takip edin"
 
@@ -2386,6 +2358,11 @@ msgstr "Gelecek"
 #: model_terms:ir.ui.view,arch_db:project.view_task_search_form
 msgid "Future Activities"
 msgstr "Sonraki Aktiviteler"
+
+#. module: project
+#: model:project.role,name:project.project_role_6
+msgid "Gas Technician"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.actions.act_window,help:project.project_update_all_action
@@ -2533,6 +2510,7 @@ msgstr "Bu proje nasıl gidiyor?"
 #: model:ir.model.fields,field_description:project.field_account_analytic_account__id
 #: model:ir.model.fields,field_description:project.field_digest_digest__id
 #: model:ir.model.fields,field_description:project.field_ir_ui_menu__id
+#: model:ir.model.fields,field_description:project.field_mail_activity__id
 #: model:ir.model.fields,field_description:project.field_mail_message__id
 #: model:ir.model.fields,field_description:project.field_portal_share__id
 #: model:ir.model.fields,field_description:project.field_project_collaborator__id
@@ -2622,19 +2600,6 @@ msgstr ""
 "proje yönetimi kapalı olarak kabul edilir."
 
 #. module: project
-#: model:ir.model.fields,help:project.field_project_task_type__rating_template_id
-msgid ""
-"If set, a rating request will automatically be sent by email to the customer "
-"when the task reaches this stage. \n"
-"Alternatively, it will be sent at a regular interval as long as the task "
-"remains in this stage."
-msgstr ""
-"Ayarlanırsa, görev bu aşamaya ulaştığında müşteriye otomatik olarak e-posta "
-"ile bir değerlendirme talebi gönderilir. \n"
-"Alternatif olarak, görev bu aşamada kaldığı sürece düzenli aralıklarla "
-"gönderilecektir."
-
-#. module: project
 #: model:ir.model.fields,help:project.field_project_project_stage__mail_template_id
 msgid ""
 "If set, an email will be automatically sent to the customer when the project "
@@ -2678,6 +2643,12 @@ msgstr "Görevler için Şablonu İçe Aktar"
 #: model:project.task.type,name:project.project_stage_1
 msgid "In Progress"
 msgstr "İşlemde"
+
+#. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/webclient/share_target/project_share_target_item.xml:0
+msgid "In Project"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -2729,13 +2700,6 @@ msgstr "Davet edilen iç ve portal kullanıcıları"
 #: model:ir.model.fields.selection,name:project.selection__project_project__privacy_visibility__followers
 msgid "Invited internal users"
 msgstr "Davet edilen iç kullanıcılar"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Invoiced"
-msgstr "Faturalanan"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_task_burndown_chart_report_view_search
@@ -2802,6 +2766,11 @@ msgstr ""
 "işbirliği yapın."
 
 #. module: project
+#: model:project.project,name:project.project_template_2
+msgid "Kitchen Assembly"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.view_task_search_form_base
 msgid "Last 30 Days"
 msgstr "Son 30 Gün"
@@ -2824,6 +2793,7 @@ msgstr "Son Derecelendirme (1-5)"
 #. module: project
 #. odoo-python
 #: code:addons/project/controllers/portal.py:0
+#: model:ir.model.fields,field_description:project.field_project_project__date_last_stage_update
 #: model:ir.model.fields,field_description:project.field_project_task__date_last_stage_update
 #: model:ir.model.fields,field_description:project.field_project_task_burndown_chart_report__date_last_stage_update
 #: model:ir.model.fields,field_description:project.field_report_project_task_user__date_last_stage_update
@@ -2960,15 +2930,14 @@ msgid "Live"
 msgstr "Canlı"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/views/project_task_calendar/project_task_calendar_list_to_plan/project_task_calendar_list_to_plan.xml:0
-msgid "Load More"
-msgstr "Daha Fazla Yükle"
-
-#. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__alias_incoming_local
 msgid "Local-part based incoming detection"
 msgstr "Yerel bölüm bazlı gelen algılama"
+
+#. module: project
+#: model:project.role,name:project.project_role_3
+msgid "Logistics Staff"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -3006,23 +2975,16 @@ msgid "Manufacturing"
 msgstr "Üretim"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "Map"
+msgstr ""
+
+#. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/components/done_checkmark/task_done_checkmark.xml:0
 #: code:addons/project/static/src/components/project_task_state_selection/project_task_state_selection.xml:0
 msgid "Mark as done"
 msgstr "Yapıldı olarak işaretle"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_milestone.xml:0
-msgid "Mark as incomplete"
-msgstr "'Tamamlanmadı' olarak işaretle"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_milestone.xml:0
-msgid "Mark as reached"
-msgstr "'Ulaşıldı' olarak işaretle"
 
 #. module: project
 #. odoo-javascript
@@ -3094,9 +3056,6 @@ msgid "Milestone"
 msgstr "Dönüm Noktası"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.js:0
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
 #: model:ir.actions.act_window,name:project.project_milestone_action
 #: model:ir.embedded.actions,name:project.project_embedded_action_project_milestones
 #: model:ir.embedded.actions,name:project.project_embedded_action_update_milestones
@@ -3164,10 +3123,8 @@ msgstr "Güncellemelerim"
 #: code:addons/project/controllers/portal.py:0
 #: model:ir.model.fields,field_description:project.field_project_milestone__name
 #: model:ir.model.fields,field_description:project.field_project_project__name
-#: model:ir.model.fields,field_description:project.field_project_project_stage__name
 #: model:ir.model.fields,field_description:project.field_project_role__name
 #: model:ir.model.fields,field_description:project.field_project_tags__name
-#: model:ir.model.fields,field_description:project.field_project_task_type__name
 #: model:ir.model.fields,field_description:project.field_project_template_create_wizard__name
 #: model_terms:ir.ui.view,arch_db:project.portal_tasks_list
 #: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified
@@ -3178,8 +3135,8 @@ msgstr "Adı"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.edit_project
-msgid "Name of the Tasks"
-msgstr "Görevlerin Adı"
+msgid "Name of Tasks"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,help:project.field_project_project__label_tasks
@@ -3297,6 +3254,11 @@ msgstr "Kilometre Taşı Yok"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.portal_tasks_list
+msgid "No Parent Task"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.portal_tasks_list
 msgid "No Project"
 msgstr "Proje Yok"
 
@@ -3322,6 +3284,12 @@ msgstr "Henüz müşteri derecelendirmesi yok"
 #: model_terms:ir.actions.act_window,help:project.action_project_task_user_tree
 msgid "No data yet!"
 msgstr "Henüz veri yok!"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "No email"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.actions.act_window,help:project.project_milestone_action
@@ -3455,6 +3423,11 @@ msgid "On Track"
 msgstr "İzleme Açık"
 
 #. module: project
+#: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status__periodic
+msgid "On a periodic basis"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status_period__monthly
 msgid "Once a Month"
 msgstr "Ayda Bir Kez"
@@ -3529,6 +3502,11 @@ msgid "Overpassed Tasks"
 msgstr "Aşan Görevler"
 
 #. module: project
+#: model:ir.embedded.actions,name:project.project_embedded_action_project_overview
+msgid "Overview"
+msgstr ""
+
+#. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/views/project_task_kanban/project_task_kanban_examples.js:0
 msgid "Page Ideas"
@@ -3546,6 +3524,7 @@ msgstr "Üst kayıt iş parçacığı kimliği"
 
 #. module: project
 #. odoo-python
+#: code:addons/project/controllers/portal.py:0
 #: code:addons/project/models/project_task.py:0
 #: model:ir.model.fields,field_description:project.field_project_task__parent_id
 #: model:ir.model.fields,field_description:project.field_report_project_task_user__parent_id
@@ -3617,6 +3596,11 @@ msgstr "Kişisel Görev Aşaması"
 #: model_terms:ir.ui.view,arch_db:project.view_project
 msgid "Planned Date"
 msgstr "Planlanan Tarih"
+
+#. module: project
+#: model:project.role,name:project.project_role_8
+msgid "Plumber"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -3710,13 +3694,6 @@ msgid "Product Launch Campaign"
 msgstr "Ürün Lansman Kampanyası"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.js:0
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
-msgid "Profitability"
-msgstr "Karlılık"
-
-#. module: project
 #: model:ir.model.fields,field_description:project.field_project_update__progress
 #: model_terms:ir.ui.view,arch_db:project.project_update_view_tree
 msgid "Progress"
@@ -3756,6 +3733,7 @@ msgstr "Proje Hesabı"
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__user_id
+#: model:project.role,name:project.project_role_1
 #: model_terms:ir.ui.view,arch_db:project.edit_project
 #: model_terms:ir.ui.view,arch_db:project.view_project
 #: model_terms:ir.ui.view,arch_db:project.view_project_project_filter
@@ -3772,6 +3750,12 @@ msgstr "Proje Dönüm Noktası"
 #: model_terms:ir.ui.view,arch_db:project.project_view_kanban
 msgid "Project Name"
 msgstr "Proje Adı"
+
+#. module: project
+#. odoo-python
+#: code:addons/project/models/project_project.py:0
+msgid "Project Overview"
+msgstr ""
 
 #. module: project
 #: model:ir.model,name:project.model_project_role
@@ -3836,8 +3820,8 @@ msgstr "Proje Aşamaları"
 
 #. module: project
 #: model:ir.model,name:project.model_project_tags
-msgid "Project Tags"
-msgstr "Proje Etiketleri"
+msgid "Project Tag"
+msgstr ""
 
 #. module: project
 #: model:ir.model,name:project.model_project_task_type_delete_wizard
@@ -3959,6 +3943,12 @@ msgid "Project status - {{ object.name }}"
 msgstr "Proje durumu - {{ object.name }}"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
+msgid "Project's Email"
+msgstr ""
+
+#. module: project
 #: model:ir.actions.act_window,name:project.dblc_proj
 msgid "Project's tasks"
 msgstr "Proje görevleri"
@@ -4002,9 +3992,9 @@ msgstr "Proje: Görev Derecelendirme Talebi"
 #: model:ir.ui.menu,name:project.menu_projects_config
 #: model:ir.ui.menu,name:project.menu_projects_config_group_stage
 #: model:ir.ui.menu,name:project.menu_projects_group_stage
+#: model:portal.entry,name:project.portal_projects
 #: model_terms:ir.ui.view,arch_db:project.account_analytic_account_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:project.portal_layout
-#: model_terms:ir.ui.view,arch_db:project.portal_my_home
 #: model_terms:ir.ui.view,arch_db:project.portal_my_projects
 #: model_terms:ir.ui.view,arch_db:project.task_type_search
 #: model_terms:ir.ui.view,arch_db:project.view_project
@@ -4056,6 +4046,11 @@ msgid "Publishing"
 msgstr "Yayıncılık"
 
 #. module: project
+#: model:project.role,name:project.project_role_9
+msgid "Quality & Safety Officer"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status_period__quarterly
 msgid "Quarterly"
 msgstr "Üç Aylık"
@@ -4094,6 +4089,11 @@ msgid "Rating Avg Text"
 msgstr "Değerlendirme Ort Metni"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Rating Email"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,field_description:project.field_project_task_type__rating_template_id
 msgid "Rating Email Template"
 msgstr "Değerlendirme E-posta Şablonu"
@@ -4117,6 +4117,11 @@ msgstr "Son Resmin Değerlendirmesi"
 #: model:ir.model.fields,field_description:project.field_project_task__rating_last_value
 msgid "Rating Last Value"
 msgstr "Değerlendirme Son Değer"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Rating Periodicity"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__rating_percentage_satisfaction
@@ -4332,16 +4337,14 @@ msgstr ""
 
 #. module: project
 #. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Revenues"
-msgstr "Gelirler"
-
-#. module: project
-#. odoo-javascript
 #: code:addons/project/static/src/actions/client_actions.js:0
 msgid "Revert to Project"
 msgstr "Proje Yönetimi'ne Geri Dön"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
+msgid "Role"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_template_create_wizard__role_to_users_ids
@@ -4351,9 +4354,16 @@ msgstr "Kullanıcılara Rol Tanımla"
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_project__is_rotting
 #: model:ir.model.fields,field_description:project.field_project_task__is_rotting
+#: model_terms:ir.ui.view,arch_db:project.view_project_project_filter
 #: model_terms:ir.ui.view,arch_db:project.view_task_search_form
 msgid "Rotting"
 msgstr "Atıl Kalma"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Rotting in"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -4429,6 +4439,12 @@ msgstr "Milestone'da ara"
 #. module: project
 #. odoo-python
 #: code:addons/project/controllers/portal.py:0
+msgid "Search in Parent Task"
+msgstr ""
+
+#. module: project
+#. odoo-python
+#: code:addons/project/controllers/portal.py:0
 msgid "Search in Priority"
 msgstr "Öncelikli Ara"
 
@@ -4461,6 +4477,21 @@ msgstr "%(left)s Görev Ara%(right)s"
 #: model:ir.model.fields,field_description:project.field_project_task__access_token
 msgid "Security Token"
 msgstr "Güvenlik Token"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.view_task_kanban
+msgid "See Parent Task"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "Select Customer"
+msgstr ""
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.edit_project
+msgid "Select Tags"
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -4543,7 +4574,7 @@ msgstr "Ayarlar"
 #. odoo-python
 #: code:addons/project/models/project_project.py:0
 #: model:ir.actions.act_window,name:project.project_share_wizard_action
-#: model_terms:ir.ui.view,arch_db:project.edit_project
+#: model:ir.actions.server,name:project.action_server_share_project
 #: model_terms:ir.ui.view,arch_db:project.project_share_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:project.view_project_kanban
 msgid "Share Project"
@@ -4554,6 +4585,12 @@ msgstr "Projeyi Paylaş"
 #: model_terms:ir.ui.view,arch_db:project.view_task_kanban
 msgid "Share Task"
 msgstr "Görevi Paylaş"
+
+#. module: project
+#. odoo-python
+#: code:addons/project/models/project_project.py:0
+msgid "Sharing is not available for this project visibility setting."
+msgstr ""
 
 #. module: project
 #. odoo-javascript
@@ -4584,6 +4621,11 @@ msgstr "Alt görevleri göster"
 #: code:addons/project/static/src/views/project_task_control_panel/project_task_control_panel.js:0
 msgid "Show sub-tasks & top menu"
 msgstr "Alt görevleri ve üst menüyü göster"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+msgid "Show to all companies"
+msgstr ""
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_update_default_description
@@ -4689,6 +4731,12 @@ msgid "Stage Changed"
 msgstr "Aşama Değişti"
 
 #. module: project
+#: model:ir.model.fields,field_description:project.field_project_project_stage__name
+#: model:ir.model.fields,field_description:project.field_project_task_type__name
+msgid "Stage Name"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,field_description:project.field_project_task_type__user_id
 msgid "Stage Owner"
 msgstr "Aşama Sahibi"
@@ -4730,10 +4778,8 @@ msgid "State readonly"
 msgstr "Durum salt okunur"
 
 #. module: project
-#. odoo-javascript
 #. odoo-python
 #: code:addons/project/controllers/portal.py:0
-#: code:addons/project/static/src/components/project_status_with_color_selection/project_status_with_color_selection_field.xml:0
 #: model_terms:ir.ui.view,arch_db:project.view_project
 #: model_terms:ir.ui.view,arch_db:project.view_project_calendar
 #: model_terms:ir.ui.view,arch_db:project.view_project_project_filter
@@ -4793,6 +4839,11 @@ msgid "Summary"
 msgstr "Özet"
 
 #. module: project
+#: model:project.role,name:project.project_role_7
+msgid "Surface Installer"
+msgstr ""
+
+#. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/views/project_task_kanban/project_task_kanban_examples.js:0
 msgid "T-shirt Printing"
@@ -4813,6 +4864,8 @@ msgid "Tags"
 msgstr "Etiketler"
 
 #. module: project
+#. odoo-javascript
+#: code:addons/project/static/src/webclient/share_target/project_share_target_item.js:0
 #: model:ir.model,name:project.model_project_task
 #: model:ir.model.fields,field_description:project.field_project_task_recurrence__task_ids
 #: model:ir.model.fields,field_description:project.field_report_project_task_user__task_id
@@ -4990,28 +5043,22 @@ msgid "Task:"
 msgstr "Görev:"
 
 #. module: project
-#: model_terms:ir.ui.view,arch_db:project.task_type_edit
-msgid "Task: Rating Request"
-msgstr "Görev: Derecelendirme Talebi"
-
-#. module: project
-#. odoo-javascript
 #. odoo-python
 #: code:addons/project/models/project_project.py:0
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
 #: model:ir.actions.act_window,name:project.act_project_project_2_project_task_all
 #: model:ir.actions.act_window,name:project.action_view_task
 #: model:ir.actions.act_window,name:project.action_view_task_from_milestone
 #: model:ir.embedded.actions,name:project.project_embedded_action_all_tasks_dashboard
 #: model:ir.ui.menu,name:project.menu_project_management
+#: model:portal.entry,name:project.portal_tasks
 #: model:project.project,label_tasks:project.project_home_construction
 #: model:project.project,label_tasks:project.project_project_1
 #: model:project.project,label_tasks:project.project_project_2
 #: model:project.project,label_tasks:project.project_project_3
 #: model:project.project,label_tasks:project.project_project_4
 #: model:project.project,label_tasks:project.project_template_1
+#: model:project.project,label_tasks:project.project_template_2
 #: model_terms:ir.ui.view,arch_db:project.portal_layout
-#: model_terms:ir.ui.view,arch_db:project.portal_my_home
 #: model_terms:ir.ui.view,arch_db:project.portal_my_project
 #: model_terms:ir.ui.view,arch_db:project.portal_my_tasks
 #: model_terms:ir.ui.view,arch_db:project.project_task_view_tree_main_base
@@ -5054,9 +5101,10 @@ msgid "Tasks in Recurrence"
 msgstr "Yinelemedeki Görevler"
 
 #. module: project
-#: model:ir.actions.act_window,name:project.project_milestone_action_view_tasks
-msgid "Tasks.test"
-msgstr "Görevler.test"
+#: model:ir.model.fields,field_description:project.field_project_role__user_ids
+#: model_terms:ir.ui.view,arch_db:project.project_role_view_search
+msgid "Team Members"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_template_create_wizard__template_id
@@ -5313,6 +5361,18 @@ msgstr ""
 
 #. module: project
 #. odoo-python
+#: code:addons/project/models/project_task.py:0
+msgid "This new task has been created in the \"%(project_name)s\" project."
+msgstr ""
+
+#. module: project
+#. odoo-python
+#: code:addons/project/models/project_task.py:0
+msgid "This new task is not part of any project."
+msgstr ""
+
+#. module: project
+#. odoo-python
 #: code:addons/project/models/project_project.py:0
 msgid ""
 "This project is associated with %(project_company)s, whereas the selected "
@@ -5439,23 +5499,9 @@ msgid "Title"
 msgstr "Başlık"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "To Bill"
-msgstr "Faturalanacak"
-
-#. module: project
 #: model:project.project.stage,name:project.project_project_stage_0
 msgid "To Do"
 msgstr "Yapılacak"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "To Invoice"
-msgstr "Faturalanacak"
 
 #. module: project
 #. odoo-javascript
@@ -5519,27 +5565,6 @@ msgid "Top Menu"
 msgstr "Üst Menü"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Total"
-msgstr "Toplam"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Total Costs"
-msgstr "Toplam Maliyet"
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/components/project_profitability.xml:0
-#: model_terms:ir.ui.view,arch_db:project.project_update_default_description
-msgid "Total Revenues"
-msgstr "Toplam Gelirler"
-
-#. module: project
 #: model_terms:ir.ui.view,arch_db:project.edit_project
 msgid "Track major progress points that must be reached to achieve success"
 msgstr ""
@@ -5547,23 +5572,11 @@ msgstr ""
 "edin"
 
 #. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
 #: model_terms:ir.actions.act_window,help:project.project_milestone_action
 msgid "Track major progress points that must be reached to achieve success."
 msgstr ""
 "Başarıya ulaşmak için ulaşılması gereken önemli ilerleme noktalarını takip "
 "edin."
-
-#. module: project
-#. odoo-javascript
-#: code:addons/project/static/src/components/project_right_side_panel/project_right_side_panel.xml:0
-msgid ""
-"Track project costs, revenues, and margin by setting the analytic account "
-"associated with the project on relevant documents."
-msgstr ""
-"Proje ile ilişkili analitik hesabı ilgili belgelere atayarak proje "
-"maliyetlerini, gelirlerini ve kar marjını takip edin."
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.res_config_settings_view_form
@@ -5622,6 +5635,11 @@ msgid "Unassigned"
 msgstr "Atanmamış"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_view_form_simplified_template
+msgid "Undefined"
+msgstr ""
+
+#. module: project
 #. odoo-javascript
 #: code:addons/project/static/src/actions/client_actions.js:0
 msgid "Undo"
@@ -5664,6 +5682,18 @@ msgstr "Bitiş"
 #: model:mail.message.subtype,name:project.mt_update_create
 msgid "Update Created"
 msgstr "Güncelleme Oluşturuldu"
+
+#. module: project
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "Update Stage"
+msgstr ""
+
+#. module: project
+#: model:ir.actions.act_window,name:project.project_update_all_action
+#: model:ir.embedded.actions,name:project.project_embedded_action_project_updates
+#: model_terms:ir.ui.view,arch_db:project.project_view_kanban_inherit_project
+msgid "Updates"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields.selection,name:project.selection__project_task__priority__3
@@ -5808,7 +5838,6 @@ msgstr "Görünürlük"
 
 #. module: project
 #: model_terms:ir.ui.view,arch_db:project.edit_project
-#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
 #: model_terms:ir.ui.view,arch_db:project.view_task_form2
 #: model_terms:ir.ui.view,arch_db:project.view_task_search_form_project_fsm_base
 msgid "Visible to all"
@@ -5865,6 +5894,11 @@ msgid "Weeks"
 msgstr "Hafta"
 
 #. module: project
+#: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status__stage
+msgid "When reaching this stage"
+msgstr ""
+
+#. module: project
 #: model:ir.model.fields,help:project.field_project_task__role_ids
 msgid ""
 "When you create a project from a template, you can choose which employee "
@@ -5879,6 +5913,11 @@ msgstr ""
 #: model:project.tags,name:project.project_tags_14
 msgid "Work"
 msgstr "İş"
+
+#. module: project
+#: model:project.role,name:project.project_role_4
+msgid "Worker"
+msgstr ""
 
 #. module: project
 #: model:ir.model.fields,field_description:project.field_project_task__working_days_open
@@ -6144,6 +6183,12 @@ msgid "e.g. Product Launch"
 msgstr "Örneğin. Ürün lansmanı"
 
 #. module: project
+#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
+#: model_terms:ir.ui.view,arch_db:project.task_type_edit
+msgid "e.g. Qualification"
+msgstr ""
+
+#. module: project
 #: model_terms:ir.ui.view,arch_db:project.project_sharing_quick_create_task_form
 #: model_terms:ir.ui.view,arch_db:project.quick_create_task_form
 msgid "e.g. Send Invitations"
@@ -6155,10 +6200,8 @@ msgid "e.g. Tasks"
 msgstr "örn. Görevler"
 
 #. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form
 #: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_form_quick_create
 #: model_terms:ir.ui.view,arch_db:project.project_project_stage_view_tree
-#: model_terms:ir.ui.view,arch_db:project.task_type_edit
 #: model_terms:ir.ui.view,arch_db:project.task_type_tree
 msgid "e.g. To Do"
 msgstr "örn. Yapılacak"
@@ -6202,11 +6245,6 @@ msgstr ""
 #: code:addons/project/static/src/xml/project_task_kanban_examples.xml:0
 msgid "icon."
 msgstr "simge."
-
-#. module: project
-#: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status__periodic
-msgid "on a periodic basis"
-msgstr "belirli aralıklarla"
 
 #. module: project
 #: model_terms:digest.tip,tip_description:project.digest_tip_project_1
@@ -6293,11 +6331,6 @@ msgid "to signalize what is the current status of your Idea."
 msgstr "Fikrinizin mevcut durumunun ne olduğunu belirtmek için."
 
 #. module: project
-#: model:ir.model.fields.selection,name:project.selection__project_task_type__rating_status__stage
-msgid "when reaching this stage"
-msgstr "bu aşamaya ulaşıldığında"
-
-#. module: project
 #: model_terms:digest.tip,tip_description:project.digest_tip_project_1
 msgid "will generate tasks in your"
 msgstr "içinde görevler üretecek"
@@ -6334,866 +6367,3 @@ msgstr "🔒 Özel"
 
 #~ msgid "User can user the your employees' schedule"
 #~ msgstr "Kullanıcı, çalışanlarınızın programını kullanabilir"
-
-#~ msgid ""
-#~ "\n"
-#~ "                <p class=\"o_view_nocontent_smiling_face\">\n"
-#~ "                    No milestones found. Let's create one!\n"
-#~ "                </p><p>\n"
-#~ "                    Track major progress points that must be reached to "
-#~ "achieve success.\n"
-#~ "                </p>\n"
-#~ "            "
-#~ msgstr ""
-#~ "\n"
-#~ "                <p class=\"o_view_nocontent_smiling_face\">\n"
-#~ "                    Hiçbir kilometre taşı bulunamadı!\n"
-#~ "                </p><p>\n"
-#~ "                   Başarıya ulaşmak için ulaşılması gereken önemli "
-#~ "ilerleme noktalarını izleyin.\n"
-#~ "                </p>\n"
-#~ "            "
-
-#~ msgid " - Tasks by Deadline"
-#~ msgstr " - Zaman Sınırına göre Görevler"
-
-#~ msgid "# Collaborators"
-#~ msgstr "# Ortak çalışanlar"
-
-#~ msgid "# Tasks"
-#~ msgstr "Görev #"
-
-#~ msgid ""
-#~ "#{record.milestone_count_reached.value} Milestones reached out of "
-#~ "#{record.milestone_count.value}"
-#~ msgstr ""
-#~ "#{record.milestone_count_reached.value} Milestones reached out of "
-#~ "#{record.milestone_count.value}"
-
-#~ msgid "%(name)s"
-#~ msgstr "%(name)s"
-
-#~ msgid "%(name)s's Timesheets"
-#~ msgstr "%(name)s' Zaman Çizelgeleri"
-
-#~ msgid "%(name)s's Updates"
-#~ msgstr "%(name)s' Güncellemeler"
-
-#~ msgid ""
-#~ ".\n"
-#~ "      Attach all documents or links to the task directly, to have all "
-#~ "research information centralized."
-#~ msgstr ""
-#~ ".\n"
-#~ "      Tüm araştırma bilgilerinin merkezileştirilmesi için tüm belgeleri "
-#~ "veya bağlantıları doğrudan göreve ekleyin."
-
-#~ msgid ""
-#~ "<b>Log notes</b> for internal communications <i>(the people following "
-#~ "this task won't be notified \n"
-#~ "    of the note you are logging unless you specifically tag them)</i>. "
-#~ "Use @ <b>mentions</b> to ping a colleague \n"
-#~ "    or # <b>mentions</b> to reach an entire team."
-#~ msgstr ""
-#~ "Dahili iletişim için <b>iç notları</b> <i>(bu görevi takip eden kişiler, "
-#~ "siz onları özellikle etiketlemedikçe, kaydettiğiniz not hakkında "
-#~ "bilgilendirilmeyecektir)</i>. Bir iş arkadaşınıza ping atmak için @ "
-#~ "<b>mentions</b> veya tüm bir ekibe ulaşmak için # <b>mentions</b> "
-#~ "kullanın."
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw o_button_icon fa-smile-o text-success\" "
-#~ "attrs=\"{'invisible': [('rating_avg', '&lt;', 3.66)]}\" "
-#~ "title=\"Satisfied\"/>\n"
-#~ "                            <i class=\"fa fa-fw o_button_icon fa-meh-o "
-#~ "text-warning\" attrs=\"{'invisible': ['|', ('rating_avg', '&lt;', 2.33), "
-#~ "('rating_avg', '&gt;=', 3.66)]}\" title=\"Okay\"/>\n"
-#~ "                            <i class=\"fa fa-fw o_button_icon fa-frown-o "
-#~ "text-danger\" attrs=\"{'invisible': [('rating_avg', '&gt;=', 2.33)]}\" "
-#~ "title=\"Dissatisfied\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw o_button_icon fa-smile-o text-success\" "
-#~ "attrs=\"{'invisible': [('rating_avg', '&lt;', 3.66)]}\" "
-#~ "title=\"Satisfied\"/>\n"
-#~ "                            <i class=\"fa fa-fw o_button_icon fa-meh-o "
-#~ "text-warning\" attrs=\"{'invisible': ['|', ('rating_avg', '&lt;', 2.33), "
-#~ "('rating_avg', '&gt;=', 3.66)]}\" title=\"Okay\"/>\n"
-#~ "                            <i class=\"fa fa-fw o_button_icon fa-frown-o "
-#~ "text-danger\" attrs=\"{'invisible': [('rating_avg', '&gt;=', 2.33)]}\" "
-#~ "title=\"Dissatisfied\"/>"
-
-#~ msgid "<i class=\"fa fa-lightbulb-o\"/>&amp;nbsp;"
-#~ msgstr "<i class=\"fa fa-lightbulb-o\"/>&amp;nbsp;"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-warning\" title=\"Customer disabled on projects\"/><b> "
-#~ "Customer Ratings</b> are disabled on the following project(s) : <br/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-warning\" title=\"Customer disabled on projects\"/"
-#~ ">Aşağıdaki proje(ler)de <b>Müşteri Puanları</b> devre dışı bırakıldı: <br/"
-#~ ">"
-
-#~ msgid "<i class=\"fa fa-warning\"/>&amp;nbsp;"
-#~ msgstr "<i class=\"fa fa-warning\"/>&amp;nbsp;"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                                    Collaborators\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                                    Ortak çalışanlar\n"
-#~ "                                </span>"
-
-#~ msgid "<span class=\"o_stat_text\">Blocking</span>"
-#~ msgstr "<span class=\"o_stat_text\">Engelleme</span>"
-
-#~ msgid "<strong class=\"d-block mb-2\">Attachments</strong>"
-#~ msgstr "<strong class=\"d-block mb-2\">Ekler</strong>"
-
-#~ msgid "<strong>Assignees</strong>"
-#~ msgstr "<strong>Atananlar</strong>"
-
-#~ msgid "<strong>Customer</strong>"
-#~ msgstr "<strong>Müşteri</strong>"
-
-#~ msgid "<strong>Description</strong>"
-#~ msgstr "<strong>Açıklama:</strong>"
-
-#~ msgid "<strong>Message and communication history</strong>"
-#~ msgstr "<strong>Mesajlar ve iletişim geçmişi</strong>"
-
-#~ msgid "Access Instruction Message"
-#~ msgstr "Erişim Talimatı Mesajı"
-
-#~ msgid "Add Milestone"
-#~ msgstr "Kilometre Taşı Ekle"
-
-#~ msgid "Add a note"
-#~ msgstr "Bir Not Ekle"
-
-#~ msgid "Add contacts to share the project..."
-#~ msgstr "Projeyi paylaşmak için kişileri ekleyin..."
-
-#~ msgid "Alias domain"
-#~ msgstr "Rumuz alan adı"
-
-#~ msgid "Alias email"
-#~ msgstr "Alias email"
-
-#~ msgid "Allocated Hours"
-#~ msgstr "Tahsis Edilen Saatler"
-
-#~ msgid "Allow Customer Ratings"
-#~ msgstr "Müşteri Puanlarına İzin Ver"
-
-#~ msgid ""
-#~ "Analytic account to which this project, its tasks and its timesheets are "
-#~ "linked. \n"
-#~ "Track the costs and revenues of your project by setting this analytic "
-#~ "account on your related documents (e.g. sales orders, invoices, purchase "
-#~ "orders, vendor bills, expenses etc.).\n"
-#~ "This analytic account can be changed on each task individually if "
-#~ "necessary.\n"
-#~ "An analytic account is required in order to use timesheets."
-#~ msgstr ""
-#~ "Bu projenin, görevlerinin ve zaman çizelgelerinin bağlı olduğu analitik "
-#~ "hesap. İlgili belgelerinizde (örn. satış siparişleri, faturalar, "
-#~ "satınalma siparişleri, satıcı faturaları, giderler vb.) bu analitik "
-#~ "hesabı ayarlayarak projenizin maliyetlerini ve gelirlerini izleyin.\n"
-#~ "Bu analitik hesap, gerekirse her görevde ayrı ayrı değiştirilebilir. "
-#~ "Zaman çizelgelerini kullanmak için bir analitik hesap gereklidir."
-
-#~ msgid ""
-#~ "Analytic account to which this task and its timesheets are linked.\n"
-#~ "Track the costs and revenues of your task by setting its analytic account "
-#~ "on your related documents (e.g. sales orders, invoices, purchase orders, "
-#~ "vendor bills, expenses etc.).\n"
-#~ "By default, the analytic account of the project is set. However, it can "
-#~ "be changed on each task individually if necessary."
-#~ msgstr ""
-#~ "Bu görevin ve zaman çizelgelerinin bağlı olduğu analitik hesap.\n"
-#~ "Analitik hesabını ilgili belgelerinizde (ör. satış siparişleri, "
-#~ "faturalar, satın alma siparişleri, satıcı faturaları, giderler vb.) "
-#~ "belirleyerek görevinizin maliyetlerini ve gelirlerini izleyin.\n"
-#~ "Varsayılan olarak, projenin analitik hesabı ayarlanmıştır. Ancak, "
-#~ "gerekirse her görevde ayrı ayrı değiştirilebilir."
-
-#~ msgid "Analytics"
-#~ msgstr "Analitikler"
-
-#~ msgid "Arrow"
-#~ msgstr "Ok"
-
-#~ msgid "Arrow icon"
-#~ msgstr "ok simgesi"
-
-#~ msgid "Assign each new project to this plan"
-#~ msgstr "Her yeni projeyi bu plana atayın"
-
-#~ msgid "Assigned"
-#~ msgstr "Atanmış"
-
-#~ msgid "Assigned On: %s"
-#~ msgstr "Atanma Tarihi: %s"
-
-#~ msgid "Assigned Tasks"
-#~ msgstr "Atanmış Görevler"
-
-#~ msgid "Attachments that don't come from a message."
-#~ msgstr "Mesajdan gelmeyen ek."
-
-#~ msgid "Avatar"
-#~ msgstr "Avatar"
-
-#~ msgid "Average Rating: Dissatisfied"
-#~ msgstr "Ortalama Puan: Memnun Değil"
-
-#~ msgid "Average Rating: Okay"
-#~ msgstr "Ortalama Puan: Uygun"
-
-#~ msgid "Average Rating: Satisfied"
-#~ msgstr "Ortalama Puan: Memnun"
-
-#~ msgid "Blocked"
-#~ msgstr "Engellendi"
-
-#~ msgid "Can Be Marked As Done"
-#~ msgstr "Tamamlandı Olarak İşaretlenebilir"
-
-#~ msgid "Canceled"
-#~ msgstr "İptal Edildi"
-
-#~ msgid ""
-#~ "Choose a <b>name</b> for your project. <i>It can be anything you want: "
-#~ "the name of a customer,\n"
-#~ "     of a product, of a team, of a construction site, etc.</i>"
-#~ msgstr ""
-#~ "Projeniz için bir <b>isim</b> seçin. <i>İstediğiniz herhangi bir şey "
-#~ "olabilir: bir müşterinin, bir ürünün, bir ekibin, bir şantiyenin adı vb.</"
-#~ "i>"
-
-#~ msgid ""
-#~ "Collaborate efficiently with key stakeholders by sharing with them the "
-#~ "Kanban view of your tasks. Collaborators will be able to edit parts of "
-#~ "tasks and send messages."
-#~ msgstr ""
-#~ "Görevlerinizin Kanban görünümünü onlarla paylaşarak anahtar "
-#~ "kullanıcılarla verimli bir şekilde işbirliği yapın. Ortak çalışanlar, "
-#~ "görevlerin bölümlerini düzenleyebilecek ve mesaj gönderebilecek."
-
-#~ msgid ""
-#~ "Collect feedback from your customers by sending them a rating request "
-#~ "when a task enters a certain stage. To do so, define a rating email "
-#~ "template on the corresponding stages.\n"
-#~ "Rating when changing stage: an email will be automatically sent when the "
-#~ "task reaches the stage on which the rating email template is set.\n"
-#~ "Periodic rating: an email will be automatically sent at regular intervals "
-#~ "as long as the task remains in the stage in which the rating email "
-#~ "template is set."
-#~ msgstr ""
-#~ "Bir görev belirli bir aşamaya girdiğinde onlara bir derecelendirme isteği "
-#~ "göndererek müşterilerinizden geri bildirim toplayın. Bunu yapmak için "
-#~ "ilgili aşamalarda bir derecelendirme e-posta şablonu tanımlayın.\n"
-#~ "Derece değiştirirken aşama: Görev, derecelendirme e-posta şablonunun "
-#~ "ayarlandığı aşamaya geldiğinde otomatik olarak bir e-posta gönderilir.\n"
-#~ "Periyodik derecelendirme: Görev, derecelendirme e-posta şablonunun "
-#~ "ayarlandığı aşamada kaldığı sürece otomatik olarak düzenli aralıklarla "
-#~ "bir e-posta gönderilecektir."
-
-#~ msgid "Color Index"
-#~ msgstr "Renk İndeksi"
-
-#~ msgid ""
-#~ "Communicate with customers on the task using the email gateway. Attach "
-#~ "logo designs to the task, so that information flows from\n"
-#~ "      designers to the workers who print the t-shirt. Organize priorities "
-#~ "amongst orders using the"
-#~ msgstr ""
-#~ "E-posta ağ geçidini kullanarak görevde müşterilerle iletişim kurun. \n"
-#~ "Göreve logo tasarımları ekleyin, böylece tasarımcılardan tişörtü basan "
-#~ "işçilere bilgi akışı sağlanır. Kullanarak siparişler arasında öncelikleri "
-#~ "düzenleyin."
-
-#~ msgid "Companies"
-#~ msgstr "Şirketler"
-
-#~ msgid "Currency"
-#~ msgstr "Para Birimi"
-
-#~ msgid "Current stage of this task"
-#~ msgstr "Bu görevin mevcut aşaması"
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr ""
-#~ "Şu anda bu belgeyi görüntüleyen herkes tarafından kullanılabilir, dahili "
-#~ "çalışanlara sınırlamak için tıklayın."
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr ""
-#~ "Şu anda şirket içi çalışanlarla sınırlı, bu belgeyi görüntüleyen herkesin "
-#~ "kullanımına sunmak için tıklayın."
-
-#~ msgid "Customer Email"
-#~ msgstr "Müşteri E-posta"
-
-#~ msgid ""
-#~ "Customers propose feedbacks by email; Odoo creates tasks automatically, "
-#~ "and you can\n"
-#~ "      communicate on the task directly. Your managers decide which "
-#~ "feedback is accepted"
-#~ msgstr ""
-#~ "Müşteriler e-posta yoluyla geri bildirim önerir; Odoo, görevleri otomatik "
-#~ "olarak oluşturur ve görev üzerinde doğrudan iletişim kurabilirsiniz. \n"
-#~ "Hangi geri bildirimin kabul edileceğine yöneticileriniz karar verir."
-
-#~ msgid "Date and Stage"
-#~ msgstr "Tarih ve Aşama"
-
-#~ msgid "Deadline: %s"
-#~ msgstr "Zaman Sınırı: %s"
-
-#~ msgid "Default Plan"
-#~ msgstr "Varsayılan Plan"
-
-#~ msgid "Default Plan for a new analytic account for projects"
-#~ msgstr "Projelerde yeni bir analitik hesap için Varsayılan Plan"
-
-#~ msgid "Delete Milestone"
-#~ msgstr "Kilometre Taşı Sil"
-
-#~ msgid "Disabled Rating Warning"
-#~ msgstr "Disabled Rating Warning"
-
-#~ msgid "Display Access Mode"
-#~ msgstr "Ekran Erişim Modu"
-
-#~ msgid "Display Parent Task Button"
-#~ msgstr "Üst Görev Butonunu Görüntüle"
-
-#~ msgid "Edit Personal Stage"
-#~ msgstr "Kişisel Aşamayı Düzenle"
-
-#~ msgid "Email"
-#~ msgstr "E-Posta"
-
-#~ msgid "Employees Only"
-#~ msgstr "Sadece Personeller"
-
-#~ msgid "Folded in Kanban"
-#~ msgstr "Kanban Görüntüsünü Katla"
-
-#~ msgid "Folded in Kanban stages are closing stages."
-#~ msgstr "Katlanmış Kanban aşamaları kapanış aşamalarıdır."
-
-#~ msgid ""
-#~ "Follow this project to automatically track the events associated to tasks "
-#~ "and issues of this project."
-#~ msgstr ""
-#~ "Otomatik görevler ile ilişkili görevleri ve sorunları izlemek için bu "
-#~ "projeyi izle."
-
-#~ msgid "Followed"
-#~ msgstr "Takip Edilen"
-
-#~ msgid "Followed Updates"
-#~ msgstr "Takip Edilen Güncellemeler"
-
-#~ msgid "Get customer feedback"
-#~ msgstr "Müşteri geri bildirimi alın"
-
-#~ msgid "Group By"
-#~ msgstr "Grupla"
-
-#~ msgid ""
-#~ "Handle your idea gathering within Tasks of your new Project and discuss "
-#~ "them in the chatter of the tasks. Use the"
-#~ msgstr ""
-#~ "Fikir toplama işleminizi yeni Projenizin Görevleri içinde gerçekleştirin "
-#~ "ve bunları görevlerin sohbetde tartışın. Kullan"
-
-#~ msgid "Has Late And Unreached Milestone"
-#~ msgstr "Geç ve Ulaşılmamış Dönüm Noktasına Sahiptir"
-
-#~ msgid "High"
-#~ msgstr "Yüksek"
-
-#~ msgid ""
-#~ "If enabled, this stage will be displayed as folded in the Kanban view of "
-#~ "your projects. Projects in a folded stage are considered as closed."
-#~ msgstr ""
-#~ "Etkinleştirilirse, bu aşama projelerinizin Kanban görünümünde katlanmış "
-#~ "olarak görüntülenecektir. Katlanmış aşamadaki projeler kapalı olarak "
-#~ "kabul edilir."
-
-#~ msgid ""
-#~ "If enabled, this stage will be displayed as folded in the Kanban view of "
-#~ "your tasks. Tasks in a folded stage are considered as closed."
-#~ msgstr ""
-#~ "Etkinleştirilirse, bu aşama görevlerinizin Kanban görünümünde katlanmış "
-#~ "olarak görüntülenecektir. Katlanmış aşamadaki görevler kapalı olarak "
-#~ "kabul edilir."
-
-#~ msgid ""
-#~ "If set, a rating request will automatically be sent by email to the "
-#~ "customer when the task reaches this stage. \n"
-#~ "Alternatively, it will be sent at a regular interval as long as the task "
-#~ "remains in this stage, depending on the configuration of your project. \n"
-#~ "To use this feature make sure that the 'Customer Ratings' option is "
-#~ "enabled on your project."
-#~ msgstr ""
-#~ "Ayarlanırsa, görev bu aşamaya geldiğinde müşteriye e-posta ile otomatik "
-#~ "olarak bir derecelendirme isteği gönderilir.\n"
-#~ "Alternatif olarak, projenizin yapılandırmasına bağlı olarak görev bu "
-#~ "aşamada kaldığı sürece düzenli aralıklarla gönderilecektir.\n"
-#~ "Bu özelliği kullanmak için projenizde 'Müşteri Puanları' seçeneğinin "
-#~ "etkinleştirildiğinden emin olun."
-
-#~ msgid ""
-#~ "If the active field is set to False, it will allow you to hide the "
-#~ "project without removing it."
-#~ msgstr ""
-#~ "Etkin alanını yanlış olarak ayarlıysa, bu projeyi gizleme için izin verir "
-#~ "onu çıkarmadan."
-
-#~ msgid "Internal Note"
-#~ msgstr "İç Not"
-
-#~ msgid "Internal notes are only displayed to internal users."
-#~ msgstr "Dahili notlar yalnızca dahili kullanıcılara gösterilir."
-
-#~ msgid "Invalid operator: %s"
-#~ msgstr "Geçersiz operatör: %s"
-
-#~ msgid "Invalid value: %s"
-#~ msgstr "Geçersiz değer: %s"
-
-#~ msgid "Invite People"
-#~ msgstr "İnsanları Davet et"
-
-#~ msgid "Is Deadline Exceeded"
-#~ msgstr "Son Tarih Aşıldı mı"
-
-#~ msgid "Is Deadline Future"
-#~ msgstr "Son Tarih Gelecek mi"
-
-#~ msgid "Is Milestone Exceeded"
-#~ msgstr "Dönüm Noktası Aşıldı mı?"
-
-#~ msgid "Is Private"
-#~ msgstr "Özel"
-
-#~ msgid "Kpi Project Task Opened Value"
-#~ msgstr "Kpi Proje Görevi Açılan Değer"
-
-#~ msgid "Last Update"
-#~ msgstr "Son Güncelleme"
-
-#~ msgid "Last Update Color"
-#~ msgstr "Son Güncelleme Rengi"
-
-#~ msgid "Last Update Status"
-#~ msgstr "Son Güncelleme Durumu"
-
-#~ msgid "Leave a comment"
-#~ msgstr "Bir yorum yazın"
-
-#~ msgid "Low"
-#~ msgstr "Düşük"
-
-#~ msgid "Main Attachments"
-#~ msgstr "Ana Ekler"
-
-#~ msgid "Margin"
-#~ msgstr "Marj"
-
-#~ msgid "Members"
-#~ msgstr "Üyeler"
-
-#~ msgid "Milestone Count"
-#~ msgstr "Dönüm Noktası Sayısı"
-
-#~ msgid "Milestone Count Reached"
-#~ msgstr "Kilometre Taşı Sayısına Ulaşıldı"
-
-#~ msgid "Name Cropped"
-#~ msgstr "Ad Kırpıldı"
-
-#~ msgid "New Milestone"
-#~ msgstr "Yeni Dönüm Noktası"
-
-#~ msgid "Next"
-#~ msgstr "Sonraki"
-
-#~ msgid "No collaborators found"
-#~ msgstr "Ortak çalışan bulunamadı"
-
-#~ msgid "Not Implemented."
-#~ msgstr "Uygulanmadı."
-
-#~ msgid "Number of Tasks"
-#~ msgstr "Görev Sayısı"
-
-#~ msgid "Number of documents attached"
-#~ msgstr "Ekli belge sayısı"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Eylem gerektiren mesaj adedi"
-
-#~ msgid "Oops! Something went wrong. Try to reload the page and log in."
-#~ msgstr ""
-#~ "Oops! Birşey ters gitti. Sayfayı tekrar yüklemeyi deneyin ve yeniden "
-#~ "giriş yapın."
-
-#~ msgid "Operation should be = or != (not %s)"
-#~ msgstr "İşlem = veya != olmalıdır (%s değil)"
-
-#~ msgid "Others"
-#~ msgstr "Diğerleri"
-
-#~ msgid "Owner"
-#~ msgstr "Sahibi"
-
-#~ msgid ""
-#~ "People to whom this project and its tasks will be visible.\n"
-#~ "\n"
-#~ "- Invited internal users: when following a project, internal users will "
-#~ "get access to all of its tasks without distinction. Otherwise, they will "
-#~ "only get access to the specific tasks they are following.\n"
-#~ " A user with the project > administrator access right level can still "
-#~ "access this project and its tasks, even if they are not explicitly part "
-#~ "of the followers.\n"
-#~ "\n"
-#~ "- All internal users: all internal users can access the project and all "
-#~ "of its tasks without distinction.\n"
-#~ "\n"
-#~ "- Invited portal users and all internal users: all internal users can "
-#~ "access the project and all of its tasks without distinction.\n"
-#~ "When following a project, portal users will get access to all of its "
-#~ "tasks without distinction. Otherwise, they will only get access to the "
-#~ "specific tasks they are following.\n"
-#~ "\n"
-#~ "When a project is shared in read-only, the portal user is redirected to "
-#~ "their portal. They can view the tasks, but not edit them.\n"
-#~ "When a project is shared in edit, the portal user is redirected to the "
-#~ "kanban and list views of the tasks. They can modify a selected number of "
-#~ "fields on the tasks.\n"
-#~ "\n"
-#~ "In any case, an internal user with no project access rights can still "
-#~ "access a task, provided that they are given the corresponding URL (and "
-#~ "that they are part of the followers if the project is private)."
-#~ msgstr ""
-#~ "Bu projenin ve görevlerinin görüleceği kişiler.\n"
-#~ "\n"
-#~ "- Davet edilen dahili kullanıcılar: bir projeyi takip ederken, dahili "
-#~ "kullanıcılar ayrım gözetmeksizin projenin tüm görevlerine erişebilecek. "
-#~ "Aksi takdirde, yalnızca takip ettikleri belirli görevlere erişim elde "
-#~ "edeceklerdir.\n"
-#~ "Proje > yönetici erişim hakkı düzeyine sahip bir kullanıcı, açıkça "
-#~ "takipçilerin bir parçası olmasalar bile bu projeye ve görevlerine "
-#~ "erişebilir.\n"
-#~ "\n"
-#~ "- Tüm dahili kullanıcılar: tüm dahili kullanıcılar, projeye ve tüm "
-#~ "görevlerine ayrım gözetmeksizin erişebilir.\n"
-#~ "\n"
-#~ "- Davet edilen portal kullanıcıları ve tüm dahili kullanıcılar: tüm "
-#~ "dahili kullanıcılar projeye ve tüm görevlerine ayrım gözetmeksizin "
-#~ "erişebilir.\n"
-#~ "Bir projeyi takip ederken, portal kullanıcıları tüm görevlerine ayrım "
-#~ "gözetmeksizin erişebilecekler. Aksi takdirde, yalnızca takip ettikleri "
-#~ "belirli görevlere erişim elde edeceklerdir.\n"
-#~ "\n"
-#~ "Bir proje salt okunur olarak paylaşıldığında, portal kullanıcısı kendi "
-#~ "portalına yönlendirilir. Görevleri görüntüleyebilirler ancak "
-#~ "düzenleyemezler.\n"
-#~ "Düzenlemede bir proje paylaşıldığında, portal kullanıcısı görevlerin "
-#~ "kanbana ve liste görünümlerine yönlendirilir. Görevlerdeki seçili sayıda "
-#~ "alanı değiştirebilirler.\n"
-#~ "\n"
-#~ "Her durumda, proje erişim hakları olmayan dahili bir kullanıcı, ilgili "
-#~ "URL'nin kendisine verilmesi (ve proje özelse takipçilerin bir parçası "
-#~ "olması) şartıyla bir göreve erişebilir."
-
-#~ msgid "Periodic rating"
-#~ msgstr "Periyodik Değerlendirme"
-
-#~ msgid "Personal User Stage"
-#~ msgstr "Kişisel Kullanıcı Aşaması"
-
-#~ msgid ""
-#~ "Plan resource allocation across projects and estimate deadlines more "
-#~ "accurately"
-#~ msgstr ""
-#~ "Projeler arasında kaynak tahsisini planlayın ve teslim tarihlerini daha "
-#~ "doğru bir şekilde tahmin edin"
-
-#~ msgid "Planning"
-#~ msgstr "Planlama"
-
-#~ msgid ""
-#~ "Please remove existing tasks in the project linked to the accounts you "
-#~ "want to delete."
-#~ msgstr ""
-#~ "Lütfen silmek istediğiniz hesaplarla bağlantılı projedeki mevcut "
-#~ "görevleri kaldırın."
-
-#~ msgid "Portal User Names"
-#~ msgstr "Portal Kullanıcı Adları"
-
-#~ msgid "Previous"
-#~ msgstr "Önceki"
-
-#~ msgid "Prioritize Tasks by using the"
-#~ msgstr "Kullanarak Görevleri Önceliklendirin"
-
-#~ msgid "Priority: {{'Important' if task.priority == '1' else 'Normal'}}"
-#~ msgstr "Priority: {{'Important' if task.priority == '1' else 'Normal'}}"
-
-#~ msgid "Privacy Visibility Warning"
-#~ msgstr "Gizlilik Görünürlük Uyarısı"
-
-#~ msgid "Progress Percentage"
-#~ msgstr "İşlem Yüzdesi "
-
-#~ msgid "Project Collaborators"
-#~ msgstr "Proje İşbirlikçileri"
-
-#~ msgid "Project Count"
-#~ msgstr "Proje Sayısı"
-
-#~ msgid "Project Rating Status"
-#~ msgstr "Proje Puan Durumu"
-
-#~ msgid "Project Shared"
-#~ msgstr "Proje Paylaşıldı"
-
-#~ msgid "Project Updates"
-#~ msgstr "Proje Güncellemeleri"
-
-#~ msgid "Project: Send rating"
-#~ msgstr "Proje : Değerlendirme Gönder"
-
-#~ msgid "Published on %s"
-#~ msgstr "Yayınla %s"
-
-#~ msgid "Rating Request Deadline"
-#~ msgstr "Değerlendirme Talebi Son Tarihi"
-
-#~ msgid "Rating Value (/5)"
-#~ msgstr "Değerlendirme Puanı (/5)"
-
-#~ msgid "Rating when changing stage"
-#~ msgstr "Aşama değişirken değerlendirme yapın"
-
-#~ msgid "Reached Date"
-#~ msgstr "Ulaşma Tarihi"
-
-#~ msgid "Readonly"
-#~ msgstr "Salt Okunur"
-
-#~ msgid "Sad face"
-#~ msgstr "Üzgün Yüz"
-
-#~ msgid "Satisfaction"
-#~ msgstr "Memnuniyet"
-
-#~ msgid "Search <span class=\"nolabel\"> (in Content)</span>"
-#~ msgstr "Ara <span class=\"nolabel\"> (İçerik içinde)</span>"
-
-#~ msgid "Search in All"
-#~ msgstr "Arama Konumu"
-
-#~ msgid "Search in Messages"
-#~ msgstr "Mesajlarda Ara"
-
-#~ msgid "Search in Ref"
-#~ msgstr "Referansta Ara"
-
-#~ msgid "Send"
-#~ msgstr "Gönderme"
-
-#~ msgid "Set a Rating Email Template on Stages"
-#~ msgstr "Aşamalarda Derecelendirme E-posta Şablonu Ayarlayın"
-
-#~ msgid ""
-#~ "Set this template on a project's stage to automate email when tasks reach "
-#~ "stages"
-#~ msgstr ""
-#~ "Görevler aşamalara ulaştığında e-postayı otomatikleştirmek için bu "
-#~ "şablonu bir projenin aşamasında ayarlayın"
-
-#~ msgid "Share"
-#~ msgstr "Paylaş"
-
-#~ msgid "Share Editable"
-#~ msgstr "Düzenlenebilir"
-
-#~ msgid "Show Project on Dashboard"
-#~ msgstr "Projeyi Kontrol Panelinde Göster"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Bir sonraki eylem tarihi bugünden önce olan tüm kayıtları göster"
-
-#~ msgid "Stages Active"
-#~ msgstr "Aşamalar Aktif "
-
-#~ msgid "Stages To Delete"
-#~ msgstr "Silinecek Aşamalar"
-
-#~ msgid "Status Update - "
-#~ msgstr "Durum Güncelleme -"
-
-#~ msgid "Sub-task Count"
-#~ msgstr "Alt-görev sayısı"
-
-#~ msgid "Sub-tasks Planned Hours"
-#~ msgstr "Alt Görevler Planlanan Saatler"
-
-#~ msgid "Submitted On"
-#~ msgstr "Gönderme Tarihi"
-
-#~ msgid "Task Count"
-#~ msgstr "Görev Sayısı"
-
-#~ msgid "The Burndown Chart must be grouped by"
-#~ msgstr "Burndown Grafiği aşağıdakilere göre gruplandırılmalıdır:"
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "Kayıtların sahibi, bu rumuza epostalar alındıktan sonra oluşturulmuştur. "
-#~ "Bu alan ayarlanmamışsa, sistem gönderenin (Kimden) adresinden doğru "
-#~ "sahibini bulmaya çalışacaktır ya da o adres için hiç sistem kullanıcısı "
-#~ "bulunamazsa Administrator hesabını kullanacaktır."
-
-#~ msgid ""
-#~ "The project cannot be shared with the recipient(s) because the privacy of "
-#~ "the project is too restricted. Set the privacy to 'Visible by following "
-#~ "customers' in order to make it accessible by the recipient(s)."
-#~ msgstr ""
-#~ "Projenin gizliliği çok kısıtlı olduğundan proje alıcılarla paylaşılamaz. "
-#~ "Alıcıların erişebilmesi için gizliliği 'Müşterileri izleyerek görünür' "
-#~ "olarak ayarlayın."
-
-#~ msgid "The search does not support the %s operator or %s value."
-#~ msgstr "Arama, %s operatörünü veya %s değerini desteklemiyor."
-
-#~ msgid ""
-#~ "The task cannot be shared with the recipient(s) because the privacy of "
-#~ "the project is too restricted. Set the privacy of the project to 'Visible "
-#~ "by following customers' in order to make it accessible by the "
-#~ "recipient(s)."
-#~ msgstr ""
-#~ "Projenin gizliliği çok kısıtlı olduğundan görev alıcılarla paylaşılamaz. "
-#~ "Alıcının erişebilmesi için projenin gizliliğini 'Müşterileri izleyerek "
-#~ "görünür' olarak ayarlayın."
-
-#~ msgid "The view must be grouped by date and by stage_id"
-#~ msgstr "Görünüm, date ve stage_id'ye göre gruplandırılmalıdır"
-
-#~ msgid "There are no comments for now."
-#~ msgstr "Burada şimdilik hiç yorum yok."
-
-#~ msgid "Track customer satisfaction on tasks"
-#~ msgstr "Görevlerdeki müşteri memnuniyetini takip edin"
-
-#~ msgid ""
-#~ "Track the profitability of your projects. Any project, its tasks and "
-#~ "timesheets are linked to an analytic account and any analytic account "
-#~ "belongs to a plan."
-#~ msgstr ""
-#~ "Projelerinizin karlılığını takip edin. Herhangi bir proje, görevleri ve "
-#~ "zaman çizelgeleri bir analitik hesaba bağlıdır ve herhangi bir analitik "
-#~ "hesap bir plana aittir."
-
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgid "Use"
-#~ msgstr "Kullan"
-
-#~ msgid "Use Email Alias"
-#~ msgstr "E-posta Takma Adını Kullan"
-
-#~ msgid "Use Rating on Project"
-#~ msgstr "Projede Değerlendirmeyi Kullan"
-
-#~ msgid ""
-#~ "Use the chatter to <b>send emails</b> and communicate efficiently with "
-#~ "your customers. \n"
-#~ "    Add new people to the followers' list to make them aware of the main "
-#~ "changes about this task."
-#~ msgstr ""
-#~ "<b>E-posta göndermek</b> ve müşterilerinizle verimli bir şekilde iletişim "
-#~ "kurmak için sohbeti kullanın.\n"
-#~ "Bu görevle ilgili ana değişikliklerden haberdar olmalarını sağlamak için "
-#~ "takipçi listesine yeni insanlar ekleyin."
-
-#~ msgid "Value should be True or False (not %s)"
-#~ msgstr "Değer Doğru veya Yanlış olmalıdır (%sdeğil )"
-
-#~ msgid "Visible"
-#~ msgstr "Görünür"
-
-#~ msgid "Working Time"
-#~ msgstr "Çalışma Süresi"
-
-#~ msgid ""
-#~ "You cannot change the company of an analytic account if it is related to "
-#~ "a project."
-#~ msgstr ""
-#~ "Bir projeyle ilgiliyse, bir analitik hesabın şirketini değiştiremezsiniz."
-
-#~ msgid "You cannot read %s fields in task."
-#~ msgstr "Görevdeki %s alanlarını okuyamazsınız."
-
-#~ msgid "You cannot write on %s fields in task."
-#~ msgstr "Görevde %s alanlarına yazamazsınız."
-
-#~ msgid "You have not write access of %s field."
-#~ msgstr "%s alanına yazma erişiminiz yok."
-
-#~ msgid "You must be"
-#~ msgstr "Olmalısın"
-
-#~ msgid ""
-#~ "You should at least have one personal stage. Create a new stage to which "
-#~ "the tasks can be transferred after this one is deleted."
-#~ msgstr ""
-#~ "En az bir kişisel aşamanız olmalı. Bu aşama silindikten sonra görevlerin "
-#~ "aktarılabileceği yeni bir aşama oluşturun."
-
-#~ msgid "avatar"
-#~ msgstr "avatar"
-
-#~ msgid "bullets to indicate the status of a task."
-#~ msgstr "bir görevin durumunu belirtmek için madde işaretleri."
-
-#~ msgid ""
-#~ "button to inform your colleagues that a task is ready for the next stage."
-#~ msgstr ""
-#~ "iş arkadaşlarınıza bir görevin bir sonraki aşamaya hazır olduğunu "
-#~ "bildirmek için düğme."
-
-#~ msgid "comments"
-#~ msgstr "yorumlar"
-
-#~ msgid "logged in"
-#~ msgstr "oturum açıldı"
-
-#~ msgid "to indicate a problem or a need for discussion on a task."
-#~ msgstr ""
-#~ "bir sorunu veya bir görevle ilgili tartışma ihtiyacını belirtmek için."
-
-#~ msgid "to post a comment."
-#~ msgstr "bir yorum gönder."
-
-#~ msgid "{{ object.project_id.company_id.name }}: Satisfaction Survey"
-#~ msgstr "{{ object.project_id.company_id.name }}: Memnuniyet anketi"

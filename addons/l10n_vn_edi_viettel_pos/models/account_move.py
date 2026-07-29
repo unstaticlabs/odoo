@@ -8,11 +8,11 @@ class AccountMove(models.Model):
 
     def _get_invoice_legal_documents(self, filetype, allow_fallback=False):
         if filetype == 'pdf' and self.pos_order_ids and (sinvoice_attachment := self.l10n_vn_edi_sinvoice_pdf_file_id):
-            return {
+            return [{
                 'filename': sinvoice_attachment.name,
                 'filetype': 'pdf',
                 'content': sinvoice_attachment.raw,
-            }
+            }]
         return super()._get_invoice_legal_documents(filetype, allow_fallback=allow_fallback)
 
     def _l10n_vn_edi_add_buyer_information(self, json_values):

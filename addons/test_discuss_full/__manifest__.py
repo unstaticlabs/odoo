@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     "name": "Test Discuss (full)",
-    "version": "1.0",
     "category": "Productivity/Discuss",
     "sequence": 9877,
     "summary": "Test of Discuss with all possible overrides installed.",
@@ -15,7 +13,6 @@
         "hr_attendance",
         "hr_fleet",
         "hr_holidays",
-        "hr_homeworking",
         "im_livechat",
         "mail",
         "mail_bot",
@@ -24,7 +21,6 @@
         "website_sale",
         "website_slides",
     ],
-    "installable": True,
     "assets": {
         "web.assets_tests": [
             "test_discuss_full/static/tests/tours/**/*",

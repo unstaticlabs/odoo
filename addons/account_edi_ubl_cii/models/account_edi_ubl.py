@@ -2,18 +2,21 @@ import io
 import logging
 import re
 
+from collections import defaultdict
 from markupsafe import Markup
 from stdnum.be import vat as be_vat
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import formatLang, frozendict, html2plaintext, html_escape, pdf, str2bool, unique
+from odoo.fields import Domain
+from odoo.tools import formatLang, frozendict, html2plaintext, html_escape, pdf, unique
 from odoo.addons.account_edi_ubl_cii.models.account_edi_common import (
     EAS_MAPPING,
     FloatFmt,
     GST_COUNTRY_CODES,
     UOM_TO_UNECE_CODE,
 )
+from odoo.addons.base.models.res_partner_bank import sanitize_account_number
 from odoo.addons.account_edi_ubl_cii.tools.ubl_20_optional_fields import PEPPOL_INVOICE_OPTIONAL_FIELDS, PEPPOL_INVOICE_OPTIONAL_LINE_FIELDS, PEPPOL_CREDIT_NOTE_OPTIONAL_FIELDS, PEPPOL_CREDIT_NOTE_OPTIONAL_LINE_FIELDS
 from odoo.addons.account_edi_ubl_cii.tools import Invoice, CreditNote, DebitNote
 
@@ -320,8 +323,6 @@ class AccountEdiUBL(models.AbstractModel):
 
     def _ubl_add_values_currency(self, vals, currency):
         vals['currency'] = currency
-        # TODO: For retro-compatibility with previous code
-        vals['currency_id'] = currency
 
     def _ubl_add_values_supplier(self, vals, supplier):
         vals['supplier'] = supplier
@@ -331,554 +332,6 @@ class AccountEdiUBL(models.AbstractModel):
 
     def _ubl_add_values_delivery(self, vals, delivery):
         vals['delivery'] = delivery
-
-    def _ubl_add_base_line_ubl_values_allowance_charges_recycling_contribution(self, vals):
-        """ Extract recycling contribution taxes such as RECUPEL, AUVIBEL, etc from the current base lines.
-        Instead, add them under 'base_line' -> '_ubl_values' -> 'allowance_charges_recycling_contribution'
-        to be reported as allowances/charges.
-
-        From a 'base_line' having
-            price_unit = 99
-            tax_ids = RECUPEL of 1 + 21% tax
-            total_excluded_currency = 99
-            total_included_currency = 121
-            taxes_data = [1, 21]
-            recycling_contribution_data = []
-        ... turn it to:
-            price_unit = 99
-            tax_ids = 21% tax
-            total_excluded_currency = 99
-            total_included_currency = 121
-            taxes_data = [21]
-            recycling_contribution_data = [1]
-
-        TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        for base_line in base_lines:
-            ubl_values = base_line['_ubl_values']
-            tax_details = base_line['tax_details']
-            taxes_data = tax_details['taxes_data']
-
-            allowance_charges_recycling_contribution = ubl_values['allowance_charges_recycling_contribution'] = []
-            allowance_charges_recycling_contribution_currency = ubl_values['allowance_charges_recycling_contribution_currency'] = []
-            for tax_data in taxes_data:
-                if self._ubl_is_recycling_contribution_tax(tax_data):
-                    allowance_charges_recycling_contribution.append({
-                        'tax': tax_data['tax'],
-                        'is_charge': tax_data['tax_amount'] > 0.0,
-                        'amount': tax_data['tax_amount'],
-                        'currency': company_currency,
-                    })
-                    allowance_charges_recycling_contribution_currency.append({
-                        'tax': tax_data['tax'],
-                        'is_charge': tax_data['tax_amount_currency'] > 0.0,
-                        'amount': tax_data['tax_amount_currency'],
-                        'currency': currency,
-                    })
-
-    def _ubl_add_base_line_ubl_values_allowance_charges_excise(self, vals):
-        """ Extract excise taxes from the current base lines.
-        Instead, add them under 'base_line' -> '_ubl_values' -> 'allowance_charges_excise'
-        to be reported as allowances/charges.
-
-        From a 'base_line' having
-            price_unit = 99
-            tax_ids = EXCISE of 1 + 21% tax
-            total_excluded_currency = 99
-            total_included_currency = 121
-            taxes_data = [1, 21]
-            recycling_contribution_data = []
-        ... turn it to:
-            price_unit = 99
-            tax_ids = 21% tax
-            total_excluded_currency = 99
-            total_included_currency = 121
-            taxes_data = [21]
-            recycling_contribution_data = [1]
-
-        TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        for base_line in base_lines:
-            ubl_values = base_line['_ubl_values']
-            tax_details = base_line['tax_details']
-            taxes_data = tax_details['taxes_data']
-
-            allowance_charges_excise = ubl_values['allowance_charges_excise'] = []
-            allowance_charges_excise_currency = ubl_values['allowance_charges_excise_currency'] = []
-            for tax_data in taxes_data:
-                if self._ubl_is_excise_tax(tax_data):
-                    allowance_charges_excise.append({
-                        'tax': tax_data['tax'],
-                        'is_charge': tax_data['tax_amount'] > 0.0,
-                        'amount': tax_data['tax_amount'],
-                        'currency': company_currency,
-                    })
-                    allowance_charges_excise_currency.append({
-                        'tax': tax_data['tax'],
-                        'is_charge': tax_data['tax_amount_currency'] > 0.0,
-                        'amount': tax_data['tax_amount_currency'],
-                        'currency': currency,
-                    })
-
-    def _ubl_add_base_line_ubl_values_allowance_charges_discount(self, vals):
-        """ Extract the amount implies by a discount. This amount will be turned into an allowances/charge
-        into 'base_line' -> '_ubl_values' -> 'allowance_charge_discount'.
-
-        From a 'base_line' having
-            price_unit = 100
-            quantity = 5
-            discount = 20
-            total_excluded_currency = (5 * 100) * 0.8 = 400
-        ... compute an 'allowance_charge_discount' or (5 * 100) - 400 = 100:
-
-        TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        for base_line in base_lines:
-            ubl_values = base_line['_ubl_values']
-            tax_details = base_line['tax_details']
-            raw_discount_amount_currency = tax_details['raw_discount_amount_currency']
-            raw_discount_amount = tax_details['raw_discount_amount']
-
-            if (
-                base_line['currency_id'].is_zero(raw_discount_amount_currency)
-                and company.currency_id.is_zero(raw_discount_amount)
-            ):
-                ubl_values['allowance_charge_discount'] = None
-                ubl_values['allowance_charge_discount_currency'] = None
-            else:
-                ubl_values['allowance_charge_discount'] = {
-                    'currency': company_currency,
-                    'percent': base_line['discount'],
-                    'is_charge': raw_discount_amount < 0.0,
-                    'amount': raw_discount_amount,
-                    'base_amount': tax_details['raw_gross_total_excluded'],
-                }
-                ubl_values['allowance_charge_discount_currency'] = {
-                    'currency': currency,
-                    'percent': base_line['discount'],
-                    'amount': raw_discount_amount_currency,
-                    'is_charge': raw_discount_amount_currency < 0.0,
-                    'base_amount': tax_details['raw_gross_total_excluded_currency'],
-                }
-
-    def _ubl_add_base_line_ubl_values_line_extension_amount(self, vals, use_company_currency=False):
-        """ Add 'base_line' -> '_ubl_values' -> 'line_extension_amount[_currency]'.
-
-        'line_extension_amount' is the subtotal of the line but without tax plus charges.
-
-        TO BE REMOVED IN MASTER
-
-        :param vals:                    Some custom data.
-        :param use_company_currency:    Express the amount in company currency.
-        """
-        base_lines = vals['base_lines']
-        suffix = '' if use_company_currency else '_currency'
-
-        for base_line in base_lines:
-            tax_details = base_line['tax_details']
-            ubl_values = base_line['_ubl_values']
-            amount = (
-                tax_details[f'total_excluded{suffix}']
-                + tax_details[f'delta_total_excluded{suffix}']
-                + sum(
-                    (1 if allowance_charge_values['is_charge'] else -1) * allowance_charge_values['amount']
-                    for allowance_charge_values in ubl_values[f'allowance_charges_recycling_contribution{suffix}']
-                )
-                + sum(
-                    (1 if allowance_charge_values['is_charge'] else -1) * allowance_charge_values['amount']
-                    for allowance_charge_values in ubl_values[f'allowance_charges_excise{suffix}']
-                )
-            )
-            ubl_values[f'line_extension_amount{suffix}'] = amount
-
-    def _ubl_add_base_line_ubl_values_item(self, vals):
-        """ Add 'base_line' -> '_ubl_values' -> 'item'.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        AccountTax = self.env['account.tax']
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        for sub_currency, suffix in ((currency, '_currency'), (company_currency, '')):
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: self._ubl_default_base_line_item_classified_tax_category_grouping_key(
-                    base_line=base_line,
-                    tax_data=tax_data,
-                    vals=vals,
-                    currency=sub_currency,
-                ),
-            )
-            for base_line, aggregated_values in base_lines_aggregated_values:
-                item = base_line['_ubl_values'][f'item{suffix}'] = {
-                    'currency': sub_currency,
-                    'base_line': base_line,
-                    'classified_tax_categories': {},
-                }
-                for grouping_key, values in aggregated_values.items():
-                    if grouping_key:
-                        item['classified_tax_categories'][grouping_key] = {
-                            **grouping_key,
-                            'base_amount': values[f'base_amount{suffix}'],
-                            'tax_amount': values[f'tax_amount{suffix}'],
-                        }
-
-    def _ubl_add_base_line_ubl_values_price(self, vals):
-        """ Add 'price_amount' under 'base_line' -> '_ubl_values' -> 'price_amount[_currency]'.
-
-        'price_amount' is price unit of a single unit of the product.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        base_lines = vals['base_lines']
-
-        for base_line in base_lines:
-            tax_details = base_line['tax_details']
-            ubl_values = base_line['_ubl_values']
-            for currency_suffix in ('_currency', ''):
-                ubl_values[f'price_amount{currency_suffix}'] = tax_details[f'raw_gross_price_unit{currency_suffix}']
-
-    def _ubl_add_values_tax_currency_code_company_currency_if_foreign_currency(self, vals):
-        """ Add 'vals' -> '_ubl_values' -> 'tax_currency_code'
-
-        The value is set only at the company currency when there is a foreign currency.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:    Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        company = vals['company']
-        currency = vals['currency_id']
-        vals['tax_currency_code'] = None if currency == company.currency_id else company.currency_id.name
-
-    def _ubl_add_values_tax_currency_code_company_currency(self, vals):
-        """ Add 'vals' -> '_ubl_values' -> 'tax_currency_code'
-
-        The company currency will always be set on it.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:    Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        vals['tax_currency_code'] = vals['company'].currency_id.name
-
-    def _ubl_add_values_tax_currency_code_empty(self, vals):
-        """ Add 'vals' -> '_ubl_values' -> 'tax_currency_code'
-
-        The value is empty.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:    Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        vals['tax_currency_code'] = None
-
-    def _ubl_add_values_tax_currency_code(self, vals):
-        """ Add 'vals' -> '_ubl_values' -> 'tax_currency_code'
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:    Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        self._ubl_add_values_tax_currency_code_company_currency_if_foreign_currency(vals)
-
-    def _ubl_add_values_tax_totals(self, vals):
-        """ Add
-            'vals' -> '_ubl_values' -> 'tax_totals'
-            'vals' -> '_ubl_values' -> 'withholding_tax_totals'
-
-        'tax_totals' will contain the total and subtotals for not-withholding taxes.
-        'withholding_tax_totals' will contain the total and subtotals for withholding taxes.
-
-        TO BE REMOVED IN MASTER
-
-        :param vals:                        Some custom data.
-        """
-        AccountTax = self.env['account.tax']
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        ubl_values = vals['_ubl_values']
-        ubl_values['tax_totals'] = {}
-        ubl_values['tax_totals_currency'] = {}
-        ubl_values['withholding_tax_totals'] = {}
-        ubl_values['withholding_tax_totals_currency'] = {}
-
-        def tax_category_grouping_function(base_line, tax_data, sub_currency):
-            tax_grouping_key = self._ubl_default_tax_category_grouping_key(base_line, tax_data, vals, sub_currency)
-            if not tax_grouping_key:
-                return
-            return self._ubl_default_tax_subtotal_tax_category_grouping_key(tax_grouping_key, vals)
-
-        def tax_subtotal_grouping_function(base_line, tax_data, sub_currency):
-            tax_category_grouping_key = tax_category_grouping_function(base_line, tax_data, sub_currency)
-            if not tax_category_grouping_key:
-                return
-            return self._ubl_default_tax_subtotal_grouping_key(tax_category_grouping_key, vals)
-
-        def tax_totals_grouping_function(base_line, tax_data, sub_currency):
-            tax_subtotal_grouping_key = tax_subtotal_grouping_function(base_line, tax_data, sub_currency)
-            if not tax_subtotal_grouping_key:
-                return
-            return self._ubl_default_tax_total_grouping_key(tax_subtotal_grouping_key, vals)
-
-        for sub_currency, suffix in ((currency, '_currency'), (company_currency, '')):
-
-            # tax_totals / withholding_tax_totals
-
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: tax_totals_grouping_function(base_line, tax_data, sub_currency),
-            )
-            values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-            for grouping_key, values in values_per_grouping_key.items():
-                if not grouping_key:
-                    continue
-
-                if grouping_key['is_withholding']:
-                    target_key = f'withholding_tax_totals{suffix}'
-                    sign = -1
-                else:
-                    target_key = f'tax_totals{suffix}'
-                    sign = 1
-
-                ubl_values[target_key][frozendict(grouping_key)] = {
-                    **grouping_key,
-                    'amount': sign * values[f'tax_amount{suffix}'],
-                    'subtotals': {},
-                }
-
-            # tax_subtotals
-
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: tax_subtotal_grouping_function(base_line, tax_data, sub_currency),
-            )
-            values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-            for grouping_key, values in values_per_grouping_key.items():
-                if not grouping_key:
-                    continue
-
-                if grouping_key['is_withholding']:
-                    target_key = f'withholding_tax_totals{suffix}'
-                    sign = -1
-                else:
-                    target_key = f'tax_totals{suffix}'
-                    sign = 1
-
-                tax_total_grouping_key = self._ubl_default_tax_total_grouping_key(grouping_key, vals)
-                if not tax_total_grouping_key:
-                    continue
-
-                tax_total_values = ubl_values[target_key][frozendict(tax_total_grouping_key)]
-                tax_total_values['subtotals'][frozendict(grouping_key)] = {
-                    **grouping_key,
-                    'base_amount': values[f'base_amount{suffix}'],
-                    'tax_amount': sign * values[f'tax_amount{suffix}'],
-                    'tax_categories': {},
-                }
-
-            # tax_categories
-
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: tax_category_grouping_function(base_line, tax_data, sub_currency),
-            )
-            values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-            for grouping_key, values in values_per_grouping_key.items():
-                if not grouping_key:
-                    continue
-
-                if grouping_key['is_withholding']:
-                    target_key = f'withholding_tax_totals{suffix}'
-                    sign = -1
-                else:
-                    target_key = f'tax_totals{suffix}'
-                    sign = 1
-
-                tax_subtotal_grouping_key = self._ubl_default_tax_subtotal_grouping_key(grouping_key, vals)
-                if not tax_subtotal_grouping_key:
-                    continue
-
-                tax_total_grouping_key = self._ubl_default_tax_total_grouping_key(tax_subtotal_grouping_key, vals)
-                if not tax_total_grouping_key:
-                    continue
-
-                tax_total_values = ubl_values[target_key][frozendict(tax_total_grouping_key)]
-                tax_total_values['subtotals'][frozendict(tax_subtotal_grouping_key)]['tax_categories'][frozendict(grouping_key)] = {
-                    **grouping_key,
-                    'base_amount': values[f'base_amount{suffix}'],
-                    'tax_amount': sign * values[f'tax_amount{suffix}'],
-                }
-
-            for key in (f'withholding_tax_totals{suffix}', f'tax_totals{suffix}'):
-                if not ubl_values[key]:
-                    ubl_values[key][None] = {
-                        'currency': sub_currency,
-                        'amount': 0.0,
-                        'subtotals': {},
-                    }
-
-    def _ubl_add_values_payable_amount_tax_withholding(self, vals):
-        # DEPRECATED: TO BE REMOVED IN MASTER
-        _logger.warning("DEPRECATED")
-        AccountTax = self.env['account.tax']
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        ubl_values = vals['_ubl_values']
-        ubl_values['payable_amount_tax_withholding'] = 0.0
-        ubl_values['payable_amount_tax_withholding_currency'] = 0.0
-        for sub_currency, suffix in ((currency, '_currency'), (company_currency, '')):
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: self._ubl_default_payable_amount_tax_withholding_grouping_key(
-                    base_line=base_line,
-                    tax_data=tax_data,
-                    vals=vals,
-                    currency=sub_currency,
-                ),
-            )
-            values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-
-            for grouping_key, values in values_per_grouping_key.items():
-                if not grouping_key:
-                    continue
-
-                ubl_values[f'payable_amount_tax_withholding{suffix}'] -= values[f'tax_amount{suffix}']
-
-    def _ubl_add_values_payable_rounding_amount(self, vals):
-        """ Add
-            'vals' -> '_ubl_values' -> 'payable_rounding_amount[_currency]'.
-            'vals' -> '_ubl_values' -> 'payable_rounding_base_lines'.
-
-        'payable_rounding_amount' is rounding amount to be added to the total in case of a cash rounding.
-        'payable_rounding_base_lines' are the rounding base lines.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        AccountTax = self.env['account.tax']
-        base_lines = vals['base_lines']
-
-        def grouping_function(base_line, tax_data):
-            return base_line['special_type'] == 'cash_rounding'
-
-        base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(base_lines, grouping_function)
-        values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-        ubl_values = vals['_ubl_values']
-        ubl_values['payable_rounding_amount'] = 0.0
-        ubl_values['payable_rounding_amount_currency'] = 0.0
-        ubl_values['payable_rounding_base_lines'] = []
-        for grouping_key, values in values_per_grouping_key.items():
-            if not grouping_key:
-                continue
-
-            ubl_values['payable_rounding_amount_currency'] += values['total_excluded_currency']
-            ubl_values['payable_rounding_amount'] += values['total_excluded']
-            for base_line, _taxes_data in values['base_line_x_taxes_data']:
-                ubl_values['payable_rounding_base_lines'].append(base_line)
-
-    def _ubl_add_values_allowance_charge_early_payment(self, vals):
-        """ Add 'vals' -> '_ubl_values' -> 'allowance_charges_early_payment' representing the allowance/charges
-        corresponding to a 'mixed' early payment.
-
-        Suppose an invoice with a base amount of 100 and a 21% tax.
-        The total of your invoice is 121.
-        With a 'mixed' early payment of 5%, 2 additional lines are added to the invoice:
-        One line having a negative amount of -5 with 21% tax.
-        Another line having a positive amount of 5 with no tax.
-        It means the 21% tax line will now be based on 95 instead of 100 leading to
-        - an untaxed amount of 95.0
-        - a tax amount of 95 * 0.21 = 19.95
-        - a total amount of 114.95
-
-        In the UBL, an allowance is added with an amount of 5 and 21% tax applied on it plus a charge with an amount of 5.
-        Basically, it's like you had a discount on the full amount but we put back the discount you get on the base as a charge
-        to only get the discount regarding the tax amount.
-
-        DEPRECATED: TO BE REMOVED IN MASTER
-
-        :param vals:        Some custom data.
-        """
-        _logger.warning("DEPRECATED")
-        AccountTax = self.env['account.tax']
-        base_lines = vals['base_lines']
-        company = vals['company']
-        company_currency = company.currency_id
-        currency = vals['currency_id']
-
-        ubl_values = vals['_ubl_values']
-
-        for sub_currency, suffix in ((currency, '_currency'), (company_currency, '')):
-            base_lines_aggregated_values = AccountTax._aggregate_base_lines_tax_details(
-                base_lines=base_lines,
-                grouping_function=lambda base_line, tax_data: self._ubl_default_allowance_charge_early_payment_grouping_key(
-                    base_line=base_line,
-                    tax_data=tax_data,
-                    vals=vals,
-                    currency=sub_currency,
-                ),
-            )
-            values_per_grouping_key = AccountTax._aggregate_base_lines_aggregated_values(base_lines_aggregated_values)
-
-            allowance_charges_early_payment = ubl_values[f'allowance_charges_early_payment{suffix}'] = []
-            for grouping_key, values in values_per_grouping_key.items():
-                if not grouping_key:
-                    continue
-
-                allowance_charges_early_payment.append({
-                    'currency': sub_currency,
-                    'amount': values[f'total_excluded{suffix}'],
-                    'is_charge': values[f'total_excluded{suffix}'] > 0.0,
-                    'tax_categories': {
-                        grouping_key: {
-                            **grouping_key,
-                            'base_amount': values[f'base_amount{suffix}'],
-                            'tax_amount': values[f'tax_amount{suffix}'],
-                        },
-                    },
-                })
 
     # -------------------------------------------------------------------------
     # EXPORT: Building nodes
@@ -945,6 +398,8 @@ class AccountEdiUBL(models.AbstractModel):
         item_node = vals['item_node']
         base_line = vals['line_vals']['base_line']
         product = base_line['product_id']
+
+        item_node['cac:BuyersItemIdentification'] = {}
 
         if product.default_code:
             item_node['cac:SellersItemIdentification'] = {
@@ -1027,7 +482,7 @@ class AccountEdiUBL(models.AbstractModel):
             if unspsc_code.code:
                 nodes.append(self._ubl_get_line_item_commodity_classification_node_from_unspsc_code(vals, unspsc_code))
 
-        if self.module_installed('l10n_ro_cpv_code'):
+        if self.module_installed('l10n_ro_edi'):
             cpv_code = product.cpv_code_id
             if cpv_code.code:
                 nodes.append(self._ubl_get_line_item_commodity_classification_node_from_cpv_code(vals, cpv_code))
@@ -1118,66 +573,6 @@ class AccountEdiUBL(models.AbstractModel):
                 'currencyID': currency.name,
             },
         }
-
-    def _ubl_get_line_item_node(self, vals, item_values):
-        # TO BE REMOVED IN MASTER
-        _logger.warning("DEPRECATED")
-        item_node = {}
-        base_line = item_values['base_line']
-        product = base_line['product_id']
-
-        if product.default_code:
-            item_node['cac:SellersItemIdentification'] = {
-                'cbc:ID': {'_text': product.default_code},
-            }
-        else:
-            item_node['cac:SellersItemIdentification'] = None
-        if product.barcode:
-            item_node['cac:StandardItemIdentification'] = {
-                'cbc:ID': {
-                    '_text': product.barcode,
-                    'schemeID': '0160',  # GTIN
-                },
-            }
-        else:
-            item_node['cac:StandardItemIdentification'] = None
-        item_node['cac:AdditionalItemProperty'] = [
-            {
-                'cbc:Name': {'_text': value.attribute_id.name},
-                'cbc:Value': {'_text': value.name},
-            }
-            for value in product.product_template_attribute_value_ids
-        ]
-
-        if base_line.get('_removed_tax_data'):
-            # Emptying tax extra line.
-            name = description = base_line['_removed_tax_data']['tax'].name
-        else:
-            name = product.name or ''
-            if line_name := base_line.get('name'):
-                # Regular business line.
-                description = line_name
-                if not name:
-                    name = line_name
-            else:
-                # Undefined line.
-                description = product.description_sale or ''
-
-        if description:
-            item_node['cbc:Description'] = {'_text': description}
-        else:
-            item_node['cbc:Description'] = None
-
-        if name:
-            item_node['cbc:Name'] = {'_text': name}
-        else:
-            item_node['cbc:Name'] = None
-
-        item_node['cac:ClassifiedTaxCategory'] = [
-            self._ubl_get_line_item_node_classified_tax_category_node(vals, tax_category)
-            for tax_category in item_values['classified_tax_categories'].values()
-        ]
-        return item_node
 
     def _ubl_get_line_allowance_charge_recycling_contribution_node(self, vals, recycling_contribution_values):
         currency = recycling_contribution_values['currency']
@@ -1411,9 +806,12 @@ class AccountEdiUBL(models.AbstractModel):
 
             if country_code == 'HU' and not vat.upper().startswith('HU'):
                 vat = 'HU' + vat[:8]
-            elif country_code == 'DK' and not vat.upper().startswith('DK'):
-                vat = 'DK' + vat
-
+            if country_code == 'DK' and not vat.upper().startswith('DK'):
+                vat = f'DK{vat}'
+            if country_code == 'NO' and not vat.upper().startswith('NO'):
+                vat = f'NO{vat}'
+            if country_code == 'NO' and vat[-3:] != 'MVA':
+                vat += 'MVA'
             nodes.append({
                 'cbc:CompanyID': {'_text': vat},
                 'cac:TaxScheme': {
@@ -1497,6 +895,38 @@ class AccountEdiUBL(models.AbstractModel):
                     'schemeID': '0088',
                 },
             })
+        elif (
+            commercial_partner.country_code == 'NO'
+            and (
+                no_id := (
+                    (
+                        'l10n_no_bronnoysund_number' in self.env['res.partner']._fields
+                        and commercial_partner.l10n_no_bronnoysund_number
+                    )
+                    or commercial_partner.company_registry
+                )
+            )
+        ):
+            nodes.append({
+                'cbc:RegistrationName': {'_text': commercial_partner.name},
+                'cbc:CompanyID': {
+                    '_text': no_id,
+                    'schemeID': '0192',
+                },
+            })
+        elif commercial_partner.country_code == 'NO' and commercial_partner.vat != '/':
+            if not vat.startswith('NO'):
+                vat = f'NO{vat}'
+            if not vat.endswith('MVA'):
+                vat += 'MVA'
+            nodes.append({
+                'cbc:RegistrationName': {'_text': commercial_partner.name},
+                'cbc:CompanyID': {
+                    '_text': vat,
+                    'schemeID': None,
+                },
+            })
+
         elif commercial_partner.vat and commercial_partner.vat != '/':
             nodes.append({
                 'cbc:RegistrationName': {'_text': commercial_partner.name},
@@ -1666,7 +1096,7 @@ class AccountEdiUBL(models.AbstractModel):
             },
         }
 
-        if self.module_installed('account_add_gln') and delivery_partner.global_location_number:
+        if delivery_partner.global_location_number:
             node['cac:DeliveryLocation']['cbc:ID']['schemeID'] = '0088'
             node['cac:DeliveryLocation']['cbc:ID']['_text'] = delivery_partner.global_location_number
 
@@ -1857,43 +1287,42 @@ class AccountEdiUBL(models.AbstractModel):
     def _ubl_add_billing_reference_nodes(self, vals):
         vals['document_node']['cac:BillingReference'] = []
 
-    def _ubl_get_partner_bank_address_node(self, vals, bank):
+    def _ubl_get_partner_bank_address_node(self, vals, partner_bank):
         return {
-            'cbc:StreetName': {'_text': bank.street},
-            'cbc:AdditionalStreetName': {'_text': bank.street2},
-            'cbc:CityName': {'_text': bank.city},
-            'cbc:PostalZone': {'_text': bank.zip},
-            'cbc:CountrySubentity': {'_text': bank.state.name},
-            'cbc:CountrySubentityCode': {'_text': bank.state.code},
+            'cbc:StreetName': {'_text': partner_bank.street},
+            'cbc:AdditionalStreetName': {'_text': partner_bank.street2},
+            'cbc:CityName': {'_text': partner_bank.city},
+            'cbc:PostalZone': {'_text': partner_bank.zip},
+            'cbc:CountrySubentity': {'_text': partner_bank.state_id.name},
+            'cbc:CountrySubentityCode': {'_text': partner_bank.state_id.code},
             'cac:Country': {
-                'cbc:IdentificationCode': {'_text': bank.country.code},
-                'cbc:Name': {'_text': bank.country.name},
+                'cbc:IdentificationCode': {'_text': partner_bank.country_id.code},
+                'cbc:Name': {'_text': partner_bank.country_id.name},
             },
         }
 
     def _ubl_get_payment_means_payee_financial_account_institution_branch_node_from_partner_bank(self, vals, partner_bank):
-        bank = partner_bank.bank_id
-        if not bank:
+        if not partner_bank.bank_bic:
             return None
 
         return {
             'cbc:ID': {
-                '_text': bank.bic,
+                '_text': partner_bank.bank_bic,
                 'schemeID': 'BIC',
             },
             'cac:FinancialInstitution': {
                 'cbc:ID': {
-                    '_text': bank.bic,
+                    '_text': partner_bank.bank_bic,
                     'schemeID': 'BIC',
                 },
-                'cbc:Name': {'_text': bank.name},
-                'cac:Address': self._ubl_get_partner_bank_address_node(vals, bank)
+                'cbc:Name': {'_text': partner_bank.bank_name},
+                'cac:Address': self._ubl_get_partner_bank_address_node(vals, partner_bank)
             }
         }
 
     def _ubl_get_payment_means_payee_financial_account_node_from_partner_bank(self, vals, partner_bank):
         return {
-            'cbc:ID': {'_text': partner_bank.sanitized_acc_number},
+            'cbc:ID': {'_text': sanitize_account_number(partner_bank.account_number)},
             'cac:FinancialInstitutionBranch': self._ubl_get_payment_means_payee_financial_account_institution_branch_node_from_partner_bank(vals, partner_bank),
         }
 
@@ -1974,11 +1403,6 @@ class AccountEdiUBL(models.AbstractModel):
                 for tax_category in global_discount_values['tax_categories'].values()
             ],
         }
-
-    def _ubl_get_allowance_charge_early_payment(self, vals, early_payment_values):
-        # DEPRECATED: TO BE REMOVED IN MASTER
-        _logger.warning("DEPRECATED")
-        return self._ubl_get_allowance_charge_early_payment_node(vals, early_payment_values)
 
     def _ubl_add_allowance_charge_nodes_early_payment_discount(self, vals, in_foreign_currency=True):
         AccountTax = self.env['account.tax']
@@ -2691,7 +2115,10 @@ class AccountEdiUBL(models.AbstractModel):
     def _import_ubl_retrieve_customer(self, collected_values):
         company = collected_values['company']
         customer_values = collected_values['customer_values']
-        customer_values['account_numbers'] = collected_values.get('partner_bank_values', {}).get('account_numbers')
+        customer_values.update({
+            'account_numbers': collected_values.get('partner_bank_values', {}).get('account_numbers'),
+            'company': company,
+        })
         self.env['res.partner']._import_retrieve_customer(
             search_plan=self._import_ubl_retrieve_customer_search_plan(collected_values),
             company=company,
@@ -3215,6 +2642,84 @@ class AccountEdiUBL(models.AbstractModel):
         to_write['price_unit'] = price_unit
         to_write['discount'] = discount
 
+    def _import_ubl_invoice_line_add_vehicle_values(self, collected_values):
+        if not self.module_installed('account_fleet'):
+            return
+
+        tree = collected_values['tree']
+        line_tree = collected_values['line_tree']
+
+        default_parent_node_path = './{*}Item/{*}AdditionalItemProperty'
+        default_value_path = './{*}Value'
+        default_linked_field = 'vin_sn'
+
+        def default_condition(parent_node, node, value):
+            return parent_node.findtext('./{*}Name') == value
+
+        paths = [
+            # {
+            #   'path_type': 'line' or 'move'
+            #   'parent_node_path': 'path to the parent node',
+            #   'condition': lambda parent_node, node, value: 'where parent_node = parent node, node = node containing VIN Number, value = identifier',
+            #   'value_path': 'path to the node where the information is to be found',
+            #   'identifier': 'to be used in condition to perform a check, inner tex of a node allowing to identify the node to read',
+            #   'linked_field': the field to search in DB (vin_sn, license_plate),
+            #   'pattern': if the value to search is not in a field specific to it (with other words like in a description)
+            # }
+            {'path_type': 'line', 'identifier': 'SerialNumber'},  # VIN in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'SerialNumber'
+            {'path_type': 'line', 'identifier': 'VIN'},  # VIN in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'VIN'
+            {'path_type': 'line', 'identifier': 'PlateNumber', 'linked_field': 'license_plate'},  # LICENSE PLATE in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'PlateNumber'
+            {'path_type': 'line', 'identifier': 'LCPL-NO', 'linked_field': 'license_plate'},  # LICENSE PLATE in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'LCPL-NO'
+            {
+                # VIN in Item/Description
+                'path_type': 'line',
+                'parent_node_path': './{*}Item',
+                'condition': lambda parent_node, node, value: True,
+                'value_path': './{*}Description',
+                'pattern': r'[A-Za-z0-9]{17}',
+            },
+            {
+                # LICENSE PLATE in Item/Description
+                'path_type': 'line',
+                'parent_node_path': './{*}Item',
+                'condition': lambda parent_node, node, value: True,
+                'value_path': './{*}Description',
+                'linked_field': 'license_plate',
+                'pattern': r'\d-[A-Za-z]{3}-\d{3}',  # BE license plate format
+            },
+            {
+                # VIN in AdditionalDocumentReference/ID with schemeID == 'AKG' (1 vin for the whole invoice)
+                'path_type': 'move',
+                'parent_node_path': './{*}AdditionalDocumentReference',
+                'condition': lambda parent_node, node, value: node.get('schemeID') == 'AKG',
+                'value_path': './{*}ID',
+            },
+        ]
+
+        results = defaultdict(set)  # {field (vin_sn|license_plate): {'AZERTYUIOP', 'POIUYTREZA'}}
+        for path in paths:
+            local_tree = tree if path['path_type'] == 'move' else line_tree
+            parent_nodes = local_tree.findall(path.get('parent_node_path', default_parent_node_path))
+            for parent_node in parent_nodes:
+                value_node = parent_node.find(path.get('value_path', default_value_path))
+                if value_node is None or not path.get('condition', default_condition)(parent_node, value_node, path.get('identifier', '')):
+                    continue
+                value = value_node.text
+                if value is None:
+                    continue
+                if path.get('pattern'):
+                    # we need to find the car identifier in the node
+                    if candidates := re.findall(path['pattern'], value or ''):
+                        results[path.get('linked_field', default_linked_field)].update(candidates)
+                else:
+                    # the car identifier is the full text of the node
+                    results[path.get('linked_field', default_linked_field)].add(value)
+
+        if not results or any(len(vals) != 1 for vals in results.values()):
+            return
+
+        collected_values['vehicle_values'] = tuple((field, value.pop()) for field, value in results.items())
+
     def _import_ubl_invoice_line_add_product_values(self, collected_values):
         line_tree = collected_values['line_tree']
         partner = collected_values.get('customer_values', {}).get('customer')
@@ -3400,10 +2905,13 @@ class AccountEdiUBL(models.AbstractModel):
                 self._import_ubl_invoice_line_add_price_unit_quantity_discount(line_collected_values)
                 self._import_ubl_invoice_line_add_deferred_dates(line_collected_values)
 
-                # product / product_uom / taxes
+                # vehicle
+
+                # product / product_uom / taxes / accounts /vehicles
                 self._import_ubl_invoice_line_add_product_values(line_collected_values)
                 self._import_ubl_invoice_line_add_product_uom_values(line_collected_values)
                 self._import_ubl_invoice_line_add_account_values(line_collected_values)
+                self._import_ubl_invoice_line_add_vehicle_values(line_collected_values)
                 self._import_ubl_invoice_line_add_taxes_values(line_collected_values)
 
                 lines_collected_values.append(line_collected_values)
@@ -3529,6 +3037,8 @@ class AccountEdiUBL(models.AbstractModel):
             base_line_kwargs['_create_values']['deferred_start_date'] = deferred_start_date
         if deferred_end_date := to_write.get('deferred_end_date'):
             base_line_kwargs['_create_values']['deferred_end_date'] = deferred_end_date
+        if vehicle_id := to_write.get('vehicle_id'):
+            base_line_kwargs['_create_values']['vehicle_id'] = vehicle_id
 
         base_line_kwargs['_create_values'] = {
             **base_line_kwargs['_create_values'],
@@ -3647,6 +3157,27 @@ class AccountEdiUBL(models.AbstractModel):
                 account_id = accounts_map.get(account_key)
                 if account_id:
                     account_values['account'] = self.env['account.account'].browse(account_id)
+
+    def _import_ubl_invoice_retrieve_vehicles(self, collected_values):
+        company = collected_values['company']
+        cache = {}
+        for line_collected_values in collected_values['lines_collected_values']:
+            vehicle_values = line_collected_values.get('vehicle_values', {})
+            if not vehicle_values:
+                continue
+
+            if vehicle_values in cache:
+                vehicles = cache[vehicle_values]
+            else:
+                vehicles = self.env['fleet.vehicle'].sudo().search([  # noqa: OLS03001
+                    ('company_id', '=', company.id),
+                ] + Domain.OR([
+                    [(field, 'in', vals)] for field, vals in vehicle_values
+                ]), limit=2)
+                cache[vehicle_values] = vehicles
+
+            if len(vehicles) == 1:
+                line_collected_values['to_write']['vehicle_id'] = vehicles.id
 
     def _import_ubl_invoice_add_base_lines(self, collected_values):
         AccountTax = self.env['account.tax']
@@ -3894,7 +3425,7 @@ class AccountEdiUBL(models.AbstractModel):
     def _import_attachments(self, invoice, tree):
         """ EXTENDS 'account_edi_common': ATTEMPTS to create a PDF attachment when the XML file doesn't provide one."""
         IrConfigParam = self.env['ir.config_parameter'].sudo()
-        disable_pdf_in_xml = str2bool(IrConfigParam.get_param("account_edi_ubl_cii.disable_pdf_in_xml", 'False'))
+        disable_pdf_in_xml = IrConfigParam.get_bool("account_edi_ubl_cii.disable_pdf_in_xml")
         additional_docs = super()._import_attachments(invoice, tree)
         if (
             additional_docs or
@@ -4028,6 +3559,7 @@ class AccountEdiUBL(models.AbstractModel):
         self._import_ubl_invoice_retrieve_product_uoms(collected_values)
         self._import_ubl_invoice_retrieve_accounts(collected_values)
         self._import_ubl_invoice_retrieve_taxes(collected_values)
+        self._import_ubl_invoice_retrieve_vehicles(collected_values)
         self._import_ubl_invoice_add_base_lines(collected_values)
 
         # End the invoice.

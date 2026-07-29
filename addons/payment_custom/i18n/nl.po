@@ -6,16 +6,16 @@
 # Martin Trigaux, 2019
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2019
 # Yenthe Van Ginneken <yenthespam@gmail.com>, 2019
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-02 00:23+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2026-06-06 13:44+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "payment_custom/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -140,38 +140,3 @@ msgstr "De technische code van deze betaalprovider."
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Overschrijving"
-
-#~ msgid "; multiple order found"
-#~ msgstr "; meerdere orders gevonden"
-
-#~ msgid "; no order found"
-#~ msgstr "; geen order gevonden"
-
-#~ msgid ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-#~ msgstr ""
-#~ "<div>\n"
-#~ "<h3>Gebruik de volgende transactie gegevens</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communicatie</h4>\n"
-#~ "<p>Gebruik de orderreferentie als communicatie referentie.</p>\n"
-#~ "</div>"
-
-#~ msgid "Manual Payment"
-#~ msgstr "Manuele betaling"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Betalingsprovider"
-
-#~ msgid "Provider"
-#~ msgstr "Provider"
-
-#~ msgid "received data for reference %s"
-#~ msgstr "Data ontvangen voor referentie %s"

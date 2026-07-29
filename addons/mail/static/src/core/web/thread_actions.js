@@ -6,15 +6,36 @@ registerThreadAction("mark-all-read", {
     condition: ({ owner, thread }) =>
         thread?.id === "inbox" && !owner.isDiscussSidebarChannelActions,
     disabledCondition: ({ thread }) => thread.isEmpty,
-    open: ({ store }) => store.env.services.orm.silent.call("mail.message", "mark_all_as_read"),
+    onSelected: async ({ store }) => {
+        const orm = store.env.services.orm;
+        const readMessageIds = await orm.silent.call("mail.message", "mark_all_as_read");
+        const closeFn = store.env.services.notification.add(
+            readMessageIds.length === 1
+                ? _t("1 item marked as read")
+                : _t("%(amount)s items marked as read", { amount: readMessageIds.length }),
+            {
+                type: "success",
+                buttons: [
+                    {
+                        name: _t("Undo"),
+                        icon: "fa-undo",
+                        onClick: () => {
+                            orm.silent.call("mail.message", "mark_as_unread", [readMessageIds]);
+                            closeFn();
+                        },
+                    },
+                ],
+            }
+        );
+    },
     sequence: 1,
     name: _t("Mark all read"),
 });
-registerThreadAction("unstar-all", {
-    condition: ({ owner, thread }) =>
-        thread?.id === "starred" && !owner.isDiscussSidebarChannelActions,
+registerThreadAction("remove-all-bookmarks", {
+    condition: ({ owner, store, thread }) =>
+        thread?.eq(store.bookmarkBox) && !owner.isDiscussSidebarChannelActions,
     disabledCondition: ({ thread }) => thread.isEmpty,
-    open: ({ store }) => store.unstarAll(),
+    onSelected: ({ store }) => store.removeAllBookmarks(),
     sequence: 2,
-    name: _t("Unstar all"),
+    name: _t("Remove all bookmarks"),
 });

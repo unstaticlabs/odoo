@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from hashlib import sha256
 from unittest.mock import patch
+import ast
 import logging
 import time
 
@@ -20,6 +21,7 @@ _stats_logger = logging.getLogger('odoo.tests.stats')
 SPECIAL_CHARACTERS = " ¥®°²Æçéðπ⁉€∇⓵▲☑♂♥✓➔『にㄅ㊀中한︸🌈🌍👌😀"
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TranslationToolsTestCase(BaseCase):
     def assertItemsEqual(self, a, b, msg=None):
         self.assertEqual(sorted(a), sorted(b), msg)
@@ -281,9 +283,9 @@ class TranslationToolsTestCase(BaseCase):
         terms = []
         # do not slit the long line below, otherwise the result will not match
         source = """<Invoice xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
-                        <cbc:UBLVersionID t-esc="version_id"/>
+                        <cbc:UBLVersionID t-out="version_id"/>
                         <t t-foreach="[1, 2, 3, 4]" t-as="value">
-                            Oasis <cac:Test t-esc="value"/>
+                            Oasis <cac:Test t-out="value"/>
                         </t>
                     </Invoice>"""
         result = xml_translate(terms.append, source)
@@ -449,6 +451,7 @@ class TranslationToolsTestCase(BaseCase):
         self.assertEqual(terms, ['g'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLanguageInstall(TransactionCase):
     def test_language_install(self):
         fr = self.env['res.lang'].with_context(active_test=False).search([('code', '=', 'fr_FR')])
@@ -497,6 +500,7 @@ class TestTranslationExport(TransactionCase):
         self.assertEqual(sources, ['g'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestTranslation(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -524,6 +528,8 @@ class TestTranslation(TransactionCase):
         self.env['res.lang']._activate_lang('nl_NL')
         category.with_context(lang='nl_NL').name = 'Klanten'
         self.env.ref('base.lang_nl').active = False
+        self.env.flush_all()
+        self.env.transaction.reset()  # remove environments
 
         category.invalidate_recordset()
         self.assertEqual(category.with_context(lang=None).name, 'Customers')
@@ -695,6 +701,49 @@ class TestTranslation(TransactionCase):
             self.assertEqual(category_nl.name, 'Klanten')
             self.assertEqual(category_en.name, 'Customers')
 
+    def test_get_stored_translations(self):
+        self.env.ref('base.lang_nl').active = True
+
+        industries = self.env['res.partner.industry'].create([
+            {'name': 'Industry1'},
+            {'name': 'Industry2'},
+            {'name': 'Industry3'},
+        ])
+        industries[0].with_context(lang='nl_NL').name = 'Industry1_NL'
+        industries[1].with_context(lang='nl_NL').name = None
+        field = industries._fields['name']
+
+        industries.invalidate_recordset()
+        self.assertEqual(
+            industries.with_context(lang='nl_NL').mapped('name'),
+            ['Industry1_NL', False, 'Industry3']
+        )
+
+        with self.assertQueryCount(0):
+            # None value in cache means no translation and should not trigger a query
+            self.assertEqual(
+                field._get_stored_translations(industries[1]),
+                None
+            )
+
+        with self.assertQueryCount(1):
+            # prefetch all translaitons for all industries
+            self.assertEqual(
+                field._get_stored_translations(industries[0]),
+                {
+                    'en_US': 'Industry1',
+                    'nl_NL': 'Industry1_NL',
+                }
+            )
+
+        with self.assertQueryCount(0):
+            # no extra query is needed since all translaitons are cached
+            self.assertEqual(
+                field._get_stored_translations(industries[2]),
+                {
+                    'en_US': 'Industry3',
+                }
+            )
 
     # TODO Currently, the unique constraint doesn't work for translatable field
     # def test_111_unique_en(self):
@@ -711,6 +760,8 @@ class TestTranslation(TransactionCase):
     #     with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
     #         country_3 = Country.create({'name': 'Odoo'})
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestTranslationWrite(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -755,6 +806,8 @@ class TestTranslationWrite(TransactionCase):
         self.env['res.lang']._activate_lang('nl_NL')
         self.category.with_context(lang='nl_NL').name = 'Reblochon nl_NL'
         self.env.ref('base.lang_nl').active = False
+        self.env.flush_all()
+        self.env.transaction.reset()  # remove environments
 
         # [inactive_lang, non_existing_lang, technical_lang, sql_injection_lang]
         langs = ['nl_NL', 'Dummy', '_en_US', "'', NOW("]
@@ -908,7 +961,7 @@ class TestTranslationWrite(TransactionCase):
 
         langs = self.env['res.lang'].get_installed()
         self.assertEqual([('nl_NL', 'Dutch / Nederlands'), ('en_US', 'English (US)'), ('fr_FR', 'French / Français')], langs,
-                         "Test did not started with expected languages")
+                         "Test did not start with expected languages")
 
         belgium = self.env.ref('base.be')
         # vat_label is translatable and not required
@@ -1060,6 +1113,7 @@ class TestTranslationWrite(TransactionCase):
         self.assertEqual(info['models'][model._name]["fields"]['name']['string'], LABEL)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestXMLTranslation(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -1624,6 +1678,69 @@ class TestXMLTranslation(TransactionCase):
                 f'arch_db for {lang} should be {archf2} when check_translations'
             )
 
+    def test_translate_xml_select(self):
+        # Ensure the translation <span> wrapper is inserted inside an attribute
+        # of the <option> elements in 'edit_translations' context.
+        view = self.env['ir.ui.view'].create({
+            'type': 'qweb',
+            'key': 'test',
+            'arch': '<select><option>A</option><option>B</option></select>',
+        })
+        self.assertEqual(
+            view.with_context(lang='fr_FR', edit_translations=True).arch_db,
+                '<select>'
+                    '<option data-oe-translation-span-wrapper="&lt;span '
+                        'data-oe-model=&quot;ir.ui.view&quot; '
+                        f'data-oe-id=&quot;{view.id}&quot; '
+                        'data-oe-field=&quot;arch_db&quot; '
+                        'data-oe-translation-state=&quot;to_translate&quot; '
+                        f'data-oe-translation-source-sha=&quot;559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd&quot;'
+                        '&gt;A&lt;/span&gt;">A</option>'
+                    '<option data-oe-translation-span-wrapper="&lt;span '
+                        'data-oe-model=&quot;ir.ui.view&quot; '
+                        f'data-oe-id=&quot;{view.id}&quot; '
+                        'data-oe-field=&quot;arch_db&quot; '
+                        'data-oe-translation-state=&quot;to_translate&quot; '
+                        f'data-oe-translation-source-sha=&quot;df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c&quot;'
+                        '&gt;B&lt;/span&gt;">B</option>'
+                '</select>',
+        )
+
+        view.update_field_translations('arch_db', {'fr_FR': {'A': 'A_fr', 'B': 'B_fr'}})
+        self.assertEqual(
+            view.with_context(lang='fr_FR', edit_translations=True).arch_db,
+                '<select>'
+                    '<option data-oe-translation-span-wrapper="&lt;span '
+                        'data-oe-model=&quot;ir.ui.view&quot; '
+                        f'data-oe-id=&quot;{view.id}&quot; '
+                        'data-oe-field=&quot;arch_db&quot; '
+                        'data-oe-translation-state=&quot;translated&quot; '
+                        f'data-oe-translation-source-sha=&quot;559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd&quot;'
+                        '&gt;A_fr&lt;/span&gt;">A_fr</option>'
+                    '<option data-oe-translation-span-wrapper="&lt;span '
+                        'data-oe-model=&quot;ir.ui.view&quot; '
+                        f'data-oe-id=&quot;{view.id}&quot; '
+                        'data-oe-field=&quot;arch_db&quot; '
+                        'data-oe-translation-state=&quot;translated&quot; '
+                        f'data-oe-translation-source-sha=&quot;df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c&quot;'
+                        '&gt;B_fr&lt;/span&gt;">B_fr</option>'
+                '</select>',
+        )
+
+    def test_delay_translations_backend_edition(self):
+        """ Ensure delayed translations are shown in backend view edition """
+        archf = '<form string="%s"><div>%s</div><div>%s</div></form>'
+        terms_fr = ('Couteau', 'Fourchette', 'Cuillère')
+        terms_en = ('Knife', 'Fork', 'Spoon')
+        view0 = self.create_view(archf, terms_fr, en_US=terms_en)
+        original_english = view0.arch_db
+        new_french = '<form>bonjour monde</form>'
+        view0.with_context(lang='fr_FR', delay_translations=True).arch_db = new_french
+        self.assertEqual(view0.arch_db, original_english)
+        self.assertEqual(view0.with_context(check_translations=True).arch_db, new_french)
+        context = ast.literal_eval(self.env.ref('base.action_ui_view').context)
+        self.assertTrue(context.get('check_translations'))
+
     def test_t_call_no_normal_attribute_translation(self):
         self.env['ir.ui.view'].create({
             'type': 'qweb',
@@ -1758,6 +1875,7 @@ class TestXMLTranslation(TransactionCase):
         self.assertEqual(view1_us.arch_db, xml % ('Soccer', 'Clbus', 'Ranking'))  # fr_FR should fall back to en_US
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestXMLDuplicateTranslations(TransactionCase):
     """
     duplicate translations are not supported
@@ -1899,6 +2017,7 @@ class TestXMLDuplicateTranslations(TransactionCase):
         self.assertEqual(view1_en_copy.with_context(lang='es_ES').arch_db, self.xml % ('una estudiante', 'una estudiante'))  # 'un estudiante' is dropped
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHTMLTranslation(TransactionCase):
     def test_write_non_existing(self):
         html = '''
@@ -1948,6 +2067,7 @@ class TestLanguageInstallPerformance(TransactionCase):
         _stats_logger.info("installed language fr_BE in %.3fs", t1 - t0)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestTranslationTrigramIndexPatterns(BaseCase):
     def test_value_conversion(self):
         sc = SPECIAL_CHARACTERS

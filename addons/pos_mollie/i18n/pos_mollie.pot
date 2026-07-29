@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:36+0000\n"
 "PO-Revision-Date: 2026-07-10 17:36+0000\n"
@@ -69,7 +69,7 @@ msgstr ""
 
 #. module: pos_mollie
 #: model:ir.model,name:pos_mollie.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
+msgid "Point of Sale Payment Method"
 msgstr ""
 
 #. module: pos_mollie

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 {
     "name": "POS Self Order",
-    'version': '1.0',
     "summary": "Addon for the POS App that allows customers to view the menu on their smartphone.",
     "category": "Sales/Point Of Sale",
     "depends": ["pos_restaurant", "http_routing", "link_tracker"],
@@ -22,6 +20,8 @@
         "data/init_access.xml",
         "views/res_config_settings_views.xml",
         "views/point_of_sale_dashboard.xml",
+        'receipt/pos_order_receipt.xml',
+        'receipt/pos_order_change_receipt.xml',
     ],
     "demo": [
         "data/kiosk_demo_data.xml",
@@ -32,13 +32,9 @@
             ('include', 'pos_self_order.assets'),
             ('remove', 'pos_self_order/static/src/app/root.js'),
 
-            # Remove the conflicting "printer" service to avoid duplicate registration during tests
-            ('remove', 'pos_self_order/static/src/app/services/printer_service.js'),
-
             # Remove CSS files since we're not testing the UI with hoot in PoS self order
             # CSS files make html_editor tests fail
             ('remove', 'pos_self_order/static/src/**/*.scss'),
-            ('remove', 'point_of_sale/static/src/css/pos_receipts.css'),
 
             # Re-include debug and router files that were removed in point_of_sale.base_app
             # but are required for running unit tests
@@ -63,6 +59,7 @@
             'web/static/src/core/currency.js',
             'barcodes/static/src/barcode_service.js',
             'point_of_sale/static/src/utils.js',
+            'point_of_sale/static/src/app/utils/convert_python_template.js',
             'point_of_sale/static/src/proxy_trap.js',
             'point_of_sale/static/src/lazy_getter.js',
             'point_of_sale/static/src/app/utils/init_lna.js',
@@ -78,6 +75,7 @@
             'web/static/lib/bootstrap/js/dist/scrollspy.js',
             'html_editor/static/src/scss/base_style.scss',
             'html_editor/static/src/scss/html_editor.common.scss',
+            "point_of_sale/static/src/app/utils/make_awaitable_dialog.js",
             "point_of_sale/static/src/app/components/numpad/*",
             "point_of_sale/static/src/app/components/loader/*",
             "point_of_sale/static/src/app/components/loader/critical_pos_error/*",
@@ -88,16 +86,14 @@
             "point_of_sale/static/src/app/components/validation_animation/*",
             "point_of_sale/static/src/app/components/epos_templates.xml",
             "point_of_sale/static/src/css/pos_receipts.css",
-            "point_of_sale/static/src/app/screens/receipt_screen/receipt/**/*",
-            "pos_self_order/static/src/overrides/components/receipt_header/*",
+            "pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js",
             "point_of_sale/static/src/app/utils/printer/*",
-            "point_of_sale/static/src/app/services/printer_service.js",
             'point_of_sale/static/src/app/utils/html-to-image.js',
             'point_of_sale/static/src/app/utils/use_timed_press.js',
-            "point_of_sale/static/src/app/services/render_service.js",
+            'point_of_sale/static/src/app/services/pos_ticket_printer_service.js',
+            'point_of_sale/static/src/app/components/popups/retry_print_popup/**',
             "pos_self_order/static/src/app/**/*",
             "web/static/src/core/utils/render.js",
-            "pos_self_order/static/src/app/store/order_change_receipt_template.xml",
             "account/static/src/helpers/*.js",
             'web/static/src/model/relational_model/operation.js',
             "web/static/src/views/fields/parsers.js",
@@ -114,7 +110,8 @@
             "point_of_sale/static/src/app/utils/devices_identifier_sequence.js",
             "point_of_sale/static/src/app/hooks/hooks.js",
             "point_of_sale/static/src/app/utils/debug-formatter.js",
-            "pos_restaurant/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml",
+
+            ('include', 'point_of_sale.payment_terminals'),
         ],
         # Assets tests
         "pos_self_order.assets_tests": [

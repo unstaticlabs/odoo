@@ -3,7 +3,7 @@
 from urllib.parse import quote
 
 from odoo import api, models, fields
-from odoo.tools.image import base64_to_image
+from odoo.tools.image import binary_to_image
 from odoo.exceptions import UserError
 
 SUPPORTED_IMAGE_MIMETYPES = {
@@ -24,7 +24,12 @@ class IrAttachment(models.Model):
     image_src = fields.Char(compute='_compute_image_src')
     image_width = fields.Integer(compute='_compute_image_size')
     image_height = fields.Integer(compute='_compute_image_size')
-    original_id = fields.Many2one('ir.attachment', string="Original (unoptimized, unresized) attachment", index='btree_not_null')
+    original_id = fields.Many2one(
+        'ir.attachment',
+        string="Original (unoptimized, unresized) attachment",
+        index='btree_not_null',
+        ondelete='cascade',
+    )
 
     def _compute_local_url(self):
         for attachment in self:
@@ -42,7 +47,10 @@ class IrAttachment(models.Model):
                 continue
 
             if attachment.type == 'url':
-                if attachment.url.startswith('/'):
+                # Only check if the url starts with a '/' is not enough to
+                # define that it is a local url as it could also be an external
+                # protocol relative url.
+                if attachment.url.startswith('/') and not attachment.url.startswith('//'):
                     # Local URL
                     attachment.image_src = attachment.url
                 else:
@@ -60,11 +68,11 @@ class IrAttachment(models.Model):
                     name = quote(attachment.name)
                     attachment.image_src = '/web/image/%s-%s/%s' % (attachment.id, unique, name)
 
-    @api.depends('datas')
+    @api.depends('raw')
     def _compute_image_size(self):
         for attachment in self:
             try:
-                image = base64_to_image(attachment.datas)
+                image = binary_to_image(attachment.raw or b'')
                 attachment.image_width = image.width
                 attachment.image_height = image.height
             except UserError:

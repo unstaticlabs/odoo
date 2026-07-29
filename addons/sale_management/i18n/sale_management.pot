@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 19.1a1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-01-25 18:35+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-12-16 18:35+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -62,11 +62,17 @@ msgid "Archived"
 msgstr ""
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
 msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -143,12 +149,6 @@ msgid "Display Type"
 msgstr ""
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -156,6 +156,18 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
 msgstr ""
 
 #. module: sale_management
@@ -246,7 +258,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -316,6 +328,12 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -393,6 +411,8 @@ msgid ""
 msgstr ""
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""

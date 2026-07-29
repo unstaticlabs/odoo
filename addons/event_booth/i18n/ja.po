@@ -2,23 +2,23 @@
 # This file contains the translation of the following modules:
 # * event_booth
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 21:11+0000\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-04-18 13:41+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "event_booth/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
@@ -128,6 +128,11 @@ msgid "Activity Exception Decoration"
 msgstr "例外の活動を示す装飾"
 
 #. module: event_booth
+#: model:ir.model.fields,field_description:event_booth.field_event_booth__activity_plans_ids
+msgid "Activity Plans"
+msgstr "活動計画"
+
+#. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__activity_state
 msgid "Activity State"
 msgstr "活動ステータス"
@@ -217,8 +222,8 @@ msgid ""
 "Booth categories are used to represent the different types of booths you "
 "rent (Premium Booth, Table and Chairs, ...)"
 msgstr ""
-"ブースのカテゴリは、レンタルするブースの種類(プレミアムブース、テーブル＆"
-"チェア、...)を表すために使用されます。"
+"ブースのカテゴリは、レンタルするブースの種類(プレミアムブース、テーブル＆チェ"
+"ア、...)を表すために使用されます。"
 
 #. module: event_booth
 #: model:ir.actions.act_window,name:event_booth.event_booth_action
@@ -648,9 +653,9 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "活動に基づくステータス\n"
-"期限超過：期限日がすでに過ぎています\n"
+"遅延: 期限が既に過ぎています\n"
 "今日: 活動日は今日です\n"
-"予定: 将来の活動。"
+"予定: 今後の活動です"
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_event__event_booth_count
@@ -660,7 +665,7 @@ msgstr "合計ブース"
 #. module: event_booth
 #: model:ir.model.fields,help:event_booth.field_event_booth__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "レコード上の例外の活動タイプ。"
+msgstr "記録上の例外活動の種類。"
 
 #. module: event_booth
 #: model:ir.model.fields.selection,name:event_booth.selection__event_booth__state__unavailable
@@ -704,6 +709,3 @@ msgstr "例: 第1ブース 通路1"
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_category_view_form
 msgid "e.g. Premium Booth"
 msgstr "例: プレミアムブース"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"

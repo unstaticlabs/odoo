@@ -7,13 +7,17 @@ import { closestBlock, isBlock } from "../utils/blocks";
 import { cleanTextNode, fillEmpty, removeClass, splitTextNode, unwrapContents } from "../utils/dom";
 import {
     areSimilarElements,
+    hasVisibleContent,
     isContentEditable,
     isContentEditableAncestor,
     isElement,
     isEmptyBlock,
     isEmptyTextNode,
+    isPhrasingContent,
     isSelfClosingElement,
+    isStylable,
     isTextNode,
+    isVisible,
     isVisibleTextNode,
     isZwnbsp,
     isZWS,
@@ -59,13 +63,14 @@ function isFormatted(formatPlugin, format) {
 
 export class FormatPlugin extends Plugin {
     static id = "format";
-    static dependencies = ["selection", "history", "input", "split"];
+    static dependencies = ["selection", "history", "input", "split", "delete"];
     // TODO ABD: refactor to handle Knowledge comments inside this plugin without sharing mergeAdjacentInlines.
     static shared = [
         "isSelectionFormat",
         "insertAndSelectZws",
         "mergeAdjacentInlines",
         "formatSelection",
+        "removeFormats",
     ];
     /** @type {import("plugins").EditorResources} */
     resources = {
@@ -75,28 +80,28 @@ export class FormatPlugin extends Plugin {
                 description: _t("Toggle bold"),
                 icon: "fa-bold",
                 run: this.formatSelection.bind(this, "bold"),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "formatItalic",
                 description: _t("Toggle italic"),
                 icon: "fa-italic",
                 run: this.formatSelection.bind(this, "italic"),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "formatUnderline",
                 description: _t("Toggle underline"),
                 icon: "fa-underline",
                 run: this.formatSelection.bind(this, "underline"),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "formatStrikethrough",
                 description: _t("Toggle strikethrough"),
                 icon: "fa-strikethrough",
                 run: this.formatSelection.bind(this, "strikeThrough"),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "formatFontSize",
@@ -105,7 +110,7 @@ export class FormatPlugin extends Plugin {
                         applyStyle: true,
                         formatProps: { size },
                     }),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "formatFontSizeClassName",
@@ -114,7 +119,7 @@ export class FormatPlugin extends Plugin {
                         applyStyle: true,
                         formatProps: { className },
                     }),
-                isAvailable: isHtmlContentSupported,
+                isAvailable: this.canFormatContent.bind(this),
             },
             {
                 id: "removeFormat",
@@ -138,36 +143,45 @@ export class FormatPlugin extends Plugin {
         toolbar_items: [
             {
                 id: "bold",
+                description: _t("Bold (Ctrl + B)"),
                 groupId: "decoration",
                 namespaces: ["compact", "expanded"],
                 commandId: "formatBold",
                 isActive: isFormatted(this, "bold"),
+                isDisabled: (sel, nodes) => nodes.some((node) => !isStylable(node)),
             },
             {
                 id: "italic",
+                description: _t("Italic (Ctrl + I)"),
                 groupId: "decoration",
                 namespaces: ["compact", "expanded"],
                 commandId: "formatItalic",
                 isActive: isFormatted(this, "italic"),
+                isDisabled: (sel, nodes) => nodes.some((node) => !isStylable(node)),
             },
             {
                 id: "underline",
+                description: _t("Underline (Ctrl + U)"),
                 groupId: "decoration",
                 namespaces: ["compact", "expanded"],
                 commandId: "formatUnderline",
                 isActive: isFormatted(this, "underline"),
+                isDisabled: (sel, nodes) => nodes.some((node) => !isStylable(node)),
             },
             {
                 id: "strikethrough",
+                description: _t("Strikethrough (Ctrl + 5)"),
                 groupId: "decoration",
                 commandId: "formatStrikethrough",
                 isActive: isFormatted(this, "strikeThrough"),
+                isDisabled: (sel, nodes) => nodes.some((node) => !isStylable(node)),
             },
             withSequence(20, {
                 id: "remove_format",
                 groupId: "decoration",
                 commandId: "removeFormat",
-                isDisabled: (sel, nodes) => !this.hasAnyFormat(nodes),
+                isDisabled: (sel, nodes) =>
+                    !this.hasAnyFormat(nodes) || nodes.some((node) => !isStylable(node)),
             }),
         ],
         /** Handlers */
@@ -209,7 +223,7 @@ export class FormatPlugin extends Plugin {
         if (
             !emptyZWS ||
             !emptyZWS.parentElement.isContentEditable ||
-            this.getResource("unremovable_node_predicates").some((p) => p(emptyZWS))
+            this.dependencies.delete.isUnremovable(emptyZWS)
         ) {
             return insertedNode;
         }
@@ -227,8 +241,8 @@ export class FormatPlugin extends Plugin {
         this.dependencies.history.addStep();
     }
 
-    removeFontSizeFormat(el) {
-        for (const node of [el, ...descendants(el)]) {
+    removeFontSizeFormat({ block }) {
+        for (const node of [block, ...descendants(block)]) {
             removeFormat(node, formatsSpecs.fontSize);
             removeFormat(node, formatsSpecs.setFontSizeClassName);
         }
@@ -565,7 +579,7 @@ export class FormatPlugin extends Plugin {
         const inlineElement = findFurthest(
             closestElement(anchorNode),
             blockEl,
-            (e) => !isBlock(e) && e.textContent === "\u200b"
+            (e) => isPhrasingContent(e) && !isVisible(e) && !hasVisibleContent(e)
         );
         if (
             this.lastEmptyInlineElement?.isConnected &&
@@ -589,7 +603,7 @@ export class FormatPlugin extends Plugin {
             this.cleanZWS(element, { preserveSelection });
             return;
         }
-        if (this.getResource("unremovable_node_predicates").some((p) => p(element))) {
+        if (this.dependencies.delete.isUnremovable(element)) {
             return;
         }
         if (
@@ -670,7 +684,10 @@ export class FormatPlugin extends Plugin {
             if (!selection.isCollapsed) {
                 return;
             }
-            const element = closestElement(selection.anchorNode);
+            // Links are a special case here. When typing, link
+            // element gets removed automatically whereas
+            // other inline tags would be preserved.
+            const element = closestElement(selection.anchorNode, ":not(a)");
             if (element.hasAttribute("data-oe-zws-empty-inline")) {
                 // Select its ZWS content to make sure the text will be
                 // inserted inside the element, and not before (outside) it.
@@ -732,6 +749,13 @@ export class FormatPlugin extends Plugin {
             !isSelfClosingElement(node) &&
             isMergeable(node) &&
             areSimilarElements(node, previousSibling)
+        );
+    }
+
+    canFormatContent(selection) {
+        return (
+            isHtmlContentSupported(selection) &&
+            this.dependencies.selection.getTargetedNodes().every((node) => isStylable(node))
         );
     }
 }

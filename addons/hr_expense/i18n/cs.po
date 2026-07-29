@@ -14,15 +14,14 @@
 # Martin Trigaux, 2023
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
 # Michal Veselý <michal@veselyberanek.net>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Marta (wacm)" <wacm@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-07-01 03:55+0000\n"
+"PO-Revision-Date: 2025-11-08 19:05+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/hr_expense/"
 "cs/>\n"
@@ -32,7 +31,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -82,6 +81,11 @@ msgstr ""
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
 msgstr ""
 
 #. module: hr_expense
@@ -142,6 +146,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Účet"
@@ -176,6 +190,11 @@ msgstr "Aktivity"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Typ výjimečné aktivity"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -253,8 +272,10 @@ msgstr "Očekává se výdajový účet"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "Výdaj se stejnou kategorií, částkou a datumem již existuje."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -377,14 +398,6 @@ msgid "Can Reset"
 msgstr "Možno resetovat"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Zrušit"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -413,10 +426,6 @@ msgstr "Komunikace"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Společnosti"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -501,7 +510,6 @@ msgstr "Směnný kurz"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Vážený"
 
@@ -563,7 +571,7 @@ msgstr "Digitalizujte své příjmy pomocí OCR a umělé inteligence"
 #: model:ir.model.fields,field_description:hr_expense.field_res_company__display_name
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__distribution_analytic_account_ids
@@ -588,12 +596,6 @@ msgid "Domain"
 msgstr "Doména"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Stáhněte si naši aplikaci"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -605,6 +607,12 @@ msgstr "Návrh"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Duplicitní výdaj"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -639,6 +647,18 @@ msgid "Employee Expenses"
 msgstr "Výdaje zaměstnanců"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -646,6 +666,8 @@ msgid ""
 msgstr "Zadejte název, vyberte kategorii a nakonfigurujte výši svých výdajů."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -680,7 +702,6 @@ msgstr "Duplikát při schvalování výdaje"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Schvalovatel výdajů"
 
@@ -790,11 +811,6 @@ msgid "Expense split"
 msgstr "Rozdělení výdaje"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -828,11 +844,6 @@ msgid "Expenses Report"
 msgstr "Zpráva o výdajích"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -844,6 +855,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Výdaje člena týmu"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr ""
@@ -932,14 +944,14 @@ msgid "Guideline"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "Má zprávu"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1106,6 +1118,11 @@ msgid "Label Currency Rate"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1248,13 +1265,6 @@ msgstr "Název"
 #. odoo-python
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
-msgstr ""
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
 msgstr ""
 
 #. module: hr_expense
@@ -1463,6 +1473,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Platební metoda"
@@ -1488,11 +1503,6 @@ msgstr "Platební metody"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr "Dostupné způsoby platby za výdaje hrazené společností"
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Platby"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1691,6 +1701,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Restaurace, pracovní obědy atd."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Chyba doručení SMS"
@@ -1718,10 +1733,10 @@ msgid "Scan"
 msgstr "Naskenovat"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Naskenováním tohoto QR kódu získáte aplikaci Odoo:"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1767,7 +1782,7 @@ msgstr "Nastavení"
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 msgid "Show all records whose next activity date is past"
-msgstr "Zobrazit všechny záznamy, jejichž datum další aktivity již uplynulo"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1809,11 +1824,6 @@ msgid "Split Possible"
 msgstr "Možné rozdělení"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Varování na aktualizaci standardní ceny"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1839,6 +1849,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Odeslat"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1912,6 +1928,11 @@ msgstr "Daně"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "Schvalovatel týmu"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2004,12 +2025,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"S touto kategorií souvisí nepředložené výdaje. Aktualizace ceny kategorie "
-"změní výši nákladů. Ujistěte se, že je to to, co chcete dělat."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2128,9 +2146,9 @@ msgid "Untaxed Amount"
 msgstr "Částka bez daně"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
 msgstr ""
 
 #. module: hr_expense
@@ -2166,11 +2184,6 @@ msgstr "Dodavatel"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Zobrazit výdaje"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2219,12 +2232,6 @@ msgstr "Zda je daň definována na vybraný produkt"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Průvodce"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2324,6 +2331,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2352,16 +2364,6 @@ msgstr ""
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Musíte k deníku přidat způsob ruční platby (%s)"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Abyste mohli pokračovat, musíte mít ve své databázi alespoň jednu kategorii, "
-"kterou lze zařadit do nákladů!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2438,281 +2440,3 @@ msgstr ""
 
 #~ msgid "2023-08-11"
 #~ msgstr "11. 8. 2023"
-
-#~ msgid "View Attachments"
-#~ msgstr "Zobrazit přílohy"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Nastavení účetnictví"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Nejprve byste měli nainstalovat fiskální lokalizaci."
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Datum:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Popis:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Zaměstnanec:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Platba od:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Celkem</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Ověřeno od:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Všechny výkazy výdajů"
-
-#~ msgid "All Reports"
-#~ msgstr "Všetky správy"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr "Výkaz výdavkov musí obsahovať iba riadky od tej istej spoločnosti."
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple App Store"
-
-#~ msgid "Approve Report"
-#~ msgstr "Schváliť správu"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Referenčné číslo faktury"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Může byť zaúčtovaný"
-
-#~ msgid "Categories"
-#~ msgstr "Kategorie"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Certifikovaný čestný a konformný,<br/>(Dátum a podpis).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Převod mezi měrnými jednotkami lze uskutečnit jen když patří do stejné "
-#~ "kategorie. Převod bude proveden na základě vzájemných poměrů."
-
-#~ msgid "Create Report"
-#~ msgstr "Vytvořit zprávu"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Vytvořit nový přehled výdajů"
-
-#~ msgid "Date"
-#~ msgstr "Datum"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Vyzkoušeli jste mobilní aplikaci?"
-
-#~ msgid "Done"
-#~ msgstr "Hotovo"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Adresa bydliště zaměstnance"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Nákladový deník"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Řádky výdajů"
-
-#~ msgid "Expense Report"
-#~ msgstr "Zpráva o výdajích"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Souhrnný přehled výdajů"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Zprávy o výdajích"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Analýza výkazů výdajů"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Zprávy o výdajích ke schválení"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Zpráva o výdajích schválena"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Zpráva o výdajích zaplacena"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Zpráva o výdajích byla odmítnuta"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Výkazy výdajů přeskupují všechny výdaje vzniklé během konkrétní události."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Výkazy výdajů ke schválení"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Výdaje podle data"
-
-#~ msgid "Former Employees"
-#~ msgstr "Bývalí zaměstnanci"
-
-#~ msgid "General Information"
-#~ msgstr "Obecná informace"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play Store"
-
-#~ msgid "Group By"
-#~ msgstr "Seskupit podle"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Zpracovat řádky s různými měnami"
-
-#~ msgid "Internal Note"
-#~ msgstr "Interní poznámka"
-
-#~ msgid "My Reports"
-#~ msgstr "Moje zprávy"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Nová zpráva o výdajích"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr ""
-#~ "Pro zaměstnance nebyla nalezena žádná domácí adresa %s, nakonfigurujte si "
-#~ "prosím jeden."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Nebyl nalezen žádný výkaz výdajů. Vytvořme si jeden!"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Nebyly nalezeny žádné výkazy výdajů. Vytvořme si jeden!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet zpráv, které vyžadují akci"
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr "Pouze pracovníci HR nebo dotyčný zaměstnanec mohou obnovit návrh."
-
-#~ msgid "Or"
-#~ msgstr "Nebo"
-
-#~ msgid "Others"
-#~ msgstr "Ostatní"
-
-#~ msgid "Partial"
-#~ msgstr "Částečný"
-
-#~ msgid "Payment Status"
-#~ msgstr "stav platby"
-
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Cena v měně společnosti"
-
-#~ msgid "Qty"
-#~ msgstr "Množství"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Důvod odmítnutí výdajů"
-
-#~ msgid "Ref."
-#~ msgstr "Odk."
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "Lze upravovat aktuálním uživatelem"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Odmítnuté výdaje"
-
-#~ msgid "Register Payment"
-#~ msgstr "Zaznamenat platbu"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Hrazené výdaje"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Obnovit návrh"
-
-#~ msgid "Sample"
-#~ msgstr "Vzorek"
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Nastavte alias domény"
-
-#~ msgid "Sheet"
-#~ msgstr "List"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Zobrazit všechny záznamy, které mají následující datum akce před dneškem"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Pořiďte fotografie svých účtenek a nechte Odoo<br> automaticky za vás "
-#~ "vytvoří výdaje."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Deník musí být nastaven na zaúčtované výdaje"
-
-#~ msgid "To Report"
-#~ msgstr "Ohlásit"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Měrná jednotka"
-
-#~ msgid "UoM Category"
-#~ msgstr "Kategorie MJ"
-
-#~ msgid "User"
-#~ msgstr "Uživatel"
-
-#~ msgid "View Report"
-#~ msgstr "Zobrazit hlášení"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr "Ztrácíte čas zaznamenávání vašich příjmů? Zkusme lepší způsob."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr "Nejste oprávněni upravovat odkaz na tento výkaz výdajů."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Nemáte oprávnění upravovat tento výkaz výdajů."
-
-#~ msgid "You can not create report without category."
-#~ msgstr "Bez kategorie nelze hlášení vytvořit."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr "Účetní záznam můžete vygenerovat pouze pro schválené výdaje."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "Nemůžete přidat výdaje jiného zaměstnance."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "Nemůžete odstranit účtované nebo placené náklady."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr "V téže zprávě nemůžete vykázat výdaje za různé zaměstnance."
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Nelze nahlásit dvakrát stejný řádek.."
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "např. Výlet do New Yorku"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "k úhradě"
-
-#~ msgid "under validation"
-#~ msgstr "probíhá validace"

@@ -5,11 +5,13 @@ import selectors
 import threading
 
 import odoo
-from odoo.tests import TransactionCase
+from odoo.tests import tagged, TransactionCase
+from odoo.tools import config
 
 from ..models.bus import json_dump, get_notify_payloads, NOTIFY_PAYLOAD_MAX_LENGTH, ODOO_NOTIFY_FUNCTION
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class NotifyTests(TransactionCase):
 
     def test_get_notify_payloads(self):
@@ -64,7 +66,7 @@ class NotifyTests(TransactionCase):
         def single_listen():
             nonlocal channels
             with (
-                odoo.sql_db.db_connect("postgres").cursor() as cr,
+                odoo.sql_db.db_connect(config['db_system']).cursor() as cr,
                 selectors.DefaultSelector() as sel,
             ):
                 cr.execute("listen imbus")

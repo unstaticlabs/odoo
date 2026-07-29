@@ -1,9 +1,11 @@
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
+import * as Common from "@point_of_sale/../tests/pos/tours/utils/common";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
+import * as NumberPopup from "@point_of_sale/../tests/generic_helpers/number_popup_util";
 import { escapeRegExp } from "@web/core/utils/strings";
 import { registry } from "@web/core/registry";
 
@@ -24,17 +26,15 @@ export function clickDiscountNumpad(num) {
     };
 }
 
-export function addDiscount(percentage) {
-    const steps = [ProductScreen.clickControlButton("Discount")];
-    for (const num of percentage.split("")) {
-        steps.push(clickDiscountNumpad(num));
-    }
-    steps.push({
-        trigger: `.popup-input:contains(/^${escapeRegExp(percentage)}$/)`,
-        run: "click",
-    });
-    steps.push(Dialog.confirm());
-    return steps;
+export function addDiscount(discount, type = "percent") {
+    return [
+        ProductScreen.clickControlButton("Discount"),
+        NumberPopup.enterValue(discount),
+        NumberPopup.clickType(type),
+        NumberPopup.isShown(type === "percent" ? `${discount} %` : `$ ${discount}`),
+        NumberPopup.hasTypeSelected(type),
+        Dialog.confirm(),
+    ];
 }
 
 export function payAndInvoice(totalAmount) {
@@ -48,14 +48,17 @@ export function payAndInvoice(totalAmount) {
         PaymentScreen.clickInvoiceButton(),
         PaymentScreen.clickValidate(),
 
-        ReceiptScreen.receiptAmountTotalIs(totalAmount),
-        ReceiptScreen.clickNextOrder(),
+        FeedbackScreen.checkTicketData({
+            total_amount: totalAmount,
+        }),
+        FeedbackScreen.clickNextOrder(),
     ];
 }
 
 registry
     .category("web_tour.tours")
     .add("test_taxes_l10n_in_pos_global_discount_round_per_line_price_excluded", {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         steps: () =>
             [
                 Chrome.startPoS(),
@@ -92,12 +95,22 @@ registry
                 ProductScreen.clickNumpad("1"),
                 TicketScreen.confirmRefund(),
                 PaymentScreen.totalIs("-17.95"), // -18.32 (product_1_1) + 0.37 (discount)
+                Common.selectButton("Back"),
+                ProductScreen.cancelOrder(),
+                ...addDocument([
+                    { product: "product_1_1", quantity: "1" },
+                    { product: "product_1_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("36.64"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
 registry
     .category("web_tour.tours")
     .add("test_taxes_l10n_in_pos_global_discount_round_globally_price_excluded", {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         steps: () =>
             [
                 Chrome.startPoS(),
@@ -127,6 +140,13 @@ registry
                 ProductScreen.checkTotalAmount("30.07"),
                 ProductScreen.checkTaxAmount("4.02"),
                 ...payAndInvoice("30.07"),
+                ...addDocument([
+                    { product: "product_2_1", quantity: "1" },
+                    { product: "product_2_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("36.64"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -162,12 +182,20 @@ registry
                 ProductScreen.checkTotalAmount("30.04"),
                 ProductScreen.checkTaxAmount("3.99"),
                 ...payAndInvoice("30.04"),
+                ...addDocument([
+                    { product: "product_3_1", quantity: "1" },
+                    { product: "product_3_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("36.64"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
 registry
     .category("web_tour.tours")
     .add("test_taxes_l10n_in_pos_global_discount_round_globally_price_included", {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         steps: () =>
             [
                 Chrome.startPoS(),
@@ -197,6 +225,13 @@ registry
                 ProductScreen.checkTotalAmount("30.06"),
                 ProductScreen.checkTaxAmount("4.02"),
                 ...payAndInvoice("30.06"),
+                ...addDocument([
+                    { product: "product_4_1", quantity: "1" },
+                    { product: "product_4_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("36.64"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -216,6 +251,13 @@ registry
                 ProductScreen.checkTotalAmount("94.08"),
                 ProductScreen.checkTaxAmount("30.7"),
                 ...payAndInvoice("94.08"),
+                ...addDocument([
+                    { product: "product_1_1", quantity: "1" },
+                    { product: "product_1_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("96"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -235,6 +277,13 @@ registry
                 ProductScreen.checkTotalAmount("94.08"),
                 ProductScreen.checkTaxAmount("30.71"),
                 ...payAndInvoice("94.08"),
+                ...addDocument([
+                    { product: "product_2_1", quantity: "1" },
+                    { product: "product_2_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("96"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -254,6 +303,13 @@ registry
                 ProductScreen.checkTotalAmount("94.08"),
                 ProductScreen.checkTaxAmount("30.7"),
                 ...payAndInvoice("94.08"),
+                ...addDocument([
+                    { product: "product_3_1", quantity: "1" },
+                    { product: "product_3_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("96"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -273,6 +329,13 @@ registry
                 ProductScreen.checkTotalAmount("94.08"),
                 ProductScreen.checkTaxAmount("30.71"),
                 ...payAndInvoice("94.08"),
+                ...addDocument([
+                    { product: "product_4_1", quantity: "1" },
+                    { product: "product_4_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("96"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -292,6 +355,13 @@ registry
                 ProductScreen.checkTotalAmount("42.25"),
                 ProductScreen.checkTaxAmount("9.34"),
                 ...payAndInvoice("42.25"),
+                ...addDocument([
+                    { product: "product_1_1", quantity: "1" },
+                    { product: "product_1_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("43.06"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -311,6 +381,13 @@ registry
                 ProductScreen.checkTotalAmount("42.24"),
                 ProductScreen.checkTaxAmount("9.33"),
                 ...payAndInvoice("42.24"),
+                ...addDocument([
+                    { product: "product_2_1", quantity: "1" },
+                    { product: "product_2_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("43.06"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -330,6 +407,13 @@ registry
                 ProductScreen.checkTotalAmount("42.25"),
                 ProductScreen.checkTaxAmount("9.34"),
                 ...payAndInvoice("42.25"),
+                ...addDocument([
+                    { product: "product_3_1", quantity: "1" },
+                    { product: "product_3_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("43.06"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });
 
@@ -349,5 +433,12 @@ registry
                 ProductScreen.checkTotalAmount("42.25"),
                 ProductScreen.checkTaxAmount("9.33"),
                 ...payAndInvoice("42.25"),
+                ...addDocument([
+                    { product: "product_4_1", quantity: "1" },
+                    { product: "product_4_2", quantity: "1" },
+                ]),
+                ...addDiscount("5", "fixed"),
+                ProductScreen.checkTotalAmountStriclyLessThan("43.06"),
+                ProductScreen.cancelOrder(),
             ].flat(),
     });

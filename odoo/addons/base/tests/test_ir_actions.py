@@ -1,26 +1,27 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import date
 import json
-from markupsafe import Markup
-from psycopg2 import IntegrityError, ProgrammingError
-import requests
+from datetime import date
 from unittest.mock import patch
 
+import requests
+from markupsafe import Markup
+from psycopg2 import IntegrityError
+
 import odoo
-from odoo.exceptions import UserError, ValidationError, AccessError
-from odoo.tools import mute_logger, frozendict
+from odoo import Command
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import common, tagged
+from odoo.tools import mute_logger, frozendict
+
 from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
 from odoo.addons.base.models.res_partner import ResPartner
-from odoo import Command
 
 
 class TestServerActionsBase(TransactionCaseWithUserDemo):
 
     def setUp(self):
-        super(TestServerActionsBase, self).setUp()
+        super().setUp()
 
         # Data on which we will run the server action
         self.test_country = self.env['res.country'].create({
@@ -86,6 +87,7 @@ except:
         })
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestServerActions(TestServerActionsBase):
     def test_00_server_action(self):
         with self.assertLogs('odoo.addons.base.models.ir_actions.server_action_safe_eval',
@@ -698,6 +700,7 @@ class TestCommonCustomFields(common.TransactionCase):
         })
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestCustomFields(TestCommonCustomFields):
     def test_create_custom(self):
         """ custom field names must be start with 'x_' """
@@ -775,7 +778,7 @@ class TestCustomFields(TestCommonCustomFields):
             field.unlink()
 
         # but it works in the context of uninstalling a module
-        field.with_context(_force_unlink=True).unlink()
+        field.with_context(force_delete=True).unlink()
 
     def test_unlink_with_inverse(self):
         """ create a custom o2m and then delete its m2o inverse """
@@ -804,7 +807,7 @@ class TestCustomFields(TestCommonCustomFields):
             m2o_field.unlink()
 
         # uninstall mode: unlink dependant fields
-        m2o_field.with_context(_force_unlink=True).unlink()
+        m2o_field.with_context(force_delete=True).unlink()
         self.assertFalse(o2m_field.exists())
 
     def test_unlink_with_dependant(self):
@@ -827,7 +830,7 @@ class TestCustomFields(TestCommonCustomFields):
             field.unlink()
 
         # uninstall mode: unlink dependant fields
-        field.with_context(_force_unlink=True).unlink()
+        field.with_context(force_delete=True).unlink()
         self.assertFalse(dependant.exists())
 
     def test_unlink_inherited_custom(self):
@@ -886,7 +889,7 @@ class TestCustomFields(TestCommonCustomFields):
 
         # create a non-computed field, and assert how many queries it takes
         model_id = self.env['ir.model']._get_id('res.partner')
-        query_count = 50
+        query_count = 51
         with self.assertQueryCount(query_count):
             self.env.registry.clear_cache()
             self.env['ir.model.fields'].create({

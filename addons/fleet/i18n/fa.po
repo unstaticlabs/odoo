@@ -13,23 +13,23 @@
 # Hanna Kheradroosta, 2023
 # Zahed Alfak <tamass4116@gmail.com>, 2023
 # Hamed Mohammadi <hamed@dehongi.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 23:55+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/fleet/"
-"fa/>\n"
+"POT-Creation-Date: 2026-02-20 09:00+0000\n"
+"PO-Revision-Date: 2025-11-16 22:46+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/fleet/fa/"
+">\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_kanban
@@ -41,6 +41,11 @@ msgstr "<i class=\"fa fa-map-marker\" title=\"Location\"/>"
 msgid ""
 "<span class=\"o_stat_value\">New</span>\n"
 "                                <span class=\"o_stat_text\">Vehicle</span>"
+msgstr ""
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_kanban
+msgid "<span class=\"text-muted\"> - </span>"
 msgstr ""
 
 #. module: fleet
@@ -141,6 +146,14 @@ msgid "Activity Exception Decoration"
 msgstr "دکوراسیون استثنایی فعالیت"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_state
@@ -188,6 +201,14 @@ msgid "Air Filter Replacement"
 msgstr "تعویض فیلتر هوا"
 
 #. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid ""
+"All services and contracts linked to this vehicle will also be archived.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
 msgid "All vehicles"
 msgstr "همه خودروها"
@@ -206,6 +227,18 @@ msgstr "درایور جدید را اعمال کنید"
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_brand_view_kanban
 msgid "Archive"
 msgstr "بایگانی"
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle"
+msgstr ""
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle & Contracts"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
@@ -395,7 +428,7 @@ msgid "Can Edit Body"
 msgstr "امکان ویرایش محتوا"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_send_mail_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
 msgid "Cancel"
 msgstr "لغو"
 
@@ -427,9 +460,22 @@ msgid "Cars"
 msgstr "خودروها"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_res_partner__partner_cars_count
+#: model:ir.model.fields,field_description:fleet.field_res_users__partner_cars_count
+msgid "Cars Count"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/res_partner.py:0
+#: model_terms:ir.ui.view,arch_db:fleet.view_partner_form
+msgid "Cars History"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__car_value
-msgid "Catalog Value (VAT Incl.)"
-msgstr "ارزش کاتالوگ (VAT Incl.)"
+msgid "Catalog Value (Tax Incl.)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_15
@@ -530,6 +576,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__company_id
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__company_id
 msgid "Company"
 msgstr "شرکت"
 
@@ -543,6 +590,11 @@ msgstr "تنظیمات پیکربندی"
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_brand_view_kanban
 msgid "Configuration"
 msgstr "پیکربندی"
+
+#. module: fleet
+#: model:ir.model,name:fleet.model_res_partner
+msgid "Contact"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_search
@@ -617,6 +669,7 @@ msgstr "هزینه"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__cost_type
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 msgid "Cost Type"
 msgstr "نوع هزینه"
 
@@ -649,6 +702,11 @@ msgstr "کشور"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__country_code
 msgid "Country Code"
 msgstr "کد کشور"
+
+#. module: fleet
+#: model:ir.model,website_form_label:fleet.model_res_partner
+msgid "Create a Customer"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_model_category_action
@@ -747,9 +805,9 @@ msgstr "روزانه"
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__date_start
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer_report__recorded_date
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_search
 msgid "Date"
@@ -762,7 +820,7 @@ msgstr "تاریخ ثبت‌نام وسیله نقلیه"
 
 #. module: fleet
 #: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date_from
 msgid "Date when the cost has been executed"
 msgstr "تاریخ هنگامی که هزینه اجرا شده است"
 
@@ -831,6 +889,7 @@ msgstr "دیزل"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__display_name
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__display_name
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:fleet.field_res_partner__display_name
 msgid "Display Name"
 msgstr "نام نمایشی"
 
@@ -967,6 +1026,16 @@ msgid "End Date Contract Alert"
 msgstr "هشدار تاریخ انقضای قرارداد"
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_log_services_check_service_dates
+msgid "End date must be on or after the start date."
+msgstr ""
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_to
+msgid "End of Service"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 msgid "Engine"
@@ -993,19 +1062,14 @@ msgid "Entry into service tax"
 msgstr "مالیات ورود به خدمت"
 
 #. module: fleet
-#. odoo-javascript
-#: code:addons/fleet/static/src/js/fleet_form.js:0
-msgid ""
-"Every service and contract of this vehicle will be considered as archived. "
-"Are you sure that you want to archive this record?"
-msgstr ""
-"هر خدمت و قرارداد این وسیله نقلیه به‌عنوان بایگانی شده در نظر گرفته خواهد شد. "
-"آیا مطمئن هستید که می‌خواهید این رکورد را بایگانی کنید؟"
-
-#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_21
 msgid "Exhaust Manifold Replacement"
 msgstr "تعویض منیفولد اگزوز"
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
+msgid "Expiration Date"
+msgstr ""
 
 #. module: fleet
 #: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__contract_state__expired
@@ -1263,6 +1327,7 @@ msgstr "هیدروژن"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__id
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__id
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__id
+#: model:ir.model.fields,field_description:fleet.field_res_partner__id
 msgid "ID"
 msgstr "شناسه"
 
@@ -1839,11 +1904,6 @@ msgid "Odometer Value"
 msgstr "مقدار ادوئومتر"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_graph
-msgid "Odometer Values Per Vehicle"
-msgstr "مقدار کیلومترشمار به ازای هر خودرو"
-
-#. module: fleet
 #: model:ir.model,name:fleet.model_fleet_vehicle_odometer
 msgid "Odometer log for a vehicle"
 msgstr "گزارش کیلومترشمار برای یک خودرو"
@@ -1907,6 +1967,11 @@ msgid "Ordered"
 msgstr "سفارش داده شد"
 
 #. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__vehicle_type__other
+msgid "Other"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_33
 msgid "Other Maintenance"
 msgstr "دیگر نگهداری‌ها"
@@ -1922,14 +1987,9 @@ msgid "Oxygen Sensor Replacement"
 msgstr "تعویض سنسور اکسیژن"
 
 #. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_bike
-msgid "Plan To Change Bike"
-msgstr "برنامه‌ای برای تعویض موتور"
-
-#. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_car
-msgid "Plan To Change Car"
-msgstr "برنامه‌ای برای تعویض خودرو"
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_vehicle
+msgid "Plan To Change Vehicle"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
@@ -2009,6 +2069,19 @@ msgid "Range Unit"
 msgstr ""
 
 #. module: fleet
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle__vehicle_range
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_model__vehicle_range
+msgid ""
+"Range represents the maximum distance a vehicle can travel on a full charge "
+"(for EVs) or             a full tank (for fuel-powered vehicles)"
+msgstr ""
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+msgid "Reactivate"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_action
 msgid "Ready to manage your fleet more efficiently?"
 msgstr "آیا آماده‌اید ناوگان خود را به‌طور مؤثرتر مدیریت کنید؟"
@@ -2055,8 +2128,8 @@ msgstr "مدل رندرینگ"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_11
-msgid "Rent (Excluding VAT)"
-msgstr "اجاره (بدون ارزش افزوده)"
+msgid "Rent (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_7
@@ -2090,8 +2163,8 @@ msgstr "ارزش برجا"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_14
-msgid "Residual value (Excluding VAT)"
-msgstr "ارزش باقی‌مانده (Excluding VAT)"
+msgid "Residual value (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_18
@@ -2122,6 +2195,18 @@ msgid "Resurface Rotors"
 msgstr "تجدید سطح روتورها"
 
 #. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change of %s and specify End date"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_39
 msgid "Rotate Tires"
 msgstr "چرخش تایر‌ها"
@@ -2146,6 +2231,12 @@ msgstr "ذخیره به عنوان الگوی جدید"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__seats
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__seats
 msgid "Seating Capacity"
+msgstr ""
+
+#. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__transmission__semi_automatic
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__transmission__semi_automatic
+msgid "Semi-Automatic"
 msgstr ""
 
 #. module: fleet
@@ -2188,7 +2279,9 @@ msgid "Service Activity"
 msgstr "فعالیت خدماتی"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__service_type
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__service_type_id
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_search
 msgid "Service Type"
 msgstr "نوع سرویس"
@@ -2256,20 +2349,20 @@ msgid ""
 msgstr ""
 
 #. module: fleet
-#. odoo-python
-#: code:addons/fleet/models/fleet_vehicle.py:0
-msgid "Specify the End date of %s"
-msgstr "تاریخ پایان را مشخص کنید %s"
-
-#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__state
 msgid "Stage"
 msgstr "مرحله"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_assignation_log__date_start
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
 msgid "Start Date"
 msgstr "تاریخ آغاز"
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_from
+msgid "Start of Service"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_42
@@ -2375,6 +2468,11 @@ msgid "The following vehicle drivers are missing an email address: %s."
 msgstr ""
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_unique_license_plate
+msgid "The license plate must be unique"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle.py:0
 msgid "The odometer value cannot be lower than the previous one."
@@ -2438,8 +2536,8 @@ msgstr "جمع کل:"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_13
-msgid "Total expenses (Excluding VAT)"
-msgstr "کل هزینه‌ها (بدون ارزش افزوده)"
+msgid "Total expenses (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_17
@@ -2524,6 +2622,11 @@ msgid "Unit"
 msgstr "عدد"
 
 #. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
+msgid "Unregistered"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle_model.py:0
 #: model:ir.model,name:fleet.model_fleet_vehicle
@@ -2559,11 +2662,6 @@ msgstr "تعداد خودروها"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__description
 msgid "Vehicle Description"
 msgstr "توضیحات خودرو"
-
-#. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
-msgid "Vehicle Information"
-msgstr "اطلاعات خودرو"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__name
@@ -2658,6 +2756,7 @@ msgstr "فروشندگان"
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vechicle_costs_report_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 msgid "Visible to all"
 msgstr ""
@@ -2771,7 +2870,6 @@ msgid "e.g. Model S"
 msgstr "مثلا مدل اس"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form_quick_create
 msgid "e.g. PAE 326"
 msgstr "مثلا PAE 326"
@@ -2834,44 +2932,8 @@ msgstr "نمایش ثبت وقایع ادئومتر برای این خودرو"
 msgid "show the services logs for this vehicle"
 msgstr "نمایش ثبت وقایع سرویسها برای این خودرو"
 
-#~ msgid "<span>g/km</span>"
-#~ msgstr "<span>g/km</span>"
-
-#~ msgid "<span>kW</span>"
-#~ msgstr "<span>kW</span>"
-
-#~ msgid "CO2 Emissions g/km"
-#~ msgstr "انتشار  g/km CO2"
-
-#~ msgid "Close Contract"
-#~ msgstr "بستن قرارداد"
-
-#~ msgid "Contact"
-#~ msgstr "مخاطب"
-
-#~ msgid "Doors Number"
-#~ msgstr "تعداد در"
-
-#~ msgid "Group By"
-#~ msgstr "گروه‌بندی برمبنای"
-
-#~ msgid "Km"
-#~ msgstr "Km"
-
-#~ msgid "Name of contract to renew soon"
-#~ msgstr "نام قرارداد برای تمدید سریع"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "تعداد پیام ها که نیاز به عمل"
-
-#~ msgid "Reset To Draft"
-#~ msgstr "برگرداندن به پیش‌نویس"
-
-#~ msgid "Seats Number"
-#~ msgstr "تعداد صندلی"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "تمام رکوردهایی که تاریخ اقدام بعدی آن قبل از امروز است را نشان بده"
-
-#~ msgid "Start Contract"
-#~ msgstr "شروع قرارداد"
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "user_id"
+msgstr ""

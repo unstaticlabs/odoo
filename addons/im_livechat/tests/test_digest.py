@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.addons.digest.tests.common import TestDigestCommon
 from odoo.tools import mute_logger
-from odoo.tests import tagged
 
 
-@tagged('post_install', '-at_install')
 class TestLiveChatDigest(TestDigestCommon):
 
     @classmethod
@@ -18,17 +15,16 @@ class TestLiveChatDigest(TestDigestCommon):
 
         cls.channels = cls.env['discuss.channel'].create([{
             'name': 'Channel 1',
-            'livechat_operator_id': cls.env.user.partner_id.id,
             'channel_type': 'livechat',
         }, {
             'name': 'Channel 2',
-            'livechat_operator_id': cls.env.user.partner_id.id,
             'channel_type': 'livechat',
         }, {
             'name': 'Channel 3',
-            'livechat_operator_id': other_partner.id,
             'channel_type': 'livechat',
         }])
+        cls.channels[0:2]._add_members(users=cls.env.user)
+        cls.channels[2]._add_members(partners=other_partner)
 
         cls.env['rating.rating'].search([]).unlink()
 

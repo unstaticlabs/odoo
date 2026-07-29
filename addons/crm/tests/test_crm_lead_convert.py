@@ -6,6 +6,7 @@ from odoo.fields import Datetime
 from odoo.tests import Form, tagged, users
 
 @tagged('lead_manage')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadConvertForm(crm_common.TestLeadConvertCommon):
 
     @users('user_sales_manager')
@@ -55,6 +56,7 @@ class TestLeadConvertForm(crm_common.TestLeadConvertCommon):
 
 
 @tagged('lead_manage')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadConvert(crm_common.TestLeadConvertCommon):
     """
     TODO: created partner (handle assignment) has team of lead
@@ -381,6 +383,31 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
         self.assertEqual(lead.city, 'my city', 'City should be preserved during conversion')
         self.assertEqual(partner.lang, 'en_US')
 
+    def test_lead_convert_same_team(self):
+        """Check that the team_id field of the 'crm.lead2opportunity.partner' form is pre-filled with the team of the
+        lead that must be converted and not with the default one of its user."""
+        lead = self.env['crm.lead'].create({
+            'name': 'Convert Same Team LEAD',
+            'type': 'lead',
+            'user_id': self.user_sales_manager.id,
+            'team_id': self.env['crm.team'].create({
+                'name': 'Convert Sales Team 2',
+                'user_id': self.user_sales_manager.id,
+            }).id,
+        })
+        wizard = Form(self.env['crm.lead2opportunity.partner'].with_context({
+            'active_model': 'crm.lead',
+            'active_id': lead.id,
+            'active_ids': lead.ids,
+        }))
+        # Check that the team_id field of the wizard is pre-filled with the lead's team and ensure that it is not
+        # because it is the default team of the user.
+        self.assertEqual(lead.team_id, wizard.team_id)
+        self.assertNotEqual(
+            self.env['crm.team']._get_default_team_id(user_id=self.user_sales_manager.id),
+            lead.team_id
+        )
+
     @users('user_sales_manager')
     def test_lead_convert_properties_preserve(self):
         """Verify that the properties are preserved when converting."""
@@ -419,7 +446,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
         test_partner_lead, test_partner_wizard, commercial_partner = self.env['res.partner'].create([
             {'name': 'Lead Test Partner'},
             {'name': 'Wizard Test Partner'},
-            {'name': 'Company Partner', 'is_company': True},
+            {'name': 'Company Partner', 'vat': 'BE0477472701'},
         ])
         case_values = product(
             [no_partner, test_partner_lead],
@@ -461,6 +488,9 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
                     self.assertTrue(lead.partner_id)
                     self.assertEqual(lead.partner_id.name, lead_contact_name)
                     self.assertEqual(lead.partner_id.parent_id, wizard_company)
+                if wizard_action == 'create' and not lead_partner and not wizard_contact and lead_company_name:
+                    # The company created from partner_name must stay top-level.
+                    self.assertFalse(lead.partner_id.parent_id.parent_id)
                 if wizard_action == 'create' and (wizard_contact or lead_partner):
                     self.assertEqual(lead.partner_id, wizard_contact or lead_partner)
                     self.assertFalse(lead.partner_id.parent_id)
@@ -625,6 +655,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
 
 
 @tagged('lead_manage')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadConvertBatch(crm_common.TestLeadConvertMassCommon):
 
     def test_initial_data(self):

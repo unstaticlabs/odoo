@@ -3,8 +3,7 @@
 <data>
     <!-- Survey: printable page view (all pages) -->
     <template id="survey_page_print" name="Survey: print page">
-        <t t-call="survey.layout">
-            <t t-set="survey_form_readonly" t-value="true"/>
+        <t t-call="survey.layout" survey_form_readonly="true" question="False">
             <t t-if="answer.test_entry" t-call="survey.survey_button_form_view" />
             <div class="wrap">
                 <div class="o_survey_print o_container_small">
@@ -75,9 +74,7 @@
                                                 </t>
                                                 <t t-else="">
                                                     <t t-if="question.question_type == 'text_box'" t-call="survey.question_text_box"/>
-                                                    <t t-if="question.question_type == 'char_box'" class="o_survey_print o_survey_comment_container p-0">
-                                                        <span t-out="answer_lines[0].value_char_box or None"/>
-                                                    </t>
+                                                    <span t-if="question.question_type == 'char_box'" t-out="answer_lines[0].value_char_box or None" class="o_survey_print o_survey_comment_container p-0"/>
                                                     <t t-if="question.question_type == 'numerical_box'" t-call="survey.question_numerical_box"/>
                                                     <t t-if="question.question_type == 'date'" t-call="survey.question_date"/>
                                                     <t t-if="question.question_type == 'datetime'" t-call="survey.question_datetime"/>
@@ -90,9 +87,9 @@
                                                         <t t-set="correct_answer" t-value="question['answer_%s' % question.question_type ]"/>
                                                         <div class="col-12 text-success mt-1">
                                                             The correct answer was:
-                                                            <strong t-esc="correct_answer" t-if="question.question_type == 'numerical_box'"/>
-                                                            <strong t-esc="format_date(correct_answer)" t-if="question.question_type == 'date'"/>
-                                                            <strong t-esc="format_datetime(correct_answer)" t-if="question.question_type == 'datetime'"/>
+                                                            <strong t-out="correct_answer" t-if="question.question_type == 'numerical_box'"/>
+                                                            <strong t-out="format_date(correct_answer)" t-if="question.question_type == 'date'"/>
+                                                            <strong t-out="format_datetime(correct_answer)" t-if="question.question_type == 'datetime'"/>
                                                         </div>
                                                     </div>
                                                 </t>
@@ -125,7 +122,6 @@
                                 </t>
                             </t>
                             <!--Set question to false to avoid background miss match as last question is still in context and is used in survey.layout t-call.-->
-                            <t t-set="question" t-value="False"/>
                         </fieldset>
                     </div>
                 </div>
@@ -137,7 +133,7 @@
     <template id="certification_preview">
         <html>
             <head>
-                <title t-esc="'%s Preview' % page_title"/>
+                <title t-out="'%s Preview' % page_title"/>
                 <link rel="shortcut icon" href="/web/static/img/favicon.ico" type="image/x-icon"/>
             </head>
             <body style="margin:0;">

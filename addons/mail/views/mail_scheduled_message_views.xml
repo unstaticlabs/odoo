@@ -16,7 +16,7 @@
                                 <field name="model" invisible="1"/>
                                 <field name="partner_ids" widget="many2many_tags_email" class="w-auto flex-grow-1"
                                     placeholder="Add contacts to notify..."
-                                    options="{'edit_tags': True}"
+                                    options="{'on_tag_click': 'open_form'}"
                                     context="{'force_email': True, 'show_email': True, 'form_view_ref': 'base.view_partner_simple_form'}"/>
                             </div>
                             <field name="subject" required="True"/>
@@ -32,7 +32,7 @@
                         <button string="Save" class="btn-primary" special="save" invisible="not scheduled_date" data-hotkey="S"/>
                         <button string="Send Now" invisible="is_note" type="object" name="post_message" data-hotkey="q"/>
                         <button string="Log Now" invisible="not is_note" type="object" name="post_message" data-hotkey="q"/>
-                        <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                        <button class="btn-secondary" special="cancel" data-hotkey="x"/>
                         <field name="attachment_ids" widget="mail_composer_attachment_selector"/>
                         <field name="scheduled_date" widget="datetime_scheduled_date"/>
                     </footer>

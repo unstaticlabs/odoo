@@ -13,18 +13,17 @@
 # Martin Trigaux, 2022
 # Yedigen, 2022
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 18:49+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-28 12:47+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/tr/>\n"
 "Language: tr\n"
@@ -32,7 +31,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -66,11 +65,6 @@ msgstr "Uygulamalar"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "İptal"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Close"
 msgstr "Kapat"
 
@@ -86,7 +80,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_import_module/models/ir_module.py:0
 msgid "Connection to %s failed The list of industry modules cannot be fetched"
-msgstr "%s adresine bağlantı başarısız oldu. Sektör modülleri listesi alınamadı"
+msgstr ""
+"%s adresine bağlantı başarısız oldu. Sektör modülleri listesi alınamadı"
 
 #. module: base_import_module
 #. odoo-python
@@ -338,7 +333,8 @@ msgstr ""
 #: code:addons/base_import_module/models/ir_module.py:0
 msgid ""
 "The list of industry applications cannot be fetched. Please try again later"
-msgstr "Sektör uygulamaları listesi alınamadı. Lütfen daha sonra tekrar deneyin"
+msgstr ""
+"Sektör uygulamaları listesi alınamadı. Lütfen daha sonra tekrar deneyin"
 
 #. module: base_import_module
 #. odoo-python
@@ -372,36 +368,3 @@ msgstr "biten"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "başlatma"
-
-#~ msgid "Import App"
-#~ msgstr "Uygulama İçe Aktar"
-
-#~ msgid "Import module"
-#~ msgstr "Modül İçeri Aktar"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Son Düzenleme"
-
-#~ msgid ""
-#~ "Note: you can only import data modules (.xml files and static assets)"
-#~ msgstr ""
-#~ "Not: sadece veri modüllerini içe aktarabilirsiniz (.xml dosyaları ve "
-#~ "statik varlıklar)"
-
-#~ msgid "Open Modules"
-#~ msgstr "Modülleri Aç"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "İçeri aktarılacak modül paketini seçin (.zip dosyası)"
-
-#~ msgid "Studio customizations require Studio"
-#~ msgstr "Studio özelleştirmeleri Studio gerektirmektedir."
-
-#~ msgid ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"
-#~ msgstr ""
-#~ "Karşılanmamış modül bağımlılıkları: \n"
-#~ "\n"
-#~ " - %s"

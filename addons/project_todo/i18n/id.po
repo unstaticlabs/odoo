@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * project_todo
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Abe Manyo (abem)" <abem@odoo.com>, 2025.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:03+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-20 15:13+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "project_todo/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -34,16 +34,16 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        Ensure you follow the correct format and order. For example: Send "
-"invitations #event @Mitchell !\n"
-"    </span>"
+"        <span style=\"font-size: 14px;\">\n"
+"            Ensure you follow the correct format and order. For example: "
+"Send invitations #event @Mitchell !\n"
+"        </span>"
 msgstr ""
 "<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        Pastikan Anda mengikuti format dan urutan yang tepat. Sebagai "
+"        <span style=\"font-size: 14px;\">\n"
+"            Pastikan Anda mengikuti format dan urutan yang tepat. Sebagai "
 "contoh: Kirim undangan #acara @Mitchell !\n"
-"    </span>"
+"        </span>"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -126,15 +126,24 @@ msgid ""
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
 "            Pilih teks untuk\n"
-"            <font style=\"background-color: #017E84; color: white\">"
-"Highlight</font>,\n"
-"            <span style=\"text-decoration-line: line-through;\">"
-"strikethrough</span>\n"
+"            <font style=\"background-color: #017E84; color: "
+"white\">Highlight</font>,\n"
+"            <span style=\"text-decoration-line: line-through;"
+"\">strikethrough</span>\n"
 "            atau\n"
 "            <span style=\"font-weight: bolder;\">style</span>\n"
 "            <span style=\"font-style: italic; text-decoration-line: "
 "underline;\">teks tersebut</span>\n"
 "        </span>"
+
+#. module: project_todo
+#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
+msgid ""
+"<span style=\"font-size: 14px;\">\n"
+"            Use these keywords in the title to streamline your to-dos:\n"
+"        </span>\n"
+"        <br/>"
+msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -261,15 +270,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-size: 14px;\">\n"
-"        Use these keywords in the title to streamline your to-dos:\n"
-"    </span>\n"
-"    <br/>"
-msgstr ""
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
-msgid ""
-"<span style=\"font-size: 14px;\">\n"
 "        Wherever you are, use the magic keyboard shortcut to add yourself a "
 "reminder &amp;#128161;\n"
 "    </span>\n"
@@ -326,45 +326,45 @@ msgstr "<span style=\"font-size: 14px;\">Coba yang berikut</span>"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as urgent"
+"                    <font class=\"text-o-color-2\">!!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as urgent"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as high priority"
+"                    <font class=\"text-o-color-2\">!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as high priority"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as medium priority"
+"                    <font class=\"text-o-color-2\">!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as medium priority"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">#tags:</font>\n"
-"            </span>\n"
-"            Add tags to categorize the to-do"
+"                    <font class=\"text-o-color-2\">#tags:</font>\n"
+"                </span>\n"
+"                Add tags to categorize the to-do"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">@user:</font>\n"
-"            </span>\n"
-"            Assign the to-do to a specific user"
+"                    <font class=\"text-o-color-2\">@user:</font>\n"
+"                </span>\n"
+"                Assign the to-do to a specific user"
 msgstr ""
 
 #. module: project_todo
@@ -400,7 +400,7 @@ msgstr "Tambahkan To-Do"
 
 #. module: project_todo
 #. odoo-javascript
-#: code:addons/project_todo/static/src/web/activity/activity_menu_patch.js:0
+#: code:addons/project_todo/static/src/core/web/activity_menu_patch.js:0
 msgid "Add a To-Do"
 msgstr "Tambahkan To-Do"
 
@@ -504,12 +504,6 @@ msgstr "Batas waktu"
 #: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_kanban
 msgid "Delete"
 msgstr "Hapus"
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.mail_activity_todo_create_popup
-#: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_conversion_form
-msgid "Discard"
-msgstr "Buang"
 
 #. module: project_todo
 #: model:ir.model.fields,field_description:project_todo.field_mail_activity_todo_create__display_name
@@ -684,8 +678,10 @@ msgstr ""
 "dipulihkan saat ini."
 
 #. module: project_todo
+#. odoo-javascript
 #. odoo-python
 #: code:addons/project_todo/models/res_users.py:0
+#: code:addons/project_todo/static/src/webclient/share_target/todo_share_target_item.js:0
 msgid "To-Do"
 msgstr "To-Do"
 
@@ -830,18 +826,3 @@ msgstr "contoh Kirim Undangan"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid "todo-access"
 msgstr "todo-access"
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "Onboarding todo already generated for those users"
-#~ msgstr "Onboarding todo sudah dibuat untuk user-user tersebut"
-
-#~ msgid "The To-do description was empty at the time."
-#~ msgstr "Keterangan To-Do kosong pada waktu itu."
-
-#~ msgid "To-do..."
-#~ msgstr "To-do..."
-
-#~ msgid "menu load To-dos"
-#~ msgstr "menu unggah To-do"

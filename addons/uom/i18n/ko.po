@@ -5,23 +5,23 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-01 01:30+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-04-13 19:31+0000\n"
 "Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/uom/ko/>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-2/uom/"
+"ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__factor
@@ -83,7 +83,8 @@ msgstr "시간"
 msgid ""
 "How much bigger or smaller this unit is compared to the reference UoM for "
 "this unit"
-msgstr "이 단위가 기준 단위 (UoM)와 비교했을 때 얼마나 큰지 또는 작은지 표시합니다."
+msgstr ""
+"이 단위가 기준 단위 (UoM)와 비교했을 때 얼마나 큰지 또는 작은지 표시합니다."
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__id
@@ -97,9 +98,8 @@ msgstr "KWH"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_litre
-#, fuzzy
 msgid "L"
-msgstr "L"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__write_uid
@@ -173,11 +173,6 @@ msgid "Related UoMs"
 msgstr "관련 단위"
 
 #. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "올림 정확도"
-
-#. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
 msgid "Search UOM"
 msgstr "단위 검색"
@@ -204,8 +199,8 @@ msgstr ""
 "\n"
 "측정 단위가 전체 시스템에 영향을 미치기 때문에 변경하면 심각한 문제가 발생할 "
 "수 있습니다..\n"
-"따라서 실행 중인 데이터베이스에서 핵심 측정 단위를 수정하는 것은 권장되지 "
-"않습니다."
+"따라서 실행 중인 데이터베이스에서 핵심 측정 단위를 수정하는 것은 권장되지 않"
+"습니다."
 
 #. module: uom
 #: model:ir.model.constraint,message:uom.constraint_uom_uom_factor_gt_zero
@@ -294,9 +289,8 @@ msgstr "ft³"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_gram
-#, fuzzy
 msgid "g"
-msgstr "g"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_gal
@@ -330,9 +324,8 @@ msgstr "lb"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_meter
-#, fuzzy
 msgid "m"
-msgstr "m"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_mile
@@ -373,121 +366,3 @@ msgstr "qt (US)"
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr "yd"
-
-#~ msgid "Add a new unit of measure category"
-#~ msgstr "새 단위 범주 추가하기"
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "더 큰 비율"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "기준 단위보다 큼"
-
-#~ msgid "Category"
-#~ msgstr "카테고리"
-
-#~ msgid "Color"
-#~ msgstr "색상"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "단위 사이의 변환은 동일 카테고리에서만 가능합니다. 변환은 비율에 따라 이루"
-#~ "어집니다."
-
-#~ msgid "Group By"
-#~ msgstr "그룹별"
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "이 단위가 이 범주의 기준 단위보다 몇 배 더 큰지 : 1 * (해당 단위) = 비율 "
-#~ "* (기준 단위)"
-
-#~ msgid ""
-#~ "How much bigger or smaller this unit is compared to the reference Unit of "
-#~ "Measure for this category: 1 * (reference unit) = ratio * (this unit)"
-#~ msgstr ""
-#~ "이 범주의 기준 단위와 비교하여 이 단위가 얼마나 크거나 작습니까 : 1 * (기"
-#~ "준 단위) = 비율 * (해당 단위)"
-
-#~ msgid "Last Modified on"
-#~ msgstr "최근 수정일"
-
-#~ msgid "Length / Distance"
-#~ msgstr "길이 / 거리"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "상품 단위 범주"
-
-#~ msgid "Ratio"
-#~ msgstr "비율"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "이 분류의 기준 단위"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "기준 단위보다 작음"
-
-#~ msgid ""
-#~ "The computed quantity will be a multiple of this value. Use 1.0 for a "
-#~ "Unit of Measure that cannot be further split, such as a piece."
-#~ msgstr ""
-#~ "계산된 수량은 이 값의 배수입니다. 조각과 같이 더 이상 분할할 수 없는 단위"
-#~ "에는 1.0을 사용하십시오."
-
-#~ msgid "The reference unit must have a conversion factor equal to 1."
-#~ msgstr "기준 단위의 변환 계수는 1과 같아야 합니다."
-
-#~ msgid "The rounding precision must be strictly positive."
-#~ msgstr "반올림 정밀도는 반드시 양수여야 합니다."
-
-#~ msgid "Type"
-#~ msgstr "유형"
-
-#~ msgid "Unit"
-#~ msgstr "단위"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "단위"
-
-#~ msgid "Unit of Measure Category"
-#~ msgstr "단위 범주"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "단위 카테고리"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "단위 범주"
-
-#~ msgid ""
-#~ "Units of measure belonging to the same category can be\n"
-#~ "            converted between each others. For example, in the category\n"
-#~ "            <i>'Time'</i>, you will have the following units of measure:\n"
-#~ "            Hours, Days."
-#~ msgstr ""
-#~ "동일한 범주에 속하는 단위는 서로 변환할 수 있습니다. \n"
-#~ "             예를 들어 <i>'시간'</i> 범주에는 \n"
-#~ "             다음과 같은 측정 단위가 있습니다 : \n"
-#~ "             시간, 일."
-
-#~ msgid "UoM category %s should only have one reference unit of measure."
-#~ msgstr "UoM 범주 %s는 기준 측정 단위가 하나만 있어야 합니다."
-
-#~ msgid "Volume"
-#~ msgstr "부피"
-
-#~ msgid "Weight"
-#~ msgstr "무게"
-
-#~ msgid "Working Time"
-#~ msgstr "근무 시간"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "동일한 범주 내에서 여러 단위 간의 \n"
-#~ "              변환 비율을 정의해야 합니다."

@@ -6,16 +6,15 @@
 # Nancy Momoland <thanhnguyen.icsc@gmail.com>, 2022
 # Vo Thanh Thuy, 2022
 # Martin Trigaux, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:17+0000\n"
-"Last-Translator: Deleted User <noreply+31@weblate.org>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-12-03 10:32+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "website_slides_forum/vi/>\n"
 "Language: vi\n"
@@ -23,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -153,8 +152,8 @@ msgid ""
 "<i class=\"fa fa-comments\"/><span class=\"ms-1 d-none d-md-inline-"
 "block\">Forum</span>"
 msgstr ""
-"<i class=\"fa fa-comments\"/><span class=\"ms-1 d-none d-md-inline-block\">"
-"Diễn đàn</span>"
+"<i class=\"fa fa-comments\"/><span class=\"ms-1 d-none d-md-inline-"
+"block\">Diễn đàn</span>"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -181,11 +180,6 @@ msgstr ""
 msgid ""
 "<span class=\"flex-grow-1\">Why can other people edit my questions/answers?</"
 "span>"
-msgstr ""
-
-#. module: website_slides_forum
-#: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_breadcrumb
-msgid "<strong>Forum</strong>"
 msgstr ""
 
 #. module: website_slides_forum
@@ -566,40 +560,3 @@ msgid ""
 msgstr ""
 "câu trả lời của bạn được cung cấp cùng với câu hỏi và bạn mong đợi nhiều câu "
 "trả lời hơn: Tôi sử dụng ______ cho ______, còn bạn?"
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>Tôi có thể hỏi những câu hỏi như thế nào?</b> "
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>Tôi cần tránh điều gì trong câu trả lời của mình?</b>"
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>Tôi nên tránh điều gì trong câu hỏi của mình?</b> "
-
-#~ msgid "<b>Why can other people edit my questions/answers?</b>"
-#~ msgstr ""
-#~ "<b>Tại sao người khác có thể chỉnh sửa câu hỏi/câu trả lời của tôi?</b> "
-
-#~ msgid "<i class=\"fa fa-home\"/> Course"
-#~ msgstr "<i class=\"fa fa-home\"/> Khóa học"
-
-#~ msgid "Courses Discussions"
-#~ msgstr "Thảo luận khóa học"
-
-#~ msgid "Description"
-#~ msgstr "Mô tả"
-
-#~ msgid "Forum Page"
-#~ msgstr "Trang diễn đàn"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Ẩn giới thiệu"
-
-#~ msgid "Register"
-#~ msgstr "Đăng ký"
-
-#~ msgid "Reviews"
-#~ msgstr "Đánh giá"
-
-#~ msgid "See all Courses"
-#~ msgstr "Xem tất cả khóa học"

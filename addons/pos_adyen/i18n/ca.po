@@ -2,15 +2,17 @@
 # This file contains the translation of the following modules:
 # * pos_adyen
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:53+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:35+0000\n"
+"PO-Revision-Date: 2026-06-13 13:21+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_adyen/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
@@ -41,6 +43,12 @@ msgid "Adyen Latest Response"
 msgstr "Última resposta d'Adyen"
 
 #. module: pos_adyen
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_merchant_account
+#, fuzzy
+msgid "Adyen Merchant Account"
+msgstr "Compte comercial de Adyen"
+
+#. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "Adyen Terminal Identifier"
 msgstr "Identificador de terminal Adyen"
@@ -65,7 +73,8 @@ msgstr "Demanar consell als clients"
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
 msgid "Authentication failed. Please check your Adyen credentials."
-msgstr "Ha fallat l'autenticació. Comproveu les vostres credencials de l'Adyen."
+msgstr ""
+"Ha fallat l'autenticació. Comproveu les vostres credencials de l'Adyen."
 
 #. module: pos_adyen
 #. odoo-javascript
@@ -80,8 +89,8 @@ msgstr ""
 #. module: pos_adyen
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
-msgid "Cannot process transactions with negative amount."
-msgstr "No es poden processar transaccions amb un import negatiu."
+msgid "Cannot refund non-Adyen transactions via Adyen."
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_res_config_settings
@@ -100,10 +109,13 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Nom mostrat"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_event_url
@@ -112,10 +124,13 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: pos_adyen
 #. odoo-python
@@ -144,9 +159,19 @@ msgid "Point of Sale Configuration"
 msgstr "Configuració del Punt de Venda"
 
 #. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr ""
+
+#. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Mètodes de pagament de punt de venda"
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__pos_adyen_ask_customer_for_tip
@@ -174,8 +199,14 @@ msgstr ""
 msgid ""
 "Terminal %(terminal)s is already used on payment method %(payment_method)s."
 msgstr ""
-"Terminal %(terminal)s ja s'utilitza en el mètode de pagament %"
-"(payment_method)s."
+"Terminal %(terminal)s ja s'utilitza en el mètode de pagament "
+"%(payment_method)s."
+
+#. module: pos_adyen
+#: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_merchant_account
+#, fuzzy
+msgid "The POS merchant account code used in Adyen"
+msgstr "El codi de compte comercial POS utilitzat a Adyen"
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_event_url

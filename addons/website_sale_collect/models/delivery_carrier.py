@@ -77,12 +77,13 @@ class DeliveryCarrier(models.Model):
 
     # === BUSINESS METHODS ===#
 
-    def _in_store_get_close_locations(self, partner_address, product_id=None):
-        """ Get the formatted close pickup locations sorted by distance to the partner address.
+    def _in_store_get_close_locations(self, partner_address, product_id=None, uom_id=None):
+        """Get the formatted close pickup locations sorted by distance to the partner address.
 
         :param res.partner partner_address: The address to use to sort the pickup locations.
         :param str product_id: The product whose product page was used to open the location
                                selector, if any, as a `product.product` id.
+        :param int uom_id: The unit of measure to use for the product stock values, if any.
         :return: The sorted and formatted close pickup locations.
         :rtype: list[dict]
         """
@@ -96,6 +97,7 @@ class DeliveryCarrier(models.Model):
         partner_address.geo_localize()  # Calculate coordinates.
 
         pickup_locations = []
+        location_countries = set()
         order_sudo = request.cart
         for wh in self.warehouse_ids:
             pickup_location_values = wh._prepare_pickup_location_data()
@@ -104,10 +106,15 @@ class DeliveryCarrier(models.Model):
 
             # Prepare the stock data based on either the product or the order.
             if product:  # Called from the product page.
-                in_store_stock_data = utils.format_product_stock_values(product, wh.id)
+                uom = self.env['uom.uom'].browse(uom_id)
+                cart_qty = order_sudo._get_cart_qty(product.id)
+                in_store_stock_data = utils.format_product_stock_values(
+                    product, wh_id=wh.id, uom=uom, cart_qty=cart_qty
+                )
             else:  # Called from the checkout page.
                 in_store_stock_data = {'in_stock': order_sudo._is_in_stock(wh.id)}
 
+            location_countries.add(wh.partner_id.country_id)
             # Calculate the distance between the partner address and the warehouse location.
             pickup_location_values.update({
                 'additional_data': {'in_store_stock_data': in_store_stock_data},
@@ -115,7 +122,19 @@ class DeliveryCarrier(models.Model):
             })
             pickup_locations.append(pickup_location_values)
 
-        return sorted(pickup_locations, key=lambda k: k['distance'])
+        # Prepare the country data for the location selector's selection menu.
+        country_values = [{
+            'label': country.name,
+            'value': {
+                'name': country.name,
+                'code': country.code,
+                'image_url': country.image_url,
+        }} for country in location_countries if country]
+
+        return {
+            'country_data': country_values,
+            'pickup_location_data': sorted(pickup_locations, key=lambda k: k['distance'])
+        }
 
     def in_store_rate_shipment(self, *_args):
         return {

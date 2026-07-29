@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 23:59+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 13:36+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Kabyle <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Kabyle <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_setup/kab/>\n"
 "Language: kab\n"
 "MIME-Version: 1.0\n"
@@ -116,8 +116,9 @@ msgstr ""
 #. module: base_setup
 #. odoo-python
 #: code:addons/base_setup/controllers/main.py:0
+#, fuzzy
 msgid "Access Denied"
-msgstr ""
+msgstr "Anekcum igdel"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -127,11 +128,6 @@ msgstr ""
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Add fun feedback and motivate your employees"
-msgstr ""
-
-#. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
 msgstr ""
 
 #. module: base_setup
@@ -204,13 +200,15 @@ msgstr ""
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__company_name
+#, fuzzy
 msgid "Company Name"
-msgstr ""
+msgstr "Isem n tkebbwanit"
 
 #. module: base_setup
 #: model:ir.model,name:base_setup.model_res_config_settings
+#, fuzzy
 msgid "Config Settings"
-msgstr ""
+msgstr "Sefrek aɣewwaṛ"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -262,8 +260,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_setup.field_kpi_provider__display_name
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:base_setup.field_res_users__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Isem n Ubeqqeḍ"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -339,17 +338,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_setup.field_kpi_provider__id
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__id
 #: model:ir.model.fields,field_description:base_setup.field_res_users__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "Asulay"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Import & Export"
-msgstr ""
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
 msgstr ""
 
 #. module: base_setup
@@ -386,11 +381,6 @@ msgstr "Tutlayin"
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
-msgstr ""
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
 msgstr ""
 
 #. module: base_setup
@@ -445,8 +435,9 @@ msgstr ""
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
+#, fuzzy
 msgid "Odoo"
-msgstr ""
+msgstr "Odoo"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_partner_autocomplete
@@ -465,8 +456,9 @@ msgstr ""
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_voip
+#, fuzzy
 msgid "Phone"
-msgstr ""
+msgstr "Tiliɣri"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form

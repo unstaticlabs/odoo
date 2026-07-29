@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * hr_recruitment_skills
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 18:42+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-03-14 12:56+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_recruitment_skills/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: hr_recruitment_skills
 #: model:ir.model,name:hr_recruitment_skills.model_hr_applicant
@@ -36,6 +36,16 @@ msgstr "Candidatura lavoro"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "Category"
 msgstr "Categoria"
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_file
+msgid "Certificate"
+msgstr "Certificato"
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_filename
+msgid "Certificate Filename"
+msgstr "Nome file certificato"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__color
@@ -134,6 +144,13 @@ msgid "Matching Skills"
 msgstr "Competenze corrispondenti"
 
 #. module: hr_recruitment_skills
+#. odoo-javascript
+#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.view_hr_job_kanban
+msgid "Matching Talents"
+msgstr "Talenti corrispondenti"
+
+#. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__missing_skill_ids
 msgid "Missing Skills"
 msgstr "Competenze mancanti"
@@ -146,8 +163,8 @@ msgstr "Sposta in questa posizione lavorativa"
 #. module: hr_recruitment_skills
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
-msgid "No Matching Applicants"
-msgstr "Nessun candidato corrispondente"
+msgid "No Matching Talents"
+msgstr "Nessun talento corrispondente"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,help:hr_recruitment_skills.field_hr_applicant_skill__levels_count
@@ -165,8 +182,6 @@ msgid "Progress from zero knowledge (0%) to fully mastered (100%)."
 msgstr "Avanzamento da conoscenza zero (0%) a padronanza completa (100%)."
 
 #. module: hr_recruitment_skills
-#. odoo-javascript
-#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
 #: model:ir.actions.server,name:hr_recruitment_skills.action_applicant_search_applicant
 msgid "Search Matching Applicants"
 msgstr "Cerca candidati corrispondenti"
@@ -199,9 +214,11 @@ msgstr "Livello di competenza di un candidato"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__applicant_skill_ids
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search_bis
 msgid "Skills"
 msgstr "Competenze"
 
@@ -240,10 +257,10 @@ msgstr "Stop validità"
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
 msgid ""
-"We do not have any applicants who meet the skill requirements for this job "
+"We do not have any talents who meet the skill requirements for this job "
 "position in the database at the moment."
 msgstr ""
-"Al momento, nel database non è presente nessun candidato che rispetti i "
+"Al momento, nel database non è presente nessun talento che rispetti i "
 "requisiti relativi alle competenze per questa posizione lavorativa."
 
 #. module: hr_recruitment_skills
@@ -255,16 +272,3 @@ msgstr "se spuntato, il tipo di competenza diventa un tipo di certificazione"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "indefinite"
 msgstr "non definito"
-
-#~ msgid "Expected Skills"
-#~ msgstr "Competenze attese"
-
-#~ msgid "The skill %(name)s and skill type %(type)s doesn't match"
-#~ msgstr "La competenza %(name)s non corrisponde alla tipologia %(type)s"
-
-#~ msgid "The skill level %(level)s is not valid for skill type: %(type)s"
-#~ msgstr ""
-#~ "Livello di competenza %(level)s non valido per la tipologia: %(type)s"
-
-#~ msgid "Two levels for the same skill is not allowed"
-#~ msgstr "Non sono consentiti due livelli per la stessa competenza"

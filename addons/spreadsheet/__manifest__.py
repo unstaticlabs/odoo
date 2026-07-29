@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': "Spreadsheet",
-    'version': '1.0',
     'category': 'Productivity/Dashboard',
     'summary': 'Spreadsheet',
     'description': 'Spreadsheet',
     'depends': ['bus', 'web', 'portal'],
-    'installable': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
     'data': [
@@ -53,9 +50,10 @@
             'web/static/lib/bootstrap/js/dist/base-component.js',
             'web/static/lib/bootstrap/js/dist/collapse.js',
             'web/static/lib/bootstrap/js/dist/dropdown.js',
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
+            ('include', 'web.icons_fonts'),
             'web/static/lib/owl/owl.js',
             'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
             'web/static/lib/owl/odoo_module.js',
             'web/static/src/core/utils/**/*.js',
             'web/static/src/core/browser/browser.js',
@@ -71,8 +69,7 @@
             ('include', 'web.chartjs_lib'),
             'spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js',
             'spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml',
-            'spreadsheet/static/src/o_spreadsheet/o_spreadsheet_variables.scss',
-            'spreadsheet/static/src/o_spreadsheet/o_spreadsheet.scss',
+            'spreadsheet/static/src/o_spreadsheet/o_spreadsheet.css',
             'spreadsheet/static/src/o_spreadsheet/icons.xml',
             'spreadsheet/static/src/o_spreadsheet/o_spreadsheet_extended.scss',
             'spreadsheet/static/src/o_spreadsheet/migration.js',
@@ -89,15 +86,11 @@
             'spreadsheet/static/src/plugins.js',
         ],
         'web.assets_backend': [
-            'spreadsheet/static/src/o_spreadsheet/o_spreadsheet_variables.scss',
+            'spreadsheet/static/src/o_spreadsheet/o_spreadsheet.css',
             'spreadsheet/static/src/**/*.scss',
             'spreadsheet/static/src/assets_backend/**/*',
             ('remove', 'spreadsheet/static/src/public_readonly_app/**/*.scss'),
-            ('remove', 'spreadsheet/static/src/**/*.dark.scss'),
             ('remove', 'spreadsheet/static/src/print_assets/**/*'),
-        ],
-        "web.assets_web_dark": [
-            'spreadsheet/static/src/**/*.dark.scss',
         ],
         'web.assets_unit_tests': [
             'spreadsheet/static/tests/**/*',

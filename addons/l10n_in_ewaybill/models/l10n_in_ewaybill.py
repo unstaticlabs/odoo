@@ -1,12 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
 import json
 import logging
-import pytz
 import re
 
-from datetime import datetime
+from datetime import date, datetime
 from itertools import starmap
 
 from odoo import _, api, fields, models
@@ -131,7 +129,7 @@ class L10nInEwaybill(models.Model):
         ("error", "Error")],
         string="Blocking Level", readonly=True)
 
-    content = fields.Binary(compute='_compute_content')
+    content = fields.Json(compute='_compute_content')
     cancel_reason = fields.Selection(selection=[
         ("1", "Duplicate"),
         ("2", "Data Entry Mistake"),
@@ -258,7 +256,7 @@ class L10nInEwaybill(models.Model):
                 ewaybill_json = ewaybill._ewaybill_generate_direct_json()
             else:
                 ewaybill_json = {}
-            ewaybill.content = base64.b64encode(json.dumps(ewaybill_json).encode())
+            ewaybill.content = ewaybill_json
 
     @api.depends('name', 'state')
     def _compute_display_name(self):
@@ -638,17 +636,19 @@ class L10nInEwaybill(models.Model):
                 for key, fun in key_paired_function
                 for place, partner in partner_detail
             }
+
+        transaction_type = get_transaction_type(
+            self.partner_bill_from_id,
+            self.partner_ship_from_id,
+            self.partner_bill_to_id,
+            self.partner_ship_to_id
+        )
         ewaybill_json = {
                 # document details
                 "supplyType": self.supply_type,
                 "subSupplyType": self.type_id.sub_type_code,
                 "docType": self.type_id.code,
-                "transactionType": get_transaction_type(
-                    self.partner_bill_from_id,
-                    self.partner_ship_from_id,
-                    self.partner_bill_to_id,
-                    self.partner_ship_to_id
-                ),
+                "transactionType": transaction_type,
                 "transDistance": str(self.distance),
                 "docNo": self.document_number,
                 "docDate": fields.Date.context_today(self.with_context(tz='Asia/Kolkata'), self.document_date).strftime("%d/%m/%Y"),
@@ -674,6 +674,11 @@ class L10nInEwaybill(models.Model):
                 "actToStateCode": self._get_partner_state_code(self.partner_ship_to_id),
                 "actFromStateCode": self._get_partner_state_code(self.partner_ship_from_id),
         }
+        if transaction_type in (2, 4) and fields.Date.context_today(self) >= date(2026, 8, 1):
+            ewaybill_json.update({
+                "shipToGSTIN": self.partner_ship_to_id.commercial_partner_id.vat or "URP",
+                "shipToTradeName": self.partner_ship_to_id.commercial_partner_id.name,
+            })
         return ewaybill_json
 
     def _prepare_ewaybill_transportation_json_payload(self):
@@ -755,7 +760,7 @@ class L10nInEwaybill(models.Model):
         attachment = self.env['ir.attachment'].create({
             'name': f'{doc_label} - {self.document_number}.pdf',
             'type': 'binary',
-            'datas': base64.b64encode(pdf_content),
+            'raw': pdf_content,
             'res_model': 'l10n.in.ewaybill',
             'res_id': self.id,
             'mimetype': 'application/pdf',

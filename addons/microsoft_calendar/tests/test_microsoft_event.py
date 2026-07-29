@@ -1,13 +1,17 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime
+from datetime import datetime, UTC
+
 from dateutil.relativedelta import relativedelta
-from pytz import UTC
 
 from odoo.exceptions import UserError
 from odoo.addons.microsoft_calendar.utils.microsoft_event import MicrosoftEvent
+from odoo.tests import tagged
+
 from odoo.addons.microsoft_calendar.tests.common import TestCommon, patch_api
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMicrosoftEvent(TestCommon):
 
     @patch_api

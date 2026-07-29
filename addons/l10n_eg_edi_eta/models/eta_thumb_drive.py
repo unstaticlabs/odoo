@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import base64
+import datetime
 import hashlib
 import json
 
-import pytz
-
 from asn1crypto import cms, core, x509, algos, tsp
 
-from odoo import models, fields, _
-from odoo.exceptions import ValidationError
+from odoo import models, fields
 
 
 class L10n_Eg_EdiThumbDrive(models.Model):
@@ -88,10 +86,7 @@ class L10n_Eg_EdiThumbDrive(models.Model):
     def _get_host(self):
         # It should be on the loopback address or with a fully valid https host
         # in order to be an exception to the mixed-content restrictions
-        sign_host = self.env['ir.config_parameter'].sudo().get_param('l10n_eg_eta.sign.host', 'http://localhost:8069')
-        if not sign_host:
-            raise ValidationError(_('Please define the host of sign tool.'))
-        return sign_host
+        return self.env['ir.config_parameter'].sudo().get_str('l10n_eg_eta.sign.host') or 'http://localhost:8069'
 
     def _serialize_for_signing(self, eta_inv):
         if not isinstance(eta_inv, dict):
@@ -133,7 +128,7 @@ class L10n_Eg_EdiThumbDrive(models.Model):
             cms.CMSAttribute({
                 'type': cms.CMSAttributeType('signing_time'),
                 'values': (
-                cms.Time({'utc_time': core.UTCTime(signing_time.replace(tzinfo=pytz.UTC))}),)
+                cms.Time({'utc_time': core.UTCTime(signing_time.replace(tzinfo=datetime.UTC))}),)
             }),
         ])
 

@@ -17,9 +17,33 @@ class MollieTest(MollieCommon, PaymentHttpCommon):
         tx = self._create_transaction(flow='redirect')
 
         payload = tx._mollie_prepare_payment_request_payload()
+        expected_billing_address = {
+            'givenName': 'Norbert',
+            'familyName': 'Buyer',
+            'streetAndNumber': 'Huge Street 2/543',
+            'postalCode': '1000',
+            'city': 'Sin City',
+            'country': 'BE',
+            'email': 'norbert.buyer@example.com',
+        }
 
         self.assertDictEqual(payload['amount'], {'currency': 'EUR', 'value': '1111.11'})
+        self.assertDictEqual(payload['billingAddress'], expected_billing_address)
+        self.assertDictEqual(payload['lines'][0]['totalAmount'], {'currency': 'EUR', 'value': '1111.11'})
         self.assertEqual(payload['description'], tx.reference)
+
+    def test_incomplete_billing_address_not_sent(self):
+        self.default_partner.zip = ''
+        tx = self._create_transaction(flow='redirect')
+
+        payload = tx._mollie_prepare_payment_request_payload()
+        expected_billing_address = {
+            'givenName': 'Norbert',
+            'familyName': 'Buyer',
+            'email': 'norbert.buyer@example.com',
+        }
+
+        self.assertDictEqual(payload['billingAddress'], expected_billing_address)
 
     @mute_logger(
         'odoo.addons.payment_mollie.controllers.main',

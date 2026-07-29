@@ -19,17 +19,17 @@
 # Murat Durmuş <muratd@projetgrup.com>, 2022
 # Ediz Duman <neps1192@gmail.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 12:16+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-11-28 12:49+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "sale_management/tr/>\n"
@@ -38,7 +38,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -87,11 +87,17 @@ msgid "Archived"
 msgstr "Arşivlendi"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -168,12 +174,6 @@ msgid "Display Type"
 msgstr "Görünüm Türü"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Erişiminiz yok, kullanıcı e-mail özeti için bu veriyi atlayın"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -184,6 +184,18 @@ msgstr ""
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr ""
 "Satış teklifi satırlarının bir listesini görüntülerken sıra sırasını verir."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -276,7 +288,7 @@ msgstr "Opsiyonel Hat"
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -347,6 +359,12 @@ msgstr "Teklif Şablonları"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
 msgstr "Teklif Geçerliliği"
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
@@ -433,6 +451,8 @@ msgstr ""
 "kodlamayı daha kolay ve hatasız hale getirin."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr "Alt bölüm"
@@ -529,8 +549,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -540,8 +560,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -564,136 +584,3 @@ msgstr "gün"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "örn. Standart Danışmanlık Paketi"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Şablonunuz birden fazla şirketten ürün içeremez."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Şablonunuz %(product_company)s şirketten ürünler içeriyor,  şablonunuz %"
-#~ "(template_company)s şirkete aitken. \n"
-#~ " Lütfen şablonunuzun firmasını değiştirin veya diğer firmalardan ürünleri "
-#~ "kaldırın."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "4 Kişilik Çalışma Masası"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Seçenekler</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Ödeme</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>İmza </span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Sepete Ekle"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Sipariş satırlarına ekle"
-
-#~ msgid "Category"
-#~ msgstr "Kategori"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Ölçü Birimleri arası dönüştürme yalnızca aynı kategoriye sahiplerse "
-#~ "yapılabilir. Dönüşümler oranlara göre yapılacaktır."
-
-#~ msgid "Disc.%"
-#~ msgstr "İnd.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "İndirim (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "İsteğe bağlı ürünlerin bir listesini görüntülerken sıra sırasını verir."
-
-#~ msgid "Group By"
-#~ msgstr "Grupla"
-
-#~ msgid "Line"
-#~ msgstr "Satır"
-
-#~ msgid "Office Chair"
-#~ msgstr "Ofis sandalyesi"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Çevrimiçi onay"
-
-#~ msgid "Optional Products"
-#~ msgstr "Tamamlayıcı Ürünler"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Opsiyonel Ürünler Satırları"
-
-#~ msgid "Options"
-#~ msgstr "Seçenekler"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Teklif üzerinde mevcut"
-
-#~ msgid "Quantity:"
-#~ msgstr "Miktar:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Teklif Oluşturucu"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Teklif Şablonu Seçeneği"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Teklif Geçerlilik Süresi :"
-
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgid "Sale Options"
-#~ msgstr "Satış Seçenekleri"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Müşteri Siparişi Referansı"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Satış Teklifi Şablon Satırları"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Bu alan, seçenek satırının ürünü teklifte zaten mevcutsa kontrol edilir."
-
-#~ msgid "Unit Price"
-#~ msgstr "Birim Fiyat"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Birim Fiyat:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Ölçü Birimi"
-
-#~ msgid "UoM"
-#~ msgstr "Ölçü Birimi"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Onaylanmış bir siparişe opsiyon ekleyemezsiniz."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Teklifiniz %(product_company)s şirketindeki ürünleri içerirken, "
-#~ "teklifiniz%(quote_company)s. \n"
-#~ "şirketine aittir.Lütfen teklifinizin şirketini değiştirin veya ürünleri "
-#~ "diğer şirketlerden kaldırın (%(bad_products)s)."

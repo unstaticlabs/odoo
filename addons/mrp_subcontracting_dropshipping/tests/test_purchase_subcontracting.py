@@ -1,7 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import Command, fields
-from odoo.tests import Form, tagged
+from odoo import fields
+from odoo.fields import Command
+from odoo.tests import tagged, Form
 from odoo.addons.mrp_subcontracting.tests.common import TestMrpSubcontractingCommon
 from odoo.addons.stock_account.tests.common import TestStockValuationCommon
 

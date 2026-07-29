@@ -23,26 +23,26 @@
 # Roy Sayag, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 18:31+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/product/"
-"he/>\n"
+"POT-Creation-Date: 2026-04-17 18:38+0000\n"
+"PO-Revision-Date: 2026-04-13 19:29+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-2/"
+"product/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: product
 #. odoo-python
@@ -286,6 +286,11 @@ msgid "<span class=\"o_stat_text\">Products</span>"
 msgstr "<span class=\"o_stat_text\">מוצרים</span>"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "<span> - </span>"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
 msgid "<span>%</span>"
 msgstr "<span>%</span>"
@@ -396,6 +401,12 @@ msgid "A sellable combo product can only contain sellable products."
 msgstr "מוצר קומבו שניתן למכירה יכול להכיל רק מוצרים שניתנים למכירה."
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__is_storable
+#: model:ir.model.fields,help:product.field_product_template__is_storable
+msgid "A storable product is a product for which you manage stock."
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__access_token
 msgid "Access Token"
 msgstr "אסימון גישה"
@@ -456,6 +467,13 @@ msgstr "פעילויות"
 #: model:ir.model.fields,field_description:product.field_product_template__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_pricelist__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_product__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_template__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_pricelist__activity_state
@@ -610,7 +628,6 @@ msgstr "Apple"
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Applied On"
 msgstr "חל על"
 
@@ -706,19 +723,23 @@ msgstr "שם תכונה"
 #. module: product
 #: model:ir.model,name:product.model_product_attribute_value
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__custom_product_template_attribute_value_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_template_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_update_product_attribute_value__attribute_value_id
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Attribute Value"
 msgstr "ערך תכונה"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_template_attribute_value_ids
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__value_ids
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_value_list
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_view_form
 msgid "Attribute Values"
 msgstr "ערכי תכונות"
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "Attribute name (e.g. Color, Size, ... )"
+msgstr ""
 
 #. module: product
 #: model:ir.actions.act_window,name:product.attribute_action
@@ -745,11 +766,19 @@ msgid "Back to Quotation"
 msgstr "בחזרה להצעת מחיר"
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__barcode
 #: model:ir.model.fields,field_description:product.field_product_template__barcode
 #: model:ir.model.fields,field_description:product.field_product_uom__barcode
 msgid "Barcode"
 msgstr "ברקוד"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_res_config_settings__module_product_barcodelookup
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Barcode Database"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -850,11 +879,6 @@ msgid "Can Variant Image 1024 be zoomed"
 msgstr "האם ניתן להתקרב לתמונה 1024 של וריאנט"
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.update_product_attribute_value_form
-msgid "Cancel"
-msgstr "בטל"
-
-#. module: product
 #: model:product.attribute.value,name:product.pav_brand_canon
 msgid "Canon"
 msgstr ""
@@ -874,10 +898,9 @@ msgid "Category"
 msgstr "קטגוריה"
 
 #. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Category: %s"
-msgstr "קטגוריה: %s"
+#: model:product.combo,name:product.chairs_combo
+msgid "Chairs Combo"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -997,10 +1020,6 @@ msgstr ""
 
 #. module: product
 #: model:ir.model,name:product.model_res_company
-msgid "Companies"
-msgstr "חברות"
-
-#. module: product
 #: model:ir.model.fields,field_description:product.field_product_combo__company_id
 #: model:ir.model.fields,field_description:product.field_product_combo_item__company_id
 #: model:ir.model.fields,field_description:product.field_product_document__company_id
@@ -1039,6 +1058,7 @@ msgid "Config Settings"
 msgstr "הגדר הגדרות"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_attribute_value_view_tree
 #: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
 msgid "Configure"
 msgstr "הגדר"
@@ -1113,6 +1133,11 @@ msgid "Create a new product"
 msgstr "צור מוצר חדש"
 
 #. module: product
+#: model_terms:ir.actions.act_window,help:product.product_category_action_form
+msgid "Create a new product category"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.actions.act_window,help:product.product_normal_action
 #: model_terms:ir.actions.act_window,help:product.product_normal_action_sell
 #: model_terms:ir.actions.act_window,help:product.product_variant_action
@@ -1132,6 +1157,11 @@ msgid "Create on Order"
 msgstr "צור בהזמנה"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Create products by scanning using"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__create_uid
@@ -1146,7 +1176,6 @@ msgstr "צור בהזמנה"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template__create_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__create_uid
@@ -1169,7 +1198,6 @@ msgstr "נוצר על-ידי"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_date
 #: model:ir.model.fields,field_description:product.field_product_tag__create_date
 #: model:ir.model.fields,field_description:product.field_product_template__create_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_date
 #: model:ir.model.fields,field_description:product.field_product_uom__create_date
@@ -1204,6 +1232,20 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__currency_id
 msgid "Currency"
 msgstr "מטבע"
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__qty_available
+msgid ""
+"Current quantity of products.\n"
+"In a context with a single Stock Location, this includes goods stored at "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"stored in the Stock Location of the Warehouse of this Shop, or any of its "
+"children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_custom
@@ -1241,6 +1283,18 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_document__db_datas
 msgid "Database Data"
 msgstr "נתוני מסד נתונים"
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
+msgid "Date"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Decrease quantity"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -1304,6 +1358,11 @@ msgid "Design and plan smart offices with ease"
 msgstr ""
 
 #. module: product
+#: model:product.combo,name:product.desk_accessories_combo
+msgid "Desk Accessories Combo"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_3_product_template
 msgid "Desk Combination"
 msgstr "קומבינציית שולחן כתיבה"
@@ -1329,15 +1388,16 @@ msgid "Desk combination, black-brown: chair + desk + drawer"
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_attribute__sequence
-#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
-msgid "Determine the display order"
-msgstr "הגדר את סדר התצוגה"
+#: model:product.combo,name:product.desks_combo
+msgid "Desks Combo"
+msgstr ""
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_label_layout_form
-msgid "Discard"
-msgstr "בטל"
+#: model:ir.model.fields,help:product.field_product_attribute__sequence
+#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__sequence
+msgid "Determine the display order"
+msgstr "הגדר את סדר התצוגה"
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_pricelist_item__compute_price__percentage
@@ -1377,7 +1437,6 @@ msgstr "החל על"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__display_name
 #: model:ir.model.fields,field_description:product.field_product_tag__display_name
 #: model:ir.model.fields,field_description:product.field_product_template__display_name
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__display_name
 #: model:ir.model.fields,field_description:product.field_product_uom__display_name
@@ -1423,11 +1482,6 @@ msgstr "מסמכים"
 #: model:ir.model.fields,field_description:product.field_product_template__product_document_count
 msgid "Documents Count"
 msgstr "כמות מסמכים"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_document_search
-msgid "Documents of this variant"
-msgstr "מסמכים של וריאנט זה"
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_brand_dove
@@ -1539,9 +1593,14 @@ msgid "Error exporting file. Please try again."
 msgstr "שגיאה בייצוא הקובץ. אנא נסה שוב."
 
 #. module: product
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__exclude_for
-msgid "Exclude for"
-msgstr "אל תכלול עבור"
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__excluded_value_ids
+msgid "Exclude For"
+msgstr ""
+
+#. module: product
+#: model:product.category,name:product.product_category_expenses
+msgid "Expenses"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__name
@@ -1623,6 +1682,12 @@ msgid "Fixed Price"
 msgstr "מחיר קבוע"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__fixed_pricelist_rule_ids
+#: model:ir.model.fields,field_description:product.field_product_template__fixed_pricelist_rule_ids
+msgid "Fixed Pricelist Rule"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_20_product_template
 msgid "Flipover"
 msgstr "לוח פליפ צ'ארט"
@@ -1662,6 +1727,32 @@ msgstr ""
 "מבוטאת ביחידת מידה ברירת המחדל של המוצר."
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__virtual_available
+msgid ""
+"Forecast quantity (computed as Quantity On Hand - Outgoing + Incoming - "
+"Quantity to Remove)\n"
+"In a context with a single Stock Location, this includes goods stored in "
+"this location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Forecasted"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__virtual_available
+#: model:ir.model.fields,field_description:product.field_product_template__virtual_available
+msgid "Forecasted Quantity"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_label_layout__print_format
 msgid "Format"
 msgstr "תבנית"
@@ -1681,6 +1772,11 @@ msgstr "שולחן כתיבה ל 4 אנשים"
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__is_custom
 msgid "Free text"
 msgstr "טקסט חופשי"
+
+#. module: product
+#: model:product.category,name:product.product_category_furniture
+msgid "Furniture"
+msgstr ""
 
 #. module: product
 #: model:product.template,name:product.product_product_furniture_product_template
@@ -1725,6 +1821,7 @@ msgstr ""
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_template__type__consu
+#: model:product.category,name:product.product_category_goods
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Goods"
@@ -1804,6 +1901,11 @@ msgid "History"
 msgstr "היסטוריה"
 
 #. module: product
+#: model:product.category,name:product.product_category_construction
+msgid "Home Construction"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.expense_hotel_product_template
 msgid "Hotel Accommodation"
 msgstr "לינה במלון"
@@ -1825,7 +1927,6 @@ msgstr "לינה במלון"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__id
 #: model:ir.model.fields,field_description:product.field_product_tag__id
 #: model:ir.model.fields,field_description:product.field_product_template__id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__id
 #: model:ir.model.fields,field_description:product.field_product_uom__id
@@ -1979,6 +2080,18 @@ msgid "Inactive"
 msgstr "לא פעיל"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__incoming_qty
+#: model:ir.model.fields,field_description:product.field_product_template__incoming_qty
+msgid "Incoming"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Increase quantity"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__index_content
 msgid "Indexed Content"
 msgstr "תוכן מאונקדס"
@@ -1999,8 +2112,11 @@ msgid "Internal Notes"
 msgstr "הערות פנימיות"
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__default_code
 #: model:ir.model.fields,field_description:product.field_product_template__default_code
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Internal Reference"
 msgstr "מק\"ט"
 
@@ -2129,7 +2245,6 @@ msgstr "שולחן ישיבות גדול"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template__write_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__write_uid
@@ -2151,7 +2266,6 @@ msgstr "עודכן לאחרונה על-ידי"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_date
 #: model:ir.model.fields,field_description:product.field_product_tag__write_date
 #: model:ir.model.fields,field_description:product.field_product_template__write_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_date
 #: model:ir.model.fields,field_description:product.field_product_uom__write_date
@@ -2226,6 +2340,11 @@ msgid "Link between products and their UoMs"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "List of possible values (e.g. Blue, Green, White, ... )"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_local_delivery_product_template
 msgid "Local Delivery"
 msgstr "משלוח מקומי"
@@ -2255,13 +2374,10 @@ msgid "M"
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_template_attribute_value__exclude_for
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__excluded_value_ids
 msgid ""
-"Make this attribute value not compatible with other values of the product or "
-"some attribute values of optional and accessory products."
+"Make this attribute value not compatible with other values of the product."
 msgstr ""
-"הפוך את ערך התכונה הזה לא תואם לערכים אחרים של המוצר או לערכי תכונות של "
-"מוצרים אופציונליים ואביזרים נלווים."
 
 #. module: product
 #: model:res.groups,name:product.group_product_variant
@@ -2402,6 +2518,7 @@ msgstr "מועד אחרון לפעילות שלי"
 #: model:ir.model.fields,field_description:product.field_product_product__name
 #: model:ir.model.fields,field_description:product.field_product_tag__name
 #: model:ir.model.fields,field_description:product.field_product_template__name
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Name"
 msgstr "שם"
 
@@ -2562,6 +2679,11 @@ msgid "Number of messages with delivery error"
 msgstr "מספר הודעות עם שגיאת משלוח"
 
 #. module: product
+#: model:product.category,name:product.product_category_office
+msgid "Office"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_delivery_01_product_template
 msgid "Office Chair"
 msgstr "כיסא משרדי"
@@ -2594,6 +2716,18 @@ msgstr ""
 #. module: product
 #: model:product.attribute.value,name:product.pav_color_olive
 msgid "Olive"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "On Hand"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_kanban_view
+msgid "On hand:"
 msgstr ""
 
 #. module: product
@@ -2656,8 +2790,19 @@ msgid "Other Pricelist"
 msgstr "מחירון אחר"
 
 #. module: product
+#: model:product.category,name:product.product_category_outdoor_furniture
+msgid "Outdoor"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_template_dining_table
 msgid "Outdoor dining table"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__outgoing_qty
+#: model:ir.model.fields,field_description:product.field_product_template__outgoing_qty
+msgid "Outgoing"
 msgstr ""
 
 #. module: product
@@ -2795,6 +2940,7 @@ msgstr "לחץ על כפתור וצפה במחשב שלך גולש ללא מאמ
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__price
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view_from_product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Price"
 msgstr "מחיר"
 
@@ -3100,18 +3246,12 @@ msgstr "תגיות מוצר"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_tmpl_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_tmpl_id
 #: model_terms:ir.ui.view,arch_db:product.product_search_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Product Template"
 msgstr "תבנית מוצר"
-
-#. module: product
-#: model:ir.model,name:product.model_product_template_attribute_exclusion
-msgid "Product Template Attribute Exclusion"
-msgstr "אי הכללת תכונות של תבניות מוצר"
 
 #. module: product
 #: model:ir.model,name:product.model_product_template_attribute_line
@@ -3168,12 +3308,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.product_tag_tree_view
 msgid "Product Variant"
 msgstr "וריאנט מוצר"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "Product Variant Values"
-msgstr "ערכי וריאנט מוצר"
 
 #. module: product
 #: model:ir.actions.act_window,name:product.product_normal_action
@@ -3253,6 +3387,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_product__purchase_ok
 #: model:ir.model.fields,field_description:product.field_product_template__purchase_ok
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Purchase"
 msgstr "רכש"
 
@@ -3290,15 +3425,40 @@ msgid "Quantity (%s UoM)"
 msgstr "כמות(%s יחידת מידה)"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__qty_available
+#: model:ir.model.fields,field_description:product.field_product_template__qty_available
+msgid "Quantity On Hand"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.js:0
 msgid "Quantity already present (%s)."
 msgstr "הכמות כבר מוצגת (%s)."
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
-msgid "Quotation Description"
-msgstr "הצעת מחיר תיאור"
+#: model:ir.model.fields,help:product.field_product_product__incoming_qty
+msgid ""
+"Quantity of planned incoming products.\n"
+"In a context with a single Stock Location, this includes goods arriving to "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods arriving to the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods arriving to any Stock Location with "
+"'internal' type."
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__outgoing_qty
+msgid ""
+"Quantity of planned outgoing products.\n"
+"In a context with a single Stock Location, this includes goods leaving this "
+"Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods leaving the Stock "
+"Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods leaving any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_attribute__display_type__radio
@@ -3426,6 +3586,11 @@ msgid "Rule Tip"
 msgstr "טיפ לכלל"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+msgid "Rules"
+msgstr ""
+
+#. module: product
 #: model:product.attribute.value,name:product.pav_size_s
 msgid "S"
 msgstr ""
@@ -3433,6 +3598,7 @@ msgstr ""
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__sale_ok
 #: model:ir.model.fields,field_description:product.field_product_template__sale_ok
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
@@ -3454,11 +3620,6 @@ msgstr "תיאור מכירות"
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
 msgid "Sales Price"
 msgstr "מחיר מכירה"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
-msgid "Sales Prices"
-msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__lst_price
@@ -3492,6 +3653,7 @@ msgstr "בחר"
 #: model:ir.model.fields,field_description:product.field_product_tag__sequence
 #: model:ir.model.fields,field_description:product.field_product_template__sequence
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__sequence
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__sequence
 msgid "Sequence"
 msgstr "רצף"
 
@@ -3501,8 +3663,10 @@ msgid "Service"
 msgstr "שירות"
 
 #. module: product
+#: model:product.category,name:product.product_category_services
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Services"
 msgstr "שירותים"
 
@@ -3523,14 +3687,41 @@ msgid "Shoes size"
 msgstr "מידת נעליים"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+msgid "Short Description"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__show_price_extra
+msgid "Show Extra Price"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "Show Name"
 msgstr "הצגת שם"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_qty_update_button
+#: model:ir.model.fields,field_description:product.field_product_template__show_qty_update_button
+msgid "Show Qty Update Button"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_sales_price_page
+#: model:ir.model.fields,field_description:product.field_product_template__show_sales_price_page
+msgid "Show Sales Price Page"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Show all records whose next activity date is past"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__show_price_extra
+msgid "Show separately the extra price for this attribute value."
 msgstr ""
 
 #. module: product
@@ -3826,11 +4017,9 @@ msgstr "שיטת העיגול חייבת להיות חיובית בהחלט."
 #: model:ir.model.fields,help:product.field_product_combo_item__lst_price
 #: model:ir.model.fields,help:product.field_product_product__lst_price
 msgid ""
-"The sale price is managed from the product template. Click on the 'Configure "
-"Variants' button to set the extra attribute prices."
+"The sale price can be set manually or computed from the product template. "
+"Click on the 'Configure Variants' button to set the extra attribute prices."
 msgstr ""
-"מחיר המכירה מנוהל מתבנית המוצר. לחץ על הלחצן 'הגדר וריאנטים' כדי לקבוע את "
-"מחירי התכונות הנוספים."
 
 #. module: product
 #. odoo-python
@@ -3925,6 +4114,26 @@ msgid "Today Activities"
 msgstr "פעילויות היום"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total Forecasted"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total On Hand"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__is_storable
+#: model:ir.model.fields,field_description:product.field_product_template__is_storable
+msgid "Track Inventory"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.consu_delivery_01_product_template
 msgid "Two-Seat Sofa"
 msgstr ""
@@ -3992,7 +4201,7 @@ msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__uom_id
-#: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_uom_id
+#: model:ir.model.fields,field_description:product.field_product_supplierinfo__uom_id
 #: model:ir.model.fields,field_description:product.field_product_template__uom_id
 #: model:ir.model.fields,field_description:product.field_product_uom__uom_id
 msgid "Unit"
@@ -4031,6 +4240,16 @@ msgstr "יחידות מידה"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_uom
 msgid "Units of Measure & Packagings"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Update Quantities"
+msgstr ""
+
+#. module: product
+#: model:ir.actions.act_window,name:product.product_variant_edit_qty_action
+msgid "Update Variant Quantities"
 msgstr ""
 
 #. module: product
@@ -4109,20 +4328,24 @@ msgid "Username"
 msgstr "שם משתמש"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "VINT_1000"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__valid_product_template_attribute_line_ids
 #: model:ir.model.fields,field_description:product.field_product_template__valid_product_template_attribute_line_ids
 msgid "Valid Product Attribute Lines"
 msgstr "שורות תכונת מוצר תקפה"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 #: model_terms:ir.ui.view,arch_db:product.product_supplierinfo_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Validity"
 msgstr "תוקף"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
-msgid "Validity Period"
-msgstr "תקופת תוקף החופשה"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__name
@@ -4157,6 +4380,7 @@ msgstr "ערכים"
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__product_id
 #: model_terms:ir.ui.view,arch_db:product.product_document_kanban
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Variant"
 msgstr "וריאנט"
 
@@ -4221,12 +4445,6 @@ msgstr "תגיות וריאנטים"
 #: model_terms:ir.ui.view,arch_db:product.attribute_tree_view
 msgid "Variant Values"
 msgstr "ערכי וריאנט"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Variant: %s"
-msgstr "וריאנט: %s"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_product_variant
@@ -4471,6 +4689,15 @@ msgstr "לא ניתן לערוך מוצר זה בקטלוג."
 
 #. module: product
 #. odoo-python
+#: code:addons/product/models/product_product.py:0
+#: code:addons/product/models/product_template.py:0
+msgid ""
+"You cannot archive a product that is part of a combo. Please remove it from "
+"the following combos first: %s"
+msgstr ""
+
+#. module: product
+#. odoo-python
 #: code:addons/product/models/product_attribute.py:0
 msgid ""
 "You cannot archive this attribute as there are still products linked to it"
@@ -4516,12 +4743,6 @@ msgstr "אינך יכול לשנות את ערך הערך %(value)s שמוגדר
 
 #. module: product
 #. odoo-python
-#: code:addons/product/models/product_category.py:0
-msgid "You cannot create recursive categories."
-msgstr "אינך יכול ליצור קטגוריות רקורסיביות."
-
-#. module: product
-#. odoo-python
 #: code:addons/product/models/product_pricelist.py:0
 msgid ""
 "You cannot delete pricelist(s):\n"
@@ -4549,8 +4770,8 @@ msgid ""
 "products:\n"
 "%(products)s\n"
 msgstr ""
-"לא ניתן למחוק את הערך %(value)s מכיוון שהוא נמצא בשימוש ע\"י המוצרים הבאים "
-":\n"
+"לא ניתן למחוק את הערך %(value)s מכיוון שהוא נמצא בשימוש ע\"י המוצרים "
+"הבאים :\n"
 "%(products)s\n"
 
 #. module: product
@@ -4647,6 +4868,11 @@ msgid "attribute_id"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "barcodelookup.com"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "csv"
@@ -4699,12 +4925,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 msgid "e.g. USD Retailers"
 msgstr "למשל קמעונאים בדולר"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "id"
-msgstr "מספר זיהוי"
 
 #. module: product
 #. odoo-python
@@ -4799,410 +5019,3 @@ msgstr ""
 
 #~ msgid "45"
 #~ msgstr "45"
-
-#~ msgid ""
-#~ "You cannot assign the Main Pricelist as Other Pricelist in PriceList Item"
-#~ msgstr "אינך יכול לשייך את המחירון הראשי כמחירון נוסף בפריט מחירון"
-
-#~ msgid ""
-#~ "%(base)s with a %(discount)s %% discount and %(surcharge)s extra fee\n"
-#~ "Example: %(amount)s * %(discount_charge)s + %(price_surcharge)s → %"
-#~ "(total_amount)s"
-#~ msgstr ""
-#~ "%(base)s עם %(discount)s %% הנחה ו%(surcharge)s תשלום נוסף\n"
-#~ "דוגמה: %(amount)s* %(discount_charge)s+%(price_surcharge)s→%"
-#~ "(total_amount)s"
-
-#~ msgid "%(percentage)s %% discount and %(price)s surcharge"
-#~ msgstr "%(percentage)s%% הנחה ו%(price)s היטל"
-
-#~ msgid "%s %% discount"
-#~ msgstr "%s %% הנחה"
-
-#~ msgid "'Products packaging - %s' % (object.name)"
-#~ msgstr "'אריזת מוצרים - %s' % (object.name)"
-
-#~ msgid ""
-#~ "- Instantly: All possible variants are created as soon as the attribute "
-#~ "and its values are added to a product.\n"
-#~ "        - Dynamically: Each variant is created only when its "
-#~ "corresponding attributes and values are added to a sales order.\n"
-#~ "        - Never: Variants are never created for the attribute.\n"
-#~ "        Note: the variants creation mode cannot be changed once the "
-#~ "attribute is used on at least one product."
-#~ msgstr ""
-#~ "- מיידי: כל הורינאטים האפשריים נוצרים ברגע שהתכונה וערכיה מתווספים "
-#~ "למוצר. \n"
-#~ "- באופן דינמי: כל וריאנט נוצר רק כאשר התכונות והערכים התואמים שלו "
-#~ "מתווספים להזמנת לקוח.\n"
-#~ "- אף פעם: וריאנטים אף פעם לא נוצרים עבור התכונה.\n"
-#~ " הערה: לא ניתן לשנות את מצב יצירת הוריאטנים לאחר השימוש בתכונה על מוצר "
-#~ "אחד לפחות."
-
-#~ msgid "160x80cm, with large legs."
-#~ msgstr "160X80 ס\"מ, עם רגליים גדולות."
-
-#~ msgid "2 year"
-#~ msgstr "שנה שנייה"
-
-#~ msgid "<span class=\"o_stat_text\">Related Products</span>"
-#~ msgstr "<span class=\"o_stat_text\"> מוצרים קשורים</span>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "מוצר מנוהל מלאי הוא מוצר שעבורו מתבצע ניהול מלאי במערכת. יש להתקין את "
-#~ "יישום המלאי.מוצר לא מנוהל מלאי הוא מוצר אשר לא מתבצע עבורו ניהול מלאי "
-#~ "במערכת.שירות הוא מוצר לא חומרי שאתה מספק."
-
-#~ msgid "Additional Product Tag"
-#~ msgstr "תגית מוצר נוספת"
-
-#~ msgid "Advanced Pricelists"
-#~ msgstr "מחירונים מתקדמים"
-
-#~ msgid "Advanced price rules (discounts, formulas)"
-#~ msgstr "כללי מחירים מתקדמים (הנחות, נוסחאות)"
-
-#~ msgid "Allow users to input custom values for this attribute value"
-#~ msgstr "אפשר למשתמשים להזין ערכים מותאמים אישית לערך תכונה זה"
-
-#~ msgid ""
-#~ "Allows to manage different prices based on rules per category of "
-#~ "customers.\n"
-#~ "                Example: 10% for retailers, promotion of 5 EUR on this "
-#~ "product, etc."
-#~ msgstr ""
-#~ "מאפשר לנהל מחירים שונים על פי כללים לכל קטגוריית לקוחות.\n"
-#~ "דוגמא: 10% לקמעונאים, קידום של 5 אירו על מוצר זה וכו '."
-
-#~ msgid "Applicable On"
-#~ msgstr "החל על"
-
-#~ msgid "Availability"
-#~ msgstr "זמינות"
-
-#~ msgid ""
-#~ "Barcode used for packaging identification. Scan this packaging barcode "
-#~ "from a transfer in the Barcode app to move all the contained units"
-#~ msgstr ""
-#~ "ברקוד המשמש לזיהוי אריזה. סרוק את ברקוד האריזה הזה מהעברה ביישום ברקוד "
-#~ "כדי להעביר את כל היחידות הכלולות"
-
-#~ msgid "Can be Purchased"
-#~ msgstr "ניתן לרכישה"
-
-#~ msgid "Can be Sold"
-#~ msgstr "ניתן למכירה"
-
-#~ msgid "Choose Labels Layout"
-#~ msgstr "בחר תבנית תוויות"
-
-#~ msgid "Computation"
-#~ msgstr "חישוב"
-
-#~ msgid "Conditions"
-#~ msgstr "תנאים"
-
-#~ msgid "Conference room table"
-#~ msgstr "שולחן חדר ישיבות"
-
-#~ msgid "Configuration"
-#~ msgstr "תצורה"
-
-#~ msgid "Consumable"
-#~ msgstr "לא מנוהל מלאי"
-
-#~ msgid ""
-#~ "Consumables are physical products for which you don't manage the "
-#~ "inventory level: they are always available."
-#~ msgstr ""
-#~ "חומרים מתכלים הם מוצרים פיזיים שעבורם אינך מנהל את רמת המלאי: הם תמיד "
-#~ "זמינים."
-
-#~ msgid "Contact Us"
-#~ msgstr "צור קשר"
-
-#~ msgid "Contained Quantity"
-#~ msgstr "כמות כלולה"
-
-#~ msgid "Contained Quantity should be positive."
-#~ msgstr "תדירות החזרה צריכה להיות חיובית."
-
-#~ msgid "Contained quantity"
-#~ msgstr "כמות כלולה"
-
-#~ msgid "Cubic Feet"
-#~ msgstr "מטר מעוקב"
-
-#~ msgid "Cubic Meters"
-#~ msgstr "מטרים מעוקבים"
-
-#~ msgid "Decimal Precision"
-#~ msgstr "דיוק עשרוני"
-
-#~ msgid ""
-#~ "Default unit of measure used for purchase orders. It must be in the same "
-#~ "category as the default unit of measure."
-#~ msgstr ""
-#~ "יחידת מידה ברירת מחדל המשמשת להזמנות רכש. עליה להיות באותה קטגוריה של "
-#~ "יחידת המידה המוגדרת כברירת מחדל."
-
-#~ msgid "Delivery Lead Time"
-#~ msgstr "זמן אספקה ללקוח"
-
-#~ msgid "Desk combination, black-brown: chair + desk + drawer."
-#~ msgstr "קומבינציית שולחן כתיבה, שחור-חום: כסא + שולחן כתיבה+מגירה."
-
-#~ msgid "Discount Policy"
-#~ msgstr "מדיניות הנחה"
-
-#~ msgid "Discount included in the price"
-#~ msgstr "הנחה כלולה במחיר"
-
-#~ msgid "Discount on lines"
-#~ msgstr "הנחה על שורות"
-
-#~ msgid "Discounts"
-#~ msgstr "הנחות"
-
-#~ msgid "Display Pricelist"
-#~ msgstr "הצג מחירון ללקוח"
-
-#~ msgid "Drawer with two routing possiblities."
-#~ msgstr "מגירה עם שתי אפשרויות ניתוב."
-
-#~ msgid "Four person modern office workstation"
-#~ msgstr "עמדת עבודה מודרנית ל 4 אנשים"
-
-#~ msgid "Generate Pricelist Report"
-#~ msgstr "ייצר דו\"ח מחירון"
-
-#~ msgid "Get product pictures using Barcode"
-#~ msgstr "קבל תמונות מוצר באמצעות ברקוד"
-
-#~ msgid "Gives the different ways to package the same product."
-#~ msgstr "נותן את הדרכים השונות לארוז את אותו מוצר."
-
-#~ msgid "Google Images"
-#~ msgstr "תמונות גוגל"
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "Is custom value"
-#~ msgstr "הוא ערך מותאם אישית"
-
-#~ msgid "Kilograms"
-#~ msgstr "קילוגרמים"
-
-#~ msgid "Manage Product Packaging"
-#~ msgstr "נהל אריזת מוצרים "
-
-#~ msgid "Multiple prices per product"
-#~ msgstr "מחירים מרובים למוצר"
-
-#~ msgid ""
-#~ "Multiple prices: Pricelists with fixed price rules by product,\n"
-#~ "Advanced rules: enables advanced price rules for pricelists."
-#~ msgstr ""
-#~ "מחירים מרובים: רשימת מחירים עם כללי מחירים קבועים לפי מוצר,\n"
-#~ "כללים מתקדמים: אפשרו כללי מחירים מתקדמים עבור מחירונים."
-
-#~ msgid "Never (option)"
-#~ msgstr "אף פעם (אופציה)"
-
-#~ msgid "Normal"
-#~ msgstr "נורמלי "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Number of price rules"
-#~ msgstr "מספר כללי מחירים"
-
-#~ msgid "Packaging"
-#~ msgstr "אריזה"
-
-#~ msgid "Pounds"
-#~ msgstr "פאונד"
-
-#~ msgid "Price Computation"
-#~ msgstr "חישוב מחיר"
-
-#~ msgid "Price Surcharge"
-#~ msgstr "תשלום נוסף"
-
-#~ msgid "Pricelist:"
-#~ msgstr "מחירון:"
-
-#~ msgid "Pricelists Method"
-#~ msgstr "שיטת מחירונים"
-
-#~ msgid "Pricelists are managed on"
-#~ msgstr "מחירונים מנוהלים ב"
-
-#~ msgid "Product Packages"
-#~ msgstr "חבילות מוצר"
-
-#~ msgid "Product Packaging"
-#~ msgstr "אריזת מוצר"
-
-#~ msgid "Product Packaging (PDF)"
-#~ msgstr "אריזת מוצר (PDF)"
-
-#~ msgid "Product Packagings"
-#~ msgstr "אריזות מוצר"
-
-#~ msgid "Product: %s"
-#~ msgstr "מוצר: %s"
-
-#~ msgid "Purchase UoM"
-#~ msgstr "יחידת מידה לרכש"
-
-#~ msgid "Quantity of products contained in the packaging."
-#~ msgstr "כמות המוצרים הכלולים באריזה."
-
-#~ msgid "Rounding Method"
-#~ msgstr "שיטת עיגול"
-
-#~ msgid "Sales Grid Entry"
-#~ msgstr "רשומת רשת מכירות"
-
-#~ msgid ""
-#~ "Sets the price so that it is a multiple of this value.\n"
-#~ "Rounding is applied after the discount and before the surcharge.\n"
-#~ "To have prices that end in 9.99, set rounding 10, surcharge -0.01"
-#~ msgstr ""
-#~ "מגדיר את המחיר כך שהוא כפולה של ערך זה.\n"
-#~ "עיגול מיושם לאחר ההנחה ולפני התשלום הנוסף.\n"
-#~ "כדי לקבל מחירים המסתיימים ב 9.99, הגדר עיגול 10, תשלום נוסף -0.01"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "הצג את כל הרשומות שתאריך הפעולה הבא שלהן הוא עד היום"
-
-#~ msgid "Show public price & discount to the customer"
-#~ msgstr "הצג מחיר והנחה ללקוח"
-
-#~ msgid "Tag Name"
-#~ msgstr "שם תגית"
-
-#~ msgid "The Type of this product doesn't match the Detailed Type"
-#~ msgstr "הסוג של מוצר זה אינו תואם לסוג המפורט"
-
-#~ msgid ""
-#~ "The computed price is expressed in the default Unit of Measure of the "
-#~ "product."
-#~ msgstr "המחיר המחושב מבוטא ביחידת המידה שהיא ברירת המחדל של המוצר."
-
-#~ msgid ""
-#~ "The default Unit of Measure and the purchase Unit of Measure must be in "
-#~ "the same category."
-#~ msgstr ""
-#~ "יחידת המידה המוגדרת כברירת מחדל ויחידת המידה לרכש חייבות להיות באותה "
-#~ "קטגוריה."
-
-#~ msgid "The first in the sequence is the default one."
-#~ msgstr "הראשון ברצף הוא ברירת המחדל."
-
-#~ msgid ""
-#~ "The number of variants to generate is too high. You should either not "
-#~ "generate variants for each combination or generate them on demand from "
-#~ "the sales order. To do so, open the form view of attributes and change "
-#~ "the mode of *Create Variants*."
-#~ msgstr ""
-#~ "מספר הוריאנטים לייצור גבוה מדי. אל תיצור וריאנט עבור כל שילוב או שתייצר "
-#~ "אותם לפי דרישה מהזמנת הלקוח. לשם כך, פתח את תצוגת הטפסים של תכונות ושנה "
-#~ "את המצב של * צור וריאנטים *."
-
-#~ msgid ""
-#~ "The quantity to purchase from this vendor to benefit from the price, "
-#~ "expressed in the vendor Product Unit of Measure if not any, in the "
-#~ "default unit of measure of the product otherwise."
-#~ msgstr ""
-#~ "הכמות לרכישה מספק זה בכדי ליהנות מהמחיר, הבאה לידי ביטוי ביחידת המידה אם "
-#~ "יש כזו. אחרת, ביחידת מידת ברירת המחדל של המוצר."
-
-#~ msgid ""
-#~ "This pricelist will be used, instead of the default one, for sales to the "
-#~ "current partner"
-#~ msgstr "מחירון זה ישמש למכירות ללקוח הנוכחי במקום מחירון ברירת המחדל"
-
-#~ msgid ""
-#~ "This rounding precision is higher than the Decimal Accuracy (%s digits).\n"
-#~ "This may cause inconsistencies in computations.\n"
-#~ "Please set a precision between %s and 1."
-#~ msgstr ""
-#~ "דיוק עיגול זה גבוה מהדיוק העשרוני (%s ספרות).\n"
-#~ "זה עלול לגרום לחוסר עקביות בחישובים.\n"
-#~ "נא להגדיר דיוק בין %s ל-1."
-
-#~ msgid "Three Seater Sofa with Lounger in Steel Grey Colour"
-#~ msgstr "ספה תלת מושבית עם רגליות פלדה בצבע אפור"
-
-#~ msgid "Three-Seat Sofa"
-#~ msgstr "ספה תלת מושבית"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Unit of Measure Name"
-#~ msgstr "שם יחידת המידה"
-
-#~ msgid "UoM"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Value Price Extra"
-#~ msgstr "מחיר ערך נוסף"
-
-#~ msgid "Variants Creation Mode"
-#~ msgstr "מצב יצירת וריאנטים"
-
-#~ msgid "Warning!"
-#~ msgstr "אזהרה!"
-
-#~ msgid ""
-#~ "You are setting a Decimal Accuracy less precise than the UOMs:\n"
-#~ "%s\n"
-#~ "This may cause inconsistencies in computations.\n"
-#~ "Please increase the rounding of those units of measure, or the digits of "
-#~ "this Decimal Accuracy."
-#~ msgstr ""
-#~ "אתה מגדיר דיוק עשרוני פחות מדויק מה-UOMs:\n"
-#~ "%s\n"
-#~ "זה עלול לגרום לחוסר עקביות בחישובים.\n"
-#~ "נא להגדיל את העיגול של יחידות המידה הללו, או את הספרות של דיוק עשרוני זה."
-
-#~ msgid ""
-#~ "You cannot create two values with the same name for the same attribute."
-#~ msgstr "אינך יכול ליצור שני ערכים עם אותו שם לאותה תכונה."
-
-#~ msgid ""
-#~ "You cannot define the decimal precision of 'Account' as greater than the "
-#~ "rounding factor of the company's main currency"
-#~ msgstr ""
-#~ "אינך יכול להגדיר את הדיוק העשרוני של 'חשבון' כגדול ממקדם העיגול של המטבע "
-#~ "הראשי של החברה"
-
-#~ msgid ""
-#~ "You cannot delete this product category, it is the default generic "
-#~ "category."
-#~ msgstr ""
-#~ "אינך יכול למחוק את קטגוריית המוצרים הזו, זוהי קטגוריית ברירת המחדל הכללית."
-
-#~ msgid ""
-#~ "You cannot delete those pricelist(s):\n"
-#~ "(%s)\n"
-#~ ", they are used in other pricelist(s):\n"
-#~ "%s"
-#~ msgstr ""
-#~ "לא ניתן למחוק את המחירונים האלה:\n"
-#~ "(%s)\n"
-#~ ", הם משמשים במחירון(נים) אחרים:\n"
-#~ "%s"
-
-#~ msgid "the parent company"
-#~ msgstr "חברת אם"

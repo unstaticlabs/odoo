@@ -28,6 +28,7 @@ class LoyaltyCard(models.Model):
     program_id = fields.Many2one(
         comodel_name='loyalty.program',
         ondelete='restrict',
+        required=True,
         index='btree_not_null',
         default=lambda self: self.env.context.get('active_id', None),
     )
@@ -63,16 +64,25 @@ class LoyaltyCard(models.Model):
         if self.env['loyalty.rule'].search_count([('mode', '=', 'with_code'), ('code', 'in', self.mapped('code'))]):
             raise ValidationError(_("A trigger with the same code as one of your coupon already exists."))
 
+    @api.constrains('active', 'partner_id', 'program_id')
+    def _check_single_loyalty_card_per_partner(self):
+        for card in self:
+            if not card.partner_id or card.program_type != 'loyalty':
+                continue
+            loyalty_card_count = self.search_count([
+                ('id', '!=', card.id),
+                ('partner_id', '=', card.partner_id.id),
+                ('program_id', '=', card.program_id.id),
+            ], limit=1)
+            if loyalty_card_count:
+                raise ValidationError(self.env._(
+                    "A customer can only have one active loyalty card per program."
+                ))
+
     @api.depends('points', 'point_name')
     def _compute_points_display(self):
         for card in self:
             card.points_display = card._format_points(card.points)
-
-    @api.onchange('expiration_date')
-    def _restrict_expiration_on_loyalty(self):
-        for card in self:
-            if card.program_type == 'loyalty' and card.expiration_date:
-                raise ValidationError(_("Expiration date cannot be set on a loyalty card."))
 
     def _format_points(self, points):
         self.ensure_one()
@@ -116,7 +126,6 @@ class LoyaltyCard(models.Model):
             default_res_ids=self.ids,
             default_template_id=default_template and default_template.id,
             default_composition_mode='comment',
-            default_email_layout_xmlid='mail.mail_notification_light',
             force_email=True,
         )
         return {
@@ -134,8 +143,9 @@ class LoyaltyCard(models.Model):
         """
         Sends the 'At Creation' communication plan if it exist for the given coupons.
         """
+        mail_ids = []
         if self.env.context.get('loyalty_no_mail', False) or self.env.context.get('action_no_send_mail', False):
-            return
+            return []
         # Ideally one per program, but multiple is supported
         create_comm_per_program = dict()
         for program in self.program_id:
@@ -150,12 +160,13 @@ class LoyaltyCard(models.Model):
                     # provide author_id & email_from values to ensure the email gets sent
                     author = coupon._get_mail_author()
                     email_values.update(author_id=author.id, email_from=author.email_formatted)
-                mail_template.send_mail(
+                mail_ids.append(mail_template.send_mail(
                     res_id=coupon.id,
                     force_send=force_send,
                     email_layout_xmlid='mail.mail_notification_light',
                     email_values=email_values,
-                )
+                ))
+        return mail_ids
 
     def _send_points_reach_communication(self, points_changes):
         """

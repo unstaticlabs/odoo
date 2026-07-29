@@ -10,15 +10,14 @@
 # Martin Trigaux, 2022
 # Matjaz Mozetic <m.mozetic@matmoz.si>, 2022
 # Jasmina Macur <jasmina@hbs.si>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:10+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-09-16 21:34+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Slovenian <https://translate.odoo.com/projects/odoo-19/"
 "base_import/sl/>\n"
 "Language: sl\n"
@@ -27,7 +26,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
 "n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -145,12 +144,6 @@ msgstr "Lahko pa uporabite tudi datoteke .csv"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "Prekliči"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr ""
@@ -167,11 +160,11 @@ msgstr "Stolpec %(column)s vsebuje napačne vrednosti (vrednost:%(value)s)"
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr ""
-"Stolpec %(column)s vsebuje napačne vrednosti. Napaka v vrstici %(line)d: %"
-"(error)s"
+"Stolpec %(column)s vsebuje napačne vrednosti. Napaka v vrstici %(line)d: "
+"%(error)s"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
@@ -260,6 +253,12 @@ msgid "Delay after each batch"
 msgstr "Zakasnitev po vsaki seriji"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -315,8 +314,8 @@ msgstr "Napaka pri uvozu zapisov: Ločilo besedila mora biti en sam znak."
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "Napaka pri uvozu zapisov: vse vrstice bi morale biti enake velikosti, vendar "
 "ima naslovna vrstica %(title_row_entries)d vnose, medtem ko ima prva vrstica "
@@ -345,12 +344,6 @@ msgstr "Priporočljive so Excelove datoteke, saj je oblikovanje samodejno."
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "Zunanji ID"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "Polje '%(field)s' ne sprejema vrednosti datuma/časa."
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -387,8 +380,8 @@ msgstr ""
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "Datoteka za pregled in/ali uvoz, surova binarna (ni base64)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -819,24 +812,18 @@ msgstr "Datoteka bo uvožena v paketih"
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
-#, fuzzy
 msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was automatically detected."
 msgstr ""
-"Pojavila se je težava pri dekodiranju datoteke s kodiranjem \"%s\".\n"
-"To kodiranje je bilo samodejno zaznano."
 
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
-#, fuzzy
 msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was manually selected."
 msgstr ""
-"Pojavila se je težava pri dekodiranju datoteke s kodiranjem \"%s\".\n"
-"To kodiranje je bilo izbrano ročno."
 
 #. module: base_import
 #. odoo-javascript
@@ -874,15 +861,16 @@ msgstr "Sledenje zgodovine med uvozom"
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"Ni mogoče naložiti \"{extension}\" datoteke: zahteva se Python modul \""
-"{modname}\""
+"Ni mogoče naložiti \"{extension}\" datoteke: zahteva se Python modul "
+"\"{modname}\""
 
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Unsupported file format \"{}\", import only supports CSV, ODS, XLS and XLSX"
-msgstr "Ne podprt format datoteke \"{}\", uvoz podpira le CSV, ODS, XLS in XLSX"
+msgstr ""
+"Ne podprt format datoteke \"{}\", uvoz podpira le CSV, ODS, XLS in XLSX"
 
 #. module: base_import
 #. odoo-javascript
@@ -1024,6 +1012,3 @@ msgstr "sekund"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "neznana koda napake %s"
-
-#~ msgid "Load File"
-#~ msgstr "Naloži datoteko"

@@ -1,19 +1,21 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import pytz
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, UTC
+from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
-from odoo.tests.common import new_test_user
+
+from odoo.tests.common import tagged, new_test_user
 from odoo.exceptions import ValidationError
 from odoo.addons.google_calendar.models.res_users import ResUsers
 from odoo.addons.google_calendar.tests.test_sync_common import TestSyncGoogle, patch_api
 from odoo.addons.google_calendar.utils.google_calendar import GoogleEvent, GoogleCalendarService
 from odoo import Command, tools
-from unittest.mock import patch
 
 
 @patch.object(ResUsers, '_get_google_calendar_token', lambda user: 'dummy-token')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSyncGoogle2Odoo(TestSyncGoogle):
     @classmethod
     def setUpClass(cls):
@@ -111,7 +113,7 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
 
     @property
     def now(self):
-        return pytz.utc.localize(datetime.now()).isoformat()
+        return datetime.now().replace(tzinfo=UTC).isoformat()
 
     def sync(self, events):
         events.clear_type_ambiguity(self.env)
@@ -180,9 +182,9 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         self.assertTrue(event.allday)
         self.assertEqual(event.start_date, date(2020, 1, 13))
         self.assertEqual(event.stop_date, date(2020, 1, 13))
-        winnipeg = pytz.timezone('America/Winnipeg')
-        self.assertEqual(pytz.utc.localize(event.start).astimezone(winnipeg).date(), date(2020, 1, 13))
-        self.assertEqual(pytz.utc.localize(event.stop).astimezone(winnipeg).date(), date(2020, 1, 13))
+        winnipeg = ZoneInfo('America/Winnipeg')
+        self.assertEqual(event.start.replace(tzinfo=UTC).astimezone(winnipeg).date(), date(2020, 1, 13))
+        self.assertEqual(event.stop.replace(tzinfo=UTC).astimezone(winnipeg).date(), date(2020, 1, 13))
         self.assertGoogleAPINotCalled()
 
     @patch_api
@@ -352,7 +354,7 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
             'end': {'date': str(event.stop_date + relativedelta(days=1)), 'dateTime': None},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'declined'}],
             'extendedProperties': {'private': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
         })
 
     @patch_api
@@ -1013,8 +1015,8 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         google_events = GoogleEvent(values)
         self.env['calendar.recurrence']._sync_google2odoo(google_events)
         no_duplicate_gevent = google_events.filter(lambda e: e.id == "9lxiofipomymx2yr1yt0hpep99")
-        dt_start = datetime.fromisoformat(no_duplicate_gevent.start["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=0)
-        dt_end = datetime.fromisoformat(no_duplicate_gevent.end["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=23)
+        dt_start = datetime.fromisoformat(no_duplicate_gevent.start["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=0)
+        dt_end = datetime.fromisoformat(no_duplicate_gevent.end["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=23)
         no_duplicate_event = self.env["calendar.event"].search(
             [
                 ("name", "=", no_duplicate_gevent.summary),
@@ -1346,12 +1348,12 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
             }, ],
             'reminders': {'overrides': [{"method": "email", "minutes": 10}], 'useDefault': False},
             'start': {
-                'dateTime': pytz.utc.localize(start).isoformat(),
+                'dateTime': start.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels',
                 'date': None
             },
             'end': {
-                'dateTime': pytz.utc.localize(end).isoformat(),
+                'dateTime': end.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels',
                 'date': None
             },
@@ -1365,7 +1367,7 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         # No further notifications should be created.
         values = {
             'id': google_id,
-            'updated': pytz.utc.localize(updated).isoformat(),
+            'updated': updated.replace(tzinfo=UTC).isoformat(),
             'description': 'New Super description',
             'organizer': {'email': 'odoocalendarref@gmail.com', 'self': True},
             'summary': 'Pricing was not good, now it is correct',
@@ -1377,12 +1379,12 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
             }, ],
             'reminders': {'overrides': [{"method": "email", "minutes": 10}], 'useDefault': False},
             'start': {
-                'dateTime': pytz.utc.localize(start).isoformat(),
+                'dateTime': start.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels',
                 'date': None,
             },
             'end': {
-                'dateTime': pytz.utc.localize(end).isoformat(),
+                'dateTime': end.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels',
                 'date': None,
             },
@@ -1423,12 +1425,12 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
                 'responseStatus': 'needsAction'
             }],
             'start': {
-                'dateTime': pytz.utc.localize(start).isoformat(),
+                'dateTime': start.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels'
             },
             'reminders': {'overrides': [{"method": "email", "minutes": 30}], 'useDefault': False},
             'end': {
-                'dateTime': pytz.utc.localize(end).isoformat(),
+                'dateTime': end.replace(tzinfo=UTC).isoformat(),
                 'timeZone': 'Europe/Brussels'
             },
         }
@@ -1509,7 +1511,7 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
                           {'email': 'odoobot@example.com', 'responseStatus': 'accepted'},],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id,
                                               '%s_owner_id' % self.env.cr.dbname: other_user.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'transparency': 'opaque',
         }, timeout=3)
 
@@ -2053,8 +2055,8 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         google_event = GoogleEvent(google_value)
         self.env['calendar.recurrence']._sync_google2odoo(google_event)
         # Get the time slot of the day
-        day_start = datetime.fromisoformat(google_event.start["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=0)
-        day_end = datetime.fromisoformat(google_event.end["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=23)
+        day_start = datetime.fromisoformat(google_event.start["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=0)
+        day_end = datetime.fromisoformat(google_event.end["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=23)
         # Get created events
         day_events = self.env["calendar.event"].search(
             [
@@ -2127,8 +2129,8 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         # specific_event: 59orfkiunbn2vlp6c2tndq6ui0_20230526T070000Z
 
         # Range to check
-        day_start = datetime.fromisoformat(specific_event.start["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=0)
-        day_end = datetime.fromisoformat(specific_event.end["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=23)
+        day_start = datetime.fromisoformat(specific_event.start["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=0)
+        day_end = datetime.fromisoformat(specific_event.end["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=23)
 
         # Synchronize recurrent events
         self.env['calendar.recurrence']._sync_google2odoo(recurrent_events)
@@ -2232,8 +2234,8 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         recurrent_events = google_events.filter(lambda e: e.is_recurrence())
         specific_event = google_events - recurrent_events
         # Range to check
-        day_start = datetime.fromisoformat(specific_event.start["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=0)
-        day_end = datetime.fromisoformat(specific_event.end["dateTime"]).astimezone(pytz.utc).replace(tzinfo=None).replace(hour=23)
+        day_start = datetime.fromisoformat(specific_event.start["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=0)
+        day_end = datetime.fromisoformat(specific_event.end["dateTime"]).astimezone(UTC).replace(tzinfo=None).replace(hour=23)
 
         # Synchronize recurrent events
         self.env['calendar.recurrence']._sync_google2odoo(recurrent_events)

@@ -13,10 +13,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 21:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-23 15:05+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_setup/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -166,11 +166,6 @@ msgstr "Tilføj sprog"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Add fun feedback and motivate your employees"
 msgstr "Tilføj sjov feedback, og motivér dine medarbejdere"
-
-#. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
-msgstr "Aktivér integration med mail-plugins"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_calendar
@@ -397,11 +392,6 @@ msgstr "Import og eksport"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
-msgstr "Integration med plugins til e-mailkunder"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Integrations"
 msgstr "Integrationer"
 
@@ -435,11 +425,6 @@ msgstr "Sprog"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
 msgstr "Layout"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
-msgstr "Mail-plugin"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -655,49 +640,3 @@ msgstr "Du skal installere Dialog-appen for at bruge denne funktion."
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_recaptcha
 msgid "reCAPTCHA"
 msgstr "reCAPTCHA"
-
-#~ msgid "Asterisk (VoIP)"
-#~ msgstr "Stjerne (VoIP)"
-
-#~ msgid ""
-#~ "Automatically generate counterpart documents for orders/invoices between "
-#~ "companies"
-#~ msgstr ""
-#~ "Generer automatisk modpart dokumenter for ordre/faktura mellem "
-#~ "virksomheder"
-
-#~ msgid ""
-#~ "By default, new users get highest access rights for all installed apps."
-#~ msgstr ""
-#~ "Som standard får nye brugere flest mulige adgangsrettigheder til alle "
-#~ "installerede apps."
-
-#~ msgid "Default User Template not found."
-#~ msgstr "Standard Bruger Skabelon ikke fundet."
-
-#~ msgid "Documentation"
-#~ msgstr "Dokumentation"
-
-#~ msgid "Geo Localization"
-#~ msgstr "Geo lokalisering"
-
-#~ msgid "GeoLocalize your partners"
-#~ msgstr "GeoLokalisér dine partnere"
-
-#~ msgid "Google Calendar"
-#~ msgstr "Google Kalender"
-
-#~ msgid "On Apple Store"
-#~ msgstr "På Apple Store"
-
-#~ msgid "On Google Play"
-#~ msgstr "På Google Play"
-
-#~ msgid "Outlook Calendar"
-#~ msgstr "Outlook Kalender"
-
-#~ msgid "Synchronize your calendar with Google Calendar"
-#~ msgstr "Synkronisér din kalender med Google Kalender"
-
-#~ msgid "Synchronize your calendar with Outlook"
-#~ msgstr "Synkroniser din kalender med Outlook"

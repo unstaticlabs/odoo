@@ -17,15 +17,15 @@
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
 # NoaFarkash, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-29 20:12+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-04 16:00+0000\n"
+"Last-Translator: or balmas <or@laylinetech.com>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "website_event_track/he/>\n"
 "Language: he\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_event_track
 #. odoo-python
@@ -137,11 +137,10 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
@@ -654,6 +653,11 @@ msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "מצב פעילות"
@@ -810,6 +814,16 @@ msgstr "כמות קבצים מצורפים"
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
 msgstr "קהל"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
@@ -1457,7 +1471,7 @@ msgstr "גבוהה ביותר"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.pwa_offline
 msgid "Home page"
-msgstr "דף הבית"
+msgstr ""
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track21
@@ -2152,6 +2166,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_track.view_event_track_search
 msgid "Published"
 msgstr "פורסם"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
@@ -3103,7 +3122,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_confirmation_end_page_hook
 #: model_terms:ir.ui.view,arch_db:website_event_track.registration_complete
 msgid "register to your favorites talks now."
-msgstr "הירשם לדיונים המועדפים עליך עכשיו."
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_content
@@ -3116,85 +3135,12 @@ msgid "starts on"
 msgstr "מתחיל ב"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr ""
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<b>Talk Intro</b>"
-#~ msgstr "דיון פתיחה"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Introduction</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">דיון פתיחה</span>\n"
-#~ "<span>*</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Title</span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">כותרת הדיון</span>\n"
-#~ "<span>*</span>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>שיחות ברק.</strong> אלו שיחות של 30 דקות על רבים\n"
-#~ "נושאים שונים. רוב הנושאים מתקבלים בשיחות ברק."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>דיונים קבועים</strong>. מדובר בדיונים סטנדרטים עם שקופיות, "
-#~ "המוקצות במשבצות של 60 דקות."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "אפשר הקלטת וידאו ואודיו שלהם\n"
-#~ "מצגת, לפרסום באתר האינטרנט שלנו."
-
-#~ msgid "Error"
-#~ msgstr "שגיאה"
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "No results found"
-#~ msgstr "נמצאו תוצאות"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "הצג את כל הרשומות שתאריך הפעולה הבא שלהן הוא עד היום"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "הצעה לדיונים"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "דיון נוסף למועדפים שלך"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "דיון כבר קיים במועדפים שלך"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "כתובת האתר המלאה לגישה למסמך דרך אתר האינטרנט."

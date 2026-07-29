@@ -5,14 +5,14 @@
 # Translators:
 # Jumshud Sultanov <cumshud@gmail.com>, 2022
 # erpgo translator <jumshud@erpgo.az>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:23+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-08 19:17+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Azerbaijani <https://translate.odoo.com/projects/odoo-19/"
 "stock_landed_costs/az/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -65,6 +65,11 @@ msgstr "Fəaliyyətlər"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Faəliyyət istisnaetmə İşarəsi"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -140,10 +145,6 @@ msgstr "Ləğv olundu"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Şirkətlər"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Şirkət"
@@ -557,6 +558,11 @@ msgid "Picking"
 msgstr "Seçim etmək"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -670,8 +676,11 @@ msgid "Total"
 msgstr "Cəmi"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Transferlər"
 
@@ -695,7 +704,7 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
+msgid "Valuation Adjustment Line"
 msgstr ""
 
 #. module: stock_landed_costs
@@ -742,28 +751,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Saxlanması mümkün olan məhsul ethiyatlarını idarə etdiyiniz məhsuldur. "
-#~ "Anbar tətbiqi quraşdırılmalıdır.\n"
-#~ "Sərfiyyat məhsulu ehtiyatları idarə olunmayan məhsuldur.\n"
-#~ "Xidmət təqdim etdiyiniz qeyri- maddi məhsuldur."
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Bu jurnalla əlaqəli Şirkət"
-
-#~ msgid "Group By"
-#~ msgstr "Aşağıdakılara görə Qrupla"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Əməliyyat tələb edən mesajların sayı"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Növbəti fəaliyyət tarixi bu günə qədər olan bütün qeydləri göstərin"

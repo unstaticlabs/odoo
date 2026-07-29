@@ -1,11 +1,12 @@
-import { Component, onWillUnmount, useState, useSubEnv, useRef, onMounted } from "@odoo/owl";
+import { Component, useState, useSubEnv, useRef } from "@odoo/owl";
 import { useSelfOrder } from "@pos_self_order/app/services/self_order_service";
 import { useService } from "@web/core/utils/hooks";
 import { AttributeSelection } from "@pos_self_order/app/components/attribute_selection/attribute_selection";
 import { ProductNameWidget } from "@pos_self_order/app/components/product_name_widget/product_name_widget";
-import { ComboStepper } from "@pos_self_order/app/components/combo_stepper/combo_stepper";
+import { Stepper } from "@pos_self_order/app/components/combo_stepper/combo_stepper";
 import { computeTotalComboPrice } from "../../services/card_utils";
 import { useScrollShadow } from "../../utils/scroll_shadow_hook";
+import { useStickyTitleObserver } from "@pos_self_order/app/utils/sticky_title_observer";
 import { formatProductName, shouldShowMissingDetails } from "../../utils";
 
 export class ComboPage extends Component {
@@ -13,7 +14,7 @@ export class ComboPage extends Component {
     static props = ["productTemplate"];
     static components = {
         AttributeSelection,
-        ComboStepper,
+        Stepper,
         ProductNameWidget,
     };
 
@@ -40,29 +41,10 @@ export class ComboPage extends Component {
         this.productNameRef = useRef("productName");
         this.scrollContainerRef = useRef("scrollContainer");
         this.scrollShadow = useScrollShadow(this.scrollContainerRef);
-
-        onMounted(() => {
-            const productNameEl = this.productNameRef.el;
-            if (productNameEl) {
-                this.observer = new IntersectionObserver(
-                    ([entry]) => {
-                        this.state.showStickyTitle = !entry.isIntersecting;
-                    },
-                    {
-                        root: null,
-                        threshold: 0,
-                    }
-                );
-                this.observer.observe(productNameEl);
-            }
-            this.resetScrollPosition();
-        });
-
-        onWillUnmount(() => {
-            if (this.observer) {
-                this.observer.unobserve(this.productNameRef.el);
-            }
-        });
+        useStickyTitleObserver(
+            "productName",
+            (isSticky) => (this.state.showStickyTitle = isSticky)
+        );
     }
 
     get currentCombo() {
@@ -85,7 +67,9 @@ export class ComboPage extends Component {
     }
 
     get comboItems() {
-        return this.selectedChoice.combo_item_ids;
+        return this.selectedChoice.combo_item_ids.filter(
+            (item) => item.product_id.self_order_available
+        );
     }
 
     get currentChoiceState() {
@@ -103,7 +87,7 @@ export class ComboPage extends Component {
 
     selectItem(item) {
         const product = item.product_id;
-        if (!product.self_order_available) {
+        if (this.selfOrder.isProductSnoozed(product.product_tmpl_id)) {
             return;
         }
 

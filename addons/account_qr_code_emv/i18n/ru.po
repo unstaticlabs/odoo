@@ -3,16 +3,16 @@
 # * account_qr_code_emv
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 21:15+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-12-05 18:08+0000\n"
+"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "account_qr_code_emv/ru/>\n"
 "Language: ru\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: account_qr_code_emv
 #. odoo-python
@@ -32,8 +32,8 @@ msgstr "Для создания EMV QR-кода требуется банков�
 
 #. module: account_qr_code_emv
 #: model:ir.model,name:account_qr_code_emv.model_res_partner_bank
-msgid "Bank Accounts"
-msgstr "Банковские Счета"
+msgid "Bank Account"
+msgstr ""
 
 #. module: account_qr_code_emv
 #: model:ir.model.fields,field_description:account_qr_code_emv.field_account_setup_bank_manual_config__country_proxy_keys
@@ -108,8 +108,8 @@ msgstr "Отсутствующее значение прокси."
 #. odoo-python
 #: code:addons/account_qr_code_emv/models/res_bank.py:0
 msgid ""
-"No EMV QR Code is available for the country of the account %"
-"(account_number)s."
+"No EMV QR Code is available for the country of the account "
+"%(account_number)s."
 msgstr "EMV QR-код недоступен для страны счета %(account_number)s."
 
 #. module: account_qr_code_emv
@@ -128,6 +128,3 @@ msgstr "Тип прокси"
 #: model:ir.model.fields,field_description:account_qr_code_emv.field_res_partner_bank__proxy_value
 msgid "Proxy Value"
 msgstr "Значение прокси"
-
-#~ msgid "EMV QR Configuration"
-#~ msgstr "Конфигурация EMV QR"

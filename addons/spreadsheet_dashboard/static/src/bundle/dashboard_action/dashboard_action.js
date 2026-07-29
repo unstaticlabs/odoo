@@ -190,7 +190,7 @@ export class SpreadsheetDashboardAction extends Component {
     }
 
     logExport() {
-        const dashboard = this.state.activeDashboard;
+        const dashboard = this.loader.getActiveDashboard();
         if (!dashboard || dashboard.status !== Status.Loaded) {
             return;
         }

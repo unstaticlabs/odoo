@@ -14,24 +14,24 @@
 # Simon S, 2022
 # Martin Trigaux, 2022
 # Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 20:03+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
+"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_account/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_account
 #. odoo-python
@@ -87,7 +87,7 @@ msgstr "Konto"
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_chart_template
 msgid "Account Chart Template"
-msgstr "Mall för kontoplan"
+msgstr "Kontoplan"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_inventory_adjustment_name__accounting_date
@@ -171,8 +171,8 @@ msgstr "Objektkontorad"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Objektscheman"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -219,6 +219,12 @@ msgid "Bacon"
 msgstr "Bacon"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -243,10 +249,6 @@ msgstr "Koggars ursprung"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Företag"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -255,7 +257,7 @@ msgstr "Företag"
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_move__company_currency_id
 msgid "Company Currency"
-msgstr "Företagets valuta"
+msgstr "Bolagsvaluta"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__computed_value_description
@@ -353,7 +355,7 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields.selection,name:stock_account.selection__res_company__inventory_period__daily
 msgid "Daily"
-msgstr "Varje dag"
+msgstr "Dagligen"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__date
@@ -470,7 +472,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/stock_account/static/src/stock_valuation/buttons_bar/buttons_bar.xml:0
 msgid "Generate Entry"
-msgstr "Skapa verifikation"
+msgstr "Skapa bokföringspost"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_account_account__id
@@ -535,9 +537,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Referens/orsak för lagerjustering"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Lagerplatser"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -560,7 +568,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock_account.field_product_category__property_valuation
 #: model_terms:ir.ui.view,arch_db:stock_account.view_category_property_form_stock
 msgid "Inventory Valuation"
-msgstr "Lagervärdering"
+msgstr "Värdering av lager"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_move__is_dropship
@@ -603,18 +611,18 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_move
 msgid "Journal Entry"
-msgstr "Verifikation"
+msgstr "Bokföringspost"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_move_line
 msgid "Journal Item"
-msgstr "Verifikationsrad"
+msgstr "Journalpost"
 
 #. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Journal Items"
-msgstr "Verifikationsrader"
+msgstr "Affärshändelser"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__justification
@@ -659,7 +667,7 @@ msgstr "Parti- och serienummer kommer att visas på fakturan"
 #. module: stock_account
 #: model:ir.model.fields.selection,name:stock_account.selection__res_company__inventory_period__manual
 msgid "Manual"
-msgstr "Manuell"
+msgstr "Manual"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_move__value_manual
@@ -669,12 +677,12 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields.selection,name:stock_account.selection__res_company__inventory_period__monthly
 msgid "Monthly"
-msgstr "Varje månad"
+msgstr "Månatlig"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__move_id
 msgid "Move"
-msgstr "Flytta"
+msgstr "Verifikat"
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.product_value_form_view
@@ -706,7 +714,7 @@ msgstr "Alternativ"
 #: model:ir.model.fields.selection,name:stock_account.selection__product_template__valuation__periodic
 #: model:ir.model.fields.selection,name:stock_account.selection__res_company__inventory_valuation__periodic
 msgid "Periodic (at closing)"
-msgstr "Periodisk (vid bokslut)"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_product_category__property_valuation
@@ -723,12 +731,12 @@ msgstr ""
 #: model:ir.model.fields.selection,name:stock_account.selection__product_template__valuation__real_time
 #: model:ir.model.fields.selection,name:stock_account.selection__res_company__inventory_valuation__real_time
 msgid "Perpetual (at invoicing)"
-msgstr "Ständig (vid fakturering)"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_picking_type
 msgid "Picking Type"
-msgstr "Plockningstyp"
+msgstr "Plocktyp"
 
 #. module: stock_account
 #. odoo-python
@@ -813,8 +821,8 @@ msgstr "Produktion WIP Omkostnadskonto"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Kvantiteter"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -912,12 +920,12 @@ msgstr "Stock Journal"
 #: model:ir.model.fields,field_description:stock_account.field_account_move__stock_move_ids
 #: model:ir.model.fields.selection,name:stock_account.selection__stock_avco_report__res_model_name__stock_move
 msgid "Stock Move"
-msgstr "Lagertransport"
+msgstr "Lagerflytt"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_forecasted_product_product
 msgid "Stock Replenishment Report"
-msgstr "Lagerpåfyllningsrapport"
+msgstr "Lagerpåfyllnadsrapport"
 
 #. module: stock_account
 #. odoo-javascript
@@ -931,7 +939,7 @@ msgstr "Lagervärdering"
 #: model:ir.model.fields,field_description:stock_account.field_res_company__account_stock_valuation_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_location__valuation_account_id
 msgid "Stock Valuation Account"
-msgstr "Konto för lagervärdering"
+msgstr "Konto för värdering av lager"
 
 #. module: stock_account
 #. odoo-javascript
@@ -963,8 +971,8 @@ msgid ""
 "The ISO country code in two chars. \n"
 "You can use this field for quick search."
 msgstr ""
-"ISO-kod med två tecken.\n"
-"Fältet används för snabbsökning."
+"ISO-landskoden med två tecken.\n"
+"Du kan använda det här fältet för snabb sökning."
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_product_value__current_value
@@ -1184,15 +1192,12 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_move__account_move_id
 msgid "stock_move_id"
-msgstr "stock_move_id"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "units"
 msgstr "enheter"
-
-#~ msgid "6.00"
-#~ msgstr "6.00"
 
 #~ msgid ""
 #~ "Value of the product (automatically computed in AVCO).\n"
@@ -1205,102 +1210,5 @@ msgstr "enheter"
 #~ "känd (t.ex. lagerjustering).\n"
 #~ "        Används för att beräkna marginaler på försäljningsorder."
 
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Manuell: Verifikaten för att värdera lagret bokförs inte automatiskt.\n"
-#~ "        Automatiserad: En verifikat skapas automatiskt för att värdera "
-#~ "lagret när en produkt kommer in i eller lämnar företaget.\n"
-#~ "        "
-
-#~ msgid ""
-#~ "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
-#~ "(product)s"
-#~ msgstr ""
-#~ "%(user)s ändrade lagervärdering från  %(previous)s till %(new_value)s - %"
-#~ "(product)s"
-
-#~ msgid "Account Move"
-#~ msgstr "Konto Flytt"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Verifikat"
-
-#~ msgid "Cancel"
-#~ msgstr "Avbryt"
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Motkonto"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "Standardmåttenhet som används för alla lageroperationer."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "På grund av en ändring av produktkategori (från %s till %s) har "
-#~ "kalkyleringsmetoden                                ändrats för "
-#~ "produktmallen %s: från %s till %s."
-
-#~ msgid "Group by..."
-#~ msgstr "Gruppera efter ..."
-
-#~ msgid "Incoming"
-#~ msgstr "Inkommande"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Fakturarad"
-
-#~ msgid "Journal"
-#~ msgstr "Journal"
-
-#~ msgid "Manual Stock Valuation: %s."
-#~ msgstr "Manuell lagervärdering: %s."
-
-#~ msgid "Manual Stock Valuation: No Reason Given."
-#~ msgstr "Manuell lagervärdering: ingen anledning angiven."
-
-#~ msgid "New value"
-#~ msgstr "Nytt värde"
-
-#~ msgid "Other Info"
-#~ msgstr "Annan information"
-
-#~ msgid "Outgoing"
-#~ msgstr "Utgående"
-
-#~ msgid "Product Template"
-#~ msgstr "Produktmall"
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "Produktvärde manuellt ändrat (från %s till %s)"
-
-#~ msgid "Quantity"
-#~ msgstr "Antal"
-
-#~ msgid "Reason"
-#~ msgstr "Anledning"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Lagerkonto inkommande"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Lagerkonto utgående"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Måttenhet"
-
-#~ msgid "Warning"
-#~ msgstr "Varning"
-
-#~ msgid "You cannot revalue a product with an empty or negative stock."
-#~ msgstr "Du kan inte omvärdera en produkt med ett tomt eller negativt lager."
-
-#~ msgid "by"
-#~ msgstr "av"
+#~ msgid "6.00"
+#~ msgstr "6.00"

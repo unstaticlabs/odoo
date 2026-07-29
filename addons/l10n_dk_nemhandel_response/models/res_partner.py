@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.addons.l10n_dk_nemhandel.tools.demo_utils import handle_demo
+from odoo.addons.l10n_dk.tools.demo_utils import handle_demo
 
 APPLICATION_RESPONSE_CUSTOMISATION_ID = "busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2::ApplicationResponse##OIOUBL-2.1::2.1"
 
@@ -29,7 +29,7 @@ class ResPartner(models.Model):
 
     @handle_demo
     def button_nemhandel_check_partner_endpoint(self, company=None):
-        # EXTENDS l10n_dk_nemhandel
+        # EXTENDS l10n_dk
         self.ensure_one()
         super().button_nemhandel_check_partner_endpoint(company)
 

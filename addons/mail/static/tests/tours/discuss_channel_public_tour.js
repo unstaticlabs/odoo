@@ -1,13 +1,13 @@
 import { reactive } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { getOrigin } from "@web/core/utils/urls";
-import { click, inputFiles } from "@web/../tests/utils";
 
 // The tour is ran twice, ensure the correct message is always targetted.
 const messageSelector = ".o-mail-Message:has(.o-mail-Message-body:contains('cheese'))";
 const editedMessageSelector = ".o-mail-Message:has(.o-mail-Message-body:contains('vegetables'))";
 
 registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () => [
         {
             trigger: ".o-mail-Discuss",
@@ -45,11 +45,14 @@ registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
             trigger: ".o-mail-Composer-input",
             run: "edit cheese",
         },
-        { trigger: ".o-mail-Composer button[title='More Actions']", run: "click" },
+        {
+            trigger: ".o-mail-Composer button[title='More Actions']",
+            run: "click",
+        },
         { trigger: ".o-discuss-dropdownMenu" },
         {
             trigger: ".dropdown-item:contains('Attach Files')",
-            async run() {
+            async run({ inputFiles }) {
                 const text = new File(["hello, world"], "text.txt", { type: "text/plain" });
                 await inputFiles(".o-mail-Composer .o_input_file", [text]);
             },
@@ -58,21 +61,25 @@ registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
             trigger: ".o-mail-AttachmentContainer:not(.o-isUploading):contains(text.txt)",
         },
         {
+            content: "You must click on 'More Action' each time you want to upload a file",
+            trigger: ".o-mail-Composer button[title='More Actions']",
+            run: "click",
+        },
+        {
             trigger: ".dropdown-item:contains('Attach Files')",
-            async run() {
-                await inputFiles(".o-mail-Composer .o_input_file", [
-                    new File(
-                        [
-                            await (
-                                await fetch(
-                                    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg=="
-                                )
-                            ).blob(),
-                        ],
-                        "image.png",
-                        { type: "image/png" }
-                    ),
-                ]);
+            async run({ inputFiles }) {
+                const file = new File(
+                    [
+                        await (
+                            await fetch(
+                                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg=="
+                            )
+                        ).blob(),
+                    ],
+                    "image.png",
+                    { type: "image/png" }
+                );
+                await inputFiles(".o-mail-Composer .o_input_file", [file]);
             },
         },
         {
@@ -128,7 +135,10 @@ registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
         },
         {
             trigger: ".o-mail-QuickReactionMenu",
-            run: () => click("[title='Toggle Emoji Picker']"),
+        },
+        {
+            trigger: "[title='Toggle Emoji Picker']",
+            run: "click",
         },
         {
             trigger: ".o-EmojiPicker .o-Emoji:contains('🙂')",
@@ -159,7 +169,7 @@ registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
         },
         {
             trigger: ".dropdown-item:contains('Attach Files')",
-            async run() {
+            async run({ inputFiles }) {
                 const extratxt = new File(["hello 2"], "extra.txt", { type: "text/plain" });
                 await inputFiles(".o-mail-Message .o_input_file", [extratxt]);
             },
@@ -179,14 +189,11 @@ registry.category("web_tour.tours").add("discuss_channel_public_tour.js", {
             trigger: `${editedMessageSelector} .o-mail-AttachmentContainer:contains("text.txt")`,
         },
         {
-            trigger: `${editedMessageSelector} .o-mail-AttachmentContainer:contains("extra.txt")`,
-        },
-        {
             trigger: `${editedMessageSelector} .o-mail-AttachmentContainer:contains("extra.txt") .o-mail-Attachment-unlink`,
             run: "click",
         },
         {
-            trigger: ".modal:contains(Confirmation) .btn:contains(Ok)",
+            trigger: ".modal:contains(Delete Attachment) .btn:contains(Delete Attachment)",
             run: "click",
         },
         {

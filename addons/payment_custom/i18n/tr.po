@@ -8,17 +8,17 @@
 # Murat Kaplan <muratk@projetgrup.com>, 2019
 # Ahmet Altinisik <aaltinisik@altinkaya.com.tr>, 2019
 # Umur Akın <umura@projetgrup.com>, 2019
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:52+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-11-20 13:21+0000\n"
+"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "payment_custom/tr/>\n"
 "Language: tr\n"
@@ -26,7 +26,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -144,35 +144,3 @@ msgstr "Bu ödeme sağlayıcısının teknik kodu."
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Manuel Transfer"
-
-#~ msgid "; multiple order found"
-#~ msgstr "; birden çok emir bulundu"
-
-#~ msgid "; no order found"
-#~ msgstr "; sipariş bulunmadı"
-
-#~ msgid ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-#~ msgstr ""
-#~ "<div>\n"
-#~ "<h3>Lütfen aşağıdaki transfer detaylarını kullanın</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>İletişim</h4>\n"
-#~ "<p>İletişim referansı olarak lütfen sipariş adınızı kullanın.</p>\n"
-#~ "</div>"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Ödeme Alıcısı"
-
-#~ msgid "Provider"
-#~ msgstr "Sağlayıcı"
-
-#~ msgid "received data for reference %s"
-#~ msgstr "referans için alınan veri %s"

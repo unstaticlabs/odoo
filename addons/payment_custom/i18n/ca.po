@@ -8,13 +8,13 @@
 # RGB Consulting <odoo@rgbconsulting.com>, 2018
 # Joan Ignasi Florit <jfloritmir@gmail.com>, 2018
 # Quim - eccit <quim@eccit.com>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 07:28+0000\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-09-16 02:32+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
 "payment_custom/ca/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -140,59 +140,3 @@ msgstr "El codi tècnic d'aquest proveïdor de pagaments."
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Transferència bancaria"
-
-#~ msgid "; multiple order found"
-#~ msgstr "; diverses comandes trobades"
-
-#~ msgid "; no order found"
-#~ msgstr "; ordre no trobada"
-
-#~ msgid ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-#~ msgstr ""
-#~ "<div> <h3>Utilitzeu les següents dades</h3> <h4>%(bank_title)s</h4>  %"
-#~ "(bank_accounts)s  <h4>Comunicació</h4> <p>Utilitzeu el nom de l'ordre com "
-#~ "a referència comunicada.</p>\n"
-#~ "</div>"
-
-#~ msgid "Adyen"
-#~ msgstr "Adyen"
-
-#~ msgid "Authorize.Net"
-#~ msgstr "Authorize.Net"
-
-#~ msgid "Buckaroo"
-#~ msgstr "Buckaroo"
-
-#~ msgid "Manual Configuration"
-#~ msgstr "Configuració manual"
-
-#~ msgid "Ogone"
-#~ msgstr "Ogone"
-
-#~ msgid "PayUmoney"
-#~ msgstr "PayUmoney"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Pagament de compradors"
-
-#~ msgid "Paypal"
-#~ msgstr "Paypal"
-
-#~ msgid "Provider"
-#~ msgstr "Proveïdor"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "Stripe"
-#~ msgstr "Stripe"
-
-#~ msgid "received data for reference %s"
-#~ msgstr "rebudes dades per referència %s"

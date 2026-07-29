@@ -9,13 +9,13 @@
 # Piia Paurson <piia@avalah.ee>, 2022
 # Eneli Õigus <enelioigus@gmail.com>, 2022
 # Anna, 2023
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 08:01+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-19 09:17+0000\n"
 "Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "portal_rating/et/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: portal_rating
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_rating_view_form
@@ -57,7 +57,7 @@ msgstr "Sulge"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_rating_view_form
 msgid "Comment"
 msgstr "Kommentaar"
@@ -74,7 +74,7 @@ msgstr "Kommentaar lisatud"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Delete"
 msgstr "Kustuta"
 
@@ -93,7 +93,7 @@ msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Edit"
 msgstr "Muuda"
 
@@ -106,14 +106,14 @@ msgstr "Muuda arvustust"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/composer_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/composer_patch.xml:0
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "Empty star"
 msgstr "Tühi täht"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/composer_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/composer_patch.xml:0
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "Full star"
 msgstr "Täistäht"
@@ -167,7 +167,7 @@ msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Published on"
 msgstr "Avaldatud "
 
@@ -233,36 +233,3 @@ msgstr ""
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "stars"
 msgstr "tähed"
-
-#~ msgid "Cancel"
-#~ msgstr "Tühista"
-
-#~ msgid "I don't like it"
-#~ msgstr "Mulle see ei meeldi"
-
-#~ msgid "I hate it"
-#~ msgstr "Ma vihkan seda"
-
-#~ msgid "I like it"
-#~ msgstr "Mulle meeldib see"
-
-#~ msgid "I love it"
-#~ msgstr "Ma armastan seda"
-
-#~ msgid "It's okay"
-#~ msgstr "See on korras"
-
-#~ msgid "Loading..."
-#~ msgstr "Laadimine..."
-
-#~ msgid "Post comment"
-#~ msgstr "Postita kommentaar"
-
-#~ msgid "Update comment"
-#~ msgstr "Uuenda kommentaari"
-
-#~ msgid "Write your comment"
-#~ msgstr "Kirjuta kommentaar"
-
-#~ msgid "avatar"
-#~ msgstr "avatar"

@@ -16,25 +16,26 @@
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2022
 # Umur Akın <umura@projetgrup.com>, 2022
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
+# "Deniz Guvener Unal (degu)" <degu@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 19:13+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:56+0000\n"
+"Last-Translator: \"Deniz Guvener Unal (degu)\" <degu@odoo.com>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -175,8 +176,8 @@ msgstr "Analitik Hesap Satırları"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Analitik Planlar"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -223,6 +224,12 @@ msgid "Bacon"
 msgstr "Domuz Pastırması"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -247,10 +254,6 @@ msgstr "Cogs Kökeni"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -546,9 +549,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Stok Düzeltmesi Referansı / Sebebi"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Stok Konumları"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -834,8 +843,8 @@ msgstr "Üretim WIP Genel Gider Hesabı"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Stoklar"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1216,9 +1225,6 @@ msgstr "stock_move_id"
 msgid "units"
 msgstr "Birimler"
 
-#~ msgid "6.00"
-#~ msgstr "6.00"
-
 #~ msgid ""
 #~ "Value of the product (automatically computed in AVCO).\n"
 #~ "        Used to value the product when the purchase cost is not known "
@@ -1230,413 +1236,12 @@ msgstr "Birimler"
 #~ "değerlemek için kullanılır.\n"
 #~ "Satış siparişlerindeki marjları hesaplamak için kullanılır."
 
+#~ msgid "6.00"
+#~ msgstr "6.00"
+
 #~ msgid ""
 #~ "You cannot modify the scheduled date of this operation because it falls "
 #~ "within a locked fiscal period."
 #~ msgstr ""
 #~ "Bu işlemin zamanlanan tarihini değiştiremezsiniz çünkü kilitli bir mali "
 #~ "döneme denk gelmektedir."
-
-#~ msgid "%(quantity)s %(uom)s at product's standard price %(price)s"
-#~ msgstr "%(quantity)s %(uom)s ürünün standart fiyatı üzerinden %(price)s"
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Manuel: Stok değeri veren muhasebe kayıtları,otomatik olarak "
-#~ "postalanmaz. \n"
-#~ "Otomatik: Bir ürün şirkete girdiğinde veya şirketten ayrıldığında "
-#~ "envantere değer vermek için otomatik olarak bir muhasebe girişi "
-#~ "oluşturulur.\n"
-#~ "        "
-
-#~ msgid " Product cost updated from %(previous)s to %(new_cost)s."
-#~ msgstr "Ürün maliyeti %(previous)s den  %(new_cost)s olarak güncellendi."
-
-#~ msgid ""
-#~ "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
-#~ msgstr ""
-#~ "%(user)s %(product)s ürününün maliyetini %(previous)s den %(new_price)s "
-#~ "olarak değiştirdi."
-
-#~ msgid ""
-#~ "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
-#~ "(product)s"
-#~ msgstr ""
-#~ "%(user)s%(product)s ürününün stok değerlemesini %(previous)s den %"
-#~ "(new_value)s olarak değiştirdi."
-
-#~ msgid ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Use a "
-#~ "negative added value to record a decrease in the product value</small>"
-#~ msgstr ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Ürün "
-#~ "değerindeki bir düşüşü kaydetmek için negatif bir katma değer kullanın</"
-#~ "small>"
-
-#~ msgid "<b>Set other input/output accounts on specific </b>"
-#~ msgstr "<b>Diğer girdi/çıktı hesaplarını ayarlayın </b>"
-
-#~ msgid "Account Move"
-#~ msgstr "Yevmiye Kaydı"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Muhasebe Hesapları"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Muhasebe Kayıtları"
-
-#~ msgid "Add Manual Valuation"
-#~ msgstr "Manuel Değerleme Ekle"
-
-#~ msgid "Added value"
-#~ msgstr "Eklenen değer"
-
-#~ msgid "Automated"
-#~ msgstr "Otomatik"
-
-#~ msgid "Cancel"
-#~ msgstr "İptal"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "%s ürünü için stok giriş hesabı bulunamadı. Bu işlemi yapmadan önce ürün "
-#~ "kategorisi veya lokasyon üzerinden tanımlamanız gerekmektedir."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "%s ürünü için stok çıkış hesabı bulunamadı. Bu işlemi yapmadan önce ürün "
-#~ "kategorisi veya lokasyon üzerinden tanımlamanız gerekmektedir."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "Maliyet yönteminizi değiştirmek, stok değerlerinize önemli etki "
-#~ "yapabilecek bir değişikliktir.Bu değişikliği yapmak istediğinizden emin "
-#~ "misiniz?"
-
-#~ msgid "Choose a date to get the valuation at that date"
-#~ msgstr "Değerlemeyi o tarihte almak için bir tarih seçin"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "Yapılandırma Hatası : Lütfen bu işlemi yapabilmek için öncelikle fiyat "
-#~ "farkı hesabını ürün veya ürün kategorisi üzerinde yapılandırın."
-
-#~ msgid "Costing method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "%s ürün kategorisi için maliyetlendirme yöntemi değişikliği: %s'den %s'e"
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Karşı Hesap"
-
-#~ msgid ""
-#~ "Counterpart journal items for all incoming stock moves will be posted in "
-#~ "this account, unless there is a specific valuation account\n"
-#~ "                set on the source location. This is the default value for "
-#~ "all products in this category. It can also directly be set on each "
-#~ "product."
-#~ msgstr ""
-#~ "Kaynak konumda ayarlanmış belirli bir değerleme hesabı olmadığı sürece, "
-#~ "gelen tüm stok hareketlerine karşılık gelen  yevmiye kalemleri bu hesaba "
-#~ "nakledilecektir. Bu, bu kategorideki tüm ürünler için varsayılan "
-#~ "değerdir. Ayrıca her üründe doğrudan ayarlanabilir."
-
-#~ msgid "Current Quantity"
-#~ msgstr "Mevcut Miktar"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "Bütün stok hareketleri için kullanılan varsayılan ölçü birimi."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "Ürün kategorisindeki bir değişiklik nedeniyle (%sile %sarasında), %sürün "
-#~ "şablonu için maliyet yöntemi değişti: %s'den %s'e."
-
-#~ msgid "Group by..."
-#~ msgstr "Grupla ..."
-
-#~ msgid "Has Remaining Qty"
-#~ msgstr "Kalan Miktar Var"
-
-#~ msgid "Incoming"
-#~ msgstr "Girişi Beklenen"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Fatura Satırı"
-
-#~ msgid "Invoice value correction with invoice currency"
-#~ msgstr "Fatura para birimi ile fatura değeri düzeltmesi"
-
-#~ msgid "Journal"
-#~ msgstr "Yevmiye"
-
-#~ msgid "Linked To"
-#~ msgstr "İle bağlantılı"
-
-#~ msgid "Manual Stock Valuation: %s."
-#~ msgstr "Manuel Stok Değerleme: %s."
-
-#~ msgid "Manual Stock Valuation: No Reason Given."
-#~ msgstr "Manuel Stok Değerlemesi: Neden Belirtilmemiştir."
-
-#~ msgid "Moved Quantity"
-#~ msgstr "Hareket Miktarı"
-
-#~ msgid "New value"
-#~ msgstr "Yeni değer"
-
-#~ msgid "New value by quantity"
-#~ msgstr "Miktara göre yeni değer"
-
-#~ msgid "Open Valuation Layer"
-#~ msgstr "Değerleme Katmanını Aç"
-
-#~ msgid "Other Info"
-#~ msgstr "Diğer Bilgiler"
-
-#~ msgid "Outgoing"
-#~ msgstr "Çıkış Bekleyen"
-
-#~ msgid "Product Revaluation"
-#~ msgstr "Ürün Yeniden Değerleme"
-
-#~ msgid "Product Template"
-#~ msgstr "Ürün Şablonu"
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "Manuel olarak değiştirilen ürün değeri ( %s'den %s'e)"
-
-#~ msgid "Quantity"
-#~ msgstr "Miktar"
-
-#~ msgid "Quantity Svl"
-#~ msgstr "Miktar"
-
-#~ msgid "Reason"
-#~ msgstr "Sebep"
-
-#~ msgid "Reason of the revaluation"
-#~ msgstr "Yeniden değerlemenin nedeni"
-
-#~ msgid "Related product"
-#~ msgstr "İlişkili ürün"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Kalan Miktar"
-
-#~ msgid "Return Picking"
-#~ msgstr "Ters Transfer"
-
-#~ msgid "Revaluation of %s"
-#~ msgstr "%s nin yeniden değerlemesi"
-
-#~ msgid "Revalue"
-#~ msgstr "Yeniden Değerle"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Stok Giriş Hesabı"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Stok Çıkış Hesabı"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "Stok Miktarının Geçmişi"
-
-#~ msgid "Stock Request an Inventory Count"
-#~ msgstr "Stok Envanter Sayımı Talebi"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Stok Değerleme Hesabı (Gelen)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Stok Değerleme Hesabı (Çıkan)"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Stok Değerleme Katmanı"
-
-#~ msgid ""
-#~ "The Stock Input and/or Output accounts cannot be the same as the Stock "
-#~ "Valuation account."
-#~ msgstr ""
-#~ "Stok Girdi ve/veya Çıktı hesapları, Stok Değerleme hesabı ile aynı olamaz."
-
-#~ msgid ""
-#~ "The action leads to the creation of a journal entry, for which you don't "
-#~ "have the access rights."
-#~ msgstr ""
-#~ "Eylem, erişim haklarına sahip olmadığınız bir yevmiye kaydının "
-#~ "oluşturulmasına yol açar."
-
-#~ msgid "The added value doesn't have any impact on the stock valuation"
-#~ msgstr "Eklenen değerin stok değerlemesine herhangi bir etkisi yoktur."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "Stok hareketleri tutarlı bir durumda değil: bazıları şirkete giriyor ve "
-#~ "diğerleri şirketten çıkıyor."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "Stok hareketleri tutarlı bir durumda değil: şirketler arası transit "
-#~ "konumundan geçmeleri gerekirken tek adımda şirketler arası geçiş "
-#~ "yapıyorlar."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "Stok hareketleri istikrarlı bir durumda değil: aynı başlangıcı ya da "
-#~ "bitişi paylaşmıyorlar. "
-
-#~ msgid ""
-#~ "There are no valuation layers. Valuation layers are created when there "
-#~ "are product moves that impact the valuation of the stock."
-#~ msgstr ""
-#~ "Değerleme katmanları yoktur. Stok değerlemesini etkileyen ürün "
-#~ "hareketleri olduğunda değerleme katmanları oluşturulur."
-
-#~ msgid "Total Remaining Quantity"
-#~ msgstr "Toplam Kalan Miktar"
-
-#~ msgid "Unit Value"
-#~ msgstr "Birim Değeri"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Ölçü Birimi"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Gerçek zamanlı stok değerlendirmesi için kullanılır.  Sanal bir konuma "
-#~ "(iç türde olmayan)  ayarlandığında, bu hesap, üründe ayarlananan genel "
-#~ "Stok Çıkışı Hesabı yerine, iç konumdan taşınan ve bu konuma giren "
-#~ "ürünlerin değerini tutmakta kullanılacaktır. Bunun iç konumlara bir "
-#~ "etkisi olmayacaktır."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Gerçek zamanlı stok değerlendirmesi için kullanılır. Sanal bir konuma (iç "
-#~ "türde olmayan)  ayarlandığında, bu hesap, üründe ayarlanana genel Stok "
-#~ "Çıkışı Hesabı yerine, bu konumdan taşınan ve iç konuma giren ürünlerin "
-#~ "değerini tutmakta kullanılacaktır. Bunun iç konumlara bir etkisi "
-#~ "olmayacaktır."
-
-#~ msgid "Valuation Report"
-#~ msgstr "Değerlendirme raporu"
-
-#~ msgid "Valuation at Date"
-#~ msgstr "Tarihte Değerleme"
-
-#~ msgid "Valuation method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "%s ürün kategorisi için değerleme yöntemi değişikliği: - %s'den %s'e."
-
-#~ msgid "Value Svl"
-#~ msgstr "Değer svl"
-
-#~ msgid "Warning"
-#~ msgstr "Uyarı"
-
-#~ msgid ""
-#~ "When doing automated inventory valuation, counterpart journal items for "
-#~ "all outgoing stock moves will be posted in this account,\n"
-#~ "                unless there is a specific valuation account set on the "
-#~ "destination location. This is the default value for all products in this "
-#~ "category.\n"
-#~ "                It can also directly be set on each product."
-#~ msgstr ""
-#~ "Gerçek-zamanlı envanter değerlemesi yaparken, hedef konuma özel bir "
-#~ "değerleme hesabı ayarlanmadıkça, çıkan tüm stok hareketlerinin yevmiye "
-#~ "kalemleri bu hesaba işlenecektir. Bu, bu kategorideki tüm ürünler için "
-#~ "varsayılan değerdir. Aynı zamanda her ürün için de doğrudan ayarlanabilir."
-
-#~ msgid "Wizard model to reavaluate a stock inventory for a product"
-#~ msgstr "Bir ürün için stok envanterini değerlemek için sihirbaz"
-
-#~ msgid "You cannot revalue a product with a standard cost method."
-#~ msgstr "Bir ürünü standart maliyet yöntemiyle yeniden değerleyemezsiniz."
-
-#~ msgid "You cannot revalue a product with an empty or negative stock."
-#~ msgstr "Boş veya negatif stoğu olan bir ürünü yeniden değerleyemezsiniz."
-
-#~ msgid ""
-#~ "You cannot update the cost of a product in automated valuation as it "
-#~ "leads to the creation of a journal entry, for which you don't have the "
-#~ "access rights."
-#~ msgstr ""
-#~ "Erişim haklarına sahip olmadığınız bir yevmiye kaydının oluşturulmasına "
-#~ "yol açtığı için otomatik değerlemede bir ürünün maliyetini "
-#~ "güncelleyemezsiniz."
-
-#~ msgid ""
-#~ "You don't have any input valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Ürün kategorinizde tanımlanmış bir giriş değerleme hesabınız yok. Bu "
-#~ "işlemi gerçekleştirmeden önce bir tane tanımlamanız gerekir."
-
-#~ msgid ""
-#~ "You don't have any stock input account defined on your product category. "
-#~ "You must define one before processing this operation."
-#~ msgstr ""
-#~ "Ürün kategorinizde tanımlı stok giriş hesabınız yok. Bu işlemi "
-#~ "gerçekleştirmeden önce bir tane tanımlamanız gerekir."
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "Ürün kategorisine tanımlı bir stok yevmiyesi bulunamadı. Eğer muhasebe "
-#~ "hesap planı yüklediyseniz bunu mutlaka kontrol edin."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Ürün kategorisine tanımlı bir stok değerleme hesabı bulunamadı. Bu "
-#~ "operasyonu gerçekleştirmek için öncelikle bu hesabı tanımlamalısınız."
-
-#~ msgid "You must set a counterpart account on your product category."
-#~ msgstr "Ürün kategorinizde bir karşı hesap oluşturmalısınız."
-
-#~ msgid "by"
-#~ msgstr "yazan"
-
-#~ msgid "for"
-#~ msgstr "için"
-
-#~ msgid "locations"
-#~ msgstr "konumlar"

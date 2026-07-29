@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * payment_xendit
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 19:11+0000\n"
+"POT-Creation-Date: 2026-05-01 17:39+0000\n"
+"PO-Revision-Date: 2026-06-06 13:33+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "payment_xendit/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -185,23 +185,3 @@ msgstr "AAAA"
 #: model_terms:ir.ui.view,arch_db:payment_xendit.inline_form
 msgid "john.smith@example.com"
 msgstr "john.smith@example.com"
-
-#~ msgid "Could not establish the connection to the API."
-#~ msgstr "No se ha podido establecer la conexión con el API."
-
-#~ msgid "No transaction found matching reference %s."
-#~ msgstr ""
-#~ "No se ha encontrado ninguna transacción que coincida con la referencia %s."
-
-#~ msgid "Received data with missing reference."
-#~ msgstr "Datos recibidos sin referencia."
-
-#~ msgid ""
-#~ "The communication with the API failed. Xendit gave us the following "
-#~ "information: '%s'"
-#~ msgstr ""
-#~ "Falló la comunicación con la API. Xendit nos dio la siguiente "
-#~ "información: '%s'"
-
-#~ msgid "The transaction is not linked to a token."
-#~ msgstr "La transacción no está vinculada a un token."

@@ -4,6 +4,7 @@ import {
     hover,
     manuallyDispatchProgrammaticEvent,
     press,
+    queryAll,
     queryAllAttributes,
     queryOne,
     waitFor,
@@ -427,6 +428,7 @@ test("list of table commands in first row", async () => {
         "move_down",
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -457,6 +459,7 @@ test("list of table commands in first row if it's table header (TH)", async () =
         "move_down",
         // no insert above
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -484,6 +487,7 @@ test("list of table commands in second row", async () => {
         "move_down",
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -511,6 +515,7 @@ test("list of table commands in last row", async () => {
         // no move down
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -544,6 +549,7 @@ test("list of commands updates when hovering different table rows", async () => 
         "move_down",
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -562,6 +568,7 @@ test("list of commands updates when hovering different table rows", async () => 
         "move_down",
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -580,6 +587,7 @@ test("list of commands updates when hovering different table rows", async () => 
         // no move down
         "insert_above",
         "insert_below",
+        "toggle_alternating_rows",
         "delete",
         "clear_content",
     ]);
@@ -615,6 +623,64 @@ test("open/close table menu", async () => {
     expect("[data-type='column'].o-we-table-menu").toHaveCount(0);
     expect("[data-type='row'].o-we-table-menu").toHaveCount(0);
     expect(".dropdown-menu").toHaveCount(0);
+});
+
+test("clear content is hidden in row menu when row has no content", async () => {
+    const { el } = await setupEditor(`
+        <table>
+            <tbody>
+                <tr>
+                    <td class="a"><p>[]<br></p></td>
+                    <td class="b"><p><br></p></td>
+                </tr>
+                <tr>
+                    <td class="c"><p><br></p></td>
+                    <td class="d"><p><br></p></td>
+                </tr>
+            </tbody>
+        </table>`);
+
+    await hover(el.querySelector("td.a"));
+    await expectElementCount("[data-type='row'].o-we-table-menu", 1);
+    await click("[data-type='row'].o-we-table-menu");
+    await waitFor(".dropdown-menu");
+    expect(availableCommands(queryOne(".dropdown-menu"))).toEqual([
+        "make_header",
+        "move_down",
+        "insert_above",
+        "insert_below",
+        "toggle_alternating_rows",
+        "delete",
+        // no clear content
+    ]);
+});
+
+test("clear content is hidden in column menu when column has no content", async () => {
+    const { el } = await setupEditor(`
+        <table>
+            <tbody>
+                <tr>
+                    <td class="a"><p>[]<br></p></td>
+                    <td class="b"><p><br></p></td>
+                </tr>
+                <tr>
+                    <td class="c"><p><br></p></td>
+                    <td class="d"><p><br></p></td>
+                </tr>
+            </tbody>
+        </table>`);
+
+    await hover(el.querySelector("td.a"));
+    await expectElementCount("[data-type='row'].o-we-table-menu", 1);
+    await click("[data-type='column'].o-we-table-menu");
+    await waitFor(".dropdown-menu");
+    expect(availableCommands(queryOne(".dropdown-menu"))).toEqual([
+        "move_right",
+        "insert_left",
+        "insert_right",
+        "delete",
+        // no clear content
+    ]);
 });
 
 test("basic delete column operation", async () => {
@@ -1463,6 +1529,57 @@ test("move header row below operation", async () => {
     );
 });
 
+test("should revert a converted header row back to normal after undo", async () => {
+    const { el, editor } = await setupEditor(
+        unformat(`
+        <table>
+            <tbody>
+                <tr><td class="a">1[]</td><td>2</td></tr>
+                <tr><td>3</td><td>4</td></tr>
+            </tbody>
+        </table>`)
+    );
+    await expectElementCount(".o-we-table-menu", 0);
+
+    // hover on th to show row ui
+    await hover(el.querySelector("td.a"));
+    await waitFor("[data-type='row'].o-we-table-menu");
+
+    // click on it to open dropdown
+    await click("[data-type='row'].o-we-table-menu");
+    await waitFor("div[name='make_header']");
+
+    // convert row into header
+    await click("div[name='make_header']");
+    await animationFrame();
+    expect(getContent(el)).toBe(
+        unformat(`
+            <p data-selection-placeholder=""><br></p>
+            <table>
+                <tbody>
+                    <tr><th class="o_table_header">1[]</th><th class="o_table_header">2</th></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </tbody>
+            </table>
+            <p data-selection-placeholder=""><br></p>
+        `)
+    );
+
+    undo(editor);
+    expect(getContent(el)).toBe(
+        unformat(`
+            <p data-selection-placeholder=""><br></p>
+            <table>
+                <tbody>
+                    <tr><td class="a">1[]</td><td>2</td></tr>
+                    <tr><td>3</td><td>4</td></tr>
+                </tbody>
+            </table>
+            <p data-selection-placeholder=""><br></p>
+        `)
+    );
+});
+
 test("preserve table rows width on move row below operation", async () => {
     const { el } = await setupEditor(
         unformat(`
@@ -1770,4 +1887,99 @@ test("should redistribute excess width from larger columns to current column", a
             <p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
         )
     );
+});
+
+test("applies alternating row colors when 'Insert Alternate Colors' option is clicked", async () => {
+    const { el } = await setupEditor(
+        unformat(`
+        <table>
+            <tbody>
+                <tr><td class="a">1[]</td></tr>
+                <tr><td>2</td></tr>
+                <tr><td>3</td></tr>
+                <tr><td>4</td></tr>
+            </tbody>
+        </table>`)
+    );
+    await expectElementCount(".o-we-table-menu", 0);
+    const cells = queryAll("tr > :first-child");
+    const secondRowCellColor = getComputedStyle(cells[1]).backgroundColor;
+    expect(
+        cells.every((cell) => getComputedStyle(cell).backgroundColor === secondRowCellColor)
+    ).toBe(true);
+
+    await hover(el.querySelector("td.a"));
+    await waitFor(".o-we-table-menu");
+
+    expect("[data-type='row'].o-we-table-menu").toHaveCount(1);
+    await click("[data-type='row'].o-we-table-menu");
+    await waitFor(".dropdown-menu");
+    await expectElementCount("div[name='toggle_alternating_rows'", 1);
+    expect("div[name='toggle_alternating_rows'").toHaveText("Alternate row colors");
+    await click("div[name='toggle_alternating_rows'");
+    expect(getContent(el)).toBe(
+        unformat(`
+            <p data-selection-placeholder=""><br></p>
+            <table class="o_alternating_rows">
+                <tbody>
+                    <tr><td class="a">1[]</td></tr>
+                    <tr><td>2</td></tr>
+                    <tr><td>3</td></tr>
+                    <tr><td>4</td></tr>
+                </tbody>
+            </table>
+            <p data-selection-placeholder=""><br></p>`)
+    );
+    const firstRowCellColor = getComputedStyle(cells[0]).backgroundColor;
+    expect(getComputedStyle(cells[2]).backgroundColor).toBe(firstRowCellColor);
+    expect(secondRowCellColor).not.toBe(firstRowCellColor);
+    expect(getComputedStyle(cells[3]).backgroundColor).toBe(secondRowCellColor);
+});
+
+test("removes alternating row colors when 'Clear Alternate Colors' option is clicked", async () => {
+    const { el } = await setupEditor(
+        unformat(`
+        <table class="o_alternating_rows">
+            <tbody>
+                <tr><td class="a">1[]</td></tr>
+                <tr><td>2</td></tr>
+                <tr><td>3</td></tr>
+                <tr><td>4</td></tr>
+            </tbody>
+        </table>`)
+    );
+    await expectElementCount(".o-we-table-menu", 0);
+
+    const cells = queryAll("tr > :first-child");
+    const firstRowCellColor = getComputedStyle(cells[0]).backgroundColor;
+    const secondRowCellColor = getComputedStyle(cells[1]).backgroundColor;
+    expect(getComputedStyle(cells[2]).backgroundColor).toBe(firstRowCellColor);
+    expect(secondRowCellColor).not.toBe(firstRowCellColor);
+    expect(getComputedStyle(cells[3]).backgroundColor).toBe(secondRowCellColor);
+
+    await hover(el.querySelector("td.a"));
+    await waitFor(".o-we-table-menu");
+
+    expect("[data-type='row'].o-we-table-menu").toHaveCount(1);
+    await click("[data-type='row'].o-we-table-menu");
+    await waitFor(".dropdown-menu");
+    await expectElementCount("div[name='toggle_alternating_rows'", 1);
+    expect("div[name='toggle_alternating_rows'").toHaveText("Clear alternate colors");
+    await click("div[name='toggle_alternating_rows'");
+    expect(getContent(el)).toBe(
+        unformat(`
+            <p data-selection-placeholder=""><br></p>
+            <table class="">
+                <tbody>
+                    <tr><td class="a">1[]</td></tr>
+                    <tr><td>2</td></tr>
+                    <tr><td>3</td></tr>
+                    <tr><td>4</td></tr>
+                </tbody>
+            </table>
+            <p data-selection-placeholder=""><br></p>`)
+    );
+    expect(
+        cells.every((cell) => getComputedStyle(cell).backgroundColor === secondRowCellColor)
+    ).toBe(true);
 });

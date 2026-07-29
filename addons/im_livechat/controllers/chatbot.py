@@ -15,10 +15,8 @@ class LivechatChatbotScriptController(http.Controller):
             return None
         chatbot_language = chatbot._get_chatbot_language()
         message = discuss_channel.with_context(lang=chatbot_language)._chatbot_restart(chatbot)
-        return {
-            "message_id": message.id,
-            "store_data": Store().add(message).get_result(),
-        }
+        store = Store().add(message, "_store_message_fields")
+        return {"message_id": message.id, "store_data": store.get_result()}
 
     @http.route("/chatbot/answer/save", type="jsonrpc", auth="public")
     @add_guest_to_context
@@ -48,9 +46,9 @@ class LivechatChatbotScriptController(http.Controller):
         # sudo: chatbot.script.step - visitor can access current step of the script
         if current_step := discuss_channel.sudo().chatbot_current_step_id:
             if (
-                current_step.is_forward_operator
-                and discuss_channel.livechat_operator_id
-                != current_step.chatbot_script_id.operator_partner_id
+                current_step.step_type == "forward_operator"
+                # sudo: discuss.channel - checking whether there is an agent is allowed
+                and discuss_channel.sudo().livechat_agent_partner_ids
             ):
                 return None
             chatbot = current_step.chatbot_script_id
@@ -66,8 +64,8 @@ class LivechatChatbotScriptController(http.Controller):
             chatbot = request.env['chatbot.script'].sudo().browse(chatbot_script_id).with_context(lang=chatbot_language)
             if chatbot.exists():
                 next_step = chatbot.script_step_ids[:1]
-        partner, guest = self.env["res.partner"]._get_current_persona()
-        store = Store(bus_channel=partner or guest)
+        user, guest = self.env["res.users"]._get_current_persona()
+        store = Store(bus_channel=user or guest)
         store.data_id = data_id
         if not next_step:
             # sudo - discuss.channel: marking the channel as closed as part of the chat bot flow
@@ -78,59 +76,51 @@ class LivechatChatbotScriptController(http.Controller):
                 if m.script_step_id == current_step
                 and m.mail_message_id.author_id == chatbot.operator_partner_id
             ), request.env['mail.message'])
-            store.add(discuss_channel)
             store.add_model_values(
                 "ChatbotStep",
-                {
-                    "id": (current_step.id, step_message.id),
-                    "scriptStep": current_step.id,
-                    "message": step_message.id,
-                    "isLast": True,
-                },
+                lambda res: (
+                    res.attr("id", (current_step.id, step_message.id)),
+                    res.attr("scriptStep", current_step.id),
+                    res.attr("message", step_message.id),
+                    res.attr("isLast", True),
+                ),
             )
             store.resolve_data_request()
             store.bus_send()
             return store.get_result()
         # sudo: discuss.channel - updating current step on the channel is allowed
         discuss_channel.sudo().chatbot_current_step_id = next_step.id
-        posted_message = next_step._process_step(discuss_channel)
-        store.add(posted_message).add(next_step)
-        store.resolve_data_request(
-            chatbot_step={"scriptStep": next_step.id, "message": posted_message.id}
-        )
-        chatbot_next_step_id = (next_step.id, posted_message.id)
+        step_data = next_step._process_step(discuss_channel)
+        posted_message = step_data["message"]
+        store.add(posted_message, "_store_message_fields")
+        store.add(next_step, "_store_script_step_fields")
+        chatbot_next_step = {"scriptStep": next_step.id, "message": posted_message.id}
+        store.resolve_data_request(lambda res: res.attr("chatbot_step", chatbot_next_step))
         store.add_model_values(
             "ChatbotStep",
             {
-                "id": chatbot_next_step_id,
-                "message": posted_message.id,
-                "operatorFound": next_step.is_forward_operator
-                and discuss_channel.livechat_operator_id != chatbot.operator_partner_id,
-                "scriptStep": next_step.id,
+                **chatbot_next_step,
+                "id": (next_step.id, posted_message.id),
+                "operatorFound": next_step.step_type == "forward_operator"
+                and bool(step_data.get("agent")),
             },
         )
+
         store.add_model_values(
             "Chatbot",
-            {
-                "currentStep": {
-                    "id": chatbot_next_step_id,
-                    "scriptStep": next_step.id,
-                    "message": posted_message.id,
-                },
-                "id": (chatbot.id, discuss_channel.id),
-                "script": chatbot.id,
-                "thread": Store.One(discuss_channel, [], as_thread=True),
-                "steps": [("ADD", [{
-                    "scriptStep": chatbot_next_step_id[0],
-                    "message": chatbot_next_step_id[1]
-                }])],
-            },
+            lambda res: (
+                res.attr("currentStep", chatbot_next_step),
+                res.attr("id", (chatbot.id, discuss_channel.id)),
+                res.attr("script", chatbot.id),
+                res.attr("channel_id", discuss_channel.id),
+                res.attr("steps", [("ADD", [chatbot_next_step])]),
+            ),
         )
         store.bus_send()
 
-    @http.route("/chatbot/step/validate_email", type="jsonrpc", auth="public")
+    @http.route("/chatbot/step/validate_contact_info", type="jsonrpc", auth="public")
     @add_guest_to_context
-    def chatbot_validate_email(self, channel_id):
+    def chatbot_validate_contact_info(self, channel_id):
         discuss_channel = (
             request.env["discuss.channel"]
             .search([("id", "=", channel_id)])
@@ -146,15 +136,24 @@ class LivechatChatbotScriptController(http.Controller):
             ("model", "=", "discuss.channel"),
             ("res_id", "=", channel_id),
         ]
-        # sudo: mail.message - accessing last message to validate email is allowed
+        # sudo: mail.message - accessing last message to validate phone or email is allowed
         last_user_message = self.env["mail.message"].sudo().search(domain, order="id desc", limit=1)
+        step_type = discuss_channel.chatbot_current_step_id.step_type
         result = {}
         if last_user_message:
-            result = chatbot._validate_email(last_user_message.body, discuss_channel)
+            if step_type == "question_email":
+                result = chatbot._validate_email(last_user_message.body, discuss_channel)
+            elif step_type == "question_phone":
+                result = chatbot._validate_phone(last_user_message.body, discuss_channel)
             if posted_message := result.pop("posted_message"):
-                store = Store().add(posted_message)
-                store.add(discuss_channel, {
-                    "messages": Store.Many(posted_message, mode="ADD")
-                })
+                store = Store().add(
+                    discuss_channel,
+                    lambda res: res.many(
+                        "messages",
+                        "_store_message_fields",
+                        mode="ADD",
+                        value=posted_message,
+                    ),
+                )
                 result["data"] = store.get_result()
         return result

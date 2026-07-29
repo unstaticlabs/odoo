@@ -3,7 +3,7 @@ import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_inter
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { roundPrecision } from "@web/core/utils/numbers";
 import { uuidv4 } from "@point_of_sale/utils";
-import { register_payment_method } from "@point_of_sale/app/services/pos_store";
+import { registry } from "@web/core/registry";
 
 // Due to consistency issues with the webhook, we also poll
 // the status of the payment periodically as a fallback.
@@ -17,6 +17,24 @@ export class PaymentVivaCom extends PaymentInterface {
 
     setup() {
         super.setup(...arguments);
+        this.connectWebSocket("VIVA_COM_LATEST_RESPONSE", (payload) => {
+            if (payload.config_id === this.pos.config.id) {
+                const paymentLine = this.pos.models["pos.payment"].find(
+                    (line) => line.viva_com_session_id === payload.session_id
+                );
+
+                if (
+                    paymentLine &&
+                    !paymentLine.isDone() &&
+                    paymentLine.getPaymentStatus() !== "retry"
+                ) {
+                    paymentLine.payment_method_id.payment_terminal.handleVivaComStatusResponse(
+                        paymentLine,
+                        payload
+                    );
+                }
+            }
+        });
         this.paymentLineResolvers = {};
     }
     sendPaymentRequest(uuid) {
@@ -29,13 +47,13 @@ export class PaymentVivaCom extends PaymentInterface {
     }
 
     getCashRegisterId() {
-        return this.pos.getCashier().name?.trim() || this.pos.config.name;
+        return this.pos.getCashier?.().name?.trim() || this.pos.config.name;
     }
 
     _call_viva_com(data, action, paymentLine) {
-        return this.env.services.orm.silent
-            .call("pos.payment.method", action, [[this.payment_method_id.id], data])
-            .catch(this._handleOdooConnectionFailure.bind(this, paymentLine));
+        return this.callPaymentMethod(action, [[this.payment_method_id.id], data]).catch(
+            this._handleOdooConnectionFailure.bind(this, paymentLine)
+        );
     }
 
     _handleOdooConnectionFailure(paymentLine, data = {}) {
@@ -57,6 +75,7 @@ export class PaymentVivaCom extends PaymentInterface {
             this._show_error(response.error);
             return false;
         }
+        paymentLine.setPaymentStatus("waitingCard");
         return this.waitForPaymentConfirmation(paymentLine);
     }
 
@@ -68,7 +87,6 @@ export class PaymentVivaCom extends PaymentInterface {
         var order = this.pos.getOrder();
         var line = order.getSelectedPaymentline();
         let customerTrns = " ";
-        line.setPaymentStatus("waitingCard");
 
         if (order.partner) {
             customerTrns = order.partner.name + " - " + order.partner.email;
@@ -164,14 +182,10 @@ export class PaymentVivaCom extends PaymentInterface {
 
                 let result;
                 try {
-                    // Use a direct silent ORM call instead of _call_viva_com
-                    // so that _handleOdooConnectionFailure is NOT triggered
-                    // during polling (no error dialog spam).
-                    result = await this.env.services.orm.silent.call(
-                        "pos.payment.method",
-                        "viva_com_get_payment_status",
-                        [[this.payment_method_id.id], sessionId]
-                    );
+                    result = await this.callPaymentMethod("viva_com_get_payment_status", [
+                        [this.payment_method_id.id],
+                        sessionId,
+                    ]);
                 } catch {
                     // Connection failure during polling — the payment may have
                     // gone through on Viva's side. Keep polling silently until
@@ -221,4 +235,4 @@ export class PaymentVivaCom extends PaymentInterface {
     }
 }
 
-register_payment_method("viva_com", PaymentVivaCom);
+registry.category("electronic_payment_interfaces").add("viva_com", PaymentVivaCom);

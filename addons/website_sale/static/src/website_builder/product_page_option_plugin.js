@@ -170,10 +170,10 @@ export class ProductPageImageLayoutAction extends WebsiteConfigAction {
     static id = "productPageImageLayout";
     static dependencies = [...super.dependencies, "customizeWebsite", "productPageOption"];
     isApplied({ editingElement: productDetailMainEl, value }) {
-        return productDetailMainEl.dataset.image_layout === value;
+        return productDetailMainEl.dataset.imageLayout === value;
     }
     getValue({ editingElement: productDetailMainEl }) {
-        return productDetailMainEl.dataset.image_layout;
+        return productDetailMainEl.dataset.imageLayout;
     }
     async apply({ value }) {
         return rpc("/shop/config/website", { product_page_image_layout: value });
@@ -317,7 +317,7 @@ export class ProductPageImageGridColumnsAction extends BaseProductPageAction {
 }
 export class ProductReplaceMainImageAction extends BaseProductPageAction {
     static id = "productReplaceMainImage";
-    static dependencies = [...super.dependencies, "media", "media_website"];
+    static dependencies = [...super.dependencies, "media"];
     setup() {
         super.setup();
         this.reload = false;

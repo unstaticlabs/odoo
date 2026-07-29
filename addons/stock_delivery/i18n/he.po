@@ -1,24 +1,20 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * stock_delivery
+# 	* stock_delivery
 #
-# noa eldar <noaeldar@laylinetech.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 22:21+0000\n"
-"Last-Translator: noa eldar <noaeldar@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
-"stock_delivery/he/>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2024-09-26 08:56+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
-"n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -58,11 +54,6 @@ msgid "<strong>Carrier</strong>"
 msgstr ""
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr ""
-
-#. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
 msgid "<strong>Shipping Weight: </strong>"
 msgstr ""
@@ -77,7 +68,7 @@ msgstr ""
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Total Weight</strong>"
-msgstr "<strong>משקל כולל</strong>\n"
+msgstr ""
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
@@ -108,7 +99,7 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
+msgid "Applicable on Delivery Methods"
 msgstr ""
 
 #. module: stock_delivery
@@ -153,12 +144,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr ""
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
+msgid "Delivery Method Selection Wizard"
 msgstr ""
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr ""
 
@@ -217,11 +214,6 @@ msgid "Exception:"
 msgstr ""
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr ""
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -253,7 +245,7 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
+msgid "Inventory Route"
 msgstr ""
 
 #. module: stock_delivery
@@ -380,8 +372,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr ""
 
 #. module: stock_delivery
@@ -392,12 +384,6 @@ msgstr ""
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
-msgstr ""
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
 msgstr ""
 
 #. module: stock_delivery
@@ -483,12 +469,12 @@ msgstr ""
 #. module: stock_delivery
 #: model:ir.model.fields,help:stock_delivery.field_stock_package__weight
 msgid "Total weight of all the products contained in the package."
-msgstr "המשקל הכולל של כל המוצרים הכלולים באריזה."
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,help:stock_delivery.field_stock_picking__weight
 msgid "Total weight of the products in the picking."
-msgstr "המשקל הכולל של המוצרים בליקוט."
+msgstr ""
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.delivery_tracking_url_warning_form

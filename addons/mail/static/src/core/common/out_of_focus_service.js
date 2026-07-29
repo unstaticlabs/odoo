@@ -45,10 +45,10 @@ export class OutOfFocusService {
             notificationTitle = _t("New message");
         } else {
             icon = author.avatarUrl;
-            if (message.thread?.channel_type === "channel") {
+            if (message.thread?.channel?.channel_type === "channel") {
                 notificationTitle = _t("%(author name)s from %(channel name)s", {
                     "author name": message.authorName,
-                    "channel name": message.thread.displayName,
+                    "channel name": message.channel_id.displayName,
                 });
             } else {
                 notificationTitle = message.authorName;
@@ -60,7 +60,7 @@ export class OutOfFocusService {
         );
         await this.sendNotification({
             message: notificationContent,
-            sound: message.thread?.model === "discuss.channel",
+            sound: Boolean(message.channel_id),
             title: notificationTitle,
             type: "info",
             icon,

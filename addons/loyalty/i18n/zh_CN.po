@@ -2,23 +2,23 @@
 # This file contains the translation of the following modules:
 # * loyalty
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-29 18:01+0000\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2026-04-23 11:52+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/loyalty/zh_Hans/>\n"
+"projects/odoo-s19-2/loyalty/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_program__trigger
@@ -190,7 +190,8 @@ msgstr "<i class=\"fa fa-cube fa-fw\" title=\"Products\"/>"
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_rule_view_kanban
 msgid ""
 "<i class=\"fa fa-cube fa-fw\" title=\"Products\"/><span>All Products</span>"
-msgstr "<i class=\"fa fa-cube fa-fw\" title=\"Products\"/><span>所有产品</span>"
+msgstr ""
+"<i class=\"fa fa-cube fa-fw\" title=\"Products\"/><span>所有产品</span>"
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_kanban
@@ -329,7 +330,7 @@ msgid ""
 "            <t t-if=\"reward.required_points &lt;= object.points\">\n"
 "                <span t-attf-style=\"font-size: 50px; color: "
 "{{object.program_id.company_id.email_secondary_color or '#875A7B'}}; font-"
-"weight: bold;\" t-esc=\"reward.description\">Reward Description</span>\n"
+"weight: bold;\" t-out=\"reward.description\">Reward Description</span>\n"
 "                <br/>\n"
 "            </t>\n"
 "        </t>\n"
@@ -364,12 +365,10 @@ msgid ""
 "        </t>\n"
 "        <br/>\n"
 "        Thank you,\n"
-"        <t t-if=\"object._get_signature()\" data-o-mail-quote-"
-"container=\"1\">\n"
+"        <t t-if=\"object._get_signature()\">\n"
 "            <br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object._get_signature() or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object._get_signature() or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </td>\n"
 "</tr>\n"
@@ -387,6 +386,12 @@ msgstr "找到一个相同代码的优惠券。"
 #: model:ir.model.constraint,message:loyalty.constraint_loyalty_card_card_code_unique
 msgid "A coupon/loyalty card must have a unique code."
 msgstr "优惠券/忠诚卡必须有唯一的代码。"
+
+#. module: loyalty
+#. odoo-python
+#: code:addons/loyalty/models/loyalty_card.py:0
+msgid "A customer can only have one active loyalty card per program."
+msgstr ""
 
 #. module: loyalty
 #. odoo-python
@@ -455,6 +460,12 @@ msgid "Add a rule"
 msgstr "添加规则"
 
 #. module: loyalty
+#. odoo-python
+#: code:addons/loyalty/models/loyalty_program.py:0
+msgid "Add money to your eWallet to pay for future orders."
+msgstr ""
+
+#. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__all_discount_product_ids
 msgid "All Discount Product"
 msgstr "所有折扣产品"
@@ -491,6 +502,7 @@ msgid "Applies On"
 msgstr "适用于"
 
 #. module: loyalty
+#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_view_form
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_search
 msgid "Archived"
@@ -564,12 +576,6 @@ msgstr "购买X得到Y"
 #: code:addons/loyalty/wizard/loyalty_generate_wizard.py:0
 msgid "Can not generate coupon, no program is set."
 msgstr "不能生成优惠券，没有设置方案"
-
-#. module: loyalty
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_update_balance_form
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_generate_wizard_view_form
-msgid "Cancel"
-msgstr "取消"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card_update_balance__card_id
@@ -727,13 +733,13 @@ msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.actions.act_window,help:loyalty.loyalty_program_gift_ewallet_action
-msgid "Create a new one from scratch, or use one of the templates below."
-msgstr "从头开始创建一个新模板，或使用下面的模板之一。"
+msgid "Create one from scratch, or use a template below."
+msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.actions.act_window,help:loyalty.loyalty_program_discount_loyalty_action
-msgid "Create one from scratch, or use a templates below:"
-msgstr "从头开始创建新模板，或使用以下模板之一："
+msgid "Create one from scratch, or use one of the templates below:"
+msgstr ""
 
 #. module: loyalty
 #. odoo-javascript
@@ -906,11 +912,6 @@ msgid "Discount point(s)"
 msgstr "折扣积分"
 
 #. module: loyalty
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_form
-msgid "Discount product"
-msgstr "折扣产品"
-
-#. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__discount_product_category_id
 msgid "Discounted Prod. Categories"
 msgstr "折扣产品类别"
@@ -997,12 +998,6 @@ msgstr "有效期"
 
 #. module: loyalty
 #. odoo-python
-#: code:addons/loyalty/models/loyalty_card.py:0
-msgid "Expiration date cannot be set on a loyalty card."
-msgstr "会员卡不能设置有效期。"
-
-#. module: loyalty
-#. odoo-python
 #: code:addons/loyalty/models/loyalty_program.py:0
 msgid "Fidelity Card"
 msgstr "贵宾卡"
@@ -1012,12 +1007,6 @@ msgstr "贵宾卡"
 #: code:addons/loyalty/models/loyalty_program.py:0
 msgid "Fidelity Cards"
 msgstr "富达卡"
-
-#. module: loyalty
-#. odoo-python
-#: code:addons/loyalty/models/loyalty_program.py:0
-msgid "Fill in your eWallet, to pay future orders"
-msgstr "填写您的电子钱包，用于支付未来订单"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card__message_follower_ids
@@ -1166,8 +1155,8 @@ msgid ""
 "                                    Then, Gift Cards can be used to pay "
 "orders."
 msgstr ""
-"礼品卡是手动创建的，也可以在客户订购礼品卡产品时通过电子邮件自动发送。"
-"                                    <br/>然后，礼品卡可用于支付订单。"
+"礼品卡是手动创建的，也可以在客户订购礼品卡产品时通过电子邮件自动发"
+"送。                                    <br/>然后，礼品卡可用于支付订单。"
 
 #. module: loyalty
 #. odoo-python
@@ -1198,7 +1187,8 @@ msgstr "授予"
 msgid ""
 "Grant 1 credit for each item bought then reward the customer with Y items in "
 "exchange of X credits."
-msgstr "每购买一件物品即可获得 1 个积分，然后用 Y 件物品奖励客户以换取 X 积分。"
+msgstr ""
+"每购买一件物品即可获得 1 个积分，然后用 Y 件物品奖励客户以换取 X 积分。"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card__has_message
@@ -1213,7 +1203,7 @@ msgstr "这是您的礼品卡!"
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_report
 msgid "Here is your reward from"
-msgstr "这是您的回报来自"
+msgstr "这是您的奖励"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card__history_ids
@@ -1781,8 +1771,8 @@ msgstr "选定的客户"
 #. module: loyalty
 #. odoo-python
 #: code:addons/loyalty/models/loyalty_program.py:0
-msgid "Sell Gift Cards, that allows to purchase products"
-msgstr "销售礼品卡，可用于采购产品"
+msgid "Sell gift cards that people can use to buy products."
+msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_view_tree
@@ -2164,9 +2154,9 @@ msgid ""
 "                                    Then, eWallets are proposed during the "
 "checkout, to pay orders."
 msgstr ""
-"电子钱包是在客户订购电子钱包产品时手动或自动创建的。"
-"                                    <br/>然后，在结账时建议使用电子钱包来支付"
-"订单。"
+"电子钱包是在客户订购电子钱包产品时手动或自动创建"
+"的。                                    <br/>然后，在结账时建议使用电子钱包来"
+"支付订单。"
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_rule_view_kanban

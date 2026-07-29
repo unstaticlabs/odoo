@@ -1,15 +1,17 @@
-import { Command, serverState } from "@web/../tests/web_test_helpers";
+import { Command, onRpc, serverState } from "@web/../tests/web_test_helpers";
 import { defineLivechatModels } from "@im_livechat/../tests/livechat_test_helpers";
 import {
     click,
     contains,
+    listenStoreFetch,
     openDiscuss,
     setupChatHub,
     start,
     startServer,
     triggerHotkey,
+    waitStoreFetch,
 } from "@mail/../tests/mail_test_helpers";
-import { describe, test } from "@odoo/hoot";
+import { describe, expect, test } from "@odoo/hoot";
 import { withGuest } from "@mail/../tests/mock_server/mail_mock_server";
 import { rpc } from "@web/core/network/rpc";
 import { serializeDate, today } from "@web/core/l10n/dates";
@@ -33,7 +35,7 @@ test("from the discuss app", async () => {
         name: "HR",
         user_ids: [serverState.userId],
     });
-    pyEnv["discuss.channel"].create([
+    const [channelId_1] = pyEnv["discuss.channel"].create([
         {
             channel_type: "livechat",
             channel_member_ids: [
@@ -45,7 +47,6 @@ test("from the discuss app", async () => {
             ],
             livechat_end_dt: false,
             livechat_channel_id: livechatChannelId,
-            livechat_operator_id: serverState.partnerId,
             create_uid: serverState.publicUserId,
         },
         {
@@ -59,10 +60,14 @@ test("from the discuss app", async () => {
             ],
             livechat_end_dt: serializeDate(today()),
             livechat_channel_id: livechatChannelId,
-            livechat_operator_id: serverState.partnerId,
             create_uid: serverState.publicUserId,
         },
     ]);
+    pyEnv["mail.message"].create({
+        body: "Last message from guest_1",
+        model: "discuss.channel",
+        res_id: channelId_1,
+    });
     await start();
     await openDiscuss();
     await contains(
@@ -85,6 +90,10 @@ test("from the discuss app", async () => {
         parent: [".o-mail-DiscussSidebarChannel", { text: "guest_1" }],
     });
     await click(".o-dropdown-item:contains('Leave Channel')");
+    await contains(
+        ".modal-header:has(:text('Leaving will end the live chat with guest_1. Are you sure you want to continue?'))"
+    );
+    await contains(".modal-body .o-mail-Message-body:has(:text('Last message from guest_1'))");
     await click("button:contains(Leave Conversation)");
     await contains(".o-mail-DiscussSidebarChannel", { text: "guest_1", count: 0 });
     await click("[title='Chat Actions']", {
@@ -137,15 +146,49 @@ test("visitor leaving ends the livechat conversation", async () => {
             Command.create({ guest_id: guestId, livechat_member_type: "visitor" }),
         ],
         livechat_channel_id: livechatChannelId,
-        livechat_operator_id: serverState.partnerId,
         create_uid: serverState.publicUserId,
     });
+    listenStoreFetch("channels_as_member");
     setupChatHub({ opened: [channel_id] });
     await start();
     await contains(".o-mail-ChatWindow");
+    // The first message received will trigger the fetch of
+    // `channels_as_member` which can conflict with the rest of the
+    // test. Open the messaging menu to do it beforehand.
+    await click(".o_menu_systray i[aria-label='Messages']");
+    await waitStoreFetch("channels_as_member");
     // simulate visitor leaving
     await withGuest(guestId, () => rpc("/im_livechat/visitor_leave_session", { channel_id }));
-    await contains("span", { text: "This livechat conversation has ended." });
+    await contains("span", { text: "This live chat conversation has ended." });
     await click("button[title*='Close Chat Window']");
     await contains(".o-mail-ChatWindow", { count: 0 });
+});
+
+test("leaving chat window triggers a single RPC", async () => {
+    const pyEnv = await startServer();
+    const guestId = pyEnv["mail.guest"].create({ name: "Visitor #1" });
+    const channelId = pyEnv["discuss.channel"].create({
+        channel_type: "livechat",
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId, livechat_member_type: "agent" }),
+            Command.create({ guest_id: guestId, livechat_member_type: "visitor" }),
+        ],
+    });
+    pyEnv["mail.message"].create({
+        body: "Last message from Visitor #1",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    setupChatHub({ opened: [channelId] });
+    onRpc("discuss.channel", "action_unfollow", () => expect.step("action_unfollow"));
+    await start();
+    await contains(".o-mail-ChatWindow");
+    await contains(".o-mail-Message:contains('Last message from Visitor #1')");
+    await click("[title='Open Actions Menu']", {
+        parent: [".o-mail-ChatWindow:has(:text('Visitor #1'))"],
+    });
+    await click(".o-dropdown-item:text('Leave Channel')");
+    await click("button:contains(Leave Conversation)");
+    await contains(".o-mail-ChatWindow", { count: 0 });
+    await expect.waitForSteps(["action_unfollow"]);
 });

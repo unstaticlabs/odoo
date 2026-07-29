@@ -1,11 +1,11 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
-
+from ast import literal_eval
 from collections import defaultdict
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from dateutil.relativedelta import relativedelta
-from pytz import timezone
-from ast import literal_eval
 from markupsafe import escape, Markup
 from werkzeug.urls import url_encode
 
@@ -24,6 +24,9 @@ class PurchaseOrder(models.Model):
     _description = "Purchase Order"
     _rec_names_search = ['name', 'partner_ref']
     _order = 'priority desc, id desc'
+    _mail_post_access = 'read'
+    _mailing_enabled = True
+    _priority_field = 'priority'
 
     @api.depends('order_line.price_subtotal', 'company_id', 'currency_id')
     def _amount_all(self):
@@ -87,7 +90,7 @@ class PurchaseOrder(models.Model):
              "delivery order sent by your vendor.")
     date_order = fields.Datetime('Order Deadline', required=True, index=True, copy=False, default=fields.Datetime.now,
         help="Depicts the date within which the Quotation should be confirmed and converted into a purchase order.")
-    date_approve = fields.Datetime('Confirmation Date', readonly=True, index=True, copy=False)
+    date_approve = fields.Datetime('Order Date', readonly=True, index=True, copy=False)
     partner_id = fields.Many2one(
         'res.partner', string='Vendor', required=True, change_default=True,
         tracking=True, check_company=True, index=True,
@@ -131,11 +134,11 @@ class PurchaseOrder(models.Model):
     ], string='Billing Status', compute='_get_invoiced', store=True, readonly=True, copy=False, default='no')
     date_planned = fields.Datetime(
         string='Expected Arrival', index=True, copy=False, compute='_compute_date_planned', store=True, readonly=False,
-        help="Delivery date promised by vendor. This date is used to determine expected arrival of products.")
+        help="Expected delivery date of goods by the vendor based on the latest information")
     date_calendar_start = fields.Datetime(compute='_compute_date_calendar_start', readonly=True, store=True)
 
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, readonly=True, compute='_amount_all', tracking=True)
-    tax_totals = fields.Binary(compute='_compute_tax_totals', exportable=False)
+    tax_totals = fields.Json(compute='_compute_tax_totals', exportable=False)
     amount_tax = fields.Monetary(string='Taxes', store=True, readonly=True, compute='_amount_all')
     amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all')
     amount_total_cc = fields.Monetary(string="Total in currency", store=True, readonly=True, compute="_amount_all", currency_field="company_currency_id")
@@ -169,12 +172,17 @@ class PurchaseOrder(models.Model):
         precompute=True,
     )
     duplicated_order_ids = fields.Many2many(comodel_name='purchase.order', compute='_compute_duplicated_order_ids')
-
+    receipt_status = fields.Selection([
+        ('pending', 'Not Received'),
+        ('partial', 'Partially Received'),
+        ('full', 'Fully Received'),
+    ], string='Receipt Status', compute='_compute_receipt_status', store=True)
     receipt_reminder_email = fields.Boolean('Receipt Reminder Email', compute='_compute_receipt_reminder_email', store=True, readonly=False)
     reminder_date_before_receipt = fields.Integer('Days Before Receipt', compute='_compute_receipt_reminder_email', store=True, readonly=False)
 
     is_late = fields.Boolean('Is Late', store=False, search='_search_is_late')
     show_comparison = fields.Boolean('Show Comparison', compute='_compute_show_comparison')
+    show_receive_button = fields.Boolean(compute='_compute_show_receive_button')
 
     purchase_warning_text = fields.Text(
         "Purchase Warning",
@@ -244,6 +252,18 @@ class PurchaseOrder(models.Model):
                 name += ': ' + formatLang(self.env, po.amount_total, currency_obj=po.currency_id)
             po.display_name = name
 
+    @api.depends('order_line.qty_received', 'order_line.product_uom_qty', 'state')
+    def _compute_receipt_status(self):
+        for order in self:
+            if order.state != 'purchase' or not order.order_line:
+                order.receipt_status = False
+            elif all(line.qty_received >= line.product_qty for line in order.order_line):
+                order.receipt_status = 'full'
+            elif any(line.qty_received for line in order.order_line):
+                order.receipt_status = 'partial'
+            else:
+                order.receipt_status = 'pending'
+
     @api.depends('company_id', 'partner_id', 'partner_id.reminder_date_before_receipt')
     def _compute_receipt_reminder_email(self):
         for order in self:
@@ -262,13 +282,14 @@ class PurchaseOrder(models.Model):
             base_lines = [line._prepare_base_line_for_taxes_computation() for line in order_lines]
             AccountTax._add_tax_details_in_base_lines(base_lines, order.company_id)
             AccountTax._round_base_lines_tax_details(base_lines, order.company_id)
-            order.tax_totals = AccountTax._get_tax_totals_summary(
+            tax_totals = AccountTax._get_tax_totals_summary(
                 base_lines=base_lines,
                 currency=order.currency_id or order.company_id.currency_id,
                 company=order.company_id,
             )
             if order.currency_id != order.company_currency_id:
-                order.tax_totals['amount_total_cc'] = f"({formatLang(self.env, order.amount_total_cc, currency_obj=order.company_currency_id)})"
+                tax_totals['amount_total_cc'] = f"({formatLang(self.env, order.amount_total_cc, currency_obj=order.company_currency_id)})"
+            order.tax_totals = tax_totals
 
     @api.depends('company_id.account_fiscal_country_id', 'fiscal_position_id.country_id', 'fiscal_position_id.foreign_vat')
     def _compute_tax_country_id(self):
@@ -289,6 +310,15 @@ class PurchaseOrder(models.Model):
         order_by_product = {p: set(o_ids) for p, o_ids in line_groupby_product}
         for record in self:
             record.show_comparison = any(set(record.ids) != order_by_product[p] for p in record.order_line.product_id if p in order_by_product)
+
+    @api.depends('order_line.qty_received', 'order_line.product_uom_qty', 'state')
+    def _compute_show_receive_button(self):
+        for order in self:
+            order.show_receive_button = (
+                order.state == 'purchase'
+                and any(line.qty_received < line.product_qty for line in order.order_line)
+                and all(line.qty_received_method == "manual" for line in order.order_line)
+            )
 
     @api.depends('partner_id.name', 'partner_id.purchase_warn_msg', 'order_line.purchase_line_warn_msg')
     def _compute_purchase_warning_text(self):
@@ -370,20 +400,12 @@ class PurchaseOrder(models.Model):
         purchase_domain = self._get_domain_is_late(operator, value)
         if operator == "=" and value or operator == "!=" and not value:
             purchase_lines_late = Domain('order_id', 'any', purchase_domain) & Domain.custom(
-                to_sql=lambda model, alias, query: SQL(
-                    "%s < %s",
-                    model._field_to_sql(alias, 'qty_received', query),
-                    model._field_to_sql(alias, 'product_qty', query),
-                )
+                to_sql=lambda table: SQL("%s < %s", table.qty_received, table.product_qty),
             )
             return Domain('order_line', 'any', purchase_lines_late)
         else:
             purchase_lines_on_time = Domain('order_id', 'any', purchase_domain) & Domain.custom(
-                to_sql=lambda model, alias, query: SQL(
-                    "%s >= %s",
-                    model._field_to_sql(alias, 'qty_received', query),
-                    model._field_to_sql(alias, 'product_qty', query),
-                )
+                to_sql=lambda table: SQL("%s >= %s", table.qty_received, table.product_qty),
             )
             return Domain('order_line', 'any', purchase_lines_on_time)
 
@@ -478,9 +500,13 @@ class PurchaseOrder(models.Model):
 
     def message_post(self, **kwargs):
         if self.env.context.get('mark_rfq_as_sent'):
-            self.filtered(lambda o: o.state == 'draft').write({'state': 'sent'})
+            self._mark_rfqs_as_sent()
             kwargs['notify_author_mention'] = kwargs.get('notify_author_mention', True)
         return super().message_post(**kwargs)
+
+    def _message_mail_after_hook(self, mails):
+        self._mark_rfqs_as_sent()
+        return super()._message_mail_after_hook(mails)
 
     def _notify_get_recipients_groups(self, message, model_description, msg_vals=False):
         # Tweak 'view document' button for portal customers, calling directly routes for confirm specific to PO model.
@@ -509,10 +535,12 @@ class PurchaseOrder(models.Model):
 
     def _notify_by_email_prepare_rendering_context(self, message, msg_vals=False, model_description=False,
                                                    force_email_company=False, force_email_lang=False,
+                                                   force_header=False, force_footer=False,
                                                    force_record_name=False):
         render_context = super()._notify_by_email_prepare_rendering_context(
             message, msg_vals=msg_vals, model_description=model_description,
             force_email_company=force_email_company, force_email_lang=force_email_lang,
+            force_header=force_header, force_footer=force_footer,
             force_record_name=force_record_name,
         )
         subtitles = [render_context['record'].name]
@@ -565,7 +593,6 @@ class PurchaseOrder(models.Model):
             'default_res_ids': self.ids,
             'default_template_id': template_id,
             'default_composition_mode': 'comment',
-            'default_email_layout_xmlid': "mail.mail_notification_layout_with_responsible_signature",
             'email_notification_allow_footer': True,
             'force_email': True,
             'hide_mail_template_management_options': True,
@@ -608,9 +635,25 @@ class PurchaseOrder(models.Model):
         action['display_name'] = _("Purchase Comparison for %s", self.display_name)
         return action
 
+    def action_receive(self):
+        invalid_targets = self.filtered(
+            lambda o: o.state != "purchase" or
+            any(line.qty_received_method != "manual" for line in o.order_line)
+        )
+        if invalid_targets:
+            raise UserError(
+                _("The following purchase orders %(invalid_orders)s can't be received. Cancelled all receptions.",
+                invalid_orders=invalid_targets))
+        for order in self:
+            for line in order.order_line:
+                line.qty_received = line.product_qty
+
     def print_quotation(self):
-        self.filtered(lambda po: po.state == 'draft').write({'state': "sent"})
+        self._mark_rfqs_as_sent()
         return self.env.ref('purchase.report_purchase_quotation').report_action(self)
+
+    def _mark_rfqs_as_sent(self):
+        self.filtered(lambda po: po.state == 'draft').state = 'sent'
 
     def button_approve(self, force=False):
         self = self.filtered(lambda order: order._approval_allowed())
@@ -690,9 +733,9 @@ class PurchaseOrder(models.Model):
             if line.product_id and not already_seller and len(line.product_id.seller_ids) <= 10:
                 price = line.price_unit
                 # Compute the price for the template's UoM, because the supplier's UoM is related to that UoM.
-                if line.product_id.product_tmpl_id.uom_id != line.product_uom_id:
+                if line.product_id.product_tmpl_id.uom_id != line.uom_id:
                     default_uom = line.product_id.product_tmpl_id.uom_id
-                    price = line.product_uom_id._compute_price(price, default_uom)
+                    price = line.uom_id._compute_price(price, default_uom)
 
                 supplierinfo = self._prepare_supplier_info(partner, line, price, line.currency_id)
                 # In case the order partner is a contact address, a new supplierinfo is created on
@@ -700,7 +743,7 @@ class PurchaseOrder(models.Model):
                 if line.selected_seller_id:
                     supplierinfo['product_name'] = line.selected_seller_id.product_name
                     supplierinfo['product_code'] = line.selected_seller_id.product_code
-                    supplierinfo['product_uom_id'] = line.product_uom_id.id
+                    supplierinfo['uom_id'] = line.uom_id.id
                 vals = {
                     'seller_ids': [(0, 0, supplierinfo)],
                 }
@@ -863,7 +906,7 @@ class PurchaseOrder(models.Model):
                 for rfq_line in rfqs.order_line:
                     existing_line = oldest_rfq.order_line.filtered(lambda l: l.display_type not in ['line_section', 'line_subsection', 'line_note'] and
                                                                                 l.product_id == rfq_line.product_id and
-                                                                                l.product_uom_id == rfq_line.product_uom_id and
+                                                                                l.uom_id == rfq_line.uom_id and
                                                                                 l.analytic_distribution == rfq_line.analytic_distribution and
                                                                                 l.discount == rfq_line.discount and
                                                                                 abs(l.date_planned - rfq_line.date_planned).total_seconds() <= 86400  # 24 hours in seconds
@@ -916,6 +959,7 @@ class PurchaseOrder(models.Model):
     def _merge_po_post_process(self, rfqs):
         pass
 
+    # TODO: remove in master
     def _merge_alternative_po(self, rfqs):
         pass
 
@@ -1108,7 +1152,6 @@ class PurchaseOrder(models.Model):
             'default_res_ids': self.ids,
             'default_template_id': template_id,
             'default_composition_mode': 'comment',
-            'default_email_layout_xmlid': "mail.mail_notification_layout_with_responsible_signature",
             'force_email': True,
             'mark_rfq_as_sent': True,
         })
@@ -1218,15 +1261,15 @@ class PurchaseOrder(models.Model):
             price = seller.price_discounted
             if seller.currency_id != self.currency_id:
                 price = seller.currency_id._convert(price, self.currency_id)
-            if seller.product_uom_id != product_uom:
+            if seller.uom_id != product_uom:
                 # The discounted price is expressed in the product's UoM, not in the vendor
                 # price's UoM, so we need to convert it into to match the displayed UoM.
-                price = product_uom._compute_price(price, seller.product_uom_id)
-                product_infos.update(uomFactor=seller.product_uom_id.factor / product_uom.factor)
+                price = product_uom._compute_price(price, seller.uom_id)
+                product_infos.update(uomFactor=seller.uom_id.factor / product_uom.factor)
             product_infos.update(
                 price=price,
                 min_qty=seller.min_qty,
-                uomDisplayName=seller.product_uom_id.display_name,
+                uomDisplayName=seller.uom_id.display_name,
             )
 
         return product_infos
@@ -1275,7 +1318,7 @@ class PurchaseOrder(models.Model):
         """ Returns the timezone of the order's user or the company's partner
         or UTC if none of them are set. """
         self.ensure_one()
-        return timezone(self.user_id.tz or self.company_id.partner_id.tz or 'UTC')
+        return ZoneInfo(self.user_id.tz or self.company_id.partner_id.tz or 'UTC')
 
     def _update_date_planned_for_lines(self, updated_dates):
         # create or update the activity

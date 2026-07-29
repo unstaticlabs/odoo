@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="website.prompt">
-        <div role="dialog" class="modal o_technical_modal" tabindex="-1">
+        <div role="dialog" class="modal o_technical_modal" tabindex="-1" aria-label="Prompt Dialog">
                 <div class="modal-dialog">
                 <div class="modal-content">
                     <header class="modal-header" t-if="window_title">
@@ -24,7 +24,7 @@
                     </main>
                     <footer class="modal-footer">
                         <button type="button" class="btn btn-primary btn-continue"><t t-out="btn_primary_title"/></button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel"><t t-out="btn_secondary_title"/></button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Discard"><t t-out="btn_secondary_title"/></button>
                     </footer>
                 </div>
             </div>

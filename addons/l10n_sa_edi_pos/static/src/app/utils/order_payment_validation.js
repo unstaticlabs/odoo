@@ -15,7 +15,7 @@ patch(OrderPaymentValidation.prototype, {
         return super.shouldDownloadInvoice();
     },
     async finalizeValidation() {
-        const potentialValidationError = await super.finalizeValidation(...arguments);
+        await super.finalizeValidation(...arguments);
 
         // note: isSACompany guarantees order.is_to_invoice()
         // expect for cases like deposit and settlement
@@ -47,7 +47,6 @@ patch(OrderPaymentValidation.prototype, {
                 body: message,
             });
         }
-        return potentialValidationError;
     },
 
     async validateOrder(isForceValidate) {

@@ -106,7 +106,7 @@ class AccountMoveSend(models.AbstractModel):
     def _get_ubl_available_attachments(self, mail_attachments_widget, invoice_edi_format):
         if not invoice_edi_format or not mail_attachments_widget:
             return self.env['ir.attachment'], self.env['ir.attachment']
-        attachment_ids = [values['id'] for values in mail_attachments_widget if values.get('manual')]
+        attachment_ids = [values['id'] for values in mail_attachments_widget if values.get('manual') or values.get('mail_template_id')]
         attachments = self.env['ir.attachment'].browse(attachment_ids)
 
         ubl_format_info = self.env['res.partner']._get_ubl_cii_formats_info().get(invoice_edi_format, {})
@@ -308,5 +308,5 @@ class AccountMoveSend(models.AbstractModel):
         ]
         if attachments_vals:
             attachments = self.env['ir.attachment'].with_user(SUPERUSER_ID).create(attachments_vals)
-            res_ids = attachments.mapped('res_id')
+            res_ids = [a.res_id for a in attachments if a.res_id]
             self.env['account.move'].browse(res_ids).invalidate_recordset(fnames=['ubl_cii_xml_id', 'ubl_cii_xml_file'])

@@ -1,4 +1,5 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
+import { clearMemoizeCaches } from "@web/core/utils/functions";
 import { makeMockEnv, patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { localization } from "@web/core/l10n/localization";
@@ -51,10 +52,37 @@ test("parseFloatTime", () => {
     expect(parseFloatTime("1:")).toBe(1);
     expect(parseFloatTime(":12")).toBe(0.2);
 
-    expect(() => parseFloatTime("a:1")).toThrow();
-    expect(() => parseFloatTime("1:a")).toThrow();
-    expect(() => parseFloatTime("1:1:")).toThrow();
-    expect(() => parseFloatTime(":1:1")).toThrow();
+    expect(parseFloatTime("a:12")).toBe(0.2);
+    expect(parseFloatTime("1:a")).toBe(1);
+    expect(parseFloatTime("1:12:")).toBe(1.2);
+    expect(parseFloatTime(":30:45")).toBe(0.5125);
+
+    expect(parseFloatTime("1h 30m 45s")).toBe(1.5125);
+    expect(parseFloatTime("1h 45s")).toBe(1.0125);
+    expect(parseFloatTime("45s 30m 1h")).toBe(1.5125);
+    expect(parseFloatTime("45s 20s 55s")).toBe(0.0125);
+    expect(parseFloatTime("1h30")).toBe(1.5);
+    expect(parseFloatTime("-1h 30m 45s")).toBe(-1.5125);
+
+    expect(() => parseFloatTime("qwerwqer")).toThrow("Couldn't parse 'qwerwqer'.");
+
+    clearMemoizeCaches();
+    localization.locale = "fr-FR";
+    expect(parseFloatTime("2h 30m 45s")).toBe(2.5125);
+    expect(parseFloatTime("2h 30min 45s")).toBe(2.5125);
+
+    clearMemoizeCaches();
+    localization.locale = "zh-CN";
+    expect(parseFloatTime("2小时 30分钟 45秒")).toBe(2.5125);
+
+    clearMemoizeCaches();
+    localization.locale = "ar-SY";
+    expect(parseFloatTime("٢س ٣٠د ٤٥ث")).toBe(2.5125);
+
+    clearMemoizeCaches();
+    localization.thousandsSep = ".";
+    localization.decimalPoint = ",";
+    expect(parseFloatTime("0,5")).toBe(0.5);
 });
 
 test("parseInteger", () => {

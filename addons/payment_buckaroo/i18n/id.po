@@ -5,15 +5,15 @@
 # Translators:
 # Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2017
 # Bonny Useful <bonny.useful@gmail.com>, 2017
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Abe Manyo (abem)" <abem@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.saas~18\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 02:21+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-11-20 03:04+0000\n"
+"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
 "Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
 "payment_buckaroo/id/>\n"
 "Language: id\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_buckaroo
 #. odoo-python
@@ -106,6 +106,3 @@ msgstr "Website Key"
 #: code:addons/payment_buckaroo/models/payment_transaction.py:0
 msgid "Your payment was refused (code %s). Please try again."
 msgstr "Pembayaran Anda ditolak (kode %s). Silakan coba lagi."
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Acquirer pembayaran"

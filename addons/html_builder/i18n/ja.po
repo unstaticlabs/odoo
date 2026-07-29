@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * html_builder
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 14:32+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2026-06-06 13:27+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "html_builder/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -53,13 +53,14 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
-msgstr "画像の上にマウスを置くと「タイトルタグ」はツールチップとして表示されます。"
+msgstr ""
+"画像の上にマウスを置くと「タイトルタグ」はツールチップとして表示されます。"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/shape/shape_selector.xml:0
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #. module: html_builder
 #. odoo-javascript
@@ -68,6 +69,13 @@ msgid ""
 "A technical issue occurred in the builder, you should save or discard your "
 "changes."
 msgstr ""
+"ビルダーで技術的な問題が発生しました。変更内容を保存するか破棄してください。"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/rating_option.xml:0
+msgid "Active"
+msgstr "有効"
 
 #. module: html_builder
 #. odoo-javascript
@@ -87,6 +95,18 @@ msgstr "プロダクト追加"
 #: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.xml:0
 msgid "Add a Custom Font"
 msgstr "カスタムフォントを追加"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_option.xml:0
+msgid "Add a background image"
+msgstr "背景画像を追加"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list.xml:0
+msgid "Add a record to the list"
+msgstr "リストにレコードを追加"
 
 #. module: html_builder
 #. odoo-javascript
@@ -330,21 +350,25 @@ msgstr "アンギュラー 10"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/background_option/background_position_overlay.xml:0
+#: code:addons/html_builder/static/src/plugins/image/image_position_overlay.xml:0
 msgid "Apply"
 msgstr "適用"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/snippets/snippet_service.js:0
-msgid "Are you sure you want to delete the block %s?"
-msgstr "本当にブロック%sを削除しますか?"
+msgid ""
+"Are you sure you want to delete %s from your list of custom blocks?\n"
+"Deleting it will remove it for all users."
+msgstr ""
+"カスタムブロックのリストから%sを削除してもよろしいですか?\n"
+"削除すると、すべてのユーザから削除されます。"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/shape/shape_selector.xml:0
-msgid "Back"
-msgstr "戻る"
+#: code:addons/html_builder/static/src/plugins/image/media_size_option.xml:0
+msgid "Auto"
+msgstr "自動"
 
 #. module: html_builder
 #. odoo-javascript
@@ -360,9 +384,15 @@ msgstr "背景位置"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option_plugin.js:0
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
 msgid "Background Shapes"
 msgstr "背景形状"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
+msgid "Background color"
+msgstr "背景色"
 
 #. module: html_builder
 #. odoo-javascript
@@ -704,6 +734,7 @@ msgstr "太字 12"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
 #: code:addons/html_builder/static/src/plugins/cta_badge_option.xml:0
 #: code:addons/html_builder/static/src/plugins/separator_option.xml:0
 msgid "Border"
@@ -784,12 +815,6 @@ msgstr "ボタン"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/sidebar/custom_inner_snippet.xml:0
-msgid "Cancel"
-msgstr "キャンセル"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/block_alignment_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
 #: code:addons/html_builder/static/src/plugins/separator_option.xml:0
@@ -829,9 +854,9 @@ msgstr "サーキット"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/background_option/background_position_overlay.xml:0
-msgid "Click and drag the background to adjust its position!"
-msgstr "背景をクリックしてドラッグし、位置を調整してください!"
+#: code:addons/html_builder/static/src/plugins/image/image_position_overlay.xml:0
+msgid "Click and drag the image to adjust its position!"
+msgstr "画像をクリックしてドラッグすると位置を調整できます!"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1090,12 +1115,6 @@ msgstr "作成 \""
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
-msgid "Create a custom snippet"
-msgstr "カスタムスニペットを作成"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/background_option/background_shapes_definition.js:0
 msgid "Creative"
 msgstr "クリエイティブ"
@@ -1111,6 +1130,7 @@ msgstr "画像を切り抜き"
 #: code:addons/html_builder/static/src/core/select_number_column.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_filter_option.xml:0
 #: code:addons/html_builder/static/src/plugins/rating_option.xml:0
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 msgid "Custom"
 msgstr "カスタム"
 
@@ -1178,12 +1198,6 @@ msgstr "装飾"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-msgid "Default"
-msgstr "デフォルト"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/snippets/snippet_viewer.js:0
 msgid "Delete %(snippetName)s"
 msgstr "%(snippetName)sを削除"
@@ -1196,25 +1210,39 @@ msgstr "%(snippetTitle)sを削除"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.js:0
+msgid "Delete & Reload"
+msgstr "削除して再読み込み"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
+msgid "Delete Block"
+msgstr "ブロックを削除"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.js:0
+msgid "Delete Font"
+msgstr "フォントを削除"
+
+#. module: html_builder
+#. odoo-javascript
 #: code:addons/html_builder/static/src/core/building_blocks/builder_list.xml:0
 msgid "Delete item"
 msgstr "項目を削除"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.xml:0
-msgid "Delete this font"
-msgstr "このフォントを削除"
+#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
+msgid "Delete this block?"
+msgstr "このブロックを削除しますか?"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.js:0
-msgid ""
-"Deleting a font requires a reload of the page. This will save all your "
-"changes and reload the page, are you sure you want to proceed?"
-msgstr ""
-"フォントを削除するには、ページを再読み込む必要があります。変更を保存して"
-"ページを再読み込みますがよろしいですか?"
+#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.xml:0
+msgid "Delete this font"
+msgstr "このフォントを削除"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1243,22 +1271,23 @@ msgstr "ダイアモンド (R)"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/core/anchor/anchor_dialog.xml:0
-#: code:addons/html_builder/static/src/plugins/background_option/background_position_overlay.xml:0
-#: code:addons/html_builder/static/src/snippets/snippet_viewer.js:0
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+#: code:addons/html_builder/static/src/plugins/image/image_position_overlay.xml:0
+#: code:addons/html_builder/static/src/sidebar/custom_inner_snippet.xml:0
 msgid "Discard"
 msgstr "破棄"
+
+#. module: html_builder
+#: model:ir.model.fields,field_description:html_builder.field_ir_qweb__display_name
+#: model:ir.model.fields,field_description:html_builder.field_ir_ui_view__display_name
+msgid "Display Name"
+msgstr "表示名"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/snippets/snippet_service.js:0
 msgid "Do you want to install %s App?"
 msgstr "%s アプリをインストールしますか？"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
-msgid "Do you want to save this snippet as a custom one?"
-msgstr "このスニペットをカスタムスニペットとして保存しますか?"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1360,6 +1389,7 @@ msgstr "EarlyBird"
 #. odoo-javascript
 #: code:addons/html_builder/static/src/core/anchor/anchor_plugin.js:0
 #: code:addons/html_builder/static/src/core/building_blocks/color_picker_theme_tab.xml:0
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 msgid "Edit"
 msgstr "編集"
 
@@ -1383,9 +1413,33 @@ msgstr "エメラルド (R)"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Exclude all"
+msgstr "すべて除外"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Exclude record"
+msgstr "レコードを除外"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Excluded records"
+msgstr "除外されたレコード"
+
+#. module: html_builder
+#. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_filter_option.xml:0
 msgid "Exclusion"
 msgstr "排他"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
+msgid "Fill"
+msgstr "塗りつぶし"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1402,15 +1456,15 @@ msgstr "フラグ"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
-msgid "Flip"
-msgstr "反転"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/core/drop_zone_plugin.js:0
 msgid "For technical reasons, this block cannot be dropped here"
 msgstr "技術上の理由でこのブロックはここにドロップできません"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/utils/utils.js:0
+msgid "Form"
+msgstr "フォーム"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1606,9 +1660,22 @@ msgstr "六角形 (R)"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
+msgid "Horizontal and Vertical offset"
+msgstr "水平方向オフセットと垂直方向オフセット"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
-msgid "Horizontal mirror"
-msgstr "水平ミラー"
+msgid "Horizontal flip"
+msgstr "水平反転"
+
+#. module: html_builder
+#: model:ir.model.fields,field_description:html_builder.field_ir_qweb__id
+#: model:ir.model.fields,field_description:html_builder.field_ir_ui_view__id
+msgid "ID"
+msgstr "ID"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1620,10 +1687,39 @@ msgstr "アイコン"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/background_option/background_image.xml:0
-#: code:addons/html_builder/static/src/plugins/background_option/background_option.xml:0
 #: code:addons/html_builder/static/src/utils/utils.js:0
 msgid "Image"
 msgstr "画像"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/rating_option.xml:0
+msgid "Inactive"
+msgstr "無効"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Include all"
+msgstr "すべてを含める"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Include record"
+msgstr "レコードを含める"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Included records"
+msgstr "含まれるレコード"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/image/image_format_option.xml:0
+msgid "Increase for more detail, decrease for speed"
+msgstr "詳細を増やすには増加、速度を優先するには減少"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1689,18 +1785,20 @@ msgid ""
 "It might have caused problem during the editing. Please drag the new version "
 "from the snippet panel to update it."
 msgstr ""
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/core/building_blocks/builder_list.js:0
-msgid "Item"
-msgstr "項目"
+"編集中に問題が発生した可能性があります。スニペットパネルから新しいバージョン"
+"をドラッグして更新してください。"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_shapes_definition.js:0
 msgid "Kayak"
 msgstr "カヤック"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
+msgid "Keep it"
+msgstr "そのままにする"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1711,6 +1809,7 @@ msgstr "ラビリンス"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/rating_option.xml:0
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 #: code:addons/html_builder/static/src/plugins/size_option.xml:0
 msgid "Large"
 msgstr "大"
@@ -1798,6 +1897,12 @@ msgstr "MacBook #3"
 #: code:addons/html_builder/static/src/plugins/background_option/background_image.xml:0
 msgid "Main Color"
 msgstr "メイン色"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Manage Records"
+msgstr "レコードを管理"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1922,15 +2027,15 @@ msgstr "名称"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
-msgid "No"
-msgstr "いいえ"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/sidebar/block_tab.xml:0
 msgid "No block of this category can be dropped on this page."
 msgstr "このカテゴリのブロックはこのページにドロップできません。"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "No record."
+msgstr "記録なし。"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1954,14 +2059,15 @@ msgstr "なし"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_filter_option.xml:0
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 msgid "Normal"
 msgstr "通常"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
-msgid "Offset (X, Y)"
-msgstr "オフセット (X, Y)"
+msgid "Offset"
+msgstr "オフセット"
 
 #. module: html_builder
 #. odoo-javascript
@@ -1974,6 +2080,12 @@ msgstr "おっと!スニペットが見つかりません"
 #: code:addons/html_builder/static/src/plugins/image/replace_media_option.xml:0
 msgid "Open in New Window"
 msgstr "新規ウィンドウで開く"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list.xml:0
+msgid "Open the record list manager"
+msgstr "レコードリストマネジャーを開く"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2010,6 +2122,12 @@ msgstr "自然なライン"
 #: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 msgid "Outset"
 msgstr "アウトセット"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
+msgid "Outset/Inset"
+msgstr ""
 
 #. module: html_builder
 #. odoo-javascript
@@ -2152,6 +2270,11 @@ msgid "Quality"
 msgstr "品質"
 
 #. module: html_builder
+#: model:ir.model,name:html_builder.model_ir_qweb
+msgid "Qweb"
+msgstr "Qweb"
+
+#. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_shapes_definition.js:0
 msgid "Rain"
@@ -2220,6 +2343,7 @@ msgstr "メディアをクリックしたユーザーを他のところにリダ
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/core/anchor/anchor_dialog.xml:0
+#: code:addons/html_builder/static/src/snippets/snippet_viewer.xml:0
 msgid "Remove"
 msgstr "削除"
 
@@ -2231,9 +2355,28 @@ msgstr "画像を削除"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_option.xml:0
+msgid "Remove the background image"
+msgstr "背景画像を削除"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
+#: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
+msgid "Remove the shape"
+msgstr "図形を削除"
+
+#. module: html_builder
+#. odoo-javascript
 #: code:addons/html_builder/static/src/sidebar/option_container.xml:0
 msgid "Remove this block"
 msgstr "このブロックを削除"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/snippets/snippet_viewer.xml:0
+msgid "Rename"
+msgstr "名前の変更"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2264,7 +2407,7 @@ msgstr "パータンを繰り返す"
 #: code:addons/html_builder/static/src/plugins/background_option/background_image.xml:0
 #: code:addons/html_builder/static/src/plugins/image/replace_media_option.xml:0
 msgid "Replace"
-msgstr "置き換え"
+msgstr "置き換える"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2294,13 +2437,6 @@ msgstr "動画を差替"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-#: code:addons/html_builder/static/src/plugins/image/image_transform_option.xml:0
-msgid "Reset"
-msgstr "リセット"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
 msgid "Reset crop"
 msgstr "切り抜きをリセット"
 
@@ -2315,30 +2451,6 @@ msgstr ""
 #: code:addons/html_builder/static/src/plugins/image/image_transform_option.xml:0
 msgid "Reset transformation"
 msgstr "変形をリセット"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-msgid "Resize Default"
-msgstr "サイズ変更デフォルト"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-msgid "Resize Full"
-msgstr "全画面でサイズ変更"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-msgid "Resize Half"
-msgstr "半画面でサイズ変更"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
-msgid "Resize Quarter"
-msgstr "四分の一でサイズ変更"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2375,7 +2487,7 @@ msgstr "彩度"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
 #: code:addons/html_builder/static/src/snippets/snippet_viewer.js:0
 msgid "Save"
 msgstr "保存"
@@ -2409,6 +2521,12 @@ msgstr "スコア"
 #: code:addons/html_builder/static/src/plugins/image/image_filter_option.xml:0
 msgid "Screen"
 msgstr "スクリーン"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list_dialog.xml:0
+msgid "Search"
+msgstr "検索"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2462,8 +2580,8 @@ msgstr "影"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/background_option/background_option.xml:0
 #: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
 msgid "Shape"
 msgstr "形状"
@@ -2488,7 +2606,7 @@ msgstr "形状: サムネイル"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/image/image_shape_option.js:0
+#: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
 msgid "Shapes"
 msgstr "形"
 
@@ -2512,8 +2630,9 @@ msgstr "手裏剣  (R)"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_size.xml:0
-#: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
+#: code:addons/html_builder/static/src/plugins/image/media_size_option.xml:0
 #: code:addons/html_builder/static/src/plugins/rating_option.xml:0
 #: code:addons/html_builder/static/src/plugins/size_option.xml:0
 msgid "Size"
@@ -2529,6 +2648,7 @@ msgstr "傾斜"
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/font/font_plugin.js:0
 #: code:addons/html_builder/static/src/plugins/rating_option.xml:0
+#: code:addons/html_builder/static/src/plugins/shadow_option.xml:0
 #: code:addons/html_builder/static/src/plugins/size_option.xml:0
 msgid "Small"
 msgstr "小"
@@ -2793,6 +2913,7 @@ msgstr "テトリス"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/core/building_blocks/color_picker_theme_tab.xml:0
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
 msgid "Text"
 msgstr "テキスト"
 
@@ -2815,6 +2936,16 @@ msgstr "テーマ"
 #: code:addons/html_builder/static/src/sidebar/custom_inner_snippet.xml:0
 msgid "This block cannot be dropped anywhere on this page."
 msgstr "このブロックはこのページのどこにもドロップできません。"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_fontfamilypicker.js:0
+msgid ""
+"This change will be applied after saving and reloading the page. Are you "
+"sure you want to continue?"
+msgstr ""
+"この変更は、ページを保存して再読み込みした後に適用されます。続行してもよろし"
+"いですか?"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2878,6 +3009,7 @@ msgstr "トップ"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
 msgid "Transform"
@@ -2928,6 +3060,7 @@ msgstr "トリプルピル"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/alert_option.xml:0
+#: code:addons/html_builder/static/src/plugins/button_style_option.xml:0
 msgid "Type"
 msgstr "タイプ"
 
@@ -2935,13 +3068,19 @@ msgstr "タイプ"
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/image_tool_option.xml:0
 msgid "Unalign"
-msgstr "整列解除"
+msgstr "配置解除"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/core/building_blocks/builder_many2one.xml:0
 msgid "Unselect"
 msgstr "選択解除"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_list.xml:0
+msgid "Update the list with all records and sort it alphabetically"
+msgstr "すべてのレコードでリストを更新し、アルファベット順に並べ替え"
 
 #. module: html_builder
 #. odoo-javascript
@@ -2958,21 +3097,28 @@ msgstr "垂直方向配置"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/vertical_alignment_option.xml:0
 #: code:addons/html_builder/static/src/plugins/vertical_justify_option.xml:0
 msgid "Vertical Alignment"
 msgstr "垂直方向配置"
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/background_option/background_shape_option.xml:0
 #: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
-msgid "Vertical mirror"
-msgstr "垂直ミラー"
+msgid "Vertical flip"
+msgstr "垂直反転"
 
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/utils/utils.js:0
 msgid "Video"
 msgstr "動画"
+
+#. module: html_builder
+#: model:ir.model,name:html_builder.model_ir_ui_view
+msgid "View"
+msgstr "表示"
 
 #. module: html_builder
 #. odoo-javascript
@@ -3115,11 +3261,23 @@ msgstr "このブラウザではWebP圧縮形式がサポートされていま�
 
 #. module: html_builder
 #. odoo-javascript
+#: code:addons/html_builder/static/src/utils/utils.js:0
+msgid "Website"
+msgstr ""
+
+#. module: html_builder
+#. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/background_option/background_position_option.xml:0
 #: code:addons/html_builder/static/src/plugins/separator_option.xml:0
 #: code:addons/html_builder/static/src/plugins/width_option.xml:0
 msgid "Width"
 msgstr "幅"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/plugins/image/image_shape_option.xml:0
+msgid "Will remove the crop factor"
+msgstr ""
 
 #. module: html_builder
 #. odoo-javascript
@@ -3135,18 +3293,6 @@ msgstr "Xpro"
 
 #. module: html_builder
 #. odoo-javascript
-#: code:addons/html_builder/static/src/snippets/snippet_service.js:0
-msgid "Yes"
-msgstr "はい"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/core/building_blocks/builder_list.xml:0
-msgid "You don't have any record to add"
-msgstr "追加する記録はありません"
-
-#. module: html_builder
-#. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/image/replace_media_option.xml:0
 msgid "Your URL"
 msgstr "URL"
@@ -3154,8 +3300,15 @@ msgstr "URL"
 #. module: html_builder
 #. odoo-javascript
 #: code:addons/html_builder/static/src/plugins/background_option/background_position_option.xml:0
+#: code:addons/html_builder/static/src/plugins/image/media_size_option.xml:0
 msgid "auto"
 msgstr "自動"
+
+#. module: html_builder
+#. odoo-javascript
+#: code:addons/html_builder/static/src/core/building_blocks/builder_sliding_panel.xml:0
+msgid "close"
+msgstr "閉じる"
 
 #. module: html_builder
 #. odoo-javascript
@@ -3258,42 +3411,3 @@ msgstr "アニメーション"
 #: code:addons/html_builder/static/src/plugins/image/replace_media_option.xml:0
 msgid "www.example.com"
 msgstr "www.example.com"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/rating_option.xml:0
-msgid "⌙ Active"
-msgstr "⌙ 有効"
-
-#. module: html_builder
-#. odoo-javascript
-#: code:addons/html_builder/static/src/plugins/rating_option.xml:0
-msgid "⌙ Inactive"
-msgstr "⌙ 無効"
-
-#~ msgid "Anchor copied to clipboard%(br)sLink: %(anchorLink)s"
-#~ msgstr ""
-#~ "アンカーがクリップボードにコピーされました%(br)sリンク: %(anchorLink)s"
-
-#~ msgid ""
-#~ "Your custom snippet was successfully saved as %s. Find it in your "
-#~ "snippets collection."
-#~ msgstr ""
-#~ "カスタムスニペットは「%s」として正常に保存されました。スニペットコレクショ"
-#~ "ンからご確認ください。"
-
-#~ msgid "ACCESS OPTIONS ANYWAY"
-#~ msgstr "いずれにせよアクセスオプション"
-
-#~ msgid "REPLACE BY NEW VERSION"
-#~ msgstr "新バージョンに置換え"
-
-#~ msgid "This block is outdated."
-#~ msgstr "このブロックは古いです。"
-
-#~ msgid "You can still access the block options but it might be ineffective."
-#~ msgstr ""
-#~ "ブロックオプションにアクセスすることはできるが、効果がないかもしれません。"
-
-#~ msgid "You might not be able to customize it anymore."
-#~ msgstr "もうカスタマイズできないかもしれません。"

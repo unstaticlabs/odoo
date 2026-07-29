@@ -337,6 +337,9 @@ class TestUi(TestPointOfSaleHttpCommon):
 
         self.assertEqual(loyalty_program.pos_order_count, 1)
         self.assertAlmostEqual(aaa_loyalty_card.points, 4)
+        histories = aaa_loyalty_card.history_ids.sorted("order_id")
+        self.assertEqual(histories.mapped("issued"), [2.0, 2.0, 4.0])
+        self.assertEqual(histories.mapped("used"), [0.0, 4.0, 0.0])
 
         # Part 2
         self.start_pos_tour("PosLoyaltyLoyaltyProgram2")
@@ -958,7 +961,7 @@ class TestUi(TestPointOfSaleHttpCommon):
         self.env.ref('loyalty.gift_card_product_50').product_tmpl_id.write({'active': True})
         # Create gift card program
         self.create_programs([('arbitrary_name', 'gift_card')])
-        self.start_pos_tour("GiftCardWithRefundtTour")
+        self.start_pos_tour("GiftCardWithRefundTour")
 
     def test_loyalty_program_specific_product(self):
         #create a loyalty program with a rules of minimum 2 qty that applies on produt A and B and reward 5 points. The reward is 10$ per order in exchange of 2 points on product A and B
@@ -3263,7 +3266,7 @@ class TestUi(TestPointOfSaleHttpCommon):
         self.env['loyalty.program'].search([]).write({'active': False})
         self.env.ref('loyalty.gift_card_product_50').product_tmpl_id.write({'active': True})
         gift_card_program = self.create_programs([('arbitrary_name', 'gift_card')])['arbitrary_name']
-        example_order = self.env['pos.order'].create({
+        example_order_1, example_order_2, example_order_3 = self.env['pos.order'].create([{
             'name': 'Gift Card Sold',
             'amount_paid': 60.0,
             'amount_total': 60.0,
@@ -3271,15 +3274,15 @@ class TestUi(TestPointOfSaleHttpCommon):
             'amount_return': 0.0,
             'session_id': self.main_pos_config.current_session_id.id,
             'state': 'paid',
-        })
+        } for _ in range(3)])
         gift_card_valid = self.env['loyalty.card'].create({
             'program_id': gift_card_program.id,
-            'source_pos_order_id': example_order.id,
+            'source_pos_order_id': example_order_1.id,
             'code': 'gift_card_valid',
             'points': 60.0,
             'history_ids': [(0, 0, {
                 'order_model': 'pos.order',
-                'order_id': example_order.id,
+                'order_id': example_order_1.id,
                 'description': 'sold',
                 'used': 0,
                 'issued': 60.0,
@@ -3287,13 +3290,13 @@ class TestUi(TestPointOfSaleHttpCommon):
         })
         gift_card_partner = self.env['loyalty.card'].create({
             'program_id': gift_card_program.id,
-            'source_pos_order_id': example_order.id,
+            'source_pos_order_id': example_order_2.id,
             'code': 'gift_card_partner',
             'points': 60.0,
             'partner_id': self.env['res.partner'].create({'name': 'Test Partner'}).id,
             'history_ids': [(0, 0, {
                 'order_model': 'pos.order',
-                'order_id': example_order.id,
+                'order_id': example_order_2.id,
                 'description': 'sold',
                 'used': 0,
                 'issued': 60.0,
@@ -3307,12 +3310,12 @@ class TestUi(TestPointOfSaleHttpCommon):
         })
         gift_card_sold = self.env['loyalty.card'].create({
             'program_id': gift_card_program.id,
-            'source_pos_order_id': example_order.id,
+            'source_pos_order_id': example_order_3.id,
             'code': 'gift_card_sold',
             'points': 60.0,
             'history_ids': [(0, 0, {
                 'order_model': 'pos.order',
-                'order_id': example_order.id,
+                'order_id': example_order_3.id,
                 'description': 'sold',
                 'used': 0,
                 'issued': 60.0,
@@ -3534,6 +3537,9 @@ class TestUi(TestPointOfSaleHttpCommon):
             login="pos_user",
         )
         self.assertEqual(loyalty_card.points, 90)
+
+    def test_customer_display_loyalty_points(self):
+        self.start_tour(f"/pos_customer_display/{self.main_pos_config.id}/{self.main_pos_config.access_token}?access_token={self.main_pos_config.access_token}", 'test_customer_display_loyalty_points', login="pos_user")
 
     def test_confirm_coupon_programs_one_by_one(self):
         """

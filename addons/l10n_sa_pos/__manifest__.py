@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Saudi Arabia - Point of Sale',
@@ -12,6 +11,9 @@ Saudi Arabia POS Localization
     'depends': [
         'l10n_gcc_pos',
         'l10n_sa',
+    ],
+    'data': [
+        'receipt/pos_order_receipt.xml',
     ],
     'assets': {
         'point_of_sale._assets_pos': [

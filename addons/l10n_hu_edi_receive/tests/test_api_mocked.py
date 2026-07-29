@@ -144,12 +144,12 @@ class TestApiMocked(L10nHuEdiTestCommonReceive):
         }])
 
         self.assertRecordValues(moves.partner_id.bank_ids, [{
-            'acc_number': 'HU55 1070 0024 7733 4423 2787 4189',
-            'acc_holder_name': 'Goodo Systems Kft.',
+            'account_number': 'HU55 1070 0024 7733 4423 2787 4189',
+            'holder_name': 'Goodo Systems Kft.',
         }])
         self.assertRecordValues(self.company.partner_id.bank_ids, [{
-            'acc_number': 'HU55 1070 0024 7733 4423 2787 4189',
-            'acc_holder_name': 'company_1_data',
+            'account_number': 'HU55 1070 0024 7733 4423 2787 4189',
+            'holder_name': 'company_1_data',
         }])
 
         move_count_before = self.env['account.move'].search_count([])

@@ -27,8 +27,9 @@ from odoo.addons.iap.tools import iap_tools
 from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
 from odoo.fields import Domain
 from odoo.http import request
+from odoo.models import Query
 from odoo.modules.module import get_manifest
-from odoo.tools import SQL, Query
+from odoo.tools import SQL
 from odoo.tools.image import image_process
 from odoo.tools.sql import escape_psql
 from odoo.tools.translate import _
@@ -54,7 +55,6 @@ DEFAULT_BLOCKED_THIRD_PARTY_DOMAINS = '\n'.join([  # noqa: FLY002
     'instagram.com', 'instagr.am', 'ig.me',
     'vimeo.com',  # 'player.vimeo.com', 'vimeo.com',
     'dailymotion.com', 'dai.ly',
-    'youku.com',  # 'player.youku.com', 'youku.com',
     'tudou.com',
     'facebook.com', 'facebook.net', 'fb.com', 'fb.me', 'fb.watch',
     'tiktok.com',
@@ -96,11 +96,34 @@ DEFAULT_BLOCKED_THIRD_PARTY_DOMAINS = '\n'.join([  # noqa: FLY002
 ])
 
 
-class Website(models.Model):
+class Website(models.CachedModel):
     _name = 'website'
-
     _description = "Website"
     _order = "sequence, id"
+
+    # ir.http:_match is called by ir.http:_serve_db at a time when the
+    # environment hasn't been completely initialized (i.e. before the method
+    # ir.http:_authenticate is called by ir.http:_serve_ir_http), and its
+    # context language hasn't been checked against activated languages yet.
+    #
+    # Inside ir.http:_match, the http_routing module is trying to retrieve the
+    # default language via _get_default_lang, which is overridden by the
+    # website module and accesses website.default_lang_id.
+    #
+    # Here, we cache the needed fields only to avoid prefetching any
+    # translatable field, such as contact_us_link_url by website_sale, as
+    # translating to an invalid language would result in an error.
+    _clear_cache_name = 'default'
+    _cached_data_fields = (
+        'user_id', 'company_id', 'default_lang_id', 'homepage_url',
+        'domain', 'cookies_bar', 'sequence',
+    )
+
+    @tools.ormcache(cache='default')
+    def _cached_data(self):
+        # method is overridden to use cache 'default' instead of 'stable'
+        # hack: retrieve the original method to skip the ormcache wrapper
+        return super()._cached_data.__cache__.method(self)
 
     def website_domain(self):
         return Domain('website_id', 'in', [False, *self.ids])
@@ -338,8 +361,6 @@ class Website(models.Model):
         values = vals
         self._handle_create_write(values)
 
-        self.env.registry.clear_cache()
-
         if 'company_id' in values and 'user_id' not in values:
             public_user_to_change_websites = self.filtered(lambda w: w.sudo().user_id.company_id.id != values['company_id'])
             if public_user_to_change_websites:
@@ -350,7 +371,8 @@ class Website(models.Model):
 
         if 'cdn_activated' in values or 'cdn_url' in values or 'cdn_filters' in values:
             # invalidate the caches from static node at compile time
-            self.env.registry.clear_cache()
+            if any(self._ids):
+                self.env.registry.clear_cache()
 
         # invalidate cache for `company.website_id` to be recomputed
         if 'sequence' in values or 'company_id' in values:
@@ -443,6 +465,7 @@ class Website(models.Model):
 
         companies = self.company_id
         res = super().unlink()
+        self.env.registry.clear_cache()
         companies._compute_website_id()
         return res
 
@@ -486,7 +509,7 @@ class Website(models.Model):
     def _api_rpc(self, route, params, endpoint_param_name, default_endpoint, **kwargs):
         params['version'] = release.version
         IrConfigParameter = self.env['ir.config_parameter'].sudo()
-        api_endpoint = IrConfigParameter.get_param(endpoint_param_name, default_endpoint)
+        api_endpoint = IrConfigParameter.get_str(endpoint_param_name) or default_endpoint
         return iap_tools.iap_jsonrpc(api_endpoint + route, params=params, **kwargs)
 
     def _website_api_rpc(self, route, params):
@@ -852,9 +875,10 @@ class Website(models.Model):
         # through module overrides of `configurator_get_footer_links`.
         footer_links = website.configurator_get_footer_links()
         footer_ids = [
-            'website.template_footer_contact',
+            'website.template_footer_contact', 'website.template_footer_headline',
             'website.footer_custom', 'website.template_footer_links',
             'website.template_footer_minimalist', 'website.template_footer_mega', 'website.template_footer_mega_columns', 'website.template_footer_mega_links',
+            'website.template_footer_mega_cards', 'website.template_footer_descriptive', 'website.template_footer_centered', 'website.template_footer_call_to_action',
         ]
         for footer_id in footer_ids:
             view_id = self.env['website'].viewref(footer_id)
@@ -871,7 +895,6 @@ class Website(models.Model):
                 else:
                     el = arch_string.xpath("//t[@t-set='configurator_footer_links']")
                     if not el:
-                        logger.warning("No 'configurator_footer_links' found in view %s", footer_id)
                         continue
                     el[0].attrib['t-value'] = json.dumps(footer_links)
                     view_id.with_context(website_id=website.id).write({'arch_db': etree.tostring(arch_string)})
@@ -911,10 +934,18 @@ class Website(models.Model):
                 generated_content.update(snippet_generated_content)
                 translated_content.update(snippet_translated_content)
 
+        # Extract placeholders from footers
+        for footer_id in footer_ids:
+            view_id = self.env['website'].viewref(footer_id, raise_if_not_found=False)
+            if view_id and view_id.arch_db:
+                html_text_processor, placeholders = html_text_processor._process_snippet(view_id.arch_db, view_id.arch_db)
+                for placeholder in placeholders:
+                    generated_content[placeholder] = ''
+
         translated_ratio = html_text_processor._calculate_translation_ratio(generated_content, translated_content)
         if translated_ratio > 0.8:
             try:
-                database_id = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+                database_id = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
                 response = self._OLG_api_rpc('/api/olg/1/generate_placeholder', {
                     'placeholders': list(generated_content.keys()),
                     'lang': website.default_lang_id.name,
@@ -987,6 +1018,20 @@ class Website(models.Model):
                 'key': f"{index}_{page_view_id.key}_configurator_pages_landing",
                 'website_id': website.id,
             })
+
+        # Configure the footers
+        for key in footer_ids:
+            generic_view = self.env['website'].viewref(key)
+            current_website_footer_view = self.env['ir.ui.view'].with_context(active_test=False).search(
+                [('key', '=', key), ('website_id', '=', website.id)], limit=1
+            )
+            # Use the website-specific view if exists, otherwise use the generic
+            # view
+            view_to_update = current_website_footer_view or generic_view
+            if generic_view and view_to_update:
+                el = html_text_processor._update_snippet_content(generated_content, key, view_to_update.arch_db)
+                updated_view = etree.tostring(el, encoding='unicode')
+                generic_view.with_context(website_id=website.id).write({'arch_db': updated_view})
 
         # Configure the images
         images = custom_resources.get('images', {})
@@ -1086,6 +1131,7 @@ class Website(models.Model):
             fallback_create_missing_industry_image('s_website_form_cover_default_image', 's_cover_default_image')
             fallback_create_missing_industry_image('s_split_intro_default_image', 's_cover_default_image')
             fallback_create_missing_industry_image('s_framed_intro_default_image', 's_cover_default_image')
+            fallback_create_missing_industry_image('s_splash_intro_default_image', 's_cover_default_image')
             fallback_create_missing_industry_image('s_wavy_grid_default_image_1', 's_cover_default_image')
             fallback_create_missing_industry_image('s_wavy_grid_default_image_2', 's_image_text_default_image')
             fallback_create_missing_industry_image('s_wavy_grid_default_image_3', 's_text_image_default_image')
@@ -1254,16 +1300,12 @@ class Website(models.Model):
         return page_temp
 
     def _get_plausible_script_url(self):
-        return self.env['ir.config_parameter'].sudo().get_param(
-            'website.plausible_script',
-            'https://plausible.io/js/plausible.js'
-        )
+        return self.env['ir.config_parameter'].sudo().get_str(
+            'website.plausible_script') or 'https://plausible.io/js/plausible.js'
 
     def _get_plausible_server(self):
-        return self.env['ir.config_parameter'].sudo().get_param(
-            'website.plausible_server',
-            'https://plausible.io'
-        )
+        return self.env['ir.config_parameter'].sudo().get_str(
+            'website.plausible_server') or 'https://plausible.io'
 
     def _get_plausible_share_url(self):
         embed_url = f'/share/{self.plausible_site}?auth={self.plausible_shared_key}&embed=true&theme=system'
@@ -1340,12 +1382,14 @@ class Website(models.Model):
                     website_domain if hasattr(Model, 'website_id') else [],
                 ]))
 
-            dependency_records = Model.search(Domain.OR(domains))
+            # sudo() to bypass the field level access rights. i.e: robots_txt
+            model_sudo = Model.sudo()
+            dependency_records = model_sudo.search(Domain.OR(domains))
             if model_name == 'ir.ui.view':
                 dependency_records = _handle_views_and_pages(dependency_records)
             if dependency_records:
                 model_display_name = self.env['ir.model']._display_name_for([model_name])[0]['display_name']
-                field_string = Model.fields_get()[field_name]['string']
+                field_string = model_sudo.fields_get()[field_name]['string']
                 dependencies.setdefault(model_display_name, [])
                 dependencies[model_display_name] += [{
                     'field_name': field_string,
@@ -1481,7 +1525,7 @@ class Website(models.Model):
 
     @api.model
     def is_public_user(self):
-        return request.env.user.id == request.website._get_cached('user_id')
+        return request.env.user == request.website.user_id
 
     @api.model
     def viewref(self, view_id, raise_if_not_found=True):
@@ -1543,13 +1587,15 @@ class Website(models.Model):
         return all(p.name in rule._converters for p in params
                    if p.kind in supported_kinds and p.default is inspect.Parameter.empty)
 
-    def _enumerate_pages(self, query_string=None, force=False):
+    def _enumerate_pages(self, query_string=None, force=False, ignore_custom_homepage=False):
         """ Available pages in the website/CMS. This is mostly used for links
             generation and can be overridden by modules setting up new HTML
             controllers for dynamic pages (e.g. blog).
             By default, returns template views marked as pages.
             :param str query_string: a (user-provided) string, fetches pages
                                      matching the string
+            :param boolean ignore_custom_homepage: used to exclude the hompage url
+                from the page list if the homepage is not ``/``
             :returns: a list of mappings with two keys: ``name`` is the displayable
                       name of the resource (page), ``url`` is the absolute URL
                       of the same.
@@ -1559,19 +1605,21 @@ class Website(models.Model):
         # '/' already has a http.route & is in the routing_map so it will already have an entry in the xml
         domain = [('view_id', '!=', False), ('url', '!=', '/')]
         if not force:
-            domain += [('website_indexed', '=', True), ('visibility', '=', False)]
-            # is_visible
             domain += [
-                ('website_published', '=', True), ('visibility', '=', False),
-                '|', ('date_publish', '=', False), ('date_publish', '<=', fields.Datetime.now())
+                ('website_indexed', '=', True),
+                ('visibility', '=', False),
+                ('website_published', '=', True),
             ]
 
         if query_string:
             domain += [('url', 'like', query_string)]
 
+        homepage_url = self.homepage_url
         pages = self._get_website_pages(domain)
 
         for page in pages:
+            if ignore_custom_homepage and homepage_url == page['url']:
+                continue
             record = {'loc': page['url'], 'id': page['id'], 'name': page['name']}
             if page.view_id.priority != 16:
                 record['priority'] = min(round(page.view_id.priority / 32.0, 1), 1)
@@ -1583,6 +1631,9 @@ class Website(models.Model):
         # ==== CONTROLLERS ====
         router = self.env['ir.http'].routing_map()
         url_set = set()
+
+        if ignore_custom_homepage and homepage_url != '/':
+            url_set.add(homepage_url)
 
         sitemap_endpoint_done = set()
 
@@ -1604,6 +1655,18 @@ class Website(models.Model):
             sitemap_func = rule.endpoint.routing.get('sitemap')
             if sitemap_func is False:
                 continue
+
+            if rule.endpoint.routing.get('sitemap') is True:
+                source = inspect.getsource(rule.endpoint.func)
+                if ('return request.redirect' in source or 'return redirect(' in source):
+                    logger.warning(
+                        "Sitemap for controller %s (%s) is set to True, but the endpoint performs a redirect. "
+                        "Even if the redirect occurs only under specific conditions, you must provide a sitemap "
+                        "function and replicate the redirect logic there (returning the final intended URL). "
+                        "This ensures the sitemap lists only reachable URLs and suppresses this warning.",
+                        rule.endpoint.original_endpoint,
+                        ', '.join(rule.endpoint.routing['routes']),
+                    )
 
             if callable(sitemap_func):
                 func_key = _unwrap_callable(sitemap_func)
@@ -1830,8 +1893,12 @@ class Website(models.Model):
     def _get_canonical_url(self):
         """ Returns the canonical URL of the current request. """
         self.ensure_one()
+        # Homepage's canonical url is always '/'
+        url = request.httprequest.path
+        if url == self.homepage_url:
+            url = '/'
         return self.env['ir.http']._url_localized(
-            lang_code=request.lang.code, canonical_domain=self.get_base_url()
+            url=url, lang_code=request.lang.code, canonical_domain=self.get_base_url()
         )
 
     def _is_canonical_url(self):
@@ -1847,33 +1914,6 @@ class Website(models.Model):
         # and canonical url is always quoted, so it is never possible to tell
         # if the current URL is indeed canonical or not.
         return current_url == canonical_url
-
-    @tools.ormcache('self.id')
-    def _get_cached_values(self):
-        self.ensure_one()
-        # ir.http:_match is called by ir.http:_serve_db at a time when the
-        # environment hasn't been completely initialized (i.e. before the method
-        # ir.http:_authenticate is called by ir.http:_serve_ir_http), and its
-        # context language hasn't been checked against activated languages yet.
-
-        # Inside ir.http:_match, the http_routing module is trying to retrieve
-        # the default language via _get_default_lang, which is overridden by the
-        # website module and calls website._get_cached('default_lang_id'), which
-        # eventually calls this method.
-
-        # Here, we manually prefetch the needed fields only to avoid prefetching
-        # any translatable field, such as contact_us_button_url by website_sale,
-        # as translating to an invalid language would result in an error.
-        self.fetch(['user_id', 'company_id', 'default_lang_id', 'homepage_url'])
-        return {
-            'user_id': self.user_id.id,
-            'company_id': self.company_id.id,
-            'default_lang_id': self.default_lang_id.id,
-            'homepage_url': self.homepage_url,
-        }
-
-    def _get_cached(self, field):
-        return self._get_cached_values()[field]
 
     def _get_html_fields_blacklist(self):
         return (
@@ -2202,14 +2242,14 @@ class Website(models.Model):
             :rel_table: name of the rel table when search_fields in search_details contains a Many2many.
             :rel_joinkey: name of the column used to join model._table with rel_table.
             """
-            subquery = Query(self.env.cr, model._table, model._table_query)
+            subquery = Query(model)
             unaccent = self.env.registry.unaccent
             similarity = SQL(
                 "GREATEST(%(similarities)s) as similarity",
                 similarities=SQL(", ").join(
                     SQL("word_similarity(%(search)s, %(field)s)",
                         search=unaccent(SQL("%s", search)),
-                        field=unaccent(model._field_to_sql(model._table, field, subquery)),
+                        field=unaccent(subquery.table[field]),
                     )
                     for field in fields
                 ),
@@ -2218,18 +2258,16 @@ class Website(models.Model):
             for field_name in fields:
                 field = model._fields[field_name]
                 if field.translate:
-                    alias = model._table
-                    if field.related and not field.store:
-                        _, field, alias = model._traverse_related_sql(model._table, field, subquery)
+                    raw_field = subquery.table._with_model(model.with_context(prefetch_langs=True))[field_name]
                     where_clauses.append(SQL("(%(search)s <%% %(jsonb_path)s AND %(search)s <%% (%(field)s))",
                         search=unaccent(SQL("%s", search)),
-                        jsonb_path=unaccent(SQL("jsonb_path_query_array(%s, '$.*')::text", SQL.identifier(alias, field.name))),
-                        field=unaccent(model._field_to_sql(model._table, field_name, subquery)),
+                        jsonb_path=unaccent(SQL("jsonb_path_query_array(%s, '$.*')::text", raw_field)),
+                        field=unaccent(subquery.table[field_name]),
                     ))
                 else:
                     where_clauses.append(SQL("%(search)s <%% %(field)s",
                         search=unaccent(SQL("%s", search)),
-                        field=unaccent(model._field_to_sql(model._table, field_name, subquery)),
+                        field=unaccent(subquery.table[field_name]),
                     ))
             subquery.add_where(SQL(' OR ').join(where_clauses))
             tbl_alias = model._table
@@ -2237,7 +2275,7 @@ class Website(models.Model):
                 rel_alias = subquery.make_alias(rel_table, rel_joinkey)
                 subquery.add_join("JOIN", rel_alias, rel_table, SQL("%s = %s",
                         SQL.identifier(rel_alias, rel_joinkey),
-                        SQL.identifier(model._table, "id"),
+                        subquery.table.id,
                     ),
                 )
                 tbl_alias = rel_alias
@@ -2281,8 +2319,7 @@ class Website(models.Model):
                 ORDER BY _best_similarity DESC
                 LIMIT 1000
             """, SQL("\nUNION ALL\n").join(subqueries))  # UNION ALL allows to hit GIST indexes in subplans.
-            self.env.cr.execute(query)
-            ids = {row[0] for row in self.env.cr.fetchall()}
+            ids = {row[0] for row in self.env.execute_query(query)}
             domain = Domain.AND([domain, Domain([('id', 'in', list(ids))])])
             records = model.search_read(domain, direct_fields, limit=limit)
             for record in records:
@@ -2367,6 +2404,14 @@ class Website(models.Model):
         """
         self.ensure_one()
         return not self.cookies_bar or self.env['ir.http']._is_allowed_cookie('optional')
+
+    @staticmethod
+    def is_reachable(menu):
+        return (
+            menu.is_visible
+            and menu.url not in ('/', '', '#')
+            and not menu.url.startswith(('/?', '/#', ' '))
+        )
 
     def _control_third_party_trackers_in_html(self, html_content):
         if not html_content or not self._should_remove_third_party_trackers():

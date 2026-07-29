@@ -1,5 +1,4 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
 from odoo import Command, fields
 from odoo.tests import Form, tagged
 from odoo.tools.float_utils import float_round, float_compare
@@ -66,16 +65,16 @@ class TestAccountSubcontractingFlows(TestMrpSubcontractingCommon, TestStockValua
             {'account_id': self.account_stock_valuation.id,   'product_id': self.finished.id,    'debit': 30.0, 'credit': 0.0},
         ])
 
+        self.env.user.group_ids += self.env.ref('stock.group_stock_multi_locations')
         # Validate the bill from the subcontractor
-        scrap = self.env['stock.scrap'].create({
-            'product_id': self.finished.id,
-            'product_uom_id': self.finished.uom_id.id,
-            'scrap_qty': 1,
-            'production_id': mo1.id,
-            'location_id': self.stock_location.id,
-        })
-        scrap.do_scrap()
+        scrap_form = Form(self.env['stock.move'].with_context(default_is_scrap=True), view='stock.view_scrap_move_form')
+        scrap_form.product_id = self.finished
+        scrap_form.location_id = self.stock_location
 
+        scrap_form.quantity = 1
+        scrap_form.company_id = self.company
+        scrap = scrap_form.save()
+        scrap._action_scrap()
         self.assertEqual(self.finished.total_value, 0)
 
     def test_subcontracting_account_backorder(self):
@@ -265,6 +264,7 @@ class TestAccountSubcontractingFlows(TestMrpSubcontractingCommon, TestStockValua
         self.assertFalse(amls)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSubcontractingBOMCost(TestBomPriceCommon):
     @classmethod
     def setUpClass(cls):
@@ -288,7 +288,7 @@ class TestSubcontractingBOMCost(TestBomPriceCommon):
                 'partner_id': self.partner.id,
                 'product_tmpl_id': self.table_head.product_tmpl_id.id,
                 'price': 120.0,
-                'product_uom_id': self.dozen.id,
+                'uom_id': self.dozen.id,
             },
         ])
         self.assertEqual(suppliers.mapped('is_subcontractor'), [True, True])
@@ -331,7 +331,7 @@ class TestSubcontractingBOMCost(TestBomPriceCommon):
             'rounding': 0.01,
             'currency_unit_label': 'Zenny',
             'rate_ids': [Command.create({
-                'name': fields.Date.today(),
+                'name': fields.Date.subtract(fields.Date.today(), days=1),
                 'company_rate': 0.5,
             })],
         })

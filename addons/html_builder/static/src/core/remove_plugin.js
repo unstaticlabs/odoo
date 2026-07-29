@@ -4,7 +4,7 @@ import { _t } from "@web/core/l10n/translation";
 import { unremovableNodePredicates as deletePluginPredicates } from "@html_editor/core/delete_plugin";
 import { isUnremovableQWebElement as qwebPluginPredicate } from "@html_editor/others/qweb_plugin";
 import { isEditable } from "@html_builder/utils/utils";
-import { closestElement } from "@html_editor/utils/dom_traversal";
+import { closestElement, selectElements } from "@html_editor/utils/dom_traversal";
 
 /** @typedef {import("plugins").CSSSelector} CSSSelector */
 
@@ -14,7 +14,12 @@ import { closestElement } from "@html_editor/utils/dom_traversal";
  */
 
 /**
- * @typedef {((arg: { removedEl: HTMLElement, nextTargetEl: HTMLElement }) => void)[]} on_removed_handlers
+ * @typedef {((arg: {
+ *      removedEl: HTMLElement,
+ *      nextTargetEl: HTMLElement,
+ *      originPreviousEl: HTMLElement | undefined,
+ *      originNextEl: HTMLElement | undefined
+ * }) => void)[]} on_removed_handlers
  * @typedef {((toRemoveEl: HTMLElement) => void)[]} on_will_remove_handlers
  *
  * @typedef {((el: HTMLElement) => boolean)[]} empty_node_predicates
@@ -74,7 +79,7 @@ export class RemovePlugin extends Plugin {
         this.overlayTarget = target;
         const disabledReason = this.dependencies.builderOptions.getRemoveDisabledReason(target);
         buttons.push({
-            class: "oe_snippet_remove bg-danger fa fa-trash",
+            class: "oe_snippet_remove text-danger fa fa-trash",
             title: _t("Remove"),
             disabledReason,
             handler: () => {
@@ -110,8 +115,15 @@ export class RemovePlugin extends Plugin {
         const optionTargetEls = this.getOptionsContainersElements().filter((targetEl) =>
             targetEl.contains(toRemoveEl)
         );
+        const originPreviousEl = toRemoveEl.previousElementSibling;
+        const originNextEl = toRemoveEl.nextElementSibling;
         const nextTargetEl = this.removeCurrentTarget(toRemoveEl, optionTargetEls);
-        this.dispatchTo("on_removed_handlers", { removedEl: toRemoveEl, nextTargetEl });
+        this.dispatchTo("on_removed_handlers", {
+            removedEl: toRemoveEl,
+            nextTargetEl,
+            originPreviousEl,
+            originNextEl,
+        });
         if (updateContainers) {
             this.dependencies.builderOptions.setNextTarget(nextTargetEl);
         }
@@ -137,14 +149,14 @@ export class RemovePlugin extends Plugin {
             "prev"
         );
         const nextSiblingEl = this.dependencies.visibility.getVisibleSibling(toRemoveEl, "next");
-        if (parentEl.matches(".o_editable:not(body)")) {
-            // If we target the editable, we want to reset the selection to the
-            // body. If the editable has options, we do not want to show them.
+        if (parentEl.matches(".o_savable:not(body)")) {
+            // If we target the savable, we want to reset the selection to the
+            // body. If the savable has options, we do not want to show them.
             parentEl = parentEl.closest("body");
         }
 
         // Remove tooltips.
-        [toRemoveEl, ...toRemoveEl.querySelectorAll("*")].forEach((el) => {
+        selectElements(toRemoveEl, "*").forEach((el) => {
             const tooltip = Tooltip.getInstance(el);
             if (tooltip) {
                 tooltip.dispose();

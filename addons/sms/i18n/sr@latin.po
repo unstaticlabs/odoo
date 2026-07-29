@@ -6,15 +6,15 @@
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 21:29+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"PO-Revision-Date: 2025-11-11 17:16+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
 "odoo-19/sms/sr_Latn/>\n"
 "Language: sr@latin\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -166,6 +166,12 @@ msgid ""
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -233,10 +239,7 @@ msgid "Buy credits."
 msgstr ""
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Otkaži"
@@ -253,9 +256,8 @@ msgstr ""
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.ir_actions_server_view_form
-#, fuzzy
 msgid "Choose a template..."
-msgstr "Izaberite šablon..."
+msgstr ""
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
@@ -272,8 +274,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Preduzeća"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -364,12 +366,6 @@ msgid "Delivered"
 msgstr "Isporuceno"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Poništi"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -392,7 +388,7 @@ msgstr "Naziv za prikaz"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
+msgid "Document Follower"
 msgstr ""
 
 #. module: sms
@@ -521,9 +517,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -652,6 +648,12 @@ msgid "Marked for deletion"
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -660,7 +662,7 @@ msgstr "Poruka"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
+msgid "Message Notification"
 msgstr ""
 
 #. module: sms
@@ -673,8 +675,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Modeli"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -954,9 +956,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1223,6 +1225,12 @@ msgstr ""
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
+msgstr ""
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
 msgstr ""
 
 #. module: sms
@@ -1579,111 +1587,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
 msgid "record:"
 msgstr ""
-
-#~ msgid "Action Needed"
-#~ msgstr "Potrebna akcija"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Brojač priloga"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Telefon na crnoj listi je mobilni"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "Telefon na crnoj listi je fiksni"
-
-#~ msgid "Close"
-#~ msgstr "Zatvori"
-
-#~ msgid "Followers"
-#~ msgstr "Pratioci"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Pratioci (Partneri)"
-
-#~ msgid "Has Message"
-#~ msgstr "Ima poruku"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "Ako je označeno, nove poruke zahtevaju vašu pažnju."
-
-#~ msgid "Is Follower"
-#~ msgstr "Je Pratilac"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Greška u isporuci poruke"
-
-#~ msgid "Messages"
-#~ msgstr "Poruke"
-
-#~ msgid "Notification"
-#~ msgstr "Notifikacija"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Broj akcija"
-
-#~ msgid "Number of errors"
-#~ msgstr "Broj grešaka"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Broj poruka sa greškom u isporuci"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Opcioni jezik prevoda (ISO kod) za odabir prilikom slanja e-pošte. Ako "
-#~ "nije podešeno, koristiće se engleska verzija. Ovo bi obično trebalo da "
-#~ "bude izraz placeholder-a koji obezbeđuje odgovarajući jezik, npr. "
-#~ "{{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Telefon je na crnoj listi"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefon/Mobilni"
-
-#~ msgid "Reason"
-#~ msgstr "Razlog"
-
-#~ msgid "Recipients"
-#~ msgstr "Primaoci"
-
-#~ msgid "Send & Close"
-#~ msgstr "Pošalji & zatvori"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Pošalji SMS poruku"
-
-#~ msgid "Website Messages"
-#~ msgstr "Website poruke"
-
-#~ msgid "Website communication history"
-#~ msgstr "Istorija website komunikacije"
-
-#~ msgid "Action To Do"
-#~ msgstr "Uraditi"
-
-#~ msgid "Canceled"
-#~ msgstr "Otkazano"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Vrsta poruke: email za email poruke, notifikacija za sistemske poruke, "
-#~ "komentar za druge poruke poput odgovora korsnika"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Broj poruka koje zahtevaju akciju"
-
-#~ msgid "Send as"
-#~ msgstr "Pošalji kao"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "Pošalji kao (SMS)"

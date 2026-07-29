@@ -15,16 +15,14 @@ msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 04:21+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"hr_timesheet/uz/>\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -85,14 +83,16 @@ msgstr "%(project_name)s (%(days)s kun)"
 #. module: hr_timesheet
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
+#, fuzzy
 msgid "%(project_name)s (%(sign)s%(hours)sh%(minutes)s)"
-msgstr ""
+msgstr "%(project_name)s (%(hours)s soat %(minutes)s daqiqa)"
 
 #. module: hr_timesheet
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
+#, fuzzy
 msgid "%(project_name)s (%(sign)s%(hours)sh)"
-msgstr ""
+msgstr "%(project_name)s (%(hours)s soat)"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -139,13 +139,6 @@ msgid "2 hours"
 msgstr "2 soat"
 
 #. module: hr_timesheet
-#: model_terms:digest.tip,tip_description:hr_timesheet.digest_tip_hr_timesheet_0
-#, fuzzy
-msgid "<b class=\"tip_title\">Tip: Record your Timesheets faster</b>"
-msgstr ""
-"<b class=\"tip_title\">Maslahat: Vaqt jadvallaringizni tezroq to‘ldiring</b>"
-
-#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_kanban_account_analytic_line
 #, fuzzy
 msgid ""
@@ -154,6 +147,22 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Sana\" "
 "title=\"Sana\"/>"
+
+#. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
+msgid ""
+"<i class=\"fa fa-fw o_button_icon fa-clock-o\" title=\"Timesheets\" "
+"invisible=\"stat_success_rate\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"success\" title=\"On Due\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt;= 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"warning\" title=\"Warning\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt; 100 or stat_success_rate &lt; 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"danger\" title=\"Over Due\" invisible=\"not stat_success_rate or "
+"stat_success_rate &lt;= 100\"/>"
+msgstr ""
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_task
@@ -167,22 +176,6 @@ msgstr "<i class=\"fa fa-print\"/> Tafsilotlarni ko‘rish"
 #, fuzzy
 msgid "<span class=\"o_stat_text\">Timesheets</span>"
 msgstr "<span class=\"o_stat_text\">Vaqt jadvallari</span>"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
-#, fuzzy
-msgid "<span class=\"text-nowrap\">Time Spent on Sub-tasks:</span>"
-msgstr ""
-"<span class=\"text-nowrap\">Qism vazifalar uchun sarflangan vaqt:</span>"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid ""
-"<span invisible=\"has_timesheet\">\n"
-"                        Are you sure you want to delete these employees?\n"
-"                    </span>"
-msgstr ""
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
@@ -227,31 +220,31 @@ msgid "<strong>Progress:</strong>"
 msgstr "<strong>Jarayon:</strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 #, fuzzy
 msgid "<strong>Time Remaining: </strong>"
 msgstr "<strong>Qolgan vaqt: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 #, fuzzy
 msgid "<strong>Time recorded on sub-tasks: </strong>"
 msgstr "<strong>Qism vazifalarda qayd etilgan vaqt: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 #, fuzzy
 msgid "<strong>Total Days: </strong>"
 msgstr "<strong>Jami kunlar: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 #, fuzzy
 msgid "<strong>Total Hours: </strong>"
 msgstr "<strong>Jami soatlar: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 #, fuzzy
 msgid "<strong>Total Time Spent: </strong>"
 msgstr "<strong>Jami sarflangan vaqt: </strong>"
@@ -336,12 +329,6 @@ msgid "Approver Reminder"
 msgstr "Tasdiqlovchiga eslatma"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-#, fuzzy
-msgid "Archive Employees"
-msgstr "Xodimlarni arxivlash"
-
-#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
 #, fuzzy
 msgid "Audrey Peterson"
@@ -392,11 +379,6 @@ msgstr "Loyihadagi hamkorlar ulashildi"
 
 #. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_res_company
-#, fuzzy
-msgid "Companies"
-msgstr "Kompaniyalar"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_timesheets_analysis_report__company_id
 #, fuzzy
 msgid "Company"
@@ -415,13 +397,6 @@ msgid "Configuration"
 msgstr "Konfiguratsiya"
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/hr_employee.py:0
-#, fuzzy
-msgid "Confirmation"
-msgstr "Tasdiqlash"
-
-#. module: hr_timesheet
 #: model:ir.model,website_form_label:hr_timesheet.model_project_task
 #, fuzzy
 msgid "Create a Task"
@@ -429,14 +404,12 @@ msgstr "Vazifa yaratish"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__create_uid
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__create_uid
 #, fuzzy
 msgid "Created by"
 msgstr "Yaratuvchi"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__create_date
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__create_date
 #, fuzzy
 msgid "Created on"
 msgstr "Yaratilgan sana"
@@ -494,18 +467,6 @@ msgstr ""
 "belgilang."
 
 #. module: hr_timesheet
-#: model:ir.actions.server,name:hr_timesheet.unlink_employee_action
-#, fuzzy
-msgid "Delete"
-msgstr "O‘chirish"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-#, fuzzy
-msgid "Delete Employee"
-msgstr "Xodimni o‘chirish"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_account_analytic_line__milestone_id
 #: model:ir.model.fields,help:hr_timesheet.field_timesheets_analysis_report__milestone_id
 #, fuzzy
@@ -541,17 +502,10 @@ msgid "Description"
 msgstr "Tavsif"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-#, fuzzy
-msgid "Discard"
-msgstr "Bekor qilish"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_applicability__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee__display_name
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_http__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_ui_menu__display_name
@@ -596,35 +550,15 @@ msgid "Employee"
 msgstr "Xodim"
 
 #. module: hr_timesheet
-#: model:ir.model,name:hr_timesheet.model_hr_employee_delete_wizard
-#, fuzzy
-msgid "Employee Delete Wizard"
-msgstr "Xodimni o‘chirish yordamchisi"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_res_config_settings__reminder_user_allow
 #, fuzzy
 msgid "Employee Reminder"
 msgstr "Xodimga eslatma"
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-#, fuzzy
-msgid "Employee Termination"
-msgstr "Xodimni ishdan bo‘shatish"
-
-#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_kanban_account_analytic_line
 msgid "Employee's image"
 msgstr ""
-
-#. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-#, fuzzy
-msgid "Employees' Timesheets"
-msgstr "Xodimlarning ish vaqti jadvallari"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_res_config_settings__timesheet_encode_method
@@ -633,8 +567,7 @@ msgid "Encoding Method"
 msgstr "Kodlash usuli"
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/project_project.py:0
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
 #, fuzzy
 msgid "Extra Time"
 msgstr "Qo‘shimcha vaqt"
@@ -676,7 +609,6 @@ msgstr "Soat / daqiqa"
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee__id
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_http__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_ui_menu__id
@@ -730,14 +662,12 @@ msgstr "O‘tgan chorak"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__write_uid
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__write_uid
 #, fuzzy
 msgid "Last Updated by"
 msgstr "Oxirgi yangilovchi"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__write_date
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__write_date
 #, fuzzy
 msgid "Last Updated on"
 msgstr "Oxirgi yangilangan sana"
@@ -875,10 +805,9 @@ msgstr ""
 "Ajratilgan soatlar sonidan sarflangan soatlar soni ayirilgandagi qoldiq."
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-#, fuzzy
-msgid "Ok"
-msgstr "OK"
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Overrun Hours"
+msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_project_task__overtime
@@ -909,11 +838,6 @@ msgstr "Hamkor"
 #, fuzzy
 msgid "Personal Filters on Employees for the Calendar view"
 msgstr "Taqvim ko‘rinishi uchun xodimlarga oid shaxsiy filtrlar"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Please first delete all of their timesheets."
-msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_uom_uom
@@ -984,14 +908,9 @@ msgid "Record a new activity"
 msgstr "Yangi faoliyatni qayd etish"
 
 #. module: hr_timesheet
-#: model_terms:digest.tip,tip_description:hr_timesheet.digest_tip_hr_timesheet_0
-#, fuzzy
-msgid ""
-"Record your timesheets in an instant by pressing Shift + the corresponding "
-"hotkey to add 15min to your projects."
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Remaining Hours"
 msgstr ""
-"Shift tugmasi va tegishli tezkor tugmani bosish orqali loyihalaringizga 15 "
-"daqiqa qo‘shib, ish vaqti jadvallaringizni zudlik bilan qayd eting."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_kanban_inherit_project_task_view_kanban
@@ -1019,7 +938,7 @@ msgid "Research and Development/New Portal System"
 msgstr "Ilmiy tadqiqot va ishlanmalar/Yangi portal tizimi"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_home_timesheet
+#: model:portal.entry,description:hr_timesheet.portal_timesheets
 #, fuzzy
 msgid "Review all timesheets related to your projects"
 msgstr "Loyihalaringizga oid barcha tabellarni ko‘rib chiqing"
@@ -1058,12 +977,6 @@ msgstr "Loyihadan qidirish"
 #, fuzzy
 msgid "Search in Task"
 msgstr "Vazifadan qidirish"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-#, fuzzy
-msgid "See Timesheets"
-msgstr "Tabellarni ko‘rish"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1158,7 +1071,8 @@ msgstr "Vazifalar tahlili"
 #: code:addons/hr_timesheet/models/res_company.py:0
 #, fuzzy
 msgid "The Internal Project of a company should be in that company."
-msgstr "Kompaniyaning ichki loyihasi o‘sha kompaniyaga tegishli bo‘lishi kerak."
+msgstr ""
+"Kompaniyaning ichki loyihasi o‘sha kompaniyaga tegishli bo‘lishi kerak."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1333,6 +1247,12 @@ msgid "Time Spent on Sub-tasks"
 msgstr "Quyi vazifalarga sarflangan vaqt"
 
 #. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Time Spent on Sub-tasks:"
+msgstr ""
+
+#. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task__subtask_effective_hours
 #, fuzzy
 msgid "Time spent on the sub-tasks (and their own sub-tasks) of this task."
@@ -1409,7 +1329,6 @@ msgstr "Tabel vaqti"
 #. module: hr_timesheet
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
-#: code:addons/hr_timesheet/models/project_project.py:0
 #: code:addons/hr_timesheet/models/project_task.py:0
 #: model:ir.actions.act_window,name:hr_timesheet.act_hr_timesheet_line_by_project
 #: model:ir.actions.act_window,name:hr_timesheet.timesheet_action_from_employee
@@ -1423,10 +1342,10 @@ msgstr "Tabel vaqti"
 #: model:ir.ui.menu,name:hr_timesheet.menu_hr_time_tracking
 #: model:ir.ui.menu,name:hr_timesheet.menu_timesheets_reports_timesheet
 #: model:ir.ui.menu,name:hr_timesheet.timesheet_menu_root
+#: model:portal.entry,name:hr_timesheet.portal_timesheets
 #: model:res.groups.privilege,name:hr_timesheet.res_groups_privilege_timesheets
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_department_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_layout
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_home_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_task
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_timesheets
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
@@ -1535,23 +1454,10 @@ msgstr ""
 
 #. module: hr_timesheet
 #. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-#, fuzzy
-msgid "Timesheets of %(name)s"
-msgstr "%(name)s ning vaqt jadvallari"
-
-#. module: hr_timesheet
-#. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 #, fuzzy
 msgid "Timesheets successfully created"
 msgstr "Vaqt jadvallari muvaffaqiyatli yaratildi"
-
-#. module: hr_timesheet
-#: model:digest.tip,name:hr_timesheet.digest_tip_hr_timesheet_0
-#, fuzzy
-msgid "Tip: Record your Timesheets faster"
-msgstr "Maslahat: Vaqt jadvallaringizni tezroq to‘ldiring"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1591,9 +1497,16 @@ msgstr "Jami ajratilgan vaqt"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
 #, fuzzy
 msgid "Total Days Spent"
 msgstr "Jami sarflangan kunlar"
+
+#. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Total Hours Spent"
+msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_project_task__total_hours_spent
@@ -1629,17 +1542,6 @@ msgstr ""
 #, fuzzy
 msgid "Training"
 msgstr "Ta'lim"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid ""
-"Uh-oh! The employee you’re trying to delete still has some timesheets "
-"hanging around and can’t be deleted.\n"
-"                        <span invisible=\"not has_active_employee\">\n"
-"                            So here are your two options: either delete "
-"those timesheets or consider archiving the employee instead.\n"
-"                        </span>"
-msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task__display_name
@@ -1709,13 +1611,6 @@ msgstr ""
 #, fuzzy
 msgid "You cannot access timesheets that are not yours."
 msgstr "O‘zingizniki bo‘lmagan vaqt jadvallariga kira olmaysiz."
-
-#. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/hr_employee.py:0
-#, fuzzy
-msgid "You cannot delete employees who have timesheets."
-msgstr "Vaqt jadvallari mavjud xodimlarni o‘chira olmaysiz."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
@@ -1790,11 +1685,3 @@ msgid ""
 "on\n"
 "                        <span class=\"fw-bold text-dark\"> Sub-tasks</span>)"
 msgstr "<span class=\"fw-bold text-dark\"> ichki vazifalar</span> bo‘yicha)"
-
-#, fuzzy
-#~ msgid "%(project_name)s (%(hours)sh%(minutes)s)"
-#~ msgstr "%(project_name)s (%(hours)s soat %(minutes)s daqiqa)"
-
-#, fuzzy
-#~ msgid "%(project_name)s (%(hours)sh)"
-#~ msgstr "%(project_name)s (%(hours)s soat)"

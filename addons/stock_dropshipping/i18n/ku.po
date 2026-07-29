@@ -1,16 +1,17 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* stock_dropshipping
+# * stock_dropshipping
 #
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:42+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Kurdish (Sorani) <https://translate.odoo.com/projects/odoo-19/"
-"stock_dropshipping/ckb/>\n"
+"POT-Creation-Date: 2026-01-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:42+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Kurdish (Sorani) <https://translate.odoo.com/projects/odoo-"
+"s19-2/stock_dropshipping/ckb/>\n"
 "Language: ku\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,8 +21,9 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_res_company
-msgid "Companies"
-msgstr ""
+#, fuzzy
+msgid "Company"
+msgstr "کۆمپانیا"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_product_product__display_name
@@ -71,8 +73,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_replenish_mixin__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_rule__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking__is_dropship
@@ -82,6 +85,11 @@ msgstr ""
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_lot
 msgid "Lot/Serial"
+msgstr ""
+
+#. module: stock_dropshipping
+#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
+msgid "Operation Category"
 msgstr ""
 
 #. module: stock_dropshipping
@@ -96,18 +104,21 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_product_product
+#, fuzzy
 msgid "Product Variant"
-msgstr ""
+msgstr "جۆری بەرهەم"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order
+#, fuzzy
 msgid "Purchase Order"
-msgstr ""
+msgstr "فەرمانی کڕین"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order_line
+#, fuzzy
 msgid "Purchase Order Line"
-msgstr ""
+msgstr "هێڵی داواکاری کڕین"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_sale_order
@@ -126,15 +137,12 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.stock_picking_type_kanban
+#, fuzzy
 msgid "To Validate"
-msgstr ""
+msgstr "بۆ چەسپاندن"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_picking
+#, fuzzy
 msgid "Transfer"
-msgstr ""
-
-#. module: stock_dropshipping
-#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr ""
+msgstr "گواستنەوە"

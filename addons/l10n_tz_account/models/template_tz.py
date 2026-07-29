@@ -31,7 +31,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'VAT_P_TAXABLE_18',
                 'expense_account_id': 'tz_510',
                 'income_account_id': 'tz_400',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'tz_172',
             },
         }

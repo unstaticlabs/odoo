@@ -7,24 +7,23 @@
 # Dung Nguyen Thi <dungnt@trobz.com>, 2022
 # Vo Thanh Thuy, 2022
 # Thi Huong Nguyen, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2026.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-29 11:16+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2026-02-14 12:16+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-1/"
 "sale_management/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -73,11 +72,17 @@ msgid "Archived"
 msgstr "Đã lưu trữ"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Công ty"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -154,14 +159,6 @@ msgid "Display Type"
 msgstr "Loại hiển thị"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"Không có quyền truy cập, bỏ qua dữ liệu này đối với email tóm tắt của người "
-"dùng"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -172,6 +169,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "Đặt thứ tự khi hiển thị danh sách chi tiết báo giá bán hàng."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -244,7 +253,7 @@ msgstr "Ghi chú"
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__number_of_days
 msgid "Number of days for the validity date computation of the quotation"
-msgstr "Số ngày để tính toán thời hạn hiệu lực của báo giá"
+msgstr "Số ngày để tính toán ngày hiệu lực của báo giá"
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__require_payment
@@ -265,7 +274,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -338,6 +347,12 @@ msgid "Quotation Validity"
 msgstr "Thời hạn hiệu lực báo giá"
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
+
+#. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
 msgid "Remove one"
 msgstr "Xóa một"
@@ -404,7 +419,7 @@ msgstr "Trình tự"
 #: code:addons/sale_management/static/src/fields/sale_order_line_field/sale_order_line_field.xml:0
 #: code:addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.xml:0
 msgid "Set Optional"
-msgstr "Đặt làm tuỳ chọn"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale1_management_0
@@ -419,6 +434,8 @@ msgstr ""
 "đây trở nên dễ dàng hơn và không gặp lỗi."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -512,22 +529,30 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
+"Mẫu của bạn thuộc về công ty %(template_company)s nhưng chứa các sản phẩm từ "
+"công ty (%(product_company)s) mà không thể truy cập được từ "
+"%(template_company)s.\n"
+"Vui lòng thay đổi công ty của mẫu hoặc xóa các sản phẩm từ các công ty khác."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
+"Mẫu của bạn thuộc về công ty %(template_company)s nhưng chứa các sản phẩm từ "
+"các công ty khác (%(product_company)s) mà không thể truy cập được từ "
+"%(template_company)s.\n"
+"Vui lòng thay đổi công ty của mẫu hoặc xóa các sản phẩm từ các công ty khác."
 
 #. module: sale_management
 #. odoo-python
@@ -547,135 +572,3 @@ msgstr "ngày"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "ví dụ: Gói tư vấn tiêu chuẩn"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Mẫu của bạn không thể chứa sản phẩm từ môi trường đa công ty."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Mẫu của bạn chứa các sản phẩm từ công ty %(product_company)s trong khi "
-#~ "mẫu này thuộc về công ty %(template_company)s. \n"
-#~ " Vui lòng thay đổi công ty của mẫu hoặc xóa sản phẩm từ các công ty khác."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "Bàn 4 chỗ ngồi"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Tùy chọn</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Thanh toán</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>Chữ ký</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Thêm vào giỏ hàng"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Thêm vào chi tiết đơn hàng"
-
-#~ msgid "Category"
-#~ msgstr "Danh mục"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Việc chuyển đổi qua lại giữa các Đơn vị tính chỉ có thể khả dụng nếu "
-#~ "chúng cùng loại. Việc chuyển đổi sẽ được thực hiện dựa trên tỉ lệ."
-
-#~ msgid "Disc.%"
-#~ msgstr "% CK"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Chiết khấu (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr "Đặt trình tự khi hiển thị danh sách sản phẩm tùy chọn. "
-
-#~ msgid "Group By"
-#~ msgstr "Nhóm theo"
-
-#~ msgid "Line"
-#~ msgstr "Dòng"
-
-#~ msgid "Office Chair"
-#~ msgstr "Ghế văn phòng"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Xác nhận online"
-
-#~ msgid "Optional Products"
-#~ msgstr "Sản phẩm tuỳ chọn"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Chi tiết sản phẩm tuỳ chọn"
-
-#~ msgid "Options"
-#~ msgstr "Tùy chọn"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Hiện trên báo giá"
-
-#~ msgid "Quantity:"
-#~ msgstr "Số lượng:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Trình tạo báo giá"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Tùy chọn mẫu báo giá"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Báo giá sẽ hết hạn sau"
-
-#~ msgid "Remove"
-#~ msgstr "Xóa"
-
-#~ msgid "Sale Options"
-#~ msgstr "Tùy chọn bán hàng"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Tham chiếu đơn bán hàng"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Chi tiết mẫu báo giá bán hàng"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Trường này sẽ được đánh dấu nếu sản phẩm của mục tùy chọn đã xuất hiện "
-#~ "trong báo giá. "
-
-#~ msgid "Unit Price"
-#~ msgstr "Đơn giá"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Đơn giá:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Đơn vị tính"
-
-#~ msgid "UoM"
-#~ msgstr "Đơn vị tính"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Bạn không thể thêm các tuỳ chọn cho một đơn hàng đã xác nhận."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Báo giá của bạn chứa các sản phẩm từ công ty %(product_company)s trong "
-#~ "khi báo giá của bạn thuộc về công ty %(quote_company)s. \n"
-#~ " Vui lòng thay đổi công ty trong báo giá của bạn hoặc xóa sản phẩm từ các "
-#~ "công ty khác (%(bad_products)s)."

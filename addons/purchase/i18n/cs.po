@@ -16,25 +16,25 @@
 # Petr Hemza, 2023
 # Jiří Podhorecký, 2023
 # SlavekB <slavek.banko@axis.cz>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 20:19+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/purchase/"
-"cs/>\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-01-15 20:34+0000\n"
+"Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-1/"
+"purchase/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: purchase
 #: model:ir.actions.report,print_report_name:purchase.action_report_purchase_order
@@ -137,57 +137,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Dobrý den <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</"
-"t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Zde je připomínka, že doručení objednávky <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            <span style=\"font-weight:bold;\">(<t t-out=\"object.partner_ref "
-"or ''\">REF_XXX</t>)</span>\n"
-"        </t>\n"
-"        je očekáváno na \n"
-"        <t t-if=\"object.date_planned\">\n"
-"            <span style=\"font-weight:bold;\" t-out=\"format_date"
-"(object.date_planned) or ''\">05/05/2021</span>.\n"
-"        </t>\n"
-"         <t t-else=\"\">\n"
-"            <span style=\"font-weight:bold;\">nedefinováno</span>.\n"
-"        </t>\n"
-"        Můžete prosím potvrdit, že bude doručena včas?\n"
-"        <br/><br/>\n"
-"        <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"            Potvrdit</a>\n"
-"        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase_done
@@ -222,57 +180,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Dobrý den <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</"
-"t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Zde je v příloze nákupní objednávka <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            s referenčním číslem: <t t-out=\"object.partner_ref or ''\">"
-"REF_XXX</t>\n"
-"        </t>\n"
-"        ve výši <span style=\"font-weight:bold;\" t-out=\"format_amount"
-"(object.amount_total, object.currency_id) or ''\">$ 10.00</span>\n"
-"        od <t t-out=\"object.company_id.name or ''\">YourCompany</t>. \n"
-"        <br/><br/>\n"
-"        <t t-if=\"object.date_planned\">\n"
-"            Doučení je očekáváno <span style=\"font-weight:bold;\" t-"
-"out=\"format_date(object.date_planned) or ''\">05/05/2021</span>.\n"
-"            <br/><br/>\n"
-"            Můžete prosím potvrdit přijetí této objednávky?\n"
-"            <br/><br/>\n"
-"            <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"                Potvrdit</a>\n"
-"        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase
@@ -296,12 +212,10 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
@@ -390,10 +304,10 @@ msgid ""
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Purchase Order </span>"
 msgstr ""
-"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')\">"
-"Žádost o cenovou nabídku</span>\n"
-"<span class=\"o_form_label\" invisible=\"state in ('draft', 'sent')\">"
-"Nákupní objednávka</span>"
+"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')"
+"\">Žádost o cenovou nabídku</span>\n"
+"<span class=\"o_form_label\" invisible=\"state in ('draft', 'sent')"
+"\">Nákupní objednávka</span>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -415,6 +329,15 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Zakoupeno</span>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
@@ -456,6 +379,11 @@ msgstr "<strong class=\"d-block mb-1\">Z:</strong>"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Faktury</strong>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -643,6 +571,11 @@ msgstr "Aktivity"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Typ výjimečné aktivity"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -869,12 +802,6 @@ msgid "Auto-Complete"
 msgstr "Automatické doplnění"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Automatické dokončování"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
@@ -1045,10 +972,6 @@ msgstr "Historie komunikace"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Společnosti"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1102,17 +1025,11 @@ msgid "Confirm your purchase."
 msgstr "Potvrďte svůj nákup."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Datum potvrzení"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr "Datum potvrzení v loňském roce"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1208,7 +1125,7 @@ msgstr "URL zákaznického portálu"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
 msgid "Date"
-msgstr "Datum"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1283,15 +1200,6 @@ msgstr ""
 "ceníku dodavatele než dnešní datum."
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Dodací lhůta slíbená prodejcem. Toto datum se používá k určení očekávaného "
-"příjezdu produktů."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 msgid ""
@@ -1323,6 +1231,12 @@ msgid "Discount:"
 msgstr "Sleva:"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_applicability__display_name
 #: model:ir.model.fields,field_description:purchase.field_account_move__display_name
@@ -1342,7 +1256,7 @@ msgstr "Sleva:"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:purchase.field_res_partner__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__display_type
@@ -1410,6 +1324,12 @@ msgid "Expected Arrival"
 msgstr "Očekávaný příjezd"
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Extra line with %s "
@@ -1422,12 +1342,12 @@ msgid "Fiscal Position"
 msgstr "Fiskální pozice"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr "Sledujte své objednávky k vyřízení"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr "Sledujte všechny své Žádosti o nabídku (RFQ)"
 
@@ -1467,6 +1387,11 @@ msgstr "Z elektronického dokumentu"
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__invoice_status__invoiced
 msgid "Fully Billed"
 msgstr "Plně fakturováno"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1771,6 +1696,11 @@ msgid "Line Uom"
 msgstr ""
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Lock"
 msgstr "Zamknout"
@@ -2036,6 +1966,11 @@ msgid "Not Acknowledged"
 msgstr "Není potvrzeno"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 msgid "Not using Odoo?"
 msgstr ""
@@ -2136,25 +2071,27 @@ msgid "Order"
 msgstr "Objednávka"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
 msgstr "Datum objednání"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
-msgstr "datum objednání: Za posledních 365 dní"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
 msgstr "Termín objednávky"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2187,17 +2124,22 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Jiné informace"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr "Naše objednávky"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
 msgstr ""
 
 #. module: purchase
@@ -2351,7 +2293,6 @@ msgstr "Poskytněte mechanismus dvojitého ověřování nákupů"
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Nákup"
@@ -2360,6 +2301,11 @@ msgstr "Nákup"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Nákupní smlouvy"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2525,6 +2471,12 @@ msgid "Purchase Report"
 msgstr "Výkaz nákupů"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2574,15 +2526,19 @@ msgstr "Nákup: Připomenutí prodejce"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Zakoupeno"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Zakoupeno za posledních 365 dní"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2595,7 +2551,7 @@ msgstr "Nákup"
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
 msgid "Purchases & Bills Union"
-msgstr "Párování nákupů a přijatých faktur"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -2704,6 +2660,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr "Připomenutí příjmu"
 
@@ -2711,6 +2668,17 @@ msgstr "Připomenutí příjmu"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
 msgstr "E-mail s připomenutím přijetí"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -2757,10 +2725,10 @@ msgstr "Reference"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
 msgid "Reference Document"
-msgstr "Referenční dokument"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Doporučená měrná jednotka"
 
@@ -2822,8 +2790,8 @@ msgstr "Žádosti o nabídku"
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
 msgstr "Nákupní požadavky"
@@ -2866,7 +2834,7 @@ msgstr "Hledat objednávku"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
 msgid "Search Reference Document"
-msgstr "Vyhledat referenční dokument"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2937,6 +2905,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr "Odeslání e-mailu s automatickým připomenutím k potvrzení doručení"
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Send the request for quotation to your vendor."
@@ -2992,10 +2965,15 @@ msgid "Show Comparison"
 msgstr ""
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Show all records whose next activity date is past"
-msgstr "Zobrazit všechny záznamy, jejichž datum další aktivity již uplynulo"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3191,6 +3169,14 @@ msgid "The Price of one unit of the product's Unit of Measure"
 msgstr ""
 
 #. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 msgid ""
 "The request for quotation is the first step of the purchases flow. Once\n"
@@ -3380,7 +3366,7 @@ msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
 msgstr "Jednotka"
 
@@ -3493,7 +3479,7 @@ msgstr "Dodavatel"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
 msgid "Vendor Bill"
-msgstr "Přijatá faktura"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3710,6 +3696,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "day(s) before"
 msgstr "den (dny)"
 
@@ -3734,6 +3725,11 @@ msgstr ""
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
 msgstr "partner_id"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3765,6 +3761,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr ""
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3777,344 +3778,3 @@ msgstr "s"
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr ""
 "{{ object.company_id.name }} Objednávka (Ref {{ object.name or 'n/a' }})"
-
-#~ msgid "%(amount)s due %(date)s"
-#~ msgstr "%(amount)s splatné do %(date)s"
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> Poslat zprávu"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/>Stáhnout "
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/> <b>Zaplaceno</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>Čekání na platbu</b>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Tisk"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Request for Quotation </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Purchase Order "
-#~ "</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Žádost o cenovou nabídku </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Nákupní "
-#~ "objednávka </span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(potvrzeno prodejcem)</span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(potvrzeno prodejcem)</span>"
-
-#~ msgid "<strong class=\"text-muted\">Purchase Representative</strong>"
-#~ msgstr "<strong class=\"text-muted\">Zástupce nákupu</strong>"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Datum požadavku</strong>"
-
-#~ msgid "<strong>Purchase Representative:</strong>"
-#~ msgstr "<strong>Zástupce nákupu:</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Dodací adresa:</strong>"
-
-#~ msgid "<strong>Your Order Reference:</strong>"
-#~ msgstr "<strong>Referenční číslo vaší objednávky:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Skladovatelný produkt je výrobek, pro který spravujete sklad. Musí být "
-#~ "nainstalována aplikace Inventory. \n"
-#~ "Spotřební materiál je výrobek, pro který není spravován sklad.\n"
-#~ "Služba je nehmotný produkt, který poskytujete."
-
-#~ msgid "Accept"
-#~ msgstr "Přijmout"
-
-#~ msgid "All RFQs"
-#~ msgstr "Všechny RFQ"
-
-#~ msgid "All Waiting RFQs"
-#~ msgstr "Všechny čekající RFQ"
-
-#~ msgid "Auto-complete from a past bill / purchase order."
-#~ msgstr "Automatické dokončování z minulé faktury / objednávky."
-
-#~ msgid "Bill Control"
-#~ msgstr "Kontrola fakturace"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Blokující zpráva"
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "Nelze odstranit řádek objednávky, který je ve stavu '%s'."
-
-#~ msgid "Category"
-#~ msgstr "Kategorie"
-
-#~ msgid "Confirm"
-#~ msgstr "Potvrdit"
-
-#~ msgid "Confirm Receipt Date"
-#~ msgstr "Potvrďte datum přijetí"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Převod mezi měrnými jednotkami lze uskutečnit jen když patří do stejné "
-#~ "kategorie. Převod bude proveden na základě vzájemných poměrů."
-
-#~ msgid "Create Bill"
-#~ msgstr "Vytvořit fakturu"
-
-#~ msgid "Create Vendor Bills"
-#~ msgstr "Vytvořte dodavatelské faktury"
-
-#~ msgid "Days"
-#~ msgstr "Dny"
-
-#~ msgid "Done"
-#~ msgstr "Hotovo"
-
-#~ msgid "Download"
-#~ msgstr "Stáhnout"
-
-#~ msgid "Draft RFQs"
-#~ msgstr "Návrhy RFQ"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Průvodce sestavením e-mailu"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Rozšířené filtry"
-
-#~ msgid "Group By"
-#~ msgstr "Seskupit podle"
-
-#~ msgid "History"
-#~ msgstr "Historie"
-
-#~ msgid "Late RFQs"
-#~ msgstr "Pozdní RFQ"
-
-#~ msgid "Lead Time to Purchase"
-#~ msgstr "Dodací lhůta k nákupu"
-
-#~ msgid "Manage your purchase agreements (call for tenders, blanket orders)"
-#~ msgstr ""
-#~ "Spravujte své nákupní smlouvy (výzva k podávání nabídek, hromadné "
-#~ "objednávky)"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Hranice chyby pro dodací lhůty dodavatele. Když systém generuje nákupní "
-#~ "objednávky pro získání produktů, tak bude plánováno, před kolika dny se "
-#~ "budou vyrovnávat s neočekávaným zpožděním dodavatele."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Rozpětí chyby pro dodací lhůty dodavatele. Když systém vygeneruje nákupní "
-#~ "objednávky pro změnu pořadí produktů, bude naplánováno, že o mnoho dní "
-#~ "dříve se vypořádají s neočekávanými prodlevami dodavatele."
-
-#~ msgid "My RFQs"
-#~ msgstr "Moje žádosti o nabídku"
-
-#~ msgid "No Message"
-#~ msgstr "Žádná zpráva"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet zpráv, které vyžadují akci"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Objednané množství"
-
-#~ msgid "Packaging"
-#~ msgstr "Balení"
-
-#~ msgid "Packaging Quantity"
-#~ msgstr "Množství balení"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Tisk RFQ"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Vlastnosti výrobku"
-
-#~ msgid "Product Categories"
-#~ msgstr "Kategorie produktů"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Balení produktu"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Čekací čas nákupu"
-
-#~ msgid "Purchase Order Line Warning"
-#~ msgstr "Varování na řádku nákupní objednávky"
-
-#~ msgid "Purchase Representative"
-#~ msgstr "Nákupčí"
-
-#~ msgid "Quantities billed by vendors"
-#~ msgstr "Množství vyúčtované dodavateli"
-
-#~ msgid "RFQ Done"
-#~ msgstr "RFQ Hotovo"
-
-#~ msgid "RFQs"
-#~ msgstr "RFQs"
-
-#~ msgid "RFQs Sent Last 7 Days"
-#~ msgstr "Žádosti o nabídku odeslané posledních 7 dní"
-
-#~ msgid "Ratio between the purchase order currency and the company currency"
-#~ msgstr "Poměr mezi měnou nákupní objednávky a měnou společnosti"
-
-#~ msgid "Re-Send by Email"
-#~ msgstr "Znovu odeslat e-mailem"
-
-#~ msgid "Received quantities"
-#~ msgstr "Přijatá množství"
-
-#~ msgid "Reception Confirmed"
-#~ msgstr "Příjem potvrzen"
-
-#~ msgid "Reminder Confirmed"
-#~ msgstr "Připomenutí potvrzeno"
-
-#~ msgid "Security Lead Time for Purchase"
-#~ msgstr "Dodací lhůta pro zabezpečení nákupu"
-
-#~ msgid "Select a purchase order or an old bill"
-#~ msgstr "Vyberte nákupní objednávku nebo starý účet"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "Výběr položky \"Varování\" pošle oznámení uživateli, výběrem \"Blokující "
-#~ "zpráva\" vyvoláte výjimku s oznámením a zastavíte provádění. Zpráva musí "
-#~ "být napsána v následujícícm poli."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "Poslat objednávku emailem"
-
-#~ msgid "Send by Email"
-#~ msgstr "Odeslat e-mailem"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Zobrazit všechny záznamy, které mají následující datum akce před dneškem"
-
-#~ msgid "Source Document"
-#~ msgstr "Zdrojový dokument"
-
-#~ msgid ""
-#~ "There is no invoiceable line. If a product has a control policy based on "
-#~ "received quantity, please make sure that a quantity has been received."
-#~ msgstr ""
-#~ "Neexistuje žádný fakturovatelný řádek. Pokud má produkt zásady kontroly "
-#~ "založené na přijatém množství, ujistěte se, že bylo přijato určité "
-#~ "množství."
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "Tato měna bude místo výchozí měny použita pro nákupy od současného "
-#~ "partnera"
-
-#~ msgid ""
-#~ "This default value is applied to any new product created. This can be "
-#~ "changed in the product detail form."
-#~ msgstr ""
-#~ "Tato výchozí hodnota se použije na jakýkoli nový vytvořený produkt. To "
-#~ "lze změnit ve formuláři podrobností o produktu."
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Tento účet dodavatele byl vytvořen z: %s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr "Tento účet dodavatele byl změněn z: %s"
-
-#~ msgid "To Send"
-#~ msgstr "Poslat"
-
-#~ msgid "True if PO reception is confirmed by the vendor."
-#~ msgstr "Je pravda, pokud je příjem objednávky potvrzen prodejcem."
-
-#~ msgid "True if the reminder email is confirmed by the vendor."
-#~ msgstr "Platí, pokud je e-mail s připomenutím potvrzen prodejcem."
-
-#~ msgid ""
-#~ "Unable to cancel this purchase order. You must first cancel the related "
-#~ "vendor bills."
-#~ msgstr ""
-#~ "Tuto objednávku nelze zrušit. Nejprve musíte zrušit související faktury "
-#~ "dodavatele."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Měrná jednotka"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Měrné jednotky"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Kategorie měrných jednotek"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Měrné jednotky"
-
-#~ msgid "UoM"
-#~ msgstr "UoM"
-
-#~ msgid "Waiting"
-#~ msgstr "Čekající"
-
-#~ msgid "Waiting RFQs"
-#~ msgstr "Čekání na RFQ"
-
-#~ msgid "Warning"
-#~ msgstr "Varování"
-
-#~ msgid "Warning for %s"
-#~ msgstr "Upozornění na %s"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Upozornění na nákupním příkazu"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Upozornění pro nákup tohoto produktu"
-
-#~ msgid "close"
-#~ msgstr "zavřít"

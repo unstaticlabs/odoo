@@ -1,10 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from freezegun import freeze_time
 from psycopg2.errors import IntegrityError
-from pytz import timezone
 
 from odoo import Command, fields
 from odoo.exceptions import UserError
@@ -74,7 +73,7 @@ class TestPurchase(AccountTestInvoicingCommon):
                 'name': self.product_a.name,
                 'product_id': self.product_a.id,
                 'product_uom_qty': 10,
-                'product_uom_id': self.product_a.uom_id.id,
+                'uom_id': self.product_a.uom_id.id,
                 'price_unit': 1,
             })],
         })
@@ -156,7 +155,7 @@ class TestPurchase(AccountTestInvoicingCommon):
 
         # check date_planned is correctly set
         self.assertEqual(po.date_planned, date_planned)
-        po_tz = timezone(po.user_id.tz)
+        po_tz = ZoneInfo(po.user_id.tz)
         localized_date_planned = po.date_planned.astimezone(po_tz)
         self.assertEqual(localized_date_planned, po.get_localized_date_planned())
         # Ensure that the function get_localized_date_planned can accept a date in string format
@@ -247,7 +246,7 @@ class TestPurchase(AccountTestInvoicingCommon):
 
     def test_with_different_uom(self):
         """ This test ensures that the unit price is correctly computed"""
-        # Required for `product_uom_id` to be visibile in the view
+        # Required for `uom_id` to be visibile in the view
         self.env.user.group_ids += self.env.ref('uom.group_uom')
         uom_units = self.env.ref('uom.product_uom_unit')
         uom_dozens = self.env.ref('uom.product_uom_dozen')
@@ -262,7 +261,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'uom_id': uom_units.id,
             'seller_ids': [Command.create({
                 'partner_id': self.partner_a.id,
-                'product_uom_id': uom_pairs.id,
+                'uom_id': uom_pairs.id,
                 'price': 200,
             })]
         }
@@ -275,7 +274,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             po_line.product_id = product_01
         with po_form.order_line.new() as po_line:
             po_line.product_id = product_02
-            po_line.product_uom_id = uom_dozens
+            po_line.uom_id = uom_dozens
         po = po_form.save()
 
         self.assertEqual(po.order_line[0].price_unit, 200)
@@ -290,8 +289,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'type': 'consu',
             'seller_ids': [Command.create({
                 'partner_id': self.partner_a.id,
-                'product_uom_id': uom_dozens.id,
-                'price': 1200,
+                'price': 100,
             })]
         }
         product = self.env['product.product'].create(product_data)
@@ -300,7 +298,7 @@ class TestPurchase(AccountTestInvoicingCommon):
         po_form.partner_id = self.partner_a
         with po_form.order_line.new() as po_line:
             po_line.product_id = product
-            po_line.product_uom_id = uom_dozens
+            po_line.uom_id = uom_dozens
             po_line.product_qty = 2
         po = po_form.save()
 
@@ -409,7 +407,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'order_line': [(0, 0, {
                 'product_id': product_b.id,
                 'product_qty': 1,
-                'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                'uom_id': self.env.ref('uom.product_uom_unit').id,
             })],
         })
 
@@ -446,7 +444,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'order_line': [Command.create({
                 'product_id': product.id,
-                'product_uom_id': product.uom_id.id,
+                'uom_id': product.uom_id.id,
             })],
         })
         po_line = purchase_order.order_line
@@ -517,7 +515,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'order_line': [(0, 0, {
                 'product_id': product.id,
                 'product_qty': 1,
-                'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                'uom_id': self.env.ref('uom.product_uom_unit').id,
                 'price_unit': 1,
             })],
         }).button_confirm()
@@ -531,7 +529,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'order_line': [(0, 0, {
                 'product_id': product.id,
                 'product_qty': 1,
-                'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                'uom_id': self.env.ref('uom.product_uom_unit').id,
                 'price_unit': 2,
             })],
         }).button_confirm()
@@ -958,7 +956,6 @@ class TestPurchase(AccountTestInvoicingCommon):
         """
         company_partner = self.env['res.partner'].create({
             'name': 'Small Company',
-            'company_type': 'company',
         })
         self.partner_a.parent_id = company_partner
         purchase_order = self.env['purchase.order'].create({
@@ -1046,12 +1043,12 @@ class TestPurchase(AccountTestInvoicingCommon):
             'uom_id': self.env.ref('uom.product_uom_unit').id,
             'seller_ids': [Command.create({
                 'partner_id': self.partner_a.id,
-                'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                'uom_id': self.env.ref('uom.product_uom_unit').id,
                 'price': 1,
             }),
             Command.create({
                 'partner_id': self.partner_a.id,
-                'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
+                'uom_id': self.env.ref('uom.product_uom_pack_6').id,
                 'min_qty': 2,
                 'price': 5,
             })],
@@ -1062,12 +1059,12 @@ class TestPurchase(AccountTestInvoicingCommon):
             'order_line': [Command.create({
                 'product_id': fuzzy_drink.id,
                 'product_qty': 15,
-                'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                'uom_id': self.env.ref('uom.product_uom_unit').id,
             })],
         })
         self.assertEqual(po.order_line.price_unit, 1)
         po.order_line.product_qty = 1
-        po.order_line.product_uom_id = self.env.ref('uom.product_uom_pack_6')
+        po.order_line.uom_id = self.env.ref('uom.product_uom_pack_6')
         self.assertEqual(po.order_line.price_unit, 6)
         po.order_line.product_qty = 2
         self.assertEqual(po.order_line.price_unit, 5)
@@ -1210,7 +1207,6 @@ class TestPurchase(AccountTestInvoicingCommon):
     def test_purchase_order_line_without_uom(self):
         uom_test = self.env['uom.uom'].create({
             'name': 'Test Uom',
-            'rounding': 1.0,
         })
 
         po = self.env['purchase.order'].create({
@@ -1219,14 +1215,14 @@ class TestPurchase(AccountTestInvoicingCommon):
                 (0, 0, {
                     'product_id': self.product_a.id,
                     'product_qty': 1.0,
-                    'product_uom_id': uom_test.id,
+                    'uom_id': uom_test.id,
                 })],
         })
 
         with (self.assertRaises(IntegrityError), self.cr.savepoint(), mute_logger("odoo.sql_db")):
             uom_test.unlink()
 
-        self.assertEqual(po.order_line[0].product_uom_id, uom_test)
+        self.assertEqual(po.order_line[0].uom_id, uom_test)
 
     def test_locked_purchase_order_cannot_cancel(self):
         """Test that a locked purchase order cannot be cancelled.
@@ -1356,7 +1352,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'product_tmpl_id': product_template.id,
             'product_id': variant_red.id,
-            'product_uom_id': self.uom_dozen.id,
+            'uom_id': self.uom_dozen.id,
             'min_qty': 1,
             'price': 120,
         })
@@ -1368,7 +1364,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             line.product_id = variant_red
         po = po_form.save()
         po_line_red = po.order_line
-        self.assertEqual(po_line_red.product_uom_id, self.uom_dozen,
+        self.assertEqual(po_line_red.uom_id, self.uom_dozen,
             "The UoM of the PO line for the Red variant should match the supplier info UoM (dozens).")
         self.assertEqual(po_line_red.price_unit, 120,
             "The price from the supplier info should be applied on the Red variant PO line.")
@@ -1380,10 +1376,28 @@ class TestPurchase(AccountTestInvoicingCommon):
             line.product_id = variant_blue
         po2 = po_form2.save()
         po_line_blue = po2.order_line
-        self.assertNotEqual(po_line_blue.product_uom_id, self.uom_dozen,
+        self.assertNotEqual(po_line_blue.uom_id, self.uom_dozen,
             "The UoM of the PO line for the Blue variant should not be the supplier info UoM (dozens) tied to Red.")
         self.assertNotIn(self.uom_dozen, po_line_blue.allowed_uom_ids,
             "The dozens UoM should not be allowed for the Blue variant since the supplier info is specific to Red.")
+
+    def test_action_receive_on_purchase_order_with_stock_installed(self):
+        """Verify that calling action_receive on a purchase order
+        while the stock module is installed raises a UserError,
+        and the received quantity remains zero.
+        """
+        self.ensure_installed('stock')
+        po = self.env['purchase.order'].create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': self.product.id,
+                'product_qty': 1,
+            })],
+        })
+        po.button_confirm()
+        with self.assertRaises(UserError):
+            po.action_receive()
+        self.assertEqual(po.order_line.qty_received, 0)
 
     @freeze_time('2026-05-12 20:00:00')
     def test_supplierinfo_date_timezone_aware(self):
@@ -1426,6 +1440,28 @@ class TestPurchase(AccountTestInvoicingCommon):
 
         self.assertEqual(
             po.order_line.price_unit, 50.0,
-            "The price should come from the May 13–31 entry, not the "
-            "May 1–12 entry that matches the wrong UTC date.",
+            "The price should come from the May 13-31 entry, not the "
+            "May 1-12 entry that matches the wrong UTC date.",
         )
+
+
+@tagged('at_install', '-post_install')
+class TestPurchaseWithoutStock(AccountTestInvoicingCommon):
+
+    def test_qty_received_with_different_purchase_and_product_uom(self):
+        """Ensure that when a purchase order line uses a UoM different from the
+        product's default UoM (e.g. dozens instead of units), the received
+        quantity reflect the purchase UoM and ahquantity, not the product UoM quantity.
+        """
+        self.assertEqual(self.product.uom_id, self.env.ref('uom.product_uom_unit'))
+        po = self.env['purchase.order'].create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': self.product.id,
+                'product_qty': 1,
+                'uom_id': self.env.ref('uom.product_uom_dozen').id,
+            })],
+        })
+        po.button_confirm()
+        po.action_receive()
+        self.assertEqual(po.order_line.qty_received, 1)

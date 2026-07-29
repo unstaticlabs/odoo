@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
-from psycopg2 import OperationalError
-from pytz import timezone
-from werkzeug.urls import url_quote_plus, url_encode
-
 import hashlib
+import json
 import logging
 import math
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import requests.exceptions
-import json
+from psycopg2 import OperationalError
+from werkzeug.urls import url_quote_plus, url_encode
 
 from odoo import _, api, fields, models
 from odoo.addons.certificate.tools import CertificateAdapter
@@ -547,7 +547,7 @@ class L10nEsEdiVerifactuDocument(models.Model):
             'previous_record_identifier': previous_record_identifier,
         }
 
-        generation_time_string = fields.Datetime.now(timezone('Europe/Madrid')).astimezone(timezone('Europe/Madrid')).isoformat()
+        generation_time_string = fields.Datetime.now(ZoneInfo('Europe/Madrid')).astimezone(ZoneInfo('Europe/Madrid')).isoformat()
 
         record_type_vals = {
             'IDVersion': VERIFACTU_VERSION,
@@ -799,7 +799,7 @@ class L10nEsEdiVerifactuDocument(models.Model):
 
     @api.model
     def _get_db_identifier(self):
-        database_uuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        database_uuid = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
         return _sha256(database_uuid)
 
     @api.model

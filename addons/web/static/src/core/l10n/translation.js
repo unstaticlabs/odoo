@@ -1,6 +1,5 @@
 import { formatList } from "@web/core/l10n/utils";
 import { isIterable } from "@web/core/utils/arrays";
-import { Deferred } from "@web/core/utils/concurrency";
 import { htmlSprintf, isMarkup } from "@web/core/utils/html";
 import { mapSubstitutions, sprintf } from "@web/core/utils/strings";
 
@@ -188,4 +187,5 @@ export const translatedTerms = {
  * found within the module's context, or when the context is not known.
  */
 export const translatedTermsGlobal = Object.create(null);
-export const translationIsReady = new Deferred();
+export const translationResolvers = Promise.withResolvers();
+export const translationIsReady = translationResolvers.promise;

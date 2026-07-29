@@ -15,5 +15,6 @@ test("Icon styles should be retained when it is replaced with another icon", asy
     await dblclick(":iframe .fa");
     await animationFrame();
     await click(".fa-heart");
+    await animationFrame();
     expect(":iframe .fa-heart").toHaveClass(extractClasses);
 });

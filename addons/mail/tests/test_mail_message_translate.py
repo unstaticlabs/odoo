@@ -1,13 +1,15 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
-import requests
 from http import HTTPStatus
 from unittest.mock import patch
 
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
+import requests
+
 from odoo.tests.common import JsonRpcException, new_test_user, tagged
 from odoo.tools import mute_logger
+
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 
 SAMPLE = {
     "text": "<p>Al mal tiempo, buena cara.</p>",
@@ -37,7 +39,7 @@ def mock_response(fun):
 
 
 # Google Cloud Translation Documentation: https://cloud.google.com/translate/docs/reference/api-overview?hl=en
-@tagged("post_install", "-at_install", "mail_message")
+@tagged("mail_message")
 class TestTranslationController(HttpCaseWithUserDemo):
     @classmethod
     def setUpClass(cls):
@@ -46,7 +48,8 @@ class TestTranslationController(HttpCaseWithUserDemo):
         cls.env["res.lang"]._activate_lang("en_US")
         cls.env.ref("base.user_admin").write({"lang": "fr_FR"})
         cls.api_key = "VALIDKEY"
-        cls.env["ir.config_parameter"].set_param("mail.google_translate_api_key", cls.api_key)
+        cls.env["ir.config_parameter"].set_bool("mail.use_google_translate_api", True)
+        cls.env["ir.config_parameter"].set_str("mail.google_translate_api_key", cls.api_key)
         cls.message = cls.env["mail.message"].create(
             {
                 "body": SAMPLE["text"],
@@ -109,7 +112,7 @@ class TestTranslationController(HttpCaseWithUserDemo):
         self.assertEqual(self.request_count, 3)
 
     def test_invalid_api_key(self):
-        self.env["ir.config_parameter"].set_param("mail.google_translate_api_key", "INVALIDKEY")
+        self.env["ir.config_parameter"].set_str("mail.google_translate_api_key", "INVALIDKEY")
         self.authenticate("demo", "demo")
         result = self._mock_translation_request({"message_id": self.message.id})
         self.assertNotIn("body", result)
@@ -128,7 +131,7 @@ class TestTranslationController(HttpCaseWithUserDemo):
         self.assertHTMLEqual(translation.body, "<p>Bij slecht weer, goed gezicht.</p>")
 
     def test_access_right(self):
-        with self.assertRaises(JsonRpcException, msg="odoo.http.SessionExpiredException"):
+        with self.assertRaises(JsonRpcException, msg="odoo.http.session.SessionExpiredException"):
             self._mock_translation_request({"message_id": self.message.id})
         new_test_user(self.env, "user_test_portal", groups="base.group_portal", lang="fr_FR")
         self.authenticate("user_test_portal", "user_test_portal")

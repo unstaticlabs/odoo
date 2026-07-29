@@ -1,9 +1,9 @@
 import base64
 import io
-import threading
 from collections import OrderedDict
 from datetime import date, datetime
 from unittest.mock import patch
+from contextlib import contextmanager
 
 import psycopg2
 from PIL import Image
@@ -11,16 +11,17 @@ from PIL import Image
 from odoo import Command, fields, models
 from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tests import Form, TransactionCase, tagged, users
+from odoo.tests import TransactionCase, tagged, users
 from odoo.tools import float_repr, mute_logger
 from odoo.tools.image import image_data_uri
 
 from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
+from odoo.addons.base.tests.files import SVG_B64, ZIP_RAW
 from odoo.addons.base.tests.test_expression import TransactionExpressionCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
-
     def setUp(self):
         # for tests methods that create custom models/fields
         self.addCleanup(self.registry.reset_changes)
@@ -425,10 +426,10 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         users = (user1 + user2 + user3).with_user(self.user_demo)
         user1, user2, user3 = users
         # regression test: a bug invalidated the field's value from cache
-        user1.company_type
+        user1.vat
         with self.assertRaises(AccessError):
-            user2.company_type
-        user3.company_type
+            user2.vat
+        user3.vat
 
     def test_12_recursive(self):
         """ test recursively dependent fields """
@@ -603,7 +604,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         self.assertEqual(self.registry.field_depends[Model.full_name], ())
 
         # the dependencies of full_name are stored in a config parameter
-        self.env['ir.config_parameter'].set_param('test_orm.full_name', 'name1,name2')
+        self.env['ir.config_parameter'].set_str('test_orm.full_name', 'name1,name2')
 
         # this must re-evaluate the field's dependencies
         self.env.flush_all()
@@ -1080,33 +1081,6 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
             for record in records:
                 self.check_monetary(record, amount, currency, 'multi write(amount)')
 
-    def test_20_monetary_opw_2223134(self):
-        """ test monetary fields with cache override """
-        model = self.env['test_orm.monetary_order']
-        currency = self.env.ref('base.USD')
-
-        def check(value):
-            self.assertEqual(record.total, value)
-            self.env.flush_all()
-            self.cr.execute('SELECT total FROM test_orm_monetary_order WHERE id=%s', [record.id])
-            [total] = self.cr.fetchone()
-            self.assertEqual(total, value)
-
-        # create, and compute amount
-        record = model.create({
-            'currency_id': currency.id,
-            'line_ids': [Command.create({'subtotal': 1.0})],
-        })
-        check(1.0)
-
-        # delete and add a line: the deletion of the line clears the cache, then
-        # the recomputation of 'total' must prefetch record.currency_id without
-        # screwing up the new value in cache
-        record.write({
-            'line_ids': [Command.delete(record.line_ids.id), Command.create({'subtotal': 1.0})],
-        })
-        check(1.0)
-
     def test_20_monetary_related(self):
         """ test value rounding with related currency """
         currency = self.env.ref('base.USD')
@@ -1391,6 +1365,45 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         record.write({'related_related_name': 'C'})
         self.assertEqual(record.name, 'C')
 
+    def test_25_related_sudo(self):
+        model = self.env['test_orm.related'].with_user(self.env.ref('base.user_admin'))
+        bar1 = self.env['test_orm.related_bar'].create({'name': 'B1'})
+        bar2 = self.env['test_orm.related_bar'].create({'name': 'B2'})
+        foo1 = self.env['test_orm.related_foo'].create({'name': 'F1', 'bar_id': bar1.id})
+        foo2 = self.env['test_orm.related_foo'].create({'name': 'F2', 'bar_id': bar2.id})
+        record1 = model.create({'name': 'A1', 'foo_id': foo1.id})
+        record2 = model.create({'name': 'A2', 'foo_id': foo2.id})
+        self.env['ir.rule'].create({
+            'name': 'related_foo',
+            'model_id': self.env['ir.model']._get('test_orm.related_foo').id,
+            'domain_force': f"[('id', '=', {foo1.id})]",
+        })
+
+        # check access to fields
+        self.env.invalidate_all()
+        self.assertEqual(record1.foo_bar_name, 'B1')
+        with self.assertRaises(AccessError):
+            record2.foo_bar_name
+        self.assertEqual(record2.foo_bar_name_sudo, 'B2')
+
+        # check environment of generated queries
+        table = record1._as_query().table
+        self.assertFalse(table._model.env.su)
+        self.assertFalse(table.foo_bar_name._table._model.env.su)
+        self.assertFalse(table.foo_bar_name_sudo._table._model.env.su, "compute in sudo, but result keeps the env")
+
+        table = (record1 + record2)._as_query(ordered=True).table
+        rows = self.env.execute_query(table._query.select(
+            table.id,
+            table.foo_id,
+            table.foo_bar_name,
+            table.foo_bar_name_sudo,
+        ))
+        self.assertEqual(rows, [
+            (record1.id, record1.foo_id.id, record1.foo_bar_name, record1.foo_bar_name_sudo),
+            (record2.id, record2.foo_id.id, None, record2.foo_bar_name_sudo),
+        ])
+
     def test_25_related_multi(self):
         """ test write() on several related fields based on a common computed field. """
         foo = self.env['test_orm.foo'].create({'name': 'A', 'value1': 1, 'value2': 2})
@@ -1455,7 +1468,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         # a bunch of fields are inherited from res_partner
         for user in self.env['res.users'].search([]):
             partner = user.partner_id
-            for field in ('is_company', 'name', 'email', 'country_id'):
+            for field in ('vat', 'name', 'email', 'country_id'):
                 self.assertEqual(getattr(user, field), getattr(partner, field))
                 self.assertEqual(user[field], partner[field])
 
@@ -1710,24 +1723,10 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
             field = model._fields[field_name]
             field_fallback = field.get_company_dependent_fallback(model)
             record_fallback[field_name] = field_fallback
-            current_thread = threading.current_thread()
 
             for operator, values in operations.items():
                 for value in values:
                     domain = [(field_name, operator, value)]
-                    company_dependent_column_not_null = not record_fallback.filtered_domain(domain)
-                    if company_dependent_column_not_null:
-                        with self.subTest(domain=domain, default=default):
-                            Model.search([('id', 'in', records.ids)] + domain)
-                            current_thread.query_count = 0
-                            current_thread.query_time = 0
-                            Model.search([('id', 'in', records.ids)] + domain)  # warmup
-                            if current_thread.query_count:
-                                # parent_of and child_of may need extra queries
-                                expected_contained_sqls = [''] * (current_thread.query_count - 1) + [f'"test_orm_company"."{field_name}" IS NOT NULL']
-                                with self.assertQueriesContain(expected_contained_sqls):
-                                    Model.search([('id', 'in', records.ids)] + domain)
-
                     with self.subTest(domain=domain, default=default):
                         self._search(
                             Model,
@@ -1735,6 +1734,15 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
                             [('id', 'in', records.ids)],
                             test_complement=True,
                         )
+                    if record_fallback.filtered_domain(domain):
+                        continue
+                    with self.subTest(domain=domain, default=default, check_not_null=True):
+                        Model.search([('id', 'in', records.ids)] + domain)  # warmup
+                        queries = []
+                        with contextmanager(lambda: self._patchExecute(queries))():
+                            Model.search([('id', 'in', records.ids)] + domain)
+                        if queries:
+                            self.assertIn(f'"test_orm_company"."{field_name}" IS NOT NULL', queries[-1])
 
         # boolean fields
         test_field('truth', [True, True], {
@@ -1924,7 +1932,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         cat1, cat2 = cats
         self.assertEqual(cat2.name, 'ACCESS')
         # both categories should be ready for prefetching
-        self.assertItemsEqual(cat2._prefetch_ids, cats.ids)
+        self.assertEqual(set(cat2._prefetch_ids), set(cats.ids))
         # but due to our (lame) overwrite of `read`, it should not forbid us to read records we have access to
         self.assertFalse(cat2.discussions)
         self.assertEqual(cat2.parent, cat1)
@@ -1964,29 +1972,28 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         existing.categories
 
         # invalidate 'categories' for the assertQueryCount
+        self.env.transaction.clear_access_cache()
         records.invalidate_model(['categories'])
-        with self.assertQueryCount(4):
+        with self.assertQueryCount(5):
             # <categories>.__get__(existing)
+            #  -> records.check_access('read')
+            #      -> records._check_access('read')
+            #          -> records.sudo().filtered_domain(...)
+            #              -> <name>.__get__(existing)
+            #                  -> records._fetch_field(<name>)
+            #                      -> records.fetch(['name', ...])
+            #                          -> ONE QUERY to read ['name', ...] of records
+            #                          -> ONE QUERY for deleted.exists() / code: forbidden = missing.exists()
+            #      -> ONE QUERY for records.exists() / MissingError during _check_access
+            #  -> ONE QUERY for records.exists()
             #  -> records._fetch_field(<categories>)
             #      -> records.fetch(['categories'])
-            #          -> records.check_access('read')
-            #              -> records._check_access('read')
-            #                  -> records.sudo().filtered_domain(...)
-            #                      -> <name>.__get__(existing)
-            #                          -> records._fetch_field(<name>)
-            #                              -> records.fetch(['name', ...])
-            #                                  -> ONE QUERY to read ['name', ...] of records
-            #                                  -> ONE QUERY for deleted.exists() / code: forbidden = missing.exists()
-            #          -> ONE QUERY for records.exists() / code: self = self.exists()
-            #          -> ONE QUERY to read the many2many of existing
+            #              -> ONE QUERY to read the many2many of existing
             existing.categories
 
         # this one must trigger a MissingError
         with self.assertRaises(MissingError):
             deleted.categories
-
-        # special case: should not fail
-        Discussion.browse([None]).read(['categories'])
 
     def test_40_real_vs_new(self):
         """ test field access on new records vs real records. """
@@ -2391,7 +2398,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
 
         # read the related field discussion_name
         self.assertNotEqual(message.sudo().env, message.env)
-        self.assertEqual(message.discussion_name, discussion.name)
+        self.assertEqual(message.discussion_name, discussion.sudo().name)
 
     def test_43_new_related(self):
         """ test the behavior of one2many related fields """
@@ -2534,6 +2541,19 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         tag.name = 'baz'
         self.assertIn(tag, record.tags)
 
+    def test_61_one2many_domain(self):
+        model = self.env['test_orm.inverse_m2o_ref']
+        field = model._fields['model_ids']
+        self.assertEqual(
+            field.get_comodel_domain(model),
+            Domain('const', '=', True) & Domain('res_model', '=', model._name),
+        )
+        self.assertEqual(
+            field.get_description(self.env, ['domain'])['domain'],
+            "([('const', '=', True)]) + ([('res_model', '=', 'test_orm.inverse_m2o_ref')])",
+            "res_model should appear in the descripton of the domain",
+        )
+
     def test_70_x2many_write(self):
         discussion = self.env.ref('test_orm.discussion_0')
         # See YTI FIXME
@@ -2670,28 +2690,25 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         self.assertFalse(message1.label)
 
     def test_85_binary_guess_zip(self):
-        from odoo.addons.base.tests.test_mimetypes import ZIP  # noqa: PLC0415
         # Regular ZIP files can be uploaded by non-admin users
         self.env['test_orm.binary_svg'].with_user(self.user_demo).create({
             'name': 'Test without attachment',
-            'image_wo_attachment': base64.b64decode(ZIP),
+            'image_wo_attachment': ZIP_RAW,
         })
 
     def test_86_text_base64_guess_svg(self):
-        from odoo.addons.base.tests.test_mimetypes import SVG  # noqa: PLC0415
         with self.assertRaises(UserError) as e:
             self.env['test_orm.binary_svg'].with_user(self.user_demo).create({
                 'name': 'Test without attachment',
-                'image_wo_attachment': SVG.decode("utf-8"),
+                'image_wo_attachment': SVG_B64.decode("utf-8"),
             })
         self.assertEqual(e.exception.args[0], 'Only admins can upload SVG files.')
 
     def test_90_binary_svg(self):
-        from odoo.addons.base.tests.test_mimetypes import SVG  # noqa: PLC0415
         # This should work without problems
         self.env['test_orm.binary_svg'].create({
             'name': 'Test without attachment',
-            'image_wo_attachment': SVG,
+            'image_wo_attachment': SVG_B64,
         })
         # And this gives error
         with self.assertRaises(UserError):
@@ -2699,15 +2716,14 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
                 self.user_demo,
             ).create({
                 'name': 'Test without attachment',
-                'image_wo_attachment': SVG,
+                'image_wo_attachment': SVG_B64,
             })
 
     def test_91_binary_svg_attachment(self):
-        from odoo.addons.base.tests.test_mimetypes import SVG  # noqa: PLC0415
         # This doesn't neuter SVG with admin
         record = self.env['test_orm.binary_svg'].create({
             'name': 'Test without attachment',
-            'image_attachment': SVG,
+            'image_attachment': SVG_B64,
         })
         attachment = self.env['ir.attachment'].search([
             ('res_model', '=', record._name),
@@ -2720,7 +2736,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
             self.user_demo,
         ).create({
             'name': 'Test without attachment',
-            'image_attachment': SVG,
+            'image_attachment': SVG_B64,
         })
         attachment = self.env['ir.attachment'].search([
             ('res_model', '=', record._name),
@@ -2730,10 +2746,9 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         self.assertEqual(attachment.mimetype, 'text/plain')
 
     def test_92_binary_self_avatar_svg(self):
-        from odoo.addons.base.tests.test_mimetypes import SVG  # noqa: PLC0415
         demo_user = self.user_demo
         # User demo changes his own avatar
-        demo_user.with_user(demo_user).image_1920 = SVG
+        demo_user.with_user(demo_user).image_1920 = SVG_B64
         # The SVG file should have been neutered
         attachment = self.env['ir.attachment'].search([
             ('res_model', '=', demo_user.partner_id._name),
@@ -2904,7 +2919,7 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         self.assertEqual(record_bin_size.image_256, b'424.00 bytes')
         # non-attachment binary fields: value returned as str in a different
         # form, because coming from PostgreSQL instead of filestore
-        self.assertEqual(record_bin_size.image_64, '148 bytes')
+        self.assertEqual(record_bin_size.image_64, '111 bytes')
 
         # ensure image_data_uri works (value must be bytes and not string)
         self.assertEqual(record.image_256[:8], b'iVBORw0K')
@@ -2971,16 +2986,6 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         assertBinaryValue(record, binary_value)
         assertBinaryValue(record_no_bin_size, binary_value)
         assertBinaryValue(record_bin_size, binary_size)
-
-        # check computed binary field with arbitrary Python value
-        record = self.env['test_orm.model_binary'].create({})
-        record_no_bin_size = record.with_context(bin_size=False)
-        record_bin_size = record.with_context(bin_size=True)
-
-        expected_value = [(record.id, False)]
-        self.assertEqual(record.binary_computed, expected_value)
-        self.assertEqual(record_no_bin_size.binary_computed, expected_value)
-        self.assertEqual(record_bin_size.binary_computed, expected_value)
 
     def test_95_binary_bin_size_write(self):
         binary_value = base64.b64encode(b'content')
@@ -3323,7 +3328,7 @@ class TestX2many(TransactionExpressionCase):
         cls.partner_portal = cls.user_portal.partner_id
 
         if not cls.user_portal:
-            cls.env['ir.config_parameter'].sudo().set_param('auth_password_policy.minlength', 4)
+            cls.env['ir.config_parameter'].sudo().set_int('auth_password_policy.minlength', 4)
             cls.partner_portal = cls.env['res.partner'].create({
                 'name': 'Joel Willis',
                 'email': 'joel.willis63@example.com',
@@ -3672,8 +3677,11 @@ class TestX2many(TransactionExpressionCase):
         })
         self.assertTrue(field.unlink())
 
+
+class SudoCommands(TransactionCaseWithUserDemo):
+
     @mute_logger('odoo.addons.base.models.ir_model')
-    @users('portal')
+    @users('demo')
     def test_sudo_commands(self):
         """Test manipulating a x2many field using Commands with `sudo` or with another user (`with_user`)
         is not allowed when the destination model is flagged `_allow_sudo_commands = False` and the transaction user
@@ -3718,7 +3726,7 @@ class TestX2many(TransactionExpressionCase):
                 })
             # 1.1 Command.UPDATE
             # Case: a public/portal updating his user to add himself a group
-            with self.assertRaisesRegex(AccessError, "not allowed to modify 'User'"):
+            with self.assertRaisesRegex(AccessError, "do not have enough rights to access the field"):
                 my_partner.write({
                     'user_ids': [Command.update(my_partner.user_ids[0].id, {
                         'group_ids': [self.env.ref('base.group_system').id],
@@ -3732,27 +3740,28 @@ class TestX2many(TransactionExpressionCase):
                 })
             # 1.3 Command.UNLINK
             # Case: a public user unlinking the public partner and the public user to mess with the database
-            with self.assertRaisesRegex(AccessError, "not allowed to modify 'User'"):
+            with self.assertRaisesRegex(AccessError, "do not have enough rights to access the field"):
                 my_partner.write({
                     'user_ids': [Command.unlink(my_partner.user_ids[0].id)],
                 })
             # 1.4 Command.LINK
-            # Case: a public/portal user changing the `partner_id` of an admin,
+            # Case: a normal user changing the `partner_id` of an admin,
             # to change the email address of the user and ask for a reset password.
-            with self.assertRaisesRegex(AccessError, "not allowed to modify 'User'"):
+            # We get a read error since Command.link need to read the corecord first, see One2many.write_real
+            with self.assertRaisesRegex(AccessError, "doesn't have 'write' access to"):
                 my_partner.write({
                     'user_ids': [Command.link(admin_user.id)],
                 })
             # 1.5 Command.CLEAR
             # Case: a public user unlinking the public partner and the public user just to mess with the database
-            with self.assertRaisesRegex(AccessError, "not allowed to modify 'User'"):
+            with self.assertRaisesRegex(AccessError, "do not have enough rights to access the field"):
                 my_partner.write({
                     'user_ids': [Command.clear()],
                 })
             # 1.6 Command.SET
-            # Case: a public/portal user changing the `partner_id` of an admin,
+            # Case: a normal user changing the `partner_id` of an admin,
             # to change the email address of the user and ask for a reset password.
-            with self.assertRaisesRegex(AccessError, "not allowed to modify 'User'"):
+            with self.assertRaisesRegex(AccessError, "do not have enough rights to access the field"):
                 my_partner.write({
                     'user_ids': [Command.set([admin_user.id])],
                 })
@@ -3783,14 +3792,14 @@ class TestX2many(TransactionExpressionCase):
             (self.env['test_orm.user'].sudo(), u.sudo()),
         ]:
             # 2.0 Command.CREATE
-            # Case: a public/portal user creating a new users with arbitrary values
+            # Case: a normal user creating a new users with arbitrary values
             with self.assertRaisesRegex(AccessError, "not allowed to create 'test_orm.group'"):
                 User.create({
                     'name': 'foo',
                     'group_ids': [Command.create({})],
                 })
             # 2.1 Command.UPDATE
-            # Case: a public/portal updating his user to add himself a group
+            # Case: a normal updating his user to add himself a group
             with self.assertRaisesRegex(AccessError, "not allowed to modify 'test_orm.group'"):
                 my_user.write({
                     'group_ids': [Command.update(my_user.group_ids[0].id, {})],
@@ -3803,6 +3812,7 @@ class TestX2many(TransactionExpressionCase):
                 })
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHtmlField(TransactionCase):
 
     def setUp(self):
@@ -3965,6 +3975,7 @@ class TestHtmlField(TransactionCase):
         self.assertEqual(patch.call_count, 2)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMagicFields(TransactionCase):
 
     def test_write_date(self):
@@ -4006,6 +4017,7 @@ class TestMagicFields(TransactionCase):
         self.assertTrue(field.store)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestParentStore(TransactionCaseWithUserDemo):
 
     @classmethod
@@ -4225,6 +4237,7 @@ class TestParentStore(TransactionCaseWithUserDemo):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestRequiredMany2one(TransactionCase):
 
     def test_explicit_ondelete(self):
@@ -4247,6 +4260,7 @@ class TestRequiredMany2one(TransactionCase):
             field.setup_nonrelated(Model)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestRequiredMany2oneTransient(TransactionCase):
 
     def test_explicit_ondelete(self):
@@ -4305,6 +4319,7 @@ class TestMany2oneReference(TransactionExpressionCase):
 
 
 @tagged('selection_abstract')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSelectionDeleteUpdate(TransactionCase):
 
     MODEL_ABSTRACT = 'test_orm.state_mixin'
@@ -4323,6 +4338,7 @@ class TestSelectionDeleteUpdate(TransactionCase):
 
 
 @tagged('selection_update_base')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSelectionUpdates(TransactionCase):
     MODEL_BASE = 'test_orm.model_selection_base'
     MODEL_RELATED = 'test_orm.model_selection_related'
@@ -4423,6 +4439,7 @@ class TestSelectionManualRelatedUpdate(TransactionCase):
 
 
 @tagged('selection_ondelete_base')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSelectionOndelete(TransactionCase):
 
     MODEL_BASE = 'test_orm.model_selection_base'
@@ -4613,6 +4630,7 @@ class TestSelectionOndelete(TransactionCase):
 
 
 @tagged('selection_ondelete_advanced')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSelectionOndeleteAdvanced(TransactionCase):
 
     MODEL_BASE = 'test_orm.model_selection_base'
@@ -4711,6 +4729,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
             self.registry._setup_models__(self.env.cr, [])  # incremental setup
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFieldParametersValidation(TransactionCase):
     def test_invalid_parameter(self):
         from odoo.orm.model_classes import add_to_registry  # noqa: PLC0415
@@ -4768,6 +4787,7 @@ def update(model, *fnames):
     )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestComputeQueries(TransactionCase):
     """ Test the queries made by create() with computed fields. """
 
@@ -4967,91 +4987,51 @@ class TestComputeQueries(TransactionCase):
             self.assertEqual(patch_compute.call_count, 1)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestComputeSudo(TransactionCaseWithUserDemo):
     def test_compute_sudo_depends_context_uid(self):
         record = self.env['test_orm.compute.sudo'].create({})
         self.assertEqual(record.with_user(self.user_demo).name_for_uid, self.user_demo.name)
 
 
-class test_shared_cache(TransactionCaseWithUserDemo):
-    def test_shared_cache_computed_field(self):
-        # Test case: Check that the shared cache is not used if a compute_sudo stored field
-        # is computed IF there is an ir.rule defined on this specific model.
-
-        # Real life example:
-        # A user can only see its own timesheets on a task, but the field "Planned Hours",
-        # which is stored-compute_sudo, should take all the timesheet lines into account
-        # However, when adding a new line and then recomputing the value, no existing line
-        # from another user is binded on self, then the value is erased and saved on the
-        # database.
-
-        task = self.env['test_orm.model_shared_cache_compute_parent'].create({
-            'name': 'Shared Task'})
-        self.env['test_orm.model_shared_cache_compute_line'].create({
-            'user_id': self.env.ref('base.user_admin').id,
-            'parent_id': task.id,
-            'amount': 1,
-        })
-        self.assertEqual(task.total_amount, 1)
-
-        self.env.flush_all()
-        self.env.invalidate_all()  # Start fresh, as it would be the case on 2 different sessions.
-
-        task = task.with_user(self.user_demo)
-        with Form(task) as task_form:
-            # Use demo has no access to the already existing line
-            self.assertEqual(len(task_form.line_ids), 0)
-            # But see the real total_amount
-            self.assertEqual(task_form.total_amount, 1)
-            # Now let's add a new line (and retrigger the compute method)
-            with task_form.line_ids.new() as line:
-                line.amount = 2
-            # The new value for total_amount, should be 3, not 2.
-            self.assertEqual(task_form.total_amount, 2)
-
-
 @tagged('unlink_constraints')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUnlinkConstraints(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         MODEL = cls.env['test_orm.model_constrained_unlinks']
-
-        cls.deletable_bar = MODEL.create({'bar': 5})
-        cls.undeletable_bar = MODEL.create({'bar': 6})
         cls.deletable_foo = MODEL.create({'foo': 'formaggio'})
         cls.undeletable_foo = MODEL.create({'foo': 'prosciutto'})
+        cls.deletable_bar = MODEL.create({'bar': 5})
+        cls.undeletable_bar = MODEL.create({'bar': 6})
 
-        from odoo.addons.base.models.ir_model import (  # noqa: PLC0415
-            MODULE_UNINSTALL_FLAG,
-        )
-        uninstall = {MODULE_UNINSTALL_FLAG: True}
-        cls.undeletable_bar_uninstall = cls.undeletable_bar.with_context(**uninstall)
-        cls.undeletable_foo_uninstall = cls.undeletable_foo.with_context(**uninstall)
-
-    def test_unlink_constraint_manual_bar(self):
+    def test_unlink_manual(self):
+        self.assertTrue(self.deletable_foo.unlink())
         self.assertTrue(self.deletable_bar.unlink())
+
+        # should both fail because of ondelete method
+        with self.assertRaises(ValueError, msg="You didn't say if you wanted it crudo or cotto..."):
+            self.undeletable_foo.unlink()
         with self.assertRaises(ValueError, msg="Nooooooooo bar can't be greater than five!!"):
             self.undeletable_bar.unlink()
 
-    def test_unlink_constraint_uninstall_bar(self):
-        self.assertTrue(self.deletable_bar.unlink())
-        # should succeed since it's at_uninstall=False
-        self.assertTrue(self.undeletable_bar_uninstall.unlink())
+    def test_unlink_uninstall(self):
+        self.patch(self.registry, 'uninstalling_modules', {'test_orm'})
 
-    def test_unlink_constraint_manual_foo(self):
         self.assertTrue(self.deletable_foo.unlink())
+        self.assertTrue(self.deletable_bar.unlink())
+
+        # should fail since it's at_uninstall=True
         with self.assertRaises(ValueError, msg="You didn't say if you wanted it crudo or cotto..."):
             self.undeletable_foo.unlink()
 
-    def test_unlink_constraint_uninstall_foo(self):
-        self.assertTrue(self.deletable_foo)
-        # should fail since it's at_uninstall=True
-        with self.assertRaises(ValueError, msg="You didn't say if you wanted it crudo or cotto..."):
-            self.undeletable_foo_uninstall.unlink()
+        # should succeed since it's at_uninstall=False
+        self.assertTrue(self.undeletable_bar.unlink())
 
 
 @tagged('wrong_related_path')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestWrongRelatedError(TransactionCase):
     def test_wrong_related_path(self):
         from odoo.orm.model_classes import add_to_registry  # noqa: PLC0415
@@ -5073,6 +5053,7 @@ class TestWrongRelatedError(TransactionCase):
             self.registry._setup_models__(self.env.cr, [])  # incremental setup
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPrecomputeModel(TransactionCase):
 
     def test_precompute_consistency(self):
@@ -5132,6 +5113,7 @@ class TestPrecomputeModel(TransactionCase):
             self.registry.get_trigger_tree(Model._fields.values())
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPrecompute(TransactionCase):
 
     def test_precompute(self):
@@ -5314,6 +5296,7 @@ class TestPrecompute(TransactionCase):
             model.create({})
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestModifiedPerformance(TransactionCase):
 
     @classmethod
@@ -5391,18 +5374,28 @@ class TestModifiedPerformance(TransactionCase):
                    "test_orm_modified_line"."create_date"
             FROM "test_orm_modified_line"
             WHERE "test_orm_modified_line"."id" IN %s
-        """, """
-            SELECT "test_orm_modified_line"."id",
-                   "test_orm_modified_line"."parent_id"
-            FROM "test_orm_modified_line"
-            WHERE "test_orm_modified_line"."id" IN %s
         """], flush=False):
-            # Two requests:
-            # - one for fetch modified_line_a_child_child data (invalidate just before)
-            # - one because modified_line_a_child.parent_id (invalidate just before because we invalidate inverse in `_invalidate_cache`,
-            # see TODO) -> We should change that
             self.modified_line_a_child_child.price = 4
         self.assertEqual(self.modified_line_a_child_child.total_price_quantity, 20)
         self.assertEqual(self.modified_line_a_child.total_price_quantity, 30)
         self.assertEqual(self.modified_line_a.total_price_quantity, 35)
         self.assertEqual(self.modified_line_a.total_price, 7)
+
+    def test_modified_create_no_inverse(self):
+        LinePositive = self.env['test_orm.modified.line.positive']
+        LinePositive.create({}).is_positive  # warmup + fill cache of is_positive
+
+        # One INSERT
+        with self.assertQueryCount(1):
+            self.ModifiedLine.create({})
+
+
+@tagged('at_install', '-post_install')
+class TestAttributes(TransactionCase):
+
+    def test_we_cannot_add_attributes(self):
+        Model = self.env['test_orm.category']
+        instance = Model.create({'name': 'Foo'})
+
+        with self.assertRaises(AttributeError):
+            instance.unknown = 42

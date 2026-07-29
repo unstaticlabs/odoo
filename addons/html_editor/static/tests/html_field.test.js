@@ -44,6 +44,7 @@ import { FormController } from "@web/views/form/form_controller";
 import { Counter, EmbeddedWrapperMixin } from "./_helpers/embedded_component";
 import { moveSelectionOutsideEditor, setSelection } from "./_helpers/selection";
 import {
+    ensureDistinctHistoryStep,
     insertText,
     pasteHtml,
     pasteOdooEditorHtml,
@@ -878,7 +879,9 @@ test("undo after discard html field changes in form", async () => {
     // move the hoot focus in the editor
     await click(".odoo-editor-editable");
     setSelectionInHtmlField();
-    await insertText(htmlEditor, "test");
+    await insertText(htmlEditor, "tes");
+    await ensureDistinctHistoryStep();
+    await insertText(htmlEditor, "t");
     await animationFrame();
     expect(".odoo-editor-editable p").toHaveText("testfirst");
     expect(`.o_form_button_cancel`).toBeVisible();
@@ -977,6 +980,7 @@ test("Embed video by pasting video URL", async () => {
     // trigger another selectionchange that removes selection placeholder.
     // So we must wait for the o-we-hint.
     await waitFor(".o-we-hint");
+    await animationFrame();
     const videoIframe = queryOne("div[data-embedded='video']");
     expect(videoIframe.nextElementSibling).toHaveOuterHTML(
         `<div class="o-paragraph o-we-hint" o-we-hint-text="Type &quot;/&quot; for commands"><br></div>`
@@ -1021,7 +1025,7 @@ test("Embedded video shouldn't have the 'media_iframe_video' class", async () =>
     await contains(".modal-dialog .modal-footer .btn-primary").click();
     await animationFrame();
 
-    expect("div[data-embedded='video']").not.toHaveClass(".media_iframe_video");
+    expect("div[data-embedded='video']").not.toHaveClass("media_iframe_video");
 });
 
 test("isDirty should be false when the content is being transformed by the editor", async () => {
@@ -1298,6 +1302,70 @@ test("should display overlay on video hover and handle video replacement and rem
     expect(queryAllTexts(".o-dropdown-item")[1]).toBe("Remove");
     await click(".o-dropdown-item .fa-trash");
     await expectElementCount('div[data-embedded="video"]', 0);
+});
+
+test("should preserve vertical video setting when reopening media dialog", async () => {
+    const videoId = "qxb74CMR748";
+    const videoURL = `https://www.youtube.com/watch?v=${videoId}`;
+
+    onRpc("/html_editor/video_url/data", async () => ({
+        video_id: videoId,
+        platform: "youtube",
+        embed_url: `https://www.youtube.com/embed/${videoId}`,
+        params: {},
+    }));
+
+    await mountView({
+        type: "form",
+        resId: 1,
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="txt" widget="html"/>
+            </form>`,
+    });
+    setSelectionInHtmlField();
+
+    // Open the video tab of the media dialog
+    await insertText(htmlEditor, "/video");
+    await waitFor(".o-we-powerbox");
+    await press("Enter");
+    await waitFor(".o_select_media_dialog");
+    expect(".o_select_media_dialog .nav-link:contains('Videos')").toHaveClass("active");
+    await animationFrame();
+
+    await contains(".o_video_dialog_form textarea").edit(videoURL);
+
+    // Wait for options to be rendered before interaction
+    await waitFor(".o_video_dialog_form .o_video_dialog_options", { timeout: 1500 });
+    await contains(
+        ".o_video_dialog_form .o_video_dialog_options label:contains(Vertical) input"
+    ).click();
+
+    // Confirm vertical class is applied in the preview area
+    await waitFor(".modal-content .media_iframe_video .media_iframe_video_size_for_vertical", {
+        timeout: 1500,
+    });
+    queryOne(".modal-content footer button:contains(Add)").click();
+    await animationFrame();
+
+    // Hover on VideoBlock shows overlay
+    await hover(queryOne("div[data-embedded='video']"));
+    await expectElementCount(".video-overlay", 1);
+
+    // Click on overlay and choose Replace
+    await click(".video-overlay button");
+    await waitFor(".o-dropdown-item");
+    expect(queryAllTexts(".o-dropdown-item")[0]).toBe("Replace");
+    await click(".o-dropdown-item .fa-exchange");
+
+    // Ensure the vertical setting is still active
+    await waitFor(".o_video_dialog_form .o_video_dialog_options label:contains(Vertical) input", {
+        timeout: 1500,
+    });
+    expect(
+        ".o_video_dialog_form .o_video_dialog_options label:contains(Vertical) input"
+    ).toBeChecked();
 });
 
 test.tags("desktop");
@@ -1659,7 +1727,10 @@ test("edit and enable/disable codeview with editor toolbar", async () => {
     });
 
     setSelectionInHtmlField();
-    await insertText(htmlEditor, "Hello ");
+    await insertText(htmlEditor, "Hello");
+    await ensureDistinctHistoryStep();
+    await insertText(htmlEditor, " ");
+    await ensureDistinctHistoryStep();
     expect("[name='txt'] .odoo-editor-editable").toHaveInnerHTML("<p>Hello first </p>");
 
     // Switch to code view
@@ -2385,7 +2456,8 @@ describe("save image", () => {
                 expect(params.res_id).toBe(1);
                 await modifyImagePromise;
                 modifyImageCount++;
-                return newImageSrc;
+                const res = { original: newImageSrc };
+                return res;
             } else {
                 // Fail the test if too many modify_image are called.
                 throw new Error("The image should only have been modified once during this test");
@@ -2425,7 +2497,7 @@ describe("save image", () => {
         // Resolve the image modification (simulate end of RPC roundtrip).
         modifyImagePromise.resolve();
         await modifyImagePromise;
-        await animationFrame();
+        await waitFor(`img[src="${newImageSrc}"]`);
 
         // Simulate the last urgent save, with the modified image.
         sendBeaconDef = new Deferred();

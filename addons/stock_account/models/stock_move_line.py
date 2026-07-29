@@ -14,7 +14,7 @@ class StockMoveLine(models.Model):
         analytic_move_to_recompute = set()
         if 'quantity' in vals or 'move_id' in vals:
             for move_line in self:
-                move_id = vals.get('move_id', move_line.move_id.id)
+                move_id = vals.get('move_id') or move_line.move_id.id
                 analytic_move_to_recompute.add(move_id)
         valuation_fields = ['quantity', 'location_id', 'location_dest_id', 'owner_id', 'quant_id', 'lot_id']
         valuation_trigger = any(field in vals for field in valuation_fields)

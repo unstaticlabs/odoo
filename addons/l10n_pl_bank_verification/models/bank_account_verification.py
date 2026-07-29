@@ -107,7 +107,7 @@ class BankAccountVerification(models.Model):
         for verification in self:
             # Only write at creation, to prevent account number changes
             if not verification.partner_bank_account_number:
-                verification.partner_bank_account_number = verification.partner_bank_id.sanitized_acc_number
+                verification.partner_bank_account_number = verification.partner_bank_id.sanitized_account_number
 
     @api.depends('partner_id')
     def _compute_partner_vat(self):
@@ -148,19 +148,19 @@ class BankAccountVerification(models.Model):
             # we query verifications for all partner banks so that if the API call returns information for one of the bank
             # account that was not requested, we can know if we need to create a verification
             verifications |= self.search([
-                ('partner_bank_account_number', 'in', all_partner_banks.mapped('sanitized_acc_number')),
+                ('partner_bank_account_number', 'in', all_partner_banks.mapped('sanitized_account_number')),
                 ('partner_vat', 'in', all_partner_banks.partner_id.mapped('vat')),
                 ('verification_date', '=', date),
             ])
 
             partner_bank2verification = verifications.grouped(lambda verif: verif.partner_bank_account_number)
             for partner_bank in partner_banks:
-                partner_bank_verif = partner_bank2verification.get(partner_bank.sanitized_acc_number)
+                partner_bank_verif = partner_bank2verification.get(partner_bank.sanitized_account_number)
                 vat = partner_bank.partner_id.vat
-                if not vat or vat in ['/', 'na', 'NA']:  # void vat
+                if self.env['res.partner']._is_vat_void(vat):
                     if not partner_bank_verif or not partner_bank_verif.filtered(lambda verif:
                         verif.partner_id == partner_bank.partner_id
-                        and (not verif.partner_vat or verif.partner_vat in ['/', 'na', 'NA'])
+                        and self.env['res.partner']._is_vat_void(verif.partner_vat)
                     ):
                         create_vals += self._get_creation_vals('incomplete_partner', partner_banks=partner_bank)
                     continue
@@ -176,7 +176,7 @@ class BankAccountVerification(models.Model):
                 # some partners without bank account or without vat need a failed verification to be created
                 verifications |= self.sudo().create(create_vals)
             return verifications.filtered(
-                lambda verif: verif.partner_bank_account_number in partner_banks.mapped('sanitized_acc_number') or verif.partner_vat in partners_without_bank_account.mapped('vat'))
+                lambda verif: verif.partner_bank_account_number in partner_banks.mapped('sanitized_account_number') or verif.partner_vat in partners_without_bank_account.mapped('vat'))
 
         # Create endpoints to call, API supports 30 vat numbers per request
         endpoints = {}  # {endpoint: recordset(res.partner)}
@@ -226,7 +226,7 @@ class BankAccountVerification(models.Model):
                     for partner_bank in partner.bank_ids:
                         # We take advantage of the API call to write verification on all bank accounts of this partner
                         # even if no check was requested for them
-                        account_number = partner_bank.sanitized_acc_number.removeprefix('pl').removeprefix('PL')
+                        account_number = partner_bank.sanitized_account_number.removeprefix('pl').removeprefix('PL')
                         status = 'valid' if account_number in subject.get('accountNumbers', []) else 'invalid'
                         create_vals += self._get_creation_vals(
                             status,
@@ -262,7 +262,7 @@ class BankAccountVerification(models.Model):
             verifications |= self.sudo().create(to_create)
         # Filter out the verifications for the bank account linked to the partner but not requested in params
         return verifications.filtered(
-            lambda verif: verif.partner_bank_account_number in partner_banks.mapped('sanitized_acc_number') or verif.partner_vat in partners_without_bank_account.mapped('vat'))
+            lambda verif: verif.partner_bank_account_number in partner_banks.mapped('sanitized_account_number') or verif.partner_vat in partners_without_bank_account.mapped('vat'))
 
     @api.model
     def _make_request(self, endpoint, params=None):
@@ -313,7 +313,7 @@ class BankAccountVerification(models.Model):
             vals = dict(default_vals)
             vals.update({
                 'partner_bank_id': partner_bank.id,
-                'partner_bank_account_number': partner_bank.sanitized_acc_number,
+                'partner_bank_account_number': partner_bank.sanitized_account_number,
                 'partner_id': partner_bank.partner_id.id,
                 'partner_vat': partner_bank.partner_id.vat,
             })

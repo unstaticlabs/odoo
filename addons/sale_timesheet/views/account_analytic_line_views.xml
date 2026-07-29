@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_analytic_lines_service_search" model="ir.ui.view">
+        <field name="name">account.analytic.line.services.search.inherit.sale.project</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="sale.view_analytic_lines_service_search"/>
+        <!-- !Disabled because this view adds filters and group-by options on project_id, task_id
+            !and employee_id, which are never set on Services & Materials analytic lines.
+            TODO: Remove this view entirely in master. -->
+        <field name="active">False</field>
+        <field name="arch" type="xml">
+            <filter name="my_orders" position="after">
+                <filter name="my_team" string="My Team" domain="[('employee_id.parent_id.user_id', '=', uid)]"/>
+                <filter
+                    name="my_department"
+                    string="My Department"
+                    domain="[('employee_id.member_of_department', '=', True)]"
+                    help="My Department"
+                />
+                <filter
+                    name="my_projects"
+                    string="My Projects"
+                    domain="[('project_id.user_id', '=', uid)]"
+                />
+            </filter>
+            <filter name="group_date" position="after">
+                <filter name="group_project" string="Project" context="{'group_by':'project_id'}"/>
+                <filter name="group_task" string="Task" context="{'group_by':'task_id'}"/>
+                <filter name="group_employee" string="Employee" context="{'group_by':'employee_id'}"/>
+            </filter>
+        </field>
+    </record>
+    <record id="hr_timesheet_line_search" model="ir.ui.view">
+        <field name="name">sale_timesheet.account.analytic.margins.search</field>
+        <field name="model">account.analytic.line</field>
+        <field name="priority" eval="50"/>
+        <field name="inherit_id" ref="account.view_account_analytic_line_filter_inherit_account"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='mine']" position="attributes">
+                <attribute name="string">Mine</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='groupby_parent_task']" position="attributes">
+                <attribute name="invisible">True</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

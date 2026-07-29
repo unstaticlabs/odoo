@@ -58,24 +58,40 @@
                     </div>
                 </div>
                 <hr/>
-                <div t-if="pos.config.cash_control" class="mb-3">
-                    <label class="form-label">Cash Count</label>
-                    <div class="d-flex w-100 gap-2 mt-1">
-                        <Input tModel="[state.payments[props.default_cash_details.id], 'counted']"
-                            callback.bind="(value) =>  this.setManualCashInput(value)"
-                            isValid.bind="env.utils.isValidFloat" class="'cash-input w-100'"/>
-                        <button class="icon fa fa-money btn btn-secondary" t-on-click="openDetailsPopup" />
-                        <button class="icon fa fa-clone btn btn-secondary" t-on-click="autoFillCashCount" />
-                    </div>
-                </div>
-                <div class="w-100 mb-3" t-foreach="props.non_cash_payment_methods" t-as="pm" t-key="pm.id">
-                    <t t-set="_showDiff" t-value="pm.type === 'bank' and pm.number !== 0" />
-                    <t t-if="_showDiff">
-                        <span><t t-esc="pm.name" /> Count</span>
+                <div class="row g-3">
+                    <div class="col-12" t-if="pos.config.cash_control" t-att-class="{'col-md-6': !this.isOnePmUsed()}">
+                        <label class="form-label">Cash Count</label>
                         <div class="d-flex w-100 gap-2 mt-1">
-                            <Input tModel="[state.payments[pm.id], 'counted']"
-                                isValid.bind="env.utils.isValidFloat" class="'w-100'" />
-                            <button class="icon fa fa-clone btn btn-secondary" t-on-click="() => this.autoFillPMCount(pm.id)" />
+                            <Input
+                                tModel="[state.payments[props.default_cash_details.id], 'counted']"
+                                callback.bind="(value) => this.setManualCashInput(value)"
+                                isValid.bind="env.utils.isValidFloat"
+                                class="'cash-input w-100'"
+                            />
+                            <button
+                                class="icon fa fa-money btn btn-secondary"
+                                t-on-click="openDetailsPopup"
+                            />
+                        </div>
+                    </div>
+                    <t t-foreach="validPms" t-as="pm" t-key="pm.id">
+                        <div class="col-12" t-att-class="{'col-md-6': !this.isTheLastPM(pm)}">
+                            <label class="form-label">
+                                <t t-esc="pm.name" /> Count
+                            </label>
+                            <div class="d-flex w-100 gap-2 mt-1">
+                                <Input
+                                    tModel="[state.payments[pm.id], 'counted']"
+                                    isValid.bind="env.utils.isValidFloat"
+                                    class="'w-100'"
+                                />
+                                <t t-if="pm.type == 'cash'">
+                                    <button
+                                        class="icon fa fa-money btn btn-secondary"
+                                        t-on-click="openDetailsPopup"
+                                    />
+                                </t>
+                            </div>
                         </div>
                     </t>
                 </div>
@@ -115,7 +131,7 @@
                                 Daily Sale
                                 <i t-if="!this.ui.isSmall" class="fa fa-download" role="img"/>
                         </button>
-                        <button t-if="hardwareProxy.printer" class="button icon btn btn-secondary" t-att-class="{'btn-lg': !this.ui.isSmall}">
+                        <button t-if="pos.ticketPrinter.hasReceiptPrinters" class="button icon btn btn-secondary" t-att-class="{'btn-lg': !this.ui.isSmall}">
                             <SaleDetailsButton/>
                         </button>
                     </div>

@@ -81,7 +81,7 @@ _ref_vat = {
     'tr': _lt('11111111111 (NIN) or 2222222222 (VKN)'),
     'ua': _lt('12345678 or UA12345678 (EDRPOU), 1234567890 (RNOPP) or 123456789012 (IPN)'),
     'uy': _lt("Example: '219999830019' (format: 12 digits, all numbers, valid check digit)"),
-    'uz': _lt('XXXXXXXXX [9 digits]'),
+    'uz': _lt('123456789 (TIN) or 12345678901234 (PINFL)'),
     've': 'V-12345678-1, V123456781, V-12.345.678-1',
     'xi': 'XI123456782',
     'sa': _lt('310175397400003 [Fifteen digits, first and last digits should be "3"]'),
@@ -108,13 +108,13 @@ class ResPartner(models.Model):
         """ OVERRIDE """
         if not country or not vat:
             return vat, False
-        if len(vat) == 1:
-            if vat == '/' or not validation:
+        if 1 <= len(vat) <= 2:
+            if self._is_vat_void(vat) or not validation:
                 return vat, False
             if validation == 'setnull':
                 return '', False
             if validation == 'error':
-                raise ValidationError(_("To explicitly indicate no (valid) VAT, use '/' instead. "))
+                raise ValidationError(_("To explicitly indicate no (valid) VAT, use '/', 'na' or 'NA' instead. "))
         vat_prefix, vat_number = self._split_vat(vat)
 
         if vat_prefix == 'EU' and country not in self.env.ref('base.europe').country_ids:
@@ -235,23 +235,23 @@ class ResPartner(models.Model):
             return "dummy_identifier", "dummy_token"  # ignored by IAP, same as neutralized
 
         IrConfigParam = self.env['ir.config_parameter'].sudo()
-        identifier = IrConfigParam.get_param('iap_vies.client_identifier')
-        token = IrConfigParam.get_param('iap_vies.client_token')
+        identifier = IrConfigParam.get_str('iap_vies.client_identifier')
+        token = IrConfigParam.get_str('iap_vies.client_token')
         if identifier and token:
             return identifier, token
 
         with self.env.registry.cursor() as new_cursor:
             IrConfigParamNewCursor = self.env(cr=new_cursor)['ir.config_parameter'].sudo()
-            identifier = IrConfigParamNewCursor.get_param('iap_vies.client_identifier')
-            token = IrConfigParamNewCursor.get_param('iap_vies.client_token')
+            identifier = IrConfigParamNewCursor.get_str('iap_vies.client_identifier')
+            token = IrConfigParamNewCursor.get_str('iap_vies.client_token')
             if identifier and token:  # recheck existence in case concurrent call by other user for instance
                 return identifier, token
 
             identifier = str(uuid.uuid4())
             token = secrets.token_urlsafe()
 
-            IrConfigParamNewCursor.set_param('iap_vies.client_identifier', identifier)
-            IrConfigParamNewCursor.set_param('iap_vies.client_token', token)
+            IrConfigParamNewCursor.set_str('iap_vies.client_identifier', identifier)
+            IrConfigParamNewCursor.set_str('iap_vies.client_token', token)
 
         return identifier, token
 
@@ -259,7 +259,7 @@ class ResPartner(models.Model):
     def _get_iap_vies_endpoint(self):
         prod, test = 'https://vies.api.odoo.com', 'https://vies.test.odoo.com'
         default_endpoint = test if self.env.ref('base.module_base_vat').demo else prod
-        endpoint = self.env['ir.config_parameter'].sudo().get_param('iap_vies.endpoint', default_endpoint)
+        endpoint = self.env['ir.config_parameter'].sudo().get_str('iap_vies.endpoint', default_endpoint)
         if endpoint not in (prod, test):
             raise UserError(_('Invalid IAP VIES endpoint'))
         return endpoint
@@ -274,7 +274,7 @@ class ResPartner(models.Model):
                 endpoint + '/api/vies/1/check_validity',
                 data={
                     "vat": self.vat,
-                    "db_uuid": self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
+                    "db_uuid": self.env['ir.config_parameter'].sudo().get_str('database.uuid'),
                     "client_identifier": client_identifier,
                     "client_token": client_token,
                     "webhook_url": self.get_base_url() + '/base_vat/1/webhook_update_vies',
@@ -313,7 +313,7 @@ class ResPartner(models.Model):
             req = requests.post(
                 self._get_iap_vies_endpoint() + '/api/vies/1/check_update',
                 data={
-                    "db_uuid": self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
+                    "db_uuid": self.env['ir.config_parameter'].sudo().get_str('database.uuid'),
                     "client_identifier": client_identifier,
                     "client_token": client_token,
                 },
@@ -687,7 +687,7 @@ class ResPartner(models.Model):
         )
 
     def check_vat_uz(self, vat):
-        return len(vat) == 9 and vat.isdigit()
+        return vat.isdigit() and len(vat) in (9, 14)
 
     def check_vat_ve(self, vat):
         # https://tin-check.com/en/venezuela/
@@ -973,8 +973,8 @@ class ResPartner(models.Model):
             self.env.remove_to_compute(self._fields['vies_valid'], self)
         return res
 
-    def _create_contact_parent_company(self):
-        new_company = super()._create_contact_parent_company()
+    def _create_contact_parent_company(self, values):
+        new_company = super()._create_contact_parent_company(values)
         if new_company and self.vies_valid:
             new_company.env.remove_to_compute(self._fields['vies_valid'], new_company)
             new_company.vies_valid = self.vies_valid

@@ -12,15 +12,15 @@
 # jabiri7, 2022
 # Ivan Espinola, 2023
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:51+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-11-08 19:06+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
 "account_check_printing/ca/>\n"
 "Language: ca\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_check_printing
 #. odoo-python
@@ -71,11 +71,6 @@ msgstr "Quantitat en paraules"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "Bills"
 msgstr "Factures"
-
-#. module: account_check_printing
-#: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
-msgid "Cancel"
-msgstr "Cancel·la"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__bank_check_printing_layout
@@ -159,8 +154,8 @@ msgstr "Xecs a imprimir"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
-msgid "Companies"
-msgstr "Empreses"
+msgid "Company"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
@@ -288,19 +283,15 @@ msgid "None"
 msgstr "Cap"
 
 #. module: account_check_printing
-#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
-msgid "Payment Method"
-msgstr "Forma de pagament"
+#: model:ir.model,name:account_check_printing.model_account_payment
+msgid "Payment"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_account_payment_method
-msgid "Payment Methods"
-msgstr "Formes de pagament"
-
-#. module: account_check_printing
-#: model:ir.model,name:account_check_printing.model_account_payment
-msgid "Payments"
-msgstr "Pagaments"
+#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
+msgid "Payment Method"
+msgstr "Forma de pagament"
 
 #. module: account_check_printing
 #. odoo-python
@@ -401,8 +392,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_check_printing/models/account_journal.py:0
 msgid ""
-"The check number you entered (%(num)s) exceeds the maximum allowed value of %"
-"(max)d. Please enter a smaller number."
+"The check number you entered (%(num)s) exceeds the maximum allowed value of "
+"%(max)d. Please enter a smaller number."
 msgstr ""
 
 #. module: account_check_printing
@@ -500,54 +491,3 @@ msgstr ""
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "sep"
 msgstr ""
-
-#~ msgid "Contact"
-#~ msgstr "Contacte"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Assentament comptable"
-
-#~ msgid ""
-#~ "Manual: Pay or Get paid by any method outside of Odoo.\n"
-#~ "Payment Providers: Each payment provider has its own Payment Method. "
-#~ "Request a transaction on/to a card thanks to a payment token saved by the "
-#~ "partner when buying or subscribing online.\n"
-#~ "Check: Pay bills by check and print it from Odoo.\n"
-#~ "Batch Deposit: Collect several customer checks at once generating and "
-#~ "submitting a batch deposit to your bank. Module account_batch_payment is "
-#~ "necessary.\n"
-#~ "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit "
-#~ "Transfer file to your bank. Module account_sepa is necessary.\n"
-#~ "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your "
-#~ "partner will have granted to you. Module account_sepa is necessary.\n"
-#~ msgstr ""
-#~ "Manual: Paga o rep un pagament per qualsevol mètode fora d'Odoo.\n"
-#~ "Proveïdors de pagament: Cada proveïdor de pagament té el seu propi mètode "
-#~ "de pagament. Sol·licita una transacció en/a una targeta gràcies a un "
-#~ "testimoni de pagament desat pel company quan es compra o es subscriu en "
-#~ "línia.\n"
-#~ "Comprovació: Paga factures per xec i imprimeix des d'Odoo.\n"
-#~ "Dipòsit per lots: Recolliu diverses comprovacions de client alhora "
-#~ "generant i enviant un dipòsit per lots al vostre banc. El mòdul de "
-#~ "pagament de comptes és necessari.\n"
-#~ "Transferència de crèdit SEPA: Paga a la zona SEPA enviant un fitxer de "
-#~ "transferència de crèdit SEPA al banc. El mòdul account_sepa és "
-#~ "necessari.\n"
-#~ "Dèbit directe SEPA: Es paga a la zona SEPA gràcies a un mandat que el "
-#~ "vostre soci us haurà concedit. El mòdul account_sepa és necessari.\n"
-
-#~ msgid "Preferred Payment Method"
-#~ msgstr "Mètode de Pagament Preferit"
-
-#~ msgid ""
-#~ "Preferred payment method when paying this vendor. This is used to filter "
-#~ "vendor bills by preferred payment method to register payments in mass. "
-#~ "Use cases: create bank files for batch wires, check runs."
-#~ msgstr ""
-#~ "Mètode de pagament preferit per pagar aquest proveïdor. S'utilitza per "
-#~ "filtrar les factures de proveïdors pel mètode de pagament preferit per "
-#~ "registrar els pagaments en massa. Casos d'ús: crear fitxers bancaris per "
-#~ "a cables per lots, comprovar tirades."
-
-#~ msgid "Register Payment"
-#~ msgstr "Registrar pagament"

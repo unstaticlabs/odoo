@@ -8,13 +8,13 @@
 # Andrzej Wiśniewski <a.wisniewski@hadron.eu.com>, 2022
 # Łukasz Grzenkowicz <lukasz.grzenkowicz@gmail.com>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 03:52+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-10-17 12:45+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
 "website_mass_mailing/pl/>\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_benefits_popup
@@ -57,6 +57,14 @@ msgstr ""
 "<i class=\"fa fa-check-circle-o\" role=\"img\"/> Dziękujemy za rejestrację!"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
+
+#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "<span class=\"s_website_form_label_content\">Email</span>\n"
@@ -77,6 +85,14 @@ msgstr ""
 "<span class=\"s_website_form_mark\">*</span>"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
+
+#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "<span class=\"s_website_form_label_content\">Name</span>\n"
@@ -84,6 +100,14 @@ msgid ""
 msgstr ""
 "<span class=\"s_website_form_label_content\">Imię</span>\n"
 "                                <span class=\"s_website_form_mark\"> *</span>"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Our mailing lists</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
@@ -121,24 +145,15 @@ msgid "Close"
 msgstr "Zamknij"
 
 #. module: website_mass_mailing
-#: model:ir.model,name:website_mass_mailing.model_res_company
-msgid "Companies"
-msgstr "Firmy"
-
-#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social_left
 msgid "Contact"
 msgstr "Kontakt"
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__display_name
-msgid "Display Name"
-msgstr "Nazwa wyświetlana"
-
-#. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: code:addons/website_mass_mailing/static/src/website_builder/toggle_thanks_message_traslation_option.xml:0
 msgid "Display Thanks Message"
 msgstr "Wyświetl wiadomość z podziękowaniem"
 
@@ -182,11 +197,7 @@ msgstr ""
 "odbiorczej."
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__id
-msgid "ID"
-msgstr "ID"
-
-#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "John Smith"
 msgstr "John Smith"
@@ -212,9 +223,15 @@ msgstr "Nie znaleziono listy(y) mailingowej!"
 #. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
 msgid "Newsletter"
 msgstr "Biuletyn"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid "Newsletter Aside"
+msgstr ""
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
@@ -248,6 +265,18 @@ msgstr "Popup newslettera"
 
 #. module: website_mass_mailing
 #. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter block"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter popup"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option_plugin.js:0
 msgid ""
 "No mailing list found, do you want to create a new one? This will save all "
@@ -264,14 +293,15 @@ msgstr "Brak"
 
 #. module: website_mass_mailing
 #. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "Pick one or remove this block."
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
 msgid "Placeholder"
 msgstr "Miejsce"
-
-#. module: website_mass_mailing
-#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
-msgid "Popup"
-msgstr "Popup"
 
 #. module: website_mass_mailing
 #. odoo-javascript
@@ -285,10 +315,16 @@ msgid "Stay Ahead with weekly insights &amp; updates"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_subscribe_form
 msgid "Subscribe"
 msgstr "Zaprenumeruj"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid "Subscribe for updates, offers <br/>and insights!"
+msgstr ""
 
 #. module: website_mass_mailing
 #. odoo-javascript
@@ -310,6 +346,7 @@ msgid "Template"
 msgstr "Szablon"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "Thank you for subscribing!"
 msgstr "Dziękujemy za subskrybowanie!"
@@ -327,6 +364,13 @@ msgid "Thanks for subscribing!"
 msgstr "Dziękuję za prenumeratę!"
 
 #. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "This block is not linked to an active Newsletter."
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "We send one weekly newsletter per list and always try to keep it "
@@ -342,6 +386,7 @@ msgid "You cannot subscribe to the following list anymore : %s"
 msgstr "Nie można już zapisać się na następującą listę : %s"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "You will now be informed about the latest news."
 msgstr "Teraz będziesz informowany o najnowszych wiadomościach."
@@ -368,6 +413,7 @@ msgstr ""
 "komunikacja, email, modal, alert, dialog, podpowiedź, pop-up, subskrypcja"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "johnsmith@example.com"
 msgstr "johnsmith@example.com"
@@ -399,59 +445,10 @@ msgid ""
 "list, news, grid, image, picture"
 msgstr ""
 
-#~ msgid ", .o_newsletter_popup"
-#~ msgstr ", .o_newsletter_popup"
-
-#~ msgid ".o_newsletter_popup"
-#~ msgstr ".o_newsletter_popup"
-
-#~ msgid ".s_newsletter_block .s_newsletter_list, .o_newsletter_popup .s_newsletter_list"
-#~ msgstr ".s_newsletter_block .s_newsletter_list, .o_newsletter_popup .s_newsletter_list"
-
-#~ msgid ".s_newsletter_list"
-#~ msgstr ".s_newsletter_list"
-
-#~ msgid ""
-#~ "<span class=\"s_website_form_label_content\">Your Email</span>\n"
-#~ "                                <span class=\"s_website_form_mark\"> *</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"s_website_form_label_content\">Twój e-mail</span>\n"
-#~ "<span class=\"s_website_form_mark\">*</span>"
-
-#~ msgid ""
-#~ "<span class=\"s_website_form_label_content\">Your Name</span>\n"
-#~ "                                <span class=\"s_website_form_mark\"> *</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"s_website_form_label_content\">Twoje nazwisko</span>\n"
-#~ "<span class=\"s_website_form_mark\">*</span>"
-
-#~ msgid "Always First."
-#~ msgstr "Zawsze <b>Pierwszy.</b>"
-
-#~ msgid "Be the first to find out all the latest news, products, and trends."
-#~ msgstr ""
-#~ "Bądź pierwszym, by dowieć się o wszystkich nowościach, produktach i "
-#~ "trendach."
-
-#~ msgid "Display Thanks Button"
-#~ msgstr "Wyświetl przycisk Podziękowania"
-
-#~ msgid "Error"
-#~ msgstr "Błąd"
-
-#~ msgid "Success"
-#~ msgstr "Powodzenie"
-
-#~ msgid "Suspicious activity detected by Google reCaptcha."
-#~ msgstr "Podejrzana aktywność wykryta przez weryfikator Google"
-
-#~ msgid "Thanks"
-#~ msgstr "Dziękuję"
-
-#~ msgid "You will now be informed about the latest news.<br/>"
-#~ msgstr "Teraz będziesz informowany o najnowszych wiadomościach.<br/>"
-
-#~ msgid "your email..."
-#~ msgstr "twój adres..."
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid ""
+"updates, digest, bulletin, announcements, notifications, communication, "
+"promotional, email, subscription, subscribe, mailing-list, news, grid, "
+"image, picture"
+msgstr ""

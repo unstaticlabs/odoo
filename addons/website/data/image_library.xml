@@ -778,9 +778,9 @@
 </record>
 <record id="website.s_mega_menu_images_subtitles_default_image_3" model="ir.attachment">
     <field name="public" eval="True"/>
-    <field name="name">s_mega_menu_images_subtitles_default_image_3.jpg</field>
+    <field name="name">s_mega_menu_images_subtitles_default_image_3.webp</field>
     <field name="type">url</field>
-    <field name="url">/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_3.jpg</field>
+    <field name="url">/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_3.webp</field>
 </record>
 <record id="website.s_mega_menu_images_subtitles_default_image_4" model="ir.attachment">
     <field name="public" eval="True"/>
@@ -1130,6 +1130,12 @@
     <field name="type">url</field>
     <field name="url">/web/image/website.s_banner_default_image_2</field>
 </record>
+<record id="website.s_newsletter_aside_default_image" model="ir.attachment">
+    <field name="public" eval="True"/>
+    <field name="name">s_newsletter_aside_default_image.jpg</field>
+    <field name="type">url</field>
+    <field name="url">/web/image/website.library_image_08</field>
+</record>
 <record id="website.s_website_form_info_default_image" model="ir.attachment">
     <field name="public" eval="True"/>
     <field name="name">s_website_form_info_default_image.webp</field>
@@ -1265,6 +1271,12 @@
     <field name="name">shop_category_3_1x1.webp</field>
     <field name="type">url</field>
     <field name="url">/website/static/src/img/snippets_demo/shop_category_3_1x1.webp</field>
+</record>
+<record id="website.s_splash_intro_default_image" model="ir.attachment">
+    <field name="public" eval="True"/>
+    <field name="name">s_splash_intro_default_image.webp</field>
+    <field name="type">url</field>
+    <field name="url">/website/static/src/img/snippets_demo/s_splash_intro.webp</field>
 </record>
 
 </odoo>

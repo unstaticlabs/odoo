@@ -5,7 +5,7 @@ import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 
 registry
     .category("web_tour.tours")
@@ -16,9 +16,11 @@ registry
                 Dialog.confirm("Open Register"),
                 ProductScreen.addOrderline("product_a", "1"),
                 ProductScreen.clickPayButton(),
-                PaymentScreen.clickInvoiceButton(),
-                PaymentScreen.clickInvoiceButton(),
-                Dialog.confirm("Yes"),
+                PaymentScreen.isInvoiceButtonChecked(),
+                PaymentScreen.clickInvoiceButton(false),
+                PaymentScreen.isInvoiceButtonUnchecked(),
+                PaymentScreen.clickInvoiceButton(false),
+                Dialog.confirm(),
                 {
                     content: "Show EcPay info popup",
                     trigger: "#ecpay_info_screen",
@@ -38,14 +40,14 @@ registry
                     trigger: "#validate_carrier_number",
                     run: "click",
                 },
-                Dialog.confirm(),
                 {
-                    content: "Click Cash payment method",
-                    trigger: "div.paymentmethod:contains('Cash')",
-                    run: "click",
+                    content: "Carrier number validated",
+                    trigger: "#reenter_carrier_number",
                 },
+                Dialog.confirm(),
+                PaymentScreen.clickPaymentMethod("Cash"),
                 PaymentScreen.clickValidate(),
-                ReceiptScreen.isShown(),
+                FeedbackScreen.isShown(),
                 Chrome.endTour(),
             ].flat(),
     });
@@ -57,9 +59,11 @@ registry.category("web_tour.tours").add("l10n_tw_edi_ecpay_pos.ecpay_check_love_
             Dialog.confirm("Open Register"),
             ProductScreen.addOrderline("product_a", "1"),
             ProductScreen.clickPayButton(),
-            PaymentScreen.clickInvoiceButton(),
-            PaymentScreen.clickInvoiceButton(),
-            Dialog.confirm("Yes"),
+            PaymentScreen.isInvoiceButtonChecked(),
+            PaymentScreen.clickInvoiceButton(false),
+            PaymentScreen.isInvoiceButtonUnchecked(),
+            PaymentScreen.clickInvoiceButton(false),
+            Dialog.confirm(),
             {
                 content: "Show EcPay info popup",
                 trigger: "#ecpay_info_screen",
@@ -79,14 +83,14 @@ registry.category("web_tour.tours").add("l10n_tw_edi_ecpay_pos.ecpay_check_love_
                 trigger: "#validate_love_code",
                 run: "click",
             },
-            Dialog.confirm(),
             {
-                content: "Click Cash payment method",
-                trigger: "div.paymentmethod:contains('Cash')",
-                run: "click",
+                content: "Love code validated",
+                trigger: "#reenter_love_code",
             },
+            Dialog.confirm(),
+            PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.endTour(),
         ].flat(),
 });
@@ -98,13 +102,9 @@ registry.category("web_tour.tours").add("l10n_tw_edi_ecpay_pos.ecpay_check_print
             Dialog.confirm("Open Register"),
             ProductScreen.addOrderline("product_a", "1"),
             ProductScreen.clickPayButton(),
-            {
-                content: "Click Cash payment method",
-                trigger: "div.paymentmethod:contains('Cash')",
-                run: "click",
-            },
+            PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.endTour(),
         ].flat(),
 });
@@ -116,14 +116,10 @@ registry.category("web_tour.tours").add("l10n_tw_edi_ecpay_pos.ecpay_toggle_invo
             Dialog.confirm("Open Register"),
             ProductScreen.addOrderline("product_a", "1"),
             ProductScreen.clickPayButton(),
-            {
-                content: "Click Cash payment method",
-                trigger: "div.paymentmethod:contains('Cash')",
-                run: "click",
-            },
+            PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickInvoiceButton(),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.endTour(),
         ].flat(),
 });

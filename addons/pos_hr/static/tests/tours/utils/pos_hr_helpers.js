@@ -1,4 +1,5 @@
-import * as SelectionPopup from "@point_of_sale/../tests/generic_helpers/selection_popup_util";
+import * as CashierSelectionPopup from "@pos_hr/../tests/tours/utils/cashier_selection_popup_util";
+
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as NumberPopup from "@point_of_sale/../tests/generic_helpers/number_popup_util";
 import { negate } from "@point_of_sale/../tests/generic_helpers/utils";
@@ -52,7 +53,7 @@ export function cashierNameIs(name) {
     ];
 }
 export function login(name, pin) {
-    const res = [...clickLoginButton(), ...SelectionPopup.has(name, { run: "click" })];
+    const res = [...clickLoginButton(), ...CashierSelectionPopup.has(name, { run: "click" })];
     if (!pin) {
         return res;
     }

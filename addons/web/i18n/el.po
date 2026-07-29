@@ -9,26 +9,27 @@
 # Sophia Anastasopoulos <sophiaanast1@gmail.com>, 2018
 # Giota Dandidou <giotadandidou@gmail.com>, 2018
 # George Tarasidis <george_tarasidis@yahoo.com>, 2018
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Dionysis Zacharioudakis <d.zacharioudakis@dileanity.com>, 2025, 2026.
-# Panagiotis karampaglis <panosdotk@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Dionysis Zacharioudakis <d.zacharioudakis@dileanity.com>, 2025.
+# Panagiotis karampaglis <panosdotk@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-07-01 14:30+0000\n"
+"PO-Revision-Date: 2026-04-13 19:32+0000\n"
 "Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
-"Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/web/el/>\n"
+"Language-Team: Greek <https://translate.odoo.com/projects/odoo-s19-2/web/el/"
+">\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: web
 #. odoo-javascript
@@ -57,8 +58,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "%s to schedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/l10n/dates.js:0
 msgid "'%s' is not a correct date or datetime"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
+msgid "'Oh snap!'"
 msgstr ""
 
 #. module: web
@@ -86,13 +100,7 @@ msgid "(create)"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "(document name)"
 msgstr ""
 
@@ -200,30 +208,28 @@ msgid "<i class=\"fa fa-repeat\"/> Reset"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
-msgid ""
-"<select class=\"form-select\" name=\"profile_aggregation_mode\" "
-"id=\"profile_aggregation_mode\">\n"
-"                                        <option value=\"tabs\">Separated "
-"(one per tab)</option>\n"
-"                                        <option value=\"temporal\">Temporal "
-"(experimental)</option>\n"
-"                                    </select>\n"
-"                                    <span id=\"temporal_warning\" "
-"class=\"alert alert-warning\" style=\"display:none\"><b>Warning:</b> "
-"Temporal mode will merge all samples.<br/>It can lead to partially invalid "
-"result in case of concurrent profiles.<br/>Use with caution </span>"
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">$ 3,613.50</span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span class=\"text-nowrap\">$ 2,887.50</span>"
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">1,400.00</"
+"span></span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">11,750.00</"
+"span></span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">240.00</"
 "span></span>"
 msgstr ""
 
@@ -241,7 +247,17 @@ msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">12.00</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span class=\"text-nowrap\">2,350.00</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">70.00</span>"
 msgstr ""
 
 #. module: web
@@ -254,13 +270,22 @@ msgstr ""
 msgid ""
 "<span class=\"w-100 o_force_ltr\" itemprop=\"streetAddress\">77 Santa "
 "Barbara\n"
-"                                       Rd<br/>Pleasant Hill CA 94523<br/"
-">United States</span>"
+"                                Rd<br/>Pleasant Hill CA 94523<br/>United "
+"States</span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span id=\"line_tax_ids\">15%</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid ""
+"<span id=\"temporal_warning\" class=\"alert alert-warning\" "
+"style=\"display:none\"><b>Warning:</b> Temporal mode will merge all samples."
+"<br/>It can lead to partially invalid result in case of concurrent profiles."
+"<br/>Use with caution </span>"
 msgstr ""
 
 #. module: web
@@ -270,7 +295,42 @@ msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
+msgid ""
+"<span>\n"
+"                                        Chair floor protection<br/>\n"
+"                                        Office chairs can harm your floor: "
+"protect it\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_7777] Office Chair<br/>\n"
+"                                        Comfortable yellow chair for daily "
+"work\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_8999] Three-Seat Sofa<br/>\n"
+"                                        Three Seater Sofa with Lounger in "
+"Steel Grey Colour\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>$ <span class=\"oe_currency_value\">24,090.00</span></span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>20.00</span>"
 msgstr ""
 
 #. module: web
@@ -292,7 +352,7 @@ msgstr "<span>Περιγραφή</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>Invoice</span>\n"
-"                           <span>INV/2023/00003</span>"
+"                <span>INV/2023/00003</span>"
 msgstr ""
 
 #. module: web
@@ -319,24 +379,17 @@ msgstr "<span>Τιμή Μονάδας</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>[FURN_8220] Four Person Desk<br/>\n"
-"                                       Four person modern office "
-"workstation</span>"
+"                                    Four person modern office workstation</"
+"span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
-"<span>[FURN_8999] Three-Seat Sofa<br/>\n"
-"                                       Three Seater Sofa with Lounger in "
-"Steel Grey Colour</span>"
-msgstr ""
-
-#. module: web
-#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid ""
-"<strong class=\"text-nowrap\">$ <span class=\"oe_currency_value\">\n"
-"                                                       22,137.50</span></"
-"strong>"
+"<strong class=\"text-nowrap\">\n"
+"                                                    $ <span "
+"class=\"oe_currency_value\">27,703.50</span>\n"
+"                                                </strong>"
 msgstr ""
 
 #. module: web
@@ -345,24 +398,12 @@ msgid "<strong>Address block</strong>"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company address block</strong>"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company details block</strong>"
 msgstr ""
 
@@ -441,11 +482,9 @@ msgstr ""
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid ""
 "A popup window has been blocked. You may need to change your browser "
-"settings to allow popup windows for this page."
+"settings to allow popup windows for this page. You can also copy the link "
+"and paste it in a new tab."
 msgstr ""
-"Ένα αναδυόμενο παράθυρο έχει αποκλειστεί. Ίσως χρειαστεί να αλλάξετε τις "
-"ρυθμίσεις του προγράμματος περιήγησής σας για να επιτρέψετε αναδυόμενα "
-"παράθυρα για αυτήν τη σελίδα."
 
 #. module: web
 #. odoo-javascript
@@ -612,6 +651,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.xml:0
 msgid "Add Property"
 msgstr ""
@@ -865,12 +905,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
-msgid "Are you sure that you want to duplicate all the selected records?"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
 msgid "Are you sure that you want to remove this embedded action?"
 msgstr ""
@@ -945,7 +979,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.xml:0
+#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.js:0
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
 msgid "Assign"
 msgstr "Ανάθεση"
@@ -1050,16 +1084,6 @@ msgid "Back to “%s” form"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
-msgid "Background"
-msgstr "Φόντο"
-
-#. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background_image
-msgid "Background Image"
-msgstr "Εικόνα φόντου"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/widgets/ribbon/ribbon.js:0
 msgid "Background color"
@@ -1128,8 +1152,8 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
 msgid "Binary file"
 msgstr "Δυαδικό αρχείο"
 
@@ -1300,12 +1324,14 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
-#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Can't remove that search"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
-#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
-#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
-#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Cancel"
 msgstr "Ακύρωση"
 
@@ -1461,6 +1487,30 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Clear search"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Click to check connection"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to collapse all groups"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to expand all groups"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Click to select"
 msgstr ""
@@ -1512,6 +1562,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Color dot tags"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/badge/badge_field.js:0
 #: code:addons/web/static/src/views/fields/badge_selection/list_badge_selection_field.js:0
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
@@ -1533,11 +1589,11 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/burger_menu/mobile_switch_company_menu/mobile_switch_company_menu.xml:0
-#: model:ir.model,name:web.model_res_company
 msgid "Companies"
 msgstr "Εταιρίες"
 
 #. module: web
+#: model:ir.model,name:web.model_res_company
 #: model:ir.model.fields,field_description:web.field_base_document_layout__company_id
 msgid "Company"
 msgstr "Εταιρία"
@@ -1573,12 +1629,10 @@ msgid "Company name"
 msgstr "Επωνυμία Εταιρίας"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 msgid "Company tagline"
 msgstr ""
@@ -1617,10 +1671,17 @@ msgstr "Διαμορφώστε τη διάταξη του εγγράφου σα�
 #. odoo-javascript
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Confirm"
 msgstr "Επιβεβαίωση"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+#: model_terms:ir.ui.view,arch_db:web.check_identity
+msgid "Confirm access"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1629,18 +1690,6 @@ msgstr "Επιβεβαίωση"
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Confirmation"
 msgstr "Επιβεβαίωση"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection lost. Trying to reconnect..."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection restored. You are back online."
-msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
@@ -1659,24 +1708,12 @@ msgid "Contact Statistics"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company address."
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company details."
 msgstr ""
 
@@ -1722,6 +1759,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/copy_clipboard/copy_clipboard_field.js:0
+#: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "Copy"
 msgstr "Αντιγραφή"
 
@@ -1756,7 +1794,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.js:0
+#: code:addons/web/static/src/core/signature/signature_viewer.js:0
 msgid "Could not display the selected image"
 msgstr ""
 
@@ -1809,6 +1847,7 @@ msgstr "Χώρα"
 #: code:addons/web/static/src/views/calendar/calendar_year/calendar_year_popover.xml:0
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_record_quick_create.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create"
 msgstr "Δημιουργία"
 
@@ -1826,6 +1865,12 @@ msgid "Create %s"
 msgstr ""
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
+msgid "Create New"
+msgstr ""
+
+#. module: web
 #: model:ir.model,website_form_label:web.model_res_partner
 msgid "Create a Customer"
 msgstr ""
@@ -1839,6 +1884,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/relational_utils.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create..."
 msgstr ""
 
@@ -1987,6 +2033,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Date"
@@ -2009,6 +2056,12 @@ msgstr "Μορφή Ημερομηνίας"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 msgid "Date Range"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Date range"
 msgstr ""
 
 #. module: web
@@ -2107,6 +2160,14 @@ msgstr "Προεπιλογή:"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid ""
+"Defines the behavior when a tag is clicked. 'Edit color' requires a color "
+"field"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
 #: code:addons/web/static/src/views/fields/many2one/many2one_field.js:0
 msgid ""
 "Defines the minimum number of characters to perform the search. If not set, "
@@ -2121,8 +2182,10 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/tags_list/tags_list.xml:0
+#: code:addons/web/static/src/core/tags_list/avatar_tag.xml:0
+#: code:addons/web/static/src/core/tags_list/badge_tag.js:0
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
+#: code:addons/web/static/src/views/calendar/calendar_common/calendar_common_popover.xml:0
 #: code:addons/web/static/src/views/calendar/calendar_controller.js:0
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
@@ -2227,20 +2290,24 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
+#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
 #: code:addons/web/static/src/search/search_model.js:0
 #: code:addons/web/static/src/views/fields/dynamic_placeholder_popover.xml:0
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 #: code:addons/web/static/src/views/fields/relational_utils.xml:0
 #: code:addons/web/static/src/views/fields/translation_dialog.xml:0
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
+#: code:addons/web/static/src/views/view_button/view_button.js:0
 #: code:addons/web/static/src/views/view_components/multi_create_popover.xml:0
+#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
+#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_confirmation_dialog.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Discard"
 msgstr "Απόρριψη"
 
@@ -2289,12 +2356,6 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
 msgid "Display presets"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
-msgid "Display seconds"
 msgstr ""
 
 #. module: web
@@ -2395,6 +2456,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Dot color field"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/file_viewer/file_viewer.xml:0
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.xml:0
@@ -2433,17 +2500,30 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.xml:0
+msgid "Drop here to unschedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Dropdown menu"
 msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
 #: code:addons/web/static/src/views/form/form_controller.js:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.js:0
 #: code:addons/web/static/src/views/list/list_controller.js:0
 msgid "Duplicate"
 msgstr "Δημιουργία Αντίγραφου"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid "Duplicate Records"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2516,7 +2596,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Edit Tags"
+msgid "Edit color"
 msgstr ""
 
 #. module: web
@@ -2905,10 +2985,24 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"For example, if the date is %(today)s and you enter \"+=2d\", \n"
+"            it will be updated to %(future)s."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "For example, if the value is \"1\" and you enter \"+=2\", it will be updated "
 "to \"3\"."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Forgot password?"
 msgstr ""
 
 #. module: web
@@ -3072,6 +3166,12 @@ msgid "Handle"
 msgstr ""
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Having problems ?"
+msgstr ""
+
+#. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__company_details
 msgid "Header text displayed at the top of all reports."
 msgstr ""
@@ -3125,6 +3225,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid "Hide trailing zeros"
 msgstr ""
 
@@ -3138,6 +3239,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid ""
 "Hide zeros to the right of the last non-zero digit, e.g. 1.20 becomes 1.2"
 msgstr ""
@@ -3158,6 +3260,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/search/utils/dates.js:0
 msgid "Hour"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Hours"
 msgstr ""
 
 #. module: web
@@ -3245,15 +3353,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid ""
-"If checked, clicking on the tag will open the form that allows to directly "
-"edit it. Note that if a color field is also set, the tag edition will "
-"prevail. So, the color picker will not be displayed on click on the tag."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/views/fields/json_checkboxes/json_checkboxes_field.js:0
 msgid ""
 "If checked, the checkboxes will be displayed in a column. Otherwise, they "
@@ -3321,10 +3420,13 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_item.xml:0
+msgid "In Company"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/record_selectors/record_selector.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
 msgid "Inaccessible/missing record ID: %s"
 msgstr ""
 
@@ -3390,7 +3492,6 @@ msgstr "Ακέραιος"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
-#: code:addons/web/static/src/views/fields/properties/property_value.xml:0
 msgid "Internal link"
 msgstr ""
 
@@ -3801,12 +3902,6 @@ msgid "Lack of inspiration?"
 msgstr ""
 
 #. module: web
-#. odoo-python
-#: code:addons/web/controllers/session.py:0
-msgid "Languages"
-msgstr "Γλώσσες"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
 #: code:addons/web/static/src/views/fields/image_url/image_url_field.js:0
@@ -3886,11 +3981,6 @@ msgid "Layout"
 msgstr ""
 
 #. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background
-msgid "Layout Background"
-msgstr ""
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.js:0
 msgid "Leave Debug Mode"
@@ -3922,20 +4012,26 @@ msgstr "Γραμμικό γράφημα"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Link copied to clipboard"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Load"
 msgstr "Φόρτωση"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
-msgid "Load demo data"
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.xml:0
+msgid "Load More"
 msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid "Load everything anyway."
+#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
+msgid "Load demo data"
 msgstr ""
 
 #. module: web
@@ -3954,7 +4050,6 @@ msgstr "Φόρτωση περισσοτέρων ... ("
 #. odoo-javascript
 #: code:addons/web/static/src/core/file_viewer/file_viewer.xml:0
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
-#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
 msgid "Loading"
 msgstr "Γίνεται φόρτωση"
 
@@ -3971,6 +4066,12 @@ msgid "Loading..."
 msgstr "Φόρτωση..."
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
+msgid "Loading…"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Log in"
 msgstr "Σύνδεση"
@@ -3983,23 +4084,23 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
-#: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "Log out"
 msgstr "Αποσύνδεση"
 
 #. module: web
 #. odoo-python
 #: code:addons/web/controllers/home.py:0
+#: model_terms:ir.ui.view,arch_db:web.login
 msgid "Login"
 msgstr "Σύνδεση"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
+#: model_terms:ir.ui.view,arch_db:web.external_layout_dual
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
+#: model_terms:ir.ui.view,arch_db:web.external_layout_lines
 #: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 #: model_terms:ir.ui.view,arch_db:web.frontend_layout
 #: model_terms:ir.ui.view,arch_db:web.login_layout
@@ -4015,6 +4116,11 @@ msgstr ""
 #. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__logo_secondary_color
 msgid "Logo Secondary Color"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.login_successful
+msgid "Logout"
 msgstr ""
 
 #. module: web
@@ -4096,6 +4202,12 @@ msgstr ""
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 msgid "Match"
 msgstr "Αντιστοίχιση"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/gauge/gauge_field.js:0
+msgid "Max tooltip"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4206,6 +4318,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Minutes"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/timezone_mismatch/timezone_mismatch_field.js:0
 msgid "Mismatch title"
 msgstr ""
@@ -4221,6 +4339,19 @@ msgstr ""
 #: code:addons/web/static/src/core/errors/error_dialogs.js:0
 msgid "Missing Record"
 msgstr "Λείπει εγγραφή"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
+msgid "Missing record"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
+msgid "Missing record (ID: %s)"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -4251,6 +4382,7 @@ msgstr "Είδος"
 #: code:addons/web/static/src/views/fields/domain/domain_field.js:0
 #: code:addons/web/static/src/views/fields/field_selector/field_selector_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: model:ir.model,name:web.model_ir_model
 msgid "Model"
 msgstr "Μοντέλο"
 
@@ -4283,11 +4415,6 @@ msgstr ""
 #: code:addons/web/static/src/webclient/actions/debug_items.js:0
 msgid "Model: %s"
 msgstr ""
-
-#. module: web
-#: model:ir.model,name:web.model_ir_model
-msgid "Models"
-msgstr "Μοντέλα"
 
 #. module: web
 #. odoo-javascript
@@ -4344,6 +4471,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 #: code:addons/web/static/src/views/fields/statusbar/statusbar_field.xml:0
 msgid "More..."
@@ -4359,18 +4487,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "Mount Fuji"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property down"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property up"
 msgstr ""
 
 #. module: web
@@ -4483,7 +4599,6 @@ msgstr "Όνομα:"
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
-#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "New"
 msgstr "Νέα"
 
@@ -4567,6 +4682,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/model/relational_model/utils.js:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
 #: code:addons/web/static/src/views/pivot/pivot_model.js:0
 msgid "No"
 msgstr "Όχι"
@@ -4699,12 +4815,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
-msgid "No stages yet, let's create some!"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "No view of type '%s' could be found in the current action."
 msgstr ""
@@ -4740,7 +4850,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid ""
 "Not possible to create monetary field because there is no currency on "
 "current model."
@@ -4748,8 +4858,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "Nothing to schedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.js:0
 msgid "Number of files"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Numeric"
 msgstr ""
 
 #. module: web
@@ -4910,18 +5033,18 @@ msgstr "Offline"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
-msgid "Oh snap!"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/web/static/src/public/error_notifications.js:0
 #: code:addons/web/static/src/views/calendar/calendar_year/calendar_year_popover.xml:0
 #: code:addons/web/static/src/views/view_dialogs/form_view_dialog.xml:0
 msgid "Ok"
 msgstr "ΟΚ"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "On tag click"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -5023,6 +5146,18 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "Open form"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Open form on tag click"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_renderer.xml:0
 msgid "Open in form view"
 msgstr ""
@@ -5115,13 +5250,12 @@ msgid "PDF file"
 msgstr "Αρχείο PDF"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
+msgid "Page 1 / 1"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "Page <span class=\"page\"/> / <span class=\"topage\"/>"
 msgstr ""
 
@@ -5143,6 +5277,7 @@ msgstr "Συναλλασόμενος"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/views/fields/password/password_field.js:0
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Password"
@@ -5291,12 +5426,6 @@ msgid "Press \"Enter\" to add criterion"
 msgstr ""
 
 #. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Prevent color edition"
-msgstr ""
-
-#. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__preview
 msgid "Preview"
 msgstr "Προεπισκόπηση"
@@ -5425,8 +5554,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Properties Definition"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 msgid "Property %s"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Property 1"
 msgstr ""
 
 #. module: web
@@ -5511,6 +5653,7 @@ msgstr "Κουμπί Επιλογής"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/float_toggle/float_toggle_field.js:0
 msgid "Range"
 msgstr "Εύρος"
@@ -5532,9 +5675,9 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 msgid ""
-"Ready to make your record disappear into thin air? Are you sure?\n"
-"It will be gone forever!\n"
-"\n"
+"Ready to make your record disappear into thin air? Are you sure? It will be "
+"gone forever!\n"
+"    \n"
 "Think twice before you click that 'Delete' button!"
 msgstr ""
 
@@ -5653,7 +5796,7 @@ msgstr "Αφαίρεση"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Remove Cover Image"
+msgid "Remove Cover"
 msgstr ""
 
 #. module: web
@@ -5685,6 +5828,12 @@ msgstr "Απομάκρυνση του αγαπημένου από τη λίστ�
 #. odoo-javascript
 #: code:addons/web/static/src/core/user_switch/user_switch.xml:0
 msgid "Remove user from switcher"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
+msgid "Replace current file"
 msgstr ""
 
 #. module: web
@@ -5728,6 +5877,12 @@ msgstr ""
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Reset"
 msgstr "Επαναφορά"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "Reset Filters"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5779,7 +5934,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 msgid "SIGNATURE"
 msgstr ""
 
@@ -5887,6 +6042,12 @@ msgstr "Αποθήκευση & Δημιουργία Νέου"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/form/form_controller.js:0
+msgid "Save Properties"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Save View"
 msgstr ""
@@ -5913,12 +6074,6 @@ msgstr "Αποθήκευση προεπιλογής"
 #. odoo-javascript
 #: code:addons/web/static/src/views/form/form_status_indicator/form_status_indicator.xml:0
 msgid "Save manually"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/translation_button.js:0
-msgid "Save this record and its parent to translate"
 msgstr ""
 
 #. module: web
@@ -5999,6 +6154,7 @@ msgstr ""
 #: code:addons/web/static/src/core/commands/command_palette.js:0
 #: code:addons/web/static/src/core/emoji_picker/emoji_picker.xml:0
 #: code:addons/web/static/src/core/model_field_selector/model_field_selector_popover.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_view.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
@@ -6026,6 +6182,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Seconds"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_basic.js:0
 msgid "Security"
 msgstr "Ασφάλεια"
@@ -6044,7 +6206,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 #: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "Select"
 msgstr "Επιλογή"
@@ -6173,6 +6334,11 @@ msgid "Send Email"
 msgstr "Αποστολή Email"
 
 #. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Separated (one per tab)"
+msgstr ""
+
+#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Separator"
@@ -6189,6 +6355,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "Set a Cover Image"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Set a char field that colors the dot on the tag."
 msgstr ""
 
 #. module: web
@@ -6244,9 +6416,33 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/burger_menu/burger_menu.xml:0
+msgid "Share URL"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share the current view"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Shared"
 msgstr "Κοινόχρηστο"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Shared filters couldn't be applied"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6281,6 +6477,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
 msgid "Show seconds"
 msgstr ""
 
@@ -6301,6 +6498,24 @@ msgstr ""
 #: code:addons/web/static/src/views/view_components/view_scale_selector.xml:0
 msgid "Show weekends"
 msgstr "Εμφάνιση Σαββατοκύριακων"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
+msgid "Signature"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Signed in as"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Single date"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6541,6 +6756,16 @@ msgid "TV"
 msgstr ""
 
 #. module: web
+#: model:ir.model.fields,field_description:web.field_base_document_layout__report_tables_id
+msgid "Table Design"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
+msgid "Tables"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Tagline"
 msgstr ""
@@ -6591,13 +6816,7 @@ msgstr ""
 
 #. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__vat
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Tax ID"
 msgstr "ΑΦΜ"
 
@@ -6611,6 +6830,11 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Template:"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Temporal (experimental)"
 msgstr ""
 
 #. module: web
@@ -6743,14 +6967,6 @@ msgid ""
 msgstr ""
 
 #. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid ""
-"There are too many data. The graph only shows a sample. Use the filters to "
-"refine the scope."
-msgstr ""
-
-#. module: web
 #. odoo-python
 #: code:addons/web/controllers/export.py:0
 msgid ""
@@ -6762,6 +6978,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "There is no available image to be set as cover."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "There is no data to display offline for the given filters"
 msgstr ""
 
 #. module: web
@@ -6797,18 +7019,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/expression_editor/expression_editor.xml:0
 msgid "This expression is not supported."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already first"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already last"
 msgstr ""
 
 #. module: web
@@ -6926,14 +7136,9 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 msgid "Toggle Search Panel"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
-msgid "Toggle date range mode"
 msgstr ""
 
 #. module: web
@@ -7108,13 +7313,7 @@ msgid "URL"
 msgstr "URL"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "US12345671"
 msgstr ""
 
@@ -7159,6 +7358,12 @@ msgstr "Μη ορισμένο"
 #: code:addons/web/static/src/views/kanban/kanban_header.xml:0
 msgid "Unfold"
 msgstr "Ανάπτυξη"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Unit"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7224,14 +7429,13 @@ msgstr "Αναβάθμιση σε μελλοντικές εκδόσεις"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Upload and Set"
+msgid "Upload New"
 msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/pdf_viewer/pdf_viewer_field.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Upload your file"
 msgstr "Μεταφόρτωση του αρχείου σας"
 
@@ -7299,6 +7503,17 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"Use the operators \"+=\", \"-=\" to update the current date by days (%"
+"(days)s), \n"
+"            weeks (%(weeks)s), months (%(months)s), years (%(years)s), hours "
+"(%(hours)s), \n"
+"            minutes (%(minutes)s) and seconds (%(seconds)s)."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "Use the operators \"+=\", \"-=\", \"*=\" and \"/=\" to update the current "
@@ -7326,6 +7541,12 @@ msgid ""
 "Use up and down arrow keys to adapt the brightness. Use left and right arrow "
 "keys to adapt the saturation. Press the Control or Command key at the same "
 "time to have finer control."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Use your password"
 msgstr ""
 
 #. module: web
@@ -7519,6 +7740,18 @@ msgid "Warning for future dates"
 msgstr ""
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Warning: Link copied to clipboard might be too long for some browsers"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Warning: Not all shared filters applied"
+msgstr ""
+
+#. module: web
 #. odoo-python
 #: code:addons/web/models/models.py:0
 msgid "Warnings"
@@ -7598,6 +7831,12 @@ msgstr "Γραφικό Στοιχείο:"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Working offline"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_controller.js:0
 msgid "Would you like to save your changes?"
 msgstr ""
@@ -7666,6 +7905,14 @@ msgid "Yes"
 msgstr "Ναι"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid ""
+"You are about to create a copy of every selected record.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "You are logged in."
 msgstr ""
@@ -7696,6 +7943,15 @@ msgstr ""
 #. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__vat
 msgid "You can use '/' to indicate that the customer has no Tax ID."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid ""
+"You can use the link below to share the current view with its filters: \n"
+"\n"
+" %(url)s"
 msgstr ""
 
 #. module: web
@@ -18851,6 +19107,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "on"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "on any screen to show shortcut overlays and"
 msgstr ""
@@ -21922,6 +22184,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 msgid "search"
 msgstr ""
@@ -25733,6 +25996,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "without currency"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "wizard"
 msgstr ""
@@ -26471,6 +26740,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
+msgid "yet, let's create some!"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "yin"
 msgstr ""
@@ -26783,220 +27058,3 @@ msgstr ""
 
 #~ msgid "12"
 #~ msgstr "12"
-
-#~ msgid "Error"
-#~ msgstr "Σφάλμα"
-
-#~ msgid " records"
-#~ msgstr "εγγραφές"
-
-#~ msgid "%d days ago"
-#~ msgstr "%d ημέρες πριν"
-
-#~ msgid "%d hours ago"
-#~ msgstr "%d ώρες πριν"
-
-#~ msgid "%d minutes ago"
-#~ msgstr "%d λεπτά πριν"
-
-#~ msgid "%d months ago"
-#~ msgstr "%d μήνες πριν"
-
-#~ msgid "%d years ago"
-#~ msgstr "%d χρόνια πριν"
-
-#~ msgid "'%s' is not a correct date"
-#~ msgstr "'%s' δεν είναι σωστή ημερομηνία"
-
-#~ msgid "'%s' is not a correct date, datetime nor time"
-#~ msgstr "'%s' δεν είναι έγκυρη ημερομηνία. ημερομηνία ή/και ώρα"
-
-#~ msgid "'%s' is not a correct datetime"
-#~ msgstr "'%s' δεν είναι μια σωστή ημερομηνία/ώρα"
-
-#~ msgid "'%s' is not a correct float"
-#~ msgstr "'%s' δεν είναι σωστός πραγματικός αριθμός"
-
-#~ msgid "'%s' is not a correct integer"
-#~ msgstr "'%s' δεν είναι σωστός ακέραιος αριθμός"
-
-#~ msgid "'%s' is not convertible to date, datetime nor time"
-#~ msgstr "'%s' δεν μπορεί να μετατραπεί σε ημερομηνία η ώρα"
-
-#~ msgid "(nolabel)"
-#~ msgstr "(χωρίς ετικέτα)"
-
-#~ msgid "ALL"
-#~ msgstr "ΟΛΑ"
-
-#~ msgid "Activate Assets Debugging"
-#~ msgstr "Ενεργοποίηση Εντοπισμού Σφαλμάτων Σταθερών Αρχείων"
-
-#~ msgid "Add Custom Filter"
-#~ msgstr "Προσθήκη Προσαρμοσμένου Φίλτρου"
-
-#~ msgid "Add a condition"
-#~ msgstr "Προσθέστε μια συνθήκη"
-
-#~ msgid "Any"
-#~ msgstr "Οποιοδήποτε"
-
-#~ msgid "Are you sure that you want to remove this filter?"
-#~ msgstr "Είστε σίγουροι ότι θέλετε να αφαιρέστε αυτό το φίλτρο;"
-
-#~ msgid "Could not serialize XML"
-#~ msgstr "Δεν ήταν δυνατή η σειριοποίηση XML"
-
-#~ msgid "Create \"<strong>%s</strong>\""
-#~ msgstr "Δημιουργία \"<strong>%s</strong>\""
-
-#~ msgid "Create and Edit..."
-#~ msgstr "Δημιουργία και Επεξεργασία..."
-
-#~ msgid "Create: "
-#~ msgstr "Δημιουργία: "
-
-#~ msgid "Don't leave yet,<br />it's still loading..."
-#~ msgstr "Μην φύγετε ακόμη,<br />φορτώνει..."
-
-#~ msgid "Edit Action"
-#~ msgstr "Επεξεργασία ενέργειας"
-
-#~ msgid "Edit SearchView"
-#~ msgstr "Επεξεργασία Προβολής Αναζήτησης"
-
-#~ msgid "Everybody's calendars"
-#~ msgstr "Το ημερολόγιο όλων"
-
-#~ msgid "File upload"
-#~ msgstr "Μεταφόρτωση αρχείου"
-
-#~ msgid "Filter with same name already exists."
-#~ msgstr "Υπάρχει ήδη φίλτρο με το όνομα αυτό."
-
-#~ msgid "Graph"
-#~ msgstr "Γράφημα"
-
-#~ msgid "Leave the Developer Tools"
-#~ msgstr "Έξοδος από τα Εργαλεία Προγραμματιστή"
-
-#~ msgid "Manage Filters"
-#~ msgstr "Διαχείριση Φίλτρων"
-
-#~ msgid "Match records with"
-#~ msgstr "Αντιστοίχιση εγγραφών με"
-
-#~ msgid "Match records with the following rule:"
-#~ msgstr "Τα αρχεία αντιστοιχίζονται με τον ακόλουθο κανόνα:"
-
-#~ msgid "Modifiers:"
-#~ msgstr "Τροποποιητές:"
-
-#~ msgid "My Odoo.com account"
-#~ msgstr "Ο Odoo.com λογαριασμός μου"
-
-#~ msgid "On change:"
-#~ msgstr "Σε αλλαγή:"
-
-#~ msgid "Open: "
-#~ msgstr "Άνοιγμα: "
-
-#~ msgid "Pivot"
-#~ msgstr "Συγκεντρωτικό"
-
-#~ msgid "Preferences"
-#~ msgstr "Προτιμήσεις"
-
-#~ msgid "Previous Year"
-#~ msgstr "Προηγούμενο Έτος"
-
-#~ msgid "Run JS Tests"
-#~ msgstr "Εκτέλεση JS Tests"
-
-#~ msgid "Set Defaults"
-#~ msgstr "Ορισμός προεπιλογών"
-
-#~ msgid "Share with all users"
-#~ msgstr "Κοινό με όλους τους χρήστες"
-
-#~ msgid "Size:"
-#~ msgstr "Μέγεθος:"
-
-#~ msgid "Still loading...<br />Please be patient."
-#~ msgstr "Ακόμη Φορτώνει...<br />Παρακαλώ Περιμένετε"
-
-#~ msgid "Support"
-#~ msgstr "Υποστήριξη"
-
-#~ msgid "Take a minute to get a coffee,<br />because it's loading..."
-#~ msgstr "Κάνε ένα λεπτό διάλειμα,<br />γιατί ακόμη φορτώνει..."
-
-#~ msgid "The selected file exceed the maximum file size of %s."
-#~ msgstr "Το συγκεκριμένο αρχείο ξεπερνάει το μέγιστο μέγεθως των %s."
-
-#~ msgid "There was a problem while uploading your file"
-#~ msgstr "Υπήρξε κάποιο πρόβλημα κατά το ανέβασμα του αρχείου σας"
-
-#~ msgid ""
-#~ "This filter is global and will be removed for everybody if you continue."
-#~ msgstr "Το φίλτρο είναι καθολικό και θα αφαιρεθεί για όλους εάν συνεχίσετε."
-
-#~ msgid "True"
-#~ msgstr "Αληθές"
-
-#~ msgid "Unknown nonliteral type "
-#~ msgstr "Άγνωστος μη γραμματικός τύπου"
-
-#~ msgid "Use by default"
-#~ msgstr "Χρησιμοποίησε ως προεπιλογή"
-
-#~ msgid "View Fields"
-#~ msgstr "Προβολή Πεδίων"
-
-#~ msgid "Yesterday"
-#~ msgstr "Χθες"
-
-#~ msgid "You cannot follow relations for this field chain construction"
-#~ msgstr ""
-#~ "Δεν μπορείτε να ακολουθήσετε τις σχέσεις για αυτή την κατασκευή αλυσίδας "
-#~ "πεδίων"
-
-#~ msgid ""
-#~ "You may not believe it,<br />but the application is actually loading..."
-#~ msgstr "Μπορεί να μην το πιστεύετε,<br/>αλλά η εφαρμογή φορτώνει..."
-
-#~ msgid "a day ago"
-#~ msgstr "Μια ημέρα πριν"
-
-#~ msgid "about a minute ago"
-#~ msgstr "πριν ένα λεπτό περίπου"
-
-#~ msgid "about a month ago"
-#~ msgstr "περίπου πριν από ένα μήνα"
-
-#~ msgid "about a year ago"
-#~ msgstr "περίπου ένα έτος πριν"
-
-#~ msgid "about an hour ago"
-#~ msgstr "περίπου πριν από μια ώρα"
-
-#~ msgid "doesn't contain"
-#~ msgstr "δεν περιέχει"
-
-#~ msgid "greater than or equal to"
-#~ msgstr "Μεγαλύτερο ή ίσο του"
-
-#~ msgid "is between"
-#~ msgstr "είναι ανάμεσα"
-
-#~ msgid "is not"
-#~ msgstr "δεν είναι"
-
-#~ msgid "less than"
-#~ msgstr "μικρότερο από"
-
-#~ msgid "less than a minute ago"
-#~ msgstr "λιγότερο από ένα λεπτό πριν"
-
-#~ msgid "less than or equal to"
-#~ msgstr "μικρότερο ή ίσο από"

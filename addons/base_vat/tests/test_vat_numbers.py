@@ -3,7 +3,7 @@ from odoo.exceptions import ValidationError
 from unittest.mock import patch
 
 
-@tagged('post_install', '-at_install')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStructure(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -60,7 +60,6 @@ class TestStructure(TransactionCase):
             "name": "World Company",
             "country_id": self.env.ref("base.be").id,
             "vat": "ATU12345675",
-            "company_type": "company",
         })
 
         # reactivate it and correct the vat number
@@ -125,7 +124,6 @@ class TestStructure(TransactionCase):
         with patch('odoo.addons.base_vat.models.res_partner.ResPartner._check_vies_iap', TestStructure._check_vies_iap):
             partner = self.env["res.partner"].create({
                 'name': 'Dummy Partner',
-                'company_name': 'My Company',
                 'country_id': self.env.ref("base.be").id,
             })
             partner.vat = 'BE0477472701'
@@ -133,7 +131,7 @@ class TestStructure(TransactionCase):
 
         with patch('odoo.addons.base_vat.models.res_partner.ResPartner._check_vies_iap',
                    side_effect=Exception('should not call _check_vies_iap()')):
-            partner.create_company()
+            partner._create_parent_from_name('My Company')
             self.assertEqual(partner.vies_valid, True)
             self.assertEqual(partner.parent_id.name, 'My Company')
             self.assertEqual(partner.parent_id.vies_valid, True)

@@ -8,7 +8,7 @@ from odoo.tools.sql import column_exists, create_column
 class StockRoute(models.Model):
     _inherit = "stock.route"
 
-    shipping_selectable = fields.Boolean("Applicable on Shipping Methods")
+    shipping_selectable = fields.Boolean("Applicable on Delivery Methods")
 
 
 class StockMove(models.Model):
@@ -31,7 +31,7 @@ class StockMove(models.Model):
 
     weight = fields.Float(compute='_cal_move_weight', digits='Stock Weight', store=True, compute_sudo=True)
 
-    @api.depends('product_id', 'product_uom_qty', 'product_uom')
+    @api.depends('product_id', 'product_uom_qty', 'uom_id')
     def _cal_move_weight(self):
         moves_with_weight = self.filtered(lambda moves: moves.product_id.weight > 0.00)
         for move in moves_with_weight:
@@ -66,7 +66,7 @@ class StockMoveLine(models.Model):
     destination_country_code = fields.Char(related='picking_id.destination_country_code')
     carrier_id = fields.Many2one(related='picking_id.carrier_id')
 
-    @api.depends('quantity', 'product_uom_id', 'product_id', 'move_id.sale_line_id', 'move_id.sale_line_id.price_reduce_taxinc', 'move_id.sale_line_id.product_uom_id')
+    @api.depends('quantity', 'uom_id', 'product_id', 'move_id.sale_line_id', 'move_id.sale_line_id.price_reduce_taxinc', 'move_id.sale_line_id.product_uom_id')
     def _compute_sale_price(self):
         for move_line in self:
             sale_line_id = move_line.move_id.sale_line_id
@@ -74,7 +74,7 @@ class StockMoveLine(models.Model):
                 # Compute the total price (tax included) for the actually delivered quantity
                 # using the same tax logic as the sale order line and purchase order line.
                 base_line = sale_line_id._prepare_base_line_for_taxes_computation()
-                qty = move_line.product_uom_id._compute_quantity(move_line.quantity, sale_line_id.product_uom_id)
+                qty = move_line.uom_id._compute_quantity(move_line.quantity, sale_line_id.product_uom_id)
                 base_line.update({'quantity': qty})
                 self.env['account.tax']._add_tax_details_in_base_line(base_line, sale_line_id.company_id)
                 tax_results = base_line['tax_details']
@@ -82,7 +82,7 @@ class StockMoveLine(models.Model):
             else:
                 # For kits, use the regular unit price
                 unit_price = move_line.product_id.list_price
-                qty = move_line.product_uom_id._compute_quantity(move_line.quantity, move_line.product_id.uom_id)
+                qty = move_line.uom_id._compute_quantity(move_line.quantity, move_line.product_id.uom_id)
                 move_line.sale_price = unit_price * qty
         super(StockMoveLine, self)._compute_sale_price()
 

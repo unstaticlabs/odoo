@@ -13,7 +13,10 @@ class TestUi(TestPointOfSaleHttpCommon):
         cls.company_data["company"].country_id = cls.env.ref("base.es").id
         cls.company_data["company"].currency_id = cls.env.ref("base.EUR").id
         cls.company_data["company"].vat = "ESA12345674"
+        cls.company_data["company"].street = "Fake Street 123"
+        cls.company_data["company"].city = "Barcelona"
         cls.company_data["company"].state_id = cls.env.ref("base.state_es_ba").id
+        cls.company_data["company"].zip = "08001"
         return cls.company_data["company"]
 
     def test_spanish_pos(self):
@@ -105,7 +108,7 @@ class TestUi(TestPointOfSaleHttpCommon):
             'email': "email@gmail.com",
         })
         self._get_main_company().partner_id.write({
-            'bank_ids': [Command.create({'acc_number': 'FOO42', 'allow_out_payment': True})]
+            'bank_ids': [Command.create({'account_number': 'FOO42', 'allow_out_payment': True})]
         })
         self.main_pos_config.open_ui()
         self.pos_order_pos0 = self.env['pos.order'].create({
@@ -140,7 +143,9 @@ class TestUi(TestPointOfSaleHttpCommon):
         self.pos_order_pos0.action_pos_order_invoice()
         attachment_proforma = self.pos_order_pos0.account_move.attachment_ids.filtered(lambda att: "proforma" in att.name)
         self.assertFalse(attachment_proforma)
-        invoice_str = str(self.pos_order_pos0.account_move._get_invoice_legal_documents('pdf', allow_fallback=True).get('content'))
+        legal_documents = self.pos_order_pos0.account_move._get_invoice_legal_documents('pdf', allow_fallback=True)
+        self.assertEqual(len(legal_documents), 1)
+        invoice_str = str(legal_documents[0]['content'])
         self.assertTrue("invoice" in invoice_str)
         self.assertTrue("proforma" not in invoice_str)
 

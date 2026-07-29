@@ -27,7 +27,6 @@ export class PosSession extends models.ServerModel {
             "product.attribute.custom.value",
             "product.template.attribute.line",
             "product.template.attribute.value",
-            "product.template.attribute.exclusion",
             "product.combo",
             "product.combo.item",
             "res.users",
@@ -65,12 +64,6 @@ export class PosSession extends models.ServerModel {
             "cash_register_balance_start",
             "access_token",
         ];
-    }
-
-    set_opening_control(self, openingCash, notes) {
-        this.write(self, {
-            state: "opened",
-        });
     }
 
     // These methods are designed to be overridden to customize the POS data loading behavior using the provided `opts`.
@@ -161,14 +154,6 @@ export class PosSession extends models.ServerModel {
 
     filter_local_data() {
         return {};
-    }
-
-    try_cash_in_out() {
-        return true;
-    }
-
-    log_partner_message() {
-        return true;
     }
 
     _records = [

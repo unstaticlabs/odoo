@@ -25,14 +25,15 @@ declare module "plugins" {
     import { WebsiteParallaxShared } from "@website/builder/plugins/options/parallax_option_plugin";
     import { searchbar_option_display_items, searchbar_option_order_by_items } from "@website/builder/plugins/options/searchbar_option_plugin";
     import { SocialMediaOptionShared } from "@website/builder/plugins/options/social_media_option_plugin";
-    import { visibility_selector_parameters } from "@website/builder/plugins/options/visibility_option_plugin";
+    import { on_visibility_toggled_handlers, visibility_selector_parameters } from "@website/builder/plugins/options/visibility_option_plugin";
     import { WebsitePageConfigOptionShared } from "@website/builder/plugins/options/website_page_config_option_plugin";
     import { PopupVisibilityShared } from "@website/builder/plugins/popup_visibility_plugin";
     import { SwitchableViewsShared } from "@website/builder/plugins/switchable_views_plugin";
     import { theme_options, ThemeTabShared } from "@website/builder/plugins/theme/theme_tab_plugin";
-    import { mark_translatable_nodes } from "@website/builder/plugins/translation_plugin";
+    import { TranslateWebpageOptionShared } from "@website/builder/plugins/translation/options/translate_webpage_option_plugin";
+    import { mark_translatable_nodes } from "@website/builder/plugins/translation/translation_plugin";
+    import { WebsiteSaveShared } from "@website/builder/plugins/website_save_plugin";
     import { force_background_translation_state_selectors } from "@website/builder/plugins/translation/repeat_translation_state_plugin";
-    import { translate_options } from "@html_builder/core/builder_options_plugin_translate";
     import { WebsiteSessionShared } from "@website/builder/plugins/website_session_plugin";
 
     interface SharedMethods {
@@ -42,7 +43,6 @@ declare module "plugins" {
         cardImageOption: CardImageOptionShared;
         chartOptionPlugin: ChartOptionShared;
         CookiesBarOptionPlugin: CookiesBarOptionShared;
-        customizeTranslationTab: CustomizeTranslationTabShared;
         customizeWebsite: CustomizeWebsiteShared;
         dynamicSnippetCarouselOption: DynamicSnippetCarouselOptionShared;
         dynamicSnippetOption: DynamicSnippetOptionShared;
@@ -59,11 +59,13 @@ declare module "plugins" {
         socialMediaOptionPlugin: SocialMediaOptionShared;
         switchableViews: SwitchableViewsShared;
         themeTab: ThemeTabShared;
+        translateWebpageOption: TranslateWebpageOptionShared;
         websiteBackgroundVideoPlugin: WebsiteBackgroundVideoShared;
         websiteFont: WebsiteFontShared;
         websiteFormOption: FormOptionShared;
         websitePageConfigOptionPlugin: WebsitePageConfigOptionShared;
         websiteParallaxPlugin: WebsiteParallaxShared;
+        websiteSavePlugin: WebsiteSaveShared;
         websiteSession: WebsiteSessionShared;
     }
 
@@ -76,6 +78,7 @@ declare module "plugins" {
         dynamic_snippet_template_updated: dynamic_snippet_template_updated;
         get_gallery_items_handlers: get_gallery_items_handlers;
         mark_translatable_nodes: mark_translatable_nodes;
+        on_visibility_toggled_handlers: on_visibility_toggled_handlers;
         remove_hover_effect_handlers: remove_hover_effect_handlers;
         reorder_items_handlers: reorder_items_handlers;
         set_hover_effect_handlers: set_hover_effect_handlers;
@@ -96,7 +99,6 @@ declare module "plugins" {
         searchbar_option_order_by_items: searchbar_option_order_by_items;
         force_background_translation_state_selectors: force_background_translation_state_selectors;
         theme_options: theme_options;
-        translate_options: translate_options;
         visibility_selector_parameters: visibility_selector_parameters;
     }
 }

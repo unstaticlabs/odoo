@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Abe Manyo, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:46+0000\n"
-"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-06-23 09:30+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "repair/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -30,12 +30,6 @@ msgstr ""
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "%(name)s Sequence repair"
 msgstr "Sequence repair %(name)s"
-
-#. module: repair
-#. odoo-python
-#: code:addons/repair/models/repair.py:0
-msgid "%(product)s: Insufficient Quantity To Repair"
-msgstr "%(product)s: Kuantitas Tidak Mencukupi Untuk Memperbaiki"
 
 #. module: repair
 #: model:ir.actions.report,print_report_name:repair.action_report_repair_order
@@ -69,11 +63,6 @@ msgstr ""
 "* Status 'Sedang Diperbaiki' digunakan ketika perbaikan masih berlangsung.\n"
 "* Status 'Diperbaiki' digunakan saat perbaikan selesai.\n"
 "* Status 'Dibatalkan' digunakan saat user membatalkan order perbaikan."
-
-#. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "<br/>You can still confirm the repair of"
-msgstr "<br/>Anda masih dapat mengonfirmasi perbaikan"
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -151,15 +140,6 @@ msgid "<strong>Status:</strong>"
 msgstr "<strong>Status:</strong>"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid ""
-"? , but get ready to have fun taking inventory to fix the negative stock "
-"quantity!"
-msgstr ""
-"? , tapi siap-siap untuk menghitung inventaris untuk memperbaiki kuantitas "
-"stok negatif!"
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_needaction
 msgid "Action Needed"
 msgstr "Tindakan Diperlukan"
@@ -173,6 +153,11 @@ msgstr "Aktivitas"
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Dekorasi Pengecualian Aktivitas"
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Rencana-Rencana Kegiatan"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_state
@@ -292,6 +277,11 @@ msgid "BoM Components"
 msgstr "Komponen BoM"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__can_create_sale_or_invoice
+msgid "Can Create Sale Or Invoice"
+msgstr ""
+
+#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "Can't find any production location."
@@ -299,8 +289,8 @@ msgstr "Tidak dapat menemukan lokasi produksi apapun"
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Cancel Repair"
-msgstr "Batalkan Perbaikan"
+msgid "Cancel"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields.selection,name:repair.selection__repair_order__state__cancel
@@ -374,11 +364,6 @@ msgid "Confirmed"
 msgstr "Dikonfirmasi"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Create Quotation"
-msgstr "Buat Quotation"
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 #: model:ir.actions.server,name:repair.action_create_repair_order
@@ -399,14 +384,12 @@ msgstr "Buat pada Order"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_uid
 msgid "Created by"
 msgstr "Dibuat oleh"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_date
 msgid "Created on"
 msgstr "Dibuat pada"
 
@@ -443,6 +426,7 @@ msgid "Details"
 msgstr "Perincian"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__display_name
 #: model:ir.model.fields,field_description:repair.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:repair.field_product_product__display_name
 #: model:ir.model.fields,field_description:repair.field_product_template__display_name
@@ -458,7 +442,6 @@ msgstr "Perincian"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__display_name
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__display_name
 msgid "Display Name"
 msgstr "Nama Tampilan"
 
@@ -499,15 +482,6 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Ikon font awesome, misalnya fa-tasks"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid ""
-"For some of the parts, there is a difference between the initial demand and "
-"the actual quantity that was used. Are you sure you want to confirm ?"
-msgstr ""
-"Untuk beberapa komponen, terdapat perbedaan di antara tuntutan dan kuantitas "
-"sebenarnya yang digunakan. Apakah Anda yakin ingin mengonfirmasi ?"
-
-#. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Future Activities"
 msgstr "Kegiatan - Kegiatan Mendatang"
@@ -523,6 +497,7 @@ msgid "Has Uncomplete Moves"
 msgstr "Memiliki Pergerakan yang Belum Selesai"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__id
 #: model:ir.model.fields,field_description:repair.field_account_move_line__id
 #: model:ir.model.fields,field_description:repair.field_product_product__id
 #: model:ir.model.fields,field_description:repair.field_product_template__id
@@ -538,7 +513,6 @@ msgstr "Memiliki Pergerakan yang Belum Selesai"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__id
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__id
 msgid "ID"
 msgstr "ID"
 
@@ -611,6 +585,22 @@ msgid "Inventory Moves"
 msgstr "Pergerakan Inventaris"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_ids
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoice"
+msgstr ""
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_count
+msgid "Invoice Count"
+msgstr ""
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoices"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_is_follower
 msgid "Is Follower"
 msgstr "Adalah Follower"
@@ -626,9 +616,14 @@ msgid "John Doe"
 msgstr "John Doe"
 
 #. module: repair
+#: model:ir.model,name:repair.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: repair
 #: model:ir.model,name:repair.model_account_move_line
 msgid "Journal Item"
-msgstr "Item Jurnal"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -643,14 +638,12 @@ msgstr "Laptop"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_uid
 msgid "Last Updated by"
 msgstr "Terakhir Diperbarui oleh"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_date
 msgid "Last Updated on"
 msgstr "Terakhir Diperbarui pada"
 
@@ -673,11 +666,6 @@ msgid ""
 msgstr ""
 "Status ketersediaan komponen terkini untuk Order Perbaikan ini. Bila hijau, "
 "maka status kesiapan Order Perbaikan adalah siap."
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__location_id
-msgid "Location"
-msgstr "Lokasi"
 
 #. module: repair
 #: model:ir.model,name:repair.model_stock_lot
@@ -814,6 +802,11 @@ msgid "Open"
 msgstr "Terbuka"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr "Kategori Operasi"
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_type_id
 msgid "Operation Type"
 msgstr "Tipe Operasi"
@@ -846,11 +839,6 @@ msgid "Pending"
 msgstr "Ditunda"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Picked"
-msgstr "Dipick"
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_ids
 msgid "Picking Product"
 msgstr "Picking Produk"
@@ -879,7 +867,6 @@ msgstr "Prioritas"
 #. module: repair
 #: model:ir.model,name:repair.model_product_template
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_id
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Product"
 msgstr "Produk"
@@ -963,17 +950,15 @@ msgid "Properties"
 msgstr "Properti"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quant_ids
-msgid "Quant"
-msgstr "Kuant"
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quantity
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_tree
 msgid "Quantity"
 msgstr "Kuantitas"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Quote"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -1029,7 +1014,6 @@ msgstr "Lokasi Tujuan Komponen yang Dibuang"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_stock_move__repair_id
 #: model:ir.model.fields,field_description:repair.field_stock_picking__repair_ids
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__repair_id
 #: model:ir.model.fields.selection,name:repair.selection__stock_picking_type__code__repair_operation
 msgid "Repair"
 msgstr "Perbaikan"
@@ -1053,8 +1037,11 @@ msgstr "Tipe Operasi Perbaikan"
 #. module: repair
 #: model:ir.actions.report,name:repair.action_report_repair_order
 #: model:ir.model,name:repair.model_repair_order
+#: model:ir.model.fields,field_description:repair.field_account_bank_statement_line__repair_order_id
+#: model:ir.model.fields,field_description:repair.field_account_move__repair_order_id
 #: model:ir.model.fields,field_description:repair.field_sale_order__repair_order_ids
 #: model:ir.model.fields.selection,name:repair.selection__product_template__service_tracking__repair
+#: model_terms:ir.ui.view,arch_db:repair.view_account_move_form_inherit_repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Repair Order"
@@ -1113,7 +1100,7 @@ msgstr "Layanan Perbaikan"
 
 #. module: repair
 #: model:ir.model,name:repair.model_repair_tags
-msgid "Repair Tags"
+msgid "Repair Tag"
 msgstr "Tag Perbaikan"
 
 #. module: repair
@@ -1171,6 +1158,11 @@ msgstr "Replenish on Order (MTO)"
 #: model_terms:ir.ui.view,arch_db:repair.stock_repair_type_kanban
 msgid "Reporting"
 msgstr "Laporan"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Reserved"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__user_id
@@ -1433,11 +1425,6 @@ msgid "Type"
 msgstr "Jenis"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "Tipe Operasi"
-
-#. module: repair
 #: model:ir.model.fields,help:repair.field_repair_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Jenis dari aktivitas pengecualian pada rekaman data."
@@ -1454,8 +1441,7 @@ msgid "Under Warranty"
 msgstr "Bergaransi"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_repair_order__product_uom
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_uom_name
+#: model:ir.model.fields,field_description:repair.field_repair_order__uom_id
 msgid "Unit"
 msgstr "Unit"
 
@@ -1465,7 +1451,7 @@ msgid "Units"
 msgstr "Unit"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+#: model:ir.actions.server,name:repair.action_unreserve
 msgid "Unreserve"
 msgstr "Batalkan Reservasi"
 
@@ -1478,11 +1464,6 @@ msgstr "Mendesak"
 #: model:ir.model,name:repair.model_stock_warehouse
 msgid "Warehouse"
 msgstr "Gudang"
-
-#. module: repair
-#: model:ir.model,name:repair.model_stock_warn_insufficient_qty_repair
-msgid "Warn Insufficient Repair Quantity"
-msgstr "Peringatkan Kuantitas Perbaikan Tidak Mencukupi"
 
 #. module: repair
 #. odoo-python
@@ -1526,6 +1507,12 @@ msgstr "Anda tidak dapat memasukkan kuantitas negatif."
 
 #. module: repair
 #. odoo-python
+#: code:addons/repair/models/account_move.py:0
+msgid "You can only have one invoice linked to a repair order."
+msgstr ""
+
+#. module: repair
+#. odoo-python
 #: code:addons/repair/models/repair.py:0
 msgid "You cannot cancel a Repair Order that's already been completed"
 msgstr "Anda tidak dapat membatalkan Order Perbaikan yang sudah selesai"
@@ -1559,11 +1546,6 @@ msgstr ""
 "%(ref_str)s"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "from location"
-msgstr "dari lokasi"
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 msgid "id"
@@ -1574,256 +1556,3 @@ msgstr "id"
 #: code:addons/repair/models/sale_order.py:0
 msgid "sale_order_id"
 msgstr "sale_order_id"
-
-#~ msgid "(update)"
-#~ msgstr "(perbaharui)"
-
-#~ msgid "<strong>Lot/Serial Number:</strong>"
-#~ msgstr "<strong>Nomor Seri/Lot:</strong>"
-
-#~ msgid "<strong>Operations</strong>"
-#~ msgstr "<strong>Operasi</strong>"
-
-#~ msgid "<strong>Parts</strong>"
-#~ msgstr "<strong>Komponen</strong>"
-
-#~ msgid "<strong>Printing Date:</strong>"
-#~ msgstr "<strong>Tanggal Cetak:</strong>"
-
-#~ msgid "<strong>Product to Repair:</strong>"
-#~ msgstr "<strong>Produk Untuk Diperbaiki:</strong>"
-
-#~ msgid "<strong>Total Without Taxes</strong>"
-#~ msgstr "<strong>Total Sebelum Pajak</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Total</strong>"
-
-#~ msgid "<strong>Warranty:</strong>"
-#~ msgstr "<strong>Garansi:</strong>"
-
-#~ msgid "? This may lead to inconsistencies in your inventory."
-#~ msgstr "? Ini dapat berujung pada ketidaksamaan dalam inventaris Anda."
-
-#~ msgid "After Repair"
-#~ msgstr "Setelah Perbaikan"
-
-#~ msgid "Before Repair"
-#~ msgstr "Sebelum Perbaikan"
-
-#~ msgid "Cancel"
-#~ msgstr "Batal"
-
-#~ msgid "Category"
-#~ msgstr "Kategori"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konversi antara satuan hanya dapat terjadi jika mereka berada pada "
-#~ "kategori yang sama. Konversi akan dibuat berdasarkan rasio."
-
-#~ msgid "Create Invoice"
-#~ msgstr "Buat Faktur"
-
-#~ msgid "Create invoices"
-#~ msgstr "Buat Faktur"
-
-#~ msgid "Currency"
-#~ msgstr "Mata Uang"
-
-#~ msgid "Default Address"
-#~ msgstr "Alamat Baku"
-
-#~ msgid "Delivery Address"
-#~ msgstr "Alamat Tujuan"
-
-#~ msgid "Dest. Location"
-#~ msgstr "Lokasi Tujuan"
-
-#~ msgid "Do you really want to create the invoice(s)?"
-#~ msgstr "Apakah anda benar-benar ingin membuat faktur ?"
-
-#~ msgid "Done"
-#~ msgstr "Selesai"
-
-#~ msgid "Draft"
-#~ msgstr "Draft"
-
-#~ msgid "Extra Info"
-#~ msgstr "Info Tambahan"
-
-#~ msgid "Fees"
-#~ msgstr "Biaya"
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "Group by partner invoice address"
-#~ msgstr "Kelompokkan menurut alamat faktur rekanan"
-
-#~ msgid "History"
-#~ msgstr "Riwayat"
-
-#~ msgid "Invoice"
-#~ msgstr "Faktur"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Baris Faktur"
-
-#~ msgid "Invoice Method"
-#~ msgstr "Metode Penagihan"
-
-#~ msgid "Invoice State"
-#~ msgstr "Faktur negara"
-
-#~ msgid "Invoice address:"
-#~ msgstr "Alamat faktur:"
-
-#~ msgid "Invoice and shipping address:"
-#~ msgstr "Alamat faktur dan pengiriman:"
-
-#~ msgid "Invoice created"
-#~ msgstr "Faktur dibuat"
-
-#~ msgid "Invoiced"
-#~ msgstr "Telah Difakturkan"
-
-#~ msgid "Invoicing Address"
-#~ msgstr "Alamat Faktur"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Entri Jurnal"
-
-#~ msgid "No Invoice"
-#~ msgstr "Tidak ada Faktur"
-
-#~ msgid "No account defined for product \"%s\"."
-#~ msgstr "Tidak ada akun yang ditetapkan untuk produk \"%s\"."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Jumlah pesan yang butuh tindakan"
-
-#~ msgid "Price"
-#~ msgstr "Harga"
-
-#~ msgid "Pricelist"
-#~ msgstr "Daftar Harga"
-
-#~ msgid "Pricelist of the selected partner."
-#~ msgstr "Daftar harga untuk rekanan yang dipilih"
-
-#~ msgid "Print Quotation"
-#~ msgstr "Cetak Penawaran"
-
-#~ msgid "Product Unit of Measure"
-#~ msgstr "Satuan Produk"
-
-#~ msgid "Quotation"
-#~ msgstr "Penawaran"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "Penawaran / Order"
-
-#~ msgid "Quotation Notes"
-#~ msgstr "Catatan Penawaran"
-
-#~ msgid "Quotations"
-#~ msgstr "Penawaran"
-
-#~ msgid "Ready To Repair"
-#~ msgstr "Siap Untuk Perbaikan"
-
-#~ msgid "Ready to Repair"
-#~ msgstr "Siap untuk Perbaikan"
-
-#~ msgid "Repair Line"
-#~ msgstr "Baris Perbaikan"
-
-#~ msgid "Repair Order #:"
-#~ msgstr "Order Perbaikan #:"
-
-#~ msgid "Repair Order Reference"
-#~ msgstr " Referensi Order Perbaikan"
-
-#~ msgid "Repair Quotation #:"
-#~ msgstr "Penawaran Perbaikan #:"
-
-#~ msgid "Repair must be canceled in order to reset it to draft."
-#~ msgstr ""
-#~ "Perbaikan harus dibatalkan agar dapat diulang dari status rancangan."
-
-#~ msgid "Repair must be confirmed before starting reparation."
-#~ msgstr "Perbaikan harus dikonfirmasi sebelum mulai perbaikan."
-
-#~ msgid "Repair must be repaired in order to make the product moves."
-#~ msgstr "Perbaikan harus diselesaikan untuk membuat pergerakan produk."
-
-#~ msgid "Return"
-#~ msgstr "Retur"
-
-#~ msgid ""
-#~ "Selecting 'Before Repair' or 'After Repair' will allow you to generate "
-#~ "invoice before or after the repair is done respectively. 'No invoice' "
-#~ "means you don't want to generate invoice for this repair order."
-#~ msgstr ""
-#~ "Memilih 'Sebelum Perbaikan' atau 'Setelah Perbaikan' akan memungkinkan "
-#~ "Anda untuk menghasilkan faktur sebelum atau setelah perbaikan dilakukan. "
-#~ "'Tidak ada faktur' berarti Anda tidak ingin membuat faktur untuk order "
-#~ "perbaikan ini."
-
-#~ msgid "Send Quotation"
-#~ msgstr "Kirim Penawaran"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Tampilkan semua dokumen dengan aksi berikut sebelum hari ini"
-
-#~ msgid "Source Location"
-#~ msgstr "Lokasi Sumber"
-
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgid "Tax"
-#~ msgstr "Pajak"
-
-#~ msgid "Taxes"
-#~ msgstr "Pajak"
-
-#~ msgid "The name of the Repair Order must be unique!"
-#~ msgstr "Nama Order Perbaikan harus unik!"
-
-#~ msgid ""
-#~ "The status of a repair line is set automatically to the one of the linked "
-#~ "repair order."
-#~ msgstr ""
-#~ "Status baris perbaikan diatur secara otomatis ke salah satu order "
-#~ "perbaikan terkait."
-
-#~ msgid "To be Invoiced"
-#~ msgstr "Siap Difakturkan"
-
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgid "Total amount"
-#~ msgstr "Jumlah total"
-
-#~ msgid "Unit Price"
-#~ msgstr "Harga Satuan"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Satuan"
-
-#~ msgid "Untaxed Amount"
-#~ msgstr "Jumlah Sebelum Pajak"
-
-#~ msgid "Untaxed amount"
-#~ msgstr "Jumlah sebelum pajak"
-
-#~ msgid "UoM"
-#~ msgstr "Satuan"
-
-#~ msgid "Warranty Expiration"
-#~ msgstr "Garansi Kadaluarsa"

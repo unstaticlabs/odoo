@@ -11,23 +11,24 @@
 # gezza <geza.nagy@oregional.hu>, 2022
 # Martin Trigaux, 2022
 # Tamás Dombos, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 11:05+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:54+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -168,8 +169,8 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Analitikus tervek"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -216,6 +217,12 @@ msgid "Bacon"
 msgstr "Szalonna"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -240,10 +247,6 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Vállalatok"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -532,9 +535,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr ""
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Készlet helyek"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -810,8 +819,8 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Kvantok"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1174,194 +1183,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "units"
 msgstr "egységek"
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Manuális: a készlet értékeléséhez használt könyvelési tételek nem "
-#~ "kerülnek automatikusan könyvelésre.\n"
-#~ "         Automatikus: egy könyvelési tétel kerül létrehozásra "
-#~ "automatikusan a készlet értékelésére, amikor egy termék beérkezik, vagy "
-#~ "elhagyja a vállalatot.\n"
-#~ "        "
-
-#~ msgid "Account Move"
-#~ msgstr "Főkönyvi mozgás"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Készletkönyvelés tulajdonságok"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Könyvelési tételek"
-
-#~ msgid "Automated"
-#~ msgstr "Automatizált"
-
-#~ msgid "Cancel"
-#~ msgstr "Mégse"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Nem található készletnövekedési főkönyvi számla a termékhez:  %s. Meg "
-#~ "kell adni egy főkönyvi számlát a termékkategórián vagy a lokáción a "
-#~ "művelet feldolgozása előtt."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Nem található készletcsökkenési főkönyvi számla a termékhez:  %s. Meg "
-#~ "kell adni egy főkönyvi számlát a termékkategórián vagy a lokáción a "
-#~ "művelet feldolgozása előtt."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "A költség módszer megváltoztatása jelentős változás, ami hatással van a "
-#~ "készletértékre. Biztosan végre akarja hajtani ezt a változást?"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "Konfiguráció hiba. Állítsa be az ár különbözeti főkönyvi számlát a "
-#~ "terméken vagy a termékkategórián a művelet feldolgozásához."
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Ellenszámla"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "Alapértelmezett mértékegység készletműveletekhez."
-
-#~ msgid "Group by..."
-#~ msgstr "Csoportosítás..."
-
-#~ msgid "Incoming"
-#~ msgstr "Beérkező"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Számla sor"
-
-#~ msgid "Journal"
-#~ msgstr "Napló"
-
-#~ msgid "Other Info"
-#~ msgstr "Egyéb információ"
-
-#~ msgid "Outgoing"
-#~ msgstr "Kimenő"
-
-#~ msgid "Product Template"
-#~ msgstr "Terméksablon"
-
-#~ msgid "Quantity"
-#~ msgstr "Mennyiség"
-
-#~ msgid "Reason"
-#~ msgstr "Ok"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Fennmaradó mennyiség"
-
-#~ msgid "Return Picking"
-#~ msgstr "Visszáru"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Készletnövekedés főkönyvi számla"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Készletcsökkenés főkönyvi számla"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "Készletmennyiség történet"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Készletkönyvelési számla (Bejövő)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Készletkönyvelési számla (Kimenő)"
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "A mozgás sorok nem konzisztensek: van, amelyik beérkezik, van, amelyik "
-#~ "elhagyja a vállalatot."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "A mozgás sorok nem konzisztensek: vállalatközi mozgás történik egy "
-#~ "lépésben, de át kéne menniük a vállalatközi tranzit lokáción."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "A mozgás sorok nem konzisztensek: nem ugyanaz a forrás vagy a cél "
-#~ "vállalat."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mértékegység"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Valós idejű készletértékeléshez kerül alkalmazásra. Ha virtuális (nem "
-#~ "belső típusú) lokációra van beállítva, akkor ez a főkönyvi számla lesz "
-#~ "használva a termék értékének kimutatásához egy belső lokációról erre a "
-#~ "lokációra történő készletmozgáskor a termékszinten beállított általános "
-#~ "készletcsökkentési főkönyi számla helyett. Ennek nincs hatása a belső "
-#~ "típusú lokációkra."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Valós idejű készletértékeléshez kerül alkalmazásra. Ha virtuális (nem "
-#~ "belső típusú) lokációra van beállítva, akkor ez a főkönyvi számla lesz "
-#~ "használva a termék értékének kimutatásához erről a lokációról  egy belső "
-#~ "lokációra történő készletmozgáskor a termékszinten beállított általános "
-#~ "készletcsökkentési főkönyi számla helyett. Ennek nincs hatása a belső "
-#~ "típusú lokációkra."
-
-#~ msgid "Warning"
-#~ msgstr "Figyelmeztetés"
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "Nincs megadva készletnapló a termékkategórián, ellenőrizze, hogy "
-#~ "telepítésre került-e számlatükör."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Nincs megadva készletértékelési főkönyvi számla a termékkategórián. Meg "
-#~ "kell adni egyet a művelet feldolgozása előtt."
-
-#~ msgid "by"
-#~ msgstr "által"
-
-#~ msgid "for"
-#~ msgstr "felelős"

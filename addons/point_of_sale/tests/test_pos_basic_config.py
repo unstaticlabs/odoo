@@ -10,7 +10,7 @@ from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
 import unittest.mock
-from odoo.http import UserError
+from odoo.exceptions import UserError
 
 
 @odoo.tests.tagged('post_install', '-at_install')
@@ -828,7 +828,7 @@ class TestPoSBasicConfig(TestPoSCommon):
             self.assertLogs('odoo.addons.point_of_sale.models.pos_order') as cm,
             unittest.mock.patch('odoo.addons.point_of_sale.models.pos_order.randrange', return_value=1996)
         ):
-            self.env['ir.config_parameter'].sudo().set_param('point_of_sale.log_order_data', 'True')
+            self.env['ir.config_parameter'].sudo().set_bool('point_of_sale.log_order_data', True)
             res = self.env['pos.order'].sync_from_ui([order_data])
             # Basic check for logs on order synchronization
             order_log_str = self.env['pos.order']._get_order_log_representation(order_data)
@@ -1132,7 +1132,7 @@ class TestPoSBasicConfig(TestPoSCommon):
         ])
 
     def test_limited_products_loading(self):
-        self.env['ir.config_parameter'].sudo().set_param('point_of_sale.limited_product_count', 3)
+        self.env['ir.config_parameter'].sudo().set_int('point_of_sale.limited_product_count', 3)
 
         # Make the service products that are available in the pos inactive.
         # We don't need them to test the loading of 'consu' products.
@@ -1163,7 +1163,7 @@ class TestPoSBasicConfig(TestPoSCommon):
 
     def test_closing_entry_by_product(self):
         # set the Group by Product at Closing Entry
-        self.config.is_closing_entry_by_product = True
+        self.config.use_closing_entry_by_product = True
         self.open_new_session()
 
         # 4 orders

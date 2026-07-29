@@ -11,15 +11,14 @@
 # Miku Laitinen <miku.laitinen@gmail.com>, 2022
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Saara Hakanen <sahak@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 21:36+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-13 13:11+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/fi/>\n"
@@ -28,7 +27,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -58,11 +57,6 @@ msgstr "Aktivoi"
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_module_filter_apps_inherit
 msgid "Apps"
 msgstr "Sovelluskauppa"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "Peruuta"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
@@ -262,7 +256,7 @@ msgstr "Tiedostoa ei lähetetty."
 #: code:addons/base_import_module/models/ir_module.py:0
 msgid "No manifest found in '%(modules)s'. Can't import the zip file."
 msgstr ""
-"Kohteesta '%(modules)s' ei löytynyt manifestia: ZIP-tiedoston tuonti "
+"Kohteesta '%(modules)s'  ei löytynyt kokoonpanotietoja: ZIP-tiedoston tuonti "
 "epäonnistui."
 
 #. module: base_import_module
@@ -271,8 +265,6 @@ msgid ""
 "Note: you can only import data modules (.xml files, i18n files and static "
 "assets)"
 msgstr ""
-"Huomaa: voit tuoda vain datamoduuleja (.xml-tiedostoja, i18n-tiedostoja ja "
-"staattisia resursseja)"
 
 #. module: base_import_module
 #: model:ir.model.fields.selection,name:base_import_module.selection__ir_module_module__module_type__official
@@ -283,7 +275,7 @@ msgstr "Viralliset sovellukset"
 #. odoo-python
 #: code:addons/base_import_module/models/ir_module.py:0
 msgid "Only administrators can install data modules."
-msgstr "Vain ylläpitäjät voivat asentaa datamoduuleja."
+msgstr "Vain järjestelmänvalvojat voivat asentaa datamoduuleja."
 
 #. module: base_import_module
 #. odoo-python
@@ -315,8 +307,6 @@ msgid ""
 "The assets path in the manifest of imported module '%(module_name)s' cannot "
 "contain glob wildcards (e.g., *, **)."
 msgstr ""
-"Tuodun moduulin '%(module_name)s' manifestissa oleva resurssipolku ei saa "
-"sisältää jokerimerkkejä (esim. *, **)."
 
 #. module: base_import_module
 #. odoo-python
@@ -368,36 +358,3 @@ msgstr "valmis"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "alustus"
-
-#~ msgid "Import App"
-#~ msgstr "Tuo App"
-
-#~ msgid "Import module"
-#~ msgstr "Tuo moduuli"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Viimeksi muokattu"
-
-#~ msgid ""
-#~ "Note: you can only import data modules (.xml files and static assets)"
-#~ msgstr ""
-#~ "Huomaa: voit ladata vain datamoduuleita (.xml-tiedostoja ja staattisia "
-#~ "resursseja)"
-
-#~ msgid "Open Modules"
-#~ msgstr "Avaa moduuleja"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "Valitse tuotaa moduulipaketti (.zip tiedosto):"
-
-#~ msgid "Studio customizations require Studio"
-#~ msgstr "Studio-mukautukset edellyttävät Studiota"
-
-#~ msgid ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"
-#~ msgstr ""
-#~ "Moduulien riippuvuuksissa ei ole täytetty: \n"
-#~ "\n"
-#~ " - %s"

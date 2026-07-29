@@ -38,7 +38,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'expense_account_id': 'ec110307',
                 'income_account_id': 'ec410101',
                 'tax_calculation_rounding_method': 'round_per_line',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'ec110306',
             },
         }
@@ -68,4 +67,13 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_stock_expense_id': 'ec510106',
                 'account_stock_variation_id': 'ec110310',
             },
+            'ec120102': {'asset_depreciation_account_id': 'ec12011201', 'asset_expense_account_id': 'ec51040101'},
+            'ec120104': {'asset_depreciation_account_id': 'ec12011203', 'asset_expense_account_id': 'ec51040103'},
+            'ec120105': {'asset_depreciation_account_id': 'ec12011204', 'asset_expense_account_id': 'ec51040104'},
+            'ec120106': {'asset_depreciation_account_id': 'ec12011205', 'asset_expense_account_id': 'ec51040105'},
+            'ec120107': {'asset_depreciation_account_id': 'ec12011206', 'asset_expense_account_id': 'ec51040106'},
+            'ec120108': {'asset_depreciation_account_id': 'ec12011207', 'asset_expense_account_id': 'ec51040107'},
+            'ec120109': {'asset_depreciation_account_id': 'ec12011208', 'asset_expense_account_id': 'ec51040108'},
+            'ec120110': {'asset_depreciation_account_id': 'ec12011209', 'asset_expense_account_id': 'ec51040109'},
+            'ec120111': {'asset_depreciation_account_id': 'ec12011210', 'asset_expense_account_id': 'ec51040110'},
         }

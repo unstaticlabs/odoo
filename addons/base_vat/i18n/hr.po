@@ -6,13 +6,13 @@
 # Karolina Tonković <karolina.tonkovic@storm.hr>, 2022
 # Bole <bole@dajmi5.com>, 2023
 # Martin Trigaux, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 00:26+0000\n"
+"PO-Revision-Date: 2025-11-16 15:06+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Croatian <https://translate.odoo.com/projects/odoo-19/"
 "base_vat/hr/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_vat
 #. odoo-python
@@ -81,8 +81,8 @@ msgstr "CHE-123.456.788 TVA ili CHE-123.456.788 MWST ili CHE-123.456.788 IVA"
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_company
-msgid "Companies"
-msgstr "Tvrtke"
+msgid "Company"
+msgstr ""
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_config_settings
@@ -208,7 +208,6 @@ msgstr "Provjeri u VIESu"
 #. module: base_vat
 #: model:ir.model.fields,field_description:base_vat.field_res_partner__vat
 #: model:ir.model.fields,field_description:base_vat.field_res_users__vat
-#: model_terms:ir.ui.view,arch_db:base_vat.view_partner_base_vat_form
 msgid "Tax ID"
 msgstr "Porezni broj"
 
@@ -249,7 +248,7 @@ msgstr ""
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "To explicitly indicate no (valid) VAT, use '/' instead. "
+msgid "To explicitly indicate no (valid) VAT, use '/', 'na' or 'NA' instead. "
 msgstr ""
 
 #. module: base_vat
@@ -310,68 +309,3 @@ msgstr "partner [%s]"
 
 #~ msgid "either 11 digits for CPF or 14 digits for CNPJ"
 #~ msgstr "između 11 znamenaka za CPF ili 14 znamenaka za CNPJ"
-
-#~ msgid ""
-#~ "Connection with the VIES server failed. The VAT number %s could not be "
-#~ "validated."
-#~ msgstr ""
-#~ "Veza sa VIES serverom nije uspostavljena. Porezni broj %s nije bilo "
-#~ "moguće ovjeriti."
-
-#~ msgid "The VAT number %s could not be interpreted by the VIES server."
-#~ msgstr ""
-#~ "Porezni broj %s nije bilo moguće interpretirati od strane VIES servera."
-
-#~ msgid ""
-#~ "The request for VAT validation was not processed. VIES service has "
-#~ "responded with the following error: %s"
-#~ msgstr ""
-#~ "Zahtjev za provjerom poreznog proja nije obrađen. VIES servis je "
-#~ "odgovorio sa slijedećom greškom: %s"
-
-#~ msgid "17291716060 (NIN) or 1729171602 (VKN)"
-#~ msgstr "17291716060 (NIN) or 1729171602 (VKN)"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "Fiskalna pozicija"
-
-#~ msgid ""
-#~ "If this checkbox is ticked, you will not be able to save a contact if its "
-#~ "VAT number cannot be verified by the European VIES service."
-#~ msgstr ""
-#~ "Ukoliko je ovdje označeno, nećete biti u mogućnosti snimiti partnera ako "
-#~ "njegov porezni broj nije potvrđen od strane EU-VIES servisa."
-
-#~ msgid ""
-#~ "Technical field display a message to the user if the VIES check fails."
-#~ msgstr ""
-#~ "Tehničko polje prikazuje poruku korisniku ako je VIES provjera neuspješna."
-
-#~ msgid ""
-#~ "The %(vat_label)s number [%(wrong_vat)s] does not seem to be valid. \n"
-#~ "Note: the expected format is %(expected_format)s"
-#~ msgstr ""
-#~ "%(vat_label)s broj [%(wrong_vat)s] se čini neispravan. \n"
-#~ "Napomena: Očekivani format je %(expected_format)s"
-
-#~ msgid ""
-#~ "The %(vat_label)s number [%(wrong_vat)s] for %(record_label)s does not "
-#~ "seem to be valid. \n"
-#~ "Note: the expected format is %(expected_format)s"
-#~ msgstr ""
-#~ "%(vat_label)s broj [%(wrong_vat)s] za %(record_label)s se ne čini "
-#~ "ispravnim. \n"
-#~ "Napomena: očekivani format je %(expected_format)s"
-
-#~ msgid "The VAT number %s failed the VIES VAT validation check."
-#~ msgstr "Porezni broj %s nije prošao validaciju u VIES bazi."
-
-#~ msgid ""
-#~ "The country detected for this foreign VAT number does not match the one "
-#~ "set on this fiscal position."
-#~ msgstr ""
-#~ "Detektirana država za ovaj strani porezni broj ne odgovara onoj "
-#~ "postavljenoj na fiskalnoj poziciji."
-
-#~ msgid "fiscal position [%s]"
-#~ msgstr "fiskalna pozicija [%s]"

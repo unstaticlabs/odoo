@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * base_address_extended
 #
-# Oakarmin Iron <oakarminiron@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Oakarmin Iron <oakarminiron@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:31+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-08 17:53+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/"
 "base_address_extended/my/>\n"
 "Language: my\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_address_extended
 #: model_terms:ir.ui.view,arch_db:base_address_extended.view_res_country_city_extended_form
@@ -73,6 +73,11 @@ msgid "Country"
 msgstr "နိုင်ငံ"
 
 #. module: base_address_extended
+#: model:ir.model.fields,field_description:base_address_extended.field_res_city__country_code
+msgid "Country Code"
+msgstr ""
+
+#. module: base_address_extended
 #: model:ir.model,website_form_label:base_address_extended.model_res_partner
 msgid "Create a Customer"
 msgstr ""
@@ -85,7 +90,7 @@ msgstr "ဖန်တီးသူ"
 #. module: base_address_extended
 #: model:ir.model.fields,field_description:base_address_extended.field_res_city__create_date
 msgid "Created on"
-msgstr "ဖန်တီးသည့်အချိန်"
+msgstr "တည်ဆောက်သည့်အချိန်"
 
 #. module: base_address_extended
 #: model:ir.model.fields,field_description:base_address_extended.field_res_city__display_name
@@ -151,6 +156,7 @@ msgstr "နောက်ဆုံးပြင်ဆင်ချိန်"
 
 #. module: base_address_extended
 #: model:ir.model.fields,field_description:base_address_extended.field_res_city__name
+#: model_terms:ir.ui.view,arch_db:base_address_extended.res_city_view_form
 msgid "Name"
 msgstr "အမည်"
 
@@ -163,7 +169,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_address_extended.field_res_city__state_id
 #: model_terms:ir.ui.view,arch_db:base_address_extended.address_street_extended_form
 msgid "State"
-msgstr "အခြေအနေ"
+msgstr "ပြည်နယ်"
 
 #. module: base_address_extended
 #: model_terms:ir.ui.view,arch_db:base_address_extended.address_street_extended_form
@@ -187,7 +193,15 @@ msgid "Street..."
 msgstr "လမ်း..."
 
 #. module: base_address_extended
+#: model:ir.model.fields,help:base_address_extended.field_res_city__country_code
+msgid ""
+"The ISO country code in two chars. \n"
+"You can use this field for quick search."
+msgstr ""
+
+#. module: base_address_extended
 #: model_terms:ir.ui.view,arch_db:base_address_extended.address_street_extended_form
+#: model_terms:ir.ui.view,arch_db:base_address_extended.res_city_view_form
 msgid "ZIP"
 msgstr "စာတိုက် သင်္ကေတ"
 
@@ -195,3 +209,8 @@ msgstr "စာတိုက် သင်္ကေတ"
 #: model:ir.model.fields,field_description:base_address_extended.field_res_city__zipcode
 msgid "Zip"
 msgstr "စာတိုက် သင်္ကေတ"
+
+#. module: base_address_extended
+#: model_terms:ir.ui.view,arch_db:base_address_extended.res_city_view_form
+msgid "e.g. London"
+msgstr ""

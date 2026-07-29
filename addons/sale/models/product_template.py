@@ -90,11 +90,11 @@ class ProductTemplate(models.Model):
         super()._compute_service_tracking()
         self.filtered(lambda pt: not pt.sale_ok).service_tracking = 'no'
 
-    @api.depends('purchase_ok')
+    @api.depends('purchase_ok', 'sale_ok')
     def _compute_visible_expense_policy(self):
-        visibility = self.env.user.has_group('analytic.group_analytic_accounting')
-        for product_template in self:
-            product_template.visible_expense_policy = visibility and product_template.purchase_ok
+        self.visible_expense_policy = False
+        if self.env.user.has_group('analytic.group_analytic_accounting'):
+            self.filtered(lambda pt: pt.purchase_ok or pt.sale_ok).visible_expense_policy = True
 
     @api.depends('sale_ok')
     def _compute_expense_policy(self):
@@ -173,7 +173,7 @@ class ProductTemplate(models.Model):
             if self.env.user.has_group('product.group_product_pricelist'):
                 return [{
                     'label': _("Import Template for Products"),
-                    'template': '/product/static/xls/product_template.xls'
+                    'template': '/product/static/xls/products_import_template.xlsx'
                 }]
         return res
 
@@ -211,9 +211,7 @@ class ProductTemplate(models.Model):
         if res.get('product_id', False):
             has_optional_products = False
             for optional_product in self.product_variant_id.optional_product_ids:
-                if optional_product.has_dynamic_attributes() or optional_product._get_possible_variants(
-                    self.product_variant_id.product_template_attribute_value_ids
-                ):
+                if optional_product.has_dynamic_attributes() or optional_product._get_possible_variants():
                     has_optional_products = True
                     break
             res.update({

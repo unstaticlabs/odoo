@@ -1,36 +1,22 @@
+# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from unittest.mock import patch
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import tagged, TransactionCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestResConfig(TransactionCase):
 
     def test_00_add_parameter_with_default_value(self):
         """ Check if parameters with a default value are saved in the ir_config_parameter table """
 
         self.env['res.config.test'].create({}).execute()
-        self.assertEqual(self.env['ir.config_parameter'].sudo().get_param('resConfigTest.parameter1'), str(1000),
+        self.assertEqual(self.env['ir.config_parameter'].sudo().get_int('resConfigTest.parameter1'), 1000,
             "The parameter is not saved with its default value")
 
-        with patch('odoo.addons.base.models.ir_config_parameter.IrConfig_Parameter.set_param') as set_param_mock:
-            self.env['res.config.test'].create({}).execute()
+        with patch('odoo.addons.base.models.ir_config_parameter.IrConfig_Parameter.create') as create_param_mock:
+            with patch('odoo.addons.base.models.ir_config_parameter.IrConfig_Parameter.write') as write_param_mock:
+                self.env['res.config.test'].create({}).execute()
 
-        set_param_mock.assert_not_called()
-
-    def test_boolean_config_parameter(self):
-        ICP = self.env['ir.config_parameter'].sudo()
-        ResConfigTest = self.env['res.config.test']
-
-        # If no `ir.config_parameter` record exists yet for the config, value
-        # should be `False`
-        ICP.search([('key', '=', 'resConfigTest.parameterBool')]).unlink()
-        defaults = ResConfigTest.default_get(['param_bool'])
-        self.assertFalse(defaults['param_bool'])
-
-        ICP.set_param('resConfigTest.parameterBool', 'False')
-        defaults = ResConfigTest.default_get(['param_bool'])
-        self.assertFalse(defaults['param_bool'])
-
-        ICP.set_param('resConfigTest.parameterBool', 'True')
-        defaults = ResConfigTest.default_get(['param_bool'])
-        self.assertTrue(defaults['param_bool'])
+        create_param_mock.assert_not_called()
+        write_param_mock.assert_not_called()

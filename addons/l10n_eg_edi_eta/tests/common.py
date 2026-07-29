@@ -1,8 +1,6 @@
-from datetime import datetime
-from pytz import timezone
+from datetime import datetime, UTC
 
 from odoo.fields import Command
-from odoo.tests import tagged
 from odoo.addons.account_edi.tests.common import AccountEdiTestCommon
 
 
@@ -14,9 +12,9 @@ class TestEGEdiCommon(AccountEdiTestCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.frozen_today = datetime(year=2022, month=3, day=15, hour=0, minute=0, second=0, tzinfo=timezone('utc'))
+        cls.frozen_today = datetime(year=2022, month=3, day=15, hour=0, minute=0, second=0, tzinfo=UTC)
 
-        cls.currency_aed_id = cls.setup_other_currency('AED', rates=[('2022-03-15', 0.198117095128)])
+        cls.currency_aed_id = cls.setup_other_currency('AED', rates=[('2022-03-14', 0.198117095128)])
 
         # Allow to see the full result of AssertionError.
         cls.maxDiff = None
@@ -36,7 +34,6 @@ class TestEGEdiCommon(AccountEdiTestCommon):
             'state_id': cls.env.ref('base.state_eg_c').id,
             'l10n_eg_building_no': '12',
             'street': '12th dec. street',
-            'is_company': True,
         })
         cls.partner_b.write({
             'vat': 'ESF35999705',
@@ -45,7 +42,6 @@ class TestEGEdiCommon(AccountEdiTestCommon):
             'state_id': cls.env.ref('base.state_us_27').id,
             'l10n_eg_building_no': '12',
             'street': '5th avenue street',
-            'is_company': True,
         })
         cls.partner_c = cls.env['res.partner'].create({
             'name': 'عميل 1',
@@ -55,7 +51,6 @@ class TestEGEdiCommon(AccountEdiTestCommon):
             'state_id': cls.env.ref('base.state_eg_c').id,
             'l10n_eg_building_no': '12',
             'street': '12th dec. street',
-            'is_company': True,
         })
 
         cls.product_a.write({'barcode': '1KGS1TEST', })
@@ -71,7 +66,6 @@ class TestEGEdiCommon(AccountEdiTestCommon):
             'state_id': cls.env.ref('base.state_eg_c').id,
             'l10n_eg_building_no': '10',
             'street': '12th dec. street',
-            'is_company': True,
         })
         cls.company_data['default_journal_sale'].write({
             'l10n_eg_branch_id': cls.company_branch.id,
@@ -84,7 +78,7 @@ class TestEGEdiCommon(AccountEdiTestCommon):
         return cls.env.ref(f'account.{cls.env.company.id}_account_tax_template_{trailing_xml_id}')
 
     @classmethod
-    def create_invoice(cls, **kwargs):
+    def _create_invoice_eg(cls, **kwargs):
         invoice = (
             cls.env['account.move']
             .with_context(edi_test_mode=True)

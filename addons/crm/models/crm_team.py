@@ -8,9 +8,9 @@ from ast import literal_eval
 from markupsafe import Markup
 
 from odoo import api, exceptions, fields, models, modules, _
+from odoo.addons.crm.models.crm_team_member import MEMBER_MAX_LEAD_ASSIGNMENT_QUOTA
 from odoo.fields import Domain
 from odoo.tools import float_compare, float_round
-from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
@@ -23,16 +23,18 @@ class CrmTeam(models.Model):
     use_leads = fields.Boolean('Leads', help="Check this box to filter and qualify incoming requests as leads before converting them into opportunities and assigning them to a salesperson.")
     use_opportunities = fields.Boolean('Pipeline', default=True, help="Check this box to manage a presales process with opportunities.")
     alias_id = fields.Many2one(help="The email address associated with this channel. New emails received will automatically create new leads assigned to the channel.")
+    alias_full_name = fields.Char(related='alias_id.alias_full_name')
     # assignment
     assignment_enabled = fields.Boolean('Lead Assign', compute='_compute_assignment_enabled')
     assignment_auto_enabled = fields.Boolean('Auto Assignment', compute='_compute_assignment_enabled')
-    assignment_optout = fields.Boolean('Skip auto assignment')
+    assignment_optout = fields.Boolean('Pause auto assignment')
     assignment_max = fields.Integer(
         'Lead Average Capacity', compute='_compute_assignment_max',
         help='Monthly average leads capacity for all salesmen belonging to the team')
     assignment_domain = fields.Char(
         'Assignment Domain', tracking=True,
         help='Additional filter domain when fetching unassigned leads to allocate to the team.')
+    show_assignment_max = fields.Boolean(compute='_compute_show_assignment_max')
     # statistics about leads / opportunities / both
     lead_unassigned_count = fields.Integer(
         string='# Unassigned Leads', compute='_compute_lead_unassigned_count')
@@ -42,6 +44,7 @@ class CrmTeam(models.Model):
     lead_all_assigned_month_exceeded = fields.Boolean('Exceed monthly lead assignement', compute="_compute_lead_all_assigned_month_count",
         help="True if the monthly lead assignment count is greater than the maximum assignment limit, false otherwise."
     )
+    opportunity_count = fields.Integer(string='Number of assigned opportunities', compute='_compute_opportunity_count')
     # properties
     lead_properties_definition = fields.PropertiesDefinition('Lead Properties')
 
@@ -49,6 +52,16 @@ class CrmTeam(models.Model):
     def _compute_assignment_max(self):
         for team in self:
             team.assignment_max = sum(member.assignment_max for member in team.crm_team_member_ids)
+
+    @api.depends('crm_team_member_ids.assignment_max')
+    def _compute_show_assignment_max(self):
+        for team in self:
+            show_max = True
+            for member in team.crm_team_member_ids:
+                if member.assignment_max >= MEMBER_MAX_LEAD_ASSIGNMENT_QUOTA:
+                    show_max = False
+
+            team.show_assignment_max = show_max
 
     def _compute_assignment_enabled(self):
         assign_enabled = self.env['crm.lead']._is_rule_based_assignment_activated()
@@ -67,6 +80,15 @@ class CrmTeam(models.Model):
         counts = {team.id: count for team, count in leads_data}
         for team in self:
             team.lead_unassigned_count = counts.get(team.id, 0)
+
+    def _compute_opportunity_count(self):
+        leads_data = self.env['crm.lead']._read_group([
+            ('team_id', 'in', self.ids),
+            ('type', '=', 'opportunity'),
+        ], ['team_id'], ['__count'])
+        counts = {team.id: count for team, count in leads_data}
+        for team in self:
+            team.opportunity_count = counts.get(team.id, 0)
 
     @api.depends('crm_team_member_ids.lead_month_count', 'assignment_max')
     def _compute_lead_all_assigned_month_count(self):
@@ -400,8 +422,8 @@ class CrmTeam(models.Model):
 
         """
 
-        BUNDLE_HOURS_DELAY = float(self.env['ir.config_parameter'].sudo().get_param('crm.assignment.delay', default=0))
-        BUNDLE_COMMIT_SIZE = int(self.env['ir.config_parameter'].sudo().get_param('crm.assignment.commit.bundle', 100))
+        BUNDLE_HOURS_DELAY = self.env['ir.config_parameter'].sudo().get_float('crm.assignment.delay')
+        BUNDLE_COMMIT_SIZE = self.env['ir.config_parameter'].sudo().get_int('crm.assignment.commit.bundle') or 100
         auto_commit = not modules.module.current_test
 
         # leads
@@ -579,7 +601,7 @@ class CrmTeam(models.Model):
         """
         auto_commit = not modules.module.current_test
         result_data = {}
-        commit_bundle_size = int(self.env['ir.config_parameter'].sudo().get_param('crm.assignment.commit.bundle', 100))
+        commit_bundle_size = self.env['ir.config_parameter'].sudo().get_int('crm.assignment.commit.bundle') or 100
         teams_with_members = self.filtered(lambda team: team.crm_team_member_ids)
         quota_per_member = {member: member._get_assignment_quota(force_quota=force_quota) for member in self.crm_team_member_ids}
         counter = 0
@@ -592,12 +614,15 @@ class CrmTeam(models.Model):
             ['id:array_agg'],
         ))
 
-        def _assign_lead(lead, members, member_leads, members_quota, assign_lst, optional_lst=None):
+        def _assign_lead(lead, members_to_assign, leads_per_member, preferred_leads_per_member, quota_per_member):
             """ Find relevant member whose domain(s) accept the lead. If found convert
             and update internal structures accordingly. """
-            member_found = next((member for member in members if lead in member_leads[member]), False)
+            member_found = next((member for member in members_to_assign if lead in preferred_leads_per_member.get(member, [])), False)
             if not member_found:
-                return
+                member_found = next((member for member in members_to_assign if lead in leads_per_member.get(member, [])), False)
+                if not member_found:
+                    return
+
             lead.with_context(mail_auto_subscribe_no_notify=True).convert_opportunity(
                 lead.partner_id,
                 user_ids=member_found.user_id.ids
@@ -605,19 +630,15 @@ class CrmTeam(models.Model):
             result_data[member_found]['assigned'] += lead
 
             # if member still has quota, move at end of list; otherwise just remove
-            assign_lst.remove(member_found)
-            if optional_lst is not None:
-                optional_lst.remove(member_found)
-            members_quota[member_found] -= 1
-            if members_quota[member_found] > 0:
-                assign_lst.append(member_found)
-                if optional_lst is not None:
-                    optional_lst.append(member_found)
+            members_to_assign.remove(member_found)
+            quota_per_member[member_found] -= 1
+            if quota_per_member[member_found] > 0:
+                members_to_assign.append(member_found)
             return member_found
 
         for team, leads_to_assign_ids in leads_per_team.items():
             members_to_assign = list(team.crm_team_member_ids.filtered(lambda member:
-                not member.assignment_optout and quota_per_member.get(member, 0) > 0
+                member.assignment_max != 0 and quota_per_member.get(member, 0) > 0
             ).sorted(key=lambda member: (quota_per_member.get(member, 0), random.random()), reverse=True))
             if not members_to_assign:
                 continue
@@ -629,6 +650,10 @@ class CrmTeam(models.Model):
             # Previous iteration has committed the change, records may have been deleted in the meanwhile
             to_assign = self.env['crm.lead'].browse(leads_to_assign_ids).exists()
 
+            leads_per_member = {
+                member: to_assign.filtered_domain(literal_eval(member.assignment_domain or '[]'))
+                for member in members_to_assign
+            }
             members_to_assign_wpref = [
                 m for m in members_to_assign
                 if m.assignment_domain_preferred and literal_eval(m.assignment_domain_preferred or '')
@@ -641,30 +666,12 @@ class CrmTeam(models.Model):
                     ])
                 ) for member in members_to_assign_wpref
             }
-            preferred_leads = self.env['crm.lead'].concat(*[lead for lead in preferred_leads_per_member.values()])
-            assigned_preferred_leads = self.env['crm.lead']
 
-            # first assign loop: preferred leads, always priority
-            for lead in preferred_leads.sorted(lambda lead: (-lead.probability, id)):
-                counter += 1
-                member_found = _assign_lead(lead, members_to_assign_wpref, preferred_leads_per_member, quota_per_member, members_to_assign, members_to_assign_wpref)
-                if not member_found:
-                    continue
-                assigned_preferred_leads += lead
-                if auto_commit and counter % commit_bundle_size == 0:
-                    self.env.cr.commit()
-
-            # second assign loop: fill up with other leads
-            to_assign = to_assign - assigned_preferred_leads
-            leads_per_member = {
-                member: to_assign.filtered_domain(literal_eval(member.assignment_domain or '[]'))
-                for member in members_to_assign
-            }
             for lead in to_assign.sorted(lambda lead: (-lead.probability, id)):
-                counter += 1
-                member_found = _assign_lead(lead, members_to_assign, leads_per_member, quota_per_member, members_to_assign)
+                member_found = _assign_lead(lead, members_to_assign, leads_per_member, preferred_leads_per_member, quota_per_member)
                 if not member_found:
                     continue
+                counter += 1
                 if auto_commit and counter % commit_bundle_size == 0:
                     self.env.cr.commit()
 
@@ -674,10 +681,6 @@ class CrmTeam(models.Model):
             # Once we are done with a team we don't need to keep the leads in memory
             # Try to avoid to explode memory usage
             self.env.invalidate_all()
-            _logger.info(
-                'Team %s: Assigned %s leads based on preference, on a potential of %s (limited by quota)',
-                team.name, len(assigned_preferred_leads), len(preferred_leads)
-            )
         _logger.info(
             'Assigned %s leads to %s salesmen',
             sum(len(r['assigned']) for r in result_data.values()), len(result_data)
@@ -693,18 +696,7 @@ class CrmTeam(models.Model):
     # ACTIONS
     # ------------------------------------------------------------
 
-    #TODO JEM : refactor this stuff with xml action, proper customization,
-    @api.model
-    def action_your_pipeline(self):
-        action = self.env["ir.actions.actions"]._for_xml_id("crm.crm_lead_action_pipeline")
-        return self._action_update_to_pipeline(action)
-
-    @api.model
-    def action_opportunity_forecast(self):
-        action = self.env['ir.actions.actions']._for_xml_id('crm.crm_lead_action_forecast')
-        return self._action_update_to_pipeline(action)
-
-    def action_open_leads(self):
+    def action_open_opportunities(self):
         action = self.env['ir.actions.actions']._for_xml_id('crm.crm_case_form_view_salesteams_opportunity')
         rcontext = {
             'team': self,
@@ -712,39 +704,10 @@ class CrmTeam(models.Model):
         action['help'] = self.env['ir.ui.view']._render_template('crm.crm_action_helper', values=rcontext)
         return action
 
-    def action_open_unassigned_leads(self):
-        action = self.action_open_leads()
-        context_str = action.get('context', '{}')
-        if context_str:
-            try:
-                context = safe_eval(action['context'], {'active_id': self.id, 'uid': self.env.uid})
-            except (NameError, ValueError):
-                context = {}
-        else:
-            context = {}
+    def action_open_unassigned_opportunities(self):
+        action = self.action_open_opportunities()
+        context = self.env['crm.lead'].with_context(force_active_id=self.id)._evaluate_context_from_action(action)
         action['context'] = context | {'search_default_unassigned': True}
-        return action
-
-    @api.model
-    def _action_update_to_pipeline(self, action):
-        self.check_access("read")
-        user_team_id = self.env.user.sale_team_id.id
-        if not user_team_id:
-            user_team_id = self.search([], limit=1).id
-            action['help'] = "<p class='o_view_nocontent_smiling_face'>%s</p><p>" % _("Create an Opportunity")
-            if user_team_id:
-                if self.env.user.has_group('sales_team.group_sale_manager'):
-                    action['help'] += "<p>%s</p>" % _("""As you are a member of no Sales Team, you are showed the Pipeline of the <b>first team by default.</b>
-                                        To work with the CRM, you should <a name="%d" type="action" tabindex="-1">join a team.</a>""",
-                                        self.env.ref('sales_team.crm_team_action_config').id)
-                else:
-                    action['help'] += "<p>%s</p>" % _("""As you are a member of no Sales Team, you are showed the Pipeline of the <b>first team by default.</b>
-                                        To work with the CRM, you should join a team.""")
-        try:
-            action_context = safe_eval(action['context'], {'uid': self.env.uid})
-        except (NameError, ValueError):
-            action_context = {}
-        action['context'] = action_context
         return action
 
     def _compute_dashboard_button_name(self):
@@ -755,5 +718,5 @@ class CrmTeam(models.Model):
     def action_primary_channel_button(self):
         self.ensure_one()
         if self.use_opportunities:
-            return self.action_open_leads()
+            return self.action_open_opportunities()
         return super().action_primary_channel_button()

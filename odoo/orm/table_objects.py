@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+import warnings
 
 from odoo.tools import sql
 
@@ -53,7 +54,7 @@ class TableObject:
         raise NotImplementedError
 
     def full_name(self, model: BaseModel) -> str:
-        assert self.name, f"The table object is not named ({self.definition})"
+        assert self.name, f"The table object is not named ({self.get_definition(model.env.registry)})"
         name = f"{model._table}_{self.name}"
         return sql.make_identifier(name)
 
@@ -73,7 +74,12 @@ class TableObject:
         raise NotImplementedError
 
     def __str__(self) -> str:
-        return f"({self.name!r}={self.definition!r}, {self.message!r})"
+        try:
+            definition = self.get_definition(None)
+        except Exception:  # noqa: BLE001
+            # cannot resolve without a registry
+            definition = '...'
+        return f"({self.name!r}={definition!r}, {self.message!r})"
 
 
 class Constraint(TableObject):
@@ -105,6 +111,16 @@ class Constraint(TableObject):
 
     def get_definition(self, registry: Registry):
         return self._definition
+
+    def __set_name__(self, owner, name):
+        if name.endswith('_not_null'):
+            warnings.warn(
+                f'The Constraint "{name}" ends with _not_null. In PostgreSQL 18, '
+                'this suffix is used automatically for NOT NULL column (required).'
+                'To avoid any name clashing, please change the Constraint name.',
+                stacklevel=1,
+            )
+        return super().__set_name__(owner, name)
 
     def apply_to_database(self, model: BaseModel):
         cr = model.env.cr

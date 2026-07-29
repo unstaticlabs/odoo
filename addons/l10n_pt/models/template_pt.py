@@ -31,7 +31,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'iva_pt_purchase_normal',
                 'income_account_id': 'chart_711',
                 'expense_account_id': 'chart_311',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'chart_331',
             },
         }

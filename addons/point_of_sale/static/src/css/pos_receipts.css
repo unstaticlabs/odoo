@@ -1,6 +1,6 @@
 .pos-receipt-print {
     width: 512px;
-    font-size: 30px;
+    font-size: 22px;
     color: #000000;
 }
 
@@ -23,12 +23,7 @@
     margin: 0 auto;
 }
 
-.pos-receipt .pos-receipt-qrcode {
-    display: block;
-    margin: 0 auto;
-}
-
-.pos-receipt .pos-receipt-contact, .pos-receipt .pos-receipt-customer {
+.pos-receipt .pos-receipt-contact {
     text-align: center;
     font-size: 75%;
 }
@@ -43,7 +38,7 @@
 
 .pos-receipt .pos-receipt-title {
     font-weight: bold;
-    font-size: 150%;
+    font-size: 200%;
     text-align: center;
 }
 
@@ -81,11 +76,6 @@
 
 .responsive-price > .pos-receipt-right-align {
     margin-left: auto;
-}
-
-.pos-receipt .pos-receipt-taxes {
-    display: flex;
-    flex-direction: column;
 }
 
 .pos-receipt .orderlines {

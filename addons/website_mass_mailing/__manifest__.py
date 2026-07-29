@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -8,7 +7,6 @@
 This module brings a new building block with a mailing list widget to drop on any page of your website.
 On a simple click, your visitors can subscribe to mailing lists managed in the Email Marketing app.
     """,
-    'version': '1.0',
     'category': 'Website/Website',
     'depends': ['website', 'mass_mailing', 'google_recaptcha'],
     'data': [
@@ -39,6 +37,7 @@ On a simple click, your visitors can subscribe to mailing lists managed in the E
             'website_mass_mailing/static/tests/tours/**/*',
         ],
         'web.assets_unit_tests': [
+            'website_mass_mailing/static/tests/builder/**/*',
             'website_mass_mailing/static/tests/interactions/**/*',
         ],
         'web.assets_unit_tests_setup': [

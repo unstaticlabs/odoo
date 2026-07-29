@@ -33,14 +33,6 @@ class AccountMove(models.Model):
             if move.pos_session_ids:
                 move.always_tax_exigible = True
 
-    def _stock_account_get_last_step_stock_moves(self):
-        stock_moves = super(AccountMove, self)._stock_account_get_last_step_stock_moves()
-        for invoice in self.filtered(lambda x: x.move_type == 'out_invoice'):
-            stock_moves += invoice.sudo().mapped('pos_order_ids.picking_ids.move_ids').filtered(lambda x: x.state == 'done' and x.location_dest_id.usage == 'customer')
-        for invoice in self.filtered(lambda x: x.move_type == 'out_refund'):
-            stock_moves += invoice.sudo().mapped('pos_order_ids.picking_ids.move_ids').filtered(lambda x: x.state == 'done' and x.location_id.usage == 'customer')
-        return stock_moves
-
 
     def _get_invoiced_lot_values(self):
         self.ensure_one()
@@ -57,29 +49,42 @@ class AccountMove(models.Model):
                 lots = line.pack_lot_ids or False
                 if lots:
                     for lot in lots:
+                        stock_lot = self._get_stock_lot_from_pos_lot(lot)
                         lot_values.append({
                             'product_name': lot.product_id.name,
                             'quantity': line.qty if lot.product_id.tracking == 'lot' else 1.0,
                             'uom_name': line.product_uom_id.name,
                             'lot_name': lot.lot_name,
                             'pos_lot_id': lot.id,
-                        })
+                            'lot_id': stock_lot.id,
+                        } | (self._extract_extra_invoiced_lot_values(stock_lot) if stock_lot else {}))
 
         return lot_values
 
-    def _compute_payments_widget_reconciled_info(self):
-        """Add pos_payment_name field in the reconciled vals to be able to show the payment method in the invoice."""
-        super()._compute_payments_widget_reconciled_info()
-        for move in self:
-            if move.invoice_payments_widget:
-                if move.state == 'posted' and move.is_invoice(include_receipts=True):
-                    reconciled_partials = move._get_all_reconciled_invoice_partials()
-                    for i, reconciled_partial in enumerate(reconciled_partials):
-                        counterpart_line = reconciled_partial['aml']
-                        pos_payment = counterpart_line.move_id.sudo().pos_payment_ids[:1]
-                        move.invoice_payments_widget['content'][i].update({
-                            'pos_payment_name': pos_payment.payment_method_id.name,
-                        })
+    def _get_stock_lot_from_pos_lot(self, pos_lot):
+        """Return the stock lot matching a POS lot name.
+
+        POS order lines store lot/serial numbers in ``pos.pack.operation.lot``.
+        Extra invoice lot values, however, are computed from ``stock.lot``.
+        """
+        self.ensure_one()
+        pos_lot.ensure_one()
+
+        if not pos_lot.lot_name:
+            return self.env['stock.lot']
+        company = pos_lot.order_id.company_id or self.company_id
+        return self.env['stock.lot'].sudo().search([
+            '|', ('company_id', '=', False), ('company_id', '=', company.id),
+            ('product_id', '=', pos_lot.product_id.id),
+            ('name', '=', pos_lot.lot_name),
+        ], limit=1)
+
+    def _prepare_payments_widget_reconciled_info(self, partial_info):
+        # EXTENDS account.
+        results = super()._prepare_payments_widget_reconciled_info(partial_info)
+        counterpart_line = partial_info['aml']
+        results['pos_payment_name'] = counterpart_line.move_id.sudo().pos_payment_ids[:1].payment_method_id.name
+        return results
 
     def _compute_amount(self):
         super()._compute_amount()

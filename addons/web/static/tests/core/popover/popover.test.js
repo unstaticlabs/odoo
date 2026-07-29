@@ -8,6 +8,7 @@ import {
     mountWithCleanup,
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
+
 import { Popover } from "@web/core/popover/popover";
 import { usePopover } from "@web/core/popover/popover_hook";
 
@@ -377,7 +378,7 @@ test("popover with arrow and onPositioned", async () => {
         "onPositioned (from props)", // arrow repositionning -> triggers resize observer
     ]);
     expect(".o_popover").toHaveClass("o_popover popover mw-100 bs-popover-auto");
-    expect(".o_popover").toHaveAttribute("data-popper-placement", "bottom");
+    expect(".o_popover").toHaveAttribute("data-popper-placement", "center");
     expect(".o_popover > .popover-arrow").toHaveClass("position-absolute z-n1");
 });
 
@@ -405,43 +406,47 @@ test("popover closes when navigating", async () => {
     expect.verifySteps(["HTML", "close"]);
 });
 
-test("popover position is updated when the content dimensions change", async () => {
+test("popover repositions when content changes", async () => {
     class DynamicContent extends Component {
         setup() {
             this.state = useState({
-                showMore: false,
+                expanded: false,
             });
         }
         static props = ["*"];
-        static template = xml`<div id="popover">
-        Click on this <button t-on-click="() => this.state.showMore = true">button</button> to read more
-        <span t-if="state.showMore">
-            This tooltip gives your more information on this topic!
-        </span>
-    </div>`;
+        static template = xml`
+            <div id="popover">
+                <button t-on-click="() => this.state.expanded = true">Expand</button>
+                <div t-if="state.expanded" style="height: 200px; width: 200px;">
+                    Large content that changes the popover dimensions
+                </div>
+            </div>
+        `;
     }
-
-    await mountWithCleanup(/* xml */ `
-        <div class="popover-target" style="width: 50px; height: 50px;" />
-    `);
 
     await mountWithCleanup(Popover, {
         props: {
             close: () => {},
-            target: queryOne(".popover-target"),
-            position: "bottom-start",
+            target: getFixture(),
             component: DynamicContent,
             onPositioned() {
                 expect.step("onPositioned");
             },
+            fixedPosition: false,
         },
     });
 
     expect(".o_popover").toHaveCount(1);
-    await runAllTimers();
-    expect.verifySteps(["onPositioned", "onPositioned"]);
+    await expect.waitForSteps([
+        "onPositioned", // Initial positioning
+        "onPositioned", // Resize on render
+    ]);
+
+    // Click to expand content
     await contains("#popover button").click();
-    expect("#popover span").toHaveCount(1);
+    expect("#popover div").toHaveCount(1);
+
+    // Popover should reposition due to content size change
     await expect.waitForSteps(["onPositioned"]);
 });
 

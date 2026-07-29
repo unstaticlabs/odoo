@@ -107,7 +107,7 @@ describe("getProductPrice with variants", () => {
         const store = await setupSelfPosEnv();
         const models = store.models;
 
-        const productTemplate = models["product.template"].get(19);
+        const productTemplate = models["product.template"].get(101);
         const comp = await mountWithCleanup(ProductPage, { props: { productTemplate } });
 
         expect(comp.getProductPrice()).toBe(10);
@@ -117,7 +117,7 @@ describe("getProductPrice with variants", () => {
         expect(comp.getProductPrice()).toBe(15);
 
         // that variant price changes with a different pricelist.
-        comp.selfOrder.currentOrder.pricelist_id = models["product.pricelist"].get(4);
+        comp.selfOrder.currentOrder.pricelist_id = models["product.pricelist"].get(101);
         expect(comp.getProductPrice()).toBe(20);
     });
 
@@ -125,7 +125,7 @@ describe("getProductPrice with variants", () => {
         const store = await setupSelfPosEnv();
         const models = store.models;
 
-        const productTemplate = models["product.template"].get(20);
+        const productTemplate = models["product.template"].get(102);
         const comp = await mountWithCleanup(ProductPage, { props: { productTemplate } });
 
         expect(comp.getProductPrice()).toBe(200);
@@ -143,7 +143,7 @@ describe("getProductPrice with variants", () => {
         const store = await setupSelfPosEnv();
         const models = store.models;
 
-        const productTemplate = models["product.template"].get(21);
+        const productTemplate = models["product.template"].get(103);
         const comp = await mountWithCleanup(ProductPage, { props: { productTemplate } });
 
         expect(comp.getProductPrice()).toBe(100);

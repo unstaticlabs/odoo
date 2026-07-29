@@ -30,7 +30,6 @@ import { SavePlugin } from "./save_plugin";
 import { SaveSnippetPlugin } from "./save_snippet_plugin";
 import { SetupEditorPlugin } from "./setup_editor_plugin";
 import { SnippetPlugin } from "./snippet_plugin";
-import { CoreSetupEditorPlugin } from "./core_setup_editor_plugin";
 import { VisibilityPlugin } from "./visibility_plugin";
 import { FieldChangeReplicationPlugin } from "./field_change_replication_plugin";
 import { BuilderContentEditablePlugin } from "./builder_content_editable_plugin";
@@ -60,19 +59,36 @@ export const MAIN_PLUGINS = [
         [...MAIN_EDITOR_PLUGINS, ...NO_EMBEDDED_COMPONENTS_FALLBACK_PLUGINS],
         mainEditorPluginsToRemove
     ),
+    BuilderActionsPlugin,
+    BuilderComponentPlugin,
+    BuilderContentEditablePlugin,
+    BuilderOptionsPlugin,
+    BuilderOverlayPlugin,
+    CachedModelPlugin,
     ColorUIPlugin,
     ImagePlugin,
     IconPlugin,
+    CompositeActionPlugin,
+    CoreBuilderActionPlugin,
+    CustomizeTabPlugin,
+    DisableSnippetsPlugin,
+    DropZonePlugin,
+    DropZoneSelectorPlugin,
+    FieldChangeReplicationPlugin,
+    ImageFieldPlugin,
+    Many2OneOptionPlugin,
+    MonetaryFieldPlugin,
+    DateTimeFieldPlugin,
+    OperationPlugin,
+    OverlayButtonsPlugin,
+    SavePlugin,
+    SetupEditorPlugin,
+    SnippetPlugin,
+    VisibilityPlugin,
 ];
 
 export const CORE_PLUGINS = [
     ...MAIN_PLUGINS,
-    BuilderOptionsPlugin,
-    BuilderActionsPlugin,
-    BuilderComponentPlugin,
-    OperationPlugin,
-    BuilderOverlayPlugin,
-    OverlayButtonsPlugin,
     MovePlugin,
     GridLayoutPlugin,
     DragAndDropPlugin,
@@ -80,24 +96,6 @@ export const CORE_PLUGINS = [
     ClonePlugin,
     SaveSnippetPlugin,
     AnchorPlugin,
-    DropZonePlugin,
-    DisableSnippetsPlugin,
     MediaWebsitePlugin,
-    SetupEditorPlugin,
-    SnippetPlugin,
-    CoreSetupEditorPlugin,
-    SavePlugin,
-    VisibilityPlugin,
-    DropZoneSelectorPlugin,
-    CachedModelPlugin,
-    CoreBuilderActionPlugin,
-    CompositeActionPlugin,
-    CustomizeTabPlugin,
-    FieldChangeReplicationPlugin,
-    BuilderContentEditablePlugin,
-    ImageFieldPlugin,
-    MonetaryFieldPlugin,
-    DateTimeFieldPlugin,
-    Many2OneOptionPlugin,
     VersionErrorPlugin,
 ];

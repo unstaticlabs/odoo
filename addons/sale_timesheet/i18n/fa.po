@@ -11,22 +11,23 @@
 # Hamed Mohammadi <hamed@dehongi.com>, 2023
 # Martin Trigaux, 2023
 # Hanna Kheradroosta, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 23:48+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-03 18:38+0000\n"
+"PO-Revision-Date: 2026-04-11 14:31+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Persian <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_timesheet/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: sale_timesheet
 #. odoo-python
@@ -117,8 +118,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>خواندن</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>خواندن</b></small></a>"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
@@ -189,37 +190,44 @@ msgid "<span class=\"text-muted small\">Time to Answer</span>"
 msgstr "<span class=\"text-muted small\">وقت پاسخ دادن</span>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
+msgid ""
+"<span class=\"text-muted\">Timesheets without a sales order item are "
+"reported as</span>"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr "<strong class=\"s_rating_title\">کار اداری</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr "<strong class=\"s_rating_title\">خودگردانی</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr "<strong class=\"s_rating_title\">مدیریت ارتباط با مشتری</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr "<strong class=\"s_rating_title\">ارزیابی افراد</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr "<strong class=\"s_rating_title\">تخصص فنی</strong>"
 
@@ -244,7 +252,7 @@ msgid "<strong>Sales Order:</strong>"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_inherit
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_with_total_inherit
 msgid "<strong>Time Remaining on SO: </strong>"
 msgstr ""
 
@@ -274,11 +282,6 @@ msgstr ""
 " - برگه کارکرد: مقدار عبارت است از مجموع ساعات ضبط شده بر روی وظایف مربوط به "
 "این سطر فروش است\n"
 " - انتقال موجودی: کمیت از برداشت‌های تاییدشده بدست می‌آید.\n"
-
-#. module: sale_timesheet
-#: model:ir.model,name:sale_timesheet.model_account_move_reversal
-msgid "Account Move Reversal"
-msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -325,25 +328,23 @@ msgid "Analytic lines"
 msgstr "سطرهای تحلیلی"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,description:sale_timesheet.job_engineer
+#: model_terms:hr.job,description:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,description:sale_timesheet.job_labour
 msgid ""
 "As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br><br>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+"to create and deploy disruptive products.</b> Come work at a growing "
+"company\n"
+"that offers great benefits with opportunities to moving forward and learn\n"
+"alongside accomplished leaders. We're seeking an experienced and "
+"outstanding\n"
+"member of staff.\n"
+"<br><br>\n"
+"This position is both <b>creative and rigorous</b> by nature you need to "
+"think\n"
+"outside the box. We expect the candidate to be proactive and have a \"get it "
+"done\"\n"
+"spirit. To be successful, you will have solid solving problem skills."
 msgstr ""
 
 #. module: sale_timesheet
@@ -361,6 +362,7 @@ msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__allow_billable
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Billable"
 msgstr "قابل فاکتور"
 
@@ -370,42 +372,10 @@ msgid "Billable Time"
 msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_type
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__billable_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__billable_type
 msgid "Billable Type"
 msgstr "نوع قابل فاکتور"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_manual
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_manual
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed Manually"
-msgstr ""
-
-#. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed at a Fixed Price"
-msgstr "فاکتور شده با قیمت ثابت"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_fixed
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_fixed
-msgid "Billed at a Fixed price"
-msgstr "فاکتور شده با قیمت ثابت"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_milestones
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_milestones
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Milestones"
-msgstr ""
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_time
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_time
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Timesheets"
-msgstr "فاکتور شده بر روی برکه ساعت کارکرد"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
@@ -562,6 +532,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_hr_employee
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__employee_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Employee"
 msgstr "کارمند"
 
@@ -686,8 +657,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/sale_timesheet/controllers/portal.py:0
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.report_timesheet_account_move
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
@@ -706,8 +676,7 @@ msgid "Invoice based on timesheets (delivered quantity)."
 msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields,help:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 msgid "Invoice created from the timesheet"
 msgstr "فاکتور از برگه ساعت کارکرد ایجاد شد"
 
@@ -736,6 +705,11 @@ msgstr ""
 #: model:ir.model,name:sale_timesheet.model_account_move
 msgid "Journal Entry"
 msgstr "داده روزنامه"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_account_move_reversal
+msgid "Journal Entry Reversal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_move_line
@@ -805,12 +779,6 @@ msgid "Master demos of our software"
 msgstr "دموهای اصلی نرم‌افزار ما"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Materials"
-msgstr "مواد"
-
-#. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__qty_delivered_method
 msgid "Method to update delivered qty"
 msgstr "روش بروز رسانی تعداد تحویل شده"
@@ -821,11 +789,31 @@ msgid "Milestone services"
 msgstr ""
 
 #. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.hr_timesheet_line_search
+msgid "Mine"
+msgstr ""
+
+#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Must Have"
 msgstr "ضروری"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Department"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Projects"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Team"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -879,8 +867,6 @@ msgid ""
 msgstr "بدون اتلاف وقت در فرآیندهای سازمانی، مسئولیت‌های واقعی و استقلال"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__non_billable
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__non_billable
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Non-Billable"
 msgstr ""
@@ -905,6 +891,13 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 msgid "Not Billed"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
+msgid ""
+"Notify the salesperson about an upsell opportunity when completed work "
+"exceeds"
 msgstr ""
 
 #. module: sale_timesheet
@@ -938,20 +931,13 @@ msgstr ""
 "بدون تمایز صورتحساب خواهند شد."
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__order_id
-msgid "Order Reference"
-msgstr "مرجع سفارش"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_costs
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_costs
-msgid "Other costs"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__12_other_costs
+msgid "Other Costs"
 msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_revenues
-msgid "Other revenues"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__11_other_revenues
+msgid "Other Revenues"
 msgstr ""
 
 #. module: sale_timesheet
@@ -1018,6 +1004,7 @@ msgstr "گونه محصول"
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__project_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Project"
 msgstr "پروژه"
 
@@ -1069,6 +1056,27 @@ msgstr "ساعات باقیمانده در دسترس"
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Responsibilities"
 msgstr "مسئولیت‌ها"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__01_revenues_fixed
+msgid "Revenues (Fixed Price)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__07_revenues_manual
+msgid "Revenues (Manual)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__05_revenues_milestones
+msgid "Revenues (Milestones)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__03_timesheet_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__03_timesheet_revenues
+msgid "Revenues (Time & Material)"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.timesheet_action_billing_report
@@ -1180,8 +1188,7 @@ msgid "Senior Architect (Invoice on Timesheets)"
 msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__service_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__service_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__10_service_revenues
 msgid "Service Revenues"
 msgstr ""
 
@@ -1241,6 +1248,7 @@ msgstr "مهارت‌های تحلیلی قوی"
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_task
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Task"
 msgstr "وظیفه"
 
@@ -1290,12 +1298,6 @@ msgid ""
 msgstr ""
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "This project is current linked to timesheet."
-msgstr ""
-
-#. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__service_upsell_threshold
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__service_upsell_threshold
 msgid "Threshold"
@@ -1332,6 +1334,12 @@ msgid "Timesheet"
 msgstr "برگه ساعت کارکرد"
 
 #. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__02_billable_fixed
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__02_billable_fixed
+msgid "Timesheet (Fixed price)"
+msgstr ""
+
+#. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
 msgid "Timesheet Activities"
 msgstr "فعالیتهای برگه کارکرد"
@@ -1357,8 +1365,6 @@ msgstr "گزارش برگه‌ی کار"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__timesheet_revenues
 msgid "Timesheet Revenues"
 msgstr ""
 
@@ -1383,32 +1389,8 @@ msgid "Timesheets"
 msgstr "برگه ساعت کارکرد"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed Manually)"
-msgstr ""
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Milestones)"
-msgstr ""
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Timesheets)"
-msgstr ""
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Fixed Price)"
-msgstr ""
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__09_non_billable
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__09_non_billable
 msgid "Timesheets (Non-Billable)"
 msgstr ""
 
@@ -1449,12 +1431,6 @@ msgid "Timesheets on project (one fare per SO/Project)"
 msgstr "برگه ساعت کارکرد پروژه (یک برگه برای هر سفارش فروش/پروژه)"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets revenues"
-msgstr ""
-
-#. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__margin
 msgid "Timesheets revenues minus the costs"
 msgstr ""
@@ -1470,8 +1446,21 @@ msgid "Timesheets taken when invoicing time spent"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
-msgid "Timesheets without a sales order item are reported as"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__08_billable_manual
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__08_billable_manual
+msgid "Timesheets (Manual) "
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__06_billable_milestones
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__06_billable_milestones
+msgid "Timesheets (Milestones)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__04_billable_time
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__04_billable_time
+msgid "Timesheets (Time & Materials)"
 msgstr ""
 
 #. module: sale_timesheet
@@ -1551,11 +1540,6 @@ msgid "View Timesheets"
 msgstr "مشاهده برگه ساعت کارکرد"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "Warn the salesperson for an upsell when work done exceeds"
-msgstr ""
-
-#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
@@ -1588,14 +1572,14 @@ msgstr ""
 #. module: sale_timesheet
 #. odoo-python
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot modify timesheets that are already invoiced."
+msgid "You cannot modify timsheets that are already invoiced."
 msgstr ""
 
 #. module: sale_timesheet
 #. odoo-python
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot remove a timesheet that has already been invoiced."
-msgstr "شما نمی توانید برگه زمانی را که قبلاً فاکتور شده است حذف کنید."
+msgid "You cannot remove timsheets that are already invoiced."
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__project_project__billing_type__manually
@@ -1615,7 +1599,7 @@ msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "of hours sold."
+msgid "of the hours sold."
 msgstr ""
 
 #. module: sale_timesheet
@@ -1630,200 +1614,8 @@ msgstr ""
 msgid "remaining"
 msgstr ""
 
-#~ msgid " Candidate Orders"
-#~ msgstr " سفارشات کاندید"
+#~ msgid "Billed at a Fixed price"
+#~ msgstr "فاکتور شده با قیمت ثابت"
 
-#~ msgid "%(amount)s %(label)s will be added to the new Sales Order."
-#~ msgstr "%(amount)s %(label)s به سفارش فروش جدید اضافه خواهد شد."
-
-#~ msgid "About us"
-#~ msgstr "درباره ما"
-
-#~ msgid "Allocated Hours"
-#~ msgstr "ساعت اختصاص داده شده"
-
-#~ msgid "Amount to invoice"
-#~ msgstr "مبلغ برای فاکتور"
-
-#~ msgid "At least one line should be filled."
-#~ msgstr "حداقل یک سطر باید پر شود."
-
-#~ msgid "Choose the Sales Order to invoice"
-#~ msgstr "سفارش فروش را برای فاکتور انتخاب کنید"
-
-#~ msgid "Commercial Entity"
-#~ msgstr "نهاد تجاری"
-
-#~ msgid "Company"
-#~ msgstr "شرکت"
-
-#~ msgid "Cost Currency"
-#~ msgstr "ارز هزینه"
-
-#~ msgid "Create Invoice"
-#~ msgstr "ایجاد فاکتور"
-
-#~ msgid "Create Invoice from project"
-#~ msgstr "ایجاد فاکتور از پروژه"
-
-#~ msgid "Create SO Line from project"
-#~ msgstr "ایجاد سطر سفارش فروش از پروژه"
-
-#~ msgid "Create SO from project"
-#~ msgstr "ایجاد سفارش فروش از پروژه"
-
-#~ msgid "Create Sales Order"
-#~ msgstr "ایجاد سفارش فروش"
-
-#~ msgid "Create Sales Order from Project"
-#~ msgstr "ایجاد سفارش فروش از پروژه"
-
-#~ msgid "Create a Sales Order"
-#~ msgstr "یک سفارش فروش ایجاد کنید"
-
-#~ msgid "Customer of the sales order"
-#~ msgstr "مشتری سفارش فروش"
-
-#~ msgid "Display Create Order"
-#~ msgstr "نمایش ایجاد سفارش"
-
-#~ msgid "Employee that has timesheets on the project."
-#~ msgstr "کارمندی که دارای برگه ساعت کارکرد پروژه است."
-
-#~ msgid "Info Invoice"
-#~ msgstr "اطلاعات فاکتور"
-
-#~ msgid "Invoice your time and material to customers"
-#~ msgstr "زمان و اجناس خود را برای مشتری فاکتور کنید"
-
-#~ msgid "Invoiced"
-#~ msgstr "فاکتور شده"
-
-#~ msgid "Invoicing Timesheet Enabled"
-#~ msgstr "صورتحساب برگه ساعت کارکرد فعال شد"
-
-#~ msgid "Lines"
-#~ msgstr "سطرها"
-
-#~ msgid "Non Billable Tasks"
-#~ msgstr "وظایف غیر قابل فاکتور شدن"
-
-#~ msgid "Number of timesheets"
-#~ msgstr "تعداد برگه ساعت کارکرد"
-
-#~ msgid "Operation not supported"
-#~ msgstr "عملیات پشتیبانی نمی شود"
-
-#~ msgid "Ordered,"
-#~ msgstr "سفارش داده شده،"
-
-#~ msgid "Our Offer"
-#~ msgstr "پیشنهاد ما"
-
-#~ msgid "Our Quality"
-#~ msgstr "کیفیت ما"
-
-#~ msgid "Our Service"
-#~ msgstr "خدمات ما"
-
-#~ msgid "Price"
-#~ msgstr "قیمت"
-
-#~ msgid ""
-#~ "Product of the sales order item. Must be a service invoiced based on "
-#~ "timesheets on tasks."
-#~ msgstr ""
-#~ "آیتم محصول سفارش فروش. باید سرویسی باشد که بر اساس برگه ساعت کارکرد وظایف "
-#~ "صورت‌حساب شده است."
-
-#~ msgid "Project for which we are creating a sales order"
-#~ msgstr "پروژه ای که ما در حال ایجاد یک سفارش فروش برای آن هستیم"
-
-#~ msgid "Remaining"
-#~ msgstr "باقی مانده"
-
-#~ msgid "Remaining Days on SO"
-#~ msgstr "روزهای باقی مانده در سفارش فروش"
-
-#~ msgid "Remaining Hours on SO"
-#~ msgstr "ساعات باقیمانده در سفارش فروش"
-
-#~ msgid "Remaining)"
-#~ msgstr "باقی مانده)"
-
-#~ msgid "Sale Order"
-#~ msgstr "سفارش فروش"
-
-#~ msgid "Select a non billable project on which tasks can be created."
-#~ msgstr ""
-#~ "یک پروژه غیرقابل پرداخت را انتخاب کنید که در آن می توان وظایف ایجاد کرد."
-
-#~ msgid "Service"
-#~ msgstr "خدمت"
-
-#~ msgid "Sold"
-#~ msgstr "فروخته شده"
-
-#~ msgid "Task Recurrence"
-#~ msgstr "تکرار وظیفه"
-
-#~ msgid "Tasks"
-#~ msgstr "وظایف"
-
-#~ msgid ""
-#~ "The Sales Order cannot be created because you did not enter some "
-#~ "employees that entered timesheets on this project. Please list all the "
-#~ "relevant employees before creating the Sales Order.\n"
-#~ "Missing employee(s): %s"
-#~ msgstr ""
-#~ "سفارش فروش نمی تواند ایجاد شود زیرا شما برخی از کارمندان را که برگه های "
-#~ "ساعت کارکرد را در این پروژه وارد کرده اند وارد نکرده اید. لطفاً قبل از "
-#~ "ایجاد سفارش فروش، تمام کارکنان مربوطه را فهرست کنید.\n"
-#~ "کارمند(های) گمشده: %s"
-
-#~ msgid "The project has already a sale order."
-#~ msgstr "این پروژه از قبل سفارش فروش دارد."
-
-#~ msgid "The project is already linked to a sales order item."
-#~ msgstr "پروژه قبلا به یک آیتم سفارش فروش مرتبط شده است."
-
-#~ msgid ""
-#~ "The sales order cannot be created because some timesheets of this project "
-#~ "are already linked to another sales order."
-#~ msgstr ""
-#~ "سفارش فروش را نمی توان ایجاد کرد زیرا برخی از برگه های ساعت کارکرد این "
-#~ "پروژه قبلا به سفارش فروش دیگری پیوند داده شده است."
-
-#~ msgid "The selected Sales Order should contain something to invoice."
-#~ msgstr "سفارش فروش انتخاب شده باید حاوی چیزی برای فاکتور باشد."
-
-#~ msgid "Timesheet Encoding Unit"
-#~ msgstr "واحد رمزگذاری برگه ساعت کارکرد"
-
-#~ msgid "Timesheet activities"
-#~ msgstr "فعالیت‌های برگه ساعت کارکرد"
-
-#~ msgid ""
-#~ "Total amount to invoice on the sales order, including all items "
-#~ "(services, storables, expenses, ...)"
-#~ msgstr ""
-#~ "جمع کل مبلغ فاکتور در سفارش فروش شامل کلیه اقلام (خدمات، انبارها، هزینه "
-#~ "ها، ...)"
-
-#~ msgid "Total:"
-#~ msgstr "مجموع:"
-
-#~ msgid "Unit price of the sales order item."
-#~ msgstr "قیمت واحد آیتم سفارش فروش."
-
-#~ msgid "Wizard"
-#~ msgstr "تَردست"
-
-#~ msgid "You can only apply this action from a project."
-#~ msgstr "شما فقط می توانید این اقدام را از یک پروژه اعمال کنید."
-
-#~ msgid "days"
-#~ msgstr "روز"
-
-#~ msgid "hours"
-#~ msgstr "ساعت"
+#~ msgid "Billed on Timesheets"
+#~ msgstr "فاکتور شده بر روی برکه ساعت کارکرد"

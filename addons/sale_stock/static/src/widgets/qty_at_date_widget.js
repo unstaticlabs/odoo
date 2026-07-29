@@ -40,6 +40,7 @@ export class QtyAtDatePopover extends Component {
     }
 }
 
+// TODO inherit from simple_qty_at_date_widget
 export class QtyAtDateWidget extends Component {
     static components = { Popover: QtyAtDatePopover };
     static template = "sale_stock.QtyAtDate";
@@ -78,7 +79,7 @@ export class QtyAtDateWidget extends Component {
         const { data } = this.props.record;
         let lineUom;
         if (data.product_uom_id?.[0]) {
-            lineUom = (await this.orm.read("uom.uom", [data.product_uom_id[0]], ["factor", "rounding"]))[0];
+            lineUom = (await this.orm.read("uom.uom", [data.product_uom_id[0]], ["factor"]))[0];
         }
         let lineProduct;
         if (data.product_id?.[0]) {

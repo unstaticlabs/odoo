@@ -1,39 +1,22 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from lxml import etree
 from odoo import Command
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import tagged, TransactionCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestResCurrency(TransactionCase):
-    def test_view_company_rate_label(self):
-        """Tests the label of the company_rate and inverse_company_rate fields
-        are well set according to the company currency in the currency form view and the currency rate list view.
-        e.g. in the currency rate list view of a company using EUR, the company_rate label must be `Unit per EUR`"""
-        company_foo, company_bar = self.env['res.company'].create([
-            {'name': 'foo', 'currency_id': self.env.ref('base.EUR').id},
-            {'name': 'bar', 'currency_id': self.env.ref('base.USD').id},
-        ])
-        for company, expected_currency in [(company_foo, 'EUR'), (company_bar, 'USD')]:
-            for model, view_type in [('res.currency', 'form'), ('res.currency.rate', 'list')]:
-                arch = self.env[model].with_company(company).get_view(view_type=view_type)['arch']
-                tree = etree.fromstring(arch)
-                node_company_rate = tree.find('.//field[@name="company_rate"]')
-                node_inverse_company_rate = tree.find('.//field[@name="inverse_company_rate"]')
-                self.assertEqual(node_company_rate.get('string'), f'Unit per {expected_currency}')
-                self.assertEqual(node_inverse_company_rate.get('string'), f'{expected_currency} per Unit')
-
     def test_currency_cache(self):
         currencyA, currencyB = self.env['res.currency'].create([{
             'name': 'AAA',
             'symbol': 'AAA',
-            'rate_ids': [Command.create({'name': '2009-09-09', 'rate': 1})]
+            'rate_ids': [Command.create({'name': '2009-09-08', 'rate': 1})],
         }, {
             'name': 'BBB',
             'symbol': 'BBB',
             'rate_ids': [
-                Command.create({'name': '2009-09-09', 'rate': 1}),
-                Command.create({'name': '2011-11-11', 'rate': 2}),
+                Command.create({'name': '2009-09-08', 'rate': 1}),
+                Command.create({'name': '2011-11-10', 'rate': 2}),
             ],
         }])
 
@@ -47,7 +30,7 @@ class TestResCurrency(TransactionCase):
         # update the (cached) rate of the to_currency used in the previous query
         self.env['res.currency.rate'].search([
             ('currency_id', '=', currencyB.id),
-            ('name', '=', '2009-09-09')]
+            ('name', '=', '2009-09-08')],
         ).rate = 3
 
         # repeat _convert call
@@ -62,7 +45,7 @@ class TestResCurrency(TransactionCase):
 
         # create a new rate of the to_currency for the date used in the previous query
         self.env['res.currency.rate'].create({
-            'name': '2010-10-10',
+            'name': '2010-10-09',
             'rate': 4,
             'currency_id': currencyB.id,
             'company_id': self.env.company.id,

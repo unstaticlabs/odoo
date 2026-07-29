@@ -197,7 +197,7 @@ class SaleOrderLine(models.Model):
                 product_uom = sale_line.product_id.uom_id
                 sale_line_uom = sale_line.product_uom_id
                 item = sale_line.read(field_names, load=False)[0]
-                if sale_line.product_id.tracking != 'none':
+                if sale_line.product_id.tracking in ['lot', 'serial']:
                     candidates = self.env['stock.move.line'].search([
                         ('picking_id', 'in', sale_line.order_id.picking_ids.ids),
                         ('product_id', '=', sale_line.product_id.id),

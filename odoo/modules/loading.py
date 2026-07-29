@@ -57,6 +57,7 @@ def load_data(env: Environment, idref: IdRef, mode: LoadMode, kind: LoadKind, pa
 
             _logger.info("loading %s/%s", package.name, filename)
             convert_file(env, package.name, filename, idref, mode, noupdate=kind == 'demo')
+            env.cr.flush()  # run precommit hooks
 
     return bool(files)
 
@@ -536,6 +537,7 @@ def load_modules(
             cr.execute("SELECT name, id FROM ir_module_module WHERE state=%s", ('to remove',))
             modules_to_remove = dict(cr.fetchall())
             if modules_to_remove:
+                registry.uninstalling_modules = set(modules_to_remove)
                 pkgs = reversed([p for p in graph if p.name in modules_to_remove])
                 for pkg in pkgs:
                     uninstall_hook = pkg.manifest.get('uninstall_hook')

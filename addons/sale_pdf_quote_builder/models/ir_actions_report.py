@@ -5,7 +5,7 @@ import io
 import json
 
 from odoo import _, api, models
-from odoo.tools import format_amount, format_date, format_datetime, pdf, str2bool
+from odoo.tools import format_amount, format_date, format_datetime, pdf
 from odoo.tools.pdf import (
     NameObject,
     NumberObject,
@@ -25,7 +25,7 @@ class IrActionsReport(models.Model):
             return result
 
         ICP = self.env['ir.config_parameter'].sudo()
-        always_include = str2bool(ICP.get_param('sale.always_include_selected_documents'))
+        always_include = ICP.get_bool('sale.always_include_selected_documents')
         orders = self.env['sale.order'].browse(res_ids)
 
         for order in orders:

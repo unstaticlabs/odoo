@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * base_import
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 00:15+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-12 13:07+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/"
 "base_import/hi/>\n"
 "Language: hi\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -49,8 +49,7 @@ msgstr "%s रिकॉर्ड सफलतापूर्वक इंपो�
 msgid ""
 "A single column was found in the file, this often means the file separator "
 "is incorrect."
-msgstr ""
-"फ़ाइल में सिर्फ़ एक कॉलम मिला, इसका मतलब यह हो सकता है कि फ़ाइल सेपरेटर गलत है।"
+msgstr "फ़ाइल में सिर्फ़ एक कॉलम मिला, इसका मतलब यह हो सकता है कि फ़ाइल सेपरेटर गलत है।"
 
 #. module: base_import
 #. odoo-javascript
@@ -132,12 +131,6 @@ msgstr "लेकिन, आप .csv फ़ाइलें भी इस्त�
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "रद्द"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr "लाइन %s से इंपोर्ट जारी रखने के लिए 'फिर से शुरू करें' पर क्लिक करें।"
@@ -152,8 +145,8 @@ msgstr "कॉलम %(column)s में गलत मान हैं (मा�
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr "कॉलम %(column)s में गलत मान हैं. लाइन %(line)d में गड़बड़ी: %(error)s"
 
 #. module: base_import
@@ -179,8 +172,8 @@ msgstr "टिप्पणियाँ"
 msgid ""
 "Could not retrieve URL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
 msgstr ""
-"यूआरएल वापस नहीं लाया जा सका: %(url)s [%(field_name)s: L%(line_number)d]: %"
-"(error)s"
+"यूआरएल वापस नहीं लाया जा सका: %(url)s [%(field_name)s: L%(line_number)d]: "
+"%(error)s"
 
 #. module: base_import
 #. odoo-javascript
@@ -234,14 +227,19 @@ msgstr "डेसीमल सेपरेटर:"
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Defines how many megabytes can be imported in each batch import"
-msgstr ""
-"यह तय करता है कि हर बैच इंपोर्ट में कितने मेगाबाइट इंपोर्ट किए जा सकते हैं"
+msgstr "यह तय करता है कि हर बैच इंपोर्ट में कितने मेगाबाइट इंपोर्ट किए जा सकते हैं"
 
 #. module: base_import
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_data_sidepanel/import_data_sidepanel.xml:0
 msgid "Delay after each batch"
 msgstr "हर बैच के बाद देरी"
+
+#. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
@@ -292,20 +290,19 @@ msgstr "पंक्ति %(row)s में गड़बड़ी: \"%(error)s\
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: Text Delimiter should be a single character."
-msgstr ""
-"रिकॉर्ड इंपोर्ट करते समय गड़बड़ी: टेक्स्ट डिलिमिटर एक सिंगल कैरेक्टर होना चाहिए।"
+msgstr "रिकॉर्ड इंपोर्ट करते समय गड़बड़ी: टेक्स्ट डिलिमिटर एक सिंगल कैरेक्टर होना चाहिए।"
 
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "रिकॉर्ड इंपोर्ट करते समय गड़बड़ी: सभी पंक्तियों का आकार एक जैसा होना चाहिए, लेकिन टाइटल "
-"वाली पंक्ति में %(title_row_entries)d एंट्री हैं, जबकि पहली पंक्ति में %"
-"(first_row_entries)d एंट्री हैं. हो सकता है कि आपको सेपरेटर कैरेक्टर बदलना पड़े।"
+"वाली पंक्ति में %(title_row_entries)d एंट्री हैं, जबकि पहली पंक्ति में "
+"%(first_row_entries)d एंट्री हैं. हो सकता है कि आपको सेपरेटर कैरेक्टर बदलना पड़े।"
 
 #. module: base_import
 #. odoo-javascript
@@ -331,12 +328,6 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "एक्सटर्नल आईडी"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "फ़ील्ड '%(field)s' तारीख/समय की जानकारी स्वीकार नहीं करती है।"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -372,8 +363,8 @@ msgstr "फ़ाइल का साइज़, तय की गई अधिकत�
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "जांच और/या इंपोर्ट करने के लिए फ़ाइल, रॉ बाइनरी (base64 नहीं)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -522,8 +513,8 @@ msgid ""
 "Invalid cell format at row %(row)s, column %(col)s: %(cell_value)s, with "
 "format: %(cell_format)s, as (%(format_type)s) formats are not supported."
 msgstr ""
-"पंक्ति %(row)s, कॉलम %(col)s में सेल फ़ॉर्मैट गलत है: %(cell_value)s, फ़ॉर्मैट के साथ: %"
-"(cell_format)s, क्योंकि (%(format_type)s) फ़ॉर्मैट समर्थित नहीं हैं।"
+"पंक्ति %(row)s, कॉलम %(col)s में सेल फ़ॉर्मैट गलत है: %(cell_value)s, फ़ॉर्मैट के साथ: "
+"%(cell_format)s, क्योंकि (%(format_type)s) फ़ॉर्मैट समर्थित नहीं हैं।"
 
 #. module: base_import
 #. odoo-python
@@ -624,8 +615,7 @@ msgstr "कृपया कोई सिंगल फ़ाइल अपलो�
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_action/import_action.js:0
 msgid "Please upload an Excel (.xls or .xlsx) or .csv file to import."
-msgstr ""
-"कृपया इंपोर्ट करने के लिए एक एक्सेल (.xls या .xlsx) या .csv फ़ाइल अपलोड करें।"
+msgstr "कृपया इंपोर्ट करने के लिए एक एक्सेल (.xls या .xlsx) या .csv फ़ाइल अपलोड करें।"
 
 #. module: base_import
 #. odoo-javascript
@@ -945,8 +935,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "You can test or reload your file before resuming the import."
-msgstr ""
-"इंपोर्ट जारी रखने से पहले, आप अपनी फ़ाइल की जांच या उसे फिर से लोड कर सकते हैं।"
+msgstr "इंपोर्ट जारी रखने से पहले, आप अपनी फ़ाइल की जांच या उसे फिर से लोड कर सकते हैं।"
 
 #. module: base_import
 #. odoo-python

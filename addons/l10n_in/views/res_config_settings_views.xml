@@ -101,7 +101,7 @@
                                 </div>
                             </setting>
                             <setting name="india_gstr"
-                                     help="Connect to GST portal to submit GSTR-1 and get GSTR-2B"
+                                     help="Enable to access GST Reports &amp; return filing process"
                                      company_dependent="1"
                                      documentation="/applications/finance/fiscal_localizations/india.html#india-gstr">
                                 <field name="l10n_in_gst_efiling_feature" widget="upgrade_boolean"/>
@@ -147,6 +147,17 @@
                             <field name="l10n_in_withholding_account_id"/>
                         </div>
                     </div>
+                </setting>
+            </block>
+            <xpath expr="//setting[@id='qr_code_invoices']" position="attributes">
+                <attribute name="invisible">country_code == 'IN'</attribute>
+            </xpath>
+            <block id="pay_invoice_online_setting_container" position="inside">
+                <setting string="UPI ID"
+                         help="Add a payment QR-code to your invoices."
+                         company_dependent="1"
+                         invisible="country_code != 'IN'">
+                    <field name="l10n_in_upi_id" placeholder="Add UPI ID"/>
                 </setting>
             </block>
             <xpath expr="//block[@id='account_reports_settings']//setting" position="attributes">

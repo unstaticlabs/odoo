@@ -24,7 +24,7 @@ class KsefApiService:
     def __init__(self, company):
         self.company = company
         self.env = company.env
-        self.mode = self.env['ir.config_parameter'].sudo().get_param('l10n_pl_edi_ksef.mode') or 'prod'
+        self.mode = self.env['ir.config_parameter'].sudo().get_str('l10n_pl_edi_ksef.mode') or 'prod'
         self.api_url = self._get_api_url()
         company_sudo = company.sudo()
         self.raw_symmetric_key = base64.b64decode(company_sudo.l10n_pl_edi_session_key) if company_sudo.l10n_pl_edi_session_key else None

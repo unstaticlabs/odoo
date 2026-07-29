@@ -9,18 +9,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 17:31+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
-"hr_gamification/sk/>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
+"Last-Translator: Martin Trigaux, 2022\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -119,12 +117,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "Priame ocenenie"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr ""
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -289,34 +281,3 @@ msgstr "Nemôžete si poslať ocenenie pre seba."
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr ""
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "Odznaky sú odmenou dobrej práce. Dajte ich ľudom, o ktorých si myslíte že "
-#~ "si ich zaslúžia."
-
-#~ msgid "Basic Employee"
-#~ msgstr "Základný zamestnanec"
-
-#~ msgid "Cancel"
-#~ msgstr "Zrušené"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "Udeľte tomuto zamestnancovi jeho prvý odznak"
-
-#~ msgid "Received Badges"
-#~ msgstr "Obdržané ocenenia"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "Súvisiace užívateľské meno pre zdroj na spravovanie jeho prístupu."
-
-#~ msgid "Reward Employee"
-#~ msgstr "Odmeniť zamestnanca"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr "Môžete posielať odznaky iba zamestnancom prepojeným na používateľa."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "odmeniť tohto pracovníka za dobrú prácu"

@@ -14,7 +14,7 @@ import { Many2XAutocomplete, useOpenMany2XRecord } from "../relational_utils";
 // UTILS
 ///////////////////////////////////////////////////////////////////////////////
 
-function extractData(record) {
+export function extractData(record) {
     let name;
     if ("display_name" in record) {
         name = record.display_name;
@@ -113,6 +113,7 @@ export class Many2One extends Component {
         domain: [],
         linkCssClass: "",
         nameCreateField: "name",
+        openActionContext: () => ({}),
         otherSources: [],
         placeholder: "",
         readonly: false,

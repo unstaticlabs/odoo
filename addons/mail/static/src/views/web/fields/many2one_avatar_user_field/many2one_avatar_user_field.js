@@ -10,6 +10,7 @@ import {
 } from "@web/views/fields/many2one/many2one_field";
 import { Avatar } from "../avatar/avatar";
 import { Many2XAvatarUserAutocomplete } from "../avatar_autocomplete/avatar_many2x_autocomplete";
+import { user } from "@web/core/user";
 
 export class Many2OneAvatarUser extends Many2One {
     static components = {
@@ -44,18 +45,24 @@ export class Many2OneAvatarUserField extends Component {
     get value() {
         return this.props.record.data[this.props.name];
     }
+
+    get uniqueId() {
+        return this.value?.write_date?.toMillis();
+    }
 }
 
 export const many2OneAvatarUserField = {
     ...buildM2OFieldDescription(Many2OneAvatarUserField),
     additionalClasses: ["o_field_many2one_avatar"],
+    relatedFields: user.isInternalUser ? [{ name: "write_date", type: "datetime" }] : [],
     extractProps(staticInfo, dynamicInfo) {
         return {
             ...extractM2OFieldProps(staticInfo, dynamicInfo),
             withCommand: ["form", "list"].includes(staticInfo.viewType),
-            canOpen: "no_open" in staticInfo.options
-                ? !staticInfo.options.no_open
-                : staticInfo.viewType === "form",
+            canOpen:
+                "no_open" in staticInfo.options
+                    ? !staticInfo.options.no_open
+                    : staticInfo.viewType === "form",
         };
     },
     listViewWidth: [110],

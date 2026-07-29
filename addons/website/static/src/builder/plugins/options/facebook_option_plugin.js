@@ -22,6 +22,7 @@ class FacebookOptionPlugin extends Plugin {
             CheckFacebookLinkAction,
         },
         normalize_handlers: this.normalize.bind(this),
+        content_not_editable_selectors: ".o_facebook_page",
     };
 
     normalize(root) {
@@ -39,7 +40,7 @@ class FacebookOptionPlugin extends Plugin {
             }
         }
 
-        const nodes = [...selectElements(root, ".o_facebook_page:not([data-href])")];
+        const nodes = selectElements(root, ".o_facebook_page:not([data-href])");
         if (nodes.length) {
             this.loadAndSetEmptyLink(nodes);
         }

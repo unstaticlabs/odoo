@@ -4,7 +4,6 @@
     "name": "Cloud Storage Migration",
     "summary": """Migrate local attachments to cloud storage""",
     "category": "Technical Settings",
-    "version": "1.0",
     "depends": ["cloud_storage"],
     "data": [
         "security/ir.model.access.csv",

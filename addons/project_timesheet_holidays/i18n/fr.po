@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-29 10:47+0000\n"
+"POT-Creation-Date: 2026-06-12 17:37+0000\n"
+"PO-Revision-Date: 2026-01-07 14:38+0000\n"
 "Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-1/"
 "project_timesheet_holidays/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_account_analytic_line
@@ -37,8 +37,8 @@ msgstr "Lignes analytiques"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_company
-msgid "Companies"
-msgstr "Sociétés"
+msgid "Company"
+msgstr "Entreprise"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_config_settings
@@ -158,7 +158,6 @@ msgstr "Nombre de types de congés"
 #: code:addons/project_timesheet_holidays/models/account_analytic.py:0
 msgid "Timesheets linked to public holidays cannot be modified."
 msgstr ""
-"Les feuilles de temps liées aux jours fériés ne peuvent pas être modifiées."
 
 #. module: project_timesheet_holidays
 #: model:ir.model.fields,help:project_timesheet_holidays.field_project_task__display_name
@@ -238,37 +237,3 @@ msgstr ""
 #: code:addons/project_timesheet_holidays/__init__.py:0
 msgid "allow_timesheets"
 msgstr "allow_timesheets"
-
-#~ msgid ""
-#~ "Both the internal project and task are required to generate a timesheet "
-#~ "for the time off %s. If you don't want a timesheet, you should leave the "
-#~ "internal project and task empty."
-#~ msgstr ""
-#~ "Le projet interne et la tâche sont tous les deux requis pour générer une "
-#~ "feuille de temps pour les congés %s. Si vous ne souhaitez pas de feuille "
-#~ "de temps, vous pouvez laisser le projet interne et la tâche vides."
-
-#~ msgid "Generate Timesheet"
-#~ msgstr "Générer une feuille de temps"
-
-#~ msgid "Global Time Off"
-#~ msgstr "Congé global"
-
-#~ msgid ""
-#~ "If checked, when validating a time off, timesheet will be generated in "
-#~ "the Vacation Project of the company."
-#~ msgstr ""
-#~ "Si coché, une feuille de temps sera générée dans le projet Vacances de la "
-#~ "société lorsque le congé sera validé."
-
-#~ msgid "Is Time off Task"
-#~ msgstr "Est une tâche pour les congés"
-
-#~ msgid "Operation not supported"
-#~ msgstr "Opération non prise en charge"
-
-#~ msgid "Time Off (%s/%s)"
-#~ msgstr "Congés (%s/%s)"
-
-#~ msgid "Time Off Type"
-#~ msgstr "Type de congés"

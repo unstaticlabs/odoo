@@ -47,8 +47,6 @@
             <field name="arch" type="xml">
                 <form string="Lesson">
                     <sheet>
-                        <field name="channel_type" invisible="1" readonly="1"/>
-                        <field name="channel_allow_comment" invisible="1" readonly="1"/>
                         <div class="oe_button_box" name="button_box">
                             <button name="%(slide_slide_partner_action_from_slide)d"
                                     class="oe_stat_button" type="action" icon="fa-graduation-cap"
@@ -86,7 +84,6 @@
                             </div>
                             <h1>
                                 <field name="name" default_focus="1" placeholder="e.g. Setting up your computer" class="me-0"/>
-                                <field name="is_category" invisible="1"/>
                             </h1>
                             <field name="tag_ids" invisible="is_category" widget="many2many_tags" placeholder="Tags..."/>
                         </div>
@@ -94,10 +91,8 @@
                             <page name="document" string="Document">
                                 <group>
                                     <group name="lesson_details">
-                                        <field name="active" invisible="1"/>
                                         <field name="channel_id"/>
                                         <field name="slide_category" string="Content Type"/>
-                                        <field name="slide_type" invisible="1"/>
                                         <div class="text-muted" colspan="2" invisible="slide_category != 'quiz'">
                                             You can add questions to this quiz in the 'Quiz' tab.
                                         </div>
@@ -107,17 +102,21 @@
                                             placeholder='e.g "www.youtube.com/watch?v=ebBez6bcSEc"'
                                             widget="url"/>
                                         <field name="document_google_url" invisible="source_type != 'external' or slide_category != 'document'" readonly="source_type != 'external' or slide_category != 'document'"
+                                            required="slide_category == 'document' and source_type == 'external'"
                                             placeholder='e.g "https://drive.google.com/file/..."'
                                             widget="url"/>
                                         <field name="image_google_url" invisible="source_type != 'external' or slide_category != 'infographic'" readonly="source_type != 'external' or slide_category != 'infographic'"
+                                            required="slide_category == 'infographic' and source_type == 'external'"
                                             placeholder='e.g "https://drive.google.com/file/..."'
                                             widget="url"/>
                                         <field name="document_binary_content" string="" options="{'accepted_file_extensions': '.pdf'}"
                                             invisible="source_type == 'external' or slide_category != 'document'"
-                                            readonly="source_type == 'external' or slide_category != 'document'"/>
+                                            readonly="source_type == 'external' or slide_category != 'document'"
+                                            required="slide_category == 'document' and source_type == 'local_file'"/>
                                         <field name="image_binary_content" string="" options="{'accepted_file_extensions': 'image/*'}"
                                             invisible="source_type == 'external' or slide_category != 'infographic'"
-                                            readonly="source_type == 'external' or slide_category != 'infographic'"/>
+                                            readonly="source_type == 'external' or slide_category != 'infographic'"
+                                            required="slide_category == 'infographic' and source_type == 'local_file'"/>
                                     </group>
                                     <group name="related_details">
                                         <field name="user_id" string="Responsible" domain="[('share', '=', False)]" widget="many2one_avatar"/>
@@ -127,7 +126,7 @@
                                             <span> hours</span>
                                         </div>
                                         <field name="slide_resource_downloadable" invisible="slide_category != 'document' or source_type != 'local_file'"/>
-                                        <field name="date_published" string="Published Date" invisible="not date_published" groups="base.group_no_one"/>
+                                        <field name="published_date" string="Published Date" invisible="not published_date" groups="base.group_no_one"/>
                                         <field name="is_preview"/>
                                         <field name="public_views"/>
                                         <field name="total_views"/>
@@ -144,7 +143,6 @@
                                             <field name="sequence" widget="handle"/>
                                             <field name="resource_type"/>
                                             <field name="name" required="1"/>
-                                            <field name="file_name" column_invisible="True"/>
                                             <field name="data" readonly="resource_type == 'url'" filename="file_name"/>
                                             <field name="link" string="Link"
                                                 readonly="resource_type == 'file'"
@@ -265,7 +263,7 @@
                     <field name="category_id" readonly="1" optional="hide"/>
                     <field name="user_id" widget="many2one_avatar_user"/>
                     <field name="is_published"/>
-                    <field name="date_published" readonly="1"/>
+                    <field name="published_date" readonly="1"/>
                     <field name="completion_time" sum="Total" readonly="1" widget="float_time"/>
                 </list>
             </field>
@@ -281,7 +279,7 @@
                     <field name="user_id" widget="many2one_avatar_user"/>
                     <field name="channel_id"/>
                     <field name="category_id" optional="hide"/>
-                    <field name="date_published"/>
+                    <field name="published_date"/>
                     <field name="total_views" string="# Views" sum="Total Views"/>
                     <field name="questions_count" string="# Questions" sum="Total Questions"/>
                     <field name="completion_time" sum="Total Duration" widget="float_time"/>
@@ -321,11 +319,11 @@
                     <field name="channel_id"/>
                     <field name="slide_category"/>
                     <field name="total_views" type="measure"/>
-                    <field name="quiz_first_attempt_reward" invisible="1"/>
-                    <field name="quiz_second_attempt_reward" invisible="1"/>
-                    <field name="quiz_third_attempt_reward" invisible="1"/>
-                    <field name="quiz_fourth_attempt_reward" invisible="1"/>
-                    <field name="sequence" invisible="1"/>
+                    <field name="quiz_first_attempt_reward"/>
+                    <field name="quiz_second_attempt_reward"/>
+                    <field name="quiz_third_attempt_reward"/>
+                    <field name="quiz_fourth_attempt_reward"/>
+                    <field name="sequence"/>
                 </graph>
             </field>
         </record>

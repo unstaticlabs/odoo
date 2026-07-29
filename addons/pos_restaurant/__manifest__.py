@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
 {
     'name': 'Restaurant',
-    'version': '1.0',
     'category': 'Sales/Point of Sale',
     'sequence': 6,
     'summary': 'Restaurant extensions for the Point of Sale ',
@@ -21,16 +19,20 @@ This module adds several features to the Point of Sale that are specific to rest
     'data': [
         'security/ir.model.access.csv',
         'data/scenarios/restaurant_preset.xml',
+        'views/pos_category_view.xml',
+        'views/pos_course_views.xml',
         'views/pos_order_views.xml',
         'views/pos_restaurant_views.xml',
         'views/pos_preset_views.xml',
         'views/res_config_settings_views.xml',
+        'receipt/pos_order_receipt.xml',
+        'receipt/pos_order_change_receipt.xml',
     ],
     'demo': [
         'data/demo_data.xml',
     ],
-    'installable': True,
     'application': True,
+    'post_init_hook': '_auto_install_pos_urban_piper_with_demo',
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_restaurant/static/src/**/*',

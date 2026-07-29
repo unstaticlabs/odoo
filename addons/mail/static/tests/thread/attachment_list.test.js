@@ -9,7 +9,7 @@ import {
 } from "@mail/../tests/mail_test_helpers";
 import { describe, expect, test } from "@odoo/hoot";
 import { mockUserAgent } from "@odoo/hoot-mock";
-import { asyncStep, patchWithCleanup, waitForSteps } from "@web/../tests/web_test_helpers";
+import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { download } from "@web/core/network/download";
 import { getOrigin } from "@web/core/utils/urls";
@@ -66,7 +66,7 @@ test("layout with card details and filename and extension", async () => {
     });
     await start();
     await openDiscuss(channelId);
-    await contains(".o-mail-AttachmentContainer", { text: "test.txt" });
+    await contains(".o-mail-AttachmentCard-info:text('test.txt')");
 });
 
 test("link-type attachment should have open button instead of download button", async () => {
@@ -97,8 +97,8 @@ test("link-type attachment should have open button instead of download button", 
     await start();
     await openDiscuss(channelId);
     await contains(".o-mail-AttachmentCard", { count: 2 });
-    await contains(".o-mail-AttachmentCard:eq(0)", { text: "url.example" });
-    await contains(".o-mail-AttachmentCard:eq(1)", { text: "test.txt" });
+    await contains(".o-mail-AttachmentCard:eq(0):text('url.example')");
+    await contains(".o-mail-AttachmentCard:eq(1):text('test.txt')");
     await contains(
         ".o-mail-AttachmentContainer:eq(0) .o-mail-AttachmentButtons a[title='Open Link']"
     );
@@ -129,7 +129,7 @@ test("clicking on the delete attachment button multiple times should do the rpc 
         res_id: channelId,
         message_type: "comment",
     });
-    onRpcBefore("/mail/attachment/delete", () => asyncStep("attachment_unlink"));
+    onRpcBefore("/mail/attachment/delete", () => expect.step("attachment_unlink"));
     await start();
     await openDiscuss(channelId);
     await click(".o-mail-Attachment-unlink");
@@ -137,7 +137,7 @@ test("clicking on the delete attachment button multiple times should do the rpc 
     await click(".modal-footer .btn-primary");
     await click(".modal-footer .btn-primary");
     await contains(".o-mail-Attachment-unlink", { count: 0 });
-    await waitForSteps(["attachment_unlink"]); // The unlink method must be called once
+    await expect.waitForSteps(["attachment_unlink"]); // The unlink method must be called once
 });
 
 test("view attachment", async () => {
@@ -185,7 +185,7 @@ test("can view pdf url", async () => {
     });
     await start();
     await openDiscuss(channelId);
-    await click(".o-mail-AttachmentContainer", { text: "url.pdf.example" });
+    await click(".o-mail-AttachmentCard-info:text('url.pdf.example')");
     await contains(".o-FileViewer");
     await contains(
         `iframe.o-FileViewer-view[data-src="/web/static/lib/pdfjs/web/viewer.html?file=${encodeURIComponent(
@@ -373,8 +373,8 @@ test("should not view attachment from click on non-viewable attachment in list c
     await start();
     await openDiscuss(channelId);
     await contains(".o-mail-AttachmentContainer[title='test.png'].o-viewable");
-    await contains(".o-mail-AttachmentContainer:not(.o-viewable)", { text: "test.odt" });
-    await click(".o-mail-AttachmentContainer", { text: "test.odt" });
+    await contains(".o-mail-AttachmentContainer:not(.o-viewable):has(:text('test.odt'))");
+    await click(".o-mail-AttachmentContainer:has(:text('test.odt'))");
     // weak test, no guarantee that we waited long enough for the potential file viewer to show
     await contains(".o-FileViewer", { count: 0 });
     await click(".o-mail-AttachmentContainer[title='test.png']");
@@ -431,7 +431,9 @@ test("download url of non-viewable binary file", async () => {
 
     patchWithCleanup(download, {
         _download: (options) => {
-            expect(options.url).toBe(`${getOrigin()}/web/content/${attachmentId}?filename=test.o&download=true`);
+            expect(options.url).toBe(
+                `${getOrigin()}/web/content/${attachmentId}?filename=test.o&download=true`
+            );
         },
     });
     await click(".fa-download");
@@ -459,6 +461,6 @@ test("check actions in mobile view", async () => {
     mockUserAgent("android");
     expect(isMobileOS()).toBe(true);
     await click(".o-mail-AttachmentContainer [title='Actions']");
-    await contains(".dropdown-item", { text: "Remove" });
-    await contains(".dropdown-item", { text: "Download" });
+    await contains(".dropdown-item:text('Remove')");
+    await contains(".dropdown-item:text('Download')");
 });

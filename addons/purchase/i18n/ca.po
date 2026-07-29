@@ -22,23 +22,24 @@
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2023
 # Arnau Ros, 2023
 # martioodo hola, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 23:28+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/purchase/"
-"ca/>\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-01-15 20:33+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-1/"
+"purchase/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: purchase
 #: model:ir.actions.report,print_report_name:purchase.action_report_purchase_order
@@ -143,57 +144,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Benvolgut <t t-out=\"object.partner_id.name or ''\">Brandon "
-"Freeman:</t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Aquest és un recordatori sobre el lliurament de la comanda de compra "
-"<span style=\"font-weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            <span style=\"font-weight:bold;\">(<t t-out=\"object.partner_ref "
-"or ''\">REF_XXX</t>)</span>\n"
-"        </t>\n"
-"        que hauria d'arribar el \n"
-"        <t t-if=\"object.date_planned\">\n"
-"            <span style=\"font-weight:bold;\" t-out=\"format_date"
-"(object.date_planned) or ''\">05/05/2021</span>.\n"
-"        </t>\n"
-"         <t t-else=\"\">\n"
-"            <span style=\"font-weight:bold;\">sense definir</span>.\n"
-"        </t>\n"
-"        Si us plau, podria confirmar que es lliurarà a temps?\n"
-"        <br/><br/>\n"
-"        <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"            Confirmar</a>\n"
-"        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase_done
@@ -228,58 +187,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Benvolgut/da <t t-out=\"object.partner_id.name or ''\">Brandon "
-"Freeman:</t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Aquí té adjunta la comanda de compra <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            amb referència: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
-"        </t>\n"
-"        per un import de <span style=\"font-weight:bold;\" t-"
-"out=\"format_amount(object.amount_total, object.currency_id) or ''\">10,00 "
-"€</span>\n"
-"        de <t t-out=\"object.company_id.name or ''\">LaSevaEmpresa</t>. \n"
-"        <br/><br/>\n"
-"        <t t-if=\"object.date_planned\">\n"
-"            El rebut estarà disponible el <span style=\"font-weight:bold;\" "
-"t-out=\"format_date(object.date_planned) or ''\">05/05/2021</span>.\n"
-"            <br/><br/>\n"
-"            Podria confirmar la recepció d'aquesta comanda?\n"
-"            <br/><br/>\n"
-"            <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"                Confirmar recepció</a>\n"
-"        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase
@@ -303,45 +219,14 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Benvolgut <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</"
-"t>:\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Li adjuntem la sol·licitud de pressupost <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            amb referència: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
-"        </t>\n"
-"        de <t t-out=\"object.company_id.name or ''\">LaTevaEmpresa</t>.\n"
-"        <br/><br/>\n"
-"        Si té qualsevol pregunta, no dubti a contactar amb nosaltres.\n"
-"        <br/><br/>\n"
-"        Salutacions cordials,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -427,8 +312,8 @@ msgid ""
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Purchase Order </span>"
 msgstr ""
-"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')\">"
-"Sol·licitud de pressupost</span>\n"
+"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')"
+"\">Sol·licitud de pressupost</span>\n"
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Comanda de compra </span>"
 
@@ -452,6 +337,15 @@ msgstr "<span class=\"o_stat_text\">Conciliació de compra</span>"
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Comprat</span>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
@@ -494,6 +388,11 @@ msgstr "<strong class=\"d-block mb-1\">De:</strong>"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Factures</strong>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -684,6 +583,11 @@ msgstr "Activitats de"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Activitat d'excepció de decoració"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -909,12 +813,6 @@ msgid "Auto-Complete"
 msgstr "Auto-completar"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Auto-completar"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
@@ -929,7 +827,8 @@ msgstr ""
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Automatically lock confirmed orders to prevent editing"
-msgstr "Bloqueja automàticament les comandes confirmades per evitar-ne l'edició"
+msgstr ""
+"Bloqueja automàticament les comandes confirmades per evitar-ne l'edició"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -1085,10 +984,6 @@ msgstr "Historial de comunicació"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Empreses"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1142,17 +1037,11 @@ msgid "Confirm your purchase."
 msgstr "Confirmeu la vostra compra."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Data de confirmació"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr "Data de confirmació l'any passat"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1248,7 +1137,7 @@ msgstr "L'URL del portal dels clients"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
 msgid "Date"
-msgstr "Data"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1306,7 +1195,8 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_bill_line_match__product_uom_id
 msgid "Default unit of measure used for all stock operations."
-msgstr "Unit de mesura per defecte utilitzada per totes les operacions d'estoc."
+msgstr ""
+"Unit de mesura per defecte utilitzada per totes les operacions d'estoc."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -1322,15 +1212,6 @@ msgstr ""
 "Data de lliurament prevista per part del proveïdor. Aquesta data s'ajusta "
 "per defecte respectivament al termini de lliurament de la llista de preus "
 "del proveïdor i a la data d'avui."
-
-#. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Data de lliurament promesa pel proveïdor. Aquesta data s'utilitza per "
-"determinar l'arribada prevista dels productes."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
@@ -1362,6 +1243,12 @@ msgstr "Descompte (%)"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Discount:"
 msgstr "Descompte:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1453,6 +1340,12 @@ msgid "Expected Arrival"
 msgstr "Arribada esperada"
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Extra line with %s "
@@ -1465,12 +1358,12 @@ msgid "Fiscal Position"
 msgstr "Posició fiscal"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr "Seguiu les instruccions que heu de complir"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr "Seguiu les vostres sol·licituds de pressupost"
 
@@ -1510,6 +1403,11 @@ msgstr "Des del document electrònic"
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__invoice_status__invoiced
 msgid "Fully Billed"
 msgstr "Totalment facturat"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1592,7 +1490,8 @@ msgstr "Icona que indica una activitat d'excepció."
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "Si està marcat, hi ha nous missatges que requereixen la vostra atenció."
+msgstr ""
+"Si està marcat, hi ha nous missatges que requereixen la vostra atenció."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__message_has_error
@@ -1815,6 +1714,11 @@ msgstr "Quantitat de la línia"
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__line_uom_id
 msgid "Line Uom"
 msgstr "Línia UdM"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -2082,6 +1986,11 @@ msgid "Not Acknowledged"
 msgstr "No reconegut"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 msgid "Not using Odoo?"
 msgstr "No utilitzeu Odoo?"
@@ -2185,25 +2094,27 @@ msgid "Order"
 msgstr "Ordre"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
 msgstr "Data comanda"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
-msgstr "Data de la comanda: darrers 365 dies"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
 msgstr "Data límit de comanda"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2236,17 +2147,22 @@ msgstr "Comanda per al %(date)s"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Altres informacions"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr "Les nostres comandes"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
 msgstr ""
 
 #. module: purchase
@@ -2404,7 +2320,6 @@ msgstr "Ofereix un mecanisme de doble validació per compres"
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Compres"
@@ -2413,6 +2328,11 @@ msgstr "Compres"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Acords de compra"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2580,6 +2500,12 @@ msgid "Purchase Report"
 msgstr "Informe de compra"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2629,15 +2555,19 @@ msgstr "Compra: Recordatori del proveïdor"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Comprat"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Comprat en els darrers 365 dies"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2650,7 +2580,7 @@ msgstr "Compres"
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
 msgid "Purchases & Bills Union"
-msgstr "Unió de compres i factures"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -2759,6 +2689,7 @@ msgstr "Recepció rebutjada"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr "Recordatori de rebut"
 
@@ -2766,6 +2697,17 @@ msgstr "Recordatori de rebut"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
 msgstr "Email de recordatori del rebut"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -2812,10 +2754,10 @@ msgstr "Referència"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
 msgid "Reference Document"
-msgstr "Document de referència"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Unitat de mesura de referència"
 
@@ -2878,8 +2820,8 @@ msgstr "Sol·licituds de pressupost"
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
 msgstr "Sol·licituds de pressupost"
@@ -2923,7 +2865,7 @@ msgstr "Cerca comanda de compra"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
 msgid "Search Reference Document"
-msgstr "Cerca document de referència"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2995,6 +2937,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr "Envieu un email de recordatori automàtic per confirmar l'entrega"
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Send the request for quotation to your vendor."
@@ -3047,6 +2994,11 @@ msgstr "Compartir"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__show_comparison
 msgid "Show Comparison"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
 msgstr ""
 
 #. module: purchase
@@ -3251,6 +3203,14 @@ msgid "The Price of one unit of the product's Unit of Measure"
 msgstr ""
 
 #. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 msgid ""
 "The request for quotation is the first step of the purchases flow. Once\n"
@@ -3445,7 +3405,7 @@ msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
 msgstr "Unitat de venda"
 
@@ -3560,7 +3520,7 @@ msgstr "Proveïdor"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
 msgid "Vendor Bill"
-msgstr "Factura de proveïdor"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3685,11 +3645,11 @@ msgid ""
 "dates and keep you informed in case of any delays. To get the vendor's "
 "performance statistics, click on the OTD rate."
 msgstr ""
-"Quan creeu una comanda de compra, feu una ullada a la del proveïdor <i>"
-"Entrega a temps</i> tarifa: el percentatge de productes enviats a temps. Si "
-"és massa baix, activeu el <i>recordatoris automatitzats</i>. Uns dies abans "
-"de l'enviament previst, Odoo enviarà un email al proveïdor per demanar-li "
-"confirmació de les dates d'enviament i us mantindrà informat en cas de "
+"Quan creeu una comanda de compra, feu una ullada a la del proveïdor "
+"<i>Entrega a temps</i> tarifa: el percentatge de productes enviats a temps. "
+"Si és massa baix, activeu el <i>recordatoris automatitzats</i>. Uns dies "
+"abans de l'enviament previst, Odoo enviarà un email al proveïdor per demanar-"
+"li confirmació de les dates d'enviament i us mantindrà informat en cas de "
 "retard. Per obtenir les estadístiques de rendiment del proveïdor, feu clic a "
 "la taxa OTD."
 
@@ -3782,6 +3742,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "day(s) before"
 msgstr "dia(s) abans"
 
@@ -3806,6 +3771,11 @@ msgstr "o crear nous"
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
 msgstr "partner_id"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3837,6 +3807,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr "per aprendre totes les maneres de connectar el vostre programari"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3848,420 +3823,3 @@ msgstr "amb"
 #: model:mail.template,subject:purchase.email_template_edi_purchase_reminder
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr "{{ object.company_id.name }} Comanda (Ref {{ object.name or 'n/a' }})"
-
-#~ msgid "%(amount)s due %(date)s"
-#~ msgstr "%(amount)s vençut %(date)s"
-
-#~ msgid "%s confirmed the receipt will take place on %s."
-#~ msgstr "%s confirmat que la recepció es farà el dia %s."
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> Enviar missatge"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> Descarrega"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Done</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Fet</span>"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/> <b>Pagat</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>Esperant pagament</b>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-"
-#~ "label=\"Purchases\" title=\"Purchases\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-"
-#~ "label=\"Purchases\" title=\"Purchases\"/>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Imprimir"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Request for Quotation </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Purchase Order "
-#~ "</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Sol·licitud de pressupost </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Comanda de "
-#~ "compra </span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(confirmat pel proveïdor)</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(confirmat pel proveïdor)</"
-#~ "span>"
-
-#~ msgid "<strong class=\"text-muted\">Purchase Representative</strong>"
-#~ msgstr "<strong class=\"text-muted\">Representant de compres</strong>"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Data requerida</strong>"
-
-#~ msgid "<strong>Purchase Representative:</strong>"
-#~ msgstr "<strong>Representant de compres:</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Adreça d'enviament:</strong>"
-
-#~ msgid "<strong>This purchase has been canceled.</strong>"
-#~ msgstr "<strong>Aquesta compra s'ha cancel·lat.</strong>"
-
-#~ msgid "<strong>Update Here</strong>"
-#~ msgstr "<strong>Actualitza aquí</strong>"
-
-#~ msgid "<strong>Your Order Reference:</strong>"
-#~ msgstr "<strong>La vostra referència de comanda:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Un producte emmagatzemable és un producte pel qual gestioneu estoc. Cal "
-#~ "instal·lar l'aplicació Inventari.\n"
-#~ "Un consumible és un producte pel qual no es gestiona estoc.\n"
-#~ "Un servei és un producte no material que subministreu. "
-
-#~ msgid ""
-#~ "Ability to select a package type in purchase orders and to force a "
-#~ "quantity that is a multiple of the number of units per package."
-#~ msgstr ""
-#~ "Possibilitat de seleccionar un tipus de paquet a les comandes de compra i "
-#~ "forçar una quantitat que sigui un múltiple del nombre d'unitats per "
-#~ "paquet."
-
-#~ msgid "Accept"
-#~ msgstr "Acceptar"
-
-#~ msgid "All RFQs"
-#~ msgstr "Totes les SdP"
-
-#~ msgid "All Waiting RFQs"
-#~ msgstr "Totes les SdP en espera"
-
-#~ msgid "Auto-complete from a past bill / purchase order."
-#~ msgstr ""
-#~ "Completa automàticament a partir d'una factura / ordre de compra anterior."
-
-#~ msgid "Avg Order Value"
-#~ msgstr "Valor mitjà de comanda"
-
-#~ msgid "Bill Control"
-#~ msgstr "Control de factures"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Missatge de bloqueig"
-
-#~ msgid ""
-#~ "Calls for tenders are when you want to generate requests for quotations "
-#~ "with several vendors for a given set of products to compare offers."
-#~ msgstr ""
-#~ "Les convocatòries de licitació són quan es volen generar les sol·licituds "
-#~ "de citacions amb diversos proveïdors per a un determinat conjunt de "
-#~ "productes per comparar ofertes."
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "No es pot eliminar una línia de comanda de venda en estat '%s'"
-
-#~ msgid "Category"
-#~ msgstr "Categoria"
-
-#~ msgid "Confirm"
-#~ msgstr "Confirmar"
-
-#~ msgid "Confirm Receipt Date"
-#~ msgstr "Confirmeu la data de recepció"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "La conversió entre les unitats de mesura només és possible si pertanyen a "
-#~ "la mateixa categoria. La conversió es basarà en les ràtios establertes."
-
-#~ msgid "Create Bill"
-#~ msgstr "Crear factura de compra"
-
-#~ msgid "Create Vendor Bills"
-#~ msgstr "Crear factures de proveïdor"
-
-#~ msgid "Days"
-#~ msgstr "Dies"
-
-#~ msgid "Done"
-#~ msgstr "Fet"
-
-#~ msgid "Download"
-#~ msgstr "Descarregar"
-
-#~ msgid "Draft RFQs"
-#~ msgstr "SdP en esborrany"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Assistent de redacció de correu electrònic"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Filtres estesos"
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar per"
-
-#~ msgid "History"
-#~ msgstr "Historial"
-
-#~ msgid "If true, the packaging can be used for purchase orders"
-#~ msgstr "Si és cert, l'embalatge es pot utilitzar per a comandes de compra"
-
-#~ msgid "Late RFQs"
-#~ msgstr "SdP endarrerides"
-
-#~ msgid "Lead Time to Purchase"
-#~ msgstr "Termini de compra"
-
-#~ msgid "Manage your purchase agreements (call for tenders, blanket orders)"
-#~ msgstr ""
-#~ "Gestioneu els vostres acords de compra (convocatòria de licitacions, "
-#~ "comandes generals)"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Marge d'error pels terminis d'entrega del proveïdor. Quan el sistema "
-#~ "genera comandes de productes, es programaran amb aquests dies d'antelació "
-#~ "per tal de fer front a retards inesperats del proveïdor."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Marge d'error pels terminis d'entrega del venedor. Quan el sistema genera "
-#~ "comandes per productes, es programaran dies abans per fer front a retards "
-#~ "inesperats del venedor."
-
-#~ msgid "My RFQs"
-#~ msgstr "Les meves SdP"
-
-#~ msgid "No Message"
-#~ msgstr "Sense missatge"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Nombre de missatges que requereixen una acció"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Quantitats demanades"
-
-#~ msgid "Packaging"
-#~ msgstr "Empaquetament"
-
-#~ msgid "Packaging Quantity"
-#~ msgstr "Quantitat d'embalatge"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Imprimir SdP"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Atributs del producte"
-
-#~ msgid "Product Categories"
-#~ msgstr "Categories de producte"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Embalatge de productes"
-
-#~ msgid "Purchase History"
-#~ msgstr "Historial de compres"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Termini de temps de compra"
-
-#~ msgid "Purchase Order Line Warning"
-#~ msgstr "Advertiment de la línia de comanda de compra"
-
-#~ msgid "Purchase Representative"
-#~ msgstr "Representant de compres"
-
-#~ msgid "Purchase products by multiple of unit # per package"
-#~ msgstr "Compreu productes per múltiple d'unitat # per paquet"
-
-#~ msgid "Purchased Last 7 Days"
-#~ msgstr "Compra els últims 7 dies"
-
-#~ msgid "Quantities billed by vendors"
-#~ msgstr "Quantitats facturades pels proveïdors"
-
-#~ msgid "RFQ Done"
-#~ msgstr "SdP feta"
-
-#~ msgid "RFQs"
-#~ msgstr "Sol·licituds de pressupost"
-
-#~ msgid "RFQs Sent Last 7 Days"
-#~ msgstr "SdP enviades els últims 7 dies"
-
-#~ msgid "Ratio between the purchase order currency and the company currency"
-#~ msgstr ""
-#~ "Precisió decimal entre la moneda de la companyia i la de la comanda de "
-#~ "compra"
-
-#~ msgid "Re-Send by Email"
-#~ msgstr "Re-enviar per correu electrònic"
-
-#~ msgid "Received quantities"
-#~ msgstr "Quantitats rebudes"
-
-#~ msgid "Reception Confirmed"
-#~ msgstr "Recepció confirmada"
-
-#~ msgid "Reminder Confirmed"
-#~ msgstr "Recordatori confirmat"
-
-#~ msgid "Security Lead Time for Purchase"
-#~ msgstr "Temps de termini de seguretat per compres"
-
-#~ msgid "Select a purchase order or an old bill"
-#~ msgstr "Seleccionar una comanda de compra o factura antics"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "Si seleccioneu l'opció \"Avís\" es notificarà als usuaris amb el "
-#~ "missatge, si seleccioneu \"Missatge de bloqueig\" es llançarà una "
-#~ "excepció amb el missatge i es bloquejarà el flux. El missatge s'ha "
-#~ "d'escriure en el següent camp."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "Enviar OC per correu electrònic"
-
-#~ msgid "Send by Email"
-#~ msgstr "Enviar per correu electrònic "
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Mostra tots els registres en que la data de següent acció és abans d'avui"
-
-#~ msgid "Source Document"
-#~ msgstr "Document d'origen"
-
-#~ msgid "The order receipt has been acknowledged by %s."
-#~ msgstr "El rebut de la comanda ha estat rebut per %s."
-
-#~ msgid ""
-#~ "There is no invoiceable line. If a product has a control policy based on "
-#~ "received quantity, please make sure that a quantity has been received."
-#~ msgstr ""
-#~ "No hi ha línia facturable. Si un producte té una política de control "
-#~ "basada en la quantitat rebuda, assegureu-vos que se n'hagi rebut una."
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "S'utilitzarà aquesta moneda, en comptes de la per defecte, per compres en "
-#~ "l'actual proveïdor"
-
-#~ msgid ""
-#~ "This default value is applied to any new product created. This can be "
-#~ "changed in the product detail form."
-#~ msgstr ""
-#~ "El valor per defecte és aplicat a cada nou producte creat. Es pot canviar "
-#~ "en el formulari de detall de producte."
-
-#~ msgid ""
-#~ "This product is packaged by %(pack_size).2f %(pack_name)s. You should "
-#~ "purchase %(quantity).2f %(unit)s."
-#~ msgstr ""
-#~ "Aquest producte està envasat per %(pack_size).2f %(pack_name)s. Hauries "
-#~ "de comprar %(quantity).2f %(unit)s."
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Aquesta factura de venedor ha estat creada de: %s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr "Aquesta factura de venedor ha estat modificada de: %s"
-
-#~ msgid "To Send"
-#~ msgstr "Per enviar"
-
-#~ msgid "True if PO reception is confirmed by the vendor."
-#~ msgstr "És cert si el proveïdor confirma la recepció de la comanda."
-
-#~ msgid "True if the reminder email is confirmed by the vendor."
-#~ msgstr ""
-#~ "És cert si el proveïdor confirma el correu electrònic del recordatori."
-
-#~ msgid "Type a message..."
-#~ msgstr "Escriu un missatge..."
-
-#~ msgid ""
-#~ "Unable to cancel this purchase order. You must first cancel the related "
-#~ "vendor bills."
-#~ msgstr ""
-#~ "No es pot cancel·lar aquesta comanda de compra. Primer heu de cancel·lar "
-#~ "les factures de proveïdor relacionades."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Unitat de mesura"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Unitats de mesura"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Categories d'unitats de mesura"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Unitats de mesura"
-
-#~ msgid "UoM"
-#~ msgstr "UdM"
-
-#~ msgid "Update Dates"
-#~ msgstr "Actualitza les dates"
-
-#~ msgid "Waiting"
-#~ msgstr "En espera"
-
-#~ msgid "Waiting RFQs"
-#~ msgstr "S'espera SdP"
-
-#~ msgid "Warning"
-#~ msgstr "Avís"
-
-#~ msgid "Warning for %s"
-#~ msgstr "Avís per a %s"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Avís en la comanda de compra"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Avís quan es compra aquest producte"
-
-#~ msgid "close"
-#~ msgstr "tanca"

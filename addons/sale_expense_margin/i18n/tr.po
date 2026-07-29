@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * sale_expense_margin
 #
-# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025, 2026.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025.
+# Burkay Yıldızhan <seyil@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:21+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-10-08 18:38+0000\n"
+"PO-Revision-Date: 2026-07-04 12:40+0000\n"
+"Last-Translator: Burkay Yıldızhan <seyil@odoo.com>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_expense_margin/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
@@ -24,7 +24,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_expense_margin.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:sale_expense_margin.field_sale_order_line__display_name
 msgid "Display Name"
-msgstr "İsim Göster"
+msgstr "Gösterilecek İsim"
 
 #. module: sale_expense_margin
 #: model:ir.model.fields,field_description:sale_expense_margin.field_sale_order_line__expense_id
@@ -45,4 +45,4 @@ msgstr "Yevmiye Kalemi"
 #. module: sale_expense_margin
 #: model:ir.model,name:sale_expense_margin.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Satış Sipariş Satırı"
+msgstr "Satış Sipariş Hattı"

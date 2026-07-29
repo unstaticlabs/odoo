@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:36+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/sales_team/"
-"uz/>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-10-08 18:39+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: sales_team
 #. odoo-python
@@ -41,7 +39,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr "%(user_names)s allaqachon boshqa jamoalarda (%(team_names)s)."
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #, fuzzy
 msgid ""
@@ -69,6 +66,12 @@ msgstr "<i class=\"fa fa-fw me-1 fa-envelope text-primary\" title=\"Email\"/>"
 #, fuzzy
 msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
 msgstr "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Telefon\"/>"
+
+#. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
+msgstr ""
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
@@ -288,6 +291,7 @@ msgstr "Ko‘rsatiladigan nom"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #, fuzzy
 msgid "Email"
 msgstr "Elektron pochta"
@@ -510,6 +514,7 @@ msgstr "Boshqa"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #, fuzzy
 msgid "Phone"
 msgstr "Telefon"
@@ -563,6 +568,7 @@ msgstr "Sotuvchi"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -847,8 +853,8 @@ msgstr "Bir nechta jamoada ishlayapsizmi?"
 #: code:addons/sales_team/models/crm_team_member.py:0
 #, fuzzy
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
 "Siz takroriy a'zolik(lar) yaratmoqchi bo‘lyapsiz. Biz %(duplicates)s "
 "allaqachon mavjudligini aniqladik."

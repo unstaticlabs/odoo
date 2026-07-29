@@ -1,17 +1,13 @@
 {
     'name': "HTML Editor",
-    'summary': """
-        A Html Editor component and plugin system
-    """,
+    'summary': "A Html Editor component and plugin system.",
     'description': """
 Html Editor
 ==========================
 This addon provides an extensible, maintainable editor.
     """,
 
-    'author': "odoo",
-    'website': "https://www.odoo.com",
-    'version': '1.0',
+    'author': 'Odoo S.A.',
     'category': 'Hidden',
     'depends': ['base', 'bus', 'web'],
     'data': [
@@ -33,7 +29,6 @@ This addon provides an extensible, maintainable editor.
         ],
         'web.assets_backend': [
             ('include', 'html_editor.assets_editor'),
-            'html_editor/static/src/others/dynamic_placeholder_plugin.js',
             'html_editor/static/src/backend/**/*',
             'html_editor/static/src/fields/**/*',
             'html_editor/static/lib/vkbeautify/**/*',
@@ -47,6 +42,7 @@ This addon provides an extensible, maintainable editor.
             ('include', 'html_editor.assets_readonly'),
             'html_editor/static/src/*',
             'html_editor/static/src/components/history_dialog/**/*',
+            'html_editor/static/src/components/suggestion/**/*',
             'html_editor/static/src/core/**/*',
             'html_editor/static/src/main/**/*',
             'html_editor/static/src/others/collaboration/**/*',

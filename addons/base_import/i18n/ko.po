@@ -5,23 +5,23 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 09:43+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-02-28 13:33+0000\n"
+"Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_import/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -73,8 +73,8 @@ msgstr "고급"
 msgid ""
 "After each batch import, this delay is applied to avoid unthrottled calls"
 msgstr ""
-"각 일괄 가져오기 후, 호출 제한이 없는 사태를 방지하기 위해지연되게 하고 "
-"있습니다."
+"각 일괄 가져오기 후, 호출 제한이 없는 사태를 방지하기 위해지연되게 하고 있습"
+"니다."
 
 #. module: base_import
 #. odoo-javascript
@@ -91,9 +91,9 @@ msgid ""
 "transient. If the issue still occurs, try to split the file rather than "
 "import it at once."
 msgstr ""
-"가져 오기 과정 중에 알 수 없는 문제가 발생했습니다(연결 오류, 데이터 초과 "
-"제한 또는 메모리 초과 제한). 문제가 일시적인 경우 다시 시도하십시오. 문제가 "
-"계속 발생하면 즉시 파일을 가져 오는 대신 파일을 분할 해 보십시오."
+"가져 오기 과정 중에 알 수 없는 문제가 발생했습니다(연결 오류, 데이터 초과 제"
+"한 또는 메모리 초과 제한). 문제가 일시적인 경우 다시 시도하십시오. 문제가 계"
+"속 발생하면 즉시 파일을 가져 오는 대신 파일을 분할 해 보십시오."
 
 #. module: base_import
 #: model:ir.model,name:base_import.model_base
@@ -136,12 +136,6 @@ msgstr "단, csv 파일도 사용 가능"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "취소"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr "가져오기를 진행하려면 '계속하기'를 클릭하여 %s 행에서 계속 진행합니다."
@@ -156,11 +150,11 @@ msgstr "열 %(column)s에 잘못된 값이 포함되어 있습니다(값: %(valu
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr ""
-"열 %(column)s에 잘못된 값이 있습니다. %(line)d 항목 오류: %(error)s가 "
-"발생했습니다."
+"열 %(column)s에 잘못된 값이 있습니다. %(line)d 항목 오류: %(error)s가 발생했"
+"습니다."
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
@@ -185,8 +179,8 @@ msgstr "의견"
 msgid ""
 "Could not retrieve URL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
 msgstr ""
-"URL을 검색 할 수 없습니다 : %(url)s [%(field_name)s: L%(line_number)d]: %"
-"(error)s"
+"URL을 검색 할 수 없습니다 : %(url)s [%(field_name)s: L%(line_number)d]: "
+"%(error)s"
 
 #. module: base_import
 #. odoo-javascript
@@ -249,6 +243,12 @@ msgid "Delay after each batch"
 msgstr "각 일괄 가져오기 후 지연"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr "작성 취소"
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -306,13 +306,13 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
-"레코드를 가져오는 동안 오류가 발생했습니다: 모든 행에 동일한 수의 항목이 "
-"있어야 합니다. 제목 행에는 %(title_row_entries)d개의 항목이 있고, 첫 번째 "
-"데이터 행에는 %(first_row_entries)d개의 항목이 있습니다. 구분 문자를 "
-"조정해야 할 수도 있습니다."
+"레코드를 가져오는 동안 오류가 발생했습니다: 모든 행에 동일한 수의 항목이 있어"
+"야 합니다. 제목 행에는 %(title_row_entries)d개의 항목이 있고, 첫 번째 데이터 "
+"행에는 %(first_row_entries)d개의 항목이 있습니다. 구분 문자를 조정해야 할 수"
+"도 있습니다."
 
 #. module: base_import
 #. odoo-javascript
@@ -337,12 +337,6 @@ msgstr "서식이 자동으로 지정되므로 엑셀 파일을 사용하시는 
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "외부 ID"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "%(field)s' 필드에는 날짜/시간 값을 사용할 수 없습니다."
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -378,8 +372,8 @@ msgstr "파일 크기가 설정된 최대 값을 초과합니다 (%s bytes)"
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "raw 바이너리(base64 아님)로 가져오거나 검사할 파일"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -412,8 +406,8 @@ msgid ""
 "Found invalid image data, images should be imported as either URLs or base64-"
 "encoded data."
 msgstr ""
-"사용불가능한 이미지 정보가 발견되었습니다, 이미지는 URL또는 base64형식의 "
-"데이터만 가능합니다."
+"사용불가능한 이미지 정보가 발견되었습니다, 이미지는 URL또는 base64형식의 데이"
+"터만 가능합니다."
 
 #. module: base_import
 #. odoo-javascript
@@ -471,8 +465,8 @@ msgstr ""
 msgid ""
 "Image size excessive, imported images must be smaller than 42 million pixel"
 msgstr ""
-"이미지 크기가 초과되었습니다. 4,200만 픽셀보다 작은 이미지만 가져올 수 "
-"있습니다."
+"이미지 크기가 초과되었습니다. 4,200만 픽셀보다 작은 이미지만 가져올 수 있습니"
+"다."
 
 #. module: base_import
 #. odoo-javascript
@@ -530,8 +524,8 @@ msgid ""
 "format: %(cell_format)s, as (%(format_type)s) formats are not supported."
 msgstr ""
 "%(row)s 행, %(col)s 열의 셀 형식이 잘못되었습니다: %(cell_format)s 형식으로 "
-"되어 있는 %(cell_value)s의 경우, (%(format_type)s) 형식으로는 지원되지 "
-"않습니다."
+"되어 있는 %(cell_value)s의 경우, (%(format_type)s) 형식으로는 지원되지 않습니"
+"다."
 
 #. module: base_import
 #. odoo-python
@@ -810,24 +804,18 @@ msgstr "파일을 일괄 가져오기 합니다."
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
-#, fuzzy
 msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was automatically detected."
 msgstr ""
-"“%s” 인코딩으로 파일을 디코딩하는 중 문제가 발생했습니다.\n"
-"이 인코딩은 자동으로 인식되었습니다."
 
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
-#, fuzzy
 msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was manually selected."
 msgstr ""
-"“%s” 인코딩으로 파일을 디코딩하는 중 문제가 발생했습니다.\n"
-"이 인코딩은 수동으로 선택되었습니다."
 
 #. module: base_import
 #. odoo-javascript
@@ -865,8 +853,8 @@ msgstr "가져올 때 가져 오기 내역 추적"
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"\"{extension}\" 파일을 로드할 수 없습니다 : Python 모듈 \"{modname}\"이 "
-"필요합니다"
+"\"{extension}\" 파일을 로드할 수 없습니다 : Python 모듈 \"{modname}\"이 필요"
+"합니다"
 
 #. module: base_import
 #. odoo-python
@@ -874,8 +862,8 @@ msgstr ""
 msgid ""
 "Unsupported file format \"{}\", import only supports CSV, ODS, XLS and XLSX"
 msgstr ""
-"지원되지 않는 파일 형식 \"{}\", 가져 오기는 CSV, ODS, XLS 및 XLSX 만 "
-"지원합니다."
+"지원되지 않는 파일 형식 \"{}\", 가져 오기는 CSV, ODS, XLS 및 XLSX 만 지원합니"
+"다."
 
 #. module: base_import
 #. odoo-javascript
@@ -903,9 +891,9 @@ msgid ""
 "system. You can use a custom format in addition to the suggestions provided. "
 "Leave empty to let Odoo guess the format (recommended)"
 msgstr ""
-"24시간 단위에서는 시간 표시로 HH를 사용하고, 12시간 단위에서는 'p'와 함께 "
-"II를 사용합니다. 제안 항목 외에도 사용자 지정 양식을 추가로 사용할 수 "
-"있습니다. Odoo에서 양식을 파악할 수 있도록 비워 두세요 (권장)."
+"24시간 단위에서는 시간 표시로 HH를 사용하고, 12시간 단위에서는 'p'와 함께 II"
+"를 사용합니다. 제안 항목 외에도 사용자 지정 양식을 추가로 사용할 수 있습니"
+"다. Odoo에서 양식을 파악할 수 있도록 비워 두세요 (권장)."
 
 #. module: base_import
 #. odoo-javascript
@@ -916,9 +904,9 @@ msgid ""
 "in addition to the suggestions provided. Leave empty to let Odoo guess the "
 "format (recommended)"
 msgstr ""
-"연도는 YYYY로, 월은 MM, 일은 DD로 표시합니다. 12시간 단위에서는 'p'와 함께 "
-"II를 사용합니다. 점이나 빗금 (슬래시) 또는 줄 표시 (대시)와 같은 구분 기호를 "
-"사용합니다., 제안 항목 외에도 사용자 지정 양식을 추가로 사용할 수 있습니다. "
+"연도는 YYYY로, 월은 MM, 일은 DD로 표시합니다. 12시간 단위에서는 'p'와 함께 II"
+"를 사용합니다. 점이나 빗금 (슬래시) 또는 줄 표시 (대시)와 같은 구분 기호를 사"
+"용합니다., 제안 항목 외에도 사용자 지정 양식을 추가로 사용할 수 있습니다. "
 "Odoo에서 양식을 파악할 수 있도록 비워 두세요 (권장)."
 
 #. module: base_import
@@ -1014,30 +1002,3 @@ msgstr "초"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "%s에서 알수없는 오류가 발생했습니다"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "%s 열에 잘못된 값이 포함되어 있습니다(값 : %s)."
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr ""
-#~ "%s 열에 잘못된 값이 포함되어 있습니다. 라인 %d : %s에 오류가 있습니다."
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "날짜 구문 오류 [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "가져 오기 시간이 초과되었습니다. 다시 시도하십시오. 이 문제가 계속 발생하"
-#~ "면 시스템 설정에 비해 파일 크기가 너무 클 수 있으므로 파일 (파일 당 더 적"
-#~ "은 레코드 가져 오기)을 분할 해보십시오."
-
-#~ msgid "Load File"
-#~ msgstr "파일 불러오기"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr "URL을 통해 이미지를 가져올 수 없으므로 관리자에게 문의하십시오."

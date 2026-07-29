@@ -3,15 +3,14 @@
 # * mass_mailing_themes
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 23:05+0000\n"
-"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 04:41+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "mass_mailing_themes/ru/>\n"
 "Language: ru\n"
@@ -21,15 +20,9 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "&amp;nbsp; &amp;nbsp;"
-msgstr "&amp;nbsp; &amp;nbsp;"
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "&amp;nbsp;&amp;nbsp;"
 msgstr "&amp;nbsp;&amp;nbsp;"
@@ -131,29 +124,27 @@ msgid ""
 "                <span style=\"font-size: 12px;\"><font style=\"color: "
 "rgb(183, 191, 199);\">To unsubscribe, </font></span>"
 msgstr ""
-"<br/>\n"
-"                <span style=\"font-size: 12px;\"><font style=\"color: rgb"
-"(183, 191, 199);\">Для отмены подписки, </font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
 msgid "<font class=\"text-white\">$100 OFF</font>"
-msgstr "<font class=\"text-white\">Скидка 100$</font>"
+msgstr ""
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
 msgid "<font class=\"text-white\">Here's your coupon code*:</font>"
-msgstr "<font class=\"text-white\">Ваш промокод*:</font>"
+msgstr ""
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
 msgid "<font class=\"text-white\">VIP members only</font>"
-msgstr "<font class=\"text-white\">Только для VIP-участников</font>"
+msgstr ""
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_magazine_template
 msgid "<font style=\"background-color: rgb(231, 148, 57);\">TRAVEL</font>"
-msgstr "<font style=\"background-color: rgb(231, 148, 57);\">ПУТЕШЕСТВИЕ</font>"
+msgstr ""
+"<font style=\"background-color: rgb(231, 148, 57);\">ПУТЕШЕСТВИЕ</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_magazine_template
@@ -177,8 +168,8 @@ msgid ""
 "<font style=\"color: rgb(255, 255, 255);\">And it won't cost you a thing!</"
 "font>"
 msgstr ""
-"<font style=\"color: rgb(255, 255, 255);\">И это не будет стоить вам "
-"ничего!</font>"
+"<font style=\"color: rgb(255, 255, 255);\">И это не будет стоить вам ничего!"
+"</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
@@ -213,9 +204,6 @@ msgid ""
 "<font style=\"color: rgb(255, 255, 255);\">Join the community to see our "
 "latest news, events, discounts and much more!</font>"
 msgstr ""
-"<font style=\"color: rgb(255, 255, 255);\">Присоединяйтесь к нашему "
-"сообществу, чтобы узнавать о свежих новостях, мероприятиях, скидках и многом "
-"другом!</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
@@ -223,8 +211,6 @@ msgid ""
 "<font style=\"color: rgb(255, 255, 255);\">Thank you for being one of our "
 "most loyal customers.</font>"
 msgstr ""
-"<font style=\"color: rgb(255, 255, 255);\">Благодарим вас за то, что вы – "
-"один из наших самых преданных клиентов.</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_event_template
@@ -271,11 +257,6 @@ msgid ""
 "                    <font style=\"font-size: 62px; background-color: "
 "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
 msgstr ""
-"<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);\">"
-"&amp;nbsp;СКИДКА 10%&amp;nbsp;</font>\n"
-"                    <br/>\n"
-"                    <font style=\"font-size: 62px; background-color: rgb"
-"(255, 255, 255);\">&amp;nbsp;РАСПРОДАЖА&amp;nbsp;</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
@@ -283,8 +264,6 @@ msgid ""
 "<i class=\"fa fa-map-marker\" contenteditable=\"false\"/> London, United "
 "Kingdom"
 msgstr ""
-"<i class=\"fa fa-map-marker\" contenteditable=\"false\"/> Лондон, "
-"Великобритания"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
@@ -372,11 +351,6 @@ msgid ""
 "                        </font>\n"
 "                    </span>"
 msgstr ""
-"<span style=\"font-size: 10px;\">\n"
-"                        <font style=\"color: rgb(112, 157, 225);\">Вы "
-"получили это письмо, так как проявили интерес к нашим прошлым мероприятиям\n"
-"                        </font>\n"
-"                    </span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
@@ -393,8 +367,6 @@ msgid ""
 "<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);\">."
 "</font></span>"
 msgstr ""
-"<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);\">"
-".</font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
@@ -408,14 +380,6 @@ msgid ""
 "                <span style=\"font-size: 12px;\"><font style=\"color: "
 "rgb(183, 191, 199);\">You received this email from </font></span>"
 msgstr ""
-"<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);\">"
-"8000 Marina Blvd, Suite 300</font></span>\n"
-"                <br/>\n"
-"                <span style=\"font-size: 12px;\"><font style=\"color: rgb"
-"(183, 191, 199);\">Brisbane, California 94005</font></span>\n"
-"                <br/>\n"
-"                <span style=\"font-size: 12px;\"><font style=\"color: rgb"
-"(183, 191, 199);\">You received this email from </font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
@@ -423,8 +387,6 @@ msgid ""
 "<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);"
 "\">click here</font></span>"
 msgstr ""
-"<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);\">"
-"нажмите здесь</font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
@@ -432,8 +394,6 @@ msgid ""
 "<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);"
 "\">hello@musingsoftheweek.com</font></span>"
 msgstr ""
-"<span style=\"font-size: 12px;\"><font style=\"color: rgb(183, 191, 199);\">"
-"hello@musingsoftheweek.com</font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_promotion_template
@@ -479,8 +439,6 @@ msgid ""
 "<span style=\"font-weight: bolder;\"><font class=\"text-white\">VIP10</"
 "font></span>"
 msgstr ""
-"<span style=\"font-weight: bolder;\"><font class=\"text-white\">VIP10</font>"
-"</span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
@@ -858,10 +816,7 @@ msgstr ""
 "интерактивных презентаций и демонстраций."
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Facebook"
 msgstr "Facebook"
 
@@ -913,9 +868,9 @@ msgid ""
 "you can take things into your own hands and use your free time to upskill."
 msgstr ""
 "Получить практический опыт может быть так же вероятно, как попасть под удар "
-"молнии - <span style=\"font-style: italic;\">спасибо тебе, коронавирус</span>"
-", - но вы можете взять все в свои руки и использовать свободное время для "
-"повышения квалификации."
+"молнии - <span style=\"font-style: italic;\">спасибо тебе, коронавирус</"
+"span>, - но вы можете взять все в свои руки и использовать свободное время "
+"для повышения квалификации."
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_event_template
@@ -951,8 +906,8 @@ msgstr ""
 "у вас большие мечты, много энергии и наивная глупость. Моей мечтой было "
 "возглавить рынок управления предприятиями с помощью полностью открытого "
 "программного обеспечения (я также хотел до 30 лет набрать 100 сотрудников в "
-"самофинансируемой компании, но мне это не удалось всего за несколько месяцев)"
-"."
+"самофинансируемой компании, но мне это не удалось всего за несколько "
+"месяцев)."
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
@@ -1062,10 +1017,7 @@ msgid "Infographic: Our Company Throughout The Generations"
 msgstr "Инфографика: Наша компания в разных поколениях"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Instagram"
 msgstr "Instagram"
 
@@ -1134,12 +1086,6 @@ msgid "Link 4"
 msgstr "Ссылка 4"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
-msgid "LinkedIn"
-msgstr "LinkedIn"
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.email_designer_themes
 msgid "Magazine"
 msgstr "Журнальный"
@@ -1167,8 +1113,8 @@ msgid ""
 "\">Customer Service</span>"
 msgstr ""
 "Майкл Флетчер<br/>\n"
-"                  <span style=\"font-size: 12px; font-weight: bolder;\">"
-"Обслуживание клиентов</span>"
+"                  <span style=\"font-size: 12px; font-weight: bolder;"
+"\">Обслуживание клиентов</span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
@@ -1478,11 +1424,6 @@ msgstr ""
 "чувствуете"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "TikTok"
-msgstr "TikTok"
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid ""
 "To fuel my motivation, I had to pick someone to fight against. In business, "
@@ -1717,12 +1658,9 @@ msgid "Woman having breakfast in bed"
 msgstr "Женщина завтракает в постели"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_roadshow2_template
@@ -1866,180 +1804,3 @@ msgstr "мы изменили нашу бизнес-модель"
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "with 1549% growth of the turnover between 2007 and 2011)."
 msgstr "с 1549% gрядами оборота в период с 2007 по 2011 год)."
-
-#~ msgid ""
-#~ "<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);"
-#~ "\">&amp;nbsp;10% OFF&amp;nbsp;</font>\n"
-#~ "                    <br/>\n"
-#~ "                        <font style=\"font-size: 62px; background-color: "
-#~ "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
-#~ msgstr ""
-#~ "<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);"
-#~ "\">&amp;nbsp;10% OFF&amp;nbsp;</font>\n"
-#~ "                    <br/>\n"
-#~ "                        <font style=\"font-size: 62px; background-color: "
-#~ "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
-
-#~ msgid "$100 OFF"
-#~ msgstr "$100 OFF"
-
-#~ msgid ""
-#~ "<br/>\n"
-#~ "                <span style=\"font-size: 12px;\" "
-#~ "class=\"o_default_snippet_text\"><font style=\"color: rgb(183, 191, 199);"
-#~ "\">To unsubscribe, </font></span>"
-#~ msgstr ""
-#~ "<br/>\n"
-#~ "                <span style=\"font-size: 12px;\" "
-#~ "class=\"o_default_snippet_text\"><font style=\"color: rgb(183, 191, 199);"
-#~ "\">Чтобы отказаться от подписки, </font></span>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-2x fa-ticket\" style=\"color: rgb(36, 37, 48) !important;"
-#~ "\"/>​"
-#~ msgstr ""
-#~ "<i class=\"fa fa-2x fa-ticket\" style=\"color: rgb(36, 37, 48) !important;"
-#~ "\"/>"
-
-#~ msgid "<i class=\"fa fa-map-marker\"/> London, United Kingdom​"
-#~ msgstr "<i class=\"fa fa-map-marker\"/> Лондон, Великобритания"
-
-#~ msgid "<span class=\"fa fa-facebook\" contenteditable=\"false\">​</span>"
-#~ msgstr "<span class=\"fa fa-facebook\" contenteditable=\"false\"></span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-facebook\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr ""
-#~ "<span class=\"fa fa-facebook\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-facebook\" style=\"color: rgb(84, 52, 39) !important; "
-#~ "background-color: rgb(211, 197, 177) !important;\">​</span>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-facebook\" style=\"color: rgb(84, 52, 39) !important; "
-#~ "background-color: rgb(211, 197, 177) !important;\"></span>"
-
-#~ msgid "<span class=\"fa fa-instagram\" contenteditable=\"false\">​</span>"
-#~ msgstr "<span class=\"fa fa-instagram\" contenteditable=\"false\"></span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-instagram\" style=\"color: rgb(84, 52, 39) !"
-#~ "important; background-color: rgb(211, 197, 177) !important;\">​</span>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-instagram\" style=\"color: rgb(84, 52, 39) !"
-#~ "important; background-color: rgb(211, 197, 177) !important;\"></span>"
-
-#~ msgid "<span class=\"fa fa-linkedin\" contenteditable=\"false\">​</span>"
-#~ msgstr "<span class=\"fa fa-linkedin\" contenteditable=\"false\"></span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-linkedin\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr ""
-#~ "<span class=\"fa fa-linkedin\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>"
-
-#~ msgid "<span class=\"fa fa-twitter\" contenteditable=\"false\">​</span>"
-#~ msgstr "<span class=\"fa fa-twitter\" contenteditable=\"false\"></span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-twitter\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr ""
-#~ "<span class=\"fa fa-twitter\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-twitter\" style=\"color: rgb(84, 52, 39) !important; "
-#~ "background-color: rgb(211, 197, 177) !important;\">​</span>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-twitter\" style=\"color: rgb(84, 52, 39) !important; "
-#~ "background-color: rgb(211, 197, 177) !important;\"></span>"
-
-#~ msgid ""
-#~ "<span style=\"font-size: 10px;\">\n"
-#~ "                        <font style=\"color: rgb(112, 157, 225);\" "
-#~ "class=\"o_default_snippet_text\">You are receiving this email because you "
-#~ "showed an interest in our previous events\n"
-#~ "                        </font>\n"
-#~ "                    </span>"
-#~ msgstr ""
-#~ "<span style=\"font-size: 10px;\">\n"
-#~ "                        <font style=\"color: rgb(112, 157, 225);\" "
-#~ "class=\"o_default_snippet_text\">Вы получаете это письмо, потому что "
-#~ "проявили интерес к нашим предыдущим мероприятиям\n"
-#~ "                        </font>\n"
-#~ "                    </span>"
-
-#~ msgid ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">.</font></span>"
-#~ msgstr ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">.</font></span>"
-
-#~ msgid ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">250 Executive Park Blvd</font></"
-#~ "span>\n"
-#~ "                <br/>\n"
-#~ "                <span style=\"font-size: 12px;\" class=\"\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">San Francisco, California 94134</"
-#~ "font></span>\n"
-#~ "                <br/>\n"
-#~ "                <span style=\"font-size: 12px;\" "
-#~ "class=\"o_default_snippet_text\"><font style=\"color: rgb(183, 191, 199);"
-#~ "\">You received this email from </font></span>"
-#~ msgstr ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">250 Executive Park Blvd</font></"
-#~ "span>\n"
-#~ "                <br/>\n"
-#~ "                <span style=\"font-size: 12px;\" class=\"\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">Сан-Франциско, Калифорния 94134</"
-#~ "font></span>\n"
-#~ "                <br/>\n"
-#~ "                <span style=\"font-size: 12px;\" "
-#~ "class=\"o_default_snippet_text\"><font style=\"color: rgb(183, 191, 199);"
-#~ "\">Вы получили это письмо от </font></span>"
-
-#~ msgid ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">click here</font></span>"
-#~ msgstr ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">нажмите здесь</font></span>"
-
-#~ msgid ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">hello@musingsoftheweek.com</font></"
-#~ "span>"
-#~ msgstr ""
-#~ "<span style=\"font-size: 12px;\" class=\"o_default_snippet_text\"><font "
-#~ "style=\"color: rgb(183, 191, 199);\">hello@musingsoftheweek.com</font></"
-#~ "span>"
-
-#~ msgid "<span style=\"font-weight: bolder;\">VIP10</span>"
-#~ msgstr "<span style=\"font-weight: bolder;\">VIP10</span>"
-
-#~ msgid "Here's your coupon code*:"
-#~ msgstr "Вот ваш код купона*:"
-
-#~ msgid ""
-#~ "Join the community to see our latest news, events, discounts and much "
-#~ "more!"
-#~ msgstr ""
-#~ "Присоединяйтесь к сообществу, чтобы видеть наши последние новости, "
-#~ "события, скидки и многое другое!"
-
-#~ msgid "Thank you for being one of our most loyal customers."
-#~ msgstr ""
-#~ "Спасибо за то, что являетесь одним из наших самых преданных клиентов."
-
-#~ msgid "Twitter"
-#~ msgstr "Twitter"
-
-#~ msgid "VIP members only"
-#~ msgstr "Только для VIP-участников"

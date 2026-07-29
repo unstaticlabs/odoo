@@ -68,6 +68,7 @@ export class AddSnippetDialog extends Component {
             // preview) can be wrong.
             await this.insertStyle();
 
+            this.renderIframeHead();
             const iframeDocument = this.iframeRef.el.contentDocument;
             iframeDocument.body.parentElement.classList.add("o_add_snippets_preview");
             iframeDocument.body.style.setProperty("direction", localization.direction);
@@ -95,6 +96,11 @@ export class AddSnippetDialog extends Component {
     }
 
     /**
+     * Allow to insert content inside the Iframe's head
+     */
+    renderIframeHead() {}
+
+    /**
      * Loads and injects the required styles into the iframe's <head>.
      * The URL for web.assets_frontend CSS bundle is retrieved from the editor
      * document to ensure consistency, especially when using the RTL version.
@@ -120,8 +126,12 @@ export class AddSnippetDialog extends Component {
             ...editorPreviewAssetsBundles.map((assetsBundle) =>
                 loadCSSBundleFromEditor(assetsBundle, loadOptions)
             ),
-            loadBundle("html_builder.iframe_add_dialog", loadOptions),
+            ...this.getDefaultAssets().map((assetName) => loadBundle(assetName, loadOptions)),
         ]);
+    }
+
+    getDefaultAssets() {
+        return ["html_builder.iframe_add_dialog"];
     }
 
     get snippetGroups() {

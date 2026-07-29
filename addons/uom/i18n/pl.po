@@ -14,17 +14,18 @@
 # Piotr Szlązak <szlazakpiotr@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Paweł Wodyński <pw@myodoo.pl>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-09 16:05+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-07-09 15:09+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/uom/pl/>\n"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/uom/"
+"pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -183,11 +184,6 @@ msgstr "Brakuje referencyjnej jednostki miary."
 #: model:ir.model.fields,field_description:uom.field_uom_uom__related_uom_ids
 msgid "Related UoMs"
 msgstr "Powiązane JM"
-
-#. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "Precyzja zaokrąglania"
 
 #. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
@@ -387,99 +383,3 @@ msgstr "qt (US)"
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr "yd"
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "Większy przelicznik"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "Większa od jedostki referencyjnej"
-
-#~ msgid "Category"
-#~ msgstr "Kategoria"
-
-#~ msgid "Color"
-#~ msgstr "Kolor"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konwersja pomiędzy jednostkami miary (JM) może nastąpić tylko pomiędzy "
-#~ "jednostkami z tej samej kategorii. Do konwersji jest stosowany "
-#~ "przelicznik."
-
-#~ msgid "Group By"
-#~ msgstr "Grupuj wg."
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "Ile razy ta Jednostka Miary jest większa niż jednostka referencyjna z tej "
-#~ "kategorii: 1 * (ta jednostka) = współczynnik * (jednostka referencyjna)"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Data ostatniej modyfikacji"
-
-#~ msgid "Length / Distance"
-#~ msgstr "Długość"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "Kategorie JM produktu"
-
-#~ msgid "Ratio"
-#~ msgstr "Współczynnik"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "Referencyjna jednostka miary dla tej kategorii"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "Mniejsza niż jednostka referencyjna"
-
-#~ msgid ""
-#~ "The computed quantity will be a multiple of this value. Use 1.0 for a "
-#~ "Unit of Measure that cannot be further split, such as a piece."
-#~ msgstr ""
-#~ "Obliczone ilości będą wielokrotnością tej wartości. Stosuj 1,0 dla "
-#~ "jednostek, które nie mogą być podzielne, na przykład dla sztuki."
-
-#~ msgid "Type"
-#~ msgstr "Typ"
-
-#~ msgid "Unit"
-#~ msgstr "Jednostka"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Jednostka miary"
-
-#~ msgid "Unit of Measure Category"
-#~ msgstr "Kategoria jednostek miary"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Kategorie jednostek miary"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "Kategorie jednostek miary"
-
-#~ msgid "UoM category %s should only have one reference unit of measure."
-#~ msgstr ""
-#~ "Kategoria JM %s powinna mieć tylko jedną referencyjną jednostkę miary."
-
-#~ msgid "Uom"
-#~ msgstr "JM"
-
-#~ msgid "Volume"
-#~ msgstr "Objętość"
-
-#~ msgid "Weight"
-#~ msgstr "Waga"
-
-#~ msgid "Working Time"
-#~ msgstr "Czas pracy"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "Musisz określić współczynnik konwersji pomiędzy kilkoma Jednostkami\n"
-#~ "Miary w tej samej kategorii."

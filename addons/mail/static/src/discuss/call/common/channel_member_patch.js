@@ -1,5 +1,5 @@
 import { ChannelMember } from "@mail/discuss/core/common/channel_member_model";
-import { fields } from "@mail/core/common/record";
+import { fields } from "@mail/model/export";
 
 import { browser } from "@web/core/browser/browser";
 import { patch } from "@web/core/utils/patch";
@@ -16,21 +16,34 @@ const ChannelMemberPatch = {
                     return;
                 }
                 this.channel_id.rtc_session_ids.add(r);
-                this.store.ringingThreads.add(this.channel_id);
-                this.channel_id.cancelRtcInvitationTimeout = browser.setTimeout(() => {
-                    this.store.env.services["discuss.rtc"].leaveCall(this.channel_id);
-                }, ChannelMember.CANCEL_CALL_INVITE_DELAY);
+                this.store.ringingChannels.add(this.channel_id);
+                this.startInvitationTimeout();
             },
             /** @this {import("models").ChannelMember} */
             onDelete() {
                 if (!this.channel_id) {
                     return;
                 }
-                browser.clearTimeout(this.channel_id.cancelRtcInvitationTimeout);
-                this.store.ringingThreads.delete(this.channel_id);
+                this.cancelInvitationTimeout();
+                this.store.ringingChannels.delete(this.channel_id);
             },
         });
         this.rtcSession = fields.One("discuss.channel.rtc.session");
+    },
+    cancelInvitationTimeout() {
+        if (this.channel_id?.cancelRtcInvitationTimeout) {
+            browser.clearTimeout(this.channel_id.cancelRtcInvitationTimeout);
+            this.channel_id.cancelRtcInvitationTimeout = undefined;
+        }
+    },
+    startInvitationTimeout() {
+        if (this.channel_id.cancelRtcInvitationTimeout) {
+            return;
+        }
+        this.channel_id.cancelRtcInvitationTimeout = browser.setTimeout(() => {
+            this.store.rtc.leaveCall(this.channel_id);
+            this.channel_id.cancelRtcInvitationTimeout = undefined;
+        }, ChannelMember.CANCEL_CALL_INVITE_DELAY);
     },
 };
 patch(ChannelMember.prototype, ChannelMemberPatch);

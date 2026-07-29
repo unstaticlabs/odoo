@@ -17,27 +17,17 @@ class L10n_LatamPaymentRegisterCheck(models.TransientModel):
     company_id = fields.Many2one(related='payment_register_id.company_id')
     currency_id = fields.Many2one(related='payment_register_id.currency_id')
     name = fields.Char(string='Number')
-    bank_id = fields.Many2one(
-        comodel_name='res.bank',
-        compute='_compute_bank_id', store=True, readonly=False,
-    )
     issuer_vat = fields.Char(
         compute='_compute_issuer_vat', store=True, readonly=False,
     )
     payment_date = fields.Date(readonly=False, required=True)
     amount = fields.Monetary()
+    bank_account_id = fields.Many2one('res.partner.bank', compute='_compute_bank_account_id', store=True, readonly=False)
 
     @api.onchange('name')
     def _onchange_name(self):
         if self.name:
             self.name = self.name.zfill(8)
-
-    @api.depends('payment_register_id.payment_method_line_id.code', 'payment_register_id.partner_id')
-    def _compute_bank_id(self):
-        new_third_party_checks = self.filtered(lambda x: x.payment_register_id.payment_method_line_id.code == 'new_third_party_checks')
-        for rec in new_third_party_checks:
-            rec.bank_id = rec.payment_register_id.partner_id.bank_ids[:1].bank_id
-        (self - new_third_party_checks).bank_id = False
 
     @api.depends('payment_register_id.payment_method_line_id.code', 'payment_register_id.partner_id')
     def _compute_issuer_vat(self):
@@ -52,3 +42,10 @@ class L10n_LatamPaymentRegisterCheck(models.TransientModel):
             stdnum_vat = stdnum.util.get_cc_module(rec.company_id.country_id.code, 'vat')
             if hasattr(stdnum_vat, 'compact'):
                 rec.issuer_vat = stdnum_vat.compact(rec.issuer_vat)
+
+    @api.depends('payment_register_id.payment_method_line_id.code', 'payment_register_id.partner_id')
+    def _compute_bank_account_id(self):
+        for rec in self:
+            rec.bank_account_id = False
+            if rec.payment_register_id.payment_method_line_id.code == 'new_third_party_checks':
+                rec.bank_account_id = rec.payment_register_id.partner_id.bank_ids[:1].id

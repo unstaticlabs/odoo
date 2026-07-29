@@ -17,11 +17,11 @@ registry.category("web_tour.tours").add('mailing_editor', {
     run: "click",
 }, {
     content: 'choose the theme "empty" to edit the mailing with snippets',
-    trigger: '[name="body_arch"] .o_mailing_template_preview_wrapper [data-name="empty"]',
+    trigger: '[name="body_arch"] :iframe .o_mailing_template_preview_wrapper [data-name="empty"]',
     run: "click",
 }, {
     content: 'wait for the editor to be rendered',
-    trigger: '[name="body_arch"] :iframe .o_editable[data-editor-message="DRAG BUILDING BLOCKS HERE"]',
+    trigger: '[name="body_arch"] :iframe .o_savable[data-editor-message="DRAG BUILDING BLOCKS HERE"]',
 }, {
     trigger: '.o_snippet[name="Text"] button',
     content: 'Click the "Text" snippet category to drop a snippet in the editor',
@@ -35,7 +35,7 @@ registry.category("web_tour.tours").add('mailing_editor', {
     trigger: 'body:not(:has(.o_we_ongoing_insertion))',
 }, {
     content: 'verify that the title was inserted properly in the editor',
-    trigger: '[name="body_arch"] :iframe .o_editable h1',
+    trigger: '[name="body_arch"] :iframe .o_savable h1',
 }, {
     trigger: 'button.o_form_button_save',
     run: "click",
@@ -44,7 +44,7 @@ registry.category("web_tour.tours").add('mailing_editor', {
     trigger: 'label.o_field_invalid',
 }, {
     content: 'verify that the edited mailing body was not lost during the failed save',
-    trigger: '[name="body_arch"] :iframe .o_editable h1',
+    trigger: '[name="body_arch"] :iframe .o_savable h1',
 }, {
     trigger: 'input#subject_0',
     run: "edit TestFromTour",
@@ -54,5 +54,5 @@ registry.category("web_tour.tours").add('mailing_editor', {
 },
 ...stepUtils.saveForm(),
 {
-    trigger: ':iframe .o_editable',
+    trigger: ':iframe .o_savable',
 }]});

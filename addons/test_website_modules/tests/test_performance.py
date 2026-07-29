@@ -3,16 +3,20 @@
 import base64
 import io
 import re
-from PIL import Image
 from unittest.mock import patch
+
+from PIL import Image
+
 import odoo
 from odoo.fields import Command
 from odoo.tests import tagged
+
 from odoo.addons.website.tests.test_performance import TestWebsitePerformanceCommon
 from odoo.addons.website_sale.tests.common import WebsiteSaleCommon
-from odoo.addons.website_sale.tests.test_website_sale_pricelist import TestWebsitePriceList
+from odoo.addons.website_sale.tests.test_pricelist import TestWebsitePriceList
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestWebsiteAllPerformance(TestWebsitePerformanceCommon, TestWebsitePriceList, WebsiteSaleCommon):
 
     @classmethod
@@ -291,10 +295,10 @@ class TestWebsiteAllPerformance(TestWebsitePerformanceCommon, TestWebsitePriceLi
         self.assertIn(f'<img src="/web/image/product.template/{self.productA.product_tmpl_id.id}/', html)
         self.assertIn(f'<img src="/web/image/product.image/{self.product_images.ids[1]}/', html)
 
-        query_count = 45  # To increase this number you must ask the permission to al
+        query_count = 44  # To increase this number you must ask the permission to al
         queries = {
             'orm_signaling_registry': 1,
-            'website': 2,
+            'website': 1,
             'res_company': 2,
             'product_pricelist': 4,
             'product_template': 3,
@@ -334,10 +338,11 @@ class TestWebsiteAllPerformance(TestWebsitePerformanceCommon, TestWebsitePriceLi
             queries['account_tax_repartition_line'] = 2
 
         if self._has_demo_data():
-            query_count += 4
+            query_count += 5
             queries['product_product'] += 2
             queries['ir_attachment'] += 1
             queries['product_ribbon'] += 1
+            queries['res_company'] += 1
         else:
             query_count += 3
             queries['product_template_attribute_value'] += 3
@@ -353,9 +358,10 @@ class TestWebsiteAllPerformance(TestWebsitePerformanceCommon, TestWebsitePriceLi
         query_count, queries = self._get_queries_shop()
 
         if self._has_demo_data():
-            query_count += 5
+            query_count += 3
             queries['account_tax'] += 1
-            queries['account_account_tag'] += 2
+            queries['account_account_tag'] += 1
+            queries['product_ribbon'] += -1
             queries['product_template_attribute_value'] += 2
 
         self.assertEqual(sum(queries.values()), query_count, 'Please learn to count.')
@@ -369,9 +375,9 @@ class TestWebsiteAllPerformanceShop(TestWebsiteAllPerformance):
         # To increase the query count you must ask the permission to al
         query_count, queries = self._get_queries_shop()
 
-        query_count += 3
+        query_count += 2
         queries['account_tax'] += 1
-        queries['account_account_tag'] += 2
+        queries['account_account_tag'] += 1
 
         if self._has_demo_data():
             query_count += 2

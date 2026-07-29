@@ -165,7 +165,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
         - Two emails sent: SO confirmation and default invoice email template
         """
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         # Create the payment
         self.amount = self.sale_order.amount_total
@@ -193,7 +193,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
         - Two emails sent: SO confirmation and invoice email using the custom template
         """
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         custom_template = self.env['mail.template'].create({
             'name': 'Custom Test Invoice Template',
             'model_id': self.env.ref('account.model_account_move').id,
@@ -201,7 +201,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
             'partner_to': '{{ object.partner_id.id }}',
             'email_from': '{{ (object.invoice_user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}',
         })
-        self.env['ir.config_parameter'].set_param('sale.default_invoice_email_template', custom_template.id)
+        self.env['ir.config_parameter'].set_int('sale.default_invoice_email_template', custom_template.id)
 
         # Create the payment
         self.amount = self.sale_order.amount_total
@@ -231,7 +231,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
         - Two emails sent: SO confirmation and invoice email using the DEFAULT template
         """
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         custom_template = self.env['mail.template'].create({
             'name': 'Custom Test Invoice Template',
             'model_id': self.env.ref('account.model_account_move').id,
@@ -239,7 +239,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
             'partner_to': '{{ object.partner_id.id }}',
             'email_from': '{{ (object.invoice_user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}',
         })
-        self.env['ir.config_parameter'].set_param('sale.default_invoice_email_template', custom_template.id)
+        self.env['ir.config_parameter'].set_int('sale.default_invoice_email_template', custom_template.id)
         custom_template.unlink()
 
         # Create the payment
@@ -260,7 +260,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
 
     def test_auto_done_and_auto_invoice(self):
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         # Lock the sale orders when confirmed
         self.group_user.implied_ids += self.env.ref('sale.group_auto_done_setting')
 
@@ -278,7 +278,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
 
     def test_so_partial_payment_no_invoice(self):
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         # Create the payment
         self.amount = self.sale_order.amount_total / 10.
@@ -292,7 +292,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
 
     def test_already_confirmed_so_payment(self):
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         # Confirm order before payment
         self.sale_order.action_confirm()
@@ -308,7 +308,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
     def test_invoice_is_final(self):
         """Test that invoice generated from a payment are always final"""
         # Set automatic invoice
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         # Create the payment
         self.amount = self.sale_order.amount_total
@@ -392,7 +392,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
 
     def test_invoice_reconciled_when_payment_matched_before_invoicing(self):
         """Test that a payment matched with the bank before the invoice exists is still reconciled
-        with the invoice at posting (the matched payment is 'paid', not 'in_process').
+        with the invoice at posting (the matched payment is 'reconciled', not 'paid').
         """
         self.amount = self.sale_order.amount_total
         tx = self._create_transaction(
@@ -418,7 +418,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
         suspense_line.account_id = liquidity_line.account_id
         (suspense_line + liquidity_line).reconcile()
 
-        self.assertRecordValues(payment, [{"state": "paid", "is_reconciled": False}])
+        self.assertRecordValues(payment, [{"state": "reconciled", "is_reconciled": False}])
 
         invoice = self.sale_order._create_invoices()
         invoice.action_post()
@@ -448,7 +448,7 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
         the order and automatic invoice is checked.
         """
         self.sale_order.prepayment_percent = 0.2
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         tx = self._create_transaction(
             flow='direct',
@@ -510,16 +510,15 @@ class TestSalePayment(AccountPaymentCommon, MailCase, PaymentHttpCommon, SaleCom
             tx_done._post_process()
 
             self.assertEqual(notification_mail_mock.call_count, 2)
-            order_confirmation_mail_template_id = int(
-                self.env["ir.config_parameter"]
-                .sudo()
-                .get_param("sale.default_confirmation_template", self.env.ref("sale.mail_template_sale_confirmation").id)
+            order_confirmation_mail_template_id = self.env["ir.config_parameter"].sudo().get_int(
+                "sale.default_confirmation_template",
+                self.env.ref("sale.mail_template_sale_confirmation").id
             )
             notification_mail_mock.assert_called_with(self.env["mail.template"].browse(order_confirmation_mail_template_id))
             self.assertEqual(self.sale_order.state, 'sale')
 
     def test_automatic_invoice_mail_author(self):
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         portal_user = self.env['res.users'].create({
             'name': 'Portal Customer',

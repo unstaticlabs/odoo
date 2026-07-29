@@ -3,17 +3,16 @@
 # * pos_stripe
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 03:48+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-07-03 17:35+0000\n"
+"PO-Revision-Date: 2026-06-13 13:35+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Russian <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_stripe/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -40,12 +39,6 @@ msgstr "Display Name"
 #: code:addons/pos_stripe/models/pos_payment_method.py:0
 msgid "Do not have access to fetch token from Stripe"
 msgstr "У вас нет доступа к получению токена из Stripe"
-
-#. module: pos_stripe
-#. odoo-python
-#: code:addons/pos_stripe/models/pos_payment_method.py:0
-msgid "Do not have access to refund Stripe payment"
-msgstr "Do not have access to refund Stripe payment"
 
 #. module: pos_stripe
 #: model_terms:ir.ui.view,arch_db:pos_stripe.pos_payment_method_view_form_inherit_pos_stripe
@@ -98,8 +91,8 @@ msgstr "Платеж отменен, потому что не подключен
 
 #. module: pos_stripe
 #: model:ir.model,name:pos_stripe.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Способы оплаты в торговых точках"
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_stripe
 #. odoo-javascript
@@ -147,6 +140,7 @@ msgstr ""
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "You cannot refund a non-Stripe payment via Stripe"
 msgstr "You cannot refund a non-Stripe payment via Stripe"
 
@@ -154,16 +148,3 @@ msgstr "You cannot refund a non-Stripe payment via Stripe"
 #: model:ir.model.fields,help:pos_stripe.field_pos_payment_method__stripe_serial_number
 msgid "[Serial number of the stripe terminal], for example: WSC513105011295"
 msgstr "[Серийный номер стрип-терминала], например: WSC513105011295"
-
-#~ msgid "Complete the Stripe onboarding for company %s."
-#~ msgstr "Завершите ввод в эксплуатацию Stripe для компании %s."
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "Сессия в торговой точке"
-
-#~ msgid "Terminal %s is already used on payment method %s."
-#~ msgstr "Терминал %s уже используется для способа оплаты %s."
-
-#~ msgid "There are some issues between us and Stripe, try again later."
-#~ msgstr ""
-#~ "Между нами и Stripe возникли некоторые проблемы, повторите попытку позже."

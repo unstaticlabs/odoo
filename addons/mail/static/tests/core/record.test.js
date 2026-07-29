@@ -1,13 +1,15 @@
+import { toRawValue } from "@mail/utils/common/local_storage";
 import { defineMailModels, start as start2 } from "@mail/../tests/mail_test_helpers";
-import { afterEach, beforeEach, describe, expect, test } from "@odoo/hoot";
+import { afterEach, beforeEach, describe, expect, test, tick } from "@odoo/hoot";
 import { markup, reactive, toRaw } from "@odoo/owl";
-import { asyncStep, mockService, waitForSteps } from "@web/../tests/web_test_helpers";
+import { mockService, patchWithCleanup } from "@web/../tests/web_test_helpers";
 
-import { Record, Store, makeStore } from "@mail/core/common/record";
-import { AND, fields } from "@mail/model/misc";
+import { Record, Store, makeStore } from "@mail/model/export";
+import { AND, fields, makeRecordFieldLocalId, normalizeManyCommands } from "@mail/model/misc";
 import { serializeDateTime } from "@web/core/l10n/dates";
 import { registry } from "@web/core/registry";
 import { effect } from "@web/core/utils/reactive";
+import { browser } from "@web/core/browser/browser";
 
 const Markup = markup().constructor;
 
@@ -252,6 +254,43 @@ test("Assign & Delete on fields with inverses", async () => {
     expectRecord(hello).not.toBeIn(thread.messages);
     expectRecord(thread).not.toBeIn(hello.threads);
     expect(thread.messages).toBeEmpty();
+});
+
+test("Assign & Delete on _inherits fields", async () => {
+    (class Thread extends Record {
+        static id = "name";
+        name;
+        channel = fields.One("Channel", { inverse: "thread" });
+        pluriChannels = fields.Many("PluriChannel", { inverse: "thread" });
+    }).register(localRegistry);
+    (class Channel extends Record {
+        static id = "id";
+        static _inherits = { Thread: "thread" };
+        id;
+        thread = fields.One("Thread", { inverse: "channel" });
+    }).register(localRegistry);
+    (class PluriChannel extends Record {
+        static id = "id";
+        static _inherits = { Thread: "thread" };
+        id;
+        thread = fields.One("Thread", { inverse: "pluriChannels" });
+    }).register(localRegistry);
+    const store = await start();
+    const thread = store.Thread.insert("General");
+    const channel = store.Channel.insert({ id: 1, thread: thread });
+    const [pluriChannel1, pluriChannel2] = store.PluriChannel.insert([
+        { id: 1, thread },
+        { id: 2, thread },
+    ]);
+    expectRecord(channel).toEqual(thread.channel);
+    expectRecord(pluriChannel1).toBeIn(thread.pluriChannels);
+    expectRecord(pluriChannel2).toBeIn(thread.pluriChannels);
+    thread.delete();
+    expect(thread.pluriChannels).toBeEmpty();
+    expect(pluriChannel1.exists()).toBe(false);
+    expect(pluriChannel2.exists()).toBe(false);
+    expect(Boolean(thread.channel)).toBe(false);
+    expect(channel.exists()).toBe(false);
 });
 
 test("onAdd/onDelete hooks on relational with inverse", async () => {
@@ -794,20 +833,20 @@ test("onAdd/onDelete hooks on one without inverse", async () => {
         static id = "name";
         name;
         thread = fields.One("Thread", {
-            onAdd: (thread) => asyncStep(`thread.onAdd(${thread.name})`),
-            onDelete: (thread) => asyncStep(`thread.onDelete(${thread.name})`),
+            onAdd: (thread) => expect.step(`thread.onAdd(${thread.name})`),
+            onDelete: (thread) => expect.step(`thread.onDelete(${thread.name})`),
         });
     }).register(localRegistry);
     const store = await start();
     const general = store.Thread.insert("General");
     const john = store.Member.insert("John");
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     john.thread = general;
-    await waitForSteps(["thread.onAdd(General)"]);
+    await expect.waitForSteps(["thread.onAdd(General)"]);
     john.thread = general;
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     john.thread = undefined;
-    await waitForSteps(["thread.onDelete(General)"]);
+    await expect.waitForSteps(["thread.onDelete(General)"]);
 });
 
 test("onAdd/onDelete hooks on many without inverse", async () => {
@@ -815,8 +854,8 @@ test("onAdd/onDelete hooks on many without inverse", async () => {
         static id = "name";
         name;
         members = fields.Many("Member", {
-            onAdd: (member) => asyncStep(`members.onAdd(${member.name})`),
-            onDelete: (member) => asyncStep(`members.onDelete(${member.name})`),
+            onAdd: (member) => expect.step(`members.onAdd(${member.name})`),
+            onDelete: (member) => expect.step(`members.onDelete(${member.name})`),
         });
     }).register(localRegistry);
     (class Member extends Record {
@@ -826,15 +865,15 @@ test("onAdd/onDelete hooks on many without inverse", async () => {
     const general = store.Thread.insert("General");
     const jane = store.Member.insert("Jane");
     const john = store.Member.insert("John");
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     general.members = jane;
-    await waitForSteps(["members.onAdd(Jane)"]);
+    await expect.waitForSteps(["members.onAdd(Jane)"]);
     general.members = jane;
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     general.members = [["ADD", john]];
-    await waitForSteps(["members.onAdd(John)"]);
+    await expect.waitForSteps(["members.onAdd(John)"]);
     general.members = undefined;
-    await waitForSteps(["members.onDelete(John)", "members.onDelete(Jane)"]);
+    await expect.waitForSteps(["members.onDelete(Jane)", "members.onDelete(John)"]);
 });
 
 test("record list assign should update inverse fields", async () => {
@@ -866,33 +905,33 @@ test("datetime type record", async () => {
         name;
         date = fields.Attr(undefined, {
             type: "datetime",
-            onUpdate: () => asyncStep("DATE_UPDATED"),
+            onUpdate: () => expect.step("DATE_UPDATED"),
         });
     }).register(localRegistry);
     const store = await start();
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     const general = store.Thread.insert({ name: "General", date: "2024-02-20 14:42:00" });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(general.date).toBeInstanceOf(luxon.DateTime);
     expect(general.date.day).toBe(20);
     store.Thread.insert({ name: "General", date: "2024-02-21 14:42:00" });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(general.date.day).toBe(21);
     store.Thread.insert({ name: "General", date: "2024-02-21 14:42:00" });
-    await waitForSteps([]);
+    await expect.waitForSteps([]);
     store.Thread.insert({ name: "General", date: undefined });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(general.date).toBe(undefined);
     const now = luxon.DateTime.now();
     const thread = store.Thread.insert({ name: "General", date: now });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(thread.date).toBeInstanceOf(luxon.DateTime);
     expect(thread.date.equals(now)).toBe(true);
     store.Thread.insert({ name: "General", date: false });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(general.date).toBe(false);
     store.Thread.insert({ name: "General", date: "2024-02-22 14:42:00" });
-    await waitForSteps(["DATE_UPDATED"]);
+    await expect.waitForSteps(["DATE_UPDATED"]);
     expect(general.date.day).toBe(22);
 });
 
@@ -1364,53 +1403,191 @@ test("Delete record with side-effect compute to insert it should have resulting 
     expect(discussApp.state.thread).toBe(undefined);
 });
 
-test("side-effect of double deletion of record should work as expected with no crash'", async () => {
+test("Can delete record with chained onDelete: () => record.delete()", async () => {
     (class Channel extends Record {
         static id = "name";
         name;
-        correspondent = fields.One("Member", {
+        thread = fields.One("Thread", { onDelete: (thread) => thread?.delete() }); // intentional onDelete to thread.delete() potentially twice during update cycle
+    }).register(localRegistry);
+    (class Thread extends Record {
+        static id;
+        channel = fields.One("Channel", { inverse: "thread" });
+        correspondent = fields.One("User", {
             compute() {
                 return this.members[0];
             },
         });
-        members = fields.Many("Member", {
-            onDelete: (r) => r.delete(),
-        });
-        parent = fields.One("Channel", {
-            onDelete() {
-                this.delete(); // important: triggers double-deletion when deleting sub-thread.
-            },
-        });
-        threads = fields.Many("Channel", { inverse: "parent" });
+        members = fields.Many("User", { onDelete: (user) => user?.delete(), inverse: "threads" }); // intentional onDelete so that re-computed correspondent on delete
     }).register(localRegistry);
-    (class Member extends Record {
-        static id = "partner";
-        partner = fields.One("Partner");
-        channel = fields.One("Channel", { inverse: "members" });
-    }).register(localRegistry);
-    (class Partner extends Record {
+    (class User extends Record {
         static id = "name";
         name;
+        threads = fields.Many("Thread");
     }).register(localRegistry);
     const store = await start();
-    const general = store.Channel.insert("general");
-    const suggestions = store.Channel.insert("Suggestions");
-    suggestions.parent = general;
-    const mitchell = store.Partner.insert("Mitchell");
-    const marc = store.Partner.insert("Marc");
-    const joel = store.Partner.insert("Joel");
-    general.members.push({ partner: mitchell });
-    general.members.push({ partner: marc });
-    general.members.push({ partner: joel });
-    suggestions.members.push({ partner: mitchell });
-    const reactiveGeneral = reactive(general, render);
-    function render() {
-        // Important: observe computed field `correspondent` lazily to trigger internal onChange
-        void reactiveGeneral?.threads.forEach((t) => t.correspondent?.partner.name);
+    const john = store.User.insert("john");
+    const thread = store.Thread.insert({ channel: "general", members: [john] });
+    expectRecord(thread.correspondent).toEqual(john); // intentional observing correspondent field for compute on thread deletion
+    thread.delete();
+    expect(thread.exists()).toBe(false);
+});
+
+test("fields, getters and functions are inherited", async () => {
+    (class Thread extends Record {
+        static id = "id";
+        id;
+        channel = fields.One("Channel", {
+            compute() {
+                return this.id;
+            },
+            inverse: "thread",
+        });
+        name;
+        get displayName() {
+            return `Thread: ${this.name}`;
+        }
+        getName() {
+            return `Thread: ${this.name}`;
+        }
+    }).register(localRegistry);
+    (class Channel extends Record {
+        static id = "id";
+        static _inherits = { Thread: "thread" };
+        id;
+        thread = fields.One("Thread", { inverse: "channel" });
+    }).register(localRegistry);
+    const store = await start();
+    const thread = store.Thread.insert({ id: 1, name: "General" });
+    expect(thread.name).toBe("General");
+    expect(thread.channel.name).toBe("General");
+    expect(thread.displayName).toBe("Thread: General");
+    expect(thread.channel.displayName).toBe("Thread: General");
+    expect(thread.getName()).toBe("Thread: General");
+    expect(thread.channel.getName()).toBe("Thread: General");
+});
+
+test("shadowed fields, getters and functions are not inherited", async () => {
+    (class Thread extends Record {
+        static id = "id";
+        id;
+        channel = fields.One("Channel", {
+            compute() {
+                return this.id;
+            },
+            inverse: "thread",
+        });
+        name;
+        get displayName() {
+            return `Thread: ${this.name}`;
+        }
+        getName() {
+            return `Thread: ${this.name}`;
+        }
+    }).register(localRegistry);
+    (class Channel extends Record {
+        static id = "id";
+        static _inherits = { Thread: "thread" };
+        id;
+        thread = fields.One("Thread", { inverse: "channel" });
+        name;
+        get displayName() {
+            return `Channel: ${this.name}`;
+        }
+        getName() {
+            return `Channel: ${this.name}`;
+        }
+    }).register(localRegistry);
+    const store = await start();
+    const thread = store.Thread.insert({ id: 1, name: "General" });
+    expect(thread.name).toBe("General");
+    expect(thread.channel.name).toBeEmpty();
+    expect(thread.displayName).toBe("Thread: General");
+    expect(thread.channel.displayName).toBe("Channel: undefined");
+    expect(thread.getName()).toBe("Thread: General");
+    expect(thread.channel.getName()).toBe("Channel: undefined");
+});
+
+test("accessing fields through empty _inherits parent returns empty values", async () => {
+    (class Partner extends Record {
+        static id = "id";
+        id;
+        name;
+        users = fields.Many("User", { inverse: "partner" });
+        partners = fields.Many("Partner");
+    }).register(localRegistry);
+    (class User extends Record {
+        static id = "id";
+        static _inherits = { Partner: "partner" };
+        id;
+        partner = fields.One("Partner", { inverse: "users" });
+    }).register(localRegistry);
+    const store = await start();
+    const user = store.User.insert({ id: 1 });
+    expect(user.partner).toBe(undefined);
+    expect(user.name).toBe(undefined);
+    expect(user.partners).toHaveLength(0);
+});
+
+test("Fields with { localStorage: true } are saved in local storage", async () => {
+    (class Message extends Record {
+        static id = "id";
+        id;
+        body = fields.Attr("", { localStorage: true });
+    }).register(localRegistry);
+    const store = await start();
+    const message = store.Message.insert(1);
+    const bodyLocalId = makeRecordFieldLocalId(message.localId, "body");
+    expect(localStorage.getItem(bodyLocalId)).toBe(null);
+    message.body = "test";
+    expect(localStorage.getItem(bodyLocalId)).toBe(toRawValue("test"));
+    message.body = "test2";
+    expect(localStorage.getItem(bodyLocalId)).toBe(toRawValue("test2"));
+});
+
+test("Fields with { localStorage: true } are restored from local storage", async () => {
+    class Message extends Record {
+        static id = "id";
+        id;
+        body = fields.Attr("", { localStorage: true });
     }
-    render();
-    suggestions.delete();
-    expect(suggestions.exists()).toBe(false);
+    Message.register(localRegistry);
+    const bodyLocalId = makeRecordFieldLocalId(Message.localId(1), "body");
+    localStorage.setItem(bodyLocalId, toRawValue("test"));
+    const store = await start();
+    const message = store.Message.insert(1);
+    expect(message.body).toBe("test");
+});
+
+test("Fields updated from the local storage do not trigger another storage event", async () => {
+    class Message extends Record {
+        static id = "id";
+        id;
+        body = fields.Attr("", { localStorage: true });
+    }
+    Message.register(localRegistry);
+    const bodyLocalId = makeRecordFieldLocalId(Message.localId(1), "body");
+    patchWithCleanup(browser.localStorage, {
+        setItem(key, value) {
+            if (key === bodyLocalId) {
+                expect.step(`setItem ${JSON.parse(value).value}`);
+            }
+            return super.setItem(key, value);
+        },
+    });
+    localStorage.setItem(bodyLocalId, toRawValue("1"));
+    await expect.waitForSteps(["setItem 1"]);
+    const store = await start();
+    const message = store.Message.insert(1);
+    expect(message.body).toBe("1");
+    message.body = "2";
+    expect(message.body).toBe("2");
+    await expect.waitForSteps(["setItem 2"]);
+    browser.dispatchEvent(
+        new StorageEvent("storage", { key: bodyLocalId, newValue: toRawValue("3") })
+    );
+    await tick();
+    expect(message.body).toBe("3");
+    await expect.waitForSteps([]);
 });
 
 test("Record exists is reactive", async () => {
@@ -1433,6 +1610,35 @@ test("Record exists is reactive", async () => {
     await expect.waitForSteps(["thread exists"]);
     thread.delete();
     await expect.waitForSteps(["thread does not exist"]);
+});
+
+test("Normalize many commands", () => {
+    // Falsy values or empty array are interpreted as clear.
+    for (const clearValues of [null, undefined, false, []]) {
+        expect(normalizeManyCommands(clearValues)).toEqual([["REPLACE", []]]);
+    }
+    // Raw values are interpreted as "REPLACE".
+    expect(normalizeManyCommands({ id: 1, name: "Test" })).toEqual([
+        ["REPLACE", [{ id: 1, name: "Test" }]],
+    ]);
+    expect(normalizeManyCommands([1, 2, 3])).toEqual([["REPLACE", [1, 2, 3]]]);
+    // Commands with non array value should normalize to array.
+    expect(normalizeManyCommands(["ADD", { id: 10 }])).toEqual([["ADD", [{ id: 10 }]]]);
+    const cmdList = [
+        ["ADD", { id: 1 }],
+        ["DELETE", { id: 2 }],
+    ];
+    expect(normalizeManyCommands(cmdList)).toEqual([
+        ["ADD", [{ id: 1 }]],
+        ["DELETE", [{ id: 2 }]],
+    ]);
+    // Single command should normalize to command list including the command.
+    expect(normalizeManyCommands(["DELETE", [10, 20]])).toEqual([["DELETE", [10, 20]]]);
+    // Mixed of raw values and commands should throw error.
+    const mixed = [1, ["ADD", 2]];
+    expect(() => normalizeManyCommands(mixed)).toThrow(
+        "Many commands cannot mix raw values and commands"
+    );
 });
 
 test("record.delete() while used in a 'on-sort' sorted field should properly delete this record from relation", async () => {

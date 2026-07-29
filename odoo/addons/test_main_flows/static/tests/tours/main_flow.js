@@ -5,6 +5,7 @@ import { stepUtils } from "@web_tour/tour_utils";
 import { markup } from "@odoo/owl";
 
 registry.category("web_tour.tours").add('main_flow_tour', {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     url: "/odoo",
     steps: () => [
 ...stepUtils.toggleHomeMenu().map(step => {
@@ -58,10 +59,12 @@ registry.category("web_tour.tours").add('main_flow_tour', {
     tooltipPosition: 'left',
     run: "edit the_flow.product",
 }, {
-    trigger: ".o_field_widget[name=is_storable] input",
-    content: _t("Let's enter the product type"),
+    trigger: ".o_field_widget[name=tracking] input",
+    content: _t("Un-set product tracking"),
     tooltipPosition: 'right',
-    run: "click",
+    run: function({ anchor }) {
+        anchor.value = "";
+    },
 }, {
     trigger: '.o_notebook .nav-link:contains("Inventory")',
     content: _t('Go to inventory tab'),
@@ -130,7 +133,7 @@ stepUtils.autoExpandMoreButtons(),
 {
 // Add first component
     // FIXME in mobile replace list by kanban + form
-    trigger: ".o_field_x2many_list_row_add > a",
+    trigger: ".o_field_x2many_list_row_add > button",
     content: _t("Click here to add some lines."),
     tooltipPosition: "bottom",
     run: "click",
@@ -188,7 +191,7 @@ stepUtils.autoExpandMoreButtons(),
     run: "click",
 }, {
     isActive: ["desktop"],
-    trigger: ".o_field_widget[name=seller_ids] .o_field_x2many_list_row_add > a",
+    trigger: ".o_field_widget[name=seller_ids] .o_field_x2many_list_row_add > button",
     content: _t("Let's enter the cost price"),
     tooltipPosition: 'right',
     run: "click",
@@ -238,10 +241,6 @@ stepUtils.autoExpandMoreButtons(),
 },
 {
     isActive: ["mobile"],
-    trigger: ".modal:not(.o_inactive_modal) .modal-dialog .o_field_radio.o_field_widget[name=company_type]",
-},
-{
-    isActive: ["mobile"],
     trigger: ".o_field_widget[name=name] input:not(.o_invisible_modifier)",
     content: _t('Select a seller'),
     tooltipPosition: 'top',
@@ -270,7 +269,7 @@ stepUtils.autoExpandMoreButtons(),
 },
 {
     isActive: ["mobile"],
-    trigger: ".o_field_widget[name=min_qty] + .o_field_widget[name=product_uom_id] input",
+    trigger: ".o_field_widget[name=min_qty] + .o_field_widget[name=uom_id] input",
     run: "click",
 },
 {
@@ -323,7 +322,7 @@ stepUtils.autoExpandMoreButtons(),
 {
 // Add second component
     isActive: ["desktop"],
-    trigger: ".o_field_x2many_list_row_add > a",
+    trigger: ".o_field_x2many_list_row_add > button",
     content: _t("Click here to add some lines."),
     tooltipPosition: "bottom",
     run: "click",
@@ -334,7 +333,7 @@ stepUtils.autoExpandMoreButtons(),
 },
 {
     isActive: ["mobile"],
-    trigger: ".o_field_x2many_list_row_add > a",
+    trigger: ".o_field_x2many_list_row_add > button",
     content: _t("Click here to add some lines."),
     tooltipPosition: "bottom",
     run: "click",
@@ -406,7 +405,7 @@ stepUtils.autoExpandMoreButtons(),
 ...stepUtils.mobileKanbanSearchMany2X('Vendor', 'the_flow.vendor'),
 {
     isActive: ["desktop"],
-    trigger: ".o_field_widget[name=seller_ids] .o_field_x2many_list_row_add > a",
+    trigger: ".o_field_widget[name=seller_ids] .o_field_x2many_list_row_add > button",
     content: _t("Let's enter the cost price"),
     tooltipPosition: 'right',
     run: "click",
@@ -437,7 +436,7 @@ stepUtils.autoExpandMoreButtons(),
 },
 {
     isActive: ["mobile"],
-    trigger: ".o_field_widget[name=min_qty] + .o_field_widget[name=product_uom_id] input",
+    trigger: ".o_field_widget[name=min_qty] + .o_field_widget[name=uom_id] input",
     run: "click",
 },
 {
@@ -728,7 +727,7 @@ stepUtils.autoExpandMoreButtons(),
 ...stepUtils.statusbarButtonsSteps('New Quotation', markup(_t('<p><b>Create a quotation</p>'))),
 {
     isActive: ["desktop"],
-    trigger: ".o_field_widget[name=order_line] .o_field_x2many_list_row_add > a",
+    trigger: ".o_field_widget[name=order_line] .o_field_x2many_list_row_add > button",
     content: _t("Click here to add some lines to your quotations."),
     tooltipPosition: "bottom",
     run: "click",
@@ -768,7 +767,7 @@ stepUtils.autoExpandMoreButtons(),
 ...stepUtils.mobileKanbanSearchMany2X('Product', 'the_flow.product'),
 {
     isActive: ["desktop"],
-    trigger: ".o_field_widget[name=order_line] .o_field_x2many_list_row_add > a",
+    trigger: ".o_field_widget[name=order_line] .o_field_x2many_list_row_add > button",
     content: _t("Click here to add some lines to your quotations."),
     tooltipPosition: "bottom",
     run: "click",
@@ -779,14 +778,21 @@ stepUtils.autoExpandMoreButtons(),
 },
 {
     isActive: ["mobile"],
-    trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains('Save & New')",
-    content: _t('Save & New'),
+    trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains('Save & Close')",
+    content: _t('Save & Close'),
     tooltipPosition: 'right',
     run: "click",
 }, {
     // check if the new record is displayed
     isActive: ["mobile"],
-    trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains('Save & New'):enabled",
+    trigger: ".o_kanban_record:contains('the_flow.product')",
+},
+{
+    isActive: ["mobile"],
+    trigger: ".o_field_widget[name=order_line] .btn:contains(Add)",
+    content: _t("Click here to add some lines to your quotations."),
+    tooltipPosition: "bottom",
+    run: "click",
 },
 {
     isActive: ["desktop"],
@@ -1091,12 +1097,12 @@ stepUtils.autoExpandMoreButtons(true),
     trigger: '.o_form_view div.o_notebook_headers',
 },
 {
-    trigger: 'a.nav-link:contains(Timesheets)',
+    trigger: 'button.nav-link:contains(Timesheets)',
     content: 'Click on Timesheets page to log a timesheet',
     run: "click",
 }, {
     isActive: ["desktop"],
-    trigger: 'div[name="timesheet_ids"] td.o_field_x2many_list_row_add a[role="button"]',
+    trigger: 'div[name="timesheet_ids"] td.o_field_x2many_list_row_add button',
     content: 'Click on Add a line to create a new timesheet into the task.',
     run: "click",
 }, {

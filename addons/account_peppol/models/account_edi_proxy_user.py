@@ -27,7 +27,7 @@ REMOVE_EMBEDDED_DOCUMENT_BINARY_OBJECT_RE = re.compile(
 class Account_Edi_Proxy_ClientUser(models.Model):
     _inherit = 'account_edi_proxy_client.user'
 
-    proxy_type = fields.Selection(selection_add=[('peppol', 'PEPPOL')], ondelete={'peppol': 'cascade'})
+    proxy_type = fields.Selection(selection_add=[('peppol', 'Peppol')], ondelete={'peppol': 'cascade'})
 
     # -------------------------------------------------------------------------
     # HELPER METHODS
@@ -51,11 +51,6 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             self.ensure_one()
             proxy_type = self.proxy_type
         return f"/api/{proxy_type}/{endpoint}"
-
-    @api.model
-    def _get_peppol_error_message(self, error_vals):
-        # DEPRECATED - to remove in master
-        return get_peppol_error_message(self.env, error_vals)
 
     @handle_demo
     def _call_peppol_proxy(self, endpoint, params=None):
@@ -482,15 +477,6 @@ class Account_Edi_Proxy_ClientUser(models.Model):
     # BUSINESS ACTIONS
     # -------------------------------------------------------------------------
 
-    def _get_company_details(self):
-        # DEPRECATED - to remove in master
-        self.ensure_one()
-        return self.env['peppol.registration']._get_company_details(self.company_id)
-
-    def _peppol_register_sender(self, peppol_external_provider=None):
-        # DEPRECATED - to remove in master
-        self.ensure_one()
-
     def _peppol_register_sender_as_receiver(self):
         self.ensure_one()
         company = self.company_id
@@ -566,11 +552,6 @@ class Account_Edi_Proxy_ClientUser(models.Model):
         self.company_id.account_peppol_proxy_state = 'sender'
 
     @api.model
-    def _peppol_auto_register_services(self, module):
-        # DEPRECATED - to remove in master
-        pass
-
-    @api.model
     def _peppol_auto_deregister_services(self, module):
         """Unregister a set of document types for all recipient users.
 
@@ -623,12 +604,6 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             company = self.env['res.company'].browse(id).exists()
             if company and company.account_peppol_edi_user:
                 return company.account_peppol_edi_user
-            if edi_user := self.browse(id).exists():
-                # Legacy fallback: we no longer generate the token based on the proxy_user, as it does
-                # not exists yet with the new creation flow.
-                # This can be safely removed after beginning of March 2026 (webhooks TTL = 30 days).
-                return edi_user
-            return None
 
     def _peppol_reset_webhook(self):
         for edi_user in self:

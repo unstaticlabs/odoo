@@ -3,14 +3,14 @@
 # * analytic
 #
 # Translators:
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:07+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2025-11-16 15:05+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/analytic/"
 "hi/>\n"
 "Language: hi\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: analytic
 #. odoo-python
@@ -46,8 +46,8 @@ msgstr "<span class=\"o_stat_text\">ग्रास मार्जिन</span>
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
 "एक 'प्रोजेक्ट प्लान' ज़रूर होना चाहिए और उसकी आईडी सिस्टम में analytic.project_plan "
 "रखनी ज़रूरी है."
@@ -200,6 +200,7 @@ msgid "Analytic Mixin"
 msgstr "एनालिटिक मिक्सिन"
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr "एनालिटिक प्लान"
@@ -216,7 +217,6 @@ msgstr "एनालिटिक प्लान की ऐप्लिकेब
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -710,8 +710,7 @@ msgstr "डिलीवरी में गड़बड़ी वाले म�
 #. odoo-python
 #: code:addons/analytic/models/analytic_mixin.py:0
 msgid "One or more lines require a 100% analytic distribution."
-msgstr ""
-"एक या एक से ज़्यादा लाइनें ऐसी हैं जिनके लिए '100% विश्लेषणात्मक वितरण' ज़रूरी है।"
+msgstr "एक या एक से ज़्यादा लाइनें ऐसी हैं जिनके लिए '100% विश्लेषणात्मक वितरण' ज़रूरी है।"
 
 #. module: analytic
 #: model:account.analytic.account,name:analytic.analytic_internal
@@ -998,9 +997,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "e.g. Project XYZ"
 msgstr "जैसे, प्रोजेक्ट XYZ"
-
-#~ msgid "Deco Addict"
-#~ msgstr "Deco Addict"
-
-#~ msgid "Group By..."
-#~ msgstr "द्वारा वर्गीकृत करें"

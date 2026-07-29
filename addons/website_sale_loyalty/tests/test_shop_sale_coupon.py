@@ -137,7 +137,7 @@ class WebsiteSaleLoyaltyTestUi(TestSaleCommon, HttpCase):
         })
 
         self.env.ref("website_sale.reduction_code").write({"active": True})
-        self.start_tour("/", 'shop_sale_loyalty', login="admin")
+        self.start_tour(large_cabinet.website_url, 'website_sale_loyalty.promotions', login="admin")
 
     def test_02_admin_shop_gift_card_tour(self):
         gift_card = self.env['product.product'].create({
@@ -206,7 +206,7 @@ class WebsiteSaleLoyaltyTestUi(TestSaleCommon, HttpCase):
         })
 
         self.env.ref("website_sale.reduction_code").write({"active": True})
-        self.start_tour('/', 'shop_sale_gift_card', login='admin')
+        self.start_tour('/', 'website_sale_loyalty.gift_card', login='admin')
 
         self.assertEqual(len(gift_card_program.coupon_ids), 2, 'There should be two coupons, one with points, one without')
         self.assertEqual(len(gift_card_program.coupon_ids.filtered('points')), 1, 'There should be two coupons, one with points, one without')
@@ -240,7 +240,7 @@ class WebsiteSaleLoyaltyTestUi(TestSaleCommon, HttpCase):
             'program_id': program_id,
             'points': 1000,
         } for program_id in ewallet_programs.ids])
-        self.start_tour('/', 'shop_sale_ewallet', login='admin')
+        self.start_tour('/', 'website_sale_loyalty.ewallet', login='admin')
 
 
 @tagged('post_install', '-at_install')
@@ -311,7 +311,7 @@ class TestWebsiteSaleCoupon(HttpCase, WebsiteSaleCommon):
 
         # 4. Test order not older than ICP validity -> Should not be removed
         ICP = self.env['ir.config_parameter']
-        icp_validity = ICP.create({'key': 'website_sale_coupon.abandonned_coupon_validity', 'value': 5})
+        ICP.set_int('website_sale_coupon.abandonned_coupon_validity', 5)
         self.env.flush_all()
         query = """UPDATE %s SET write_date = %%s WHERE id = %%s""" % (order._table,)
         self.env.cr.execute(query, (fields.Datetime.to_string(fields.Datetime.now() - timedelta(days=4, hours=2)), order.id))
@@ -320,7 +320,7 @@ class TestWebsiteSaleCoupon(HttpCase, WebsiteSaleCommon):
         self.assertEqual(len(order.applied_coupon_ids), 1, "The coupon shouldn't have been removed from the order the order is 4 days old but icp validity is 5 days")
 
         # 5. Test order with no ICP and older then 4 default days -> Should be removed
-        icp_validity.unlink()
+        ICP.search([('key', '=', 'website_sale_coupon.abandonned_coupon_validity')]).unlink()
         order._gc_abandoned_coupons()
 
         self.assertEqual(len(order.applied_coupon_ids), 0, "The coupon should've been removed from the order as more than 4 days")
@@ -359,7 +359,11 @@ class TestWebsiteSaleCoupon(HttpCase, WebsiteSaleCommon):
                 }),
             ],
         })
-        self.start_tour('/', 'apply_discount_code_program_multi_rewards', login='admin')
+        self.start_tour(
+            chair.website_url,
+            'website_sale_loyalty.apply_discount_code_multi_rewards',
+            login='admin',
+        )
 
     def test_03_remove_coupon(self):
         # 1. Simulate a frontend order (website, product)
@@ -410,7 +414,7 @@ class TestWebsiteSaleCoupon(HttpCase, WebsiteSaleCommon):
         installed_modules = set(self.env['ir.module.module'].search([
             ('state', '=', 'installed'),
         ]).mapped('name'))
-        for _ in http._generate_routing_rules(installed_modules, nodb_only=False):
+        for _ in http.routing_map._generate_routing_rules(installed_modules, nodb_only=False):
             pass
 
         with MockRequest(self.env, website=self.website, sale_order_id=order.id) as request:

@@ -10,17 +10,17 @@
 # Jiří Podhorecký, 2022
 # karolína schusterová <karolina.schusterova@vdp.sk>, 2022
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 03:41+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-01-31 12:24+0000\n"
+"Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-1/"
 "base_automation/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_automation
 #. odoo-javascript
@@ -53,8 +53,8 @@ msgid ""
 "\"On live update\" automation rules can only be used with \"Execute Python "
 "Code\" action type."
 msgstr ""
-"\"On live update\" automatická pravidla mohou být použita  pouze s akcí typu "
-"\"Provést |Python kód\"."
+"\"On live update\" automatická pravidla mohou být použita pouze s akcí typu "
+"\"Provést kód Python\"."
 
 #. module: base_automation
 #. odoo-javascript
@@ -97,8 +97,8 @@ msgid ""
 "<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
 "<code>timezone</code>: useful Python libraries"
 msgstr ""
-"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, <code>"
-"timezone</code>: užitečné Python knihovny"
+"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
+"<code>timezone</code>: užitečné Python knihovny"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_kanban
@@ -164,6 +164,11 @@ msgstr "Aktivity"
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Dekorace výjimečné aktivity"
+
+#. module: base_automation
+#: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_state
@@ -324,7 +329,7 @@ msgstr "Vypnout"
 #: model:ir.model.fields,field_description:base_automation.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:base_automation.field_ir_cron__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: base_automation
 #. odoo-javascript
@@ -528,11 +533,11 @@ msgstr "Název modelu"
 #. odoo-python
 #: code:addons/base_automation/models/ir_actions_server.py:0
 msgid ""
-"Model of action %(action_name)s should match the one from automated rule %"
-"(rule_name)s."
+"Model of action %(action_name)s should match the one from automated rule "
+"%(rule_name)s."
 msgstr ""
-"Model akce %(action_name)s by měl odpovídat modelu na automatickém pravidlu %"
-"(rule_name)s."
+"Model akce %(action_name)s by měl odpovídat modelu na automatickém pravidlu "
+"%(rule_name)s."
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trg_date_range_type__month
@@ -688,13 +693,9 @@ msgstr "Chyba doručení SMS"
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
+#: model:ir.model,name:base_automation.model_ir_cron
 msgid "Scheduled Action"
 msgstr "Plánovaná akce"
-
-#. module: base_automation
-#: model:ir.model,name:base_automation.model_ir_cron
-msgid "Scheduled Actions"
-msgstr "Opakované akce"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -822,11 +823,11 @@ msgstr "Cílový model akce %(action_names)s se liší od modelu na pravidlu."
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid ""
-"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the \"%"
-"(state_value)s\" action type"
+"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the "
+"\"%(state_value)s\" action type"
 msgstr ""
-"\"%(trigger_value)s\" %(trigger_label)s může být použit pouze s \"%"
-"(state_value)s\" typem akce"
+"\"%(trigger_value)s\" %(trigger_label)s může být použit pouze s "
+"\"%(state_value)s\" typem akce"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__trigger_field_ids
@@ -835,7 +836,7 @@ msgid ""
 "updated.If empty, all fields are watched."
 msgstr ""
 "Automatické pravidlo bude spuštěno pouze tehdy, pokud je alespoň jedno z "
-"těchto polí aktualizované.  Je-li prázdné, sledují se všechna pole."
+"těchto polí aktualizované. Je-li prázdné, sledují se všechna pole."
 
 #. module: base_automation
 #. odoo-javascript
@@ -1045,20 +1046,3 @@ msgstr "není definována žádná akce...."
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "path"
 msgstr ""
-
-#~ msgid "Action Name"
-#~ msgstr "Název akce"
-
-#~ msgid "Delay after trigger date"
-#~ msgstr "Po datu spuštění"
-
-#~ msgid "Delay type"
-#~ msgstr "Typ zpoždění"
-
-#~ msgid ""
-#~ "If present, this condition must be satisfied before the update of the "
-#~ "record."
-#~ msgstr "Existuje-li, musí být podmínka spolněna po aktualizaci záznamu."
-
-#~ msgid "Least Delay Msg"
-#~ msgstr "Zpráva o nejmenším zpoždění"

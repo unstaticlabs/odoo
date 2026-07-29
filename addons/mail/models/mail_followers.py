@@ -19,7 +19,7 @@ class MailFollowers(models.Model):
     """
     _name = 'mail.followers'
     _log_access = False
-    _description = 'Document Followers'
+    _description = 'Document Follower'
 
     # Note. There is no integrity check on model names for performance reasons.
     # However, followers of unlinked models are deleted by models themselves
@@ -36,35 +36,6 @@ class MailFollowers(models.Model):
     name = fields.Char('Name', related='partner_id.name')
     email = fields.Char('Email', related='partner_id.email')
     is_active = fields.Boolean('Is Active', related='partner_id.active')
-
-    def _invalidate_documents(self, vals_list=None):
-        """ Invalidate the cache of the documents followed by ``self``.
-
-        Modifying followers change access rights to individual documents. As the
-        cache may contain accessible/inaccessible data, one has to refresh it.
-        """
-        to_invalidate = defaultdict(list)
-        for record in (vals_list or [{'res_model': rec.res_model, 'res_id': rec.res_id} for rec in self]):
-            if record.get('res_id'):
-                to_invalidate[record.get('res_model')].append(record.get('res_id'))
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        res = super().create(vals_list)
-        res._invalidate_documents(vals_list)
-        return res
-
-    def write(self, vals):
-        if 'res_model' in vals or 'res_id' in vals:
-            self._invalidate_documents()
-        res = super().write(vals)
-        if any(x in vals for x in ['res_model', 'res_id', 'partner_id']):
-            self._invalidate_documents()
-        return res
-
-    def unlink(self):
-        self._invalidate_documents()
-        return super().unlink()
 
     _mail_followers_res_partner_res_model_id_uniq = models.Constraint(
         'unique(res_model,res_id,partner_id)',
@@ -544,14 +515,9 @@ GROUP BY fol.id%s%s""" % (
     # Misc discuss
     # --------------------------------------------------
 
-    def _to_store_defaults(self, target):
-        return [
-            "display_name",
-            "email",
-            "is_active",
-            "name",
-            # sudo: res.partner - can read partners of found followers, in particular allows
-            # by-passing multi-company ACL for portal partners
-            Store.One("partner_id", sudo=True),
-            Store.One("thread", [], as_thread=True),
-        ]
+    def _store_follower_fields(self, res: Store.FieldList):
+        res.extend(["display_name", "email", "is_active", "name"])
+        # sudo: res.partner - can read partners of found followers, in particular allows
+        # by-passing multi-company ACL for portal partners
+        res.one("partner_id", "_store_partner_fields", sudo=True)
+        res.one("thread", [], as_thread=True)

@@ -3,16 +3,15 @@
 # * website_forum
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-07-13 12:52+0000\n"
-"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "website_forum/ru/>\n"
 "Language: ru\n"
@@ -22,7 +21,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -646,8 +645,6 @@ msgid ""
 "<i class=\"oi oi-arrow-right display-inline-block\"/> Return to questions "
 "list"
 msgstr ""
-"<i class=\"oi oi-arrow-right display-inline-block\"/> Вернуться к списку "
-"вопросов"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_dropdown
@@ -655,8 +652,6 @@ msgid ""
 "<i class=\"oi oi-ellipsis-h\" data-bs-toggle=\"tooltip\" data-bs-"
 "placement=\"top\" title=\"More\"/>"
 msgstr ""
-"<i class=\"oi oi-ellipsis-h\" data-bs-toggle=\"tooltip\" data-bs-"
-"placement=\"top\" title=\"Еще\"/>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.user_profile_content
@@ -1938,11 +1933,11 @@ msgid ""
 "explains reputation point requirements for each type of moderation task."
 msgstr ""
 "Например, если вы зададите интересный вопрос или дадите полезный ответ, ваш "
-"вклад будет проголосован. С другой стороны, если ответ вводит в "
-"заблуждение - он будет проголосован ниже. Каждый голос \"за\" приносит 10 "
-"баллов, каждый голос \"против\" отнимает 2 балла. В день за вопрос или ответ "
-"может быть накоплено не более 200 баллов. В таблице, приведенной в конце, "
-"указаны требования к баллам репутации для каждого типа модераторских заданий."
+"вклад будет проголосован. С другой стороны, если ответ вводит в заблуждение "
+"- он будет проголосован ниже. Каждый голос \"за\" приносит 10 баллов, каждый "
+"голос \"против\" отнимает 2 балла. В день за вопрос или ответ может быть "
+"накоплено не более 200 баллов. В таблице, приведенной в конце, указаны "
+"требования к баллам репутации для каждого типа модераторских заданий."
 
 #. module: website_forum
 #. odoo-python
@@ -2405,11 +2400,6 @@ msgid "Left 10 answers with score of 10 or more"
 msgstr "Оставьте 10 ответов с оценкой 10 и более баллов"
 
 #. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "Ссылки на вопросы с тегом"
-
-#. module: website_forum
 #. odoo-javascript
 #: code:addons/website_forum/static/src/xml/public_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:website_forum.post_display
@@ -2446,7 +2436,7 @@ msgstr "Отметить как спам"
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_all_oe_structure_forum_all_top
 msgid "Meet our community members"
-msgstr "Познакомьтесь с членами нашего сообщества"
+msgstr ""
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__message_has_error
@@ -3417,6 +3407,20 @@ msgid "The accepted answer is deleted"
 msgstr "Принятый ответ удаляется"
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3529,8 +3533,8 @@ msgid ""
 "                    As a moderator you can either <b>Accept</b> or "
 "<b>Reject</b> this post."
 msgstr ""
-"Это сообщение в настоящее время ожидает модерации и еще не опубликовано.<br/>"
-"\n"
+"Это сообщение в настоящее время ожидает модерации и еще не опубликовано.<br/"
+">\n"
 "                    Как модератор вы можете <b>принять</b> или <b>отклонить</"
 "b> это сообщение."
 
@@ -3810,6 +3814,13 @@ msgid "Website / Forum"
 msgstr "Сайт / Форум"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3817,7 +3828,9 @@ msgid "Website Messages"
 msgstr "Веб-сайт сообщения"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "Адрес сайта"
 
@@ -4299,8 +4312,8 @@ msgid ""
 "your answer is provided along with the question, and you expect more "
 "answers: “I use ______ for ______, what do you use?”"
 msgstr ""
-"ваш ответ предоставляется вместе с вопросом, и вы ожидаете больше ответов: «"
-"Я использую ______ для ______, что используете вы?»"
+"ваш ответ предоставляется вместе с вопросом, и вы ожидаете больше ответов: "
+"«Я использую ______ для ______, что используете вы?»"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -4311,98 +4324,3 @@ msgstr "ваша биография может быть показана, как
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "ваш e-mail..."
-
-#~ msgid ""
-#~ "<i class=\"fa fa-ellipsis-h\" data-bs-toggle=\"tooltip\" data-bs-"
-#~ "placement=\"top\" title=\"More\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-ellipsis-h\" data-bs-toggle=\"tooltip\" data-bs-"
-#~ "placement=\"top\" title=\"More\"/>"
-
-#~ msgid "<i class=\"fa fa-lightbulb-o\"/> Tip: consider adding an example."
-#~ msgstr ""
-#~ "<i class=\"fa fa-lightbulb-o\"/> Совет: подумайте о том, чтобы добавить "
-#~ "пример."
-
-#~ msgid "<i class=\"fa fa-reply me-1\"/>Answer"
-#~ msgstr "<i class=\"fa fa-reply me-1\"/>Ответить"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> Назад"
-
-#~ msgid "<small>View all</small>"
-#~ msgstr "<small>Смотреть все</small>"
-
-#~ msgid ""
-#~ "<span class=\"form-text d-inline small text-muted\"><i class=\"fa fa-"
-#~ "lightbulb-o\"/> Tip: consider adding an example. </span>"
-#~ msgstr ""
-#~ "<span class=\"form-text d-inline small text-muted\"><i class=\"fa fa-"
-#~ "lightbulb-o\"/> Совет: подумайте о том, чтобы добавить пример. </span>"
-
-#~ msgid "Click to answer."
-#~ msgstr "Нажмите, чтобы ответить."
-
-#~ msgid "Date (high to low)"
-#~ msgstr "Дата (от максимума к минимуму)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "Дата (от минимума к максимуму)"
-
-#~ msgid "Group By"
-#~ msgstr "Группировать по"
-
-#~ msgid "Menu"
-#~ msgstr "Меню"
-
-#~ msgid "Message"
-#~ msgstr "Сообщение"
-
-#~ msgid "Read: #{question.name}"
-#~ msgstr "Читать: #{question.name}"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Ограничьте публикацию на этом сайте."
-
-#~ msgid "Share this post on social networks."
-#~ msgstr "Поделитесь этим сообщением в социальных сетях."
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Извините, вы должны войти в систему, чтобы отметить сообщение"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answers."
-#~ msgstr ""
-#~ "К сожалению, анонимные пользователи не могут выбирать правильные ответы."
-
-#~ msgid "Teaser"
-#~ msgstr "Тизер"
-
-#~ msgid "This user hasn't answered any questions yet. <br/>"
-#~ msgstr "Этот пользователь еще не ответил ни на один вопрос. <br/>"
-
-#~ msgid "This user hasn't posted any questions yet.<br/>"
-#~ msgstr "Этот пользователь еще не задавал вопросов.<br/>"
-
-#~ msgid "What kind of questions can I ask here?"
-#~ msgstr "Какие вопросы я могу задать здесь?"
-
-#~ msgid "What should I avoid in my answers?"
-#~ msgstr "Чего мне следует избегать в своих ответах?"
-
-#~ msgid "What should I avoid in my questions?"
-#~ msgstr "Чего следует избегать в моих вопросах?"
-
-#~ msgid "Why can other people edit my questions/answers?"
-#~ msgstr "Почему другие люди могут редактировать мои вопросы/ответы?"
-
-#~ msgid "You are only allowed one answer"
-#~ msgstr "Вы можете дать только один ответ"
-
-#~ msgid "You have not answered any questions yet. <br/>"
-#~ msgstr "Вы еще не ответили ни на один вопрос. <br/>"
-
-#~ msgid "You have not posted any questions yet. <br/>"
-#~ msgstr "Вы еще не задавали вопросов. <br/>"
-
-#~ msgid "karma is required to perform this action. "
-#~ msgstr "для выполнения этого действия требуется карма. "

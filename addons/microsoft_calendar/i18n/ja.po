@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * microsoft_calendar
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:21+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-06 13:50+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "microsoft_calendar/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,8 @@ msgstr "有効"
 msgid ""
 "An administrator needs to configure Outlook Synchronization before you can "
 "use it!"
-msgstr "Outlook同期を使用する前に、管理者がOutlook同期を設定する必要があります！"
+msgstr ""
+"Outlook同期を使用する前に、管理者がOutlook同期を設定する必要があります！"
 
 #. module: microsoft_calendar
 #. odoo-python
@@ -75,8 +76,8 @@ msgid ""
 "calendar synchronisation."
 msgstr ""
 "トークンの生成中にエラーが発生しました。認証コードが無効であるか、使用期限が"
-"切れています [%s] Microsoft AzureポータルでクライアントIDとシークレットを確認"
-"するか、カレンダの同期を停止して再開して下さい。"
+"切れています [%s] Microsoft AzureポータルでClient IDとシークレットを確認する"
+"か、カレンダの同期を停止して再開して下さい。"
 
 #. module: microsoft_calendar
 #: model:ir.model,name:microsoft_calendar.model_calendar_attendee
@@ -89,19 +90,14 @@ msgid "Calendar Event"
 msgstr "カレンダーイベント"
 
 #. module: microsoft_calendar
-#: model_terms:ir.ui.view,arch_db:microsoft_calendar.microsoft_calendar_reset_account_view_form
-msgid "Cancel"
-msgstr "キャンセル"
-
-#. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.res_config_settings_view_form
 msgid "Client ID"
-msgstr "クライアントID"
+msgstr "Client ID"
 
 #. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.res_config_settings_view_form
 msgid "Client Secret"
-msgstr "クライアントシークレット"
+msgstr "Client Secret"
 
 #. module: microsoft_calendar
 #: model:ir.model,name:microsoft_calendar.model_res_config_settings
@@ -151,12 +147,6 @@ msgid "Delete from the current Microsoft Calendar account"
 msgstr "現在のMicrosoft カレンダーアカウントから削除します"
 
 #. module: microsoft_calendar
-#. odoo-javascript
-#: code:addons/microsoft_calendar/static/src/views/microsoft_calendar/microsoft_calendar_controller.js:0
-msgid "Discard"
-msgstr "破棄"
-
-#. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_alarm_manager__display_name
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_attendee__display_name
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_event__display_name
@@ -190,8 +180,8 @@ msgid ""
 msgstr ""
 "Outlookカレンダで制限されているため、再帰更新はOutlookカレンダで直接行う必要"
 "があります。\n"
-"この定期的な予定がOutlookカレンダに表示されていない場合、Odooカレンダで削除し"
-"、Outlookカレンダで再作成する必要があります。"
+"この定期的な予定がOutlookカレンダに表示されていない場合、Odooカレンダで削除"
+"し、Outlookカレンダで再作成する必要があります。"
 
 #. module: microsoft_calendar
 #. odoo-python
@@ -211,7 +201,7 @@ msgstr "イベントアラーム管理"
 #. module: microsoft_calendar
 #: model:ir.model,name:microsoft_calendar.model_calendar_recurrence
 msgid "Event Recurrence Rule"
-msgstr "イベント繰返規則"
+msgstr "イベント繰返ルール"
 
 #. module: microsoft_calendar
 #. odoo-python
@@ -227,7 +217,7 @@ msgstr ""
 "OdooとOutlookカレンダを正しく同期させるためには、参加者全員がメールアドレスを"
 "持っている必要があります。しかし、一部のイベントはこの条件を満たしていません"
 "。イベントが正しくない限り、カレンダは同期されません。\n"
-"イベント/出席者を更新するか、これらのイベントをアーカイブして下さい%(details)"
+"イベント/参加者を更新するか、これらのイベントをアーカイブして下さい%(details)"
 "s: \n"
 "%(invalid_events)s"
 
@@ -275,7 +265,7 @@ msgid ""
 "It is necessary adding the proposed organizer as attendee before saving the "
 "event."
 msgstr ""
-"イベントを保存する前に、提案された主催者を出席者として追加する必要があります"
+"イベントを保存する前に、提案された主催者を参加者として追加する必要があります"
 "。"
 
 #. module: microsoft_calendar

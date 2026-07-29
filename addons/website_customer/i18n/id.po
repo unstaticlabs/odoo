@@ -6,24 +6,24 @@
 # Martin Trigaux, 2022
 # Abe Manyo, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:01+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-02-14 12:20+0000\n"
+"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-1/"
 "website_customer/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -82,6 +82,16 @@ msgstr "Semua Industri"
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
 msgstr "Diarsipkan"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr "Publikasi otomatis pada"
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Secara otomatis publikasi halaman pada tanggal dan waktu yang dipilih."
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
@@ -284,6 +294,11 @@ msgid "Partners"
 msgstr "Rekanan"
 
 #. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr "Tanggal publikasi"
+
+#. module: website_customer
 #. odoo-python
 #: code:addons/website_customer/models/website.py:0
 #: model_terms:ir.ui.view,arch_db:website_customer.references_block
@@ -375,43 +390,3 @@ msgstr "Tag website"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "Peta Dunia"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"Link eksternal\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "Diimplementasikan oleh"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Terakhir Diubah pada"
-
-#~ msgid "No result found"
-#~ msgstr "Tidak ada hasil yang ditemukan"
-
-#~ msgid "Our References"
-#~ msgstr "Referensi kami"
-
-#~ msgid "References Page"
-#~ msgstr "Halaman Referensi"
-
-#~ msgid "References by Country"
-#~ msgstr "Referensi berdasarkan Negara"
-
-#~ msgid "References by Industries"
-#~ msgstr "Referensi berdasarkan Industri"
-
-#~ msgid "References by Tag"
-#~ msgstr "Referensi berdasarkan Tag"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "URL lengkap untuk mengakses dokumen melalui website."
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "Dipercaya oleh jutaan di seluruh dunia"
-
-#~ msgid "reference(s))"
-#~ msgstr "referensi)"

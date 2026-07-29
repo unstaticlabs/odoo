@@ -2,15 +2,14 @@
 # This file contains the translation of the following modules:
 # * sale_loyalty
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 17:35+0000\n"
-"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"POT-Creation-Date: 2026-06-19 17:37+0000\n"
+"PO-Revision-Date: 2025-09-16 21:26+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "sale_loyalty/sv/>\n"
 "Language: sv\n"
@@ -18,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_loyalty
 #. odoo-python
@@ -109,12 +108,6 @@ msgstr "Skapad av"
 #: model:ir.model.fields,field_description:sale_loyalty.field_sale_order_coupon_points__create_date
 msgid "Created on"
 msgstr "Skapad den"
-
-#. module: sale_loyalty
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_coupon_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_reward_wizard_view_form
-msgid "Discard"
-msgstr "Avbryt"
 
 #. module: sale_loyalty
 #. odoo-python
@@ -233,7 +226,7 @@ msgstr "Utfärdat :"
 #. module: sale_loyalty
 #: model:ir.model,name:sale_loyalty.model_account_move_line
 msgid "Journal Item"
-msgstr "Verifikationsrad"
+msgstr ""
 
 #. module: sale_loyalty
 #: model:ir.model.fields,field_description:sale_loyalty.field_sale_loyalty_coupon_wizard__write_uid
@@ -581,6 +574,14 @@ msgstr "Använd :"
 #. module: sale_loyalty
 #. odoo-python
 #: code:addons/sale_loyalty/models/sale_order.py:0
+msgid ""
+"You don't have enough coupon points to proceed. Please check your applied "
+"rewards and coupon balance. "
+msgstr ""
+
+#. module: sale_loyalty
+#. odoo-python
+#: code:addons/sale_loyalty/models/sale_order.py:0
 msgid "You don't have the required product quantities on your sales order."
 msgstr "Du har inte den nödvändiga produktmängden på din försäljningsorder."
 
@@ -597,12 +598,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/sale_loyalty/models/sale_order.py:0
 msgid "order_id"
-msgstr "order_id"
+msgstr ""
 
 #~ msgid ""
 #~ "A minimum of %(amount)s %(currency)s should be purchased to get the reward"
 #~ msgstr ""
 #~ "Ett minimum av %(amount)s %(currency)s bör köpas för att få belöningen"
-
-#~ msgid "Free Product - %(product)s"
-#~ msgstr "Gratis Produkt - %(product)s"

@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 20:22+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/fleet/uz/>"
-"\n"
+"POT-Creation-Date: 2026-02-20 09:00+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_kanban
@@ -39,8 +37,13 @@ msgid ""
 "<span class=\"o_stat_value\">New</span>\n"
 "                                <span class=\"o_stat_text\">Vehicle</span>"
 msgstr ""
-"<span class=\"o_stat_value\">Yangi</span> <span class=\"o_stat_text\">"
-"Transport vositasi</span>"
+"<span class=\"o_stat_value\">Yangi</span> <span "
+"class=\"o_stat_text\">Transport vositasi</span>"
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_kanban
+msgid "<span class=\"text-muted\"> - </span>"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.res_config_settings_view_form
@@ -162,6 +165,14 @@ msgid "Activity Exception Decoration"
 msgstr "Faoliyat istisnosi bezagi"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_state
@@ -217,6 +228,14 @@ msgid "Air Filter Replacement"
 msgstr "Havo filtrini almashtirish"
 
 #. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid ""
+"All services and contracts linked to this vehicle will also be archived.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
 #, fuzzy
 msgid "All vehicles"
@@ -239,6 +258,18 @@ msgstr "Yangi haydovchini tayinlash"
 #, fuzzy
 msgid "Archive"
 msgstr "Arxivlash"
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle"
+msgstr ""
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle & Contracts"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
@@ -461,7 +492,7 @@ msgid "Can Edit Body"
 msgstr "Tanani tahrirlash mumkin"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_send_mail_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
 #, fuzzy
 msgid "Cancel"
 msgstr "Bekor qilish"
@@ -499,10 +530,22 @@ msgid "Cars"
 msgstr "Avtomobillar"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_res_partner__partner_cars_count
+#: model:ir.model.fields,field_description:fleet.field_res_users__partner_cars_count
+msgid "Cars Count"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/res_partner.py:0
+#: model_terms:ir.ui.view,arch_db:fleet.view_partner_form
+msgid "Cars History"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__car_value
-#, fuzzy
-msgid "Catalog Value (VAT Incl.)"
-msgstr "Katalog qiymati (QQS bilan)"
+msgid "Catalog Value (Tax Incl.)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_15
@@ -621,6 +664,7 @@ msgstr "Transport vositangiz haqidagi xabar"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__company_id
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__company_id
 #, fuzzy
 msgid "Company"
 msgstr "Kompaniya"
@@ -637,6 +681,11 @@ msgstr "Sozlamalarni sozlash"
 #, fuzzy
 msgid "Configuration"
 msgstr "Konfiguratsiya"
+
+#. module: fleet
+#: model:ir.model,name:fleet.model_res_partner
+msgid "Contact"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_search
@@ -723,6 +772,7 @@ msgstr "Narx"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__cost_type
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 #, fuzzy
 msgid "Cost Type"
 msgstr "Xarajat turi"
@@ -762,6 +812,11 @@ msgstr "Mamlakat"
 #, fuzzy
 msgid "Country Code"
 msgstr "Mamlakat kodi"
+
+#. module: fleet
+#: model:ir.model,website_form_label:fleet.model_res_partner
+msgid "Create a Customer"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_model_category_action
@@ -874,9 +929,9 @@ msgstr "Kunlik"
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__date_start
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer_report__recorded_date
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_search
 #, fuzzy
@@ -891,7 +946,7 @@ msgstr "Transport vositasi ro‘yxatdan o‘tkazilgan sana"
 
 #. module: fleet
 #: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date_from
 #, fuzzy
 msgid "Date when the cost has been executed"
 msgstr "To‘lov amalga oshirilgan sana"
@@ -973,6 +1028,7 @@ msgstr "Dizel"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__display_name
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__display_name
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:fleet.field_res_partner__display_name
 #, fuzzy
 msgid "Display Name"
 msgstr "Ko‘rsatiladigan nom"
@@ -1138,6 +1194,16 @@ msgid "End Date Contract Alert"
 msgstr "Shartnoma tugash sanasi haqida ogohlantirish"
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_log_services_check_service_dates
+msgid "End date must be on or after the start date."
+msgstr ""
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_to
+msgid "End of Service"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #, fuzzy
@@ -1169,22 +1235,15 @@ msgid "Entry into service tax"
 msgstr "Xizmatga kirishda soliq"
 
 #. module: fleet
-#. odoo-javascript
-#: code:addons/fleet/static/src/js/fleet_form.js:0
-#, fuzzy
-msgid ""
-"Every service and contract of this vehicle will be considered as archived. "
-"Are you sure that you want to archive this record?"
-msgstr ""
-"Ushbu transport vositasining barcha xizmatlari va shartnomalari arxivlangan "
-"deb hisoblanadi. Ushbu yozuvni arxivlamoqchi ekanligingizga ishonchingiz "
-"komilmi?"
-
-#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_21
 #, fuzzy
 msgid "Exhaust Manifold Replacement"
 msgstr "Chiqindi kollektorini almashtirish"
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
+msgid "Expiration Date"
+msgstr ""
 
 #. module: fleet
 #: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__contract_state__expired
@@ -1484,6 +1543,7 @@ msgstr "Vodorod"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__id
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__id
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__id
+#: model:ir.model.fields,field_description:fleet.field_res_partner__id
 #, fuzzy
 msgid "ID"
 msgstr "ID"
@@ -1522,7 +1582,8 @@ msgstr "Agar belgilangan bo‘lsa, yangi xabarlar e'tiboringizni talab qiladi"
 #: model:ir.model.fields,help:fleet.field_fleet_vehicle_model__message_has_error
 #, fuzzy
 msgid "If checked, some messages have a delivery error."
-msgstr "Agar belgilangan bo‘lsa, ba'zi xabarlarda yetkazib berish xatosi mavjud"
+msgstr ""
+"Agar belgilangan bo‘lsa, ba'zi xabarlarda yetkazib berish xatosi mavjud"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_29
@@ -2150,12 +2211,6 @@ msgid "Odometer Value"
 msgstr "Odometr ko‘rsatkichi"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_graph
-#, fuzzy
-msgid "Odometer Values Per Vehicle"
-msgstr "Har bir transport vositasi uchun odometr ko‘rsatkichlari"
-
-#. module: fleet
 #: model:ir.model,name:fleet.model_fleet_vehicle_odometer
 #, fuzzy
 msgid "Odometer log for a vehicle"
@@ -2212,8 +2267,8 @@ msgid ""
 msgstr ""
 "Xat yuborishda tanlanadigan ixtiyoriy tarjima tili (ISO kodi). Agar "
 "belgilanmagan bo‘lsa, asosiy hamkorning tili ishlatiladi. Bu odatda tegishli "
-"tilni ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan {{ "
-"object.partner_id.lang }}."
+"tilni ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan {{ object."
+"partner_id.lang }}."
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_15
@@ -2234,6 +2289,11 @@ msgid "Ordered"
 msgstr "Buyurtma qilingan"
 
 #. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__vehicle_type__other
+msgid "Other"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_33
 #, fuzzy
 msgid "Other Maintenance"
@@ -2252,16 +2312,9 @@ msgid "Oxygen Sensor Replacement"
 msgstr "Kislorod sensorini almashtirish"
 
 #. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_bike
-#, fuzzy
-msgid "Plan To Change Bike"
-msgstr "Velosipedni almashtirish rejasi"
-
-#. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_car
-#, fuzzy
-msgid "Plan To Change Car"
-msgstr "Avtomobilni almashtirish rejasi"
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_vehicle
+msgid "Plan To Change Vehicle"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
@@ -2355,6 +2408,19 @@ msgid "Range Unit"
 msgstr "Yurish masofasi o‘lchov birligi"
 
 #. module: fleet
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle__vehicle_range
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_model__vehicle_range
+msgid ""
+"Range represents the maximum distance a vehicle can travel on a full charge "
+"(for EVs) or             a full tank (for fuel-powered vehicles)"
+msgstr ""
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+msgid "Reactivate"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_action
 #, fuzzy
 msgid "Ready to manage your fleet more efficiently?"
@@ -2410,9 +2476,8 @@ msgstr "Renderlovchi model"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_11
-#, fuzzy
-msgid "Rent (Excluding VAT)"
-msgstr "Ijara (QQSsiz)"
+msgid "Rent (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_7
@@ -2452,9 +2517,8 @@ msgstr "Qoldiq qiymat"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_14
-#, fuzzy
-msgid "Residual value (Excluding VAT)"
-msgstr "Qoldiq qiymat (QQSsiz)"
+msgid "Residual value (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_18
@@ -2490,6 +2554,18 @@ msgid "Resurface Rotors"
 msgstr "Rotorlarni silliqlashtirish"
 
 #. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change of %s and specify End date"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_39
 #, fuzzy
 msgid "Rotate Tires"
@@ -2520,6 +2596,12 @@ msgstr "Yangi andoza sifatida saqlash"
 #, fuzzy
 msgid "Seating Capacity"
 msgstr "O‘rindiqlar sig‘imi"
+
+#. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__transmission__semi_automatic
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__transmission__semi_automatic
+msgid "Semi-Automatic"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_send_mail_view_form
@@ -2568,7 +2650,9 @@ msgid "Service Activity"
 msgstr "Xizmat faoliyati"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__service_type
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__service_type_id
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_search
 #, fuzzy
 msgid "Service Type"
@@ -2649,13 +2733,6 @@ msgstr ""
 "ko‘rsatadi."
 
 #. module: fleet
-#. odoo-python
-#: code:addons/fleet/models/fleet_vehicle.py:0
-#, fuzzy
-msgid "Specify the End date of %s"
-msgstr "%s ning tugash sanasini belgilang"
-
-#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__state
 #, fuzzy
 msgid "Stage"
@@ -2663,9 +2740,15 @@ msgstr "Bosqich"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_assignation_log__date_start
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
 #, fuzzy
 msgid "Start Date"
 msgstr "Boshlanish sanasi"
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_from
+msgid "Start of Service"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_42
@@ -2787,6 +2870,11 @@ msgstr ""
 "yo‘q: %s."
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_unique_license_plate
+msgid "The license plate must be unique"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle.py:0
 #, fuzzy
@@ -2863,9 +2951,8 @@ msgstr "Jami"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_13
-#, fuzzy
-msgid "Total expenses (Excluding VAT)"
-msgstr "Jami xarajatlar (QQS'siz)"
+msgid "Total expenses (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_17
@@ -2965,6 +3052,11 @@ msgid "Unit"
 msgstr "Birlik"
 
 #. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
+msgid "Unregistered"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle_model.py:0
 #: model:ir.model,name:fleet.model_fleet_vehicle
@@ -3004,12 +3096,6 @@ msgstr "Transport vositalari soni"
 #, fuzzy
 msgid "Vehicle Description"
 msgstr "Transport vositasi tavsifi"
-
-#. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
-#, fuzzy
-msgid "Vehicle Information"
-msgstr "Transport vositasi haqida ma'lumot"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__name
@@ -3119,6 +3205,7 @@ msgstr "Yetkazib beruvchilar"
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vechicle_costs_report_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #, fuzzy
 msgid "Visible to all"
@@ -3255,7 +3342,6 @@ msgid "e.g. Model S"
 msgstr "misol uchun, Model S"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form_quick_create
 #, fuzzy
 msgid "e.g. PAE 326"
@@ -3327,4 +3413,11 @@ msgstr "ushbu transport vositasi uchun odometr yozuvlarini ko‘rsatish"
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #, fuzzy
 msgid "show the services logs for this vehicle"
-msgstr "ushbu transport vositasi uchun xizmat ko‘rsatish yozuvlarini ko‘rsatish"
+msgstr ""
+"ushbu transport vositasi uchun xizmat ko‘rsatish yozuvlarini ko‘rsatish"
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "user_id"
+msgstr ""

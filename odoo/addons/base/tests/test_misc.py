@@ -3,15 +3,15 @@
 import base64
 import datetime
 import os.path
+from zoneinfo import ZoneInfo
 
-import pytz
-
-from odoo.tests.common import BaseCase, TransactionCase
+from odoo.tests.common import tagged, BaseCase, TransactionCase, freeze_time
 from odoo.tools import config, misc, urls
 from odoo.tools.mail import validate_url
 from odoo.tools.misc import file_open, file_path, merge_sequences, remove_accents
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMergeSequences(BaseCase):
     def test_merge_sequences(self):
         # base case
@@ -40,6 +40,7 @@ class TestMergeSequences(BaseCase):
         self.assertEqual(seq, ['A', 'B', 'X', 'Y', 'C', 'Z'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFormatLangDate(TransactionCase):
     def test_00_accepted_types(self):
         self.env.user.tz = 'Europe/Brussels'
@@ -69,6 +70,7 @@ class TestFormatLangDate(TransactionCase):
         self.assertEqual(misc.format_time(self.env, False, time_format=t_medium), '')
         self.assertEqual(misc.format_time(self.env, None, time_format=t_medium), '')
 
+    @freeze_time('2017-01-31')
     def test_01_code_and_format(self):
         date_str = '2017-01-31'
         lang = self.env['res.lang']
@@ -113,7 +115,7 @@ class TestFormatLangDate(TransactionCase):
 
         # -- test `time`
         time_part = datetime.time(16, 30, 22)
-        time_part_tz = datetime.time(16, 30, 22, tzinfo=pytz.timezone('America/New_York'))  # 4:30 PM timezoned
+        time_part_tz = datetime.time(16, 30, 22, tzinfo=ZoneInfo('America/New_York'))  # 4:30 PM timezoned
 
         self.assertEqual(misc.format_time(lang.with_context(lang='fr_FR').env, time_part, time_format='HH:mm:ss'), '16:30:22')
         self.assertEqual(misc.format_time(lang.with_context(lang='zh_CN').env, time_part, time_format="ah:m:ss"), '\u4e0b\u53484:30:22')
@@ -123,7 +125,7 @@ class TestFormatLangDate(TransactionCase):
         self.assertEqual(misc.format_time(lang.with_context(lang='zh_CN').env, time_part, time_format='ah:mm'), '\u4e0b\u53484:30')
 
         # Check timezoned time part
-        self.assertEqual(misc.format_time(lang.with_context(lang='fr_FR').env, time_part_tz, time_format='HH:mm:ss Z'), '16:30:22 -0504')
+        self.assertEqual(misc.format_time(lang.with_context(lang='fr_FR').env, time_part_tz, time_format='HH:mm:ss Z'), '16:30:22 -0500')
         self.assertEqual(misc.format_time(lang.with_context(lang='zh_CN').env, time_part_tz, time_format='zzzz ah:mm:ss'), '\u5317\u7f8e\u4e1c\u90e8\u6807\u51c6\u65f6\u95f4\u0020\u4e0b\u53484:30:22')
 
         #Check timezone conversion in format_time
@@ -146,10 +148,11 @@ class TestFormatLangDate(TransactionCase):
         self.assertEqual(misc.format_date(self.env, date_datetime), '01/01/2017')
 
         # Force London timezone
-        date_datetime = date_datetime.replace(tzinfo=pytz.UTC)
+        date_datetime = date_datetime.replace(tzinfo=datetime.UTC)
         self.assertEqual(misc.format_date(self.env, date_datetime), '12/31/2016', "User's tz must be ignored when tz is specifed in datetime object")
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestCallbacks(BaseCase):
     def test_callback(self):
         log = []
@@ -222,6 +225,7 @@ class TestCallbacks(BaseCase):
         self.assertEqual(log, ["foo1", "bar", "foo2"])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestRemoveAccents(BaseCase):
     def test_empty_string(self):
         self.assertEqual(remove_accents(False), False)
@@ -237,6 +241,7 @@ class TestRemoveAccents(BaseCase):
         self.assertEqual(remove_accents('русский алфавит'), 'русскии алфавит')
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAddonsFileAccess(BaseCase):
 
     def assertCannotAccess(self, path, ExceptionType=OSError, filter_ext=None, check_exists=True):
@@ -340,9 +345,10 @@ class TestAddonsFileAccess(BaseCase):
         self.assertCannotRead(__file__.replace('.py', '.foo'), ValueError, filter_ext=('.png',))
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestDictTools(BaseCase):
     def test_readonly_dict(self):
-        d = misc.ReadonlyDict({'foo': 'bar'})
+        d = misc.frozendict({'foo': 'bar'})
         with self.assertRaises(TypeError):
             d['baz'] = 'xyz'
         with self.assertRaises(AttributeError):
@@ -351,6 +357,36 @@ class TestDictTools(BaseCase):
             dict.update(d, {'baz': 'xyz'})
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
+class TestDiffTools(BaseCase):
+    def test_diff_zip(self):
+        self.assertEqual(
+            list(misc.diff_zip(['a', 'b', 'c'], ['a', 'b', 'c'])),
+            [('a', 'a'), ('b', 'b'), ('c', 'c')],
+        )
+        self.assertEqual(
+            list(misc.diff_zip(['a', 'b', 'x', 'c'], ['a', 'b', 'c'])),
+            [('a', 'a'), ('b', 'b'), ('x', None), ('c', 'c')],
+        )
+        self.assertEqual(
+            list(misc.diff_zip(['a', 'b', 'c'], ['a', 'x', 'b', 'c'])),
+            [('a', 'a'), (None, 'x'), ('b', 'b'), ('c', 'c')],
+        )
+        self.assertEqual(
+            list(misc.diff_zip(['a', 'b', 'c'], ['x', 'y', 'z', 'c'])),
+            [('a', None), ('b', None), (None, 'x'), (None, 'y'), (None, 'z'), ('c', 'c')],
+        )
+        self.assertEqual(
+            list(misc.diff_zip(['w', 'a', 'x', 'b', 'c', 'z'], ['a', 'b', 'y', 'c'])),
+            [('w', None), ('a', 'a'), ('x', None), ('b', 'b'), (None, 'y'), ('c', 'c'), ('z', None)],
+        )
+        self.assertEqual(
+            list(misc.diff_zip(['a', 'b', 'y', 'c'], ['w', 'a', 'x', 'b', 'c', 'z'])),
+            [(None, 'w'), ('a', 'a'), (None, 'x'), ('b', 'b'), ('y', None), ('c', 'c'), (None, 'z')],
+        )
+
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFormatLang(TransactionCase):
     def test_value_and_digits(self):
         self.assertEqual(misc.formatLang(self.env, 100.23, digits=1), '100.2')
@@ -457,6 +493,7 @@ class TestFormatLang(TransactionCase):
         self.assertEqual(comma_lang.format(f'%.{1}f', 1200.50, grouping=False), '1200,5')
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUrlValidate(BaseCase):
     def test_url_validate(self):
         for case, truth in [
@@ -481,6 +518,7 @@ class TestUrlValidate(BaseCase):
         self.assertEqual(validate_url('#model=project.task&id=3603607'), 'http://#model=project.task&id=3603607')
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUrlJoin(BaseCase):
     # simple path joins
     def test_basic_relative_path(self):
@@ -588,6 +626,7 @@ class TestUrlJoin(BaseCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMiscToken(TransactionCase):
 
     def test_expired_token(self):
@@ -619,27 +658,8 @@ class TestMiscToken(TransactionCase):
         token = base64.urlsafe_b64encode(token[:1] + new_timestamp + token[9:]).decode()
         self.assertIsNone(misc.verify_hash_signed(self.env, 'test', token))
 
-    def test_custom_secret(self):
-        payload = {'value': 123456, 'name': 'bob'}
-        token = misc.hash_sign(self.env, 'test', payload, expiration_hours=24, secret='very_secret')
 
-        self.assertEqual(misc.verify_hash_signed(self.env, 'test', token, secret='very_secret'), payload)
-        self.assertEqual(misc.verify_hash_signed(self.env, 'test', token, secret=b'very_secret'), payload)
-        self.assertIsNone(misc.verify_hash_signed(self.env, 'test', token, secret='other'))
-        self.assertIsNone(misc.verify_hash_signed(self.env, 'test', token))
-
-    def test_default_secret(self):
-        payload = ["str1", "str2", "str3", 4, 5]
-        db_secret = self.env['ir.config_parameter'].sudo().get_param('database.secret')
-
-        token_default = misc.hash_sign(self.env, 'test', payload, expiration_hours=24)
-        token_explicit = misc.hash_sign(self.env, 'test', payload, expiration_hours=24, secret=db_secret)
-
-        self.assertEqual(misc.verify_hash_signed(self.env, 'test', token_default), payload)
-        self.assertEqual(misc.verify_hash_signed(self.env, 'test', token_explicit), payload)
-        self.assertEqual(misc.verify_hash_signed(self.env, 'test', token_default, secret=db_secret), payload)
-
-
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFormatAmountFunction(TransactionCase):
     @classmethod
     def setUpClass(cls):

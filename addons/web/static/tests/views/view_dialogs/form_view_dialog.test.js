@@ -138,7 +138,7 @@ test("formviewdialog buttons in footer are not duplicated", async () => {
     expect(".modal").toHaveCount(1);
     expect(".modal button.my_button").toHaveCount(1, { message: "should have 1 buttons in modal" });
 
-    await click(".o_field_x2many_list_row_add a");
+    await click(".o_field_x2many_list_row_add button");
     await animationFrame();
     await press("escape");
     await animationFrame();
@@ -460,6 +460,7 @@ test("existing record has an expand button", async () => {
     ]);
 });
 
+test.tags("desktop");
 test("expand button with save and new", async () => {
     Instrument._views.form = /* xml */ `<form><field name="name"/></form>`;
     Instrument._records = [{ id: 1, name: "Violon" }];

@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * website_event_exhibitor
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 19:39+0000\n"
-"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 09:29+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_exhibitor/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -105,6 +105,11 @@ msgid "Activity Exception Decoration"
 msgstr "Dekorasi Pengecualian Aktivitas"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Rencana-Rencana Kegiatan"
+
+#. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
 msgid "Activity State"
 msgstr "Status Aktivitas"
@@ -167,6 +172,16 @@ msgstr "Hitungan Lampiran"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "Peserta akan dapat mengikuti meet"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Auto publish on"
+msgstr "Publikasi otomatis pada"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Secara otomatis publikasi halaman pada tanggal dan waktu yang dipilih."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -297,7 +312,8 @@ msgstr "Nama Tampilan"
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_type__exhibitor_menu
 msgid ""
 "Display exhibitors on website, in the footer of every page of the event."
-msgstr "Tampilkan exhibitor pada website, di footer setiap halaman untuk acara."
+msgstr ""
+"Tampilkan exhibitor pada website, di footer setiap halaman untuk acara."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
@@ -663,6 +679,11 @@ msgid "Published"
 msgstr "Terpublikasi"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+msgid "Published date"
+msgstr "Tanggal publikasi"
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -957,6 +978,11 @@ msgid ""
 msgstr ""
 "sudah selesai.\n"
 "                <br/>"
+
+#. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. odoo-javascript

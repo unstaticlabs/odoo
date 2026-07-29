@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * website_sale_collect
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Alin Ilie <alin.ilie@logit-solutions.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Alin Ilie <alin.ilie@logit-solutions.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:47+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-12-02 14:57+0000\n"
+"Last-Translator: Alin Ilie <alin.ilie@logit-solutions.com>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
 "website_sale_collect/ro/>\n"
 "Language: ro\n"
@@ -19,13 +19,26 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/sale_order.py:0
 msgid "%(available_qty)s/%(line_qty)s available at this location"
 msgstr "%(available_qty)s/%(line_qty)s disponibile în această locație"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<i class=\"fa fa-fw fa-heart\"/> In wishlist"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid ""
+"<i class=\"fa fa-fw fa-heart-o\" role=\"presentation\" aria-label=\"Add to "
+"Wishlist\"/>\n"
+"                                    Wishlist"
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:payment.provider,pending_msg:website_sale_collect.payment_provider_on_site
@@ -35,8 +48,18 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<span class=\"small\">|</span>"
+msgstr ""
+
+#. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.payment_confirmation_status
 msgid "<span class=\"text-muted\"> (In-store pickup)</span>"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "Add to Wishlist"
 msgstr ""
 
 #. module: website_sale_collect
@@ -86,6 +109,11 @@ msgid "Delivery"
 msgstr "Livrare"
 
 #. module: website_sale_collect
+#: model:ir.model,name:website_sale_collect.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/res_config_settings.py:0
 msgid "Delivery Methods"
@@ -130,13 +158,6 @@ msgstr "Metoda de livrare în magazin"
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 msgid "Not available"
 msgstr "Nu este disponibil"
-
-#. module: website_sale_collect
-#. odoo-javascript
-#: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
-#: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "Only"
-msgstr "Numai"
 
 #. module: website_sale_collect
 #: model:ir.model.fields,field_description:website_sale_collect.field_stock_warehouse__opening_hours
@@ -222,9 +243,10 @@ msgid "Select store"
 msgstr "Selectează sediul"
 
 #. module: website_sale_collect
-#: model:ir.model,name:website_sale_collect.model_delivery_carrier
-msgid "Shipping Methods"
-msgstr "Metode de expediere"
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.xml:0
+msgid "Selected country:"
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -264,6 +286,12 @@ msgstr ""
 "Metoda de livrare trebuie să aibă cel puțin un depozit care să fie publicat."
 
 #. module: website_sale_collect
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "This address may require to recompute taxes."
+msgstr ""
+
+#. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
 msgid "Update cart quantities"
 msgstr "Actualizați cantitățile din coș"
@@ -289,8 +317,8 @@ msgstr "Site"
 msgid ""
 "You can only pay on site when selecting the pick up in store delivery method."
 msgstr ""
-"Puteți plăti la fața locului numai dacă selectați metoda de livrare „"
-"ridicare din magazin”."
+"Puteți plăti la fața locului numai dacă selectați metoda de livrare "
+"„ridicare din magazin”."
 
 #. module: website_sale_collect
 #: model_terms:payment.provider,auth_msg:website_sale_collect.payment_provider_on_site
@@ -311,8 +339,8 @@ msgstr "Plata dvs. a fost procesată."
 #. odoo-javascript
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 #: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "available"
-msgstr "disponibil"
+msgid "in stock"
+msgstr ""
 
 #. module: website_sale_collect
 #. odoo-python

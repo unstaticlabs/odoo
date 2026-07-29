@@ -335,7 +335,7 @@ class TestL10nHrEdiXml(TestL10nHrEdiCommon, AccountTestInvoicingCommon):
         """
         self.setup_partner_as_hr(self.env.company.partner_id)
         self.setup_partner_as_hr_alt(self.partner_a)
-        self.partner_a.bank_ids.unlink()
+        self.partner_a.bank_ids.sudo().unlink()
         tax = self.env['account.chart.template'].ref('VAT_S_IN_ROC_25')
 
         original_invoice = self._create_invoice(

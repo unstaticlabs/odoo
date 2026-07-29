@@ -10,18 +10,19 @@
 # Pornvibool Tippayawat <pornvibool.t@gmail.com>, 2022
 # Wichanon Jamwutthipreecha, 2022
 # Amin Cheloh <amincheloh@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 # Nusara Boonma <nuboo@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 03:44+0000\n"
-"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/uom/th/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-07-04 12:46+0000\n"
+"Last-Translator: Nusara Boonma <nuboo@odoo.com>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-2/uom/th/>"
+"\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,7 +33,7 @@ msgstr ""
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__factor
 msgid "Absolute Quantity"
-msgstr "ปริมาณสัมบูรณ์"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__active
@@ -103,9 +104,8 @@ msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_litre
-#, fuzzy
 msgid "L"
-msgstr "L"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__write_uid
@@ -124,9 +124,8 @@ msgstr "จัดการหน่วยวัดหลายหน่วย"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_minute
-#, fuzzy
 msgid "Minutes"
-msgstr "นาที"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_pack_6
@@ -180,11 +179,6 @@ msgid "Related UoMs"
 msgstr ""
 
 #. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "ความแม่นยำในการปัดเศษ"
-
-#. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
 msgid "Search UOM"
 msgstr "ค้นหา UOM"
@@ -209,8 +203,8 @@ msgstr ""
 "มีการแก้ไขฟิลด์สำคัญบางรายการใน %s\n"
 "โปรดทราบว่าข้อมูลเดิม จะไม่ถูกอัปเดต ตามการเปลี่ยนแปลงนี้\n"
 "\n"
-"เนื่องจากหน่วยวัดมีผลต่อทั้งระบบ การเปลี่ยนแปลงหน่วยวัดหลักในฐานข้อมูลที่กำลังใช้งาน อาจทำให้เกิดปั"
-"ญหาสำคัญได้\n"
+"เนื่องจากหน่วยวัดมีผลต่อทั้งระบบ การเปลี่ยนแปลงหน่วยวัดหลักในฐานข้อมูลที่กำลังใช้งาน "
+"อาจทำให้เกิดปัญหาสำคัญได้\n"
 "ดังนั้น ไม่แนะนำ ให้เปลี่ยนหน่วยวัดหลักในระบบที่กำลังใช้งานอยู่"
 
 #. module: uom
@@ -356,12 +350,12 @@ msgstr "มม."
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_square_meter
 msgid "m²"
-msgstr "m²"
+msgstr "ตร.ม."
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_cubic_meter
 msgid "m³"
-msgstr "m³"
+msgstr "ลูกบาศก์เมตร"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_oz
@@ -377,143 +371,3 @@ msgstr "qt (US)"
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr "หลา"
-
-#~ msgid ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    e.g: 1*(reference unit)=ratio*(this "
-#~ "unit)\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                   เช่น : 1*(reference unit)=ratio*(this "
-#~ "unit)\n"
-#~ "                                </span>"
-
-#~ msgid ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    e.g: 1*(this unit)=ratio*(reference "
-#~ "unit)\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    เช่น: 1*(this unit)=ratio*(reference "
-#~ "unit)\n"
-#~ "                                </span>"
-
-#~ msgid "Add a new unit of measure category"
-#~ msgstr "เพิ่มหมวดหมู่หน่วยวัดใหม่"
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "อัตราส่วนที่ใหญ่กว่า"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "ใหญ่กว่าหน่วยวัดอ้างอิง"
-
-#~ msgid "Category"
-#~ msgstr "หมวดหมู่"
-
-#~ msgid "Color"
-#~ msgstr "สี"
-
-#~ msgid "Combined Ratio"
-#~ msgstr "อัตราส่วนรวม"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "การแปลงระหว่างหน่วยวัดจะเกิดขึ้นได้ก็ต่อเมื่ออยู่ในหมวดหมู่เดียวกัน การแปลงจะอิงตามอัตราส่วน"
-
-#~ msgid "Group By"
-#~ msgstr "กลุ่มโดย"
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "หน่วยวัดนี้ใหญ่กว่าหน่วยวัดอ้างอิงในหมวดหมู่นี้กี่ครั้ง: 1 * (หน่วยนี้) = อัตราส่วน * (หน่วยอ้างอิง)"
-
-#~ msgid ""
-#~ "How much bigger or smaller this unit is compared to the reference Unit of "
-#~ "Measure for this category: 1 * (reference unit) = ratio * (this unit)"
-#~ msgstr ""
-#~ "หน่วยนี้ใหญ่กว่าหรือเล็กกว่ามากเมื่อเทียบกับหน่วยวัดอ้างอิงสำหรับหมวดหมู่นี้: 1 * (หน่วยอ้างอิง) "
-#~ "= อัตราส่วน * (หน่วยนี้)"
-
-#~ msgid "Last Modified on"
-#~ msgstr "แก้ไขครั้งล่าสุดเมื่อ"
-
-#~ msgid "Length / Distance"
-#~ msgstr "ความยาว/ระยะทาง"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "หมวดของหน่วยวัดของสินค้า"
-
-#~ msgid "Ratio"
-#~ msgstr "อัตราส่วน"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "หน่วยอ้างอิงสำหรับหมวดหมู่นี้"
-
-#~ msgid "Reference UoM"
-#~ msgstr "อ้างอิง UoM"
-
-#~ msgid "Search UoM Category"
-#~ msgstr "ค้นหาหมวดหมู่ UoM"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "เล็กกว่าหน่วยวัดอ้างอิง"
-
-#~ msgid "Type"
-#~ msgstr "ประเภท"
-
-#~ msgid "Unit"
-#~ msgstr "หน่วย"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "หน่วยวัด"
-
-#~ msgid "Unit of Measure Category"
-#~ msgstr "หมวดหมู่ของหน่วยวัด"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "หมวดหมู่ของหน่วยวัด"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "หมวดของหน่วยวัด"
-
-#~ msgid ""
-#~ "Units of measure belonging to the same category can be\n"
-#~ "            converted between each others. For example, in the category\n"
-#~ "            <i>'Time'</i>, you will have the following units of measure:\n"
-#~ "            Hours, Days."
-#~ msgstr ""
-#~ "หน่วยวัดที่อยู่ในหมวดหมู่เดียวกันสามารถเป็น\n"
-#~ "            เปลี่ยนระหว่างกัน ตัวอย่างเช่น ในหมวดหมู่\n"
-#~ "            <i>'เวลา'</i>คุณจะมีหน่วยวัดต่อไปนี้:\n"
-#~ "            ชั่วโมง วัน"
-
-#~ msgid "UoM category %s should have a reference unit of measure."
-#~ msgstr "หมวดหมู่ UoM %s ควรมีหน่วยวัดอ้างอิง"
-
-#~ msgid "UoM category %s should only have one reference unit of measure."
-#~ msgstr "หมวดหมู่ UoM %s ควรมีหน่วยอ้างอิงเพียงหนึ่งหน่วยวัดเท่านั้น"
-
-#~ msgid "Uom"
-#~ msgstr "หน่วยวัด"
-
-#~ msgid "Volume"
-#~ msgstr "ปริมาตร"
-
-#~ msgid "Weight"
-#~ msgstr "น้ำหนัก"
-
-#~ msgid "Working Time"
-#~ msgstr "เวลาทำงาน"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "คุณต้องกำหนดอัตราการแปลงระหว่างหน่วยวัดหลายหน่วย\n"
-#~ "            ในหมวดเดียวกัน"

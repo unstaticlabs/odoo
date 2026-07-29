@@ -4,16 +4,24 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 18:17+0000\n"
-"PO-Revision-Date: 2026-07-10 18:17+0000\n"
+"POT-Creation-Date: 2026-07-17 18:22+0000\n"
+"PO-Revision-Date: 2026-07-17 18:22+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: l10n_it_edi
+#: model:ir.model.fields,help:l10n_it_edi.field_account_bank_statement_line__l10n_it_convention_code
+#: model:ir.model.fields,help:l10n_it_edi.field_account_move__l10n_it_convention_code
+msgid ""
+" Used to connect an individual invoice to a broader framework agreement, a "
+"specific project, or a long-term convention."
+msgstr ""
 
 #. module: l10n_it_edi
 #: model_terms:ir.ui.view,arch_db:l10n_it_edi.report_invoice_document
@@ -76,11 +84,6 @@ msgstr ""
 #. module: l10n_it_edi
 #: model:ir.model,name:l10n_it_edi.model_account_edi_proxy_client_user
 msgid "Account EDI proxy user"
-msgstr ""
-
-#. module: l10n_it_edi
-#: model:ir.model,name:l10n_it_edi.model_account_move_send
-msgid "Account Move Send"
 msgstr ""
 
 #. module: l10n_it_edi
@@ -190,7 +193,7 @@ msgstr ""
 
 #. module: l10n_it_edi
 #: model:ir.model,name:l10n_it_edi.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_it_edi
@@ -779,6 +782,12 @@ msgid ""
 msgstr ""
 
 #. module: l10n_it_edi
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_bank_statement_line__l10n_it_convention_code
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_move__l10n_it_convention_code
+msgid "Order/Convention Code"
+msgstr ""
+
+#. module: l10n_it_edi
 #: model:ir.model.fields,field_description:l10n_it_edi.field_account_bank_statement_line__l10n_it_origin_document_date
 #: model:ir.model.fields,field_description:l10n_it_edi.field_account_move__l10n_it_origin_document_date
 msgid "Origin Document Date"
@@ -843,7 +852,7 @@ msgstr ""
 
 #. module: l10n_it_edi
 #: model:ir.model,name:l10n_it_edi.model_account_payment_method_line
-msgid "Payment Methods"
+msgid "Payment Method Line"
 msgstr ""
 
 #. module: l10n_it_edi
@@ -1032,6 +1041,11 @@ msgstr ""
 #. module: l10n_it_edi
 #: model:ir.model.fields,field_description:l10n_it_edi.field_res_company__l10n_it_eco_index_share_capital
 msgid "Share capital actually paid up"
+msgstr ""
+
+#. module: l10n_it_edi
+#: model:ir.model,name:l10n_it_edi.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
 msgstr ""
 
 #. module: l10n_it_edi

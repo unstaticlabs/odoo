@@ -21,24 +21,24 @@
 # Martin Trigaux, 2022
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:48+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-04-04 13:04+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_blog/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_blog
 #. odoo-python
@@ -58,8 +58,13 @@ msgstr "'. Tulokset haulle '"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.date_selector
-msgid "-- All dates"
-msgstr "-- Kaikki päivät"
+msgid "-- Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.date_selector
+msgid "-- Unpublished"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_6
@@ -209,20 +214,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 msgstr "<i class=\"fa fa-globe me-1\" title=\"Verkkosivu\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-msgstr "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.s_dynamic_snippet_blog_posts_single_aside_preview_data
@@ -386,8 +377,8 @@ msgid ""
 "that employs people who know their stuff. If you buy your telescope at a Wal-"
 "Mart or department store, the odds you will get the right thing are remote."
 msgstr ""
-"Ihan ensiksi kannattaa <b>vierailla hyvämaineisessa kaukoputkiliikkeessä</b>"
-", jossa työskentelee asiantuntevaa henkilökuntaa. Jos ostat kaukoputken "
+"Ihan ensiksi kannattaa <b>vierailla hyvämaineisessa kaukoputkiliikkeessä</"
+"b>, jossa työskentelee asiantuntevaa henkilökuntaa. Jos ostat kaukoputken "
 "Tokmannilta tai tavaratalosta, on hyvin epätodennäköistä, että saat juuri "
 "oikeanlaisen laitteen."
 
@@ -568,6 +559,16 @@ msgid "Author Name"
 msgstr "Tekijän nimi"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_post__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__author_avatar
 msgid "Avatar"
 msgstr "Avatar"
@@ -649,12 +650,19 @@ msgstr "Piilossa katseelta"
 #: model:ir.model,name:website_blog.model_blog_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__blog_id
 #: model:ir.ui.menu,name:website_blog.menu_website_blog_root_global
+#: model:res.groups.privilege,name:website_blog.res_groups_privilege_blog
 #: model:website.menu,name:website_blog.menu_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_blog_view_search
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_blog_form
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_search
+#: model_terms:ir.ui.view,arch_db:website_blog.website_blog
 msgid "Blog"
 msgstr "Blogi"
+
+#. module: website_blog
+#: model:res.groups,name:website_blog.group_website_blog_manager
+msgid "Blog Manager"
+msgstr ""
 
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__name
@@ -725,6 +733,11 @@ msgid "Blog Tags"
 msgstr "Blogitunnisteet"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Blog Teaser"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_cover_post_fullwidth_design
 msgid "Blog Title"
 msgstr "Blogin otsikko"
@@ -770,6 +783,11 @@ msgstr "Alhaalla"
 #: code:addons/website_blog/static/src/website_builder/blog_page_option.xml:0
 msgid "Breadcrumb"
 msgstr "Linkkipolku"
+
+#. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_3
@@ -1050,11 +1068,6 @@ msgstr "Muokkaa otsikkoa, alaotsikko on valinnainen."
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Enter your post's title"
 msgstr "Kirjoita julkaisun otsikko"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Facebook"
-msgstr "Facebook"
 
 #. module: website_blog
 #: model:blog.post,subtitle:website_blog.blog_post_3
@@ -1478,11 +1491,6 @@ msgstr ""
 #: model_terms:blog.post,content:website_blog.blog_post_3
 msgid "Leisure Facilities"
 msgstr "Vapaa-ajan palvelut"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_blog
 #. odoo-javascript
@@ -1914,7 +1922,13 @@ msgid "Publication Date"
 msgstr "Julkaisupäivämäärä"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 msgid "Published"
 msgstr "Julkaistu"
 
@@ -1924,25 +1938,20 @@ msgid "Published ("
 msgstr "Julkaistu ("
 
 #. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
-msgid "Published Date"
-msgstr "Julkaisupäivä"
-
-#. module: website_blog
 #: model:mail.message.subtype,description:website_blog.mt_blog_blog_published
 #: model:mail.message.subtype,name:website_blog.mt_blog_blog_published
 msgid "Published Post"
 msgstr "Julkaistu kirjoitus"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 msgid "Publishing Options"
 msgstr "Julkaisuvaihtoehdot"
-
-#. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__post_date
-msgid "Publishing date"
-msgstr "Julkaisupäivä"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.sidebar_blog_index
@@ -2024,6 +2033,17 @@ msgid "Satellites"
 msgstr "Satelliitit"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_list
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
+msgid "Scheduled ("
+msgstr ""
+
+#. module: website_blog
 #. odoo-javascript
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Search for an image. (eg: type \"business\")"
@@ -2073,7 +2093,7 @@ msgstr "Erottele jokainen avainsana pilkulla"
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__sequence
 msgid "Sequence"
-msgstr "Sekvenssi"
+msgstr "Järjestys"
 
 #. module: website_blog
 #. odoo-javascript
@@ -2099,23 +2119,13 @@ msgstr "Jaa linkit"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on Facebook"
-msgstr "Jaa Facebookissa"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on LinkedIn"
-msgstr "Jaa Linkedinissä"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on X"
-msgstr "Jaa X:ssä"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
 msgid "Share this post"
 msgstr "Jaa tämä kirjoitus"
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Shown as a preview on the /blog page"
+msgstr ""
 
 #. module: website_blog
 #. odoo-javascript
@@ -2474,15 +2484,6 @@ msgid "The best time to view the moon."
 msgstr "Paras aika katsella kuuta."
 
 #. module: website_blog
-#: model:ir.model.fields,help:website_blog.field_blog_post__post_date
-msgid ""
-"The blog post will be visible for your visitors as of this date on the "
-"website if it is set as published."
-msgstr ""
-"Tämä blogikirjoitus näkyy kävijöille sinä päivänä, kun se on merkattu "
-"julkaistavaksi."
-
-#. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_2
 msgid ""
 "The cliffs in this region are among the highest in the world and to see "
@@ -2496,6 +2497,7 @@ msgstr ""
 "todistaa tämän luonnon kauneuden."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr ""
@@ -2503,6 +2505,7 @@ msgstr ""
 "kautta."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_url
 msgid "The full relative URL to access the document through the website."
 msgstr ""
@@ -2758,14 +2761,14 @@ msgid "Travel"
 msgstr "Matkustus"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Twitter"
-msgstr "Twitter"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
 msgid "Unpublished ("
 msgstr "Julkaisematon ("
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Unschedule"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.post_heading
@@ -2819,6 +2822,7 @@ msgid "Website"
 msgstr "Verkkosivu"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_absolute_url
 msgid "Website Absolute URL"
 msgstr "Verkkosivun absoluuttinen URL"
@@ -2840,6 +2844,7 @@ msgid "Website Snippet Filter"
 msgstr "Verkkosivun katkelmien suodatin"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_url
 msgid "Website URL"
 msgstr "Verkkosivun osoite"
@@ -3005,11 +3010,6 @@ msgid "to leave a comment"
 msgstr "jättääksesi kommentin"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
-msgid "unpublished"
-msgstr "julkaisematon"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid ""
 "|\n"
@@ -3022,101 +3022,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid "| No comments yet"
 msgstr "| Ei vielä kommentteja"
-
-#~ msgid "&amp;nbsp;"
-#~ msgstr "&amp;nbsp;"
-
-#~ msgid "' page header."
-#~ msgstr "' sivun otsikko."
-
-#~ msgid ""
-#~ "<i class=\"fa fa-github text-github\" aria-label=\"Github\" "
-#~ "title=\"Github\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-github text-github\" aria-label=\"Github\" "
-#~ "title=\"Github\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-#~ "title=\"Instagram\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-#~ "title=\"Instagram\"/>"
-
-#~ msgid "<i class=\"fa fa-rss-square\" aria-label=\"RSS\" title=\"RSS\"/>"
-#~ msgstr "<i class=\"fa fa-rss-square\" aria-label=\"RSS\" title=\"RSS\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-#~ "title=\"Youtube\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-#~ "title=\"Youtube\"/>"
-
-#~ msgid "Amazing blog article: %s! Check it live: %s"
-#~ msgstr "Mahtava blogikirjoitus: %s! Katso se livenä: %s"
-
-#~ msgid "Drop Zone for Building Blocks"
-#~ msgstr "Rakennuslohkojen pudotusalue"
-
-#~ msgid "Edit the '"
-#~ msgstr "Muokkaa '"
-
-#~ msgid "Follow us"
-#~ msgstr "Seuraa meitä"
-
-#~ msgid "Group By"
-#~ msgstr "Ryhmittele"
-
-#~ msgid "Hover effect"
-#~ msgstr "Leijumisefekti"
-
-#~ msgid "Latest"
-#~ msgstr "Viimeisimmät"
-
-#~ msgid "Name / Latest Post"
-#~ msgstr "Nimi / Viimeisin virka"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Toimenpiteitä vaativien viestien määrä"
-
-#~ msgid "Read more"
-#~ msgstr "Lue lisää"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Rajoita julkaisu tälle verkkosivustolle."
-
-#~ msgid "Select to Comment"
-#~ msgstr "Valitse kommentoidaksesi"
-
-#~ msgid "Select to Tweet"
-#~ msgstr "Valitse tweetin lähettämiseksi"
-
-#~ msgid "Share on Twitter"
-#~ msgstr "Jaa Twitterissä"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Dokumentin URL-osoite verkkosivustolla."
-
-#~ msgid "This tag already exists"
-#~ msgstr "Tämä tunniste on jo olemassa"
-
-#~ msgid "in <i class=\"fa fa-folder-open text-muted\"/>"
-#~ msgstr "käytössä <i class=\"fa fa-folder-open text-muted\"/>"
-
-#~ msgid "in <i class=\"fa fa-folder-open text-white-75\"/>"
-#~ msgstr "käytössä <i class=\"fa fa-folder-open text-white-75\"/>"
-
-#~ msgid ""
-#~ "|\n"
-#~ "                            <i class=\"fa fa-comment text-muted me-1\"/>"
-#~ msgstr ""
-#~ "|\n"
-#~ "                           <i class=\"fa fa-comment text-muted me-1\"/>"

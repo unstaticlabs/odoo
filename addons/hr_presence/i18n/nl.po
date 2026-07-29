@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2022
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 23:14+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-06 14:00+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_presence/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -23,12 +23,6 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 2026.6.1\n"
-
-#. module: hr_presence
-#. odoo-python
-#: code:addons/hr_presence/models/hr_employee.py:0
-msgid "%(name)s has been noted as %(state)s today"
-msgstr "%(name)s is vandaag genoteerd als %(state)s"
 
 #. module: hr_presence
 #: model:mail.template,body_html:hr_presence.mail_template_presence
@@ -49,8 +43,8 @@ msgid ""
 "            "
 msgstr ""
 "<div>\n"
-"                    Beste <t t-out=\"object.name or ''\">Abigail Peterson</t>"
-",<br/><br/>\n"
+"                    Beste <t t-out=\"object.name or ''\">Abigail Peterson</"
+"t>,<br/><br/>\n"
 "We hopen dat deze e-mail je goed treft. We hebben vernomen dat je momenteel "
 "niet aanwezig bent op het werk terwijl er geen registratie is van enige "
 "verlofaanvraag Wij bieden graag onze oprechte excuses aan voor de eventuele "
@@ -64,21 +58,14 @@ msgstr ""
 "            "
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__absent
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__absent
 #: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
 msgid "Absent"
 msgstr "Afwezig"
 
 #. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_log
-msgid "Add a log note"
-msgstr "Een logboeknotitie toevoegen"
-
-#. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_company
-msgid "Companies"
-msgstr "Bedrijven"
+msgid "Company"
+msgstr "Bedrijf"
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_config_settings
@@ -144,12 +131,6 @@ msgid "Hr Presence Last Compute Date"
 msgstr "HR aanwezigheid laatste datum berekend"
 
 #. module: hr_presence
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee__hr_presence_state_display
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__hr_presence_state_display
-msgid "Hr Presence State Display"
-msgstr "HR aanwezigheid status tonen"
-
-#. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_presence.field_ir_websocket__id
@@ -183,44 +164,22 @@ msgid "Manually Set Present"
 msgstr "Handmatig ingesteld op aanwezig"
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__out_of_working_hour
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__out_of_working_hour
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Off-Hours"
-msgstr "Buiten kantooruren"
-
-#. module: hr_presence
 #. odoo-javascript
 #: code:addons/hr_presence/static/src/search/hr_presence_cog_menu/hr_presence_cog_menu.xml:0
 msgid "Presence Control"
 msgstr "Aanwezigheidscontrole"
 
 #. module: hr_presence
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Presence/Absence"
-msgstr "Aanwezigheid/Absentie"
-
-#. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__present
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__present
-msgid "Present"
-msgstr "Huidig"
-
-#. module: hr_presence
 #: model:ir.model,name:hr_presence.model_hr_employee_public
 msgid "Public Employee"
-msgstr "Ambtenaar"
+msgstr "Openbare werknemer"
 
 #. module: hr_presence
 #. odoo-python
 #: code:addons/hr_presence/models/hr_employee.py:0
+#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
 msgid "Send SMS"
 msgstr "Sms verzenden"
-
-#. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
-msgid "Send a SMS"
-msgstr "SMS versturen"
 
 #. module: hr_presence
 #: model:mail.template,description:hr_presence.mail_template_presence
@@ -290,64 +249,3 @@ msgstr ""
 #: model:ir.model,name:hr_presence.model_ir_websocket
 msgid "websocket message handling"
 msgstr "websocket berichtafhandeling"
-
-#~ msgid "Absence/Presence"
-#~ msgstr "Aanwezig/Afwezig"
-
-#~ msgid "Basic Employee"
-#~ msgstr "Basis werknemer"
-
-#~ msgid "Compose Email"
-#~ msgstr "E-mail opstellen"
-
-#~ msgid "Compute presence and open presence view"
-#~ msgstr "Bereken aanwezigheid en open aanwezigheidsweergave"
-
-#~ msgid "Create Uid"
-#~ msgstr "Aanmaak uid"
-
-#~ msgid "Employee's Presence to Define"
-#~ msgstr "Te definiëren aanwezigheid van de werknemer"
-
-#~ msgid "Employees"
-#~ msgstr "Werknemers"
-
-#~ msgid ""
-#~ "Exception made if there was a mistake of ours, it seems that you are not "
-#~ "at your office and there is not request of time off from you.\n"
-#~ "Please, take appropriate measures in order to carry out this work "
-#~ "absence.\n"
-#~ "Do not hesitate to contact your manager or the human resource department."
-#~ msgstr ""
-#~ "Als er geen fout is gemaakt, het lijkt erop dat je niet op je kantoor "
-#~ "bent en er geen verzoek om verlof van je is.\n"
-#~ "Neem a.je.b. passende maatregelen om dit verzuim uit te voeren.\n"
-#~ "Aarzel niet om contact op te nemen met je manager of de afdeling "
-#~ "personeelszaken."
-
-#~ msgid "Log"
-#~ msgstr "Log"
-
-#~ msgid "Presence"
-#~ msgstr "Aanwezigheid"
-
-#~ msgid "SMS"
-#~ msgstr "SMS"
-
-#~ msgid "Set as absent"
-#~ msgstr "Instellen als afwezig"
-
-#~ msgid "Set as present"
-#~ msgstr "Stel als aanwezig in"
-
-#~ msgid "There is no professional email address for this employee."
-#~ msgstr "Er is geen professioneel e-mailadres voor deze werknemer."
-
-#~ msgid "There is no professional mobile for this employee."
-#~ msgstr "Er is geen professionele mobiel voor deze werknemer."
-
-#~ msgid "Time Off"
-#~ msgstr "Verlof"
-
-#~ msgid "To Define"
-#~ msgstr "Te definiëren"

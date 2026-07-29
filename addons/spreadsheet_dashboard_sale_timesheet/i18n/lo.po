@@ -1,210 +1,302 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * spreadsheet_dashboard_sale_timesheet
+# 	* spreadsheet_dashboard_sale_timesheet
 #
-# Bone NI <bounkirdni@gmail.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:02+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/"
-"spreadsheet_dashboard_sale_timesheet/lo/>\n"
-"Language: lo\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-02-20 09:02+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
-#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billable Hours"
-msgstr "ຊົ່ວໂມງທີ່ເກັບເງິນໄດ້"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billable Rate"
-msgstr "ອັດຕາການເກັບເງິນ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Billable Time"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billable hours"
-msgstr "ຊົ່ວໂມງທີ່ເກັບເງິນໄດ້"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billable rate"
-msgstr "ອັດຕາການເກັບເງິນ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Billed by Month"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billed fixed price"
-msgstr "ເກັບເງິນລາຄາຄົງທີ່"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billed manually"
-msgstr "ເກັບເງິນດ້ວຍຕົນເອງ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Billed milestones"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Billed timesheets"
-msgstr "ໃບບັນທຶກເວລາທີ່ເກັບເງິນແລ້ວ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Costs"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Current"
-msgstr "ປັດຈຸບັນ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Current Days"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Current Score"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Days billed"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Days spent"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Department"
-msgstr "ພະແນກ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Employee"
-msgstr "ພະນັກງານ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Grand total"
-msgstr "ຍອດລວມທັງໝົດ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Hours billed"
-msgstr "ຊົ່ວໂມງທີ່ເກັບເງິນແລ້ວ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Hours spent"
-msgstr "ຊົ່ວໂມງທີ່ໃຊ້ໄປ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "KPI"
-msgstr "KPI"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Non-Billable Projects Costs"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Non-Billable Tasks Costs"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Non-billable Hours"
-msgstr "ຊົ່ວໂມງທີ່ເກັບເງິນບໍ່ໄດ້"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Non-billable Time"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Non-billable hours"
-msgstr "ຊົ່ວໂມງທີ່ເກັບເງິນບໍ່ໄດ້"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 msgid "Period"
-msgstr "ໄລຍະເວລາ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Previous"
-msgstr "ກ່ອນໜ້າ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Previous Days"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Previous Score"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Project"
-msgstr "ໂຄງການ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Task"
-msgstr "ໜ້າວຽກ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Time Billed by Week"
-msgstr "ເວລາທີ່ເກັບເງິນຕາມອາທິດ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Time Encoding:"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #: model:spreadsheet.dashboard,name:spreadsheet_dashboard_sale_timesheet.spreadsheet_dashboard_timesheet
 msgid "Timesheets"
-msgstr "ໃບບັນທຶກເວລາ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Top Departments"
-msgstr "ພະແນກດີເດັ່ນ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Top Employees"
-msgstr "ພະນັກງານດີເດັ່ນ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Top Projects"
-msgstr "ໂຄງການດີເດັ່ນ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "Top Tasks"
-msgstr "ໜ້າວຽກດີເດັ່ນ"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "Total Time"
+msgstr ""
+
+#. module: spreadsheet_dashboard_sale_timesheet
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
+msgid "expected"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "last period"
-msgstr "ໄລຍະຜ່ານມາ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_sale_timesheet
 #. odoo-javascript
-#: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_sale_timesheet/data/files/timesheet_sample_dashboard.json:0
 msgid "since last period"
-msgstr "ນັບຕັ້ງແຕ່ໄລຍະຜ່ານມາ"
+msgstr ""

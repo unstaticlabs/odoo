@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 19.2a1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-01-25 18:37+0000\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-02-04 18:37+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -93,6 +93,11 @@ msgid "Activity Exception Decoration"
 msgstr ""
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
 msgid "Activity State"
 msgstr ""
@@ -154,6 +159,16 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
+msgstr ""
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Automatically publish the page on the chosen date and time."
 msgstr ""
 
 #. module: website_event_exhibitor
@@ -649,6 +664,11 @@ msgid "Published"
 msgstr ""
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -929,6 +949,11 @@ msgstr ""
 msgid ""
 "is over.\n"
 "                <br/>"
+msgstr ""
+
+#. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
 msgstr ""
 
 #. module: website_event_exhibitor

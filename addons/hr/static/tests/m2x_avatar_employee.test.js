@@ -53,8 +53,7 @@ test("many2one in list view", async () => {
 
     // click on first employee avatar
     await contains(".o_data_cell .o_m2o_avatar > img:eq(0)").click();
-    await waitFor(".o_avatar_card");
-    expect(".o_card_user_infos > span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -63,7 +62,7 @@ test("many2one in list view", async () => {
 
     // click on second employee
     await contains(".o_data_cell .o_m2o_avatar > img:eq(1)").click();
-    expect(".o_card_user_infos span").toHaveText("Luigi");
+    await waitFor(".o-mail-avatar-card-name:text(Luigi)");
     expect(".o_avatar_card").toHaveCount(1);
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -72,9 +71,9 @@ test("many2one in list view", async () => {
 
     // click on third employee (same as first)
     await contains(".o_data_cell .o_m2o_avatar > img:eq(2)").click();
-    expect(".o_card_user_infos span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_avatar_card").toHaveCount(1);
-    expect(".o_card_user_infos span:eq(0)").toHaveText("Mario");
+    expect(".o-mail-avatar-card-name").toHaveText("Mario");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -89,6 +88,7 @@ test("many2one in kanban view", async () => {
     const employeeId = env["hr.employee.public"].create({
         user_id: userId,
         user_partner_id: partnerId,
+        write_date: "2023-02-13 10:00:00",
     });
     env["m2x.avatar.employee"].create({
         employee_id: employeeId,
@@ -110,7 +110,7 @@ test("many2one in kanban view", async () => {
     await waitFor(".o_m2o_avatar");
     expect(".o_m2o_avatar > img:eq(0)").toHaveAttribute(
         "data-src",
-        `/web/image/hr.employee.public/${employeeId}/avatar_128`
+        `/web/image/hr.employee.public/${employeeId}/avatar_128?unique=1676282400000`
     );
 });
 
@@ -136,6 +136,7 @@ test("many2one with hr group widget in kanban view", async () => {
     const employeeId = env["hr.employee.public"].create({
         user_id: userId,
         user_partner_id: partnerId,
+        write_date: "2023-02-13 10:00:00",
     });
     env["m2x.avatar.employee"].create({
         employee_id: employeeId,
@@ -156,7 +157,7 @@ test("many2one with hr group widget in kanban view", async () => {
     await waitFor(".o_m2o_avatar");
     expect(".o_m2o_avatar > img:eq(0)").toHaveAttribute(
         "data-src",
-        `/web/image/hr.employee/${employeeId}/avatar_128`
+        `/web/image/hr.employee/${employeeId}/avatar_128?unique=1676282400000`
     );
 });
 
@@ -167,6 +168,7 @@ test("many2one with relation set in options", async () => {
     const employeeId = env["hr.employee.public"].create({
         user_id: userId,
         user_partner_id: partnerId,
+        write_date: "2023-02-13 10:00:00",
     });
     env["m2x.avatar.employee"].create({
         employee_id: employeeId,
@@ -187,7 +189,7 @@ test("many2one with relation set in options", async () => {
     await waitFor(".o_m2o_avatar");
     expect(".o_m2o_avatar > img:eq(0)").toHaveAttribute(
         "data-src",
-        `/web/image/hr.employee.public/${employeeId}/avatar_128`
+        `/web/image/hr.employee.public/${employeeId}/avatar_128?unique=1676282400000`
     );
 });
 
@@ -236,11 +238,13 @@ test("many2one in form view", async () => {
             user_partner_id: partnerId_1,
             name: "Mario",
             work_email: "Mario@partner.com",
+            write_date: "2023-02-13 10:00:00",
         },
         {
             name: "Luigi",
             user_id: userId_2,
             user_partner_id: partnerId_2,
+            write_date: "2023-02-13 10:00:00",
         },
     ]);
     const avatarId_1 = env["m2x.avatar.employee"].create({
@@ -257,13 +261,12 @@ test("many2one in form view", async () => {
     expect(".o_field_many2many_avatar_employee .o_tag").toHaveCount(2);
     expect(".o_field_many2many_avatar_employee .o_tag img:eq(0)").toHaveAttribute(
         "data-src",
-        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128`
+        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128?unique=1676282400000`
     );
 
     // Clicking on first employee's avatar
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(0)").click();
-    await waitFor(".o_avatar_card");
-    expect(".o_card_user_infos > span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -272,7 +275,7 @@ test("many2one in form view", async () => {
 
     // Clicking on second employee's avatar
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(1)").click();
-    expect(".o_card_user_infos span").toHaveText("Luigi");
+    await waitFor(".o-mail-avatar-card-name:text(Luigi)");
     expect(".o_avatar_card").toHaveCount(1);
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -288,8 +291,8 @@ test("many2one with hr group widget in form view", async () => {
         { partner_id: partnerId_2 },
     ]);
     const [employeeData_1, employeeData_2] = [
-        { user_id: userId_1, user_partner_id: partnerId_1 },
-        { user_id: userId_2, user_partner_id: partnerId_2 },
+        { user_id: userId_1, user_partner_id: partnerId_1, write_date: "2023-02-13 10:00:00" },
+        { user_id: userId_2, user_partner_id: partnerId_2, write_date: "2023-02-13 10:00:00" },
     ];
     env["hr.employee"].create([{ ...employeeData_1 }, { ...employeeData_2 }]);
     const [employeeId_1, employeeId_2] = env["hr.employee.public"].create([
@@ -310,14 +313,11 @@ test("many2one with hr group widget in form view", async () => {
     expect(".o_field_many2many_avatar_employee .o_tag").toHaveCount(2);
     expect(".o_field_many2many_avatar_employee .o_tag img:eq(0)").toHaveAttribute(
         "data-src",
-        `${getOrigin()}/web/image/hr.employee/${employeeId_1}/avatar_128`
+        `${getOrigin()}/web/image/hr.employee/${employeeId_1}/avatar_128?unique=1676282400000`
     );
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(0)").click();
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(1)").click();
-    expect.verifySteps([
-        `read hr.employee ${employeeId_1}`,
-        `read hr.employee ${employeeId_2}`,
-    ]);
+    expect.verifySteps([`read hr.employee ${employeeId_1}`, `read hr.employee ${employeeId_2}`]);
 });
 
 test("many2one widget in list view", async () => {
@@ -357,8 +357,7 @@ test("many2one widget in list view", async () => {
 
     // Clicking on first employee's avatar
     await contains(".o_data_cell .o_m2m_avatar:eq(0)").click();
-    await waitFor(".o_avatar_card");
-    expect(".o_card_user_infos > span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -367,7 +366,7 @@ test("many2one widget in list view", async () => {
 
     // Clicking on second employee's avatar
     await contains(".o_data_cell .o_m2m_avatar:eq(1)").click();
-    expect(".o_card_user_infos span").toHaveText("Yoshi");
+    await waitFor(".o-mail-avatar-card-name:text(Yoshi)");
     expect(".o_avatar_card").toHaveCount(1);
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -390,11 +389,13 @@ test("many2many in kanban view", async () => {
             user_partner_id: partnerId_1,
             name: "Mario",
             work_email: "Mario@partner.com",
+            write_date: "2023-02-13 10:00:00",
         },
         {
             name: "Luigi",
             user_id: userId_2,
             user_partner_id: partnerId_2,
+            write_date: "2023-02-13 10:00:00",
         },
     ]);
     env["m2x.avatar.employee"].create({
@@ -422,19 +423,18 @@ test("many2many in kanban view", async () => {
         ".o_kanban_record .o_field_many2many_avatar_employee img.o_m2m_avatar:eq(0)"
     ).toHaveAttribute(
         "data-src",
-        `${getOrigin()}/web/image/hr.employee.public/${employeeId_2}/avatar_128`
+        `${getOrigin()}/web/image/hr.employee.public/${employeeId_2}/avatar_128?unique=1676282400000`
     );
     expect(
         ".o_kanban_record .o_field_many2many_avatar_employee img.o_m2m_avatar:eq(1)"
     ).toHaveAttribute(
         "data-src",
-        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128`
+        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128?unique=1676282400000`
     );
 
     // Clicking on first employee's avatar
     await contains(".o_kanban_record img.o_m2m_avatar:eq(1)").click();
-    await waitFor(".o_avatar_card");
-    expect(".o_card_user_infos > span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -443,7 +443,7 @@ test("many2many in kanban view", async () => {
 
     // Clicking on second employee's avatar
     await contains(".o_kanban_record img.o_m2m_avatar:eq(0)").click();
-    expect(".o_card_user_infos span").toHaveText("Luigi");
+    await waitFor(".o-mail-avatar-card-name:text(Luigi)");
     expect(".o_avatar_card").toHaveCount(1);
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();
@@ -459,11 +459,13 @@ test("many2many: click on an employee not associated with a user", async () => {
         {
             name: "Mario",
             work_email: "Mario@partner.com",
+            write_date: "2023-02-13 10:00:00",
         },
         {
             name: "Luigi",
             user_id: userId,
             user_partner_id: partnerId,
+            write_date: "2023-02-13 10:00:00",
         },
     ]);
     const avatarId = env["m2x.avatar.employee"].create({
@@ -480,19 +482,18 @@ test("many2many: click on an employee not associated with a user", async () => {
     expect(".o_field_many2many_avatar_employee .o_tag").toHaveCount(2);
     expect(".o_field_many2many_avatar_employee .o_tag img:eq(0)").toHaveAttribute(
         "data-src",
-        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128`
+        `${getOrigin()}/web/image/hr.employee.public/${employeeId_1}/avatar_128?unique=1676282400000`
     );
 
     // Clicking on first employee's avatar (employee with no user)
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(0)").click();
-    await waitFor(".o_avatar_card");
-    expect(".o_card_user_infos > span").toHaveText("Mario");
+    await waitFor(".o-mail-avatar-card-name:text(Mario)");
     expect(".o_card_user_infos > a").toHaveText("Mario@partner.com");
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("View Profile");
 
     // Clicking on second employee's avatar (employee with user)
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(1)").click();
-    expect(".o_card_user_infos span").toHaveText("Luigi");
+    await waitFor(".o-mail-avatar-card-name:text(Luigi)");
     expect(".o_avatar_card").toHaveCount(1);
     expect(".o_avatar_card_buttons button:eq(0)").toHaveText("Send message");
     await contains(".o_avatar_card_buttons button:eq(0)").click();

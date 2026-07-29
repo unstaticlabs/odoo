@@ -6,11 +6,12 @@ from freezegun import freeze_time
 from json import loads
 
 from odoo.fields import Command
-from odoo.tests import Form, TransactionCase
+from odoo.tests import tagged, Form, TransactionCase
 from odoo.tools import mute_logger
 from odoo.exceptions import UserError
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestProcRule(TransactionCase):
 
     @classmethod
@@ -104,7 +105,7 @@ class TestProcRule(TransactionCase):
             'location_dest_id': self.ref('stock.stock_location_customers'),
             'move_ids': [(0, 0, {
                 'product_id': product.id,
-                'product_uom': product.uom_id.id,
+                'uom_id': product.uom_id.id,
                 'product_uom_qty': 10.00,
                 'procure_method': 'make_to_order',
                 'location_id': self.ref('stock.stock_location_output'),
@@ -188,7 +189,7 @@ class TestProcRule(TransactionCase):
         deadline = datetime.now()
         move_dest = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'date_deadline': deadline,
             'location_id': self.ref('stock.stock_location_output'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -196,7 +197,7 @@ class TestProcRule(TransactionCase):
 
         move_orig = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'date_deadline': deadline,
             'move_dest_ids': [(4, move_dest.id)],
             'location_id': self.ref('stock.stock_location_stock'),
@@ -238,7 +239,7 @@ class TestProcRule(TransactionCase):
         delivery_move = self.env['stock.move'].create({
             'date': datetime.today() + timedelta(days=5),
             'product_id': self.product.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'product_uom_qty': 12.0,
             'location_id': warehouse.lot_stock_id.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -305,7 +306,7 @@ class TestProcRule(TransactionCase):
         })
         delivery_move = self.env['stock.move'].create({
             'product_id': self.productA.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'product_uom_qty': 12.0,
             'location_id': warehouse.lot_stock_id.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -325,7 +326,7 @@ class TestProcRule(TransactionCase):
 
         delivery_picking.write({'move_ids': [(0, 0, {
             'product_id': self.productB.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'product_uom_qty': 5.0,
             'location_id': warehouse.lot_stock_id.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -343,7 +344,7 @@ class TestProcRule(TransactionCase):
         self.assertEqual(receipt_move2.product_uom_qty, 10.0)
 
     def test_reordering_rule_3(self):
-        """Test how replenishment_uom_id affects qty_to_order"""
+        """Test how replenishment_uom_id affects qty_to_order and qty_to_order_to_max"""
         stock_location = self.stock_location = self.env.ref('stock.stock_location_stock')
         self.productA = self.env['product.product'].create({
             'name': 'Desk Combination',
@@ -354,32 +355,51 @@ class TestProcRule(TransactionCase):
             'relative_factor': 10.0,
             'relative_uom_id': self.env.ref('uom.product_uom_unit').id,
         })
+        single_unit = self.env['uom.uom'].create({
+            'name': 'Test UoM',
+            'relative_factor': 1,
+        })
         self.env['stock.quant'].with_context(inventory_mode=True).create({
             'product_id': self.productA.id,
             'location_id': stock_location.id,
             'inventory_quantity': 14.5,
         }).action_apply_inventory()
 
-        orderpoint = self.env['stock.warehouse.orderpoint'].create({
+        orderpoint = self.env['stock.warehouse.orderpoint'].with_user(self.env['res.users'].browse(2)).create({
             'name': 'ProductA RR',
             'product_id': self.productA.id,
             'product_min_qty': 15.0,
             'product_max_qty': 30.0,
             'replenishment_uom_id': pack_of_10.id,
+            'trigger': 'manual'
         })
         self.assertEqual(orderpoint.qty_to_order, 20.0)  # 15.0 < 14.5 + 10 <= 30.0
+        self.assertEqual(orderpoint.qty_to_order_to_max, 20.0)
         # Test search on computed field
         rr = self.env['stock.warehouse.orderpoint'].search([
             ('qty_to_order', '>', 0),
             ('product_id', '=', self.productA.id),
         ])
         self.assertTrue(rr)
-        orderpoint.write({'replenishment_uom_id': self.productA.uom_id})
+
+        orderpoint.replenishment_uom_id = self.productA.uom_id
         self.assertEqual(orderpoint.qty_to_order, 16.0)  # 15.0 < 14.5 + 15 <= 30.0
-        orderpoint.write({
-            'replenishment_uom_id': False,
-        })
+        self.assertEqual(orderpoint.qty_to_order_to_max, 16.0)
+        orderpoint.replenishment_uom_id = False
         self.assertEqual(orderpoint.qty_to_order, 15.5)  # 15.0 < 14.5 + 15.5 <= 30.0
+        self.assertEqual(orderpoint.qty_to_order_to_max, 15.5)
+
+        orderpoint.qty_to_order = 10.0
+        self.assertEqual(orderpoint.qty_to_order_manual, 10.0)
+        orderpoint.action_replenish()
+        self.assertEqual(orderpoint.qty_to_order, 0)
+        orderpoint._compute_qty_to_order_to_max()   # force recompute because replenishing triggers a window refresh
+        self.assertEqual(orderpoint.qty_to_order_to_max, 5.5)
+
+        orderpoint.replenishment_uom_id = pack_of_10
+        self.assertEqual(orderpoint.qty_to_order_to_max, 10.0)
+        orderpoint.replenishment_uom_id = single_unit
+        self.assertEqual(orderpoint.qty_to_order_to_max, 6.0)
 
     def test_orderpoint_replenishment_view_1(self):
         """ Create two warehouses + two moves
@@ -411,13 +431,13 @@ class TestProcRule(TransactionCase):
             'location_id': warehouse_2.lot_stock_id.id,
             'location_dest_id': self.partner.property_stock_customer.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 1,
         }, {
             'location_id': warehouse_3.lot_stock_id.id,
             'location_dest_id': self.partner.property_stock_customer.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 1,
         }])
         moves._action_confirm()
@@ -454,7 +474,7 @@ class TestProcRule(TransactionCase):
             'location_id': replenish_loc.id,
             'location_dest_id': self.partner.property_stock_customer.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 3,
         })
         move._action_confirm()
@@ -520,7 +540,7 @@ class TestProcRule(TransactionCase):
                 'location_id': stock_location.id,
                 'location_dest_id': self.partner.property_stock_customer.id,
                 'product_id': product.id,
-                'product_uom': product.uom_id.id,
+                'uom_id': product.uom_id.id,
                 'product_uom_qty': 1,
             } for product in products
         ])
@@ -594,16 +614,18 @@ class TestProcRule(TransactionCase):
             'product_max_qty': 200,
         })
         self.assertEqual(orderpoint.qty_forecast, 10.0)
-        # above minimum qty => nothing to order
+        self.assertEqual(orderpoint.qty_to_order_to_max, 190)
         orderpoint.action_replenish()
-        self.assertEqual(orderpoint.qty_forecast, 10.0)
-        orderpoint.action_replenish(force_to_max=True)
+        orderpoint._compute_qty_to_order_to_max()   # force recompute because replenishing triggers a window refresh
         self.assertEqual(orderpoint.qty_forecast, 200.0)
+        self.assertEqual(orderpoint.qty_to_order_to_max, 0)
         # Test that changing the replenishment UoM does not cause issues when replenishing to max
         orderpoint.replenishment_uom_id = self.env.ref('uom.product_uom_dozen')
         orderpoint.product_max_qty = 240
-        orderpoint.action_replenish(force_to_max=True)
+        orderpoint.action_replenish()
+        orderpoint._compute_qty_to_order_to_max()
         self.assertEqual(orderpoint.qty_forecast, 248.0, "qty to order should be 4 dozens converted to the product UoM (48) and added to the current forecasted quantity")
+        self.assertEqual(orderpoint.qty_to_order_to_max, 0)
 
     def test_orderpoint_location_archive(self):
         warehouse = self.env['stock.warehouse'].create({
@@ -619,7 +641,7 @@ class TestProcRule(TransactionCase):
         product = self.env['product.product'].create({'name': 'Test Product', 'is_storable': True})
         stock_move = self.env['stock.move'].create({
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 1,
             'location_id': shelf1.id,
             'location_dest_id': self.env.ref('stock.stock_location_customers').id,
@@ -644,7 +666,7 @@ class TestProcRule(TransactionCase):
         self.assertEqual(orderpoint.qty_to_order, 5)
         stock_move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'product_uom_qty': 1,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -664,7 +686,7 @@ class TestProcRule(TransactionCase):
         })
         stock_move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'product_uom_qty': 10,
             'location_id': self.ref('stock.stock_location_suppliers'),
             'location_dest_id': self.ref('stock.stock_location_stock'),
@@ -678,7 +700,7 @@ class TestProcRule(TransactionCase):
         """Verify that the rule's help message correctly displays all relevant
         information when the procurement method is MTO or MTSO.
         """
-        mto_rule = self.env.ref('stock.route_warehouse0_mto').rule_ids[0]
+        mto_rule = self.env.ref('stock.route_warehouse0_mto').with_context(active_test=False).rule_ids[0]
         source_mto = mto_rule.location_src_id.display_name
         self.assertIn(
             f'<br>A need is created in <b>{source_mto}</b> and a rule will be triggered to fulfill it.',
@@ -786,7 +808,7 @@ class TestProcRule(TransactionCase):
         # product 0: 15 OUT in 15 days, 10 IN in 25 days -> deadline in 15 days
         stock_moves |= self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'product_uom_qty': 15,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -794,7 +816,7 @@ class TestProcRule(TransactionCase):
         })
         stock_moves |= self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'product_uom_qty': 10,
             'location_id': self.ref('stock.stock_location_suppliers'),
             'location_dest_id': self.ref('stock.stock_location_stock'),
@@ -803,7 +825,7 @@ class TestProcRule(TransactionCase):
         # product 1: 10 OUT in 25, 5 OUT in 35 days -> deadline in 35 days
         stock_moves |= self.env['stock.move'].create({
             'product_id': product_1.id,
-            'product_uom': product_1.uom_id.id,
+            'uom_id': product_1.uom_id.id,
             'product_uom_qty': 10,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -811,7 +833,7 @@ class TestProcRule(TransactionCase):
         })
         stock_moves |= self.env['stock.move'].create({
             'product_id': product_1.id,
-            'product_uom': product_1.uom_id.id,
+            'uom_id': product_1.uom_id.id,
             'product_uom_qty': 5,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -820,7 +842,7 @@ class TestProcRule(TransactionCase):
         # product 2: 15 OUT in 15 days, 15 IN in 15 days, 15 OUT in 25 days -> deadline in 25 days
         stock_moves |= self.env['stock.move'].create({
             'product_id': product_2.id,
-            'product_uom': product_2.uom_id.id,
+            'uom_id': product_2.uom_id.id,
             'product_uom_qty': 15,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -828,7 +850,7 @@ class TestProcRule(TransactionCase):
         })
         stock_moves |= self.env['stock.move'].create({
             'product_id': product_2.id,
-            'product_uom': product_2.uom_id.id,
+            'uom_id': product_2.uom_id.id,
             'product_uom_qty': 15,
             'location_id': self.ref('stock.stock_location_suppliers'),
             'location_dest_id': self.ref('stock.stock_location_stock'),
@@ -836,7 +858,7 @@ class TestProcRule(TransactionCase):
         })
         stock_moves |= self.env['stock.move'].create({
             'product_id': product_2.id,
-            'product_uom': product_2.uom_id.id,
+            'uom_id': product_2.uom_id.id,
             'product_uom_qty': 15,
             'location_id': self.ref('stock.stock_location_stock'),
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -871,7 +893,7 @@ class TestProcRule(TransactionCase):
         warehouse = self.env['stock.warehouse'].search([], limit=1)
         out_move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'product_uom_qty': 15.0,
             'location_id': warehouse.lot_stock_id.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -905,7 +927,7 @@ class TestProcRule(TransactionCase):
 
         late_out_move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'product_uom_qty': 15.0,
             'location_id': warehouse.lot_stock_id.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
@@ -921,6 +943,7 @@ class TestProcRule(TransactionCase):
         self.assertListEqual([curve_line_val['y'] for curve_line_val in graph_data['curve_line_vals']], [40, 20, 40, 20, 40, 20])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestProcRuleLoad(TransactionCase):
     def setUp(cls):
         super(TestProcRuleLoad, cls).setUp()

@@ -19,12 +19,20 @@ import {
 import { describe, getFixture, test } from "@odoo/hoot";
 
 import { queryFirst } from "@odoo/hoot-dom";
+import { emojiLoader } from "@web/core/emoji_picker/emoji_loader";
 
 describe.current.tags("desktop");
 defineMailModels();
 preloadBundle("web.assets_emoji");
 
 test("emoji picker correctly handles translations with special characters", async () => {
+    // Reset emoji loader to reload translations *for* the current test
+    patchWithCleanup(emojiLoader, {
+        categories: [],
+        emojis: [],
+        _loadingPromise: null,
+        _map: null,
+    });
     defineParams({
         translations: {
             "Japanese “here” button": `Bouton "ici" japonais`,
@@ -49,11 +57,11 @@ test("search emoji from keywords", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await insertText("input[placeholder='Search emoji']", "mexican");
-    await contains(".o-Emoji", { text: "🌮" });
+    await contains(".o-Emoji:text('🌮')");
     await insertText(".o-EmojiPicker-search input", "9", { replace: true });
-    await contains(".o-Emoji:eq(0)", { text: "🕘" });
-    await contains(".o-Emoji:eq(1)", { text: "🕤" });
-    await contains(".o-Emoji:eq(2)", { text: "9️⃣" });
+    await contains(".o-Emoji:eq(0):text('🕘')");
+    await contains(".o-Emoji:eq(1):text('🕤')");
+    await contains(".o-Emoji:eq(2):text('9️⃣')");
 });
 
 test("search emoji from keywords should be case insensitive", async () => {
@@ -63,7 +71,7 @@ test("search emoji from keywords should be case insensitive", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await insertText("input[placeholder='Search emoji']", "ok");
-    await contains(".o-Emoji", { text: "🆗" }); // all search terms are uppercase OK
+    await contains(".o-Emoji:text('🆗')"); // all search terms are uppercase OK
 });
 
 test("search emoji from keywords with special regex character", async () => {
@@ -73,7 +81,7 @@ test("search emoji from keywords with special regex character", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await insertText("input[placeholder='Search emoji']", "(blood");
-    await contains(".o-Emoji", { text: "🆎" });
+    await contains(".o-Emoji:text('🆎')");
 });
 
 test("updating search emoji should scroll top", async () => {
@@ -136,13 +144,12 @@ test("recent category (basic)", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']", { count: 0 });
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "😀" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('😀')");
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']");
-    await contains(".o-Emoji", {
-        text: "😀",
-        after: ["span", { textContent: "Frequently used" }],
-        before: ["span", { textContent: "Smileys & Emotion" }],
+    await contains(".o-Emoji:text('😀')", {
+        after: ["small", { textContent: "Frequently used" }],
+        before: ["small", { textContent: "Smileys & Emotion" }],
     });
 });
 
@@ -153,12 +160,12 @@ test("search emojis prioritize frequently used emojis", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']", { count: 0 });
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "🤥" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('🤥')");
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']");
     await insertText("input[placeholder='Search emoji']", "lie");
     await contains(".o-EmojiPicker-sectionIcon", { count: 0 }); // await search performed
-    await contains(".o-EmojiPicker-content .o-Emoji:eq(0)", { text: "🤥" });
+    await contains(".o-EmojiPicker-content .o-Emoji:eq(0):text('🤥')");
 });
 
 test("search matches only frequently used emojis", async () => {
@@ -168,12 +175,12 @@ test("search matches only frequently used emojis", async () => {
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']", { count: 0 });
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "🥦" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('🥦')");
     await click("button[title='Add Emojis']");
     await contains(".o-EmojiPicker-navbar [title='Frequently used']");
     await insertText(".o-EmojiPicker-search input", "brocoli");
     await contains(".o-EmojiPicker-sectionIcon", { count: 0 }); // await search performed
-    await contains(".o-EmojiPicker-content .o-Emoji:eq(0)", { text: "🥦" });
+    await contains(".o-EmojiPicker-content .o-Emoji:eq(0):text('🥦')");
     await contains(".o-EmojiPicker-content .o-Emoji", { count: 1 });
     await contains(".o-EmojiPicker-content:has(:text('No emojis match your search'))", {
         count: 0,
@@ -188,21 +195,19 @@ test("emoji usage amount orders frequent emojis", async () => {
     await start();
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "😀" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('😀')");
     await click("button[title='Add Emojis']");
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "👽" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('👽')");
     await click("button[title='Add Emojis']");
-    await click(".o-EmojiPicker-content .o-Emoji", { text: "👽" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('👽')");
     await click("button[title='Add Emojis']");
-    await contains(".o-Emoji", {
-        text: "👽",
-        after: ["span", { textContent: "Frequently used" }],
+    await contains(".o-Emoji:text('👽')", {
+        after: ["small", { textContent: "Frequently used" }],
         before: [
-            ".o-Emoji",
+            ".o-Emoji:text('😀')",
             {
-                text: "😀",
-                after: ["span", { textContent: "Frequently used" }],
-                before: ["span", { textContent: "Smileys & Emotion" }],
+                after: ["small", { textContent: "Frequently used" }],
+                before: ["small", { textContent: "Smileys & Emotion" }],
             },
         ],
     });
@@ -223,7 +228,7 @@ test("selecting an emoji while holding down the Shift key prevents the emoji pic
     await start();
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
-    await click(".o-EmojiPicker-content .o-Emoji", { shiftKey: true, text: "👺" });
+    await click(".o-EmojiPicker-content .o-Emoji:text('👺')", { shiftKey: true });
     await contains(".o-EmojiPicker-navbar [title='Frequently used']");
     await contains(".o-EmojiPicker");
     await contains(".o-mail-Composer-input", { value: "👺" });
@@ -240,22 +245,20 @@ test("shortcodes shown in emoji title in message", async () => {
     });
     await start();
     await openDiscuss(channelId);
-    await contains(".o-mail-Message", { text: "💑😇" });
-    await contains(".o-mail-Message span[title=':couple_with_heart:']", { text: "💑" });
-    await contains(".o-mail-Message span[title=':innocent: :halo:']", { text: "😇" });
+    await contains(".o-mail-Message:has(:text('💑😇')");
+    await contains(".o-mail-Message span[title=':couple_with_heart:']:text('💑')");
+    await contains(".o-mail-Message span[title=':innocent: :halo:']:text('😇')");
 });
 
 test("Emoji picker shows failure to load emojis", async () => {
-    // Simulate failure to load emojis
-    patchWithCleanup(odoo.loader.modules.get("@web/core/emoji_picker/emoji_data"), {
-        getEmojis() {
-            return [];
-        },
-    });
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "" });
     await start();
+    // Simulate failure to load emojis
+    patchWithCleanup(emojiLoader, {
+        emojis: [],
+    });
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
-    await contains(".o-EmojiPicker", { text: "😵‍💫Failed to load emojis..." });
+    await contains(".o-EmojiPicker:text('😵‍💫 Failed to load emojis...')");
 });

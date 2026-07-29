@@ -1,6 +1,7 @@
 import { Component, onWillStart, onWillUpdateProps } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
-import { TagsList } from "@web/core/tags_list/tags_list";
+import { AvatarTag } from "@web/core/tags_list/avatar_tag";
+import { BadgeTag } from "@web/core/tags_list/badge_tag";
 import { isId } from "@web/core/tree_editor/utils";
 import { useService } from "@web/core/utils/hooks";
 import { imageUrl } from "@web/core/utils/urls";
@@ -17,7 +18,7 @@ export class MultiRecordSelector extends Component {
         fieldString: { type: String, optional: true },
         placeholder: { type: String, optional: true },
     };
-    static components = { RecordAutocomplete, TagsList };
+    static components = { AvatarTag, BadgeTag, RecordAutocomplete };
     static template = "web.MultiRecordSelector";
 
     setup() {
@@ -39,20 +40,17 @@ export class MultiRecordSelector extends Component {
     async computeDerivedParams(props = this.props) {
         const displayNames = await this.getDisplayNames(props);
         this.tags = this.getTags(props, displayNames);
+        /**
+         * Placeholder should be empty if there is at least one tag. We cannot use
+         * the default behavior of the input placeholder because even if there is
+         * a tag, the input is still empty.
+         */
+        this.placeholder = this.tags.length ? "" : this.props.placeholder;
     }
 
     async getDisplayNames(props) {
         const ids = this.getIds(props);
         return this.nameService.loadDisplayNames(props.resModel, ids);
-    }
-
-    /**
-     * Placeholder should be empty if there is at least one tag. We cannot use
-     * the default behavior of the input placeholder because even if there is
-     * a tag, the input is still empty.
-     */
-    get placeholder() {
-        return this.getTags(this.props, {}).length ? "" : this.props.placeholder;
     }
 
     getIds(props = this.props) {
@@ -61,12 +59,12 @@ export class MultiRecordSelector extends Component {
 
     getTags(props, displayNames) {
         return props.resIds.map((id, index) => {
-            const text =
-                typeof displayNames[id] === "string"
-                    ? displayNames[id]
-                    : _t("Inaccessible/missing record ID: %s", id);
+            const text = typeof displayNames[id] === "string" ? displayNames[id] : String(id);
             return {
+                id,
                 text,
+                tooltip:
+                    typeof displayNames[id] === "string" ? text : _t("Missing record (ID: %s)", id),
                 onDelete: () => {
                     this.deleteTag(index);
                 },

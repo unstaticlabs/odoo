@@ -1,7 +1,7 @@
 from odoo import fields, models, api, _
 from odoo.fields import Domain
 from odoo.exceptions import UserError
-from odoo.tools import Query
+from odoo.models import Query
 
 COMPANY_OFFSET = 10000
 

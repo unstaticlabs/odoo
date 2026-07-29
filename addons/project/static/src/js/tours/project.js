@@ -178,12 +178,12 @@ registry.category("web_tour.tours").add('project_tour', {
     run: "click",
 }, {
     isActive: ["auto"],
-    trigger: 'a[name="sub_tasks_page"]',
+    trigger: 'button[name="sub_tasks_page"]',
     content: _t('Open sub-tasks notebook section'),
     run: 'click',
 }, {
     isActive: ["auto"],
-    trigger: '.o_field_subtasks_one2many .o_list_renderer a[role="button"]',
+    trigger: '.o_field_subtasks_one2many .o_list_renderer .o_field_x2many_list_row_add button',
     content: _t('Add a sub-task'),
     run: 'click',
 }, {

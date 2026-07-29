@@ -5,6 +5,7 @@ from odoo.tests import tagged
 
 @tagged('post_install', '-at_install', 'post_install_l10n')
 class TestGenericIN(TestGenericLocalization):
+    pos_partner_pos_form_fields = ['l10n_in_gst_treatment']
 
     @classmethod
     @AccountTestInvoicingCommon.setup_country('in')
@@ -20,3 +21,15 @@ class TestGenericIN(TestGenericLocalization):
             'city': "Amreli",
             'zip': "365220",
         })
+        cls.whiteboard_pen.write({
+            'l10n_in_hsn_code': '1111',
+        })
+
+        cls.wall_shelf.write({
+            'l10n_in_hsn_code': '2222',
+        })
+
+    def test_generic_localization(self):
+        _, html = super().test_generic_localization()
+        self.assertTrue("HSN Code" in html)
+        self.assertTrue("Tax Invoice" in html)

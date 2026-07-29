@@ -4,7 +4,7 @@
     <t t-name="sale.ProductTemplateAttributeLine">
         <div
             name="ptal"
-            t-attf-class="#{this.props.attribute_values.length === 1 &amp;&amp; hasPTAVCustom() ? 'd-md-flex' : ''}"
+            t-att-class="{'d-md-flex': props.attribute_values.length === 1 &amp;&amp; hasPTAVCustom()}"
         >
         <!-- If the attribute line contains only one attribute value, we don't show the attribute
              value template or the attribute line title unless the single attribute value is custom,

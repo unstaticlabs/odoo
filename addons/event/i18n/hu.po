@@ -13,14 +13,14 @@
 # Gergő Kertész <gergo.kertesz@maxflow.hu>, 2022
 # Tamás Németh <ntomasz81@gmail.com>, 2022
 # gezza <geza.nagy@oregional.hu>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 21:57+0000\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2025-11-08 21:52+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/event/"
 "hu/>\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_question__event_count
@@ -1535,8 +1535,9 @@ msgstr ""
 msgid ""
 "A slot cannot be scheduled outside of its event time range.\n"
 "\n"
-"Event:\t\t%(event_start)s - %(event_end)s\n"
-"Slot:\t\t%(slot_name)s"
+"Event:\t%(event_start_date)s, %(event_start_time)s - %(event_end_date)s, %"
+"(event_end_time)s\n"
+"Slot:\t%(slot_name)s"
 msgstr ""
 
 #. module: event
@@ -1599,6 +1600,12 @@ msgid "Activity Exception Decoration"
 msgstr "Tevékenység kivétel dekoráció"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_event_event__activity_plans_ids
+#: model:ir.model.fields,field_description:event.field_event_registration__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__activity_state
 #: model:ir.model.fields,field_description:event.field_event_registration__activity_state
 msgid "Activity State"
@@ -1636,6 +1643,17 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_type_form
 msgid "Add some internal notes (to do lists, contact info, ...)"
+msgstr ""
+
+#. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid ""
+"Adding these slots will automatically adjust the event's time range to "
+"include them.\n"
+"\n"
+"From:\t%(start)s - %(end)s\n"
+"To:\t\t%(new_start)s - %(new_end)s\n"
 msgstr ""
 
 #. module: event
@@ -2143,6 +2161,12 @@ msgid "Confirm attendance?"
 msgstr ""
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Confirmation"
+msgstr ""
+
+#. module: event
 #: model:ir.model,name:event.model_res_partner
 msgid "Contact"
 msgstr "Kapcsolat"
@@ -2283,6 +2307,11 @@ msgid "Design Fair Los Angeles"
 msgstr ""
 
 #. module: event
+#: model:ir.model,name:event.model_digest_digest
+msgid "Digest"
+msgstr ""
+
+#. module: event
 #: model:event.event,subtitle:event.event_4
 msgid "Discover how to grow a sustainable business with our experts."
 msgstr ""
@@ -2293,6 +2322,7 @@ msgid "Discover more"
 msgstr "Fedezzen fel még többet!"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:event.field_event_event__display_name
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__display_name
 #: model:ir.model.fields,field_description:event.field_event_mail__display_name
@@ -2365,8 +2395,8 @@ msgstr "Email"
 
 #. module: event
 #: model:ir.model,name:event.model_mail_template
-msgid "Email Templates"
-msgstr "E-mail sablonok"
+msgid "Email Template"
+msgstr ""
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
@@ -2423,6 +2453,7 @@ msgstr "Hiba"
 #: model:ir.model.fields,field_description:event.field_event_registration__event_id
 #: model:ir.model.fields,field_description:event.field_event_registration_answer__event_id
 #: model:ir.model.fields,field_description:event.field_event_slot__event_id
+#: model_terms:ir.ui.view,arch_db:event.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:event.event_event_view_activity
 #: model_terms:ir.ui.view,arch_db:event.event_question_view_search
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
@@ -2985,6 +3016,7 @@ msgid "How to Fold (4)"
 msgstr ""
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__id
 #: model:ir.model.fields,field_description:event.field_event_event__id
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__id
 #: model:ir.model.fields,field_description:event.field_event_mail__id
@@ -3236,6 +3268,11 @@ msgstr "Kanban állapot"
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
 msgid "Key"
 msgstr "Kulcs"
+
+#. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations_value
+msgid "Kpi Nbr Of Registrations Value"
+msgstr ""
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__lang
@@ -3528,13 +3565,16 @@ msgid "Name"
 msgstr "Név"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.xml:0
 #: model:event.stage,name:event.event_stage_new
 msgid "New"
 msgstr "Új"
 
 #. module: event
 #. odoo-javascript
-#: code:addons/event/static/src/views/event_slot_calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/list/event_slot_list_controller.js:0
 msgid "New Slot"
 msgstr ""
 
@@ -3985,6 +4025,7 @@ msgid "Registration statistics"
 msgstr ""
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__registration_ids
 msgid "Registrations"
 msgstr "Regisztrációk"
@@ -4119,6 +4160,12 @@ msgid "Select Attendee"
 msgstr ""
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_multi_selection_buttons.xml:0
+msgid "Select days to add slots"
+msgstr ""
+
+#. module: event
 #: model_terms:ir.ui.view,arch_db:event.event_registration_answer_view_tree
 msgid "Selected answer"
 msgstr ""
@@ -4244,6 +4291,7 @@ msgstr ""
 #: code:addons/event/models/event_event.py:0
 #: model:ir.actions.act_window,name:event.event_slot_action_from_event
 #: model:ir.model.fields,field_description:event.field_event_event__event_slot_ids
+#: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_calendar
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_tree
 msgid "Slots"
@@ -4847,6 +4895,12 @@ msgid "Upcoming/Running"
 msgstr "Jövőbeni/Futó"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Update Event"
+msgstr ""
+
+#. module: event
 #. odoo-python
 #: code:addons/event/models/event_event.py:0
 msgid "Update the limit of registrations?"
@@ -5166,180 +5220,3 @@ msgstr ""
 
 #~ msgid "5-10"
 #~ msgstr "5-10"
-
-#~ msgid "Warning"
-#~ msgstr "Figyelmeztetés"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-#~ msgstr "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-
-#~ msgid "After the event"
-#~ msgstr "Az esemény után"
-
-#~ msgid "Before the event"
-#~ msgstr "Az esemény előtt"
-
-#~ msgid "Confirm"
-#~ msgstr "Megerősítés"
-
-#~ msgid "Confirm Registration"
-#~ msgstr "Regisztráció megerősítése"
-
-#~ msgid "Confirmed"
-#~ msgstr "Megerősített"
-
-#~ msgid "Customer"
-#~ msgstr "Ügyfél"
-
-#~ msgid "Customer Email"
-#~ msgstr "Ügyfél e-mail címe"
-
-#~ msgid "Done"
-#~ msgstr "Kész"
-
-#~ msgid "End Date Located"
-#~ msgstr "Befejezés dátuma elhelyezett"
-
-#~ msgid "Expected"
-#~ msgstr "Várható"
-
-#~ msgid "Expected attendees"
-#~ msgstr "Várható résztvevők"
-
-#~ msgid "For any additional information, please contact us at"
-#~ msgstr "További információkért, kérjük keressenek fel bennünket itt"
-
-#~ msgid ""
-#~ "For each event you can define a maximum registration of seats(number of "
-#~ "attendees), above this numbers the registrations are not accepted."
-#~ msgstr ""
-#~ "Mindegyik eseményre meghatározhat maximális regisztrálható "
-#~ "ülésszámot(résztvevők számát), magasabb számú regisztráció nem fogadható "
-#~ "el."
-
-#~ msgid "Green Kanban Label"
-#~ msgstr "Zöld kanban címke"
-
-#~ msgid "Grey Kanban Label"
-#~ msgstr "Szürke kanban címke"
-
-#~ msgid "Group By"
-#~ msgstr "Csoportosítás"
-
-#~ msgid "Kanban Blocked Explanation"
-#~ msgstr "Kanban szakasz blokkolásának magyarázata"
-
-#~ msgid "Kanban Ongoing Explanation"
-#~ msgstr "Kanban szakaszból való továbbhaladás magyarázata"
-
-#~ msgid "Kanban State Label"
-#~ msgstr "Kanban állapot címkéje"
-
-#~ msgid "Kanban Valid Explanation"
-#~ msgstr "Kanban érvényes magyarázat"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobil"
-
-#~ msgid "None"
-#~ msgstr "Nincs"
-
-#~ msgid "Number of Expected Attendees"
-#~ msgstr "Várható résztvevők száma "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Üzenetek száma, melyek műveletet igényelnek"
-
-#~ msgid "Red Kanban Label"
-#~ msgstr "Piros kanban címke"
-
-#~ msgid "Scan badges to confirm attendances"
-#~ msgstr "Jelvények keresése a résztvevők  jóváhagyásához"
-
-#~ msgid "Set To Unconfirmed"
-#~ msgstr "Visszaigazolatlanra állítja"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Az összes olyan rekord megjelenítése, melynél a következő művelet dátuma "
-#~ "a mai nap előtti"
-
-#~ msgid "Stage Description and Tooltips"
-#~ msgstr "Szakasz leírása és súgók"
-
-#~ msgid "Start Date Located"
-#~ msgstr "Kezdés dátuma beállítva"
-
-#~ msgid "Task in progress. Click to block or set as done."
-#~ msgstr ""
-#~ "A feladat folyamatban van. Kattintson a blokkolásához, vagy állítsa "
-#~ "készre."
-
-#~ msgid "Task is blocked. Click to unblock or set as done."
-#~ msgstr ""
-#~ "A feladat blokkolva van. Kattintson a blokkolás megszüntetéséhez, vagy "
-#~ "állítsa készre."
-
-#~ msgid "The event has been cancelled"
-#~ msgstr "Az esemény törölve lett"
-
-#~ msgid "This operator is not supported"
-#~ msgstr "Ez a művelet nem támogatott"
-
-#~ msgid "This step is done. Click to block or set in progress."
-#~ msgstr ""
-#~ "Ez a lépés készen van. Kattintson a blokkoláshoz, vagy állítsa be "
-#~ "folyamatban lévőként."
-
-#~ msgid "WARNING: Event Scheduler Error for event: %s"
-#~ msgstr "FIGYELEM: Esemény ütemező hiba ennél: %s"
-
-#~ msgid ""
-#~ "You can also add a description to help your coworkers understand the "
-#~ "meaning and purpose of the stage."
-#~ msgstr ""
-#~ "Hozzáadhat leírást is, hogy segítse a munkatársait a szakasz értelmének "
-#~ "és céljának megértésében."
-
-#~ msgid "events@odoo.com"
-#~ msgstr "events@odoo.com"
-
-#~ msgid "events@penwood.example.com"
-#~ msgstr "events@penwood.example.com"
-
-#~ msgid "events@yourcompany.com"
-#~ msgstr "events@yourcompany.com"
-
-#~ msgid "reserved +"
-#~ msgstr "lefoglalt +"
-
-#~ msgid "unconfirmed"
-#~ msgstr "visszaigazolatlan"

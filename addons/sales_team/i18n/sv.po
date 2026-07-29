@@ -14,25 +14,25 @@
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
 # Martin Trigaux, 2022
 # Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Jacob Ljungström <jacob.ljungstrom03@gmail.com>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 05:28+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-11 14:32+0000\n"
+"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sales_team/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: sales_team
 #. odoo-python
@@ -47,7 +47,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr ""
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 msgid ""
 "<i class=\"fa fa-envelope me-1\" role=\"img\" aria-label=\"Email\" "
@@ -59,7 +58,8 @@ msgstr ""
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Company\"/>"
-msgstr "<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Företag\"/>"
+msgstr ""
+"<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Företag\"/>"
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
@@ -72,6 +72,12 @@ msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
 msgstr "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Telefon\"/>"
 
 #. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
+msgstr ""
+
+#. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
 msgid "<span>New</span>"
 msgstr "<span>Ny</span>"
@@ -79,7 +85,7 @@ msgstr "<span>Ny</span>"
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
 msgid "<span>Reporting</span>"
-msgstr "<span>Rapporter</span>"
+msgstr "<span>Rapportering</span>"
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
@@ -257,6 +263,7 @@ msgstr "Visningsnamn"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Email"
 msgstr "E-post"
 
@@ -280,7 +287,7 @@ msgstr "Följare"
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__message_partner_ids
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Följare (Partners)"
+msgstr "Följare (kontakter)"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__has_message
@@ -310,13 +317,13 @@ msgstr ""
 #: model:ir.model.fields,help:sales_team.field_crm_team__message_needaction
 #: model:ir.model.fields,help:sales_team.field_crm_team_member__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "Om ikryssad, så finns det nya meddelanden som kräver din uppmärksamhet."
+msgstr "Om markerat, nya meddelanden kräver din uppmärksamhet."
 
 #. module: sales_team
 #: model:ir.model.fields,help:sales_team.field_crm_team__message_has_error
 #: model:ir.model.fields,help:sales_team.field_crm_team_member__message_has_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Om ikryssad, så finns det meddelanden med leveransfel."
+msgstr "Om markerad, några meddelanden har leveransfel."
 
 #. module: sales_team
 #: model:ir.model.fields,help:sales_team.field_crm_team__active
@@ -395,7 +402,7 @@ msgstr "Varning för problem med medlemskap"
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__message_has_error
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__message_has_error
 msgid "Message Delivery error"
-msgstr "Leveransfel för meddelanden"
+msgstr "Meddelande leveransfel"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__message_ids
@@ -430,7 +437,7 @@ msgstr "Antal fel"
 #: model:ir.model.fields,help:sales_team.field_crm_team__message_needaction_counter
 #: model:ir.model.fields,help:sales_team.field_crm_team_member__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr "Antal meddelanden som kräver åtgärder"
+msgstr "Antal meddelanden som kräver åtgärd"
 
 #. module: sales_team
 #: model:ir.model.fields,help:sales_team.field_crm_team__message_has_error_counter
@@ -445,6 +452,7 @@ msgstr "Övriga"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Phone"
 msgstr "Telefon"
 
@@ -467,7 +475,7 @@ msgstr "Produkt"
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__rating_ids
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__rating_ids
 msgid "Ratings"
-msgstr "Omdömen"
+msgstr "Betyg"
 
 #. module: sales_team
 #: model:crm.team,name:sales_team.team_sales_department
@@ -490,6 +498,7 @@ msgstr "Säljare"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -552,7 +561,7 @@ msgstr "Visa på anslagstavla"
 #. module: sales_team
 #: model:crm.tag,name:sales_team.categ_oppor2
 msgid "Software"
-msgstr "Mjukvara"
+msgstr "Programvara"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_tag__name
@@ -732,8 +741,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
 "Du försöker skapa dubbla medlemskap. Vi fann att %(duplicates)s redan "
 "existerar."
@@ -777,35 +786,3 @@ msgid ""
 msgstr ""
 "användaren kommer att ha tillgång till försäljningsinställningar samt "
 "statistiska rapporter."
-
-#~ msgid "Contact"
-#~ msgstr "Kontakt"
-
-#~ msgid "Dashboard Graph Data"
-#~ msgstr "Anslagstavla datagraf"
-
-#~ msgid ""
-#~ "Follow this salesteam to automatically track the events associated to "
-#~ "users of this team."
-#~ msgstr ""
-#~ "Följ detta säljlag för att automatiskt spåra händelser knutna till "
-#~ "användare i detta lag."
-
-#~ msgid "Group By"
-#~ msgstr "Gruppera efter"
-
-#~ msgid "Group By..."
-#~ msgstr "Gruppera efter..."
-
-#~ msgid ""
-#~ "If set, this Sales Team will be used for sales and assignments related to "
-#~ "this partner"
-#~ msgstr ""
-#~ "Om angiven kommer säljteamet användas för försäljning och uppgifter "
-#~ "relaterade till denna partner"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobil"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Antal meddelanden som kräver en åtgärd"

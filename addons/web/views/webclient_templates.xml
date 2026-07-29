@@ -19,15 +19,15 @@
     <head>
         <meta charset="utf-8"/>
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-        <title t-esc="title or 'Odoo'"/>
+        <title t-out="title or 'Odoo'"/>
         <link type="image/x-icon" rel="shortcut icon" t-att-href="x_icon or '/web/static/img/favicon.ico'"/>
         <script id="web.layout.odooscript" type="text/javascript">
             var odoo = {
-                csrf_token: "<t t-esc="request.csrf_token(None)"/>",
-                debug: "<t t-esc="debug"/>",
+                csrf_token: "<t t-out="request.csrf_token(None)"/>",
+                debug: "<t t-out="debug"/>",
             };
         </script>
-        <t t-out="head or ''"/>
+        <t t-out="head"/>
     </head>
     <body t-att-class="body_classname">
         <t t-out="0"/>
@@ -40,12 +40,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
       </xpath>
       <xpath expr="//head/link[last()]" position="after">
-        <link rel="preload" href="/web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0" as="font" crossorigin=""/>
+        <t t-call-assets="web.fontawesome" t-binary="True"/>
+        <t t-call-assets="web.odoo_ui_icons" t-binary="True"/>
         <t t-call-assets="web.assets_frontend" t-js="false"/>
       </xpath>
       <xpath expr="//head/script[@id='web.layout.odooscript']" position="after">
         <script type="text/javascript">
-            odoo.__session_info__ = <t t-out="json.dumps(request.env['ir.http'].get_frontend_session_info())"/>;
+            odoo.__session_info__ = <t t-out="json.dumps(env['ir.http'].get_frontend_session_info())"/>;
             if (!/(^|;\s)tz=/.test(document.cookie)) {
                 const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 document.cookie = `tz=${userTZ}; path=/`;
@@ -70,10 +71,10 @@
                     <div t-if="not no_copyright" class="o_footer_copyright">
                         <div class="container py-3">
                             <div class="row row-gap-2">
-                                <div class="col-sm text-center text-sm-start text-muted">
+                                <div class="col-md text-center text-sm-start text-muted">
                                     <span class="o_footer_copyright_name me-2">Copyright &amp;copy; <span t-field="res_company.name" itemprop="name">Company name</span></span>
                                 </div>
-                                <div class="col-sm text-center text-sm-end">
+                                <div class="col-md text-center text-sm-end">
                                     <t t-call="web.brand_promotion"/>
                                 </div>
                             </div>
@@ -86,33 +87,28 @@
 
     <template id="brand_promotion_message" name="Brand Promotion Message">
         <t t-set="odoo_logo">
-            <a target="_blank"
-                t-attf-href="http://www.odoo.com?utm_source=db&amp;utm_medium=#{_utm_medium}"
-                class="badge text-bg-light">
-                <img alt="Odoo"
-                    src="/web/static/img/odoo_logo_tiny.png"
-                    width="62" height="20"
-                    style="width: auto; height: 1em; vertical-align: baseline;"/>
-            </a>
+            <strong>
+                <a target="_blank"
+                    t-attf-href="http://www.odoo.com?utm_source=db&amp;utm_medium=#{_utm_medium}">
+                    Odoo
+                </a>
+            </strong>
         </t>
         <t t-set="final_message">Powered by %s%s</t>
         <t t-out="final_message % (odoo_logo, _message and ('- ' + _message) or '')"/>
     </template>
     <template id="brand_promotion" name="Brand Promotion">
         <div class="o_brand_promotion">
-            <t t-call="web.brand_promotion_message">
-                <t t-set="_message"></t>
-                <t t-set="_utm_medium" t-valuef="portal"/>
-            </t>
+            <t t-call="web.brand_promotion_message" _message.translate="" _utm_medium.f="portal"/>
         </div>
     </template>
 
     <template id="web.login_layout" name="Login Layout">
-        <t t-call="web.frontend_layout">
-            <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
-            <t t-set="body_classname" t-value="'bg-100'"/>
-            <t t-set="no_header" t-value="True"/>
-            <t t-set="no_footer" t-value="True"/>
+        <t t-call="web.frontend_layout"
+            html_data="{'style': 'height: 100%;'}"
+            body_classname.f="bg-100"
+            no_header="True"
+            no_footer="True">
 
             <div class="container py-5">
                 <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 300px;">
@@ -135,6 +131,7 @@
 
     <template id="web.login" name="Login">
         <t t-call="web.login_layout">
+            <h1 class="visually-hidden">Login</h1>
             <div class="oe_structure" id="oe_structure_login_top"/>
             <owl-component t-if="not login" name="web.user_switch" />
             <form t-attf-class="oe_login_form #{'' if login else 'd-none'}" role="form" t-attf-action="/web/login" method="post" onsubmit="this.action = '/web/login' + location.hash" data-captcha="login">
@@ -166,10 +163,10 @@
                 </div>
 
                 <p class="alert alert-danger" t-if="error" role="alert">
-                    <t t-esc="error"/>
+                    <t t-out="error"/>
                 </p>
                 <p class="alert alert-success" t-if="message" role="status">
-                    <t t-esc="message"/>
+                    <t t-out="message"/>
                 </p>
 
                 <div class="oe_login_buttons text-center d-grid mb-1 pt-3">
@@ -194,7 +191,12 @@
                     You are logged in.
                 </p>
                 <div t-attf-class="clearfix oe_login_buttons text-center mb-1 pt-3">
-                    <a class="btn btn-primary btn-block" href="/web/session/logout">Log out</a>
+                    <form method="POST" action="/web/session/logout" class="text-center">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <button type="submit" class="btn btn-primary">
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </t>
@@ -213,6 +215,18 @@
                 </a>
             </div>
         </div>
+    </template>
+
+    <template id="web.check_identity" name="Check Identity">
+        <t t-call="web.login_layout">
+            <div class="oe_check_identity_form">
+                <div class="text-center">
+                    <img t-attf-src="/logo.png?company={{ env.company.id }}" style="padding: 0px; margin: 0px; height: auto; height: 48px;" t-att-alt="env.company.name"/>
+                    <h3>Confirm access</h3>
+                </div>
+                <owl-component name="web.check_identity_form" t-att-props="json.dumps({'redirect': redirect})"/>
+            </div>
+        </t>
     </template>
 
     <template id="web.test_helpers">
@@ -237,130 +251,132 @@
     </template>
 
     <template id="web.unit_tests_suite">
-        <t t-call="web.layout">
-            <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
-            <t t-set="title">Web Unit Tests</t>
-            <t t-set="head">
-                <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+        <t t-set="head">
+            <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
 
-                <script type="text/javascript">
-                    odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
-                </script>
+            <script type="text/javascript">
+                odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+            </script>
 
-                <t t-call-assets="web.assets_unit_tests_setup" />
-                <t t-call-assets="web.assets_unit_tests" defer_load="True" />
-            </t>
+            <t t-call-assets="web.assets_unit_tests_setup" />
+            <t t-call-assets="web.assets_unit_tests" defer_load="True" />
         </t>
+        <t t-call="web.layout"
+            html_data="{'style': 'height: 100%;'}"
+            title.translate="Web Unit Tests"
+            head="head"/>
     </template>
 
     <template id="web.qunit_suite">
-        <t t-call="web.layout">
-            <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
-            <t t-set="title">Web Tests</t>
-            <t t-set="head">
-                <script type="text/javascript">
-                    odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
-                </script>
+        <t t-set="head">
+            <script type="text/javascript">
+                odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+            </script>
 
-                <t t-call="web.test_helpers"/>
+            <t t-call="web.test_helpers"/>
 
-                <t t-call-assets="web.qunit_suite_tests" t-js="false"/>
-                <t t-call-assets="web.qunit_suite_tests" t-css="false"/>
-            </t>
+            <t t-call-assets="web.qunit_suite_tests" t-js="false"/>
+            <t t-call-assets="web.qunit_suite_tests" t-css="false"/>
+        </t>
+        <t t-call="web.layout"
+            html_data="{'style': 'height: 100%;'}"
+            title.translate="Web Tests"
+            head="head">
             <div id="qunit"/>
             <div id="qunit-fixture"/>
         </t>
     </template>
 
     <template id="web.webclient_bootstrap">
-        <t t-call="web.layout">
-            <t t-set="head_web">
-                <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
-                <meta name="theme-color" content="#71639e"/>
-                <link rel="manifest" href="/web/manifest.webmanifest" crossorigin="use-credentials"/>
-                <link rel="apple-touch-icon" href="/web/static/img/odoo-icon-ios.png"/>
-                <script type="text/javascript">
-                    // Block to avoid leaking variables in the script scope
-                    {
-                        odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
-                        const { user_context } = odoo.__session_info__;
-                        const lang = new URLSearchParams(document.location.search).get("lang");
-                        let menuURL = "/web/webclient/load_menus";
-                        if (lang) {
-                            user_context.lang = lang;
-                            menuURL += `&amp;lang=${lang}`;
-                        }
-                        odoo.reloadMenus = () => fetch(menuURL, { cache: "no-store" }).then(res => res.json());
-                        odoo.loadMenusPromise = odoo.reloadMenus();
+        <t t-set="head">
+            <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+            <meta name="theme-color" content="#71639e"/>
+            <link rel="manifest" href="/web/manifest.webmanifest" crossorigin="use-credentials"/>
+            <link rel="apple-touch-icon" href="/web/static/img/odoo-icon-ios.png"/>
+            <script type="text/javascript">
+                // Block to avoid leaking variables in the script scope
+                {
+                    odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+                    const { user_context } = odoo.__session_info__;
+                    const lang = new URLSearchParams(document.location.search).get("lang");
+                    let menuURL = "/web/webclient/load_menus";
+                    if (lang) {
+                        user_context.lang = lang;
+                        menuURL += `&amp;lang=${lang}`;
                     }
-                </script>
-                <t t-call-assets="web.assets_web_print" media="print" t-js="false"/>
-                <t t-call-assets="web.assets_web" t-css="false"/>
+                    odoo.reloadMenus = () =&gt; fetch(menuURL, { cache: "no-store" }).then(res =&gt; res.json());
+                    odoo.loadMenusPromise = odoo.reloadMenus();
+                }
+            </script>
+            <t t-call-assets="web.assets_web_print" media="print" t-js="false"/>
+            <t t-call-assets="web.assets_web" t-css="false"/>
 
-                <t t-if="color_scheme == 'dark'">
-                    <t t-call-assets="web.assets_web_dark" media="screen" t-js="false"/>
-                </t>
-                <t t-else="">
-                    <t t-call-assets="web.assets_web" media="screen" t-js="false"/>
-                </t>
-                <t t-call="web.conditional_assets_tests" media="screen"/>
+            <t t-if="color_scheme == 'dark'">
+                <t t-call-assets="web.assets_web_dark" media="screen" t-js="false"/>
             </t>
-            <t t-set="head" t-value="head_web + (head or '')" media="screen"/>
-            <t t-set="body_classname" t-value="'o_web_client'"/>
+            <t t-else="">
+                <t t-call-assets="web.assets_web" media="screen" t-js="false"/>
+            </t>
+            <t t-call="web.conditional_assets_tests"/>
+            <t t-out="head"/>
         </t>
+        <t t-call="web.layout"
+            head="head"
+            body_classname.f="o_web_client"/>
     </template>
 
     <template id="webclient_offline">
-        <t t-call="web.layout">
-            <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
-            <t t-set="title">Offline</t>
-            <t t-set="head">
-                <script type="text/javascript">
-                    document.addEventListener("DOMContentLoaded", () => {
-                        const cookies = document.cookie.split(';').map(c => c.trim());
-                        if (cookies.includes('color_scheme=dark')) {
-                            document.body.style.backgroundColor = "#262A36";
-                            document.body.style.color = "#FFFFFF";
-                        }
-                    });
-                    window.addEventListener('online', () => location.reload());
-                </script>
-                <style>
-                    body {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                    padding:0;
-                    margin:0;
-                    background-color: #fff;
-                    color: rgb(17, 24, 39);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center;
-                    height: 100vh;
-                    width: 100vw;
-                    user-select: none;
+        <t t-set="head">
+            <script type="text/javascript">
+                document.addEventListener("DOMContentLoaded", () =&gt; {
+                    const cookies = document.cookie.split(';').map(c =&gt; c.trim());
+                    if (cookies.includes('color_scheme=dark')) {
+                        document.body.style.backgroundColor = "#262A36";
+                        document.body.style.color = "#FFFFFF";
                     }
-                    .card {
-                    width: 80%;
-                    }
-                    .card img {
-                    width: 96px;
-                    height: auto;
-                    filter: grayscale(.6);
-                    }
-                    .card button {
-                    background-color: #714B67;
-                    color: #FFFFFF;
-                    border: 1px solid #714B67;
-                    border-radius: .25rem;
-                    padding: .5rem 1rem;
-                    cursor: pointer;
-                    font-size: 1.2rem;
-                    font-weight: 500;
-                    }
-                </style>
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
-            </t>
+                });
+                window.addEventListener('online', () =&gt; location.reload());
+            </script>
+            <style>
+                body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                padding:0;
+                margin:0;
+                background-color: #fff;
+                color: rgb(17, 24, 39);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                height: 100vh;
+                width: 100vw;
+                user-select: none;
+                }
+                .card {
+                width: 80%;
+                }
+                .card img {
+                width: 96px;
+                height: auto;
+                filter: grayscale(.6);
+                }
+                .card button {
+                background-color: #714B67;
+                color: #FFFFFF;
+                border: 1px solid #714B67;
+                border-radius: .25rem;
+                padding: .5rem 1rem;
+                cursor: pointer;
+                font-size: 1.2rem;
+                font-weight: 500;
+                }
+            </style>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        </t>
+        <t t-call="web.layout"
+            html_data="{'style': 'height: 100%;'}"
+            title.translate="Offline"
+            head="head">
             <div class="card">
                 <img t-attf-src="data:image/png;base64,{{odoo_icon}}" alt="Odoo logo"/>
                 <h1>You are offline</h1>
@@ -371,17 +387,19 @@
     </template>
 
     <template id="webclient_scoped_app">
-        <t t-call="web.layout">
-            <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
-            <t t-set="title" t-value="'Install %s' % (app_name)"/>
-            <t t-set="x_icon" t-value="'/scoped_app_icon_png?app_id=%s' % (app_id)" />
-            <t t-set="head">
-                <t t-call-assets="web.assets_frontend_minimal"/>
-                <t t-call-assets="web.assets_frontend_lazy"/>
-                <link rel="apple-touch-icon" t-att-href="x_icon"/>
-                <link rel="manifest" t-att-href="safe_manifest_url" crossorigin="use-credentials" />
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
-            </t>
+        <t t-set="x_icon" t-value="'/scoped_app_icon_png?app_id=%s' % (app_id)" />
+        <t t-set="head">
+            <t t-call-assets="web.assets_frontend_minimal"/>
+            <t t-call-assets="web.assets_frontend_lazy"/>
+            <link rel="apple-touch-icon" t-att-href="x_icon"/>
+            <link rel="manifest" t-att-href="safe_manifest_url" crossorigin="use-credentials" />
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        </t>
+        <t t-call="web.layout"
+            html_data="{'style': 'height: 100%;'}"
+            title="'Install %s' % (app_name)"
+            x_icon="x_icon"
+            head="head">
             <owl-component name="web.install_scoped_app" />
         </t>
     </template>

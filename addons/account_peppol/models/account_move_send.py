@@ -4,7 +4,6 @@ from base64 import b64encode
 from datetime import timedelta
 
 from odoo import api, fields, models, _
-from odoo.tools import str2bool
 
 from odoo.addons.account.models.company import PEPPOL_DEFAULT_COUNTRIES, PEPPOL_LIST
 from odoo.addons.account_edi_proxy_client.models.account_edi_proxy_user import AccountEdiProxyError
@@ -132,7 +131,7 @@ class AccountMoveSend(models.AbstractModel):
                 **what_is_peppol_alert,
             }
         elif (
-            not str2bool(self.env['ir.config_parameter'].sudo().get_param("account_peppol.disable_pdp_warning", False), default=False)
+            not self.env['ir.config_parameter'].sudo().get_bool("account_peppol.disable_pdp_warning")
             and (french_non_pdp_companies := moves.company_id.filtered(
                  lambda company: company._peppol_is_french_company() and company._get_peppol_proxy_type() != 'pdp'
              ))

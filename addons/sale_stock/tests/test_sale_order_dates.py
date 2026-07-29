@@ -149,6 +149,9 @@ class TestSaleExpectedDate(ValuationReconciliationTestCommon):
         self.assertEqual(sale_order.expected_date, fields.Datetime.now() + timedelta(days=sale_delay))
 
     def test_invoice_delivery_date(self):
+        """Check correct computation of the invoice delivery date. This value should get derived
+        from the earliest effective delivery date on a sale order, and not change on confirmation.
+        """
         self.env['stock.quant']._update_available_quantity(
             self.test_product_order,
             self.company_data['default_warehouse'].lot_stock_id,

@@ -6,7 +6,7 @@ from urllib.parse import unquote, quote
 
 from odoo import models
 from odoo.exceptions import ValidationError
-from odoo.http import content_disposition
+from odoo.http.stream import content_disposition
 
 from ..utils.cloud_storage_azure_utils import generate_blob_sas, get_user_delegation_key, ClientAuthenticationError
 
@@ -32,7 +32,7 @@ def get_cloud_storage_azure_user_delegation_key(env):
     db_config = env['res.config.settings']._get_cloud_storage_configuration()
     db_config.pop('container_name')
     ICP = env['ir.config_parameter'].sudo()
-    db_config['sequence'] = int(ICP.get_param('cloud_storage_azure_user_delegation_key_sequence', 0))
+    db_config['sequence'] = ICP.get_int('cloud_storage_azure_user_delegation_key_sequence')
     if db_config == cached_config:
         if isinstance(cached_user_delegation_key, Exception):
             raise cached_user_delegation_key
@@ -78,8 +78,8 @@ class IrAttachment(models.Model):
 
     def _generate_cloud_storage_azure_url(self, blob_name):
         ICP = self.env['ir.config_parameter'].sudo()
-        account_name = ICP.get_param('cloud_storage_azure_account_name')
-        container_name = ICP.get_param('cloud_storage_azure_container_name')
+        account_name = ICP.get_str('cloud_storage_azure_account_name')
+        container_name = ICP.get_str('cloud_storage_azure_container_name')
         return f"https://{account_name}.blob.core.windows.net/{container_name}/{quote(blob_name)}"
 
     def _generate_cloud_storage_azure_sas_url(self, **kwargs):
@@ -88,13 +88,13 @@ class IrAttachment(models.Model):
 
     # OVERRIDES
     def _generate_cloud_storage_url(self):
-        if self.env['ir.config_parameter'].sudo().get_param('cloud_storage_provider') != 'azure':
+        if self.env['ir.config_parameter'].sudo().get_str('cloud_storage_provider') != 'azure':
             return super()._generate_cloud_storage_url()
         blob_name = self._generate_cloud_storage_blob_name()
         return self._generate_cloud_storage_azure_url(blob_name)
 
     def _generate_cloud_storage_download_info(self):
-        if self.env['ir.config_parameter'].sudo().get_param('cloud_storage_provider') != 'azure':
+        if self.env['ir.config_parameter'].sudo().get_str('cloud_storage_provider') != 'azure':
             return super()._generate_cloud_storage_download_info()
         info = self._get_cloud_storage_azure_info()
         expiry = datetime.now(timezone.utc) + timedelta(seconds=self._cloud_storage_download_url_time_to_expiry)
@@ -111,7 +111,7 @@ class IrAttachment(models.Model):
         }
 
     def _generate_cloud_storage_upload_info(self):
-        if self.env['ir.config_parameter'].sudo().get_param('cloud_storage_provider') != 'azure':
+        if self.env['ir.config_parameter'].sudo().get_str('cloud_storage_provider') != 'azure':
             return super()._generate_cloud_storage_upload_info()
         info = self._get_cloud_storage_azure_info()
         expiry = datetime.now(timezone.utc) + timedelta(seconds=self._cloud_storage_upload_url_time_to_expiry)

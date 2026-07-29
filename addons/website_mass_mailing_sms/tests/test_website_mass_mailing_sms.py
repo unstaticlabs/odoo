@@ -34,7 +34,6 @@ class TestWebsiteMassMailingSMS(WebsiteMassMailingMultiCompanyCommon, MassSMSCom
             'mailing_domain': [('id', 'in', (self.test_contact_a + self.test_contact_b).ids)],
             'mailing_model_id': self.env['ir.model']._get('res.partner').id,
             'mailing_type': 'sms',
-            'name': 'TestSMSMailing',
             'sms_allow_unsubscribe': True,
             'sms_force_send': True,
             'subject': 'Test',

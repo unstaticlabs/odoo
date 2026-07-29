@@ -1,29 +1,23 @@
 import { registry } from "@web/core/registry";
-import { contains } from "@web/../tests/utils";
 
-registry.category("web_tour.tours").add("star_message_tour", {
+registry.category("web_tour.tours").add("bookmark_message_tour", {
     steps: () => [
         {
             trigger:
-                "#chatterRoot:shadow .o-mail-Message:not([data-starred]):contains(Test Message)",
-            run: "hover && click #chatterRoot:shadow [title='Add Star']",
+                "#chatterRoot:shadow .o-mail-Message:not([data-bookmarked]):contains(Test Message)",
+            run: "hover && click #chatterRoot:shadow [title='Bookmark']",
         },
         {
-            trigger: "#chatterRoot:shadow .o-mail-Message[data-starred]:contains(Test Message)",
+            trigger: "#chatterRoot:shadow .o-mail-Message[data-bookmarked]:contains(Test Message)",
         },
     ],
 });
 
 registry.category("web_tour.tours").add("message_actions_tour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () => [
         {
-            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message",
-            run: async function () {
-                await contains(".o-mail-Thread .o-mail-Message", {
-                    count: 1,
-                    target: document.querySelector("#chatterRoot").shadowRoot,
-                });
-            },
+            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message:count(1)",
         },
         {
             trigger: "#chatterRoot:shadow .o-mail-Composer-input",
@@ -34,13 +28,7 @@ registry.category("web_tour.tours").add("message_actions_tour", {
             run: "click",
         },
         {
-            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message",
-            run: async function () {
-                await contains(".o-mail-Thread .o-mail-Message", {
-                    count: 2,
-                    target: document.querySelector("#chatterRoot").shadowRoot,
-                });
-            },
+            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message:count(2)",
         },
         {
             trigger: "#chatterRoot:shadow .o-mail-Message[data-persistent]:contains(New message)",
@@ -66,22 +54,28 @@ registry.category("web_tour.tours").add("message_actions_tour", {
             trigger: "#chatterRoot:shadow .o-mail-Message button:contains(save)",
             run: "click",
         },
+        // If it fails here, it means the edited message has not been fetched correctly.
         {
             trigger: "#chatterRoot:shadow .o-mail-Message:contains(Message content changed)",
-            run: "hover && click #chatterRoot:shadow button[title='Delete']",
+            run: function () {
+                window.location.reload();
+            },
+            expectUnloadPage: true,
+        },
+        {
+            trigger: "#chatterRoot:shadow .o-mail-Message:contains(Message content changed)",
+            run: "hover && click #chatterRoot:shadow button[title='Expand']",
+        },
+        {
+            trigger: "#chatterRoot:shadow .o-mail-Message-moreMenu",
+            run: "click #chatterRoot:shadow button[name='delete']",
         },
         {
             trigger: "#chatterRoot:shadow button:contains(Delete)",
             run: "click",
         },
         {
-            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message",
-            run: async function () {
-                await contains(".o-mail-Thread .o-mail-Message", {
-                    count: 1,
-                    target: document.querySelector("#chatterRoot").shadowRoot,
-                });
-            },
+            trigger: "#chatterRoot:shadow .o-mail-Thread .o-mail-Message:count(1)",
         },
     ],
 });

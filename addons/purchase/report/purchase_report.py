@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 #
 # Please note that these reports are not multi-currency !!!
 #
 
-from odoo import fields, models, api
-from odoo.tools.query import Query
+from odoo import fields, models
 from odoo.tools.sql import SQL
 
 
@@ -16,7 +14,7 @@ class PurchaseReport(models.Model):
     _auto = False
     _order = 'date_order desc, price_total desc'
 
-    date_order = fields.Datetime('Order Date', readonly=True)
+    date_order = fields.Datetime('Order Deadline', readonly=True)
     state = fields.Selection([
         ('draft', 'Draft RFQ'),
         ('sent', 'RFQ Sent'),
@@ -27,7 +25,7 @@ class PurchaseReport(models.Model):
     product_id = fields.Many2one('product.product', 'Product', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Vendor', readonly=True)
     date_approve = fields.Datetime('Confirmation Date', readonly=True)
-    product_uom_id = fields.Many2one('uom.uom', 'Reference Unit of Measure', readonly=True)
+    uom_id = fields.Many2one('uom.uom', 'Reference Unit of Measure', readonly=True)
     company_id = fields.Many2one('res.company', 'Company', readonly=True)
     currency_id = fields.Many2one('res.currency', 'Currency', readonly=True)
     user_id = fields.Many2one('res.users', 'Buyer', readonly=True)
@@ -74,7 +72,7 @@ class PurchaseReport(models.Model):
                     p.product_tmpl_id,
                     t.categ_id as category_id,
                     c.currency_id,
-                    t.uom_id as product_uom_id,
+                    t.uom_id as uom_id,
                     extract(epoch from age(po.date_approve,po.date_order))/(24*60*60)::decimal(16,2) as delay,
                     extract(epoch from age(l.date_planned,po.date_order))/(24*60*60)::decimal(16,2) as delay_pass,
                     count(*) as nbr_lines,
@@ -105,7 +103,7 @@ class PurchaseReport(models.Model):
                     left join product_product p on (l.product_id=p.id)
                         left join product_template t on (p.product_tmpl_id=t.id)
                 left join res_company C ON C.id = po.company_id
-                left join uom_uom line_uom on (line_uom.id=l.product_uom_id)
+                left join uom_uom line_uom on (line_uom.id=l.uom_id)
                 left join uom_uom product_uom on (product_uom.id=t.uom_id)
                 left join %(currency_table)s ON account_currency_table.company_id = po.company_id
             """,
@@ -132,7 +130,7 @@ class PurchaseReport(models.Model):
                 l.price_unit,
                 po.date_approve,
                 l.date_planned,
-                l.product_uom_id,
+                l.uom_id,
                 po.dest_address_id,
                 po.fiscal_position_id,
                 l.product_id,
@@ -151,12 +149,21 @@ class PurchaseReport(models.Model):
             """,
         )
 
-    def _read_group_select(self, aggregate_spec: str, query: Query) -> SQL:
+    def _read_group_select(self, table, aggregate_spec: str) -> SQL:
         """ This override allows us to correctly calculate the average price of products. """
         if aggregate_spec != 'price_average:avg':
-            return super()._read_group_select(aggregate_spec, query)
+            return super()._read_group_select(table, aggregate_spec)
         return SQL(
             'SUM(%(f_price)s * %(f_qty)s) / NULLIF(SUM(%(f_qty)s), 0.0)',
-            f_qty=self._field_to_sql(self._table, 'qty_ordered', query),
-            f_price=self._field_to_sql(self._table, 'price_average', query),
+            f_price=table.price_average,
+            f_qty=table.qty_ordered,
         )
+
+    def action_open_purchase_order(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'purchase.order',
+            'res_id': self.order_id.id,
+            'views': [(False, 'form')],
+        }

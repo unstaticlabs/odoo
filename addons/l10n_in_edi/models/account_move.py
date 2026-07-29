@@ -80,7 +80,7 @@ class AccountMove(models.Model):
 
     def _compute_l10n_in_warning(self):
         super()._compute_l10n_in_warning()
-        gsp_provider = self.env["ir.config_parameter"].sudo().get_param("l10n_in.gsp_provider", "tera")
+        gsp_provider = self.env["ir.config_parameter"].sudo().get_str("l10n_in.gsp_provider", "tera")
         if gsp_provider != "tera":
             return
         indian_invoice = self.filtered(lambda m: m.country_code == 'IN' and m.move_type != 'entry' and
@@ -103,7 +103,7 @@ class AccountMove(models.Model):
                 'action': {
                     'name': _("Documentation"),
                     'type': 'ir.actions.act_url',
-                    'url': 'https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/india.html#gsp-configuration',
+                    'url': 'https://www.odoo.com/documentation/saas-19.1/applications/finance/fiscal_localizations/india.html#gsp-configuration',
                 }
             }
             move.l10n_in_warning = l10n_in_warning
@@ -704,7 +704,7 @@ class AccountMove(models.Model):
         if self.company_currency_id != self.currency_id:
             json_payload["ValDtls"].update({
                 "TotInvValFc": in_round(
-                    (tax_details.get("base_amount_currency") + tax_details.get("tax_amount_currency")))
+                    tax_details.get("base_amount_currency") + tax_details.get("tax_amount_currency"))
             })
         if seller_buyer['seller_details'] != seller_buyer['dispatch_details']:
             json_payload['DispDtls'] = self._get_l10n_in_edi_partner_details(

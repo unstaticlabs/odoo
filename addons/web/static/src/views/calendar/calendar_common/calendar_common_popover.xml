@@ -77,7 +77,9 @@
             </a>
         </t>
         <t t-if="isEventDeletable">
-            <a href="#" class="btn btn-secondary o_cw_popover_delete" t-on-click="onDeleteEvent"><i class="fa fa-trash"/></a>
+            <a href="#" class="btn btn-danger o_cw_popover_delete" t-on-click="onDeleteEvent">
+                Delete
+            </a>
         </t>
     </t>
 

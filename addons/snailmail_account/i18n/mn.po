@@ -9,13 +9,13 @@
 # Martin Trigaux, 2022
 # hish, 2022
 # tserendavaa tsogtoo <tseegii011929@gmail.com>, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 23:18+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-14 15:23+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-19/"
 "snailmail_account/mn/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail_account
 #. odoo-python
@@ -40,16 +40,6 @@ msgid ""
 msgstr ""
 "<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
 "specific.\"/>"
-
-#. module: snailmail_account
-#: model:ir.model,name:snailmail_account.model_account_move_send
-msgid "Account Move Send"
-msgstr "Ажил гүйлгээ илгээгдсэн"
-
-#. module: snailmail_account
-#: model:ir.model,name:snailmail_account.model_account_move_send_batch_wizard
-msgid "Account Move Send Batch Wizard"
-msgstr ""
 
 #. module: snailmail_account
 #. odoo-python
@@ -100,6 +90,16 @@ msgid "Send By Post Stamps"
 msgstr ""
 
 #. module: snailmail_account
+#: model:ir.model,name:snailmail_account.model_account_move_send_batch_wizard
+msgid "Send Invoice Batch Wizard"
+msgstr ""
+
+#. module: snailmail_account
+#: model:ir.model,name:snailmail_account.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
+
+#. module: snailmail_account
 #. odoo-python
 #: code:addons/snailmail_account/models/account_move_send.py:0
 msgid ""
@@ -119,12 +119,3 @@ msgstr ""
 #: model:ir.model.fields.selection,name:snailmail_account.selection__res_partner__invoice_sending_method__snailmail
 msgid "by Post"
 msgstr ""
-
-#~ msgid "Companies"
-#~ msgstr "Компаниуд"
-
-#~ msgid "Config Settings"
-#~ msgstr "Тохиргооны тохируулга"
-
-#~ msgid "Send by Post"
-#~ msgstr "Бичлэгээр Илгээх"

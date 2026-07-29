@@ -21,13 +21,12 @@
                 </h1>
                 <group>
                     <group name="forum_details">
-                        <field name="active" invisible="1"/>
                         <field name="forum_id"/>
                         <field name="website_id" groups="website.group_multi_website"/>
                         <field name="parent_id" invisible="not parent_id"/>
                     </group>
                     <group name="post_details">
-                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                         <field name="state"/>
                         <field name="closed_reason_id" invisible="not closed_reason_id"/>
                         <field name="closed_uid" invisible="not closed_uid"/>
@@ -108,7 +107,6 @@
     <field name="priority">99</field>
     <field name="arch" type="xml">
         <list js_class="website_pages_list" create="false" type="object" action="go_to_website" multi_edit="1">
-            <field name="active" column_invisible="True"/>
             <field name="name"/>
             <field name="website_url"/>
 

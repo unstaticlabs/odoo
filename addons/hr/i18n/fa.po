@@ -15,24 +15,36 @@
 # fardin mardani, 2023
 # Mohammad Tahmasebi <hit.tah75@gmail.com>, 2023
 # Martin Trigaux, 2023
-# Hosein Nematolahi <hosein.ne88@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Omid Ghaffarinia <omid.ghaffarinia@gmail.com>, 2026.
-# ebrahim khorami <ebrahim@farasat.co>, 2026.
+# Hosein Nematolahi <hosein.ne88@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 13:03+0000\n"
-"Last-Translator: ebrahim khorami <ebrahim@farasat.co>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/hr/fa/>\n"
+"POT-Creation-Date: 2026-06-19 17:36+0000\n"
+"PO-Revision-Date: 2026-01-15 21:47+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Persian <https://translate.odoo.com/projects/odoo-s19-1/hr/fa/"
+">\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
+
+#. module: hr
+#: model:ir.model.fields,help:hr.field_hr_employee__departure_do_archive_user
+#: model:ir.model.fields,help:hr.field_hr_employee_departure__do_archive_user
+#: model:ir.model.fields,help:hr.field_hr_version__departure_do_archive_user
+msgid ""
+"\n"
+"            If checked, the related user will be removed from the system.\n"
+"            The user will however not be removed if they still have an "
+"employee in any other company after this departure.\n"
+"        "
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -45,6 +57,11 @@ msgstr " سوابق"
 #: model:ir.model.fields,field_description:hr.field_res_config_settings__hr_presence_control_email_amount
 msgid "# emails to send"
 msgstr "# ایمیل‌های قابل ارسال"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__eligible_employee_count
+msgid "#Employees"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -78,9 +95,19 @@ msgid "'Badge - %s' % (object.name).replace('/', '')"
 msgstr "«کارت شناسایی - %s» % (object.name).replace('/', '')"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "/ day"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
 msgid "/ month"
 msgstr "/ ماه"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "/ week"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,job_details:hr.job_consultant
@@ -142,8 +169,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>خواندن</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>خواندن</b></small></a>"
 
 #. module: hr
 #. odoo-python
@@ -165,29 +192,14 @@ msgstr ""
 "title=\"Company\"/>"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
-msgid ""
-"<i class=\"fa fa-envelope fa-fw me-1 text-primary\" title=\"Work Email\" "
-"invisible=\"login == work_email\"/>"
-msgstr ""
-
-#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
+#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid ""
 "<i class=\"fa fa-envelope fa-fw me-1 text-primary\" title=\"Work Email\"/>"
 msgstr ""
-"<i class=\"fa fa-envelope fa-fw me-1 text-primary\" title=\"ایمیل کاری\"/>"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
-msgid ""
-"<i class=\"fa fa-fw fa-envelope me-1 text-primary\" title=\"Login / Email\" "
-"invisible=\"login != work_email\"/>\n"
-"                            <i class=\"fa fa-fw fa-key me-1 text-primary\" "
-"title=\"Login\" invisible=\"login == work_email\"/>"
-msgstr ""
+"<i class=\"fa fa-envelope fa-fw me-1 text-primary\" title=\"Work Email\"/>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_kanban
@@ -239,12 +251,36 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "<i class=\"fa fa-phone fa-fw me-1 text-primary\" title=\"Work Phone\"/>"
-msgstr "<i class=\"fa fa-phone fa-fw me-1 text-primary\" title=\"Work Phone\"/>"
+msgstr ""
+"<i class=\"fa fa-phone fa-fw me-1 text-primary\" title=\"Work Phone\"/>"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid ""
+"<i class=\"fa fa-share-alt fa-rotate-90 ms-1 mt-1\" role=\"img\" aria-"
+"label=\"Full Chart\"/>\n"
+"                                                Full Chart"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
+msgid ""
+"<i class=\"fa fa-sitemap me-1 mt-1\"/>\n"
+"                                                        <span class=\"fw-"
+"bolder\">Zoom</span>"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "<i class=\"fa fa-tags fa-fw me-1 text-primary\" title=\"Tags\"/>"
 msgstr "<i class=\"fa fa-tags fa-fw me-1 text-primary\" title=\"Tags\"/>"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid ""
+"<i class=\"oi oi-arrow-right ms-1\"/>\n"
+"                                                        Cancel Departure"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.hr_employee_public_action
@@ -349,8 +385,8 @@ msgstr ""
 "<span class=\"d-flex w-50\">\n"
 "    <span invisible=\"is_trusted_bank_account\" class=\"text-muted\">غیرقابل "
 "اعتماد</span>\n"
-"    <span invisible=\"not is_trusted_bank_account\" class=\"text-success\">"
-"قابل اعتماد</span>\n"
+"    <span invisible=\"not is_trusted_bank_account\" class=\"text-"
+"success\">قابل اعتماد</span>\n"
 "</span>"
 
 #. module: hr
@@ -364,24 +400,6 @@ msgid "<span class=\"flex-shrink-0 ml8 me-2\">Sent Emails</span>"
 msgstr "<span class=\"flex-shrink-0 ml8 me-2\">ایمیل های ارسالی</span>"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
-msgid ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">Close "
-"Activities</span>"
-msgstr ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">بستن فعالیت‌ها</"
-"span>"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
-msgid ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">Detailed Reason</"
-"span>"
-msgstr ""
-"<span class=\"o_form_label o_hr_form_label cursor-default\">دلیل تفصیلی</"
-"span>"
-
-#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
 msgid "<span class=\"o_stat_text\">Contact</span>"
 msgstr "<span class=\"o_stat_text\">مخاطب</span>"
@@ -390,6 +408,11 @@ msgstr "<span class=\"o_stat_text\">مخاطب</span>"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form_smartbutton_inherited
 msgid "<span class=\"o_stat_text\">Contacts</span>"
 msgstr "<span class=\"o_stat_text\">مخاطبان</span>"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_mixin_form_view
+msgid "<span class=\"o_stat_text\">Eligible Employees</span>"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_partner_view_form
@@ -428,14 +451,16 @@ msgid "<span class=\"text-muted small\">Time to Answer</span>"
 msgstr "<span class=\"text-muted small\">وقت پاسخ دادن</span>"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
+msgid ""
+"<span class=\"text-uppercase fw-bolder\" style=\"font-size: "
+"13px\">Organization Chart</span>"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "<span invisible=\"not contract_date_start\">to</span>"
 msgstr "<span invisible=\"not contract_date_start\">به</span>"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
-msgid "<span invisible=\"not employee_salary_amount_is_percentage\">%</span>"
-msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -447,6 +472,12 @@ msgstr ""
 "<span invisible=\"not user_id or is_user_active\">\n"
 "    (کاربر غیرفعال است)\n"
 "</span>"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "<span>Archive</span>"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -464,130 +495,140 @@ msgid "<span>Reporting</span>"
 msgstr "<<span>گزارش‌ دهی</span>"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "<span>Set Contract End Date</span>"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+msgid "<span>Set Contracts End Date</span>"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_department_view_kanban
 msgid "<span>View</span>"
 msgstr "<span>نمایش</span>"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
-msgid "<span>new employees</span>"
-msgstr "<span>کارمندان جدید</span>"
+msgid "<span>employees</span>"
+msgstr ""
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_trainee
+#: model_terms:hr.job,website_rating:hr.job_trainee
 msgid "<strong class=\"s_rating_title\">Adaptability</strong>"
 msgstr "<strong class=\"s_rating_title\">سازگاری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
-#: model_terms:hr.job,website_description:hr.job_cto
-#: model_terms:hr.job,website_description:hr.job_marketing
+#: model_terms:hr.job,website_rating:hr.job_consultant
+#: model_terms:hr.job,website_rating:hr.job_cto
+#: model_terms:hr.job,website_rating:hr.job_marketing
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr "<strong class=\"s_rating_title\">کار اداری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
-#: model_terms:hr.job,website_description:hr.job_marketing
-#: model_terms:hr.job,website_description:hr.job_trainee
+#: model_terms:hr.job,website_rating:hr.job_developer
+#: model_terms:hr.job,website_rating:hr.job_marketing
+#: model_terms:hr.job,website_rating:hr.job_trainee
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr "<strong class=\"s_rating_title\">خودگردانی</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_trainee
+#: model_terms:hr.job,website_rating:hr.job_trainee
 msgid "<strong class=\"s_rating_title\">Be enthusiastic</strong>"
 msgstr "<strong class=\"s_rating_title\">انگیزه و علاقه‌مندی کاری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
+#: model_terms:hr.job,website_rating:hr.job_developer
 msgid "<strong class=\"s_rating_title\">Client Interaction</strong>"
 msgstr "<strong class=\"s_rating_title\">تعامل با مشتری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_cto
+#: model_terms:hr.job,website_rating:hr.job_cto
 msgid "<strong class=\"s_rating_title\">Collaboration</strong>"
 msgstr "<strong class=\"s_rating_title\">همکاری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_hrm
+#: model_terms:hr.job,website_rating:hr.job_hrm
 msgid "<strong class=\"s_rating_title\">Compliance and Regulations</strong>"
 msgstr "<strong class=\"s_rating_title\">قوانین و مقررات</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_hrm
+#: model_terms:hr.job,website_rating:hr.job_hrm
 msgid "<strong class=\"s_rating_title\">Conflict Resolution</strong>"
 msgstr "<strong class=\"s_rating_title\">حل تعارض</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
-#: model_terms:hr.job,website_description:hr.job_marketing
+#: model_terms:hr.job,website_rating:hr.job_consultant
+#: model_terms:hr.job,website_rating:hr.job_marketing
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr "<strong class=\"s_rating_title\">مدیریت ارتباط با مشتری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_cto
+#: model_terms:hr.job,website_rating:hr.job_cto
 msgid "<strong class=\"s_rating_title\">Cybersecurity</strong>"
 msgstr "<strong class=\"s_rating_title\">امنیت سایبری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_hrm
+#: model_terms:hr.job,website_rating:hr.job_hrm
 msgid "<strong class=\"s_rating_title\">Diversity and Inclusion</strong>"
 msgstr "<strong class=\"s_rating_title\">تنوع و شمول</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
+#: model_terms:hr.job,website_rating:hr.job_consultant
 msgid "<strong class=\"s_rating_title\">Innovation</strong>"
 msgstr "<strong class=\"s_rating_title\">نوآوری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_cto
+#: model_terms:hr.job,website_rating:hr.job_cto
 msgid "<strong class=\"s_rating_title\">Leadership</strong>"
 msgstr "<strong class=\"s_rating_title\">رهبری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_trainee
+#: model_terms:hr.job,website_rating:hr.job_trainee
 msgid "<strong class=\"s_rating_title\">Learning</strong>"
 msgstr "<strong class=\"s_rating_title\">یادگیری</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
+#: model_terms:hr.job,website_rating:hr.job_developer
 msgid "<strong class=\"s_rating_title\">Management</strong>"
 msgstr "<strong class=\"s_rating_title\">مدیریت</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
-#: model_terms:hr.job,website_description:hr.job_marketing
+#: model_terms:hr.job,website_rating:hr.job_consultant
+#: model_terms:hr.job,website_rating:hr.job_marketing
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr "<strong class=\"s_rating_title\">ارزیابی افراد</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_trainee
+#: model_terms:hr.job,website_rating:hr.job_trainee
 msgid "<strong class=\"s_rating_title\">Problem-Solving</strong>"
 msgstr "<strong class=\"s_rating_title\">حل-مسئله</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
+#: model_terms:hr.job,website_rating:hr.job_developer
 msgid "<strong class=\"s_rating_title\">Problem-solving</strong>"
 msgstr "<strong class=\"s_rating_title\">حل-مسئله</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
+#: model_terms:hr.job,website_rating:hr.job_developer
 msgid "<strong class=\"s_rating_title\">Skill Development</strong>"
 msgstr "<strong class=\"s_rating_title\">توسعه مهارت</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_hrm
+#: model_terms:hr.job,website_rating:hr.job_hrm
 msgid "<strong class=\"s_rating_title\">Talent Acquisition</strong>"
 msgstr "<strong class=\"s_rating_title\">جذب استعداد</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
-#: model_terms:hr.job,website_description:hr.job_hrm
-#: model_terms:hr.job,website_description:hr.job_marketing
+#: model_terms:hr.job,website_rating:hr.job_consultant
+#: model_terms:hr.job,website_rating:hr.job_hrm
+#: model_terms:hr.job,website_rating:hr.job_marketing
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr "<strong class=\"s_rating_title\">تخصص فنی</strong>"
 
 #. module: hr
-#: model_terms:hr.job,website_description:hr.job_cto
+#: model_terms:hr.job,website_rating:hr.job_cto
 msgid "<strong class=\"s_rating_title\">Technology Strategy</strong>"
 msgstr "<strong class=\"s_rating_title\">استراتژی فناوری</strong>"
 
@@ -617,8 +658,8 @@ msgstr ""
 "شرکت** اطمینان حاصل کرده و **محیط کاری مثبت و انگیزشی** ایجاد نماید.\n"
 "از دیگر وظایف این نقش می‌توان به **رسیدگی به تعارضات، ارزیابی عملکرد کارکنان، "
 "و اجرای برنامه‌هایی برای افزایش مشارکت و نگهداشت نیروهای انسانی** اشاره کرد.\n"
-"علاوه بر این، مدیر منابع انسانی نقش راهبردی در **هم‌راستا کردن نیروی انسانی با "
-"اهداف و استراتژی‌های کلان سازمان** ایفا می‌کند."
+"علاوه بر این، مدیر منابع انسانی نقش راهبردی در **هم‌راستا کردن نیروی انسانی "
+"با اهداف و استراتژی‌های کلان سازمان** ایفا می‌کند."
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -664,7 +705,7 @@ msgid "Absent"
 msgstr "غایب"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__acc_number
+#: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__account_number
 #: model_terms:ir.ui.view,arch_db:hr.view_bank_account_allocation_line_list
 msgid "Account Number"
 msgstr "شماره حساب"
@@ -683,6 +724,14 @@ msgid "Action Needed"
 msgstr "اقدام مورد نیاز است"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_action_at_departure
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__action_at_departure
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_action_at_departure
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Action at"
+msgstr ""
+
+#. module: hr
 #: model_terms:digest.tip,tip_description:hr.digest_tip_hr_0
 msgid ""
 "Activate Remote Work to let Employees specify where they are working from."
@@ -690,6 +739,7 @@ msgstr "دورکاری را فعال کنید تا کارمندان بتوانن
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__active
+#: model:ir.model.fields,field_description:hr.field_hr_departure_reason__active
 #: model:ir.model.fields,field_description:hr.field_hr_employee__active
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__active
 #: model:ir.model.fields,field_description:hr.field_hr_job__active
@@ -705,11 +755,21 @@ msgid "Active Employee"
 msgstr "کارمند فعال"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
+msgid "Active Employees"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_ids
 #: model:ir.model.fields,field_description:hr.field_hr_employee__activity_ids
 #: model:ir.model.fields,field_description:hr.field_hr_version__activity_ids
 msgid "Activities"
 msgstr "فعالیت ها"
+
+#. module: hr
+#: model:ir.model,name:hr.model_mail_activity
+msgid "Activity"
+msgstr "فعالیت"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_exception_decoration
@@ -722,6 +782,13 @@ msgstr "دکوراسیون استثنایی فعالیت"
 #: model:ir.model,name:hr.model_mail_activity_plan
 msgid "Activity Plan"
 msgstr "برنامه فعالیت"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_department__activity_plans_ids
+#: model:ir.model.fields,field_description:hr.field_hr_employee__activity_plans_ids
+#: model:ir.model.fields,field_description:hr.field_hr_version__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_state
@@ -739,7 +806,6 @@ msgstr "آیکون نوع فعالیت"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_list_activites_view
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
 msgid "Activity by"
 msgstr "فعالیت توسط"
 
@@ -764,8 +830,16 @@ msgid "Activity schedule plan Wizard"
 msgstr "دستورالعمل برنامه زمان‌بندی فعالیت‌ها"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__departure_description
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid ""
+"Add more details about the reason to end the collaboration with this "
+"employee."
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__departure_description
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__departure_description
 #: model:ir.model.fields,field_description:hr.field_hr_version__departure_description
 msgid "Additional Information"
 msgstr "اطلاعات اضافی"
@@ -834,6 +908,12 @@ msgid "All activities"
 msgstr "تمام فعالیت ها"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "All selected actions have been executed on"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard__allocation_ids
 msgid "Allocations"
 msgstr "تخصیص‌ها"
@@ -843,11 +923,6 @@ msgstr "تخصیص‌ها"
 #: model:ir.model.fields,field_description:hr.field_hr_version__allowed_country_state_ids
 msgid "Allowed Country State"
 msgstr "استان/کشور مجاز"
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_job__allowed_user_ids
-msgid "Allowed User"
-msgstr "کاربر مجاز"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__amount
@@ -885,12 +960,34 @@ msgid "Application Settings"
 msgstr "تنظیمات برنامه"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
 msgid "Apply"
 msgstr "اعمال"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_apply_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__apply_date
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_apply_date
+msgid "Apply Date"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_apply_immediately
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__apply_immediately
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_apply_immediately
+msgid "Apply Immediately"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_action_other_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__action_other_date
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_action_other_date
+msgid "Apply date"
+msgstr ""
+
+#. module: hr
 #: model:hr.contract.type,name:hr.contract_type_apprenticeship
+#: model:ir.model.fields.selection,name:hr.selection__hr_version__employee_type__apprenticeship
 msgid "Apprenticeship"
 msgstr "کارآموزی"
 
@@ -900,9 +997,28 @@ msgid "Approvers"
 msgstr "تایید ‌کنندگان"
 
 #. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__4
+msgid "April"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_department_view_kanban
 msgid "Archive"
 msgstr "بایگانی"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_do_archive_employee
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__do_archive_employee
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_do_archive_employee
+msgid "Archive Employee"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_do_archive_user
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__do_archive_user
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_do_archive_user
+msgid "Archive Related User"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__hr_employee__hr_icon_display__presence_archive
@@ -911,6 +1027,7 @@ msgstr "بایگانی"
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.view_department_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_department_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
@@ -919,242 +1036,6 @@ msgstr "بایگانی"
 #: model_terms:ir.ui.view,arch_db:hr.view_job_filter
 msgid "Archived"
 msgstr "بایگانی شده"
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_hrm
-msgid ""
-"As a Human Resources Manager at our company, you will<b>work closely with "
-"all\n"
-"                                departments to design and implement HR "
-"initiatives that align with our business\n"
-"                                objectives</b>. Join our expanding "
-"organization, which offers competitive benefits and\n"
-"                                ample opportunities for growth while "
-"collaborating with seasoned professionals.\n"
-"                                <br>\n"
-"                                This role is both <b>strategic and "
-"operational</b>, focusing on recruitment, employee\n"
-"                                engagement, and performance management. We "
-"seek a proactive leader who can effectively\n"
-"                                manage talent acquisition, develop training "
-"programs, and implement retention\n"
-"                                strategies. Success in this position "
-"requires strong analytical skills, in-depth\n"
-"                                knowledge of labor laws, and the ability to "
-"foster a diverse and inclusive workplace\n"
-"                                culture while enhancing employee "
-"satisfaction and productivity."
-msgstr ""
-"به‌عنوان مدیر منابع انسانی در شرکت ما، شما با **تمامی واحدها همکاری نزدیکی "
-"خواهید داشت تا ابتکارات منابع انسانی را طراحی و اجرا کنید که با اهداف تجاری "
-"سازمان هم‌راستا باشند**.\n"
-"به تیم رو‌به‌رشد ما بپیوندید؛ تیمی که مزایای رقابتی و فرصت‌های فراوان برای رشد "
-"حرفه‌ای را در کنار همکاری با متخصصان باتجربه فراهم می‌کند.\n"
-"\n"
-"این نقش، **ترکیبی از وظایف راهبردی و اجرایی** است و تمرکز آن بر جذب نیرو، "
-"مشارکت کارکنان و مدیریت عملکرد خواهد بود.\n"
-"ما به‌دنبال رهبری پیش‌رو هستیم که بتواند فرایند جذب استعداد را به‌خوبی مدیریت "
-"کند، برنامه‌های آموزشی توسعه دهد و راهکارهای اثربخشی برای نگهداشت کارکنان "
-"پیاده‌سازی نماید.\n"
-"موفقیت در این جایگاه نیازمند مهارت‌های تحلیلی قوی، دانش عمیق قوانین کار، و "
-"توانایی ایجاد فرهنگ کاری متنوع و فراگیر است، فرهنگی که موجب رضایت کارکنان و "
-"افزایش بهره‌وری سازمان شود."
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_consultant
-msgid ""
-"As a consultant at our company, you will <b>collaborate with diverse "
-"departments to\n"
-"                                assess business needs, design tailored "
-"strategies, and drive successful implementation\n"
-"                                of solutions</b>. Join a forward-thinking "
-"organization that offers competitive benefits\n"
-"                                and opportunities for advancement, working "
-"alongside industry experts. We are looking\n"
-"                                for an accomplished consultant with a strong "
-"background in delivering measurable\n"
-"                                outcomes.\n"
-"                                <br>\n"
-"                                This role demands both <b>creative problem-"
-"solving and strategic analysis</b>,\n"
-"                                requiring you to think critically about "
-"client challenges. We expect candidates to be\n"
-"                                self-motivated, with a strong \"get it "
-"done\" mentality. To thrive in this position, you\n"
-"                                should possess excellent analytical skills, "
-"the ability to translate insights into\n"
-"                                actionable recommendations, and the talent "
-"for building rapport with stakeholders across\n"
-"                                all levels of the organization."
-msgstr ""
-"به‌عنوان مشاور در شرکت ما، شما با **بخش‌های متنوع سازمان همکاری خواهید کرد تا "
-"نیازهای کسب‌وکار را ارزیابی کرده، راهکارهایی متناسب طراحی کرده و اجرای موفق "
-"آن‌ها را پیش ببرید**.\n"
-"به سازمانی آینده‌نگر بپیوندید که در کنار مزایای رقابتی و فرصت‌های رشد شغلی، "
-"امکان همکاری با خبرگان صنعت را فراهم می‌کند.\n"
-"ما به‌دنبال مشاوری توانمند با سابقه‌ای قوی در ارائه‌ی نتایج قابل سنجش هستیم.\n"
-"\n"
-"این موقعیت شغلی نیازمند **حل مسئله‌ی خلاقانه و تحلیل راهبردی** است و از شما "
-"انتظار می‌رود که با دیدی نقادانه به چالش‌های مشتریان نگاه کنید.\n"
-"کاندیدای ایده‌آل فردی باانگیزه، عمل‌گرا و دارای روحیه‌ی «کار را تمام کن» است.\n"
-"برای موفقیت در این جایگاه، باید مهارت‌های تحلیلی قوی، توانایی تبدیل بینش‌ها به "
-"پیشنهادهای اجرایی، و توانمندی در ایجاد ارتباط مؤثر با ذی‌نفعان در سطوح مختلف "
-"سازمان را داشته باشید."
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_developer
-msgid ""
-"As a developer at our company, you will <b>collaborate with product "
-"managers, designers,\n"
-"                                and other engineers to design, develop, and "
-"deploy innovative software solutions</b>.\n"
-"                                Join us at a rapidly growing organization "
-"that offers competitive benefits and\n"
-"                                opportunities for career advancement while "
-"working alongside industry leaders.\n"
-"                                We’re looking for a skilled developer with a "
-"passion for technology and innovation.\n"
-"                                <br>\n"
-"                                In this role, you will be responsible for "
-"<b>writing clean, maintainable code,\n"
-"                                participating in code reviews, and "
-"troubleshooting issues</b>. Your work will involve\n"
-"                                both creative <b>problem-solving and "
-"rigorous analysis</b>, requiring you to think\n"
-"                                outside the box to deliver effective "
-"solutions. We seek a proactive candidate with a\n"
-"                                strong \"get it done\" mentality. Success in "
-"this position hinges on your ability to\n"
-"                                tackle complex challenges and deliver high-"
-"quality results in a fast-paced environment."
-msgstr ""
-"به‌عنوان توسعه‌دهنده در شرکت ما، شما با **مدیران محصول، طراحان و سایر مهندسان "
-"همکاری خواهید کرد تا راهکارهای نرم‌افزاری نوآورانه را طراحی، توسعه و "
-"پیاده‌سازی نمایید**.\n"
-"به سازمانی با رشد سریع بپیوندید که در کنار مزایای رقابتی، فرصت‌های پیشرفت "
-"شغلی را در کنار همکاری با رهبران صنعت فراهم می‌سازد.\n"
-"ما به‌دنبال توسعه‌دهنده‌ای ماهر با اشتیاق به فناوری و نوآوری هستیم.\n"
-"\n"
-"در این نقش، مسئولیت شما شامل **نوشتن کدی تمیز و قابل نگهداری، مشارکت در "
-"بازبینی کد، و رفع اشکالات فنی** خواهد بود.\n"
-"کار شما ترکیبی از **حل خلاقانه‌ی مسائل و تحلیل دقیق** خواهد بود و نیازمند تفکر "
-"خارج از چارچوب برای ارائه‌ی راهکارهای اثربخش است.\n"
-"ما به‌دنبال فردی پیش‌فعال با ذهنیت «کار را به نتیجه برسان» هستیم.\n"
-"موفقیت در این جایگاه به توانایی شما در مقابله با چالش‌های پیچیده و ارائه‌ی "
-"نتایج با کیفیت در یک محیط پویای کاری بستگی دارد."
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_trainee
-msgid ""
-"As a trainee at our company, you will <b>work with various departments to "
-"assist in\n"
-"                                creating and launching innovative products</"
-"b>. Join our growing team, offering\n"
-"                                excellent benefits and valuable learning "
-"opportunities alongside experienced\n"
-"                                professionals.\n"
-"                                <br>\n"
-"                                This role is both <b>creative and "
-"structured</b>, encouraging out-of-the-box thinking.\n"
-"                                We are looking for a proactive individual "
-"with a strong get it done mindset. Successful\n"
-"                                candidates will have the chance to grow "
-"within the company based on their fit and\n"
-"                                performance."
-msgstr ""
-"به‌عنوان کارآموز در شرکت ما، شما با **بخش‌های مختلف همکاری خواهید کرد تا در "
-"فرآیند طراحی و راه‌اندازی محصولات نوآورانه مشارکت داشته باشید**.\n"
-"به تیم رو‌به‌رشد ما بپیوندید؛ تیمی که در کنار مزایای عالی، فرصت‌های ارزشمند "
-"یادگیری در کنار متخصصان باتجربه را فراهم می‌سازد.\n"
-"\n"
-"این نقش ترکیبی از **خلاقیت و ساختارمندی** است و تفکر خارج از چارچوب را تشویق "
-"می‌کند.\n"
-"ما به‌دنبال فردی پیش‌قدم با ذهنیت «کار را به نتیجه برسان» هستیم.\n"
-"کاندیداهای موفق این فرصت را خواهند داشت که براساس عملکرد و تناسب با سازمان، "
-"مسیر رشد خود را در شرکت ادامه دهند."
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_marketing
-msgid ""
-"As an employee of our company, you will <b>collaborate with each department "
-"to create and deploy\n"
-"                                disruptive products.</b> Come work at a "
-"growing company that offers great benefits with opportunities to\n"
-"                                moving forward and learn alongside "
-"accomplished leaders. We're seeking an experienced and outstanding member of "
-"staff.\n"
-"                                <br><br>\n"
-"                                This position is both <b>creative and "
-"rigorous</b> by nature you need to think outside the box.\n"
-"                                We expect the candidate to be proactive and "
-"have a \"get it done\" spirit. To be successful,\n"
-"                                you will have solid solving problem skills."
-msgstr ""
-"به‌عنوان یکی از کارکنان شرکت ما، شما با **تمامی واحدهای سازمان همکاری خواهید "
-"کرد تا محصولات تحول‌آفرین را طراحی و پیاده‌سازی کنید**.\n"
-"به شرکتی در حال رشد بپیوندید که در کنار مزایای عالی، فرصت‌های پیشرفت و "
-"یادگیری در کنار رهبران برجسته‌ی صنعت را فراهم می‌کند.\n"
-"ما به‌دنبال عضوی باتجربه، توانمند و برجسته برای تیم خود هستیم.\n"
-"\n"
-"این موقعیت شغلی ذاتاً **ترکیبی از خلاقیت و نظم ساختاری** است و نیازمند تفکری "
-"خارج از چارچوب می‌باشد.\n"
-"ما انتظار داریم کاندیدای این نقش فردی پیش‌فعال با روحیه‌ی «کار را به نتیجه "
-"برسان» باشد.\n"
-"برای موفقیت در این جایگاه، برخورداری از مهارت‌های قوی در حل مسئله ضروری است."
-
-#. module: hr
-#: model_terms:hr.job,website_description:hr.job_cto
-msgid ""
-"As our Chief Technology Officer, you will <b>work closely with product, "
-"marketing, and\n"
-"                                operations teams to create and launch "
-"innovative technology solutions that set us apart\n"
-"                                in the industry</b>. Join our fast-growing "
-"company, where you’ll enjoy competitive\n"
-"                                benefits and opportunities for professional "
-"growth while collaborating with top experts\n"
-"                                in the field.\n"
-"                                <br>\n"
-"                                In this role, you will <b>define and execute "
-"our technology strategy and roadmap</b>,\n"
-"                                ensuring it aligns with our business goals. "
-"This position is both <b>creative and\n"
-"                                analytical</b>, requiring you to think "
-"outside the box while implementing effective\n"
-"                                solutions. We are looking for a proactive "
-"leader with a strong \"get it done\" mentality\n"
-"                                who can tackle challenges head-on and drive "
-"projects to successful completion.\n"
-"                                <br>\n"
-"                                To excel in this position, you will need "
-"<b>extensive experience in software\n"
-"                                architecture, cloud computing, and data "
-"security</b>, along with a strong background in\n"
-"                                team leadership and agile project "
-"management. Your excellent communication skills will\n"
-"                                be vital for conveying complex technical "
-"ideas to non-technical stakeholders and\n"
-"                                fostering collaboration across all "
-"departments."
-msgstr ""
-"به‌عنوان مدیر ارشد فناوری (CTO) در شرکت ما، شما با **تیم‌های محصول، بازاریابی "
-"و عملیات همکاری نزدیکی خواهید داشت تا راهکارهای فناورانه‌ی نوآورانه‌ای طراحی و "
-"راه‌اندازی کنید که ما را در صنعت متمایز سازند**.\n"
-"به شرکتی با رشد سریع بپیوندید که مزایای رقابتی و فرصت‌های توسعه‌ی حرفه‌ای را در "
-"کنار همکاری با برترین متخصصان حوزه‌ی فناوری فراهم می‌کند.\n"
-"\n"
-"در این نقش، شما مسئول **تدوین و اجرای استراتژی و نقشه‌راه فناوری شرکت** "
-"خواهید بود تا اطمینان حاصل شود این مسیر با اهداف کلان کسب‌وکار هم‌راستا است.\n"
-"این جایگاه ذاتاً **ترکیبی از خلاقیت و تحلیل‌گری** است و نیازمند تفکر خارج از "
-"چارچوب در کنار توانایی اجرای راهکارهای مؤثر می‌باشد.\n"
-"ما به‌دنبال رهبری پیش‌قدم با روحیه‌ی قوی «کار را به نتیجه برسان» هستیم که "
-"بتواند با چالش‌ها روبه‌رو شده و پروژه‌ها را تا دستیابی به موفقیت هدایت کند.\n"
-"\n"
-"برای برتری در این موقعیت، لازم است **تجربه‌ی گسترده‌ای در معماری نرم‌افزار، "
-"رایانش ابری و امنیت داده** داشته باشید و از پیش‌زمینه‌ی قوی در **رهبری تیم و "
-"مدیریت پروژه‌های چابک (Agile)** برخوردار باشید.\n"
-"همچنین، **مهارت‌های ارتباطی عالی** برای انتقال مؤثر مفاهیم فنی پیچیده به "
-"ذی‌نفعان غیر‌فنی و تقویت همکاری بین واحدها، نقش کلیدی در موفقیت شما خواهد داشت."
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan_template__responsible_type
@@ -1170,6 +1051,39 @@ msgstr "کمک در سازمان‌دهی رویدادهای شرکت"
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "Assist with daily project tasks"
 msgstr "کمک در انجام وظایف روزانه‌ی پروژه"
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__hr_icon_display__presence_home
+msgid "At Home"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
+msgid "At Home - Present"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__hr_icon_display__presence_office
+msgid "At Office"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
+msgid "At Office - Present"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__hr_icon_display__presence_other
+msgid "At Other"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__message_attachment_count
@@ -1188,6 +1102,11 @@ msgstr "رمز حضور و غیاب"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Attendance/Point of Sale"
 msgstr "حضور و غیاب / صندوق فروش"
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__8
+msgid "August"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__mail_alias__alias_contact__employees
@@ -1240,6 +1159,11 @@ msgid "Avatar 512"
 msgstr "آواتار ۵۱۲"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Average Hours"
+msgstr ""
+
+#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Bachelor"
@@ -1264,6 +1188,7 @@ msgid "Badge ID"
 msgstr "شناسه نشان"
 
 #. module: hr
+#: model:ir.model,name:hr.model_res_partner_bank
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__bank_account_id
 msgid "Bank Account"
 msgstr "حساب بانکی"
@@ -1291,26 +1216,10 @@ msgid "Bank Account Allocations"
 msgstr "تخصیص حساب بانکی"
 
 #. module: hr
-#: model:ir.model,name:hr.model_res_partner_bank
 #: model:ir.model.fields,field_description:hr.field_hr_employee__bank_account_ids
 #: model:ir.model.fields,field_description:hr.field_res_users__bank_account_ids
 msgid "Bank Accounts"
 msgstr "حساب های بانکی"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
-msgid "Bank Address"
-msgstr "آدرس بانک"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
-msgid "Bank Information"
-msgstr "اطلاعات بانک"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
-msgid "Bank Name"
-msgstr "نام بانک"
 
 #. module: hr
 #. odoo-python
@@ -1353,7 +1262,8 @@ msgstr "بر اساس وضعیت کاربر در سیستم"
 #: code:addons/hr/models/hr_version.py:0
 msgid ""
 "Before creating a new contract, close the current one by setting an end date."
-msgstr "پیش از ایجاد قرارداد جدید، قرارداد فعلی را با تعیین تاریخ پایان ببندید."
+msgstr ""
+"پیش از ایجاد قرارداد جدید، قرارداد فعلی را با تعیین تاریخ پایان ببندید."
 
 #. module: hr
 #. odoo-javascript
@@ -1367,22 +1277,26 @@ msgid "Birthday"
 msgstr "تولد"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__birthday_month
+msgid "Birthday Month"
+msgstr ""
+
+#. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/fields/boolean_radio.js:0
 msgid "Boolean display as radio field with translatable labels"
 msgstr "نمایش بولی به‌صورت فیلد رادیویی با برچسب‌های قابل ترجمه"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_bank_account_allocation_wizard
-#: model_terms:ir.ui.view,arch_db:hr.view_users_simple_form
-msgid "Cancel"
-msgstr "لغو"
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Cancel Departure"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_version.py:0
 msgid "Cannot archive all the active versions of an employee."
-msgstr "نمی‌توان همه نسخه‌های فعال یک کارمند را بایگانی کرد."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -1396,9 +1310,15 @@ msgstr ""
 
 #. module: hr
 #. odoo-python
+#: code:addons/hr/models/hr_employee.py:0
+msgid "Cannot search or group by hr_presence state: too many employees (%s)"
+msgstr ""
+
+#. module: hr
+#. odoo-python
 #: code:addons/hr/models/hr_version.py:0
 msgid "Cannot unassign all the active versions of an employee."
-msgstr "نمی‌توان همه نسخه‌های فعال یک کارمند را سلب مسئولیت کرد."
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__certificate
@@ -1427,6 +1347,16 @@ msgid "Chief Technical Officer"
 msgstr "مدیر فنی"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__child_all_count
+msgid "Child All Count"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__child_count
+msgid "Child Count"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__child_ids
 msgid "Child Departments"
 msgstr "دپارتمان‌های زیرمجموعه"
@@ -1442,11 +1372,8 @@ msgid "Citizenship"
 msgstr "شهروندی"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_city
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_city
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "City"
 msgstr "شهر"
 
@@ -1493,15 +1420,17 @@ msgid "Color Index"
 msgstr "رنگ پس زمینه"
 
 #. module: hr
-#: model:ir.model,name:hr.model_res_company
 #: model_terms:ir.ui.view,arch_db:hr.view_department_tree
 msgid "Companies"
 msgstr "شرکت"
 
 #. module: hr
+#: model:ir.model,name:hr.model_res_company
 #: model:ir.model.fields,field_description:hr.field_hr_department__company_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee__company_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__company_id
+#: model:ir.model.fields,field_description:hr.field_hr_export_employee_mixin__company_id
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__company_id
 #: model:ir.model.fields,field_description:hr.field_hr_job__company_id
 #: model:ir.model.fields,field_description:hr.field_hr_version__company_id
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__company_id
@@ -1524,6 +1453,11 @@ msgstr "کد کشور شرکت"
 #: model_terms:ir.ui.view,arch_db:hr.print_employee_badge
 msgid "Company Logo"
 msgstr "لوگو شرکت"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_config_settings__company_tz
+msgid "Company Timezone"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_config_settings__resource_calendar_id
@@ -1574,12 +1508,12 @@ msgstr "مشاور"
 
 #. module: hr
 #: model:ir.model,name:hr.model_res_partner
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Contact"
 msgstr "مخاطب"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Contact Name"
 msgstr "نام تماس"
 
@@ -1597,7 +1531,6 @@ msgstr "مخاطبین"
 #. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/components/versions_timeline/versions_timeline.js:0
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
@@ -1605,11 +1538,14 @@ msgid "Contract"
 msgstr "قرارداد"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__departure_date
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
+msgid "Contract End"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__contract_date_end
 #: model:ir.model.fields,field_description:hr.field_hr_version__contract_date_end
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 msgid "Contract End Date"
 msgstr "تاریخ پایان قرارداد"
 
@@ -1630,30 +1566,28 @@ msgid "Contract Overview"
 msgstr "نمای کلی قرارداد"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view_enhanced
+msgid "Contract Period"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
+msgid "Contract Start"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__contract_date_start
 #: model:ir.model.fields,field_description:hr.field_hr_version__contract_date_start
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 msgid "Contract Start Date"
 msgstr "تاریخ شروع قرارداد"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__contract_template_id
 #: model:ir.model.fields,field_description:hr.field_hr_version__contract_template_id
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__contract_template_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
 msgid "Contract Template"
 msgstr "الگوی قرارداد"
-
-#. module: hr
-#: model:ir.actions.act_window,name:hr.hr_version_wizard_action
-msgid "Contract Template Load"
-msgstr "بارگذاری الگوی قرارداد"
-
-#. module: hr
-#: model:ir.model,name:hr.model_hr_version_wizard
-msgid "Contract Template Wizard"
-msgstr "ویزارد الگوی قرارداد"
 
 #. module: hr
 #: model:ir.actions.act_window,name:hr.action_hr_contract_templates
@@ -1665,22 +1599,20 @@ msgstr "الگوهای قرارداد"
 #. module: hr
 #: model:ir.model,name:hr.model_hr_contract_type
 #: model:ir.model.fields,field_description:hr.field_hr_employee__contract_type_id
+#: model:ir.model.fields,field_description:hr.field_hr_job__contract_type_id
 #: model:ir.model.fields,field_description:hr.field_hr_version__contract_type_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+#: model_terms:ir.ui.view,arch_db:hr.view_job_filter
 msgid "Contract Type"
 msgstr "نوع قرارداد"
 
 #. module: hr
+#: model:ir.actions.act_window,name:hr.hr_contract_type_action
+#: model:ir.ui.menu,name:hr.menu_view_hr_contract_type
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_type_view_tree
 msgid "Contract Types"
 msgstr "انواع قرارداد"
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__contract_wage
-#: model:ir.model.fields,field_description:hr.field_hr_version__contract_wage
-msgid "Contract Wage"
-msgstr "دستمزد قرارداد"
 
 #. module: hr
 #: model:mail.message.subtype,description:hr.mt_contract_pending
@@ -1704,20 +1636,23 @@ msgid "Contractor"
 msgstr "پیمانکار"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_country
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+msgid "Contracts"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__country_id
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__country_id
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__country_id
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_country
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "Country"
 msgstr "کشور"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__country_code
 #: model:ir.model.fields,field_description:hr.field_hr_employee__country_code
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__country_code
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__country_code
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__country_code
 #: model:ir.model.fields,field_description:hr.field_hr_version__country_code
@@ -1730,11 +1665,6 @@ msgid "Country of Birth"
 msgstr "کشور محل تولد"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_work_location__location_type
-msgid "Cover Image"
-msgstr "تصویر کاور"
-
-#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__create_date
 msgid "Create Date"
 msgstr "ایجاد تاریخ"
@@ -1743,6 +1673,11 @@ msgstr "ایجاد تاریخ"
 #: model_terms:ir.ui.view,arch_db:hr.view_users_simple_form_inherit_hr
 msgid "Create Employee"
 msgstr "ایجاد کارمند"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__create_uid
+msgid "Create Uid"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -1764,15 +1699,15 @@ msgid "Create a Job Position"
 msgstr "ایجاد سمت شغلی"
 
 #. module: hr
+#: model_terms:ir.actions.act_window,help:hr.hr_contract_type_action
+msgid "Create a new contract type"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.actions.act_window,help:hr.hr_department_kanban_action
 #: model_terms:ir.actions.act_window,help:hr.hr_department_tree_action
 msgid "Create a new department"
 msgstr "ایجاد یک دپارتمان جدید"
-
-#. module: hr
-#: model_terms:ir.actions.act_window,help:hr.hr_contract_type_action
-msgid "Create a new employment type"
-msgstr "ایجاد نوع استخدام جدید"
 
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.hr_work_location_action
@@ -1783,6 +1718,12 @@ msgstr "ایجاد موقعیت مکانی کاری جدید"
 #: model_terms:ir.actions.act_window,help:hr.mail_activity_plan_action
 msgid "Create an Activity Plan"
 msgstr "ایجاد برنامه‌ی فعالیت"
+
+#. module: hr
+#: model_terms:ir.actions.act_window,help:hr.action_hr_employee_org_chart
+#: model_terms:ir.actions.act_window,help:hr.action_hr_employee_public_org_chart
+msgid "Create an employee."
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -1804,14 +1745,14 @@ msgstr "ایجاد کارمند"
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_department__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__create_uid
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__create_uid
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__create_uid
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_job__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_version__create_uid
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__create_uid
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__create_uid
 msgid "Created by"
 msgstr "ایجاد شده توسط"
@@ -1822,16 +1763,21 @@ msgstr "ایجاد شده توسط"
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_department__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__create_date
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_employee__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__create_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__create_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_job__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_version__create_date
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__create_date
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__create_date
 msgid "Created on"
 msgstr "ایجادشده در"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__creation_date
+msgid "Creation Date"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__currency_id
@@ -1846,9 +1792,19 @@ msgid "Currency sign, to be used when printing amounts."
 msgstr "علامت واحد پول، برای استفاده هنگام چاپ مبالغ."
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__exceptional_location_id
+msgid "Current"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__current_date_version
-msgid "Current Date Version"
-msgstr "نسخه‌ی تاریخ جاری"
+msgid "Current Date Employee Record"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__current_version_id
+msgid "Current Employee Record"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_job__no_of_employee
@@ -1856,14 +1812,14 @@ msgid "Current Number of Employees"
 msgstr "تعداد کارمندان فعلی"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__current_version_id
-msgid "Current Version"
-msgstr "نسخه فعلی"
-
-#. module: hr
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "Currently enrolled in final study years"
 msgstr "در حال تحصیل در سال‌های پایانی دوره‌ی آموزشی"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__date
+msgid "Date"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__date_end
@@ -1878,15 +1834,41 @@ msgid "Date Start"
 msgstr "تاریخ شروع"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__date_version
-#: model:ir.model.fields,field_description:hr.field_hr_version__date_version
-msgid "Date Version"
-msgstr "نسخه‌ی تاریخ"
+#: model:ir.model.fields,help:hr.field_hr_employee__departure_date
+#: model:ir.model.fields,help:hr.field_hr_employee_departure__departure_date
+#: model:ir.model.fields,help:hr.field_hr_version__departure_date
+msgid "Date at which the departure actually takes place."
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,help:hr.field_hr_employee__dismissal_date
+#: model:ir.model.fields,help:hr.field_hr_employee_departure__dismissal_date
+#: model:ir.model.fields,help:hr.field_hr_version__dismissal_date
+msgid ""
+"Date at which the departure process starts. Differs from the actual "
+"departure date in case of a notice period."
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/js/DynamicMinDateTimeField.js:0
+msgid "Date with Dynamic Minimum Value"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__day_week_string
+msgid "Day Week String"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_developer
 msgid "Debug and resolve software issues"
 msgstr "اشکال‌زدایی و رفع مشکلات نرم‌افزاری"
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__12
+msgid "December"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_cto
@@ -1925,7 +1907,6 @@ msgstr ""
 #. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/components/avatar_card/avatar_card_popover_patch.xml:0
-#: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
 #: model:ir.model,name:hr.model_hr_department
 #: model:ir.model.fields,field_description:hr.field_hr_employee__department_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__department_id
@@ -1936,6 +1917,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr.field_resource_resource__department_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.view_department_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_job_filter
@@ -1946,6 +1928,12 @@ msgstr "دپارتمان"
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan__department_assignable
 msgid "Department Assignable"
 msgstr "قابل انتساب به واحد (دپارتمان)"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__department_color
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__department_color
+msgid "Department Color"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__name
@@ -1967,21 +1955,22 @@ msgid "Departments"
 msgstr "دپارتمان‌ها"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_id
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_id
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Departure"
 msgstr "خروج"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__departure_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__departure_date
 #: model:ir.model.fields,field_description:hr.field_hr_version__departure_date
 msgid "Departure Date"
 msgstr "تاریخ خروج"
 
 #. module: hr
 #: model:ir.model,name:hr.model_hr_departure_reason
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__departure_reason_id
-#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_reason_id
-#: model:ir.model.fields,field_description:hr.field_hr_version__departure_reason_id
 msgid "Departure Reason"
 msgstr "دلیل خروج"
 
@@ -1992,22 +1981,30 @@ msgid "Departure Reasons"
 msgstr "دلایل ترک کار"
 
 #. module: hr
-#: model:ir.model,name:hr.model_hr_departure_wizard
-msgid "Departure Wizard"
-msgstr "ویزارد خروج"
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Departure date"
+msgstr ""
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/wizard/hr_departure_wizard.py:0
+#: code:addons/hr/models/hr_employee_departure.py:0
 msgid ""
-"Departure date can't be earlier than the start date of current contract."
-msgstr "تاریخ خروج نمی‌تواند زودتر از تاریخ شروع قرارداد فعلی باشد."
+"Departure date is earlier than the start date of the current contract(s) of "
+"%s."
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__children
 #: model:ir.model.fields,field_description:hr.field_hr_version__children
 msgid "Dependent Children"
 msgstr "فرزندان تحت تکفل"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Detailed Reason"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
@@ -2036,6 +2033,19 @@ msgid "Development"
 msgstr "توسعه"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__child_count
+msgid "Direct Subordinates Count"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,help:hr.field_hr_employee__subordinate_ids
+#: model:ir.model.fields,help:hr.field_hr_employee_public__subordinate_ids
+msgid "Direct and indirect subordinates"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
 #: model:ir.model.fields,field_description:hr.field_hr_employee__child_ids
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__child_ids
 msgid "Direct subordinates"
@@ -2047,8 +2057,9 @@ msgid "Directory"
 msgstr "دایرکتوری کارکنان"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr.hr_version_wizard_view_form
+#. odoo-javascript
+#: code:addons/hr/static/src/xml/contract_template_button.xml:0
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
 msgid "Discard"
 msgstr "رها کردن"
 
@@ -2068,24 +2079,34 @@ msgid "Discussion Channel"
 msgstr "کانال گفتگو"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__dismissal_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__dismissal_date
+#: model:ir.model.fields,field_description:hr.field_hr_version__dismissal_date
+msgid "Dismissal Date"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_discuss_channel__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_department__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__display_name
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_employee__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__display_name
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__display_name
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__display_name
+#: model:ir.model.fields,field_description:hr.field_hr_export_employee_mixin__display_name
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_job__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_manager_department_report__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_mixin__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_version__display_name
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__display_name
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__display_name
 #: model:ir.model.fields,field_description:hr.field_ir_ui_menu__display_name
+#: model:ir.model.fields,field_description:hr.field_mail_activity__display_name
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan__display_name
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan_template__display_name
 #: model:ir.model.fields,field_description:hr.field_mail_activity_schedule__display_name
@@ -2127,7 +2148,7 @@ msgstr "سند"
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Documents"
-msgstr "مستندات"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__driving_license
@@ -2182,7 +2203,10 @@ msgid "Education"
 msgstr "آموزش"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__date_version
+#: model:ir.model.fields,field_description:hr.field_hr_version__date_version
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view_enhanced
 msgid "Effective Date"
 msgstr "تاریخ اجرا (تاریخ مؤثر)"
 
@@ -2199,18 +2223,24 @@ msgid "Element to observe"
 msgstr "عنصر مورد مشاهده"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_email
+#. odoo-python
+#: code:addons/hr/models/hr_export_mixin.py:0
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__eligible_employee_line_ids
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_employee_mixin_list_view
+msgid "Eligible Employees"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__email
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__email
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_email
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Email"
 msgstr "پست الکترونیک"
 
 #. module: hr
 #: model:ir.model,name:hr.model_mail_alias
-msgid "Email Aliases"
-msgstr "آدرس‌های ایمیل"
+msgid "Email Alias"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__emergency_contact
@@ -2234,7 +2264,10 @@ msgstr "تلفن اضطراری"
 #: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__employee_id
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard__employee_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee__employee_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__employee_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__employee_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__employee_id
+#: model:ir.model.fields,field_description:hr.field_hr_export_employee_mixin__employee_id
 #: model:ir.model.fields,field_description:hr.field_hr_manager_department_report__employee_id
 #: model:ir.model.fields,field_description:hr.field_hr_version__employee_id
 #: model:ir.model.fields,field_description:hr.field_res_partner__employee
@@ -2244,8 +2277,10 @@ msgstr "تلفن اضطراری"
 #: model:ir.model.fields.selection,name:hr.selection__hr_version__employee_type__employee
 #: model:ir.model.fields.selection,name:hr.selection__mail_activity_plan_template__responsible_type__employee
 #: model:ir.ui.menu,name:hr.menu_config_employee
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -2272,7 +2307,12 @@ msgstr "قرارداد کارمند"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__employee_count
 msgid "Employee Count"
-msgstr "تعداد کارمندان"
+msgstr "تعداد کارکنان"
+
+#. module: hr
+#: model:ir.model,name:hr.model_hr_employee_departure
+msgid "Employee Departure"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.print_employee_badge
@@ -2280,7 +2320,13 @@ msgid "Employee Image"
 msgstr "تصویر کارمند"
 
 #. module: hr
+#: model:ir.model,name:hr.model_hr_employee_location
+msgid "Employee Location"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__name
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__employee_name
 msgid "Employee Name"
 msgstr "نام کارمند"
 
@@ -2295,11 +2341,22 @@ msgid "Employee Properties"
 msgstr "ویژگی‌های کارمند"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__version_id
+msgid "Employee Record"
+msgstr ""
+
+#. module: hr
 #: model:ir.actions.act_window,name:hr.action_hr_version
+#: model:ir.model.fields,field_description:hr.field_hr_employee__version_ids
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_graph_view
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_pivot_view
 msgid "Employee Records"
 msgstr "سوابق کارمند"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__versions_count
+msgid "Employee Records Count"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__employee_salary_amount_is_percentage
@@ -2315,22 +2372,11 @@ msgid "Employee Tags"
 msgstr "برچسب‌های کارمند"
 
 #. module: hr
-#. odoo-javascript
-#: code:addons/hr/static/src/views/archive_employee_hook.js:0
-msgid "Employee Termination"
-msgstr "قطع همکاری کارمند"
-
-#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__employee_type
 #: model:ir.model.fields,field_description:hr.field_hr_version__employee_type
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 msgid "Employee Type"
 msgstr "نوع کارمند"
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__version_ids
-msgid "Employee Versions"
-msgstr "نسخه‌های کارمند"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__bank_account_ids
@@ -2348,7 +2394,7 @@ msgstr "توسعه‌ی کارمندان یکی از محورهای اصلی ا�
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Employee will be excluded from Pay Runs"
-msgstr "کارمند از پرداخت حقوق مستثنی خواهد شد"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__employee_bank_account_ids
@@ -2360,9 +2406,13 @@ msgstr "حساب‌های بانکی کارمند"
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr.hr_kanban_view_employees
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Employee's Name"
 msgstr "نام کارمند"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Employee's Name (e.g. John Doe, ...)"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__employee_resource_calendar_id
@@ -2381,19 +2431,20 @@ msgstr "حقوق ناخالص ماهانه‌ی کارمند."
 #: model:ir.actions.act_window,name:hr.hr_employee_public_action
 #: model:ir.actions.act_window,name:hr.open_view_employee_list
 #: model:ir.actions.act_window,name:hr.open_view_employee_list_my
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__employee_ids
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__employee_ids
 #: model:ir.model.fields,field_description:hr.field_hr_job__employee_ids
 #: model:ir.model.fields,field_description:hr.field_res_partner__employee_ids
 #: model:ir.ui.menu,name:hr.menu_hr_employee_payroll
 #: model:ir.ui.menu,name:hr.menu_hr_root
 #: model:res.groups.privilege,name:hr.res_groups_privilege_employees
+#: model_terms:ir.ui.view,arch_db:hr.hr_department_hierarchy_view
 #: model_terms:ir.ui.view,arch_db:hr.hr_department_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_list_activites_view
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_list_view
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_tree
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_view_activity
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
 #: model_terms:ir.ui.view,arch_db:hr.res_partner_view_search
 #: model_terms:ir.ui.view,arch_db:hr.view_department_form
@@ -2418,19 +2469,7 @@ msgstr "برچسب‌های کارمندان"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Employees profile"
-msgstr "پروفایل کارمندان"
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_job__contract_type_id
-#: model_terms:ir.ui.view,arch_db:hr.view_job_filter
-msgid "Employment Type"
-msgstr "نوع استخدام"
-
-#. module: hr
-#: model:ir.actions.act_window,name:hr.hr_contract_type_action
-#: model:ir.ui.menu,name:hr.menu_view_hr_contract_type
-msgid "Employment Types"
-msgstr "انواع استخدام"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view
@@ -2441,6 +2480,13 @@ msgstr "پایان"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "End Date"
 msgstr "تاریخ پایان"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_reason_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__departure_reason_id
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_reason_id
+msgid "End Reason"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__contract_date_end
@@ -2455,10 +2501,21 @@ msgid "End date of the trial period (if there is one)."
 msgstr "تاریخ پایان دوره‌ی آزمایشی (در صورت وجود)."
 
 #. module: hr
+#: model:ir.actions.server,name:hr.action_hr_employee_departure
+msgid "End of Collaboration"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__trial_date_end
 #: model:ir.model.fields,field_description:hr.field_hr_version__trial_date_end
 msgid "End of Trial Period"
 msgstr "پایان دوره‌ی آزمایشی"
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_employee.py:0
+msgid "End of collaboration"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -2560,6 +2617,36 @@ msgid "Expires on"
 msgstr "تاریخ انقضا"
 
 #. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__mail_activity__technical_usage__hr_expiring_contract
+msgid "Expiring Contract"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__mail_activity__technical_usage__hr_expiring_work_permit
+msgid "Expiring Work Permit"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_employee_mixin__export_id
+msgid "Export"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_mixin_list_view
+msgid "Export Employee"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__export_file
+msgid "Export File"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__export_filename
+msgid "Export Filename"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__share
 #: model:ir.model.fields,help:hr.field_hr_employee_public__share
 msgid ""
@@ -2614,10 +2701,9 @@ msgid "Family"
 msgstr "خانواده"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_state
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_state
-msgid "Fed. State"
-msgstr "ایالت فدرال"
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__2
+msgid "February"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__hr_version__sex__female
@@ -2630,9 +2716,20 @@ msgid "Field of Study"
 msgstr "رشته تحصیلی"
 
 #. module: hr
+#: model_terms:ir.actions.act_window,help:hr.action_hr_employee_org_chart
+#: model_terms:ir.actions.act_window,help:hr.action_hr_employee_public_org_chart
+msgid "Find all the information on employees."
+msgstr ""
+
+#. module: hr
 #: model:hr.departure.reason,name:hr.departure_fired
 msgid "Fired"
 msgstr "اخراج شده"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Flexible"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__message_follower_ids
@@ -2683,6 +2780,17 @@ msgid "Freelancer"
 msgstr "فریلنسر (پیمانکار آزاد)"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__friday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__friday_location_id
+msgid "Friday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__friday_location_id
+msgid "Fridays"
+msgstr ""
+
+#. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
 #: model_terms:hr.job,website_description:hr.job_developer
 #: model_terms:hr.job,website_description:hr.job_hrm
@@ -2720,9 +2828,9 @@ msgid "Generate"
 msgstr "ایجاد"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
-msgid "Give more details about the reason of archiving the employee."
-msgstr "جزئیات بیشتری درباره‌ی دلیل بایگانی کارمند ارائه دهید."
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_mixin_form_view
+msgid "Generate Export File"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -2766,6 +2874,21 @@ msgid "HR Employee: Update Current Version"
 msgstr "کارمند منابع انسانی: به‌روزرسانی نسخه‌ی فعلی"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_mixin_form_view
+msgid "HR Export"
+msgstr ""
+
+#. module: hr
+#: model:ir.model,name:hr.model_hr_export_employee_mixin
+msgid "HR Export Employee"
+msgstr ""
+
+#. module: hr
+#: model:ir.model,name:hr.model_hr_export_mixin
+msgid "HR Export Mixin"
+msgstr ""
+
+#. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/components/hr_presence_status/hr_presence_status.js:0
 msgid "HR Presence Status"
@@ -2776,6 +2899,16 @@ msgstr "وضعیت حضور کارمند (HR Presence Status)"
 #: model:ir.model.fields,field_description:hr.field_hr_version__hr_responsible_id
 msgid "HR Responsible"
 msgstr "مسئول منابع انسانی"
+
+#. module: hr
+#: model:ir.actions.server,name:hr.ir_cron_apply_departure_ir_actions_server
+msgid "HR: Apply employee departures"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__has_country_contract_type
+msgid "Has Country Contract Type"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_manager_department_report__has_department_manager_access
@@ -2796,6 +2929,13 @@ msgstr "آیا دارای پیام است"
 #: model:ir.model.fields,field_description:hr.field_res_partner_bank__employee_has_multiple_bank_accounts
 msgid "Has Multiple Bank Accounts"
 msgstr "دارای چند حساب بانکی"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_has_selected_actions
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__has_selected_actions
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_has_selected_actions
+msgid "Has Selected Actions"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_developer
@@ -2845,6 +2985,36 @@ msgid "Home-Work Distance unit"
 msgstr "واحد فاصله‌ی منزل تا محل کار"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__hourly_cost
+msgid "Hourly Cost"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__hours_per_day
+msgid "Hours Per Day"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__hours_per_week
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Hours Per Week"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__hours_per_day
+#: model:ir.model.fields,field_description:hr.field_hr_version__hours_per_day
+#: model:ir.model.fields,field_description:hr.field_resource_resource__hours_per_day
+msgid "Hours per Day"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__hours_per_week
+#: model:ir.model.fields,field_description:hr.field_hr_version__hours_per_week
+#: model:ir.model.fields,field_description:hr.field_resource_resource__hours_per_week
+msgid "Hours per Week"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__hr_icon_display
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__hr_icon_display
 #: model:ir.model.fields,field_description:hr.field_resource_resource__hr_icon_display
@@ -2879,18 +3049,21 @@ msgstr "مدیریت منابع انسانی"
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__id
 #: model:ir.model.fields,field_description:hr.field_hr_department__id
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__id
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__id
 #: model:ir.model.fields,field_description:hr.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__id
+#: model:ir.model.fields,field_description:hr.field_hr_export_employee_mixin__id
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__id
 #: model:ir.model.fields,field_description:hr.field_hr_job__id
 #: model:ir.model.fields,field_description:hr.field_hr_manager_department_report__id
 #: model:ir.model.fields,field_description:hr.field_hr_mixin__id
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__id
 #: model:ir.model.fields,field_description:hr.field_hr_version__id
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__id
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__id
 #: model:ir.model.fields,field_description:hr.field_ir_ui_menu__id
+#: model:ir.model.fields,field_description:hr.field_mail_activity__id
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan__id
 #: model:ir.model.fields,field_description:hr.field_mail_activity_plan_template__id
 #: model:ir.model.fields,field_description:hr.field_mail_activity_schedule__id
@@ -2926,7 +3099,9 @@ msgstr "وضعیت پیام‌رسان (IM Status)"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__activity_exception_icon
 #: model:ir.model.fields,field_description:hr.field_hr_employee__activity_exception_icon
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__work_location_type
 #: model:ir.model.fields,field_description:hr.field_hr_version__activity_exception_icon
+#: model:ir.model.fields,field_description:hr.field_hr_work_location__location_type
 msgid "Icon"
 msgstr "شمایل"
 
@@ -2963,11 +3138,6 @@ msgstr ""
 #: model:ir.model.fields,help:hr.field_hr_version__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr "اگر علامت زده شود، برخی از پیام ها دارای خطای تحویل هستند."
-
-#. module: hr
-#: model:ir.model.fields,help:hr.field_hr_departure_wizard__remove_related_user
-msgid "If checked, the related user will be removed from the system."
-msgstr "در صورت انتخاب، کاربر مرتبط از سیستم حذف خواهد شد."
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__active
@@ -3016,6 +3186,12 @@ msgid "Image 512"
 msgstr "تصویر 512"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Immediately"
+msgstr ""
+
+#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Import Template for Employees"
@@ -3037,6 +3213,17 @@ msgstr "دانش عمیق از قوانین کار"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Indefinite"
 msgstr "نامحدود"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__child_all_count
+msgid "Indirect Subordinates Count"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "Indirect subordinates"
+msgstr ""
 
 #. module: hr
 #: model:hr.contract.type,name:hr.contract_type_interim
@@ -3109,6 +3296,12 @@ msgid "Is Past"
 msgstr "گذشته"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__is_subordinate
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__is_subordinate
+msgid "Is Subordinate"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__is_system
 msgid "Is System"
 msgstr "سیستمی"
@@ -3124,15 +3317,26 @@ msgid "Is User"
 msgstr "کاربر"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Issued by Government"
+msgstr ""
+
+#. module: hr
 #: model_terms:hr.job,website_description:hr.job_cto
 msgid "It prioritizes data-driven decision-making"
 msgstr "اولویت‌دهی به تصمیم‌گیری مبتنی بر داده"
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__1
+msgid "January"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__job_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__job_id
 #: model:ir.model.fields,field_description:hr.field_hr_version__job_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_tree
 msgid "Job"
@@ -3148,6 +3352,7 @@ msgstr "شرح شغل"
 #: model:ir.model.fields,field_description:hr.field_hr_job__name
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 #: model_terms:ir.ui.view,arch_db:hr.view_job_filter
@@ -3159,11 +3364,6 @@ msgstr "موقعیت شغلی"
 #: model:ir.ui.menu,name:hr.menu_view_hr_job
 msgid "Job Positions"
 msgstr "موقعیت های شغلی"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
-msgid "Job Posting"
-msgstr "آگهی شغلی"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__job_title
@@ -3179,7 +3379,17 @@ msgstr "عنوان شغل"
 #: model:ir.model.fields,field_description:hr.field_hr_department__jobs_ids
 #: model_terms:ir.ui.view,arch_db:hr.view_job_filter
 msgid "Jobs"
-msgstr "شغل‌ها"
+msgstr "شغل"
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__7
+msgid "July"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__6
+msgid "June"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_hrm
@@ -3221,14 +3431,14 @@ msgstr "آخرین ویرایش در"
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_department__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__write_uid
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__write_uid
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__write_uid
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_job__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_version__write_uid
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__write_uid
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__write_uid
 msgid "Last Updated by"
 msgstr "آخرین تغییر توسط"
@@ -3239,14 +3449,14 @@ msgstr "آخرین تغییر توسط"
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_department__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__write_date
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_employee__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_employee_category__write_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__write_date
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_job__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_payroll_structure_type__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_version__write_date
-#: model:ir.model.fields,field_description:hr.field_hr_version_wizard__write_date
 #: model:ir.model.fields,field_description:hr.field_hr_work_location__write_date
 msgid "Last Updated on"
 msgstr "آخرین بروز رسانی در"
@@ -3259,6 +3469,7 @@ msgstr "فعالیتهای اخیر"
 
 #. module: hr
 #: model:ir.actions.act_window,name:hr.plan_wizard_action
+#: model_terms:ir.ui.view,arch_db:hr.hr_kanban_view_employees
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
 msgid "Launch Plan"
@@ -3313,9 +3524,10 @@ msgid "Link an element with the boolean True value."
 msgstr "اتصال یک عنصر با مقدار بولی صحیح."
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_version_wizard_view_form
-msgid "Load"
-msgstr "بارگذاری"
+#. odoo-javascript
+#: code:addons/hr/static/src/xml/contract_template_button.xml:0
+msgid "Load Contract Template"
+msgstr ""
 
 #. module: hr
 #: model:ir.actions.server,name:hr.action_hr_employee_load_demo_data
@@ -3323,7 +3535,14 @@ msgid "Load Sample Data"
 msgstr "بارگذاری داده‌های نمونه"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+#. odoo-javascript
+#: code:addons/hr/static/src/xml/contract_template_button.xml:0
+msgid "Load Template"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/xml/contract_template_button.xml:0
 msgid "Load a Template"
 msgstr "بارگذاری الگو"
 
@@ -3333,6 +3552,7 @@ msgid "Load sample data."
 msgstr "بارگذاری داده‌های نمونه."
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__work_location_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Location"
@@ -3344,9 +3564,9 @@ msgid "Location Number"
 msgstr "شماره موقعیت"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
-msgid "Login"
-msgstr "ورود به سیستم"
+#: model:ir.model.fields,field_description:hr.field_hr_employee_location__work_location_name
+msgid "Location name"
+msgstr ""
 
 #. module: hr
 #: model:hr.department,name:hr.dep_rd_ltp
@@ -3406,6 +3626,11 @@ msgid "Manager of employee %s is not set."
 msgstr "مدیر کارمند %s تنظیم نشده است."
 
 #. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__3
+msgid "March"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__marital
 #: model:ir.model.fields,field_description:hr.field_hr_version__marital
 msgid "Marital Status"
@@ -3440,12 +3665,21 @@ msgid "Master demos of our software"
 msgstr "دموهای اصلی نرم‌افزار ما"
 
 #. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__5
+msgid "May"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__member_of_department
 msgid "Member Of Department"
 msgstr "عضو دپارتمان"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__member_of_department
+msgid "Member of Department"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_version__member_of_department
 msgid "Member of department"
 msgstr "عضو دپارتمان"
@@ -3477,9 +3711,38 @@ msgid "Messages"
 msgstr "پیام ها"
 
 #. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/js/DynamicMinDateTimeField.js:0
+msgid "Minimum Date Field"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__mobile_phone
 msgid "Mobile Phone"
 msgstr "تلفن همراه"
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_employee.py:0
+msgid "Modified on the Employee Record '%s'"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__monday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__monday_location_id
+msgid "Monday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__monday_location_id
+msgid "Mondays"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "More managers"
+msgstr ""
 
 #. module: hr
 #. odoo-javascript
@@ -3510,29 +3773,18 @@ msgid "My Activity Deadline"
 msgstr "موعد نهای فعالیت من"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
-msgid "My Department"
-msgstr "دپارتمان من"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
-msgid "My Team"
-msgstr "تیم من"
-
-#. module: hr
-#. odoo-javascript
-#: code:addons/hr/static/src/fields/boolean_radio.xml:0
-msgid "NO"
-msgstr "خیر"
-
-#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_contract_type__name
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__name
 #: model:ir.model.fields,field_description:hr.field_hr_version__name
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_list_view
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
 msgid "Name"
 msgstr "نام"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__nationality_country_code
+msgid "Nationality"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__country_id
@@ -3566,8 +3818,7 @@ msgstr "کارمندان جدید در طول زمان"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__newly_hired
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__newly_hired
-#: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_search
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view_enhanced
 msgid "Newly Hired"
 msgstr "تازه استخدام‌شده"
 
@@ -3623,7 +3874,7 @@ msgstr "هیچ الگوئی پیدا نشد"
 #. odoo-javascript
 #: code:addons/hr/static/src/components/versions_timeline/versions_timeline.js:0
 msgid "No contract"
-msgstr "بدون قرارداد"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -3639,7 +3890,7 @@ msgstr ""
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "No user linked"
-msgstr "هیچ کاربری متصل نشده"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -3654,7 +3905,17 @@ msgstr "بدون اتلاف وقت در فرآیندهای سازمانی، مس
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Not Employed"
-msgstr "استخدام نشده"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Not limited"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__0
+msgid "Not specified"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__note
@@ -3662,6 +3923,11 @@ msgstr "استخدام نشده"
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Note"
 msgstr "یادداشت"
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__11
+msgid "November"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__message_needaction_counter
@@ -3726,6 +3992,11 @@ msgid "Number of new employees you expect to recruit."
 msgstr "تعداد کارمندان جدیدی که می‌خواهید استخدام کنید."
 
 #. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__10
+msgid "October"
+msgstr ""
+
+#. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/components/avatar_card_resource/avatar_card_resource_popover.xml:0
 #: model:ir.model.fields.selection,name:hr.selection__hr_employee__hr_icon_display__presence_out_of_working_hour
@@ -3757,6 +4028,13 @@ msgid "Only HR users can access first version date on an employee."
 msgstr ""
 "فقط کاربران منابع انسانی می‌توانند تاریخ نسخه اول را در پروفایل کارمند مشاهده "
 "کنند."
+
+#. module: hr
+#: model:ir.model.constraint,message:hr.constraint_hr_employee_location_uniq_exceptional_per_day
+msgid ""
+"Only one default work location and one exceptional work location per day per "
+"employee."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -3797,6 +4075,17 @@ msgid "Operation not Supported."
 msgstr "عملیات پشتیبانی نمی‌شود."
 
 #. module: hr
+#: model:ir.actions.act_window,name:hr.action_hr_employee_org_chart
+#: model:ir.actions.act_window,name:hr.action_hr_employee_public_org_chart
+msgid "Org Chart"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Organization Chart"
+msgstr ""
+
+#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 #: model:ir.model.fields.selection,name:hr.selection__hr_employee__work_location_type__other
@@ -3804,6 +4093,12 @@ msgstr "عملیات پشتیبانی نمی‌شود."
 #: model:ir.model.fields.selection,name:hr.selection__hr_work_location__location_type__other
 msgid "Other"
 msgstr "دیگر"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Other date"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -3911,6 +4206,16 @@ msgid "Perfect written English"
 msgstr "انگلیسی نوشتاری بی‌نقص"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__period_start
+msgid "Period Start"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_export_mixin__period_stop
+msgid "Period Stop"
+msgstr ""
+
+#. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
 #: model_terms:hr.job,website_description:hr.job_developer
 #: model_terms:hr.job,website_description:hr.job_hrm
@@ -3928,7 +4233,7 @@ msgstr "دائمی"
 #: model:ir.model.fields,help:hr.field_hr_employee__hr_responsible_id
 #: model:ir.model.fields,help:hr.field_hr_version__hr_responsible_id
 msgid "Person responsible for validating the employee's contracts."
-msgstr "فرد مسئول تأیید قراردادهای کارمند."
+msgstr "فرد مسئول تأیید قراردادهای کارمند"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -3949,13 +4254,11 @@ msgstr "پروژه شخصی"
 #. odoo-python
 #: code:addons/hr/models/res_users.py:0
 msgid "Personal information update."
-msgstr "به‌روزرسانی اطلاعات شخصی."
+msgstr "به‌روزرسانی اطلاعات شخصی"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_phone
 #: model:ir.model.fields,field_description:hr.field_hr_employee__phone
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__phone
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_phone
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Phone"
 msgstr "تلفن"
@@ -3996,6 +4299,12 @@ msgstr ""
 "استفاده کنند، زیرا فقط برای برنامه‌های کارکنان قابل استفاده است."
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Planned Actions"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_department_form
 msgid "Plans"
 msgstr "برنامه‌ها"
@@ -4032,14 +4341,14 @@ msgstr ""
 "- دنبال کنندگان: فقط دنبال کنندگان سند مرتبط یا اعضای کانال های زیر\n"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.hr_export_mixin_form_view
+msgid "Populate"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_simple_modif
 msgid "Preferences"
 msgstr "ترجیحات"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
-msgid "Presence"
-msgstr "حضور"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -4222,11 +4531,6 @@ msgid "Qualify the customer needs"
 msgstr "شناسایی نیازهای مشتری"
 
 #. module: hr
-#: model:hr.department,name:hr.dep_rd_be
-msgid "R&D USA"
-msgstr "تحقیق و توسعه آمریکا"
-
-#. module: hr
 #. odoo-javascript
 #: code:addons/hr/static/src/fields/radio_followed_by_element.js:0
 msgid "Radio followed by element"
@@ -4267,11 +4571,12 @@ msgstr "علت"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view_enhanced
 msgid "Records"
 msgstr "سوابق"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_job__user_id
+#: model:ir.model.fields,field_description:hr.field_hr_job__recruiter_id
 msgid "Recruiter"
 msgstr "استخدام‌کننده"
 
@@ -4281,17 +4586,17 @@ msgid "Recruitment"
 msgstr "استخدام"
 
 #. module: hr
-#. odoo-python
-#: code:addons/hr/models/hr_employee.py:0
-msgid "Register Departure"
-msgstr "ثبت خروج"
+#. odoo-javascript
+#: code:addons/hr/static/src/js/DynamicMinDateTimeField.js:0
+msgid "Reference another date/datetime field to use as minimum date"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/res_users.py:0
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
 msgid "Related Contact"
-msgstr "مخاطب مرتبط"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -4312,10 +4617,9 @@ msgid "Related Partners Count"
 msgstr "تعداد شرکای مرتبط"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__remove_related_user
-#: model_terms:ir.ui.view,arch_db:hr.hr_departure_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_list_activites_view
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Related User"
 msgstr "کاربر مروبطه"
 
@@ -4325,9 +4629,19 @@ msgid "Related employee"
 msgstr "کارمند‌های مرتبط"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__employee_public_ids
+msgid "Related employee (public)"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,help:hr.field_res_partner__employee_ids
 msgid "Related employees based on their private address"
 msgstr "مربوط به کارمندان بر اساس آدرس خصوصی آنان"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__all_employee_ids
+msgid "Related employees from all companies"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__user_id
@@ -4356,6 +4670,7 @@ msgid "Resigned"
 msgstr "استعفا داده"
 
 #. module: hr
+#: model:ir.model,name:hr.model_resource_resource
 #: model:ir.model.fields,field_description:hr.field_hr_employee__resource_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__resource_id
 msgid "Resource"
@@ -4375,11 +4690,6 @@ msgstr "جزئیات مرخصی منابع"
 #: model:ir.model,name:hr.model_resource_calendar
 msgid "Resource Working Time"
 msgstr "زمان کار منابع"
-
-#. module: hr
-#: model:ir.model,name:hr.model_resource_resource
-msgid "Resources"
-msgstr "منابع"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -4402,7 +4712,7 @@ msgstr "کاربر مسئول"
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Resume"
-msgstr "رزومه"
+msgstr "ازسرگیری"
 
 #. module: hr
 #: model:hr.departure.reason,name:hr.departure_retired
@@ -4412,7 +4722,7 @@ msgstr "بازنشست شده"
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
 msgid "Running Contract"
-msgstr "قرارداد در حال اجرا"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_department__message_has_sms_error
@@ -4423,23 +4733,17 @@ msgid "SMS Delivery error"
 msgstr "خطای تحویل پیامک"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__ssnid
-#: model:ir.model.fields,field_description:hr.field_hr_version__ssnid
-msgid "SSN No"
-msgstr "شماره تأمین اجتماعی"
-
-#. module: hr
 #: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__employee_salary_amount
 #: model:ir.model.fields,field_description:hr.field_res_partner_bank__employee_salary_amount
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 #: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "Salary Allocation"
-msgstr "اختصاص حقوق و دستمزد"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__salary_distribution
 msgid "Salary Distribution"
-msgstr "توزیع حقوق و دستمزد"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
@@ -4461,6 +4765,17 @@ msgid "Sales"
 msgstr "فروش ها"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__saturday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__saturday_location_id
+msgid "Saturday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__saturday_location_id
+msgid "Saturdays"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_bank_account_allocation_wizard
 #: model_terms:ir.ui.view,arch_db:hr.view_users_simple_form
 msgid "Save"
@@ -4468,6 +4783,7 @@ msgstr "ذخیره"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
+#: model_terms:ir.ui.view,arch_db:hr.hr_employee_departure_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Schedule"
 msgstr "زمان‌بندی"
@@ -4478,20 +4794,28 @@ msgid "School"
 msgstr "مدرسه"
 
 #. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/views/fields/many2many_avatar_employee_field/many2many_avatar_employee_field.js:0
+msgid "Search employee..."
+msgstr ""
+
+#. module: hr
 #: model:hr.contract.type,name:hr.contract_type_seasonal
 msgid "Seasonal"
 msgstr "فصلی"
 
 #. module: hr
-#: model:ir.model.fields,help:hr.field_hr_employee__contract_template_id
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "See All"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,help:hr.field_hr_version__contract_template_id
-#: model:ir.model.fields,help:hr.field_hr_version_wizard__contract_template_id
 msgid ""
 "Select a contract template to auto-fill the contract form with predefined "
 "values. You can still edit the fields as needed after applying the template."
 msgstr ""
-"یک قالب قرارداد را برای پرکردن خودکار فرم با مقادیر پیش‌فرض انتخاب کنید. شما "
-"می‌توانید مقادیر را بنا به نیاز بعد از اعمال قالت تغییر دهید."
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__coach_id
@@ -4503,17 +4827,34 @@ msgstr ""
 "مربی به طور پیش‌فرض حقوق یا مسئولیت خاصی ندارد."
 
 #. module: hr
+#: model:ir.actions.act_window,name:hr.action_partner_mass_mail
+msgid "Send Email"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields.selection,name:hr.selection__hr_employee__birthday_month__9
+msgid "September"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_bank_account_allocation_wizard_line__sequence
-#: model:ir.model.fields,field_description:hr.field_hr_contract_type__sequence
 #: model:ir.model.fields,field_description:hr.field_hr_departure_reason__sequence
 #: model:ir.model.fields,field_description:hr.field_hr_job__sequence
 msgid "Sequence"
 msgstr "دنباله"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__set_date_end
+#: model:ir.model.fields,field_description:hr.field_hr_employee__departure_do_set_date_end
+#: model:ir.model.fields,field_description:hr.field_hr_employee_departure__do_set_date_end
+#: model:ir.model.fields,field_description:hr.field_hr_version__departure_do_set_date_end
 msgid "Set Contract End Date"
 msgstr "تعیین تاریخ پایان قرارداد"
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "Set a manager or reports to show in org chart."
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -4521,9 +4862,13 @@ msgid "Set default company schedule to manage your employees working time"
 msgstr "تنظیم برنامه شرکت پیش‌فرض برای مدیریت زمان کارکرد کارکنانتان"
 
 #. module: hr
-#: model:ir.model.fields,help:hr.field_hr_departure_wizard__set_date_end
-msgid "Set the end date on the current contract."
-msgstr "تاریخ پایان قرارداد فعلی را تعیین کنید."
+#: model:ir.model.fields,help:hr.field_hr_employee__departure_do_set_date_end
+#: model:ir.model.fields,help:hr.field_hr_employee_departure__do_set_date_end
+#: model:ir.model.fields,help:hr.field_hr_version__departure_do_set_date_end
+msgid ""
+"Set the departure date as the contract end date and delete all future "
+"versions."
+msgstr ""
 
 #. module: hr
 #: model:ir.actions.act_window,name:hr.hr_config_settings_action
@@ -4548,12 +4893,12 @@ msgstr "نمایش آیکون منابع انسانی"
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_search_view
 msgid "Show all records whose next activity date is past"
-msgstr "نمایش تمام رکوردهایی که تاریخ فعالیت بعدی آن‌ها گذشته است"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__birthday_public_display
 msgid "Show to all employees"
-msgstr "نمایش به همه کارمندان"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -4567,16 +4912,18 @@ msgid "Skills Management"
 msgstr "مدیریت مهارت‌ها"
 
 #. module: hr
-#: model:ir.model.fields,help:hr.field_hr_employee__ssnid
-#: model:ir.model.fields,help:hr.field_hr_version__ssnid
-msgid "Social Security Number"
-msgstr "شماره ملی"
-
-#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Some employee already have a work contact"
 msgstr "برخی از کارمندان قبلاً یک تماس کاری دارند"
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/views/hr_employee_hierarchy/hr_employee_hierarchy_renderer.xml:0
+msgid ""
+"Some employees are present in a loop.\n"
+"                Click"
+msgstr ""
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
@@ -4597,7 +4944,7 @@ msgstr "تاریخ تولد همسر"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__spouse_complete_name
 #: model:ir.model.fields,field_description:hr.field_hr_version__spouse_complete_name
 msgid "Spouse Legal Name"
-msgstr "نام قانونی همسر"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_version_list_view
@@ -4605,7 +4952,6 @@ msgid "Start"
 msgstr "شروع"
 
 #. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Start Date"
 msgstr "تاریخ آغاز"
@@ -4616,12 +4962,10 @@ msgstr "تاریخ آغاز"
 msgid ""
 "Start date (%(start)s) must be earlier than contract end date (%(end)s)."
 msgstr ""
-"تاریخ شروع (%(start)s) باید زودتر از تاریخ پایان قرارداد (%(end)s) باشد."
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "State"
 msgstr "استان"
 
@@ -4642,34 +4986,21 @@ msgstr ""
 
 #. module: hr
 #: model:hr.contract.type,name:hr.contract_type_statutory
+#: model:ir.model.fields.selection,name:hr.selection__hr_version__employee_type__statutory
 msgid "Statutory"
 msgstr "قانونی"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_street
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_street
-msgid "Street"
-msgstr "آدرس"
-
-#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "Street 2..."
 msgstr "آدرس ۲ ..."
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "Street..."
 msgstr "آدرس ..."
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_street2
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_street2
-msgid "Street2"
-msgstr "خیابان2"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_marketing
@@ -4679,7 +5010,7 @@ msgstr "مهارت‌های تحلیلی قوی"
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_hrm
 msgid "Strong communication and interpersonal skills"
-msgstr "مهارت‌های ارتباطی و بین‌فردی قوی"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.hr_department_kanban_action
@@ -4698,9 +5029,26 @@ msgid "Student"
 msgstr "دانشجو"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__subordinate_ids
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__subordinate_ids
+msgid "Subordinates"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
 msgid "Summary"
 msgstr "خلاصه"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__sunday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__sunday_location_id
+msgid "Sunday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__sunday_location_id
+msgid "Sundays"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__currency_symbol
@@ -4732,9 +5080,20 @@ msgid "Target"
 msgstr "هدف"
 
 #. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hooks.js:0
+msgid "Team"
+msgstr ""
+
+#. module: hr
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "Team-oriented mindset"
-msgstr "ذهنیت تیم-محور"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_mail_activity__technical_usage
+msgid "Technical Usage"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_res_users__create_employee_id
@@ -4745,6 +5104,11 @@ msgstr "فیلد فنی، کاربر را هنگام ایجاد به این کا
 #: model:ir.model.fields,field_description:hr.field_res_users__create_employee
 msgid "Technical field, whether to create an employee"
 msgstr "فیلد فنی، آیا برای ایجاد یک کارمند"
+
+#. module: hr
+#: model:ir.model.fields,help:hr.field_mail_activity__technical_usage
+msgid "Technical identifier"
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
@@ -4777,6 +5141,8 @@ msgstr ""
 #: model:ir.model.fields,help:hr.field_hr_departure_reason__country_code
 #: model:ir.model.fields,help:hr.field_hr_employee__company_country_code
 #: model:ir.model.fields,help:hr.field_hr_employee__country_code
+#: model:ir.model.fields,help:hr.field_hr_employee__nationality_country_code
+#: model:ir.model.fields,help:hr.field_hr_employee_departure__country_code
 #: model:ir.model.fields,help:hr.field_hr_payroll_structure_type__country_code
 #: model:ir.model.fields,help:hr.field_hr_version__country_code
 msgid ""
@@ -4805,7 +5171,7 @@ msgid "The PIN must be a sequence of digits."
 msgstr "پین‌کد باید دنباله‌ای از ارقام باشد."
 
 #. module: hr
-#: model:ir.model.fields,help:hr.field_hr_job__user_id
+#: model:ir.model.fields,help:hr.field_hr_job__recruiter_id
 msgid ""
 "The Recruiter will be the default value for all Applicants in this "
 "job             position. The Recruiter is automatically added to all "
@@ -4813,21 +5179,27 @@ msgid ""
 msgstr ""
 
 #. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_employee_departure.py:0
+msgid "The apply date isn't reached yet for the departure of %(emp)s."
+msgstr ""
+
+#. module: hr
 #: model:ir.model.constraint,message:hr.constraint_hr_version_check_contract_start_date_defined
 msgid "The contract must have a start date."
-msgstr "قرارداد باید تاریخ شروع داشته باشد."
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
-msgid "The contract of %s is about to expire."
-msgstr "قرارداد%s در حال پایان است."
+msgid "The contract of %(employee_name)s is about to expire."
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_contract_template_form_view
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "The default working hours are set in configuration."
-msgstr "ساعات کاری پیش‌فرض در تنظیمات ست شده‌اند."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -4842,8 +5214,12 @@ msgid ""
 "The employee is already in contract on %s. Please select a date outside "
 "existing contracts"
 msgstr ""
-"کارمند از قبل با %s قرارداد دارد. لطفا تاریخی خارج از قراردادهای فعلی انتخاب "
-"کنید"
+
+#. module: hr
+#: model:ir.model.fields,help:hr.field_hr_employee__legal_name
+msgid ""
+"The employee's official name as per government-issued or legal documents."
+msgstr ""
 
 #. module: hr
 #: model:ir.model.constraint,message:hr.constraint_hr_job_no_of_recruitment_positive
@@ -4872,13 +5248,13 @@ msgstr "فیلدهای زیر توسط %s تغییر داده شدند"
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/wizard/hr_departure_wizard.py:0
+#: code:addons/hr/models/hr_employee_departure.py:0
 msgid "The following users have been archived: %s"
-msgstr "این کاربران بایگانی شده‌اند: %s"
+msgstr ""
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/wizard/hr_departure_wizard.py:0
+#: code:addons/hr/models/hr_employee_departure.py:0
 msgid ""
 "The following users have not been archived as they are still linked to "
 "another active employees: %s"
@@ -4904,7 +5280,7 @@ msgstr "کاربر مربی %s تنظیم نشده است."
 #. module: hr
 #: model:res.groups,comment:hr.group_hr_user
 msgid "The user will be able to create and edit employees."
-msgstr "کاربر قادر خواهد بود که همکاران را اضافه و ویرایش کند."
+msgstr ""
 
 #. module: hr
 #: model:res.groups,comment:hr.group_hr_manager
@@ -4915,15 +5291,33 @@ msgstr ""
 "کاربر به پیکربندی منابع انسانی و همچنین گزارش های آماری دسترسی خواهد داشت."
 
 #. module: hr
+#: model:ir.model.constraint,message:hr.constraint_hr_version_check_wage_positive
+msgid "The wage must be a positive value."
+msgstr ""
+
+#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
-msgid "The work permit of %s is about to expire."
-msgstr "پروانه کار %s در شرف انقضا است."
+msgid "The work permit of %(employee_name)s is about to expire."
+msgstr ""
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_employee_departure.py:0
+msgid "There is no valid version starting before the departure date for %s."
+msgstr ""
 
 #. module: hr
 #: model:hr.contract.type,name:hr.contract_type_thesis
 msgid "Thesis"
-msgstr "پایان‌نامه"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid ""
+"This action will delete the departure entirely. Are you sure you want to "
+"proceed?"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -4939,7 +5333,6 @@ msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__tz
-#: model:ir.model.fields,help:hr.field_hr_version__tz
 msgid ""
 "This field is used in order to define in which timezone the resources will "
 "work."
@@ -4948,10 +5341,17 @@ msgstr ""
 "می شود."
 
 #. module: hr
+#: model:ir.model.fields,help:hr.field_hr_employee__exceptional_location_id
+msgid "This is the exceptional, non-weekly, location set for today."
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__sex
 #: model:ir.model.fields,help:hr.field_hr_version__sex
-msgid "This is the legal sex recognized by the state."
-msgstr "این جنسیت قانونی است که توسط دولت شناخته شده است."
+msgid ""
+"This is the legal sex as recognized by the state, used for official and "
+"statutory purposes."
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
@@ -4966,9 +5366,21 @@ msgid "Those responsible types are limited to Employee plans."
 msgstr "این نوع مسئولیت‌ها محدود به برنامه‌های کارمندی هستند."
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__thursday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__thursday_location_id
+msgid "Thursday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__thursday_location_id
+msgid "Thursdays"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__tz
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__tz
 #: model:ir.model.fields,field_description:hr.field_hr_version__tz
+#: model:ir.model.fields,field_description:hr.field_resource_resource__tz
 msgid "Timezone"
 msgstr "منطقه‌ زمانی"
 
@@ -4998,6 +5410,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
 msgid "Today Activities"
 msgstr "فعالیت های امروز"
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__today_location_name
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__today_location_name
+msgid "Today Location Name"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "Total"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_job__expected_employees
@@ -5049,6 +5473,17 @@ msgid "Trusted"
 msgstr "مورد اعتماد"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__tuesday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__tuesday_location_id
+msgid "Tuesday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__tuesday_location_id
+msgid "Tuesdays"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_bank_account_allocation_line_list
 msgid "Type"
 msgstr "نوع"
@@ -5088,6 +5523,15 @@ msgid "Unread Messages"
 msgstr "پیام های ناخوانده"
 
 #. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/components/hr_presence_status/hr_presence_status.js:0
+#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form
+#: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Unspecified"
+msgstr ""
+
+#. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "Untrust Bank Account"
 msgstr ""
@@ -5113,32 +5557,122 @@ msgstr "کاربر"
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/wizard/hr_departure_wizard.py:0
+#: code:addons/hr/models/hr_employee_departure.py:0
 msgid "User Archive Notification"
-msgstr "اعلان آرشیو شدن کاربر"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "User Creation Notification"
-msgstr "اعلان ساخته‌شدن کاربر"
+msgstr ""
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_departure_wizard__is_user_employee
-msgid "User Employee"
-msgstr "کاربر کارمند"
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "User Timezone"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "User already exists for Those Employees %s"
-msgstr "کاربر از قبل برای این کارمندان موجود است %s"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "User already exists with the same email for Employees %s"
-msgstr "کاربر با همین ایمیل از قبل برای کارمندان %s موجود است"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at home"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at home and busy"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at home and idle"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at home and offline"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at home and online"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at other location"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at other location and busy"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at other location and idle"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at other location and offline"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at other location and online"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at the office"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at the office and busy"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at the office and idle"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at the office and offline"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/core/common/im_status_patch.js:0
+msgid "User is at the office and online"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__is_user_active
@@ -5155,6 +5689,11 @@ msgstr "همکار کاربر"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "Users %s creation successful"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Usual Work Location"
 msgstr ""
 
 #. module: hr
@@ -5179,18 +5718,13 @@ msgid "Valid work permit for Belgium"
 msgstr "مجوز کار معتبر برای بلژیک"
 
 #. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__version_id
-msgid "Version"
-msgstr "نگارش"
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "Variable Hours"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__version_revision
 msgid "Version Revision"
-msgstr ""
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_hr_employee__versions_count
-msgid "Versions Count"
 msgstr ""
 
 #. module: hr
@@ -5202,6 +5736,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr/static/src/components/avatar_card/avatar_card_popover_patch.xml:0
 msgid "View Profile"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/fields/hr_org_chart.xml:0
+msgid "View employee"
 msgstr ""
 
 #. module: hr
@@ -5224,7 +5764,7 @@ msgstr "شماره ویزا"
 #: model_terms:ir.ui.view,arch_db:hr.view_department_form
 #: model_terms:ir.ui.view,arch_db:hr.view_hr_job_form
 msgid "Visible to all"
-msgstr "قابل مشاهده توسط همه"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__wage
@@ -5274,6 +5814,17 @@ msgid "Website communication history"
 msgstr "تاریخچه ارتباط با وبسایت"
 
 #. module: hr
+#: model:ir.model.fields,field_description:hr.field_hr_employee__wednesday_location_id
+#: model:ir.model.fields,field_description:hr.field_hr_employee_public__wednesday_location_id
+msgid "Wednesday"
+msgstr ""
+
+#. module: hr
+#: model:ir.model.fields,field_description:hr.field_res_users__wednesday_location_id
+msgid "Wednesdays"
+msgstr ""
+
+#. module: hr
 #: model_terms:hr.job,website_description:hr.job_consultant
 #: model_terms:hr.job,website_description:hr.job_developer
 #: model_terms:hr.job,website_description:hr.job_hrm
@@ -5293,7 +5844,6 @@ msgid "What's great in the job?"
 msgstr "چه چیزی در شغل عالی است؟"
 
 #. module: hr
-#: model:ir.model.fields,help:hr.field_hr_employee__member_of_department
 #: model:ir.model.fields,help:hr.field_hr_version__member_of_department
 msgid ""
 "Whether the employee is a member of the active user's department or one of "
@@ -5304,7 +5854,7 @@ msgstr "آیا کارمند عضو بخش کاربر فعال یا یکی از �
 #: model:ir.model.fields,help:hr.field_res_partner__employee
 #: model:ir.model.fields,help:hr.field_res_users__employee
 msgid "Whether this contact is an Employee."
-msgstr "آیا این مخاطب کارمند است یا خیر."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5361,6 +5911,7 @@ msgstr "پست الکترونیکی کاری"
 #: model:ir.model.fields,field_description:hr.field_resource_resource__work_location_id
 #: model_terms:ir.ui.view,arch_db:hr.hr_work_location_form_view
 #: model_terms:ir.ui.view,arch_db:hr.hr_work_location_tree_view
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_tree
 msgid "Work Location"
 msgstr "مکان کاری"
 
@@ -5443,6 +5994,11 @@ msgid "Work Phone"
 msgstr "تلفن محل کار"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_filter
+msgid "Work location"
+msgstr ""
+
+#. module: hr
 #: model:ir.model.fields.selection,name:hr.selection__hr_version__employee_type__worker
 msgid "Worker"
 msgstr "کارگر"
@@ -5470,17 +6026,11 @@ msgid "Working Time"
 msgstr "ساعت کاری"
 
 #. module: hr
-#. odoo-javascript
-#: code:addons/hr/static/src/fields/boolean_radio.xml:0
-msgid "YES"
-msgstr "بله"
-
-#. module: hr
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid ""
 "You are not allowed to access \"Employee\" (hr.employee) records.\n"
-"We can redirect you to the public employee list."
+"    We can redirect you to the public employee list."
 msgstr ""
 
 #. module: hr
@@ -5503,15 +6053,16 @@ msgstr ""
 
 #. module: hr
 #. odoo-javascript
-#: code:addons/hr/static/src/store_service_patch.js:0
+#: code:addons/hr/static/src/core/common/store_service_patch.js:0
 msgid "You can only chat with employees that have a dedicated user."
 msgstr "شما فقط می توانید با کارمندانی که یک کاربر اختصاصی دارند چت کنید."
 
 #. module: hr
 #. odoo-python
-#: code:addons/hr/models/hr_department.py:0
-msgid "You cannot create recursive departments."
-msgstr "شما نمی توانید دپارتمان‌های بازگشتی (تو در تو) ایجاد کنید."
+#: code:addons/hr/models/hr_employee.py:0
+msgid ""
+"You can't modify the departure of an employee that has already departed."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5533,9 +6084,21 @@ msgstr ""
 
 #. module: hr
 #. odoo-python
+#: code:addons/hr/models/hr_work_location.py:0
+msgid "You cannot delete locations that are being used by your employees"
+msgstr ""
+
+#. module: hr
+#. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "You do not have access to this document."
 msgstr "شما به این سند دسترسی ندارید."
+
+#. module: hr
+#. odoo-python
+#: code:addons/hr/models/hr_export_mixin.py:0
+msgid "You must be logged in a %(country_code)s company to use this feature"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5629,15 +6192,8 @@ msgstr ""
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_users_view_form_preferences
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
-#: model_terms:ir.ui.view,arch_db:hr.view_partner_bank_form_inherit_hr
 msgid "ZIP"
 msgstr "کد پستی"
-
-#. module: hr
-#: model:ir.model.fields,field_description:hr.field_account_setup_bank_manual_config__bank_zip
-#: model:ir.model.fields,field_description:hr.field_res_partner_bank__bank_zip
-msgid "Zip"
-msgstr "کدپستی"
 
 #. module: hr
 #. odoo-python
@@ -5666,7 +6222,7 @@ msgstr "اداره"
 #. odoo-python
 #: code:addons/hr/models/hr_version.py:0
 msgid "divorced"
-msgstr "طلاق‌گرفته"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5676,8 +6232,18 @@ msgstr "پزشک"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "e.g. 1234"
+msgstr ""
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "e.g. Building 2, Remote, etc."
 msgstr "مثلا ساختمان2، دورکار، غیره"
+
+#. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.view_employee_form
+msgid "e.g. Engineering, Commerce, Business Administration, ..."
+msgstr ""
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -5713,14 +6279,14 @@ msgid "e.g. myprivateemail@example.com"
 msgstr ""
 
 #. module: hr
-#: model:ir.model,name:hr.model_hr_mixin
-msgid "hr.mixin"
+#. odoo-javascript
+#: code:addons/hr/static/src/views/hr_employee_hierarchy/hr_employee_hierarchy_renderer.xml:0
+msgid "here"
 msgstr ""
 
 #. module: hr
-#. odoo-python
-#: code:addons/hr/models/res_partner.py:0
-msgid "id"
+#: model:ir.model,name:hr.model_hr_mixin
+msgid "hr.mixin"
 msgstr ""
 
 #. module: hr
@@ -5732,7 +6298,7 @@ msgstr "کیلومتر"
 #. odoo-python
 #: code:addons/hr/models/hr_version.py:0
 msgid "married"
-msgstr "متاهل"
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5749,13 +6315,25 @@ msgstr "mi"
 #. odoo-python
 #: code:addons/hr/models/hr_employee.py:0
 msgid "other"
-msgstr "سایر"
+msgstr ""
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/views/hr_employee_hierarchy/hr_employee_hierarchy_card.xml:0
+msgid "people"
+msgstr ""
 
 #. module: hr
 #. odoo-python
 #: code:addons/hr/models/models.py:0
 msgid "restricted to employees"
 msgstr "محدود به کارکنان"
+
+#. module: hr
+#. odoo-javascript
+#: code:addons/hr/static/src/views/hr_employee_hierarchy/hr_employee_hierarchy_renderer.xml:0
+msgid "to see those employees."
+msgstr ""
 
 #. module: hr
 #. odoo-python
@@ -5767,251 +6345,9 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
 msgid "work"
-msgstr "کار"
+msgstr ""
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__work_permit_name
 msgid "work_permit_name"
 msgstr "نام_اجازه_کار"
-
-#~ msgid "Cannot archive the only active record of an employee."
-#~ msgstr "نمی‌توان تنها رکورد فعال کارمند را بایگانی کرد."
-
-#~ msgid "Cannot unassign the only active record of an employee."
-#~ msgstr "نمی‌توان تنها رکورد فعال کارمند را لغو انتساب کرد."
-
-#~ msgid "Not linked to an user"
-#~ msgstr "به کاربری لینک نشده است"
-
-#~ msgid "&amp;nbsp;"
-#~ msgstr "&amp;nbsp;"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                                    Not Connected\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                                    متصل نیست\n"
-#~ "                                </span>"
-
-#~ msgid "<span class=\"o_stat_text\">Connected Since</span>"
-#~ msgstr "<span class=\"o_stat_text\">متصل شده از</span>"
-
-#~ msgid "<span>Km</span>"
-#~ msgstr "<span>Km</span>"
-
-#~ msgid "Activity"
-#~ msgstr "فعالیت"
-
-#~ msgid "Activity Planning"
-#~ msgstr "برنامه‌ریزی فعالیت"
-
-#~ msgid "Activity Type"
-#~ msgstr "نوع فعالیت"
-
-#~ msgid "Add a new employee"
-#~ msgstr "افزودن یک کارمند جدید"
-
-#~ msgid "Allow employees to update their own data"
-#~ msgstr "اجازه به کارمندان برای به‌روز‌رسانی داده‌های خودشان"
-
-#~ msgid "Allow employees to update their own data."
-#~ msgstr "اجازه به کارمندان برای به‌روز‌رسانی داده‌های خودشان."
-
-#~ msgid "Archive Private Address"
-#~ msgstr "بایگانی آدرس خصوصی"
-
-#~ msgid "Attendance"
-#~ msgstr "حضور و غیاب"
-
-#~ msgid "Available"
-#~ msgstr "در دسترس"
-
-#~ msgid "Away"
-#~ msgstr "دور از کار"
-
-#~ msgid "Bank Account Number"
-#~ msgstr "شماره حساب بانک"
-
-#~ msgid "Basic Employee"
-#~ msgstr "کارمند پایه"
-
-#~ msgid "Can Edit"
-#~ msgstr "میتواند ویرایش کند"
-
-#~ msgid "Chief Executive Officer"
-#~ msgstr "مدیر اجرایی"
-
-#~ msgid "Contact Information"
-#~ msgstr "اطلاعات تماس"
-
-#~ msgid "Date of Birth"
-#~ msgstr "تاریخ تولد"
-
-#~ msgid "Dependant"
-#~ msgstr "وابسته"
-
-#~ msgid "Emergency"
-#~ msgstr "اضطراری"
-
-#~ msgid "Employee Editing"
-#~ msgstr "ویرایش کارمند"
-
-#~ msgid "Employee Update Rights"
-#~ msgstr "حق دسترسی به‌روز‌رسانی کارمند"
-
-#~ msgid "Employee's Bank Account Number"
-#~ msgstr "شماره حساب بانکی کارمند"
-
-#~ msgid "Employee's Country"
-#~ msgstr "کشور کارمند"
-
-#~ msgid "Employees Structure"
-#~ msgstr "ساختار کارمندان"
-
-#~ msgid ""
-#~ "Enter here the private address of the employee, not the one linked to "
-#~ "your company."
-#~ msgstr "آدرس خصوصی کارمند را که مرتبط با شرکت نیست در این قسمت وارد کنید"
-
-#~ msgid "Group By"
-#~ msgstr "گروه‌بندی برمبنای"
-
-#~ msgid "HR Settings"
-#~ msgstr "تنظیمات منابع انسانی"
-
-#~ msgid "Hired Employees"
-#~ msgstr "کارمندان استخدام شده"
-
-#~ msgid "Language"
-#~ msgstr "زبان"
-
-#~ msgid "Let's create a job position."
-#~ msgstr "بیایید یک موقعیت شغلی ایجاد کنیم."
-
-#~ msgid "My Profile"
-#~ msgstr "پروفایل من"
-
-#~ msgid "No specific user given on activity %s."
-#~ msgstr "هیچ کاربر خاصی در مورد فعالیت %s داده نشده است."
-
-#~ msgid "Not available"
-#~ msgstr "در دسترس نیست"
-
-#~ msgid "Notes"
-#~ msgstr "یادداشت‌ها"
-
-#~ msgid ""
-#~ "Number of hired employees for this job position during recruitment phase."
-#~ msgstr ""
-#~ "تعداد کارمندان استخدام شده برای این موقعیت شغلی در طول مرحله استخدام"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "تعداد پیام ها که نیاز به عمل"
-
-#~ msgid ""
-#~ "Odoo's department structure is used to manage all documents\n"
-#~ "                    related to employees by departments: expenses, "
-#~ "timesheets,\n"
-#~ "                    leaves, recruitments, etc."
-#~ msgstr ""
-#~ "ساختار دپارتمان اودو برای مدیریت تمام مدارک استفاده می شود\n"
-#~ "                مربوط به کارکنان توسط دپارتمان‌ها: هزینه ها، برگه کارکرد "
-#~ "زمانی،\n"
-#~ "                مرخصی، استخدام، و غیره."
-
-#~ msgid ""
-#~ "Odoo's department structure is used to manage all documents\n"
-#~ "                related to employees by departments: expenses, "
-#~ "timesheets,\n"
-#~ "                time off, recruitments, etc."
-#~ msgstr ""
-#~ "ساختار دپارتمان اودو برای مدیریت تمام مدارک استفاده می شود\n"
-#~ "                مربوط به کارکنان توسط دپارتمان‌ها: هزینه ها، برگه کارکرد "
-#~ "زمانی،\n"
-#~ "                مرخصی، استخدام، و غیره."
-
-#~ msgid "Operation not supported"
-#~ msgstr "عملیات پشتیبانی نمی شود"
-
-#~ msgid "Plan Name"
-#~ msgstr "نام طرح"
-
-#~ msgid "Plan Wizard"
-#~ msgstr "ویزارد طرح"
-
-#~ msgid "Plan activity type"
-#~ msgstr "طرح نوع فعالیت"
-
-#~ msgid "Planning"
-#~ msgstr "برنامه ریزی"
-
-#~ msgid "Present but not active"
-#~ msgstr "حاضر اما غیرفعال"
-
-#~ msgid "Responsible"
-#~ msgstr "پاسخگو"
-
-#~ msgid "SIN No"
-#~ msgstr "شماره بیمه اجتماعی"
-
-#~ msgid "Social Insurance Number"
-#~ msgstr "شماره بیمه"
-
-#~ msgid "Specific responsible of activity if not linked to the employee."
-#~ msgstr "مسئول خاص فعالیت در صورتی که به کارمند مرتبط نباشد."
-
-#~ msgid "Spouse Complete Name"
-#~ msgstr "نام کامل همسر"
-
-#~ msgid "Status"
-#~ msgstr "وضعیت"
-
-#~ msgid "The employee address has a company linked"
-#~ msgstr "آدرس کارمند دارای یک شرکت مرتبط است"
-
-#~ msgid ""
-#~ "The fields \"%s\" you try to read is not available on the public employee "
-#~ "profile."
-#~ msgstr ""
-#~ "قیلدهای \"%s\" که سعی می کنید بخوانید در پروفایل کارکنان عمومی در دسترس "
-#~ "نیست."
-
-#~ msgid "The user will be able to approve document created by employees."
-#~ msgstr "کاربر قادر خواهد بود مدرک ایجاد شده توسط کارکنان را تصویب کند."
-
-#~ msgid "To Define"
-#~ msgstr "برای تعریف"
-
-#~ msgid "To define"
-#~ msgstr "برای تعریف"
-
-#~ msgid "Total Employee"
-#~ msgstr "کل کارکنان"
-
-#~ msgid "Visa Expire Date"
-#~ msgstr "تاریخ انقضا ویزا"
-
-#~ msgid ""
-#~ "With just a quick glance on the Odoo employee screen, you\n"
-#~ "                can easily find all the information you need for each "
-#~ "person;\n"
-#~ "                contact data, job position, availability, etc."
-#~ msgstr ""
-#~ "تنها با یک نگاه سریع بر روی صفحه نمایش کارمند Odoo، شما به راحتی می‌توانید "
-#~ "تمام اطلاعات مورد نیاز خود را برای هر فرد پیدا کنید؛\n"
-#~ "         اطلاعات مخاطب موقعیت شغلی، در دسترس بودن و غیره."
-
-#~ msgid "Work Information"
-#~ msgstr "اطلاعات کاری"
-
-#~ msgid ""
-#~ "You are only allowed to update your preferences. Please contact a HR "
-#~ "officer to update other information."
-#~ msgstr ""
-#~ "شما فقط مجاز به بروزرسانی ترجیحات خود هستید. لطفا برای بروز رسانی اطلاعات "
-#~ "دیگران با یک مدیر منابع انسانی تماس بگیرید."
-
-#~ msgid "plan"
-#~ msgstr "طرح"

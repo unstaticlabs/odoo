@@ -19,14 +19,6 @@ export class ProductsDesignPanelPlugin extends Plugin {
         },
         handleNewRecords: this.handleMutations.bind(this),
         save_handlers: this.onSave.bind(this),
-        change_current_options_containers_listeners: () => {
-            this.panels.forEach((panel) => {
-                if (panel.state.overlayVisible) {
-                    panel.closeDesignOverlay();
-                }
-            });
-        },
-
         product_design_list_to_save: {
             selector: "#o_wsale_products_grid",
             getData(el) {

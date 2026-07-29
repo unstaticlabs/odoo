@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * stock_delivery
 #
-# Tairi Tiimann <tairi@avalah.ee>, 2025, 2026.
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Tairi Tiimann <tairi@avalah.ee>, 2025.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 08:35+0000\n"
-"Last-Translator: Tairi Tiimann <tairi@avalah.ee>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-10-17 12:52+0000\n"
+"Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "stock_delivery/et/>\n"
 "Language: et\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -56,11 +56,6 @@ msgstr "<strong>Vedaja:</strong>"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Carrier</strong>"
 msgstr "<strong>Vedaja</strong>"
-
-#. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr "<strong>Tarneviis:</strong>"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
@@ -112,8 +107,8 @@ msgstr "Lubatud vedaja"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
-msgstr "Rakendub transpordiviisidele"
+msgid "Applicable on Delivery Methods"
+msgstr ""
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
@@ -159,12 +154,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr "Hind: %(price).2f%(currency)s"
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Tarne transpordiviisi valiku loomine"
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr "Tarneviisid"
 
@@ -227,11 +228,6 @@ msgid "Exception:"
 msgstr "Erand:"
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr "FedEx"
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -263,8 +259,8 @@ msgstr "Integratsioonitase"
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
-msgstr "Lao marsruudid"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_delivery_carrier__invoice_policy
@@ -394,8 +390,8 @@ msgstr "Saada saatjale"
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr ""
 "Saadetis üle antud transpordifirmale %(carrier_name)s, saadetise "
 "jälgimisnumber %(ref)s"
@@ -409,12 +405,6 @@ msgstr "Saatmiskulu"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
 msgstr "Tarneinfo"
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
-msgstr "Tarneviisid"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__shipping_weight

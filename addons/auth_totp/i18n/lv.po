@@ -3,14 +3,14 @@
 # * auth_totp
 #
 # Odoo Translation Bot <c3p@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 11:46+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-16 15:32+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Latvian <https://translate.odoo.com/projects/odoo-19/"
 "auth_totp/lv/>\n"
 "Language: lv\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
 "19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: auth_totp
 #. odoo-python
@@ -60,15 +60,11 @@ msgstr ""
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
-#, fuzzy
 msgid ""
 "<span class=\"text-muted\">\n"
 "                            Recommended for extra security.\n"
 "                        </span>"
 msgstr ""
-"<span class=\"text-muted\">\n"
-"                            Ieteicams papildus drošībai.\n"
-"                        </span>"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -77,15 +73,19 @@ msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
-#, fuzzy
 msgid "Authentication Code"
-msgstr "Autentifikācijas kods"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model,name:auth_totp.model_auth_totp_device
-#, fuzzy
 msgid "Authentication Device"
-msgstr "Autentifikācijas ierīce"
+msgstr ""
+
+#. module: auth_totp
+#. odoo-javascript
+#: code:addons/auth_totp/static/src/services/check_identity/check_identity.xml:0
+msgid "Authentication code"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
@@ -94,15 +94,13 @@ msgstr "Atcelt"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
-#, fuzzy
 msgid "Cannot scan it?"
-msgstr "Nevarat to noskenēt?"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields.selection,name:auth_totp.selection__auth_totp_rate_limit_log__limit_type__code_check
-#, fuzzy
 msgid "Code Checking"
-msgstr "Koda pārbaudīšana"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__create_uid
@@ -134,35 +132,28 @@ msgstr "Atspējot"
 
 #. module: auth_totp
 #: model:ir.actions.server,name:auth_totp.action_disable_totp
-#, fuzzy
 msgid "Disable two-factor authentication"
-msgstr "Atspējot divfaktoru autentifikāciju"
-
-#. module: auth_totp
-#: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
-msgid "Discard"
-msgstr "Atmest"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__display_name
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__display_name
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__display_name
+#: model:ir.model.fields,field_description:auth_totp.field_ir_http__display_name
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__display_name
 msgid "Display Name"
 msgstr "Parādīt vārdu"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
-#, fuzzy
 msgid "Don't ask again on this device"
-msgstr "Neprasīt atkārtoti šajā ierīcē"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
-#, fuzzy
 msgid "Enable 2FA"
-msgstr "Iespējot 2FA"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -171,14 +162,19 @@ msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__expiration_date
-#, fuzzy
 msgid "Expiration Date"
-msgstr "Expiration Date"
+msgstr ""
+
+#. module: auth_totp
+#: model:ir.model,name:auth_totp.model_ir_http
+msgid "HTTP Routing"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__id
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__id
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__id
+#: model:ir.model.fields,field_description:auth_totp.field_ir_http__id
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__id
 msgid "ID"
 msgstr "ID"
@@ -186,15 +182,13 @@ msgstr "ID"
 #. module: auth_totp
 #. odoo-python
 #: code:addons/auth_totp/controllers/home.py:0
-#, fuzzy
 msgid "Invalid authentication code format."
-msgstr "Nederīgs autentifikācijas koda formāts."
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__ip
-#, fuzzy
 msgid "Ip"
-msgstr "IP"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__write_uid
@@ -215,14 +209,21 @@ msgstr "Uzzināt vairāk"
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__limit_type
-#, fuzzy
 msgid "Limit Type"
-msgstr "Ierobežojuma veids"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
 msgid "Log in"
 msgstr "Ienākt"
+
+#. module: auth_totp
+#. odoo-javascript
+#: code:addons/auth_totp/static/src/services/check_identity/check_identity.xml:0
+msgid ""
+"Open your two-factor authenticator (TOTP) app or browser extension to view "
+"your authentication code."
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__qrcode
@@ -236,9 +237,8 @@ msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__scope
-#, fuzzy
 msgid "Scope"
-msgstr "Darbības joma"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__secret
@@ -258,21 +258,16 @@ msgstr ""
 #. module: auth_totp
 #. odoo-python
 #: code:addons/auth_totp/wizard/auth_totp_wizard.py:0
-#, fuzzy
 msgid "The verification code should only contain numbers"
-msgstr "Verifikācijas kodam būtu jāsatur tikai skaitļi"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
-#, fuzzy
 msgid ""
 "To login, enter below the six-digit authentication code provided by your "
 "Authenticator app.\n"
 "                        <br/>"
 msgstr ""
-"Lai pierakstīties, ievadiet zemās sešu ciparu autentifikācijas kodu norādīto "
-"Jūsu autentifikācijas lietotnē.\n"
-"                        <br/>"
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_last_counter
@@ -286,9 +281,8 @@ msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_trusted_device_ids
-#, fuzzy
 msgid "Trusted Devices"
-msgstr "Uzticamās ierīces"
+msgstr ""
 
 #. module: auth_totp
 #. odoo-python
@@ -300,41 +294,35 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
-#, fuzzy
 msgid "Two-factor Authentication"
-msgstr "Divfaktoru autentifikācija"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_enabled
-#, fuzzy
 msgid "Two-factor authentication"
-msgstr "Divfaktoru autentifikācija"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.res_users_view_search
-#, fuzzy
 msgid "Two-factor authentication Disabled"
-msgstr "Divfaktoru autentifikācija atspējota"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.res_users_view_search
-#, fuzzy
 msgid "Two-factor authentication Enabled"
-msgstr "Divfaktoru autentifikācija iespējota"
+msgstr ""
 
 #. module: auth_totp
 #. odoo-python
 #: code:addons/auth_totp/models/res_users.py:0
-#, fuzzy
 msgid "Two-factor authentication already enabled"
-msgstr "Divfaktoru autentifikācija jau ir iespējota"
+msgstr ""
 
 #. module: auth_totp
 #. odoo-python
 #: code:addons/auth_totp/models/res_users.py:0
-#, fuzzy
 msgid "Two-factor authentication can only be enabled for yourself"
-msgstr "Tikai Jūs varat iespējot divfaktoru autentifikāciju"
+msgstr ""
 
 #. module: auth_totp
 #. odoo-python
@@ -348,6 +336,12 @@ msgid "Url"
 msgstr "Url"
 
 #. module: auth_totp
+#. odoo-javascript
+#: code:addons/auth_totp/static/src/services/check_identity/check_identity.xml:0
+msgid "Use your authenticator app"
+msgstr ""
+
+#. module: auth_totp
 #: model:ir.model,name:auth_totp.model_res_users
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__user_id
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_rate_limit_log__user_id
@@ -357,9 +351,8 @@ msgstr "Lietotājs"
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__code
-#, fuzzy
 msgid "Verification Code"
-msgstr "Verifikācijas kods"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -370,9 +363,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/auth_totp/models/res_users.py:0
 #: code:addons/auth_totp/wizard/auth_totp_wizard.py:0
-#, fuzzy
 msgid "Verification failed, please double-check the 6-digit code"
-msgstr "Verifikācija izgāzās, lūdzu, atkārtoti pārbaudiet 6 ciparu kodu"
+msgstr ""
 
 #. module: auth_totp
 #. odoo-python
@@ -381,8 +373,20 @@ msgid "Verification failed, please use the latest 6-digit code"
 msgstr ""
 
 #. module: auth_totp
+#. odoo-javascript
+#: code:addons/auth_totp/static/src/services/check_identity/check_identity.xml:0
+msgid "Verify"
+msgstr ""
+
+#. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Write the code given by your app"
+msgstr ""
+
+#. module: auth_totp
+#. odoo-javascript
+#: code:addons/auth_totp/static/src/services/check_identity/check_identity.xml:0
+msgid "XXXXXX"
 msgstr ""
 
 #. module: auth_totp
@@ -403,6 +407,5 @@ msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
-#, fuzzy
 msgid "e.g. 123456"
-msgstr "piem., 123456"
+msgstr ""

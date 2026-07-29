@@ -1,7 +1,11 @@
 import { registries, chartHelpers } from "@odoo/o-spreadsheet";
 import { _t } from "@web/core/l10n/translation";
 import { OdooChart } from "./odoo_chart";
-import { onOdooChartItemHover, onOdooChartItemClick } from "./odoo_chart_helpers";
+import {
+    onOdooChartItemHover,
+    onOdooChartItemClick,
+    changeTypeToSpreadsheetChart,
+} from "./odoo_chart_helpers";
 
 const { chartRegistry } = registries;
 
@@ -42,7 +46,6 @@ chartRegistry.add("odoo_pie", {
 });
 
 function createOdooChartRuntime(chart, getters) {
-    const background = chart.background || "#FFFFFF";
     const { datasets, labels } = chart.dataSource.getData();
     const definition = chart.getDefinition();
     definition.dataSets = datasets.map(() => ({ trend: definition.trend }));
@@ -67,12 +70,16 @@ function createOdooChartRuntime(chart, getters) {
                 title: getChartTitle(definition, getters),
                 legend: getPieChartLegend(definition, chartData),
                 tooltip: getPieChartTooltip(definition, chartData),
-                chartShowValuesPlugin: getChartShowValues(definition, chartData),
+                chartShowValuesPlugin: getChartShowValues(
+                    changeTypeToSpreadsheetChart(definition),
+                    chartData
+                ),
+                background: { color: chart.background },
             },
             onHover: onOdooChartItemHover(),
             onClick: onOdooChartItemClick(getters, chart),
         },
     };
 
-    return { background, chartJsConfig: config };
+    return { chartJsConfig: config };
 }

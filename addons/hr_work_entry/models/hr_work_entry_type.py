@@ -1,16 +1,22 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
+from uuid import uuid4
+
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
 class HrWorkEntryType(models.Model):
     _name = 'hr.work.entry.type'
-    _description = 'HR Work Entry Type'
+    _description = 'Work Entry Type'
+    _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
     display_code = fields.Char(string="Display Code", size=3, translate=True, help="This code can be changed, it is only for a display purpose (3 letters max)")
-    code = fields.Char(string="Payroll Code", required=True, help="Careful, the Code is used in many references, changing it could lead to unwanted changes.")
+    code = fields.Char(
+        string="Payroll Code",
+        required=True,
+        help="The code is used as a reference in salary rules. Careful, changing an existing code can lead to unwanted behaviors.")
     external_code = fields.Char(help="Use this code to export your data to a third party")
     color = fields.Integer(default=0)
     sequence = fields.Integer(default=25)
@@ -23,11 +29,12 @@ class HrWorkEntryType(models.Model):
         domain=lambda self: [('id', 'in', self.env.companies.country_id.ids)]
     )
     country_code = fields.Char(related='country_id.code')
-    is_leave = fields.Boolean(
-        default=False, string="Time Off", help="Allow the work entry type to be linked with time off types.")
-    is_work = fields.Boolean(
-        compute='_compute_is_work', inverse='_inverse_is_work', string="Working Time", readonly=False,
-        help="If checked, the work entry is counted as work time in the working schedule")
+    count_as = fields.Selection(
+        [("working_time", "Working Time"), ("absence", "Absence")],
+        default="working_time",
+        required=True,
+        help="Determines if the entry counts as working time or absence.",
+    )
     amount_rate = fields.Float(
         string="Rate",
         default=1.0,
@@ -35,34 +42,64 @@ class HrWorkEntryType(models.Model):
     is_extra_hours = fields.Boolean(
         string="Added to Monthly Pay",
         help="Check this setting if you want the hours to be considered as extra time and added as a bonus to the basic salary.")
-
-    @api.constrains('country_id')
-    def _check_work_entry_type_country(self):
-        if self.env.ref('hr_work_entry.work_entry_type_attendance') in self:
-            raise UserError(_("You can't change the country of this specific work entry type."))
-        elif not self.env.context.get('install_mode') and self.env['hr.work.entry'].sudo().search_count([('work_entry_type_id', 'in', self.ids)], limit=1):
-            raise UserError(_("You can't change the Country of this work entry type cause it's currently used by the system. You need to delete related working entries first."))
+    description = fields.Text(translate=True)
+    shortcut_behavior = fields.Selection(
+        [('add', 'Add'), ('replace', 'Replace')],
+        string="Shortcut Behavior", default='replace', required=True,
+        help="This field decides the behavior of the shortcut in the gantt view of the work entries. Add will always "
+             "prompt a duration and will be added to the existing work entries while replace will simply replace all "
+             "work entries of that day")
 
     @api.constrains('code', 'country_id')
     def _check_code_unicity(self):
-        similar_work_entry_types = self.search([
+        """
+        There should be maximum one work entry type per code, per country.
+        """
+        # check if self does not already contain duplicates
+        grouped_duplicates = self.grouped(lambda wt: (wt.code, wt.country_id))
+        for code, country_id in grouped_duplicates:
+            if len(grouped_duplicates[code, country_id]) > 1:
+                raise UserError(self.env._(
+                    'You cannot create more than one work entry type of code "%(code)s" for the same country (%(country)s)',
+                    code=code, country=(country_id.name if country_id else self.env._("All")),
+                ))
+
+        related_we_types = self.search([
             ('code', 'in', self.mapped('code')),
             ('country_id', 'in', self.country_id.ids + [False]),
-            ('id', 'not in', self.ids)
-        ])
-        for work_entry_type in self:
-            invalid_work_entry_types = similar_work_entry_types.filtered_domain([
-                ('code', '=', work_entry_type.code),
-                ('country_id', 'in', self.country_id.ids + [False]),
-            ])
-            if invalid_work_entry_types:
-                raise UserError(_("The same code cannot be associated to multiple work entry types (%s)", ', '.join(list(set(invalid_work_entry_types.mapped('code'))))))
+            ('id', 'not in', self.ids),
+        ]).grouped(lambda wt: (wt.code, wt.country_id))
 
-    @api.depends('is_leave')
-    def _compute_is_work(self):
-        for record in self:
-            record.is_work = not record.is_leave
+        for we_type in self:
+            if not related_we_types.get((we_type.code, we_type.country_id)):
+                continue  # no duplicate work entry type
+            # we're not supposed to have more than one duplicate
+            duplicate = related_we_types[we_type.code, we_type.country_id][:1]
+            if we_type.country_id:
+                raise UserError(self.env._(
+                    """
+Cannot insert "%(insert_name)s":
+Work entry type "%(name)s" of code "%(code)s" already exists for country "%(country)s".
+                    """,
+                    insert_name=we_type.name,
+                    name=duplicate.name,
+                    code=duplicate.code,
+                    country=duplicate.country_id.name,
+                ))
+            raise UserError(self.env._(
+                    """
+Cannot insert "%(insert_name)s":
+Work entry type "%(name)s" of code "%(code)s", with no country assigned, already exists.
+                    """,
+                insert_name=we_type.name,
+                name=duplicate.name,
+                code=duplicate.code,
+            ))
 
-    def _inverse_is_work(self):
-        for record in self:
-            record.is_leave = not record.is_work
+    def copy_data(self, default=None):
+        default = default or {}
+        data_list = super().copy_data(default)
+        for record, data in zip(self, data_list):
+            if 'code' not in default:
+                data['code'] = f"{record.code}_{uuid4().hex[:6]}"
+        return data_list

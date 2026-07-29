@@ -1,5 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import qrcode
+import io
+import base64
 import datetime
 
 from odoo import api, fields, models
@@ -26,6 +29,17 @@ class PoSOrder(models.Model):
     l10n_tw_edi_carrier_number = fields.Char(string="Carrier Number")
     l10n_tw_edi_carrier_number_2 = fields.Char(string="Carrier Number 2")
     l10n_tw_edi_is_b2b = fields.Boolean(string="Is B2B", compute="_compute_l10n_tw_edi_is_b2b")
+    invoice_month = fields.Char(string="Invoice Month")
+    iis_number = fields.Char(string="Invoice Number")
+    iis_create_date = fields.Datetime(string="Creation Date")
+    iis_random_number = fields.Char(string="Random Number")
+    l10n_tw_edi_invoice_amount = fields.Float(string="Invoice Amount")
+    iis_tax_amount = fields.Float(string="Tax Amount")
+    l10n_tw_edi_ecpay_seller_identifier = fields.Char(string="Seller Tax ID number")
+    pos_barcode = fields.Char(string="POS Barcode")
+    qrcode_left = fields.Char(string="Qr code (Left)")
+    qrcode_right = fields.Char(string="Qr code (Right)")
+    ecpay_error = fields.Boolean(string="EcPay Error", default=False)
 
     @api.depends("partner_id")
     def _compute_l10n_tw_edi_is_b2b(self):
@@ -84,11 +98,17 @@ class PoSOrder(models.Model):
 
         return invoice_month
 
+    def _generate_qr_code_image(self, qr_data):
+        qr = qrcode.make(qr_data)
+        temp = io.BytesIO()
+        qr.save(temp, format="PNG")
+        return base64.b64encode(temp.getvalue()).decode("utf-8")
+
     def l10n_tw_edi_get_uniform_invoice(self):
         self.ensure_one()
         invoice = self.account_move
-
         if not invoice:
+            self.ecpay_error = True
             return {"ecpay_error": self.env._("No invoice found linked to this record.")}
 
         json_data = {
@@ -99,6 +119,7 @@ class PoSOrder(models.Model):
         response_data = call_ecpay_api("/GetIssue", json_data, self.company_id, invoice.l10n_tw_edi_is_b2b)
         json_response = {}
         if response_data.get('RtnCode') != 1:
+            self.ecpay_error = True
             return {
                 "ecpay_error": self.env._(
                     "\n Invoice number: %(invoice_name)s \n Error: %(rtn_msg)s",
@@ -111,21 +132,36 @@ class PoSOrder(models.Model):
         # The date return from Ecpay API used "+" instead of " "
         parsed_create_date = create_date and create_date.replace("+", " ")
 
-        json_response.update({
+        self.write({
             "invoice_month": self._l10n_tw_edi_set_invoice_month(parsed_create_date) if parsed_create_date else False,
             "iis_number": response_data.get("IIS_Number"),
             "iis_create_date": transfer_time(parsed_create_date) if parsed_create_date else False,
             "iis_random_number": response_data.get("IIS_Random_Number"),
-            "iis_tax_amount": response_data.get("IIS_Tax_Amount"),
             "l10n_tw_edi_invoice_amount": response_data.get("IIS_Sales_Amount"),
+            "iis_tax_amount": response_data.get("IIS_Tax_Amount"),
+            "l10n_tw_edi_ecpay_seller_identifier": self.company_id.vat,
+            "l10n_tw_edi_carrier_number": response_data.get("IIS_Carrier_Num"),
+            "l10n_tw_edi_carrier_type": response_data.get("IIS_Carrier_Type"),
+            "pos_barcode": response_data.get("PosBarCode"),
+            "qrcode_left": self._generate_qr_code_image(response_data.get("QRCode_Left")),
+            "qrcode_right": self._generate_qr_code_image(response_data.get("QRCode_Right")),
+            "ecpay_error": False,
+        })
+
+        json_response.update({
+            "invoice_month": self.invoice_month,
+            "iis_number": self.iis_number,
+            "iis_create_date": self.iis_create_date,
+            "iis_random_number": self.iis_random_number,
+            "iis_tax_amount": self.iis_tax_amount,
+            "l10n_tw_edi_invoice_amount": self.l10n_tw_edi_invoice_amount,
             "iis_identifier": response_data.get("IIS_Identifier"),
-            "iis_carrier_type": response_data.get("IIS_Carrier_Type"),
-            "iis_carrier_num": response_data.get("IIS_Carrier_Num"),
+            "l10n_tw_edi_carrier_type": self.l10n_tw_edi_carrier_type,
+            "l10n_tw_edi_carrier_number": self.l10n_tw_edi_carrier_number,
             "iis_category": response_data.get("IIS_Category"),
             "l10n_tw_edi_ecpay_seller_identifier": self.company_id.vat,
-            "pos_barcode": response_data.get("PosBarCode"),
-            "qrcode_left": response_data.get("QRCode_Left"),
-            "qrcode_right": response_data.get("QRCode_Right"),
-            "company_logo_exist": bool(self.company_id.logo),
+            "pos_barcode": self.pos_barcode,
+            "qrcode_left": self.qrcode_left,
+            "qrcode_right": self.qrcode_right,
         })
         return json_response

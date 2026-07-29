@@ -15,6 +15,10 @@ import { BaseOptionComponent } from "@html_builder/core/utils";
  *      callWith: "code" | "name" | "value" | "id";
  * }[]} visibility_selector_parameters
  */
+
+/**
+ * @typedef {((editingElement: HTMLElement) => void)[]} on_visibility_toggled_handlers
+ */
 export const DEVICE_VISIBILITY_OPTION_SELECTOR = "section .row > div";
 
 export class DeviceVisibilityOption extends BaseOptionComponent {
@@ -211,6 +215,7 @@ export class ToggleDeviceVisibilityAction extends BuilderAction {
                 editingElement.classList.remove("o_snippet_override_invisible");
             },
         });
+        this.dispatchTo("on_visibility_toggled_handlers", editingElement);
     }
     clean({ editingElement }) {
         editingElement.classList.remove(
@@ -229,6 +234,7 @@ export class ToggleDeviceVisibilityAction extends BuilderAction {
             },
             revert: () => {},
         });
+        this.dispatchTo("on_visibility_toggled_handlers", editingElement);
     }
     isApplied({ editingElement, params: { mainParam: visibilityParam } }) {
         const classList = [...editingElement.classList];

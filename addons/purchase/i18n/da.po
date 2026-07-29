@@ -9,17 +9,17 @@
 # Stefan Mølgaard, 2023
 # Martin Trigaux, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 20:33+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/purchase/"
-"da/>\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-06-23 16:54+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
+"purchase/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -130,56 +130,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Hej <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Vi minder dig om, at leveringen af indkøbsordren <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            <span style=\"font-weight:bold;\">(<t t-out=\"object.partner_ref "
-"or ''\">REF_XXX</t>)</span>\n"
-"        </t>\n"
-"        er planlagt til \n"
-"        <t t-if=\"object.date_planned\">\n"
-"            <span style=\"font-weight:bold;\" t-out=\"format_date"
-"(object.date_planned) or ''\">05/05/2021</span>.\n"
-"        </t>\n"
-"         <t t-else=\"\">\n"
-"            <span style=\"font-weight:bold;\">ikke fastlagt</span>.\n"
-"        </t>\n"
-"        Vi beder dig bekræfte, at den leveres til tiden.\n"
-"        <br/><br/>\n"
-"        <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"            Bekræft</a>\n"
-"        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase_done
@@ -214,56 +173,15 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Hej <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Vedhæftet finder du en indkøbsordre <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            med referencen: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
-"        </t>\n"
-"        på <span style=\"font-weight:bold;\" t-out=\"format_amount"
-"(object.amount_total, object.currency_id) or ''\">$ 10.00</span>\n"
-"        fra <t t-out=\"object.company_id.name or ''\">DinVirksomhed</t>. \n"
-"        <br/><br/>\n"
-"        <t t-if=\"object.date_planned\">\n"
-"            Leveringen forventes den <span style=\"font-weight:bold;\" t-"
-"out=\"format_date(object.date_planned) or ''\">05/05/2021</span>.\n"
-"            <br/><br/>\n"
-"            Bekræft venligst modtagelsen af denne ordre.\n"
-"            <br/><br/>\n"
-"            <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"                Bekræft</a>\n"
-"        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase
@@ -287,44 +205,14 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Hej <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Vedhæftet finder du en anmodning om tilbud <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span>\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            med referencen: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
-"        </t>\n"
-"        fra <t t-out=\"object.company_id.name or ''\">DinVirksomhed</t>.\n"
-"        <br/><br/>\n"
-"        Du er velkommen til at kontakte os, hvis du har spørgsmål.\n"
-"        <br/><br/>\n"
-"        Med venlig hilsen\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -439,6 +327,15 @@ msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Indkøbt</span>"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "<span> day(s) before</span>"
 msgstr "<span> dag(e) før</span>"
@@ -478,6 +375,11 @@ msgstr "<strong class=\"d-block mb-1\">Fra:</strong>"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Fakturaer</strong>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -669,6 +571,11 @@ msgstr "Aktiviteter af"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Markering af undtagelsesaktivitet"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -894,12 +801,6 @@ msgid "Auto-Complete"
 msgstr "Automatisk udfyldelse"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Automatisk udfyldning"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
@@ -1072,10 +973,6 @@ msgstr "Kommunikationshistorik"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1129,17 +1026,11 @@ msgid "Confirm your purchase."
 msgstr "Bekræft dit køb."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Bekræftelsesdato"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr "Bekræftelsesdato sidste år"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1310,15 +1201,6 @@ msgstr ""
 "udgangspunkt som leverandørens leveringstid lagt til dags dato."
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Leveringsdato lovet af leverandøren. Denne dato bruges til at fastlægge "
-"produkternes forventede ankomstdato."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 msgid ""
@@ -1348,6 +1230,12 @@ msgstr "Rabat (%)"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Discount:"
 msgstr "Rabat:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1439,6 +1327,12 @@ msgid "Expected Arrival"
 msgstr "Forventet leveringsdato"
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Extra line with %s "
@@ -1451,12 +1345,12 @@ msgid "Fiscal Position"
 msgstr "Skatteposition"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr "Følg de ordrer, du skal udføre"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr "Følg dine tilbudsanmodninger"
 
@@ -1496,6 +1390,11 @@ msgstr "Fra elektronisk dokument"
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__invoice_status__invoiced
 msgid "Fully Billed"
 msgstr "Fuldt faktureret"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1803,6 +1702,11 @@ msgid "Line Uom"
 msgstr "Måleenhedens pris"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Lock"
 msgstr "Lås"
@@ -2068,6 +1972,11 @@ msgid "Not Acknowledged"
 msgstr "Ikke bekræftet"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 msgid "Not using Odoo?"
 msgstr "Bruger ikke Odoo?"
@@ -2168,25 +2077,27 @@ msgid "Order"
 msgstr "Ordre"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
 msgstr "Ordredato"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
-msgstr "Ordredato: seneste 365 dage"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
 msgstr "Deadline for bestilling"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2219,17 +2130,22 @@ msgstr "Ordre forfalder den %(date)s"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Yderligere oplysninger"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr "Vores ordrer"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
 msgstr ""
 
 #. module: purchase
@@ -2386,7 +2302,6 @@ msgstr "Aktivér dobbelt bekræftelse for køb"
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Indkøb"
@@ -2395,6 +2310,11 @@ msgstr "Indkøb"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Indkøbsaftaler"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2561,6 +2481,12 @@ msgid "Purchase Report"
 msgstr "Indkøbsrapport"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2610,15 +2536,19 @@ msgstr "Indkøb: leverandørpåmindelse"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Indkøbt"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Indkøbt inden for de seneste 365 dage"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2742,6 +2672,7 @@ msgstr "Læs dokumentationen"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr "Påmindelse om modtagelse"
 
@@ -2749,6 +2680,17 @@ msgstr "Påmindelse om modtagelse"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
 msgstr "E-mail til påmindelse om modtagelse"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -2798,7 +2740,7 @@ msgid "Reference Document"
 msgstr "Referencedokument"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Referenceenhed"
 
@@ -2860,8 +2802,8 @@ msgstr "Tilbudsanmodninger"
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
 msgstr "Tilbudsanmodninger"
@@ -2974,6 +2916,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr "Send en automatisk påmindelsesmail for at bekræfte levering"
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Send the request for quotation to your vendor."
@@ -3027,6 +2974,11 @@ msgstr "Del"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__show_comparison
 msgid "Show Comparison"
 msgstr "Vis sammenligning"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -3233,6 +3185,14 @@ msgid "The Price of one unit of the product's Unit of Measure"
 msgstr ""
 
 #. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 msgid ""
 "The request for quotation is the first step of the purchases flow. Once\n"
@@ -3431,7 +3391,7 @@ msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
 msgstr "Enhed"
 
@@ -3765,6 +3725,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "day(s) before"
 msgstr "dag(e) før"
 
@@ -3789,6 +3754,11 @@ msgstr "eller opret nye"
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
 msgstr "partner_id"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3820,6 +3790,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr "for at lære om alle muligheder for at integrere din software med"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3831,355 +3806,3 @@ msgstr "med"
 #: model:mail.template,subject:purchase.email_template_edi_purchase_reminder
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr "{{ object.company_id.name }} Ordre (Ref {{ object.name or 'n/a' }})"
-
-#~ msgid "%(amount)s due %(date)s"
-#~ msgstr "%(amount)sforfalder %(date)s"
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> Send besked"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> Download"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Done</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Udført</span>"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/> <b>Betalt</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>Afventer betaling</b>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-"
-#~ "label=\"Purchases\" title=\"Purchases\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-"
-#~ "label=\"Purchases\" title=\"Purchases\"/>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Print"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Request for Quotation </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Purchase Order "
-#~ "</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Forespørgsel om tilbud </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Indkøbsordre </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(bekræftet af leverandør)</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(bekræftet af leverandør)</"
-#~ "span>"
-
-#~ msgid "<strong class=\"text-muted\">Purchase Representative</strong>"
-#~ msgstr "<strong class=\"text-muted\">Indkøbsrepræsentant:</strong>"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Forespørgselsdato</strong>"
-
-#~ msgid "<strong>Purchase Representative:</strong>"
-#~ msgstr "<strong>Indkøbsrepræsentant:</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Leveringsadresse:</strong>"
-
-#~ msgid "<strong>Your Order Reference:</strong>"
-#~ msgstr "<strong>Din ordrereference:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Et opbevaringsvare er et produkt for hvilket du kan administrere lager. "
-#~ "Inventar appliktionen skal være installeret.\n"
-#~ "En forbrugsvare er et produkt hvor lageret ikke er administreret.\n"
-#~ "En tjeneste er et ikke-materielt produkt du tilbyder."
-
-#~ msgid "Accept"
-#~ msgstr "Godkend"
-
-#~ msgid "All RFQs"
-#~ msgstr "Alle RFQ'er"
-
-#~ msgid "All Waiting RFQs"
-#~ msgstr "Alle Afventende RFQ'er"
-
-#~ msgid "Auto-complete from a past bill / purchase order."
-#~ msgstr "Auto-udfyld på baggrund af en tidligere faktura / indkøbsordre."
-
-#~ msgid "Bill Control"
-#~ msgstr "Fakturakontrol"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Blokerende meddelelse"
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "Kan ikke slette en købsordre linje, som har status '%s'."
-
-#~ msgid "Category"
-#~ msgstr "Kategori"
-
-#~ msgid "Confirm"
-#~ msgstr "Bekræft"
-
-#~ msgid "Confirm Receipt Date"
-#~ msgstr "Bekræft Kvitteringsdato"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konvertering mellem enheder kan kun ske, hvis de tilhører samme kategori. "
-#~ "Konvertering vil ske ud fra forholdstallene."
-
-#~ msgid "Create Bill"
-#~ msgstr "Opret faktura"
-
-#~ msgid "Create Vendor Bills"
-#~ msgstr "Opret Leverandørfaktura"
-
-#~ msgid "Days"
-#~ msgstr "Dage"
-
-#~ msgid "Done"
-#~ msgstr "Udført"
-
-#~ msgid "Download"
-#~ msgstr "Download"
-
-#~ msgid "Draft RFQs"
-#~ msgstr "Kladde RFQ'er"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Guide til at oprette e-mail"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Udvidede filtre"
-
-#~ msgid "Group By"
-#~ msgstr "Sortér efter"
-
-#~ msgid "History"
-#~ msgstr "Historik"
-
-#~ msgid "Late RFQs"
-#~ msgstr "Forsinkede RFQ'er"
-
-#~ msgid "Lead Time to Purchase"
-#~ msgstr "Ledetid til Køb"
-
-#~ msgid "Manage your purchase agreements (call for tenders, blanket orders)"
-#~ msgstr "Administrer dine købsaftaler (udbud, rammeordre)"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Fejlmargin på leverandør lede tider. Når et system generere købsordre for "
-#~ "indkøb af produkter, vil de blive planlægt så mange dage tidligere, for "
-#~ "at håndtere uventede leverandør forsinkelser."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Fejlmargin for leverandør lede tider. Når systemet generere købsordre for "
-#~ "genbestilling af produkter, vil de blive planlagt så mange dage "
-#~ "tidligere, for at håndtere uventede leverandør forsinkelser."
-
-#~ msgid "My RFQs"
-#~ msgstr "Mine RFQ'er"
-
-#~ msgid "No Message"
-#~ msgstr "Ingen besked"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Antal meddelser der kræver handling"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Bestilt antal"
-
-#~ msgid "Packaging"
-#~ msgstr "Emballering"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Print RFQ"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Produktegenskaber"
-
-#~ msgid "Product Categories"
-#~ msgstr "Varekategorier"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Produkt indpakning"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Indkøbs leveringstid"
-
-#~ msgid "Purchase Order Line Warning"
-#~ msgstr "Købsordre Linje Advarsel"
-
-#~ msgid "Purchase Representative"
-#~ msgstr "Indkøbsrepræsentant"
-
-#~ msgid "Quantities billed by vendors"
-#~ msgstr "Mængder faktureret af leverandører"
-
-#~ msgid "RFQ Done"
-#~ msgstr "Tilbudsforespørgsel færdigt"
-
-#~ msgid "RFQs"
-#~ msgstr "Forespørgsler om tilbud"
-
-#~ msgid "RFQs Sent Last 7 Days"
-#~ msgstr "RFQ'er Sendt Sidste 7 Dage"
-
-#~ msgid "Ratio between the purchase order currency and the company currency"
-#~ msgstr "forhold mellem købsordre valuta og virksomheds valuta"
-
-#~ msgid "Re-Send by Email"
-#~ msgstr "Gensend pr. email"
-
-#~ msgid "Received quantities"
-#~ msgstr "Modtagede antal"
-
-#~ msgid "Reception Confirmed"
-#~ msgstr "Modtagelse Bekræftet"
-
-#~ msgid "Reminder Confirmed"
-#~ msgstr "Påmindelse Bekræftet"
-
-#~ msgid "Security Lead Time for Purchase"
-#~ msgstr "Sikkerheds ledetid for køb"
-
-#~ msgid "Select a purchase order or an old bill"
-#~ msgstr "Vælg en indkøbsordre eller en gammel faktura"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "Hvis du vælger indstillingen \"Advarsel\", vises meddelelsen til "
-#~ "brugeren. Hvis du vælger \"Blokerende meddelelse\", vil der blive sendt "
-#~ "en undtagelse sammen meddelelsen og blokere flowet. Meddelelsen skal "
-#~ "skrives i det næste felt."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "Send PO pr. e-mail"
-
-#~ msgid "Send by Email"
-#~ msgstr "Send pr. e-mail"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Vis alle poster, hvor den næste aktivitetsdato er før i dag"
-
-#~ msgid "Source Document"
-#~ msgstr "Kildedokument"
-
-#~ msgid ""
-#~ "There is no invoiceable line. If a product has a control policy based on "
-#~ "received quantity, please make sure that a quantity has been received."
-#~ msgstr ""
-#~ "Der er ingen fakturerbar linje. Vær venlig sikker på, at en mængde er "
-#~ "blevet modtaget, hvis et produkt har en kontrol police baseret på "
-#~ "modtaget mængde."
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "Denne valuta vil blive anvendt frem for standardvalutaen ved indkøb fra "
-#~ "den aktuelle partner"
-
-#~ msgid ""
-#~ "This default value is applied to any new product created. This can be "
-#~ "changed in the product detail form."
-#~ msgstr ""
-#~ "Standard værdien anvendes på alle nye produkter der oprettes. Dette kan "
-#~ "ændres i produkt detalje formularen."
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Denne leverandørfaktura er oprettet fra:%s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr "Denne leverandørregning er blevet ændret fra: %s"
-
-#~ msgid "To Send"
-#~ msgstr "At Sende"
-
-#~ msgid "True if PO reception is confirmed by the vendor."
-#~ msgstr "Sandt hvis købsordre modtagelse er bekræftet af sælgeren."
-
-#~ msgid "True if the reminder email is confirmed by the vendor."
-#~ msgstr "Sand hvis påmindelses emailen er bekræftet af sælgeren"
-
-#~ msgid ""
-#~ "Unable to cancel this purchase order. You must first cancel the related "
-#~ "vendor bills."
-#~ msgstr ""
-#~ "Kan ikke annullere denne indkøbsordre. Du skal først annullere de "
-#~ "relaterede leverandørfakturaer."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Enhed"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Enheder"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Måleenhedskategorier"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Enheder"
-
-#~ msgid "UoM"
-#~ msgstr "Enhed"
-
-#~ msgid "Waiting"
-#~ msgstr "Venter"
-
-#~ msgid "Waiting RFQs"
-#~ msgstr "Afventende RFQ'er"
-
-#~ msgid "Warning"
-#~ msgstr "Advarsel"
-
-#~ msgid "Warning for %s"
-#~ msgstr "Advarsel for %s"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Advarsel på indkøbsordren"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Advarsel når dette produkt købes"
-
-#~ msgid "close"
-#~ msgstr "luk"

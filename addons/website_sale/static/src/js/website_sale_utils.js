@@ -1,65 +1,6 @@
-import { markup } from '@odoo/owl';
 import { browser } from '@web/core/browser/browser';
 import { _t } from '@web/core/l10n/translation';
-import { setElementContent } from '@web/core/utils/html';
-
-function animateClone($cart, $elem, offsetTop, offsetLeft) {
-    if (!$cart.length) {
-        return Promise.resolve();
-    }
-    $cart.removeClass('d-none').find('.o_animate_blink').addClass('o_red_highlight o_shadow_animation').delay(500).queue(function () {
-        $(this).removeClass("o_shadow_animation").dequeue();
-    }).delay(2000).queue(function () {
-        $(this).removeClass("o_red_highlight").dequeue();
-    });
-    return new Promise(function (resolve, reject) {
-        if(!$elem) resolve();
-        var $imgtodrag = $elem.find('img').eq(0);
-        if ($imgtodrag.length) {
-            var $imgclone = $imgtodrag.clone()
-                .offset({
-                    top: $imgtodrag.offset().top,
-                    left: $imgtodrag.offset().left
-                })
-                .removeClass()
-                .addClass('o_website_sale_animate')
-                .appendTo(document.body)
-                .css({
-                    // Keep the same size on cloned img.
-                    width: $imgtodrag.width(),
-                    height: $imgtodrag.height(),
-                })
-                .animate({
-                    top: $cart.offset().top + offsetTop,
-                    left: $cart.offset().left + offsetLeft,
-                    width: 75,
-                    height: 75,
-                }, 500);
-
-            $imgclone.animate({
-                width: 0,
-                height: 0,
-            }, function () {
-                resolve();
-                $(this).detach();
-            });
-        } else {
-            resolve();
-        }
-    });
-}
-
-/**
- * Returns the closest product form to a given element if exists.
- * Required for product pages with full-width or no images where the "Add to cart" button can be 
- * outside of the form.
- *
- * @param { HTMLElement } element - Reference to an HTML element in the DOM.
- * @returns { HTMLFormElement|undefined }
- */
-function getClosestProductForm(element){
-    return element.closest('form') ?? element.closest('.js_product')?.querySelector('form');
-}
+import { createElementWithContent } from '@web/core/utils/html';
 
 /**
  * Updates both navbar cart
@@ -85,14 +26,11 @@ function updateCartNavBar(data) {
         }
     }
 
-    $(".js_cart_lines").first().before(data['website_sale.cart_lines']).end().remove();
+    const cartLines = document.querySelectorAll('.js_cart_lines');
+    cartLines[0]?.insertAdjacentHTML('beforebegin', data['website_sale.cart_lines']);
+    cartLines.forEach(el => el.remove());
 
     updateCartSummary(data);
-
-    // Adjust the cart's left column width to accommodate the cart summary (right column). The left
-    // column of an empty cart initially takes the full width, but adding products (e.g. via quick 
-    // reorder) enables the cart summary on the right.
-    document.querySelector('.oe_cart').classList.toggle('col-lg-7', !!data.cart_quantity);
 
     if (data.cart_ready) {
         document.querySelector("a[name='website_sale_main_button']")?.classList.remove('disabled');
@@ -110,7 +48,10 @@ function updateCartNavBar(data) {
 function updateCartSummary(data) {
     if (data['website_sale.shorter_cart_summary']) {
         const shorterCartSummaryEl = document.querySelector('.o_wsale_shorter_cart_summary');
-        setElementContent(shorterCartSummaryEl, markup(data['website_sale.shorter_cart_summary']));
+        const newShorterCartSummaryEl = createElementWithContent(
+            'div', data['website_sale.shorter_cart_summary'],
+        );
+        shorterCartSummaryEl.replaceWith(...newShorterCartSummaryEl.childNodes);
     }
     if (data['website_sale.total']) {
         document.querySelectorAll('div.o_cart_total').forEach(
@@ -148,19 +89,22 @@ function updateQuickReorderSidebar(data) {
  * @param {string | null} message
  */
 function showWarning(message) {
-    if (!message) {
-        return;
-    }
-    var $page = $('.oe_website_sale');
-    var cart_alert = $page.children('#data_warning');
-    if (!cart_alert.length) {
-        cart_alert = $(
-            '<div class="alert alert-danger alert-dismissible" role="alert" id="data_warning">' +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button> ' +
-                '<span></span>' +
-            '</div>').prependTo($page);
-    }
-    cart_alert.children('span:last-child').text(message);
+    if (!message) return;
+    document.querySelector('.oe_website_sale')?.querySelector('#data_warning')?.remove();
+
+    const alertDiv = document.createElement('div');
+    alertDiv.classList.add('alert', 'alert-danger', 'alert-dismissible');
+    alertDiv.role = 'alert';
+    alertDiv.id = 'data_warning';
+    const closeButton = document.createElement('button');
+    closeButton.classList.add('btn-close');
+    closeButton.type = 'button'; // Avoid default submit type in case of a form.
+    closeButton.dataset.bsDismiss = 'alert';
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    alertDiv.appendChild(closeButton);
+    alertDiv.appendChild(messageSpan);
+    document.querySelector('.oe_website_sale').prepend(alertDiv);
 }
 
 /**
@@ -175,8 +119,6 @@ function getSelectedAttributeValues(container) {
 }
 
 export default {
-    animateClone: animateClone,
-    getClosestProductForm: getClosestProductForm,
     updateCartNavBar: updateCartNavBar,
     showWarning: showWarning,
     getSelectedAttributeValues: getSelectedAttributeValues,

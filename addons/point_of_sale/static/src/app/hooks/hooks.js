@@ -102,7 +102,7 @@ export function useAsyncLockedMethod(method) {
  * ```js
  * {
  *   // inside in a component
- *   this.doPrint = useTrackedAsync(() => this.printReceipt())
+ *   this.doPrint = useTrackedAsync(() => this.printOrderReceipt())
  *   this.doPrint.status === 'idle'
  *   this.doPrint.call() // triggers the given async function
  *   this.doPrint.status === 'loading'
@@ -181,7 +181,6 @@ export function useIsChildLarger(container) {
         let acc = 0;
         let nbrItems = 0;
         let isLarger = false;
-        const oldLargerState = state.isLarger;
         const containerWidth = container.el.clientWidth - 10;
 
         for (const child of container.el.children) {
@@ -196,8 +195,8 @@ export function useIsChildLarger(container) {
 
         state.isLarger = isLarger;
         state.maxItems = nbrItems;
-        if (!oldLargerState && state.isLarger) {
-            state.maxItems--;
+        if (state.isLarger) {
+            state.maxItems = Math.max(0, state.maxItems - 1);
         }
     };
 

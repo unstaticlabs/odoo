@@ -7,17 +7,17 @@
 # Dorin Hongu <dhongu@gmail.com>, 2022, 2025.
 # Cozmin Candea <office@terrabit.ro>, 2022
 # Martin Trigaux, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Alin Ilie <alin.ilie@logit-solutions.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Alin Ilie <alin.ilie@logit-solutions.com>, 2025.
 # MAHAMADASIF ANSARI <maan@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-30 19:35+0000\n"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2026-04-04 12:52+0000\n"
 "Last-Translator: MAHAMADASIF ANSARI <maan@odoo.com>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-s19-2/"
 "mrp_account/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: mrp_account
 #. odoo-python
@@ -100,13 +100,6 @@ msgid "Account Move Line"
 msgstr "Linie mișcare contabilă"
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr ""
-"Linia de mișcare contabilă care va fi creată la postarea mișcării contabile "
-"WIP"
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Cont analitic"
@@ -155,7 +148,7 @@ msgstr "Categorie"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: mrp_account
@@ -223,11 +216,6 @@ msgstr "Dată"
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__debit
 msgid "Debit"
 msgstr "Debit"
-
-#. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "Renunță"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
@@ -307,6 +295,11 @@ msgstr "Înregistrare jurnal"
 #: model:ir.model,name:mrp_account.model_account_move_line
 msgid "Journal Item"
 msgstr "Element jurnal"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
@@ -569,8 +562,8 @@ msgstr "Mutare Wip"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
-msgstr "Asistent pentru postarea mișcării contabile WIP producție"
+msgid "Wizard to post Manufacturing WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -630,15 +623,3 @@ msgstr "[CL] %s"
 
 #~ msgid "2023-08-15"
 #~ msgstr "2023-08-15"
-
-#~ msgid "Bill of Material"
-#~ msgstr "Listă de materiale"
-
-#~ msgid "Production Order"
-#~ msgstr "Comanda de Producție"
-
-#~ msgid "Stock Rule"
-#~ msgstr "Regulă stoc"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "Utilizare Centru de lucru"

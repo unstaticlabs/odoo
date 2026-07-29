@@ -10,6 +10,8 @@ import odoo.tests
 from odoo import tools
 from odoo.exceptions import UserError
 
+from odoo.addons.base.tests.files import PDF_RAW
+
 try:
     from pdfminer.converter import PDFPageAggregator
     from pdfminer.layout import LAParams, LTFigure, LTTextBox
@@ -128,7 +130,7 @@ class TestReports(odoo.tests.TransactionCase):
             'model': 'res.partner',
         })
 
-        minimal_pdf_content = io.BytesIO(tools.file_open('base/tests/minimal.pdf', 'rb').read())
+        minimal_pdf_content = io.BytesIO(PDF_RAW)
         malformed_pdf_content = io.BytesIO(b'not a pdf')
 
         with self.assertRaises(UserError, msg="Odoo is unable to merge the generated PDFs."):
@@ -272,14 +274,14 @@ class TestReportsRenderingCommon(odoo.tests.HttpCase):
 
         if footer_content is None:
             footer_content = '''
-                <div style="text-align:center">Footer for <t t-esc="o.name"/> Page: <span class="page"/> / <span class="topage"/></div>
+                <div style="text-align:center">Footer for <t t-out="o.name"/> Page: <span class="page"/> / <span class="topage"/></div>
             '''
 
         if page_content is None:
             page_content = '''
                 <div class="page">
                     <div style="background-color:red">
-                        Name: <t t-esc="o.name"/>
+                        Name: <t t-out="o.name"/>
                     </div>
                 </div>
             '''
@@ -456,10 +458,10 @@ class TestReportsRendering(TestReportsRenderingCommon):
         page_content = '''
                 <div class="page">
                     <div style="background-color:red">
-                        Name: <t t-esc="o.name"/>
+                        Name: <t t-out="o.name"/>
                     </div>
                     <div style="page-break-before:always;background-color:blue">
-                        Last page for <t t-esc="o.name"/>
+                        Last page for <t t-out="o.name"/>
                     </div>
                 </div>
             '''
@@ -493,8 +495,8 @@ class TestReportsRendering(TestReportsRenderingCommon):
         page_content = f'''
             <div class="page">
                 <div style="background-color:red">
-                    Name: <t t-esc="o.name"/>
-                    <div t-foreach="range({nb_lines})" t-as="pos" t-esc="pos"/>
+                    Name: <t t-out="o.name"/>
+                    <div t-foreach="range({nb_lines})" t-as="pos" t-out="pos"/>
                 </div>
             </div>
         '''
@@ -553,7 +555,7 @@ class TestReportsRendering(TestReportsRenderingCommon):
                     <thead><tr><th> T1 </th><th> T2 </th><th> T3 </th></tr></thead>
                     <tbody>
                     <t t-foreach="range({nb_lines})" t-as="pos">
-                        <tr><td><t t-esc="pos"/></td><td><t t-esc="pos"/></td><td><t t-esc="pos"/></td></tr>
+                        <tr><td><t t-out="pos"/></td><td><t t-out="pos"/></td><td><t t-out="pos"/></td></tr>
                     </t>
                     </tbody>
                     <tfoot><tr><th> T1 </th><th> T2 </th><th> T3 </th></tr></tfoot>
@@ -651,13 +653,13 @@ class TestReportsRenderingLimitations(TestReportsRenderingCommon):
         """
         header_content = '''
             <div style="background-color:blue">
-                <div t-foreach="range(15)" t-as="pos" t-esc="'Header %s' % pos"/>
+                <div t-foreach="range(15)" t-as="pos" t-out="'Header %s' % pos"/>
             </div>
         '''
         page_content = '''
             <div class="page">
                 <div style="background-color:red; margin-left:100px">
-                    <div t-foreach="range(10)" t-as="pos" t-esc="'Content %s' % pos"/>
+                    <div t-foreach="range(10)" t-as="pos" t-out="'Content %s' % pos"/>
                 </div>
             </div>
         '''
@@ -705,7 +707,7 @@ class TestAggregatePdfReports(odoo.tests.HttpCase):
                     <main>
                         <div t-foreach="docs" t-as="user">
                             <div class="article" data-oe-model="res.partner" t-att-data-oe-id="user.id">
-                                <span t-esc="user.display_name"/>
+                                <span t-out="user.display_name"/>
                             </div>
                         </div>
                     </main>
@@ -731,7 +733,7 @@ class TestAggregatePdfReports(odoo.tests.HttpCase):
                                 <h1>Name</h1>
                                 <!-- Make this a multipage report. -->
                                 <div t-foreach="range(100)" t-as="i">
-                                    <span t-esc="i"/> - <span t-esc="user.display_name"/>
+                                    <span t-out="i"/> - <span t-out="user.display_name"/>
                                 </div>
                             </div>
                         </div>

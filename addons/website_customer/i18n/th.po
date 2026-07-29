@@ -6,15 +6,15 @@
 # Odoo Thaidev <odoothaidev@gmail.com>, 2022
 # Wichanon Jamwutthipreecha, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 19:55+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-11-08 19:10+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
 "website_customer/th/>\n"
 "Language: th\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -80,6 +80,16 @@ msgstr "อุตสาหกรรมทั้งหมด"
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
 msgstr "เก็บถาวรแล้ว"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
@@ -246,8 +256,7 @@ msgstr "อัปเดตครั้งล่าสุดเมื่อ"
 msgid ""
 "Manage contact tags to better classify them for tracking and analysis "
 "purposes."
-msgstr ""
-"จัดการแท็กผู้ติดต่อเพื่อจัดประเภทได้ดียิ่งขึ้นสำหรับการติดตามและการวิเคราะห์"
+msgstr "จัดการแท็กผู้ติดต่อเพื่อจัดประเภทได้ดียิ่งขึ้นสำหรับการติดตามและการวิเคราะห์"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -269,13 +278,17 @@ msgstr "แท็กพาร์ทเนอร์"
 msgid ""
 "Partner Tags - These tags can be used on website to find customers by "
 "sector, or ..."
-msgstr ""
-"แท็กพาร์ทเนอร์ - แท็กเหล่านี้สามารถใช้บนเว็บไซต์เพื่อค้นหาลูกค้าตามภาคส่วนหรือ ..."
+msgstr "แท็กพาร์ทเนอร์ - แท็กเหล่านี้สามารถใช้บนเว็บไซต์เพื่อค้นหาลูกค้าตามภาคส่วนหรือ ..."
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__partner_ids
 msgid "Partners"
 msgstr "พาร์ทเนอร์"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_customer
 #. odoo-python
@@ -369,43 +382,3 @@ msgstr "แท็กเว็บไซต์"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "แผนที่โลก"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"ลิงค์ภายนอก\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "ดำเนินการโดย"
-
-#~ msgid "Last Modified on"
-#~ msgstr "แก้ไขครั้งล่าสุดเมื่อ"
-
-#~ msgid "No result found"
-#~ msgstr "ไม่พบผลลัพธ์"
-
-#~ msgid "Our References"
-#~ msgstr "การอ้างอิงของเรา"
-
-#~ msgid "References Page"
-#~ msgstr "หน้าอ้างอิง"
-
-#~ msgid "References by Country"
-#~ msgstr "อ้างอิงตามประเทศ"
-
-#~ msgid "References by Industries"
-#~ msgstr "อ้างอิงตามอุตสาหกรรม"
-
-#~ msgid "References by Tag"
-#~ msgstr "อ้างอิงตามแท็ก"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "URL แบบเต็มเพื่อเข้าถึงเอกสารผ่านเว็บไซต์"
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "ได้รับความไว้วางใจจากผู้ใช้นับล้านทั่วโลก"
-
-#~ msgid "reference(s))"
-#~ msgstr "อ้างอิง"

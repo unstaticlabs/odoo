@@ -5,15 +5,17 @@
 # Translators:
 # Zsolt Godó <zsolttokio@gmail.com>, 2022
 # Martin Trigaux, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 19:17+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:35+0000\n"
+"PO-Revision-Date: 2026-06-13 13:57+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_adyen/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
@@ -41,6 +43,11 @@ msgstr ""
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_latest_response
 msgid "Adyen Latest Response"
+msgstr ""
+
+#. module: pos_adyen
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_merchant_account
+msgid "Adyen Merchant Account"
 msgstr ""
 
 #. module: pos_adyen
@@ -81,7 +88,7 @@ msgstr ""
 #. module: pos_adyen
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
-msgid "Cannot process transactions with negative amount."
+msgid "Cannot refund non-Adyen transactions via Adyen."
 msgstr ""
 
 #. module: pos_adyen
@@ -99,10 +106,13 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Megjelenített név"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_event_url
@@ -111,10 +121,13 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: pos_adyen
 #. odoo-python
@@ -141,8 +154,18 @@ msgid "Point of Sale Configuration"
 msgstr "Értékesítési pont konfiguráció"
 
 #. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr ""
+
+#. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
+msgid "Point of Sale Payment Method"
 msgstr ""
 
 #. module: pos_adyen
@@ -171,6 +194,11 @@ msgid ""
 msgstr ""
 
 #. module: pos_adyen
+#: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_merchant_account
+msgid "The POS merchant account code used in Adyen"
+msgstr ""
+
+#. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_event_url
 msgid "This URL needs to be pasted on Adyen's portal terminal settings."
 msgstr ""
@@ -186,6 +214,3 @@ msgstr ""
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "[Terminal model]-[Serial number], for example: P400Plus-123456789"
 msgstr ""
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "Értékesítési Pont Értékesítési folyamat"

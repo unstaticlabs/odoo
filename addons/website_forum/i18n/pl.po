@@ -29,17 +29,17 @@
 # Łukasz Grzenkowicz <lukasz.grzenkowicz@gmail.com>, 2023
 # Maksym <ms@myodoo.pl>, 2023
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 03:44+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-13 10:13+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_forum/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -48,7 +48,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -386,9 +386,9 @@ msgid ""
 "You can search questions by their title or tags. It’s also OK to answer your "
 "own question."
 msgstr ""
-"<b>Zanim zadasz pytanie - upewnij się, że wyszukałeś podobne pytanie. </b>"
-"Pytania można wyszukiwać według tytułu lub tagów. Można również odpowiedzieć "
-"na własne pytanie."
+"<b>Zanim zadasz pytanie - upewnij się, że wyszukałeś podobne pytanie. </"
+"b>Pytania można wyszukiwać według tytułu lub tagów. Można również "
+"odpowiedzieć na własne pytanie."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -752,8 +752,8 @@ msgid ""
 "<span class=\"form-text small text-muted d-block\">consider adding an "
 "example.</span>"
 msgstr ""
-"<span class=\"form-text small text-muted d-block\">rozważ dodanie "
-"przykładu.</span>"
+"<span class=\"form-text small text-muted d-block\">rozważ dodanie przykładu."
+"</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.edit_post
@@ -810,8 +810,8 @@ msgstr "<span class=\"text-muted\">Jeszcze nie ma aktywności.</span>"
 #: model_terms:web_tour.tour,rainbow_man_message:website_forum.question
 msgid "<span><b>Good job!</b> You went through all steps of this tour.</span>"
 msgstr ""
-"<span><b>Dobra robota!</b> Przeszedłeś przez wszystkie kroki tego "
-"samouczka.</span>"
+"<span><b>Dobra robota!</b> Przeszedłeś przez wszystkie kroki tego samouczka."
+"</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -2431,11 +2431,6 @@ msgid "Left 10 answers with score of 10 or more"
 msgstr "Pozostało 10 odpowiedzi z wynikiem 10 lub więcej"
 
 #. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "Link do pytań z tym tagiem"
-
-#. module: website_forum
 #. odoo-javascript
 #: code:addons/website_forum/static/src/xml/public_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:website_forum.post_display
@@ -3176,12 +3171,12 @@ msgstr "Wyszukaj"
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.user_profile_content
 msgid "Search Answers..."
-msgstr "Wyszukaj odpowiedzi..."
+msgstr ""
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.user_profile_content
 msgid "Search Questions..."
-msgstr "Wyszukaj pytania..."
+msgstr ""
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_post_view_search
@@ -3316,7 +3311,8 @@ msgstr "Przepraszamy, nie mogliśmy znaleźć żadnego wątku <b>bez odpowiedzi<
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.no_results_message
 msgid "Sorry, we could not find any <b>unsolved</b> results"
-msgstr "Przepraszamy, nie mogliśmy znaleźć żadnego <b>nierozwiązanego</b> wątku"
+msgstr ""
+"Przepraszamy, nie mogliśmy znaleźć żadnego <b>nierozwiązanego</b> wątku"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.no_results_message
@@ -3411,8 +3407,8 @@ msgid ""
 "Tap into the collective knowledge of our community by asking your questions "
 "in our forums,<br/> where helpful members are ready to assist you."
 msgstr ""
-"Skorzystaj ze zbiorowej wiedzy naszej społeczności, zadając pytania na "
-"forum,<br/> gdzie członkowie chętnie udzielą Ci odpowiedzi."
+"Skorzystaj ze zbiorowej wiedzy naszej społeczności, zadając pytania na forum,"
+"<br/> gdzie członkowie chętnie udzielą Ci odpowiedzi."
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_32
@@ -3439,6 +3435,20 @@ msgstr "Dzięki za publikację!"
 #: code:addons/website_forum/models/forum_post.py:0
 msgid "The accepted answer is deleted"
 msgstr "Zaakceptowana odpowiedź została usunięta"
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -3555,8 +3565,8 @@ msgid ""
 "<b>Reject</b> this post."
 msgstr ""
 "Ten post oczekuje na moderację i nie został jeszcze opublikowany. <br/>\n"
-"                    jako moderator możesz <b>Zaakceptować</b> lub <b>"
-"Odrzucić</b> ten post."
+"                    jako moderator możesz <b>Zaakceptować</b> lub "
+"<b>Odrzucić</b> ten post."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -3834,6 +3844,13 @@ msgid "Website / Forum"
 msgstr "Strona internetowa/forum"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3841,7 +3858,9 @@ msgid "Website Messages"
 msgstr "Wiadomości"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "Adres strony internetowej"
 
@@ -4334,202 +4353,3 @@ msgstr "Twoja biografia może być postrzegana jako podpowiedź"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "twój adres..."
-
-#~ msgid ", by"
-#~ msgstr ", przez"
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Ofensywny]</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Odpowiedź]</b>"
-
-#~ msgid "<i class=\"fa fa-check-square-o fa-fw\"/> To Validate"
-#~ msgstr "<i class=\"fa fa-check-square-o fa-fw\"/> Do zweryfikowania"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> Powrót"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    taflowanie\n"
-#~ "                </small>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>przez </span>"
-
-#~ msgid "About"
-#~ msgstr "O programie"
-
-#~ msgid "All Tags"
-#~ msgstr "Wszystkie tagi"
-
-#~ msgid "Allow Bump"
-#~ msgstr "Zezwól podbicia"
-
-#~ msgid "Answer"
-#~ msgstr "Odpowiedź"
-
-#~ msgid "Back"
-#~ msgstr "Powrót"
-
-#~ msgid "Bumped on"
-#~ msgstr "Wpadł na to"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "Zaznacz to pole, aby wyświetlić wyskakujące okienko dla postów starszych "
-#~ "niż 10 dni bez żadnej odpowiedzi. Pop-up zaoferuje udostępnienie go w "
-#~ "sieciach społecznościowych. Po udostępnieniu na górze forum pojawia się "
-#~ "pytanie."
-
-#~ msgid "Close Post"
-#~ msgstr "Zamknij post"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Skomentuj ten post..."
-
-#~ msgid "Comments"
-#~ msgstr "Komentarz"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Zamień wszystkie odpowiedzi na komentarze i odwrotnie"
-
-#~ msgid "Convert as a answer"
-#~ msgstr "Ustaw jako odpowiedź"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "Konwertuj jako komentarz"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Konwertuj własne odpowiedzi na komentarze i odwrotnie"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "Data (od najwyższej do najniższej)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "Data (od najniższej do najwyższej)"
-
-#~ msgid "Following"
-#~ msgstr "Obserwujący"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuj wg"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Ukryj Intro"
-
-#~ msgid "Karma"
-#~ msgstr "Karma"
-
-#~ msgid "Last activity date"
-#~ msgstr "Data ostatniej aktywności"
-
-#~ msgid "Menu"
-#~ msgstr "Menu"
-
-#~ msgid "Moderation"
-#~ msgstr "Moderowanie"
-
-#~ msgid "More"
-#~ msgstr "Więcej"
-
-#~ msgid "Most answered"
-#~ msgstr "Z największą liczbą odpowiedzi"
-
-#~ msgid "Most voted"
-#~ msgstr "Najczęściej głosowane"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "Przenieś to pytanie na górę listy, udostępniając je w sieciach "
-#~ "społecznościowych."
-
-#~ msgid "No activities yet!"
-#~ msgstr "Nie ma jeszcze żadnej aktywności!"
-
-#~ msgid "No vote given by you yet!"
-#~ msgstr "Nie oddałeś jeszcze żadnego głosu!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Liczba wiadomości wymagających akcji"
-
-#~ msgid "Order by"
-#~ msgstr "Uporządkuj według"
-
-#~ msgid "Our forums"
-#~ msgstr "Nasze fora"
-
-#~ msgid "People"
-#~ msgstr "Ludzie"
-
-#~ msgid "Post Comment"
-#~ msgstr "Opublikuj komentarz"
-
-#~ msgid "Register"
-#~ msgstr "Zarejestruj"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Ogranicz publikowanie do tej strony."
-
-#~ msgid "Return to the forum."
-#~ msgstr "Powróć do formularza."
-
-#~ msgid "Return to the question list."
-#~ msgstr "Powrót do listy pytań"
-
-#~ msgid "Show"
-#~ msgstr "Pokaż"
-
-#~ msgid "Sign in"
-#~ msgstr "Zaloguj się"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "Przepraszamy, musisz być zalogowany, aby wykonać tę akcję"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Przepraszamy, musisz być zalogowany, aby oznaczyć post"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "Przepraszamy, musisz być zalogowany, aby głosować"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr ""
-#~ "Niestety, anonimowi użytkownicy nie mogą wybrać prawidłowej odpowiedzi."
-
-#~ msgid "Teaser"
-#~ msgstr "Zwiastun"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "Pole techniczne pozwalające wybić pytanie. Pisanie w tym polu spowoduje "
-#~ "zapisanie na write_date, a zatem wybije post. Bezpośrednie pisanie na "
-#~ "write_date nie jest obecnie obsługiwane i to pole jest obejściem problemu."
-
-#~ msgid "Trending"
-#~ msgstr "Trendy"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "Odłącz wszystkie komentarze"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "Odłącz własne komentarze"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Oczekiwanie na weryfikację"
-
-#~ msgid "Waiting post"
-#~ msgstr "Oczekujący post"

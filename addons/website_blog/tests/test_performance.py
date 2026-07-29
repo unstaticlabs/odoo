@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo.tests import tagged
+
 from odoo.addons.website.tests.test_performance import UtilPerf
 import random
 import datetime
 from freezegun import freeze_time
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestBlogPerformance(UtilPerf):
     def setUp(self):
         super().setUp()

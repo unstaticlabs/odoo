@@ -1,28 +1,25 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * partnership
+# 	* partnership
 #
-# Nusara Boonma <nuboo@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 05:01+0000\n"
-"Last-Translator: Nusara Boonma <nuboo@odoo.com>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/partnership/"
-"th/>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-09-11 13:58+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: partnership
 #: model:ir.model.fields,field_description:partnership.field_res_partner_grade__active
 msgid "Active"
-msgstr "เปิดใช้งาน"
+msgstr ""
 
 #. module: partnership
 #: model_terms:ir.actions.act_window,help:partnership.action_grade_partners
@@ -58,10 +55,6 @@ msgstr ""
 
 #. module: partnership
 #: model:ir.model,name:partnership.model_res_company
-msgid "Companies"
-msgstr ""
-
-#. module: partnership
 #: model:ir.model.fields,field_description:partnership.field_res_partner_grade__company_id
 msgid "Company"
 msgstr ""

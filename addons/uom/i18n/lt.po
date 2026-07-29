@@ -12,18 +12,18 @@
 # Silvija Butko <silvija.butko@gmail.com>, 2022
 # Linas Versada <linaskrisiukenas@gmail.com>, 2022
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-01 16:11+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/uom/"
-"lt/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-04-13 19:31+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-s19-2/"
+"uom/lt/>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,7 +31,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
 "11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
 ": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__factor
@@ -127,9 +127,8 @@ msgstr "Tvarkyti kelis matavimo vienetus"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_minute
-#, fuzzy
 msgid "Minutes"
-msgstr "Minutės"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_pack_6
@@ -181,11 +180,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:uom.field_uom_uom__related_uom_ids
 msgid "Related UoMs"
 msgstr ""
-
-#. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "Apvalinimo tikslumas"
 
 #. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
@@ -373,109 +367,3 @@ msgstr ""
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr ""
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "Didesnis santykis"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "Didesnis negu etaloninas matavimas vienetas"
-
-#~ msgid "Category"
-#~ msgstr "Kategorija"
-
-#~ msgid "Color"
-#~ msgstr "Spalva"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konvertavimas galimas tik tarp tai pačiai grupei priklausančių matavimo "
-#~ "vienetų. Konvertuojant kiekiai bus paskaičiuoti pagal santykį."
-
-#~ msgid "Group By"
-#~ msgstr "Grupuoti pagal"
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "Kiek kartų šis matavimo vienetas yra didesnis nei lyginamasis matavimo "
-#~ "vienetas šioje kategorijoje:  1 * (šis vienetas) = santykis * "
-#~ "(lyginamasis vienetas)"
-
-#~ msgid ""
-#~ "How much bigger or smaller this unit is compared to the reference Unit of "
-#~ "Measure for this category: 1 * (reference unit) = ratio * (this unit)"
-#~ msgstr ""
-#~ "Kiek kartų didesnis ar mažesnis yra šis vienetas, lyginant su šios "
-#~ "kategorijos lyginamuoju vienetu:  1 * (lyginamasis vienetas) = santykis * "
-#~ "(šis vienetas)"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Paskutinį kartą keista"
-
-#~ msgid "Length / Distance"
-#~ msgstr "Ilgis"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "Produkto matavimo vienetų kategorijos"
-
-#~ msgid "Ratio"
-#~ msgstr "Santykis"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "Etaloninis kategorijos matavimo vienetas"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "Mažesnis negu etaloninas matavimas vienetas"
-
-#~ msgid ""
-#~ "The computed quantity will be a multiple of this value. Use 1.0 for a "
-#~ "Unit of Measure that cannot be further split, such as a piece."
-#~ msgstr ""
-#~ "Apskaičiuotas kiekis bus šios reikšmės kartotinis. Įveskite 1.0 tiems "
-#~ "matavimo vienetams, kurie negali būti skaidomi iki trupmeninės dalies, "
-#~ "kaip, pavyzdžiui, daiktiniai vienetai."
-
-#~ msgid "Type"
-#~ msgstr "Tipas"
-
-#~ msgid "Unit"
-#~ msgstr "Vienetas"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mato vienetas"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Mato vienetų kategorijos"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "Mato vienetų kategorijos"
-
-#~ msgid ""
-#~ "Units of measure belonging to the same category can be\n"
-#~ "            converted between each others. For example, in the category\n"
-#~ "            <i>'Time'</i>, you will have the following units of measure:\n"
-#~ "            Hours, Days."
-#~ msgstr ""
-#~ "Tai pačiai kategorijai priklausantys matavimo vienetai gali būt "
-#~ "konvertuojami tarpusavyje. Pavyzdžiui, kategorijoje\n"
-#~ "<i>\"Laikas\"</i> turėsite tokius vienetus:\n"
-#~ "Valandos, dienos."
-
-#~ msgid "Volume"
-#~ msgstr "Tūris"
-
-#~ msgid "Weight"
-#~ msgstr "Svoris"
-
-#~ msgid "Working Time"
-#~ msgstr "Darbo laikas"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "Turite nurodyti keitimo santykį tarp toje pačioje kategorijoje\n"
-#~ "esančių matavimų vienetų."

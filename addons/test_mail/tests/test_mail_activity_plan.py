@@ -14,6 +14,7 @@ from odoo.tools.misc import format_date
 
 
 @tagged('mail_activity', 'mail_activity_plan')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestActivitySchedule(ActivityScheduleCase):
     """ Test plan and activity schedule
 
@@ -26,24 +27,20 @@ class TestActivitySchedule(ActivityScheduleCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        # add some triggered and suggested next activitities
-        cls.test_type_1, cls.test_type_2, cls.test_type_3 = cls.env['mail.activity.type'].create([
-            {'name': 'TestAct1', 'res_model': 'mail.test.activity',},
-            {'name': 'TestAct2', 'res_model': 'mail.test.activity',},
-            {'name': 'TestAct3', 'res_model': 'mail.test.activity',},
+        # add suggested next activities
+        cls.test_type_1, cls.test_type_2 = cls.env['mail.activity.type'].create([
+            {'name': 'TestAct1', 'res_model': 'mail.test.activity'},
+            {'name': 'TestAct2', 'res_model': 'mail.test.activity'},
         ])
         cls.test_type_1.write({
-            'chaining_type': 'trigger',
             'delay_count': 2,
             'delay_from': 'current_date',
             'delay_unit': 'days',
-            'triggered_next_type_id': cls.test_type_2.id,
+            'suggested_next_type_id': cls.test_type_2.id,
         })
         cls.test_type_2.write({
-            'chaining_type': 'suggest',
             'delay_count': 3,
             'delay_unit': 'weeks',
-            'suggested_next_type_ids': [(4, cls.test_type_1.id), (4, cls.test_type_3.id)],
         })
 
         # prepare plans
@@ -188,11 +185,8 @@ class TestActivitySchedule(ActivityScheduleCase):
             login='bert',
             name='Bert Tartignole',
         )
-        demo_record, demo_record2 = self.env['mail.test.access'].create([
-            {'access': 'admin', 'name': 'Record'},
-            {'access': 'admin', 'name': 'Record'},
-            ])
-        form = self._instantiate_activity_schedule_wizard(demo_record + demo_record2)
+        demo_record = self.env['mail.test.access'].create({'access': 'admin', 'name': 'Record'})
+        form = self._instantiate_activity_schedule_wizard(demo_record)
         form.activity_type_id = self.env.ref('test_mail.mail_act_test_upload_document')
         with self.assertRaises(UserError):
             form.activity_user_id = user
@@ -253,13 +247,8 @@ class TestActivitySchedule(ActivityScheduleCase):
             'template_ids': [
                 (0, 0, {'activity_type_id': self.test_type_1.id}),
                 (0, 0, {'activity_type_id': self.test_type_2.id}),
-                (0, 0, {'activity_type_id': self.test_type_3.id}),
             ],
         })
-        # Assert expected next activities
-        expected_next_activities = [['TestAct2'], ['TestAct1', 'TestAct3'], []]
-        for template, expected_names in zip(test_plan.template_ids, expected_next_activities, strict=True):
-            self.assertEqual(template.next_activity_ids.mapped('name'), expected_names)
         # Test the plan summary
         with self.subTest(test_case='Check plan summary'), \
              freeze_time(self.reference_now):
@@ -267,11 +256,7 @@ class TestActivitySchedule(ActivityScheduleCase):
             form.plan_id = test_plan
             expected_values = [
                 {'description': 'TestAct1', 'deadline': datetime(2023, 9, 30).date()},
-                {'description': 'TestAct2', 'deadline': datetime(2023, 10, 21).date()},
                 {'description': 'TestAct2', 'deadline': datetime(2023, 9, 30).date()},
-                {'description': 'TestAct1', 'deadline': datetime(2023, 10, 2).date()},
-                {'description': 'TestAct3', 'deadline': datetime(2023, 9, 30).date()},
-                {'description': 'TestAct3', 'deadline': datetime(2023, 9, 30).date()},
             ]
             for line, expected in zip(form.plan_schedule_line_ids._records, expected_values):
                 with self.subTest(line=line, expected_values=expected):

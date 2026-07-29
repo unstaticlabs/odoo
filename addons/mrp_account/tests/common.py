@@ -52,7 +52,7 @@ class TestBomPriceCommon(TestStockValuationCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Required for `product_uom_id ` to be visible in the view
+        # Required for `uom_id ` to be visible in the view
         cls.env.user.group_ids += cls.env.ref('uom.group_uom')
         # Required for `product_id ` to be visible in the view
         cls.env.user.group_ids += cls.env.ref('product.group_product_variant')
@@ -84,7 +84,7 @@ class TestBomPriceCommon(TestStockValuationCommon):
         bom_form.product_id = cls.dining_table
         bom_form.product_tmpl_id = cls.dining_table.product_tmpl_id
         bom_form.product_qty = 1.0
-        bom_form.product_uom_id = cls.uom
+        bom_form.uom_id = cls.uom
         bom_form.type = 'normal'
         with bom_form.bom_line_ids.new() as line:
             line.product_id = cls.table_head
@@ -120,7 +120,7 @@ class TestBomPriceCommon(TestStockValuationCommon):
         bom_form2.product_id = cls.table_head
         bom_form2.product_tmpl_id = cls.table_head.product_tmpl_id
         bom_form2.product_qty = 1.0
-        bom_form2.product_uom_id = cls.dozen
+        bom_form2.uom_id = cls.dozen
         bom_form2.type = 'phantom'
         with bom_form2.bom_line_ids.new() as line:
             line.product_id = cls.plywood_sheet
@@ -138,6 +138,7 @@ class TestBomPriceCommon(TestStockValuationCommon):
         cls._use_production_accounting()
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestBomPriceOperationCommon(TestBomPriceCommon):
     """ Common bom setup with workorder operations"""
     @classmethod
@@ -256,14 +257,14 @@ class TestBomPriceOperationCommon(TestBomPriceCommon):
             'byproduct_ids': [
                 (0, 0, {
                     'product_id': cls.scrap_wood.id,
-                    'product_uom_id': cls.uom.id,
+                    'uom_id': cls.uom.id,
                     'product_qty': 8,
                     'bom_id': cls.bom_1.id,
                     'cost_share': 1,
                 }),
                 (0, 0, {
                     'product_id': cls.scrap_wood.id,
-                    'product_uom_id': cls.dozen.id,
+                    'uom_id': cls.dozen.id,
                     'product_qty': 1,
                     'bom_id': cls.bom_1.id,
                     'cost_share': 12,

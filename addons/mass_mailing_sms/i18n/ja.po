@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * mass_mailing_sms
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 23:51+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-04-23 11:51+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "mass_mailing_sms/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: mass_mailing_sms
 #. odoo-javascript
@@ -50,13 +50,18 @@ msgstr "%(mailing_type)s \"%(mailing_name)s\"の24時間統計"
 msgid ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Contacts\n"
+"                        <i class=\"fa fa-mobile fa-lg\"/> Contacts\n"
 "                    </span>"
 msgstr ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> 連絡先\n"
-"                    </span>"
+"                       <i class=\"fa fa-mobile fa-lg\"/> 連絡先\n"
+"                   </span>"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_kanban
+msgid "<i class=\"fa fa-phone text-primary me-2\" title=\"Phone\"/>"
+msgstr "<i class=\"fa fa-phone text-primary me-2\" title=\"電話\"/>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -64,8 +69,8 @@ msgid ""
 "<span name=\"canceled_text_sms\" invisible=\"mailing_type != 'sms'\">SMS "
 "Text Message have been cancelled and will not be sent.</span>"
 msgstr ""
-"<span name=\"canceled_text_sms\" invisible=\"mailing_type != 'sms'\">SMS"
-"テキストメッセージはキャンセルされ、送信されません。</span>"
+"<span name=\"canceled_text_sms\" invisible=\"mailing_type != 'sms'\">SMSテキ"
+"ストメッセージはキャンセルされ、送信されません。</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -73,8 +78,8 @@ msgid ""
 "<span name=\"failed_text_sms\" invisible=\"mailing_type != 'sms'\">SMS Text "
 "Messages could not be delivered.</span>"
 msgstr ""
-"<span name=\"failed_text_sms\" invisible=\"mailing_type != 'sms'\">SMS"
-"テキストメッセージは送信できませんでした。</span>"
+"<span name=\"failed_text_sms\" invisible=\"mailing_type != 'sms'\">SMSテキス"
+"トメッセージは送信できませんでした。</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -91,8 +96,8 @@ msgid ""
 "<span name=\"process_text_sms\" invisible=\"mailing_type != 'sms'\">SMS Text "
 "Messages are being processed.</span>"
 msgstr ""
-"<span name=\"process_text_sms\" invisible=\"mailing_type != 'sms'\">SMS"
-"テキストメッセージの処理中です。</span>"
+"<span name=\"process_text_sms\" invisible=\"mailing_type != 'sms'\">SMSテキス"
+"トメッセージの処理中です。</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -100,8 +105,8 @@ msgid ""
 "<span name=\"scheduled_text_sms\" invisible=\"mailing_type != 'sms'\">SMS "
 "Text Messages are in queue and will be sent soon.</span>"
 msgstr ""
-"<span name=\"scheduled_text_sms\" invisible=\"mailing_type != 'sms'\">SMS"
-"メッセージは送信予約済みで、まもなく送信されます。</span>"
+"<span name=\"scheduled_text_sms\" invisible=\"mailing_type != 'sms'\">SMSメッ"
+"セージは送信予約済みで、まもなく送信されます。</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -109,8 +114,8 @@ msgid ""
 "<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">SMS Text "
 "Messages have been sent.</span>"
 msgstr ""
-"<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">SMS"
-"テキストメッセージが送信されました。</span>"
+"<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">SMSテキストメッ"
+"セージが送信されました。</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_trace_view_form_sms
@@ -126,8 +131,8 @@ msgid ""
 "                        </strong>"
 msgstr ""
 "<strong>\n"
-"                            IAPクレジットが不足しているようです。ここを"
-"クリックしてクレジットを購入して下さい。\n"
+"                            IAPクレジットが不足しているようです。ここをクリッ"
+"クしてクレジットを購入して下さい。\n"
 "                        </strong>"
 
 #. module: mass_mailing_sms
@@ -139,8 +144,8 @@ msgid ""
 "                        </strong>"
 msgstr ""
 "<strong>\n"
-"                            SMSアカウントが登録されていないようです。ここを"
-"クリックしてアカウントを設定して下さい。\n"
+"                            SMSアカウントが登録されていないようです。ここをク"
+"リックしてアカウントを設定して下さい。\n"
 "                        </strong>"
 
 #. module: mass_mailing_sms
@@ -290,8 +295,8 @@ msgstr "コード"
 msgid ""
 "Come back once some SMS Mailings are sent to check out aggregated results."
 msgstr ""
-"いくつかのSMSメールが送信されたら、集計結果を確認するために戻っててきて下さい"
-"。"
+"いくつかのSMSメールが送信されたら、集計結果を確認するために戻っててきて下さ"
+"い。"
 
 #. module: mass_mailing_sms
 #: model:ir.ui.menu,name:mass_mailing_sms.mass_mailing_sms_menu_configuration
@@ -340,11 +345,6 @@ msgid "Date"
 msgstr "日付"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_sms_test_view_form
-msgid "Discard"
-msgstr "破棄"
-
-#. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_list__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_mailing__display_name
@@ -355,7 +355,7 @@ msgstr "破棄"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__display_name
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__display_name
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__display_name
 msgid "Display Name"
 msgstr "表示名"
 
@@ -392,8 +392,8 @@ msgid ""
 "Field used to store sanitized phone number. Helps speeding up searches and "
 "comparisons."
 msgstr ""
-"サニタイズされた電話番号を保存するためのフィールド。検索や比較の"
-"スピードアップに役立ちます。"
+"サニタイズされた電話番号を保存するためのフィールド。検索や比較のスピードアッ"
+"プに役立ちます。"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__message_follower_ids
@@ -449,7 +449,7 @@ msgstr "最高クリック率"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__id
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__id
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__id
 msgid "ID"
 msgstr "ID"
 
@@ -498,9 +498,9 @@ msgid ""
 "mobile and phone field in a model."
 msgstr ""
 "ブラックリストに登録されたサニタイズされた電話番号が電話番号であるかどうかを"
-"示します。モデル内に携帯電話フィールドと電話フィールドの両方がある場合に、"
-"　　　どちらの番号がブラックリストに登録されているかを区別するのに役立ちます"
-"。"
+"示します。モデル内に携帯電話フィールドと電話フィールドの両方がある場合"
+"に、　　　どちらの番号がブラックリストに登録されているかを区別するのに役立ち"
+"ます。"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_credit
@@ -653,6 +653,12 @@ msgid "My SMS Marketing"
 msgstr "自分のSMSマーケティング"
 
 #. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_kanban
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
+msgid "New SMS"
+msgstr "新規SMS"
+
+#. module: mass_mailing_sms
 #: model_terms:ir.actions.act_window,help:mass_mailing_sms.mailing_trace_report_action_sms
 msgid "No data yet!"
 msgstr "まだデータはありません！"
@@ -753,6 +759,11 @@ msgstr "オプション"
 #: model:ir.model,name:mass_mailing_sms.model_sms_sms
 msgid "Outgoing SMS"
 msgstr "送信されるSMS"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_form
+msgid "Phone"
+msgstr "電話"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__phone_sanitized_blacklisted
@@ -922,12 +933,6 @@ msgid "Send Now"
 msgstr "今すぐ送信"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_form
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
-msgid "Send SMS"
-msgstr "SMS送信"
-
-#. module: mass_mailing_sms
 #: model:ir.model,name:mass_mailing_sms.model_sms_composer
 msgid "Send SMS Wizard"
 msgstr "SMS送信ウィザード"
@@ -999,23 +1004,14 @@ msgstr "テストSMSは以下に送信されませんでした: %(destination)s:
 #. odoo-python
 #: code:addons/mass_mailing_sms/wizard/mailing_sms_test.py:0
 msgid "Test SMS skipped those numbers as they appear invalid: %(numbers)s"
-msgstr "テスト SMS は、無効と思われるこれらの番号をスキップしました: %(numbers)s"
+msgstr ""
+"テスト SMS は、無効と思われるこれらの番号をスキップしました: %(numbers)s"
 
 #. module: mass_mailing_sms
 #. odoo-python
 #: code:addons/mass_mailing_sms/wizard/mailing_sms_test.py:0
 msgid "Test SMS successfully sent to %s"
 msgstr "テストSMS送信が正常に%s宛に送信されました。"
-
-#. module: mass_mailing_sms
-#. odoo-python
-#: code:addons/mass_mailing_sms/models/utm.py:0
-msgid ""
-"The UTM medium '%s' cannot be deleted as it is used in some main functional "
-"flows, such as the SMS Marketing."
-msgstr ""
-"UTM medium '%s'はSMSマーケティングなど、いくつかの主要な機能フローで使用され"
-"ているため、削除することはできません。"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.blacklist_main
@@ -1027,8 +1023,8 @@ msgstr "登録解除中の試行中にエラーが発生しました。"
 msgid ""
 "This phone number is blacklisted for SMS Marketing. Click to unblacklist."
 msgstr ""
-"この電話番号はSMSマーケティングのブラックリストに登録されています。"
-"ブラックリストを解除するにはクリックして下さい。"
+"この電話番号はSMSマーケティングのブラックリストに登録されています。ブラックリ"
+"ストを解除するにはクリックして下さい。"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_mailing__sms_subject
@@ -1055,9 +1051,9 @@ msgid "UTM Campaign"
 msgstr "UTMキャンペーン"
 
 #. module: mass_mailing_sms
-#: model:ir.model,name:mass_mailing_sms.model_utm_medium
-msgid "UTM Medium"
-msgstr "UTM媒体"
+#: model:ir.model,name:mass_mailing_sms.model_utm_mixin
+msgid "UTM Mixin"
+msgstr "UTM Mixin"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_acc
@@ -1140,6 +1136,11 @@ msgstr "正常にブラックリストに掲載されました。"
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.blacklist_number
 msgid "has been successfully removed from"
 msgstr "正常に以下から削除されました:"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_tree
+msgid "📵 Blacklisted"
+msgstr "📵 ブラックリスト"
 
 #~ msgid ""
 #~ "+32 495 85 85 77\n"

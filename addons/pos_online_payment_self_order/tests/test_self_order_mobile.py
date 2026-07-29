@@ -52,7 +52,6 @@ class TestSelfOrderMobile(SelfOrderCommonTest, OnlinePaymentCommon):
         })
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             })],

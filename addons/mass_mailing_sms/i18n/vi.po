@@ -6,24 +6,23 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 02:12+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-01-15 21:50+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-1/"
 "mass_mailing_sms/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: mass_mailing_sms
 #. odoo-javascript
@@ -54,13 +53,14 @@ msgstr "Số liệu thống kê 24h của %(mailing_type)s \"%(mailing_name)s\""
 msgid ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Contacts\n"
+"                        <i class=\"fa fa-mobile fa-lg\"/> Contacts\n"
 "                    </span>"
 msgstr ""
-"<br/>\n"
-"                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Liên hệ\n"
-"                    </span>"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_kanban
+msgid "<i class=\"fa fa-phone text-primary me-2\" title=\"Phone\"/>"
+msgstr ""
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -231,8 +231,8 @@ msgid ""
 "Blacklist through SMS Marketing unsubscribe (mailing ID: %(mailing_id)s - "
 "model: %(model)s)"
 msgstr ""
-"Hạn chế thông qua huỷ đăng ký Marketing qua SMS (ID gửi thư: %(mailing_id)"
-"s - mô hình: %(model)s)"
+"Hạn chế thông qua huỷ đăng ký Marketing qua SMS (ID gửi thư: %(mailing_id)s "
+"- mô hình: %(model)s)"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_blacklist
@@ -342,11 +342,6 @@ msgid "Date"
 msgstr "Ngày"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_sms_test_view_form
-msgid "Discard"
-msgstr "Huỷ bỏ"
-
-#. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_list__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_mailing__display_name
@@ -357,7 +352,7 @@ msgstr "Huỷ bỏ"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__display_name
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__display_name
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__display_name
 msgid "Display Name"
 msgstr "Tên hiển thị"
 
@@ -452,7 +447,7 @@ msgstr "Tỷ lệ nhấp cao nhất"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__id
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__id
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__id
 msgid "ID"
 msgstr "ID"
 
@@ -657,6 +652,12 @@ msgid "My SMS Marketing"
 msgstr "Marketing qua SMS của tôi"
 
 #. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_kanban
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
+msgid "New SMS"
+msgstr ""
+
+#. module: mass_mailing_sms
 #: model_terms:ir.actions.act_window,help:mass_mailing_sms.mailing_trace_report_action_sms
 msgid "No data yet!"
 msgstr "Chưa có dữ liệu nào!"
@@ -759,6 +760,11 @@ msgstr "Tùy chọn"
 #: model:ir.model,name:mass_mailing_sms.model_sms_sms
 msgid "Outgoing SMS"
 msgstr "SMS đi"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_form
+msgid "Phone"
+msgstr ""
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__phone_sanitized_blacklisted
@@ -928,12 +934,6 @@ msgid "Send Now"
 msgstr "Gửi ngay"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_form
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
-msgid "Send SMS"
-msgstr "Gửi SMS"
-
-#. module: mass_mailing_sms
 #: model:ir.model,name:mass_mailing_sms.model_sms_composer
 msgid "Send SMS Wizard"
 msgstr "Công cụ gửi SMS"
@@ -1014,16 +1014,6 @@ msgid "Test SMS successfully sent to %s"
 msgstr "SMS thử nghiệm đã được gửi thành công đến %s"
 
 #. module: mass_mailing_sms
-#. odoo-python
-#: code:addons/mass_mailing_sms/models/utm.py:0
-msgid ""
-"The UTM medium '%s' cannot be deleted as it is used in some main functional "
-"flows, such as the SMS Marketing."
-msgstr ""
-"Không thể xóa phương tiện UTM '%s' vì nó được sử dụng trong một số luồng "
-"chức năng chính, chẳng hạn như Marketing qua SMS."
-
-#. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.blacklist_main
 msgid "There was an error when trying to unsubscribe"
 msgstr "Đã xảy ra lỗi khi cố gắng hủy đăng ký"
@@ -1061,9 +1051,9 @@ msgid "UTM Campaign"
 msgstr "Chiến dịch UTM"
 
 #. module: mass_mailing_sms
-#: model:ir.model,name:mass_mailing_sms.model_utm_medium
-msgid "UTM Medium"
-msgstr "Phương tiện UTM"
+#: model:ir.model,name:mass_mailing_sms.model_utm_mixin
+msgid "UTM Mixin"
+msgstr ""
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_acc
@@ -1149,85 +1139,14 @@ msgstr "đã được đưa vào danh sách hạn chế thành công"
 msgid "has been successfully removed from"
 msgstr "đã hoàn toàn được xoá khỏi"
 
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_tree
+msgid "📵 Blacklisted"
+msgstr ""
+
 #~ msgid ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
 #~ msgstr ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
-
-#~ msgid ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">SMS Text Message could not be sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">SMS Text Message could not be sent.</span>"
-
-#~ msgid ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">This SMS marketing is scheduled for </"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">This SMS marketing is scheduled for </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message are in queue and will be sent soon.</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message are in queue and will be sent soon.</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">SMS Text Message have been sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">SMS Text Message have been sent.</span>"
-
-#~ msgid ""
-#~ "Blacklist through SMS Marketing unsubscribe (mailing ID: %s - model: %s)"
-#~ msgstr ""
-#~ "Blacklist through SMS Marketing unsubscribe (mailing ID: %s - model: %s)"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Số điện thoại vào sổ đen là Di động"
-
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Cho biết số điện thoại được xử lý trong danh sách đen có phải là số di "
-#~ "động hay không. Giúp phân biệt số nào nằm trong danh sách đen             "
-#~ "khi có cả trường di động và trường điện thoại trong đối tượng."
-
-#~ msgid "Number %s not found"
-#~ msgstr "Number %s not found"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Số thông báo cần xử lý"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Di đông/Điện thoại"
-
-#~ msgid "Please enter your phone number"
-#~ msgstr "Please enter your phone number"
-
-#~ msgid "SMS ID (tech)"
-#~ msgstr "SMS ID (tech)"
-
-#~ msgid "Test SMS Marketing"
-#~ msgstr "Test SMS Marketing"
-
-#~ msgid "Test SMS marketing"
-#~ msgstr "Test SMS marketing"
-
-#~ msgid "Unsubscribe me"
-#~ msgstr "Bỏ đăng ký tôi"

@@ -7,23 +7,23 @@
 # sharkutz <sharkutz4life@yahoo.com>, 2022
 # Martin Trigaux, 2022
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:00+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/bus/ro/>"
-"\n"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2025-11-16 15:07+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/bus/ro/"
+">\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: bus
 #: model:ir.model,name:bus.model_res_groups
@@ -34,6 +34,14 @@ msgstr "Acces Grupuri"
 #: model:ir.model,name:bus.model_ir_attachment
 msgid "Attachment"
 msgstr "Atașament"
+
+#. module: bus
+#. odoo-javascript
+#: code:addons/bus/static/src/debug/bus_logs_menu_item.js:0
+msgid ""
+"Bus logs contain confidential information and must only be shared with "
+"trusted recipients."
+msgstr ""
 
 #. module: bus
 #: model:ir.model,name:bus.model_bus_listener_mixin
@@ -87,6 +95,12 @@ msgstr "Nume afișat"
 
 #. module: bus
 #. odoo-javascript
+#: code:addons/bus/static/src/debug/bus_logs_menu_item.js:0
+msgid "Download"
+msgstr ""
+
+#. module: bus
+#. odoo-javascript
 #: code:addons/bus/static/src/debug/bus_logs_menu_item.xml:0
 msgid "Download logs"
 msgstr "Descarcă jurnale"
@@ -134,8 +148,8 @@ msgstr "Mesaj"
 
 #. module: bus
 #: model:ir.model,name:bus.model_ir_model
-msgid "Models"
-msgstr "Modele"
+msgid "Model"
+msgstr ""
 
 #. module: bus
 #: model:ir.model,name:bus.model_ir_qweb
@@ -144,35 +158,15 @@ msgstr ""
 
 #. module: bus
 #. odoo-javascript
-#: code:addons/bus/static/src/outdated_page_watcher_service.js:0
 #: code:addons/bus/static/src/services/assets_watchdog_service.js:0
-#: code:addons/bus/static/src/services/bus_service.js:0
 msgid "Refresh"
 msgstr "Actualizare"
-
-#. module: bus
-#. odoo-javascript
-#: code:addons/bus/static/src/outdated_page_watcher_service.js:0
-#: code:addons/bus/static/src/services/bus_service.js:0
-msgid ""
-"Save your work and refresh to get the latest updates and avoid potential "
-"issues."
-msgstr ""
-"Salvați-vă munca și reîmprospătați pentru a primi cele mai recente "
-"actualizări și pentru a evita eventualele probleme."
 
 #. module: bus
 #. odoo-javascript
 #: code:addons/bus/static/src/services/assets_watchdog_service.js:0
 msgid "The page appears to be out of date."
 msgstr "Pagina pare să nu fie actualizată."
-
-#. module: bus
-#. odoo-javascript
-#: code:addons/bus/static/src/outdated_page_watcher_service.js:0
-#: code:addons/bus/static/src/services/bus_service.js:0
-msgid "The page is out of date"
-msgstr "Pagina este depășită"
 
 #. module: bus
 #: model:ir.model,name:bus.model_res_users
@@ -183,6 +177,12 @@ msgstr "Operator"
 #: model:ir.model,name:bus.model_res_users_settings
 msgid "User Settings"
 msgstr "Setări utilizator"
+
+#. module: bus
+#. odoo-javascript
+#: code:addons/bus/static/src/debug/bus_logs_menu_item.js:0
+msgid "You're about to download the bus logs"
+msgstr ""
 
 #. module: bus
 #. odoo-python
@@ -201,26 +201,12 @@ msgstr ""
 msgid "websocket message handling"
 msgstr "gestionarea mesajelor websocket"
 
-#~ msgid "Away"
-#~ msgstr "Absent"
+#~ msgid ""
+#~ "Save your work and refresh to get the latest updates and avoid potential "
+#~ "issues."
+#~ msgstr ""
+#~ "Salvați-vă munca și reîmprospătați pentru a primi cele mai recente "
+#~ "actualizări și pentru a evita eventualele probleme."
 
-#~ msgid "IM Status"
-#~ msgstr "Status IM"
-
-#~ msgid "Last Poll"
-#~ msgstr "Ultimul sondaj"
-
-#~ msgid "Last Presence"
-#~ msgstr "Ultima prezență"
-
-#~ msgid "Offline"
-#~ msgstr "Deconectat"
-
-#~ msgid "Online"
-#~ msgstr "Activ"
-
-#~ msgid "User Presence"
-#~ msgstr "Prezență utilizator"
-
-#~ msgid "Users"
-#~ msgstr "Utilizatori"
+#~ msgid "The page is out of date"
+#~ msgstr "Pagina este depășită"

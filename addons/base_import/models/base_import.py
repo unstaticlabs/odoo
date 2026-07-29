@@ -184,7 +184,7 @@ class Base_ImportImport(models.TransientModel):
     FUZZY_MATCH_DISTANCE = 0.2
 
     res_model = fields.Char('Model')
-    file = fields.Binary('File', help="File to check and/or import, raw binary (not base64)", attachment=False)
+    file = fields.Binary('File', help="File to check and/or import", attachment=False)
     file_name = fields.Char('File Name')
     file_type = fields.Char('File Type')
 
@@ -284,7 +284,7 @@ class Base_ImportImport(models.TransientModel):
             # ignore if you cannot access to the target model or the field definition
             if not target_model.has_access('read'):
                 continue
-            if not target_model._has_field_access(target_model._fields[definition_record_field], 'read'):
+            if not target_model.has_field_access(target_model._fields[definition_record_field], 'read'):
                 continue
 
             # Do not take into account the definition of archived parents,
@@ -379,7 +379,7 @@ class Base_ImportImport(models.TransientModel):
         self.ensure_one()
 
         # guess mimetype from file content
-        mimetype = guess_mimetype(self.file or b'')
+        mimetype = guess_mimetype(base64.b64decode(self.file or b''))
         extensions_to_try = [
             (MIMETYPE_TO_READER.get(mimetype), f"guessed using mimetype {mimetype!r}"),
             (MIMETYPE_TO_READER.get(self.file_type), f"decided from user-provided mimetype {self.file_type!r}"),
@@ -403,8 +403,7 @@ class Base_ImportImport(models.TransientModel):
                 if callable(handler):
                     return handler(options)
             except ImportError as exc:
-                # exc.name_from attribute is present as of python 3.12
-                requires = str(getattr(exc, 'name_from', None) or exc.name)
+                requires = exc.name_from or exc.name
                 if file_extension == 'xlsx':
                     # if xlrd 2.x then xlrd.xlsx is not available
                     requires = 'openpyxl or xlrd >= 1.0.0 < 2.0'
@@ -422,7 +421,7 @@ class Base_ImportImport(models.TransientModel):
 
     def _read_xls(self, options):
         import xlrd  # noqa: PLC0415
-        book = xlrd.open_workbook(file_contents=self.file or b'')
+        book = xlrd.open_workbook(file_contents=base64.b64decode(self.file or b''))
         sheets = options['sheets'] = book.sheet_names()
         sheet = options['sheet'] = options.get('sheet') or sheets[0]
         return self._read_xls_book(book, sheet)
@@ -481,7 +480,7 @@ class Base_ImportImport(models.TransientModel):
         import openpyxl  # noqa: PLC0415
         import openpyxl.cell.cell as types  # noqa: PLC0415
         import openpyxl.styles.numbers as styles  # noqa: PLC0415
-        book = openpyxl.load_workbook(io.BytesIO(self.file or b''), data_only=True)
+        book = openpyxl.load_workbook(io.BytesIO(base64.b64decode(self.file or b'')), data_only=True)
         sheets = options['sheets'] = book.sheetnames
         sheet_name = options['sheet'] = options.get('sheet') or sheets[0]
         sheet = book[sheet_name]
@@ -520,7 +519,7 @@ class Base_ImportImport(models.TransientModel):
 
     def _read_ods(self, options):
         from . import odf_ods_reader  # noqa: PLC0415
-        doc = odf_ods_reader.ODSReader(file=io.BytesIO(self.file or b''))
+        doc = odf_ods_reader.ODSReader(file=io.BytesIO(base64.b64decode(self.file or b'')))
         sheets = options['sheets'] = list(doc.SHEETS.keys())
         sheet = options['sheet'] = options.get('sheet') or sheets[0]
 
@@ -538,7 +537,7 @@ class Base_ImportImport(models.TransientModel):
 
         :raises csv.Error: if an error is detected during CSV parsing
         """
-        csv_data = self.file or b''
+        csv_data = base64.b64decode(self.file or b'')
         if not csv_data:
             return ()
 
@@ -1113,8 +1112,9 @@ class Base_ImportImport(models.TransientModel):
             # preview to a list in the return.
             _logger.debug("Error during parsing preview", exc_info=True)
             preview = None
-            if self.file_type == 'text/csv' and self.file:
-                preview = self.file[:ERROR_PREVIEW_BYTES].decode('iso-8859-1')
+            if self.file_type == 'text/csv':
+                preview_bytes = base64.b64decode(self.file or b'')
+                preview = preview_bytes[:ERROR_PREVIEW_BYTES].decode('iso-8859-1')
             return {
                 'error': str(error),
                 # iso-8859-1 ensures decoding will always succeed,
@@ -1408,36 +1408,6 @@ class Base_ImportImport(models.TransientModel):
         else:
             res = data
         return res.strip() if trim else res
-
-    # TODO remove in master
-    def _build_import_error_msg(self, message, record, row_index, field=None):
-        return {
-            'type': 'error',
-            'message': message,
-            'record': record if record else False,
-            'field': field,
-            'rows': {'from': row_index + 1, 'to': row_index + 1},
-        }
-
-    # TODO remove in master
-    def _parse_datetime_data(self, import_fields, input_file_data):
-        errors = []
-        field_types = self.env[self.res_model].fields_get(import_fields, ['type'])
-        allowed_date_fields = {
-            name for name, info in field_types.items() if info.get('type') in ('date', 'datetime')
-        }
-
-        for row_index, row in enumerate(input_file_data):
-            for field_name, value in zip(import_fields, row):
-                if not isinstance(value, (datetime.date, datetime.datetime)):
-                    continue
-
-                if field_name not in allowed_date_fields:
-                    message = self.env._("Field '%(field)s' does not accept date/time values.", field=field_name)
-                    errors.append(
-                        self._build_import_error_msg(message, row, row_index, field=field_name)
-                    )
-        return errors
 
     def execute_import(self, fields, columns, options, dryrun=False):
         """ Actual execution of the import

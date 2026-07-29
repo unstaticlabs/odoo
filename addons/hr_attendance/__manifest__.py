@@ -17,12 +17,11 @@ actions(Check in/Check out) performed by them.
     'website': 'https://www.odoo.com/app/employees',
     'depends': ['hr', 'barcodes', 'base_geolocalize'],
     'data': [
-        'data/hr_attendance_overtime_ruleset_data.xml',
-        'data/hr_attendance_overtime_rule_data.xml',
         'data/hr_attendance_data.xml',
         'security/hr_attendance_security.xml',
-        'security/hr_attendance_overtime_ruleset_security.xml',
         'security/ir.model.access.csv',
+        'data/hr_attendance_overtime_ruleset_data.xml',
+        'data/hr_attendance_overtime_rule_data.xml',
         'views/hr_attendance_view.xml',
         'views/hr_department_view.xml',
         'views/hr_employee_view.xml',
@@ -30,20 +29,22 @@ actions(Check in/Check out) performed by them.
         'views/res_config_settings_views.xml',
         'views/hr_attendance_kiosk_templates.xml',
         'views/hr_attendance_overtime_rule_views.xml',
+        'views/hr_version_views.xml',
     ],
     'demo': [
         'data/hr_attendance_demo.xml'
     ],
-    'installable': True,
     'application': True,
     'assets': {
         'web.assets_backend': [
             'hr_attendance/static/src/**/*.js',
             'hr_attendance/static/src/**/*.xml',
-            'hr_attendance/static/src/scss/views/*.scss'
+            'hr_attendance/static/src/scss/views/*.scss',
+            # Don't include dark mode files in light mode
+            ('remove', 'hr_attendance/static/src/**/*.dark.scss'),
         ],
-        'web.qunit_suite_tests': [
-            'hr_attendance/static/tests/hr_attendance_mock_server.js',
+        'web.assets_web_dark': [
+            'hr_attendance/static/src/**/*.dark.scss',
         ],
         'web.assets_unit_tests': [
             'hr_attendance/static/tests/*.test.js',
@@ -64,17 +65,15 @@ actions(Check in/Check out) performed by them.
             'web/static/lib/bootstrap/scss/_maps.scss',
             ('include', 'web._assets_bootstrap_frontend'),
             ('include', 'web._assets_bootstrap_backend'),
-            '/web/static/lib/odoo_ui_icons/*',
             '/web/static/lib/bootstrap/scss/_functions.scss',
             '/web/static/lib/bootstrap/scss/_mixins.scss',
             '/web/static/lib/bootstrap/scss/utilities/_api.scss',
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
+            ('include', 'web.icons_fonts'),
             ('include', 'web._assets_core'),
 
             # Public Kiosk app and its components
             "hr_attendance/static/src/public_kiosk/**/*",
             'hr_attendance/static/src/components/**/*',
-            ('remove', 'hr_attendance/static/src/components/attendance_menu/**/*'),
 
             'hr_attendance/static/src/scss/kiosk/hr_attendance.scss',
             "web/static/src/views/fields/formatters.js",
@@ -90,7 +89,7 @@ actions(Check in/Check out) performed by them.
             "barcodes/static/src/components/barcode_scanner.scss",
             "barcodes/static/src/barcode_service.js",
 
-        ]
+        ],
     },
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',

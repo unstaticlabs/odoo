@@ -1,14 +1,25 @@
-import { Component } from "@odoo/owl";
+import { Component, useState } from "@odoo/owl";
 import { DateTimePicker } from "@web/core/datetime/datetime_picker";
+import { _t } from "@web/core/l10n/translation";
+import { useBus } from "@web/core/utils/hooks";
 import { CalendarFilterSection } from "@web/views/calendar/calendar_filter_section/calendar_filter_section";
+import { CalendarScheduleSection } from "@web/views/calendar/calendar_schedule_section/calendar_schedule_section";
 
 export class CalendarSidePanel extends Component {
     static components = {
         DatePicker: DateTimePicker,
         FilterSection: CalendarFilterSection,
+        ScheduleSection: CalendarScheduleSection,
     };
     static template = "web.CalendarSidePanel";
-    static props = ["model"];
+    static props = ["model", "editRecord", "sidePanelExpanded", "toggleSidePanel"];
+
+    setup() {
+        this.state = useState({ isDragging: false });
+        useBus(this.props.model.bus, "CALENDAR_EVENT_DRAG", ({ detail }) => {
+            this.state.isDragging = detail.dragging;
+        });
+    }
 
     get datePickerProps() {
         return {
@@ -51,5 +62,25 @@ export class CalendarSidePanel extends Component {
 
     get showDatePicker() {
         return this.props.model.showDatePicker && !this.env.isSmall;
+    }
+
+    get toScheduleString() {
+        const { eventsToSchedule } = this.props.model.data;
+        if (eventsToSchedule.length) {
+            return _t("%s to schedule", eventsToSchedule.length);
+        }
+        return _t("Nothing to schedule");
+    }
+
+    get filters() {
+        const res = [];
+        for (const f of this.props.model.filterSections) {
+            const filter = { label: f.label, active: false };
+            if (f.filters.some((f) => f.active)) {
+                filter.active = true;
+            }
+            res.push(filter);
+        }
+        return res;
     }
 }

@@ -10,16 +10,17 @@
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Saara Hakanen <sahak@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Saara Hakanen <sahak@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-07-01 06:45+0000\n"
-"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-13 13:22+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_sale_stock/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -37,9 +38,39 @@ msgstr ""
 "%(product_name)s ei lisätty ostoskoriisi, koska sitä ei ole saatavilla."
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+#, fuzzy
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Loppu varastosta"
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
 msgstr "<span invisible=\"not default_show_availability\">yksikköä</span>"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Add to wishlist"
+msgstr "Lisää toivelistalle"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Added to your wishlist"
+msgstr "Lisätty toivelistallesi"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -83,11 +114,6 @@ msgid "Continue selling when out-of-stock"
 msgstr "Jatka myymistä tuotteen loputtuakin"
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "Arvoisa asiakas,"
-
-#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid ""
 "Default availability mode set on newly created storable products. This can "
@@ -112,11 +138,18 @@ msgstr ""
 "- Ei varastossa: Käytetään tuotteen ollessa loppunut varastosta."
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "Työpöytäyhdistelmä"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
@@ -132,11 +165,18 @@ msgid "Get notified when back in stock"
 msgstr "Saat ilmoituksen, kun tuotetta on jälleen varastossa"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Hello"
+msgstr "Hei"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
@@ -153,14 +193,32 @@ msgstr "Virheellinen sähköpostiosoite"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr "Virheellinen sähköpostiosoite"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "Varastointi"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "Varaston oletusarvot"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "Logo"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "Mitchell admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -220,6 +278,18 @@ msgid "Product Variant"
 msgstr "Tuotevariantti"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+#, fuzzy
+msgid "Product Wishlist"
+msgstr "Toivelista"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Product image"
+msgstr "Tuotekuva"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
 msgid "Product ribbon"
 msgstr "Tuotenauha"
@@ -228,11 +298,6 @@ msgstr "Tuotenauha"
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr "Tuote: lähetä sähköpostia tuotteiden saatavuudesta"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "Terveisin,"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -285,15 +350,15 @@ msgstr ""
 "johdosta ostoskoriasi on päivitetty. Pahoittelut mahdollisesta haitasta."
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "Tuotetta on nyt saatavilla."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+#, fuzzy
+msgid "Stock Notification"
+msgstr "Varastoilmoitus"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "Tuote '%(product_name)s' on nyt saatavilla"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr ""
 
 #. module: website_sale_stock
 #. odoo-python
@@ -385,51 +450,3 @@ msgstr "kun loppu varastosta"
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr "youremail@gmail.com"
-
-#~ msgid "<span invisible=\"not show_availability\">Units</span>"
-#~ msgstr "<span invisible=\"not show_availability\">Yksikköä</span>"
-
-#~ msgid "Default visibility for custom messages."
-#~ msgstr "Tulliviestien oletusnäkyvyys."
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr ""
-#~ "Miten näytetään tuotteet, joita on vähän (saatavilla heti - varattu)?"
-
-#~ msgid "Only"
-#~ msgstr "Vain"
-
-#~ msgid "The item has not been added to your cart since it is not available."
-#~ msgstr "Tuotetta ei ole lisätty ostoskoriin, koska sitä ei ole saatavilla."
-
-#~ msgid "This product is out of stock."
-#~ msgstr "Tuote on loppunut varastosta."
-
-#~ msgid "Units"
-#~ msgstr "Kpl"
-
-#~ msgid "We'll notify you once the product is back in stock."
-#~ msgstr "Ilmoitamme, kun tuotetta on jälleen varastossa."
-
-#~ msgid "You already added"
-#~ msgstr "Lisäsit jo"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr "Lisäsit ostoskorissa jo olevan tuotteen."
-
-#~ msgid "You already have %s Units in your cart."
-#~ msgstr "Sinulla on jo %s yksikköä ostoskorissasi."
-
-#~ msgid ""
-#~ "You ask for %(desired_qty)s products but only %(new_qty)s is available"
-#~ msgstr ""
-#~ "Pyydät %(desired_qty)s tuotetta, mutta saatavilla on vain %(new_qty)s"
-
-#~ msgid "You ask for %s Units but only %s are available."
-#~ msgstr "Pyydät %s yksikköä, mutta saatavilla on vain %s."
-
-#~ msgid "in your cart."
-#~ msgstr "ostoskoriisi."
-
-#~ msgid "left in stock."
-#~ msgstr "jäljellä varastossa."

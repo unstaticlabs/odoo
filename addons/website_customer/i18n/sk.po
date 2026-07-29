@@ -1,27 +1,24 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * website_customer
+# 	* website_customer
 #
 # Translators:
 # Martin Trigaux, 2022
 #
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 21:29+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
-"website_customer/sk/>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2022-09-22 05:56+0000\n"
+"Last-Translator: Martin Trigaux, 2022\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -77,6 +74,16 @@ msgid "Archived"
 msgstr "Archivovaný"
 
 #. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
 msgid "Back to references list"
 msgstr ""
@@ -126,7 +133,7 @@ msgstr ""
 #. module: website_customer
 #: model_terms:ir.actions.act_window,help:website_customer.action_partner_tag_form
 msgid "Create a new contact tag"
-msgstr "Vytvoriť nový štítok kontaktu"
+msgstr "Vytvoriť nový tag kontaktu"
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__create_uid
@@ -242,7 +249,7 @@ msgid ""
 "Manage contact tags to better classify them for tracking and analysis "
 "purposes."
 msgstr ""
-"Spravujte štítky kontaktu pre lepšiu klasifikáciu pri sledovaní a analýze. "
+"Spravujte tagy kontaktu pre lepšiu klasifikáciu pri sledovaní a analýze. "
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -257,7 +264,7 @@ msgstr ""
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.view_partner_tag_form
 msgid "Partner Tag"
-msgstr "Štítok partnera "
+msgstr "Tag partnera "
 
 #. module: website_customer
 #: model:ir.model,name:website_customer.model_res_partner_tag
@@ -265,13 +272,18 @@ msgid ""
 "Partner Tags - These tags can be used on website to find customers by "
 "sector, or ..."
 msgstr ""
-"Štítky partnerov - tieto štítky možno použiť na webstránkach na nájdenie "
+"Partnerské tagy - tieto tagy možno použiť na webstránkach na nájdenie "
 "zákazníkov podľa odvetví alebo ..."
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__partner_ids
 msgid "Partners"
 msgstr "Partneri"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_customer
 #. odoo-python
@@ -288,7 +300,7 @@ msgstr "Vyhľadávanie"
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Search Partner Tag"
-msgstr "Vyhľadať štítok partnera"
+msgstr "Vyhľadať tag partnera"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -348,7 +360,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_customer.view_partner_tag_list
 #: model_terms:ir.ui.view,arch_db:website_customer.view_partners_form_website
 msgid "Website Tags"
-msgstr "Štítky webstránky"
+msgstr "Tagy webstránky"
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__website_url
@@ -359,43 +371,9 @@ msgstr "URL Webstránok"
 #: model:ir.model.fields,field_description:website_customer.field_res_partner__website_tag_ids
 #: model:ir.model.fields,field_description:website_customer.field_res_users__website_tag_ids
 msgid "Website tags"
-msgstr "Štítky webstránky"
+msgstr "Tagy webstránkok"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "Mapa sveta"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "Implementoval"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Posledná úprava"
-
-#~ msgid "No result found"
-#~ msgstr "Nenašli sa žiadne výsledky"
-
-#~ msgid "Our References"
-#~ msgstr "Naše referencie"
-
-#~ msgid "References by Country"
-#~ msgstr "Referencie podľa krajiny"
-
-#~ msgid "References by Tag"
-#~ msgstr "Referencie podľa tagu"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Úplná URL na prístup k dokumentu cez webové stránky."
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "Preverené miliónmi po celom svete"
-
-#~ msgid "reference(s))"
-#~ msgstr "referencia(e)"

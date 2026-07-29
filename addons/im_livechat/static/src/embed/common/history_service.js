@@ -11,24 +11,21 @@ export class HistoryService {
         /** @type {ReturnType<typeof import("@bus/services/bus_service").busService.start>} */
         this.busService = services.bus_service;
         /** @type {import("models").Store} */
-        this.storeService = services["mail.store"];
+        this.store = services["mail.store"];
     }
 
     setup() {
         this.updateHistory();
         this.busService.subscribe("im_livechat.history_command", async (payload) => {
-            const thread = await this.storeService.Thread.getOrFetch({
-                id: payload.id,
-                model: "discuss.channel",
-            });
-            if (thread?.channel_type !== "livechat") {
+            const channel = await this.store["discuss.channel"].getOrFetch(payload.id);
+            if (channel?.channel_type !== "livechat") {
                 return;
             }
             const data = expirableStorage.getItem(HistoryService.HISTORY_STORAGE_KEY);
             const history = data ? JSON.parse(data) : [];
             rpc("/im_livechat/history", {
                 pid: payload.partner_id,
-                channel_id: thread.id,
+                channel_id: channel.id,
                 page_history: history,
             });
         });

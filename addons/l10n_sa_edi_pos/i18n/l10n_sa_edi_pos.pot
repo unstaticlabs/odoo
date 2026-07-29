@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 19:03+0000\n"
-"PO-Revision-Date: 2026-03-20 19:03+0000\n"
+"POT-Creation-Date: 2026-04-03 19:26+0000\n"
+"PO-Revision-Date: 2026-04-03 19:26+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -29,8 +29,13 @@ msgid ""
 msgstr ""
 
 #. module: l10n_sa_edi_pos
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi_pos.company_info_receipt
+msgid "Building:"
+msgstr ""
+
+#. module: l10n_sa_edi_pos
 #: model:ir.model,name:l10n_sa_edi_pos.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_sa_edi_pos
@@ -39,6 +44,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_account_move__display_name
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_config__display_name
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_order__display_name
+#: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_res_company__display_name
 msgid "Display Name"
 msgstr ""
@@ -65,6 +71,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_account_move__id
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_config__id
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_order__id
+#: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:l10n_sa_edi_pos.field_res_company__id
 msgid "ID"
 msgstr ""
@@ -83,13 +90,23 @@ msgid ""
 msgstr ""
 
 #. module: l10n_sa_edi_pos
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi_pos.company_info_receipt
+msgid "Plot:"
+msgstr ""
+
+#. module: l10n_sa_edi_pos
 #: model:ir.model,name:l10n_sa_edi_pos.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr ""
 
 #. module: l10n_sa_edi_pos
 #: model:ir.model,name:l10n_sa_edi_pos.model_pos_order
-msgid "Point of Sale Orders"
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: l10n_sa_edi_pos
+#: model:ir.model,name:l10n_sa_edi_pos.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
 msgstr ""
 
 #. module: l10n_sa_edi_pos
@@ -99,8 +116,7 @@ msgid "Settlement Error"
 msgstr ""
 
 #. module: l10n_sa_edi_pos
-#. odoo-javascript
-#: code:addons/l10n_sa_edi_pos/static/src/overrides/components/order_receipt/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi_pos.pos_order_receipt_header
 msgid "THIS IS NOT A LEGAL DOCUMENT"
 msgstr ""
 
@@ -148,7 +164,6 @@ msgid ""
 msgstr ""
 
 #. module: l10n_sa_edi_pos
-#. odoo-javascript
-#: code:addons/l10n_sa_edi_pos/static/src/overrides/components/order_receipt/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi_pos.pos_order_receipt_header
 msgid "هذا المستند ليس مستنداً قانونياً"
 msgstr ""

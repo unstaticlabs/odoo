@@ -363,7 +363,7 @@ describe("restaurant pos_store.js", () => {
         store.alert = {
             dismiss: () => {},
         };
-        const result = await store.prepareOrderTransfer(order, tableDst);
+        const result = store.prepareOrderTransfer(order, tableDst);
         expect(result).toBe(false);
         expect(order.table_id).toBe(tableDst);
         expect(store.getOrder()).toBe(order);
@@ -431,32 +431,28 @@ describe("restaurant pos_store.js", () => {
         };
         const table1InternalNote = '[{"text":"Table 1 kitchen note","colorIndex":0}]';
         const table2InternalNote = '[{"text":"Table 2 kitchen note","colorIndex":0}]';
-        order1.uiState.lastPrints.push(
-            {
-                new: [{ product_id: 99, name: "Drink 1", quantity: 1 }],
-                cancelled: [],
-                noteUpdate: [],
-            },
-            {
-                new: [],
-                cancelled: [{ product_id: product1.id, name: "Starter 1", quantity: 1 }],
-                noteUpdate: [],
-                internal_note: table1InternalNote,
-            }
-        );
-        order2.uiState.lastPrints.push(
-            {
-                new: [{ product_id: 100, name: "Drink 2", quantity: 1 }],
-                cancelled: [],
-                noteUpdate: [],
-            },
-            {
-                new: [{ product_id: product2.id, name: "Starter 2", quantity: 2 }],
-                cancelled: [],
-                noteUpdate: [],
-                internal_note: table2InternalNote,
-            }
-        );
+        order1.pushLastPrints({
+            new: [{ product_id: 99, name: "Drink 1", quantity: 1 }],
+            cancelled: [],
+            noteUpdate: [],
+        });
+        order1.pushLastPrints({
+            new: [],
+            cancelled: [{ product_id: product1.id, name: "Starter 1", quantity: 1 }],
+            noteUpdate: [],
+            internal_note: table1InternalNote,
+        });
+        order2.pushLastPrints({
+            new: [{ product_id: 100, name: "Drink 2", quantity: 1 }],
+            cancelled: [],
+            noteUpdate: [],
+        });
+        order2.pushLastPrints({
+            new: [{ product_id: product2.id, name: "Starter 2", quantity: 2 }],
+            cancelled: [],
+            noteUpdate: [],
+            internal_note: table2InternalNote,
+        });
         await store.mergeOrders(order1, order2);
         expect(order2.lines.length).toBe(2);
         expect(order1.lines.length).toBe(0);
@@ -464,7 +460,7 @@ describe("restaurant pos_store.js", () => {
         expect(order2.table_id.id).toBe(table2.id);
         expect(order2.course_ids.length).toBe(1);
         expect(line2.course_id.id).toBe(course2.id);
-        const lastPrint = order2.uiState.lastPrints.at(-1);
+        const lastPrint = order2.lastPrints.at(-1);
         expect(lastPrint).not.toBe(undefined);
         expect(lastPrint.new.length).toBe(1);
         expect(lastPrint.new[0].product_id).toBe(product2.id);
@@ -539,6 +535,54 @@ describe("restaurant pos_store.js", () => {
             expect(order.course_ids.length).toBe(2);
             expect(course1).not.toBe(course2);
             expect(order.lines[0].course_id).toBe(course1);
+            expect(order.getOrderlines().length).toBe(1);
         });
+
+        test("do not create second course if use_course_allocation", async () => {
+            const store = await setupPosEnv();
+            store.config.use_course_allocation = true;
+
+            const order = store.addNewOrder();
+            const product = store.models["product.template"].get(5);
+            await store.addLineToOrder({ product_tmpl_id: product, qty: 1 }, order);
+            const course = store.addCourse();
+            expect(order.course_ids.length).toBe(1);
+            expect(course.order_id).toBe(order);
+            expect(order.getSelectedCourse()).toBe(course);
+            expect(order.getOrderlines().length).toBe(1);
+        });
+    });
+
+    test("preparation receipt order_label", async () => {
+        const store = await setupPosEnv();
+        const pos_categories = store.models["pos.category"].getAll().map((c) => c.id);
+
+        const order = await getFilledOrder(store);
+        const partner = store.models["res.partner"].get(3);
+        order.setPartner(partner);
+        expect(order.floating_order_name).toBe(partner.name);
+
+        const generator = store.ticketPrinter.getGenerator({ models: store.models, order });
+        const orderChange = generator.generatePreparationData(new Set([...pos_categories]), {});
+        expect(orderChange[0].extra_data.order_label).toBe(partner.name);
+        expect(orderChange[0].extra_data.table_name).toBeEmpty();
+        expect(orderChange[0].extra_data.floor_name).toBeEmpty();
+
+        const table = store.models["restaurant.table"].get(2);
+        const tableOrder = await getFilledOrder(store, { table_id: table });
+        tableOrder.setPartner(partner);
+        expect(tableOrder.floating_order_name).not.toBe(partner.name);
+
+        const tableGenerator = store.ticketPrinter.getGenerator({
+            models: store.models,
+            order: tableOrder,
+        });
+        const tableOrderChange = tableGenerator.generatePreparationData(
+            new Set([...pos_categories]),
+            {}
+        );
+        expect(tableOrderChange[0].extra_data.order_label).toBe(false);
+        expect(tableOrderChange[0].extra_data.table_name).toBe(table.table_number);
+        expect(tableOrderChange[0].extra_data.floor_name).toBe(table.floor_id.name);
     });
 });

@@ -3,16 +3,17 @@
 # * stock_landed_costs
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:26+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-16 05:55+0000\n"
+"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"Language-Team: Russian <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_landed_costs/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -66,6 +67,11 @@ msgstr "Активность"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Оформление задачи-исключения"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -141,10 +147,6 @@ msgstr "Отменен"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Компании"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Компания"
@@ -573,6 +575,11 @@ msgid "Picking"
 msgstr "Выбор"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -689,8 +696,11 @@ msgid "Total"
 msgstr "Всего"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Трансферы"
 
@@ -716,8 +726,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "Линии корректировки оценки"
+msgid "Valuation Adjustment Line"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -766,35 +776,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"Вы не можете изменить тип продукта или отключить опцию landed cost, потому "
-"что продукт используется в строке перемещения счета."
-
-#~ msgid " already out"
-#~ msgstr " уже выбыл"
-
-#~ msgid "<span class=\"o_stat_text\">Valuation</span>"
-#~ msgstr "<span class=\"o_stat_text\">Оценка</span>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Складируемый продукт — это ТМЦ, запасами которых вы управляете. Должно "
-#~ "быть установлено приложение «Склад».\n"
-#~ "Расходный продукт — это ТМЦ, запасы которых не контролируются.\n"
-#~ "Услуга — это нематериальный продукт."
-
-#~ msgid "Group By"
-#~ msgstr "Группировать по"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Показать все записи, у которых дата следующего действия наступает до "
-#~ "сегодняшнего дня"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Уровень оценки запасов"

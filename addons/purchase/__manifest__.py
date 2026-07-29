@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -13,6 +12,7 @@
         'security/purchase_security.xml',
         'security/ir.model.access.csv',
         'data/digest_data.xml',
+        'data/portal_entry_data.xml',
         'views/account_move_views.xml',
         'data/purchase_data.xml',
         'data/ir_cron_data.xml',
@@ -36,7 +36,6 @@
     'demo': [
         'data/purchase_demo.xml',
     ],
-    'installable': True,
     'application': True,
     'assets': {
         'web.assets_backend': [

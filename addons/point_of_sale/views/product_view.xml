@@ -8,7 +8,7 @@
             <field name="categ_id" position="after">
                 <field string="POS Product Category" name="pos_categ_ids" filter_domain="[('pos_categ_ids', 'child_of', raw_value)]"/>
             </field>
-            <filter name="filter_to_sell" position="after">
+            <filter name="filter_to_purchase" position="after">
                <filter name="filter_to_availabe_pos" string="Point of Sale" domain="[('available_in_pos', '=', True)]"/>
             </filter>
             <filter name="group_by_categ_id" position="after">
@@ -71,7 +71,7 @@
                                    widget="many2many_tags"
                                    groups="point_of_sale.group_pos_user"
                                    string="Category"
-                                   options="{'color_field': 'color'}"/>
+                                   options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                             <field name="color"
                                    widget="color_picker" string="Color" />
                         </group>
@@ -86,13 +86,13 @@
                                 widget="many2many_tags"
                                 groups="point_of_sale.group_pos_user"
                                 domain="[('id', '!=', id)]"
-                                options="{'color_field': 'color'}"
+                                options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"
                                 placeholder="Recommend when 'Adding to Cart'"/>
                         </group>
                     </group>
                 </page>
             </page>
-            <span name="sale_option" position="after">
+            <span name="purchase_option" position="after">
                 <span class="d-inline-block">
                     <field name="available_in_pos"/>
                     <label for="available_in_pos" string="Point of Sale"/>
@@ -209,7 +209,7 @@
                                 <field name="taxes_id" widget="many2many_tags"
                                     readonly="context.get('taxes_readonly', False)"
                                     context="{'search_default_sale': 1}"
-                                    options="{'create': false, 'create_edit': false}"/>
+                                    create="False"/>
                                 <field name="tax_string"/>
                             </div>
                             <field name="pos_categ_ids" string="POS Category" class="oe_inline" widget="many2many_tags"/>

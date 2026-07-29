@@ -53,6 +53,8 @@ class TestTourManualConsumption(HttpCase):
         self.assertEqual(move_nt.picked, True)
         self.assertEqual(move_nt.quantity, 16.0)
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestManualConsumption(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
@@ -70,7 +72,6 @@ class TestManualConsumption(TestMrpCommon):
         - Mark the MO as done.
         - Another move should be created and merged with the first move.
         """
-        self.bom_4.consumption = 'warning'
         component = self.bom_4.bom_line_ids.product_id
         component.write({
             'is_storable': True,

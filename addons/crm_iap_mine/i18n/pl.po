@@ -24,10 +24,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:24+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-02-07 12:17+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-1/"
 "crm_iap_mine/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -36,7 +36,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: crm_iap_mine
 #. odoo-python
@@ -46,6 +46,12 @@ msgid ""
 "companies."
 msgstr ""
 "%(credit_count)d kredyt będzie zużyty by znaleźć %(company_count)d firm."
+
+#. module: crm_iap_mine
+#. odoo-python
+#: code:addons/crm_iap_mine/models/crm_iap_lead_helpers.py:0
+msgid "%s's opportunity"
+msgstr "Okazja %s"
 
 #. module: crm_iap_mine
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.enrich_company
@@ -67,8 +73,8 @@ msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <p>Dzień dobry, </p>\n"
 "    <p>Na Twoim koncie IAP Lead Generation zostały wyczerpane środki.<br/>\n"
-"    Konto IAP Lead Generation możesz doładować w ustawieniach modułu "
-"CRM.<br/></p>\n"
+"    Konto IAP Lead Generation możesz doładować w ustawieniach modułu CRM.<br/"
+"></p>\n"
 "    <p>Z poważaniem,</p>\n"
 "    <p>Odoo S.A.</p>\n"
 "</div>"
@@ -170,14 +176,15 @@ msgid "CRM Lead Mining Request"
 msgstr "Żądanie CRM Lead Mining"
 
 #. module: crm_iap_mine
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-msgid "Cancel"
-msgstr "Anuluj"
-
-#. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_162
 msgid "Capital Goods"
 msgstr "Dobra inwestycyjne"
+
+#. module: crm_iap_mine
+#. odoo-javascript
+#: code:addons/crm_iap_mine/static/src/js/tours/crm_iap_lead.js:0
+msgid "Click here to generate some leads."
+msgstr "Kliknij tutaj, aby wygenerować kilka leadów."
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry__color
@@ -375,11 +382,7 @@ msgstr "Od"
 #. module: crm_iap_mine
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_case_kanban_view_leads
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_lead
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_opportunity
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.view_crm_lead_kanban
 msgid "Generate Leads"
 msgstr "Generuj leady"
 
@@ -387,7 +390,8 @@ msgstr "Generuj leady"
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
 msgid "Generate new leads based on their country, industry, size, etc."
-msgstr "Wygeneruj potencjalne leady bazując na kraju, sektorze, rozmiarze, itp."
+msgstr ""
+"Wygeneruj potencjalne leady bazując na kraju, sektorze, rozmiarze, itp."
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_mining_request__lead_ids
@@ -535,7 +539,8 @@ msgstr "Prawne"
 #. odoo-javascript
 #: code:addons/crm_iap_mine/static/src/js/tours/crm_iap_lead.js:0
 msgid "Looking for more opportunities?<br>Try the <b>Lead Generation</b> tool."
-msgstr "Szukasz nowych okazji?<br>Wypróbuj narzędzie <b>generowania leadów</b>."
+msgstr ""
+"Szukasz nowych okazji?<br>Wypróbuj narzędzie <b>generowania leadów</b>."
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.role,name:crm_iap_mine.crm_iap_mine_role_13
@@ -821,11 +826,11 @@ msgstr "Typ"
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
 msgid ""
-"Up to %(credit_count)d additional credits will be consumed to identify %"
-"(contact_count)d contacts per company."
+"Up to %(credit_count)d additional credits will be consumed to identify "
+"%(contact_count)d contacts per company."
 msgstr ""
-"Aż do %(credit_count)d dodatkowego kredytu będzie zużyte by rozpoznać %"
-"(contact_count)d kontaktów tej firmy."
+"Aż do %(credit_count)d dodatkowego kredytu będzie zużyte by rozpoznać "
+"%(contact_count)d kontaktów tej firmy."
 
 #. module: crm_iap_mine
 #. odoo-javascript
@@ -868,22 +873,3 @@ msgstr "menadżer"
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
 msgid "to"
 msgstr "do"
-
-#~ msgid "%d credits will be consumed to find %d companies."
-#~ msgstr "%d kredyt będzie zużyty by znaleźć %d firm."
-
-#~ msgid "Display Lead Label"
-#~ msgstr "Wyświetl etykietę sygnału"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuj wg."
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Sygnał/Szansa"
-
-#~ msgid ""
-#~ "Up to %d additional credits will be consumed to identify %d contacts per "
-#~ "company."
-#~ msgstr ""
-#~ "Do %d dodatkowego kredytu będzie zużyte by rozpoznać %d kontaktów tej "
-#~ "firmy."

@@ -17,23 +17,23 @@
 # Kari Lindgren <kari.lindgren@emsystems.fi>, 2022
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-30 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:59+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-16 05:41+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-1/"
 "link_tracker/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_tree
@@ -97,15 +97,11 @@ msgstr "Koodit"
 #. odoo-python
 #: code:addons/link_tracker/models/link_tracker.py:0
 msgid ""
-"Combinations of Link Tracker values (URL, campaign, medium, source, and "
-"label) must be unique.\n"
+"Combinations of Link Tracker values (URL, campaign, medium, source, "
+"reference, and label) must be unique.\n"
 "The following combinations are already used: \n"
 "- %(error_lines)s"
 msgstr ""
-"Linkin seuranta-arvojen (URL, kampanja, mediatyyppi, lähde ja label) "
-"yhdistelmien on oltava yksilöllisiä.\n"
-"Seuraavat yhdistelmät ovat jo käytössä:\n"
-"- %(error_lines)s"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click__country_id
@@ -152,6 +148,11 @@ msgstr "Linkkiseurannan luominen ilman URL-osoitetta ei ole mahdollista"
 #: model:ir.model.fields,field_description:link_tracker.field_utm_campaign__display_name
 msgid "Display Name"
 msgstr "Näyttönimi"
+
+#. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "Download QR Code"
+msgstr ""
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__short_url_host
@@ -248,6 +249,11 @@ msgid "Medium"
 msgstr "Mediatyyppi"
 
 #. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "New Link Tracker"
+msgstr ""
+
+#. module: link_tracker
 #: model_terms:ir.actions.act_window,help:link_tracker.link_tracker_click_action_statistics
 msgid "No data yet!"
 msgstr "Ei vielä tietoja!"
@@ -271,12 +277,17 @@ msgstr "Sivun otsikko"
 #. odoo-python
 #: code:addons/link_tracker/models/link_tracker.py:0
 msgid "Please enter valid short URL code."
-msgstr "Syötä kelvollinen lyhyt URL-koodi."
+msgstr ""
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__redirected_url
 msgid "Redirected URL"
 msgstr "Uudelleenohjattu URL-osoite"
+
+#. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "Reference"
+msgstr ""
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_code__code
@@ -302,7 +313,7 @@ msgstr "Linkkien tilastot"
 #. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
 msgid "Target Link"
-msgstr "Kohdelinkki"
+msgstr ""
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__url
@@ -344,8 +355,8 @@ msgid ""
 "Trackers are used to collect count stat about click on links and generate "
 "short URLs."
 msgstr ""
-"Seurantatyökaluja käytetään linkkien klikkaustilastojen keräämiseen sekä "
-"lyhyiden URL-osoitteiden luomiseen."
+"Seurantakoodeja käytetään keräämään lukumäärätilastoja linkkien "
+"klikkauksista ja luomaan lyhyitä URL-osoitteita."
 
 #. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
@@ -357,6 +368,11 @@ msgstr "UTM"
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click__campaign_id
 msgid "UTM Campaign"
 msgstr "UTM-kampanja"
+
+#. module: link_tracker
+#: model:ir.model.fields,field_description:link_tracker.field_link_tracker__utm_reference
+msgid "UTM Reference"
+msgstr ""
 
 #. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
@@ -380,19 +396,3 @@ msgstr "Verkkosivusto"
 msgid "“%s” is not a valid link, links cannot redirect to the current page."
 msgstr ""
 "\"%s\" ei ole kelvollinen linkki, linkit eivät voi ohjata nykyiselle sivulle."
-
-#~ msgid "Group By"
-#~ msgstr "Ryhmittely"
-
-#~ msgid ""
-#~ "Link Tracker values (URL, campaign, medium and source) must be unique "
-#~ "(%s, %s, %s, %s)."
-#~ msgstr ""
-#~ "Linkkiseuranta-arvojen (URL, kampanja, media ja lähde) on oltava "
-#~ "yksilöllisiä (%s, %s, %s, %s)."
-
-#~ msgid "Title and URL"
-#~ msgstr "Otsikko ja URL"
-
-#~ msgid "URL"
-#~ msgstr "URL"

@@ -2,17 +2,16 @@
 # This file contains the translation of the following modules:
 # * marketing_card
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 01:41+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-11-08 19:01+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "marketing_card/ar/>\n"
 "Language: ar\n"
@@ -21,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: marketing_card
 #. odoo-python
@@ -129,6 +128,11 @@ msgid "Activity Exception Decoration"
 msgstr "زخرفة استثناء النشاط"
 
 #. module: marketing_card
+#: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_state
 msgid "Activity State"
 msgstr "حالة النشاط"
@@ -145,8 +149,6 @@ msgid ""
 "An error occured while rendering a card for %(record_name)s. Try again or "
 "check the server logs for more details."
 msgstr ""
-"حدث خطأ أثناء عرض بطاقة %(record_name)s. حاول مرة أخرى أو تحقق من سجلات "
-"الخادم لمزيد من التفاصيل."
 
 #. module: marketing_card
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_view_form
@@ -622,6 +624,11 @@ msgid "Messages"
 msgstr "الرسائل"
 
 #. module: marketing_card
+#: model:ir.model,name:marketing_card.model_ir_model
+msgid "Model"
+msgstr ""
+
+#. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__res_model
 #: model:ir.model.fields,field_description:marketing_card.field_card_card__res_model
 msgid "Model Name"
@@ -633,11 +640,6 @@ msgstr "اسم النموذج"
 msgid ""
 "Model of campaign %(campaign)s may not be changed as it already has cards"
 msgstr "لا يُمكن تغيير نموذج الحملة %(campaign)s لأنه يحتوي على بطاقات بالفعل"
-
-#. module: marketing_card
-#: model:ir.model,name:marketing_card.model_ir_model
-msgid "Models"
-msgstr "النماذج"
 
 #. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__my_activity_date_deadline
@@ -1133,20 +1135,3 @@ msgstr "مثال: نموذج لحوار"
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_view_form
 msgid "e.g. Why people should share on their network?"
 msgstr "مثال: لِمَ يجب على الأشخاص المشاركة على شبكتهم؟"
-
-#~ msgid "Filter By"
-#~ msgstr "التصفية حسب"
-
-#~ msgid "Group By"
-#~ msgstr "تجميع حسب"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "لغة الترجمة الاختيارية (كود ISO) لاختيارها عند إرسال بريد إلكتروني. إذا "
-#~ "لم يتم تعيينها، سوف تُستخدم النسخة باللغة الإنجليزية. عادة ما يكون ذلك "
-#~ "تمثيلاً للعنصر النائب المسؤول عن التزويد باللغة المناسبة، مثال: "
-#~ "{{ object.partner_id.lang }}."

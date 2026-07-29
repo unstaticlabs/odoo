@@ -5,15 +5,16 @@
 # Translators:
 # Malaz Abuidris <msea@odoo.com>, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:34+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:31+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -36,8 +37,9 @@ msgstr "شراء رصيد أكثر"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "الشركات"
+#, fuzzy
+msgid "Company"
+msgstr "الشركة "
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -145,41 +147,3 @@ msgstr "وضع الاختبار"
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr "تعذّر إثراء الشركة (لم يتم استهلاك أي رصيد)."
-
-#~ msgid "Additional info"
-#~ msgstr "معلومات إضافية"
-
-#~ msgid "Company auto-completed by Odoo Partner Autocomplete Service"
-#~ msgstr ""
-#~ "تم إكمال بيانات الشركة تلقائياً باستخدام خدمة الإكمال التلقائي للشريك لدى "
-#~ "أودو "
-
-#~ msgid "Company database ID"
-#~ msgstr "معرف قاعدة بيانات الشركة "
-
-#~ msgid "Created by"
-#~ msgstr "أنشئ بواسطة"
-
-#~ msgid "Created on"
-#~ msgstr "أنشئ في"
-
-#~ msgid "Is synched"
-#~ msgstr "متزامن"
-
-#~ msgid "Last Updated by"
-#~ msgstr "آخر تحديث بواسطة"
-
-#~ msgid "Last Updated on"
-#~ msgstr "آخر تحديث في"
-
-#~ msgid "Partner"
-#~ msgstr "الشريك"
-
-#~ msgid "Partner Autocomplete Sync"
-#~ msgstr "مزامنة إكمال الشريك تلقائيًا"
-
-#~ msgid "Partner created by Odoo Partner Autocomplete Service"
-#~ msgstr "تم إنشاء الشريك من خلال خدمة إكمال الشريك تلقائيًا المقدمة من أودو"
-
-#~ msgid "Placeholder"
-#~ msgstr "العنصر النائب "

@@ -36,7 +36,6 @@ class TestWebsiteMassMailing(WebsiteMassMailingMultiCompanyCommon, MassMailCommo
             'mailing_model_id': self.env['ir.model']._get('res.partner').id,
             'mailing_domain': [('id', 'in', (self.test_contact_a + self.test_contact_b).ids)],
             'mailing_type': 'mail',
-            'name': 'TestMailing',
             'subject': 'Test for {{ object.name }}',
         })
 
@@ -80,7 +79,6 @@ class TestWebsiteMassMailingControllers(WebsiteMassMailingMultiCompanyCommon, Ma
             'body_html': '<p>Hello <t t-out="object.name"/><a href="/unsubscribe_from_list">UNSUBSCRIBE</a></p>',
             'mailing_model_id': cls.env['ir.model']._get('res.partner').id,
             'mailing_type': 'mail',
-            'name': 'TestMailing',
             'subject': 'Test',
         })
 

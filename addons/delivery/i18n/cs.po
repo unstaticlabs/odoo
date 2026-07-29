@@ -12,15 +12,15 @@
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
-# "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
-# Jaroslav Janos <jaroslav.janos.jr@technodat.eu>, 2025, 2026.
+# "Marta (wacm)" <wacm@odoo.com>, 2025.
+# Jaroslav Janos <jaroslav.janos.jr@technodat.eu>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 03:25+0000\n"
-"Last-Translator: Jaroslav Janos <jaroslav.janos.jr@technodat.eu>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-12-05 16:29+0000\n"
+"Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
 "Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/delivery/"
 "cs/>\n"
 "Language: cs\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: delivery
 #. odoo-python
@@ -103,8 +103,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>Popis dopravy</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -136,8 +136,8 @@ msgstr "Přidat"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
-msgstr "Přidat způsob platby"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -205,25 +205,8 @@ msgstr "Může generovat vrácení zboží"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "Přepravce"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-"Dopravce %s nemůže mít stejnou značku v sekcích „Povinné značky“ i „"
-"Vyloučené značky“."
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "Popis dopravce"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -336,14 +319,9 @@ msgid "Define a new delivery method"
 msgstr "Definujte nový způsob doručení"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "Dopravce"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Průvodce výběrem přepravce"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -357,18 +335,28 @@ msgid "Delivery Message"
 msgstr "Zpráva o dodání"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "Způsob doručení"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "Způsoby doručení"
 
@@ -404,15 +392,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "Náklady na dopravu by měly být přepočítány."
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"Předpony PSČ pro doručení jsou přiřazeny přepravcům, aby omezily\n"
-"            PSČ, pro které je doručení dostupné."
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "Popis"
@@ -428,11 +430,6 @@ msgid "Determine the display order"
 msgstr "Určete pořadí zobrazení"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "Zrušit"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__display_name
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__display_name
@@ -446,7 +443,7 @@ msgstr "Zrušit"
 #: model:ir.model.fields,field_description:delivery.field_sale_order__display_name
 #: model:ir.model.fields,field_description:delivery.field_sale_order_line__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: delivery
 #: model_terms:ir.actions.act_window,help:delivery.action_delivery_carrier_form
@@ -510,11 +507,9 @@ msgstr ""
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"Vyplněním tohoto formuláře můžete zvolit způsob dopravy podle obsahu "
-"objednávky nebo místa určení."
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -811,16 +806,11 @@ msgstr "Předpona již existuje!"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"Předpony poštovních směrovacích čísel, které tento dopravce používá. "
-"Upozorňujeme, že pro podporu zemí s různou délkou poštovních směrovacích "
-"čísel lze použít regulární výrazy, tj. na konec předpony lze přidat znak "
-"„$“, aby se shodoval s přesným poštovním směrovacím číslem (např. „100$“ se "
-"bude shodovat pouze s „100“, nikoli s „1000“)."
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -917,17 +907,6 @@ msgstr ""
 "pro produkční prostředí."
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "Způsob dopravy"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "Přepravní metody"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 msgid "Shipping Weight"
 msgstr "Přepravní váha"
@@ -940,16 +919,6 @@ msgid ""
 msgstr ""
 "Pojištění přepravy je služba, která může odesílatelům uhradit ztrátu, krádež "
 "a/nebo poškození zásilky během přepravy."
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"Údaje o způsobu dopravy, které mají být uvedeny na konci prodejních "
-"objednávek a jejich potvrzovacích e-mailů. Např. pokyny pro zákazníky, "
-"kterými se mají řídit."
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1154,11 +1123,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"Kategorie produktů „dodávky“ nelze smazat, protože se používá u produktů "
-"přepravců."
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1206,22 +1173,3 @@ msgstr "např. UPS Express"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
 msgstr "tj. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-
-#~ msgid "Delivery Rating Success"
-#~ msgstr "Úspěšnost dodání"
-
-#~ msgid "Destination Availability"
-#~ msgstr "Dostupnost cíle"
-
-#~ msgid ""
-#~ "Filling this form allows you to filter delivery carriers according to the "
-#~ "delivery address of your customer."
-#~ msgstr ""
-#~ "Vyplněním tohoto formuláře můžete filtrovat dopravce podle doručovací "
-#~ "adresy zákazníka."
-
-#~ msgid "Free Shipping"
-#~ msgstr "Doprava zdarma"
-
-#~ msgid "Group By"
-#~ msgstr "Seskupit podle"

@@ -182,7 +182,7 @@ class TestSaleOrder(SaleCommon):
 
     def test_invoicing_terms(self):
         # Enable invoicing terms
-        self.env['ir.config_parameter'].sudo().set_param('account.use_invoice_terms', True)
+        self.env['ir.config_parameter'].sudo().set_bool('account.use_invoice_terms', True)
 
         # Plain invoice terms
         self.env.company.terms_type = 'plain'
@@ -241,7 +241,7 @@ class TestSaleOrder(SaleCommon):
         })
         no_variant_product = no_variant_product_tmpl.product_variant_id
         ptals = no_variant_product_tmpl.valid_product_template_attribute_line_ids
-        ptav1 = next(iter(ptals.product_template_value_ids))
+        ptav1 = ptals.product_template_value_ids[0]
         product_with_desc = self.env['product.product'].create({
             'name': "Product with description",
             'description_sale': "Additional\ninfo.",
@@ -306,6 +306,10 @@ class TestSaleOrder(SaleCommon):
         self.assertTrue(self.sale_order.locked)
         with self.assertRaises(UserError):
             self.sale_order.action_confirm()
+
+        order_line = self.sale_order.order_line[0]
+        with self.assertRaises(UserError):
+            order_line.order_id = self._create_sale_order()
 
         self.sale_order.action_unlock()
         self.assertEqual(self.sale_order.state, 'sale')
@@ -412,7 +416,7 @@ class TestSaleOrder(SaleCommon):
 
     def test_order_status_email_is_sent_synchronously_if_not_configured(self):
         """ Test that the order status email is sent synchronously when nothing is configured. """
-        self.env['ir.config_parameter'].set_param('sale.async_emails', 'False')
+        self.env['ir.config_parameter'].set_bool('sale.async_emails', False)
 
         self.sale_order._send_order_notification_mail(self.confirmation_email_template)
         self.assertFalse(
@@ -422,7 +426,7 @@ class TestSaleOrder(SaleCommon):
 
     def test_order_status_email_is_sent_asynchronously_if_configured(self):
         """ Test that the order status email is sent asynchronously when configured. """
-        self.env['ir.config_parameter'].set_param('sale.async_emails', 'True')
+        self.env['ir.config_parameter'].set_bool('sale.async_emails', True)
 
         self.sale_order._send_order_notification_mail(self.confirmation_email_template)
         self.assertTrue(
@@ -436,7 +440,7 @@ class TestSaleOrder(SaleCommon):
 
     def test_async_emails_cron_does_not_trigger_itself(self):
         """ Test that the asynchronous email sending cron does not loop indefinitely. """
-        self.env['ir.config_parameter'].set_param('sale.async_emails', 'True')
+        self.env['ir.config_parameter'].set_bool('sale.async_emails', True)
         self.sale_order.pending_email_template_id = self.confirmation_email_template
 
         with self.enter_registry_test_mode():
@@ -833,6 +837,75 @@ class TestSaleOrderInvoicing(AccountTestInvoicingCommon, SaleCommon):
         sale_order.action_confirm()
         sale_order._create_invoices(final=True)
         self.assertTrue(sale_order.invoice_status == 'invoiced', 'Sale: The invoicing status of the SO should be "invoiced"')
+
+    def test_action_close_invoicing(self):
+        """Test manually closing invoicing for sales orders."""
+        # Test with 0 records
+        self.env['sale.order'].action_close_invoicing()
+
+        sale_order_1 = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [Command.create({'product_id': self.product.id, 'product_uom_qty': 5})],
+        })
+        sale_order_2 = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [Command.create({'product_id': self.product.id, 'product_uom_qty': 3})],
+        })
+
+        # Draft orders cannot be closed
+        with self.assertRaises(UserError, msg="Draft orders cannot be closed"):
+            sale_order_1.action_close_invoicing()
+
+        (sale_order_1 | sale_order_2).action_confirm()
+
+        # Test closing 1 record
+        sale_order_1.action_close_invoicing()
+        self.assertTrue(sale_order_1.invoicing_closed)
+        self.assertEqual(sale_order_1.invoice_status, 'invoiced')
+        self.assertTrue(sale_order_1.message_ids.filtered(lambda m: 'Invoicing closed' in m.body))
+
+        # Test closing 2+ records
+        (sale_order_1 | sale_order_2).action_close_invoicing()
+        self.assertTrue(sale_order_2.invoicing_closed)
+
+        # Already closed orders don't duplicate messages
+        message_count = len(sale_order_1.message_ids)
+        sale_order_1.action_close_invoicing()
+        self.assertEqual(len(sale_order_1.message_ids), message_count)
+
+    def test_action_reopen_order(self):
+        """Test reopening invoicing for manually closed sales orders."""
+        # Test with 0 records
+        self.env['sale.order'].action_reopen_order()
+
+        sale_order_1 = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [Command.create({'product_id': self.product.id, 'product_uom_qty': 5})],
+        })
+        sale_order_2 = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [Command.create({'product_id': self.product.id, 'product_uom_qty': 3})],
+        })
+
+        (sale_order_1 | sale_order_2).action_confirm()
+
+        # Reopening non-closed orders does nothing
+        message_count = len(sale_order_1.message_ids)
+        sale_order_1.action_reopen_order()
+        self.assertEqual(len(sale_order_1.message_ids), message_count)
+
+        # Close and reopen 1 record
+        (sale_order_1 | sale_order_2).action_close_invoicing()
+        sale_order_1.action_reopen_order()
+        self.assertFalse(sale_order_1.invoicing_closed)
+        self.assertTrue(sale_order_2.invoicing_closed)
+        self.assertTrue(sale_order_1.message_ids.filtered(lambda m: 'Invoicing reopened' in m.body))
+
+        # Reopen 2+ records
+        (sale_order_1 | sale_order_2).action_close_invoicing()
+        (sale_order_1 | sale_order_2).action_reopen_order()
+        self.assertFalse(sale_order_1.invoicing_closed)
+        self.assertFalse(sale_order_2.invoicing_closed)
 
 
 @tagged('post_install', '-at_install')

@@ -1,29 +1,26 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * sale_management
+# 	* sale_management
 #
 # Translators:
 # Martin Trigaux, 2022
 #
-# Vlad Patenko <vlad.patenko@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 04:28+0000\n"
-"Last-Translator: Vlad Patenko <vlad.patenko@gmail.com>\n"
-"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
-"sale_management/uk/>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Martin Trigaux, 2022\n"
+"Language-Team: Ukrainian (https://app.transifex.com/odoo/teams/41243/uk/)\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -72,11 +69,17 @@ msgid "Archived"
 msgstr "Заархівовано"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Компанії"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -153,14 +156,6 @@ msgid "Display Type"
 msgstr "Тип відображення"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"Не маєте доступу, пропустіть ці дані для електронного оглядового "
-"повідомлення користувача"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -171,6 +166,18 @@ msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr ""
 "Дає порядок послідовності при відображенні списку рядків комерційних "
 "пропозицій."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -264,7 +271,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -334,6 +341,12 @@ msgstr "Шаблони комеційної пропозиції"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -422,6 +435,8 @@ msgstr ""
 "та надійнішим."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -502,7 +517,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Visible to all"
-msgstr "Видно всім"
+msgstr ""
 
 #. module: sale_management
 #. odoo-python
@@ -519,8 +534,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -530,8 +545,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -554,130 +569,3 @@ msgstr "дні"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "напр. Стандартний консультаційний пакет"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Ваш шаблон не може містити товари з кількох компаній."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Ваш шаблон містить товари компанії %(product_company)s у той час, як "
-#~ "шаблог належить компанії %(template_company)s. \n"
-#~ " Змініть компанію на шаблоні або вилучіть товари іншої компанії."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "4 персональні столи"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Функції</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Додати до кошика"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Додати до рядків замовлення"
-
-#~ msgid "Category"
-#~ msgstr "Категорія"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Перетворення між одиницями вимірювання може відбуватися лише у тому "
-#~ "випадку, якщо вони належать до однієї і тієї ж категорії. Конвертація "
-#~ "буде здійснюватися на основі співвідношення."
-
-#~ msgid "Disc.%"
-#~ msgstr "Зниж.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Знижка (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Надає послідовність замовлення під час відображення списку додаткових "
-#~ "товарів."
-
-#~ msgid "Group By"
-#~ msgstr "Групувати за"
-
-#~ msgid "Line"
-#~ msgstr "Рядок"
-
-#~ msgid "Office Chair"
-#~ msgstr "Офісний стілець"
-
-#~ msgid "Optional Products"
-#~ msgstr "Додаткові товари"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Рядки супутних товарів"
-
-#~ msgid "Options"
-#~ msgstr "Опції"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Присутній на комерційній пропозиції"
-
-#~ msgid "Quantity:"
-#~ msgstr "Кількість:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Конструктор комерційної пропозиції"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Функція шаблону комерційної пропозиції"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Комерційна пропозиція закінчується після"
-
-#~ msgid "Remove"
-#~ msgstr "Вилучити"
-
-#~ msgid "Sale Options"
-#~ msgstr "Опції продажу"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Посилання на замовлення на продаж"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Рядки шаблону комерційної пропозиції"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Це поле буде перевірено, якщо товар додаткового рядка присутній у "
-#~ "комерційній пропозиції."
-
-#~ msgid "Unit Price"
-#~ msgstr "Ціна одиниці"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Ціна за одиницю:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Одиниця вимірювання"
-
-#~ msgid "UoM"
-#~ msgstr "Одиниця вимірювання"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Ви не можете додавати опції до підтвердженого замовлення."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Ваша комерційна пропозиція містить товари від компанії %"
-#~ "(product_company)s у той час, як комерційна пропозиція належить компанії %"
-#~ "(quote_company)s. \n"
-#~ " Змініть компанію на комерційній пропозиції або вилучіть товари з іншої "
-#~ "компанії (%(bad_products)s)."

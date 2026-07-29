@@ -5,12 +5,14 @@ from markupsafe import Markup
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
+from odoo.addons.stock.models.stock_move import PROCUREMENT_PRIORITIES
+
 
 class StockPickingBatch(models.Model):
     _name = 'stock.picking.batch'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = "Batch Transfer"
-    _order = "name desc"
+    _order = "priority desc, name desc"
 
     name = fields.Char(
         string='Batch Transfer', default=lambda self: _('New'),
@@ -26,7 +28,7 @@ class StockPickingBatch(models.Model):
         domain="[('id', 'in', allowed_picking_ids)]", check_company=True,
         help='List of transfers associated to this batch')
     show_check_availability = fields.Boolean(
-        compute='_compute_move_ids',
+        compute='_compute_show_check_availability',
         string='Show Check Availability')
     show_allocation = fields.Boolean(
         compute='_compute_show_allocation',
@@ -44,6 +46,7 @@ class StockPickingBatch(models.Model):
         ('cancel', 'Cancelled')], default='draft',
         store=True, compute='_compute_state',
         copy=False, tracking=True, required=True, readonly=True, index=True)
+    priority = fields.Selection(PROCUREMENT_PRIORITIES, string='Priority', default='0')
     picking_type_id = fields.Many2one(
         'stock.picking.type', 'Operation Type', check_company=True, copy=False,
         index=True)
@@ -119,11 +122,15 @@ class StockPickingBatch(models.Model):
                 domain += [('picking_type_id', '=', batch.picking_type_id.id)]
             batch.allowed_picking_ids = self.env['stock.picking'].search(domain)
 
-    @api.depends('picking_ids', 'picking_ids.move_line_ids', 'picking_ids.move_ids', 'picking_ids.move_ids.state')
+    @api.depends('picking_ids', 'picking_ids.move_ids')
     def _compute_move_ids(self):
         for batch in self:
             batch.move_ids = batch.picking_ids.move_ids
-            batch.show_check_availability = any(m.state not in ['assigned', 'cancel', 'done'] for m in batch.move_ids)
+
+    @api.depends('picking_ids.show_check_availability')
+    def _compute_show_check_availability(self):
+        for batch in self:
+            batch.show_check_availability = any(picking.show_check_availability for picking in batch.picking_ids)
 
     @api.depends('picking_ids', 'picking_ids.move_line_ids')
     def _compute_move_line_ids(self):
@@ -238,10 +245,10 @@ class StockPickingBatch(models.Model):
 
     def action_done(self):
         def has_no_quantity(picking):
-            return all(not m.picked or m.product_uom.is_zero(m.quantity) for m in picking.move_ids if m.state not in ('done', 'cancel'))
+            return all(not m.picked or m.uom_id.is_zero(m.quantity) for m in picking.move_ids if m.state not in ('done', 'cancel'))
 
         def is_empty(picking):
-            return all(m.product_uom.is_zero(m.quantity) for m in picking.move_ids if m.state not in ('done', 'cancel'))
+            return all(m.uom_id.is_zero(m.quantity) for m in picking.move_ids if m.state not in ('done', 'cancel'))
 
         self.ensure_one()
         self._check_company()
@@ -416,19 +423,8 @@ class StockPickingBatch(models.Model):
     @api.model
     def _prepare_name(self, picking_type, sequence_code, company_id):
         sequence = self.env['ir.sequence'].with_company(company_id).next_by_code(sequence_code) or '/'
-        split = sequence.rsplit('/', 1)
-        if len(split) != 2:
-            if self:
-                self.message_post(
-                    body=_(
-                        "The sequence '%(sequence)s' is misconfigured. "
-                        "Its prefix should end with a '/' separator.",
-                        sequence=sequence_code,
-                    ),
-                )
-            return f"{picking_type.sequence_code}/{sequence}"
-        sequence_prefix, sequence_number = split
-        return f"{sequence_prefix}/{picking_type.sequence_code}/{sequence_number}"
+        sequence_prefix, sequence_number = sequence.rsplit('/', 1)
+        return f"{sequence_prefix}/{picking_type.sequence_code}{sequence_number}"
 
     def _sanity_check(self):
         for batch in self:

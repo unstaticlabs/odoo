@@ -70,6 +70,7 @@ export class SearchBar extends Component {
 
     setup() {
         this.dialogService = useService("dialog");
+        this.offlineService = useService("offline");
         this.fields = this.env.searchModel.searchViewFields;
         this.searchItemsFields = this.env.searchModel.getSearchItems((f) => f.type === "field");
         this.root = useRef("root");

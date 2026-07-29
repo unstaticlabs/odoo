@@ -9,10 +9,12 @@ import * as OfflineUtil from "@point_of_sale/../tests/generic_helpers/offline_ut
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
 import * as Numpad from "@point_of_sale/../tests/generic_helpers/numpad_util";
+import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 import * as NumberPopup from "@point_of_sale/../tests/generic_helpers/number_popup_util";
 import { inLeftSide } from "./utils/common";
 
 registry.category("web_tour.tours").add("PaymentScreenTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -85,7 +87,13 @@ registry.category("web_tour.tours").add("PaymentScreenTour2", {
 
             // check that ship later button is present
             { trigger: ".payment-buttons button:contains('Ship Later')" },
-
+            // payment line is been in case of mobile as paymentlines are required to manually enter the amount
+            {
+                isActive: ["mobile"],
+                content: "click payment method",
+                trigger: `.paymentmethod`,
+                run: "click",
+            },
             PaymentScreen.enterPaymentLineAmount("Bank", "99"),
             // trying to put 99 as an amount should throw an error. We thus confirm the dialog.
             Dialog.confirm(),
@@ -106,6 +114,7 @@ registry.category("web_tour.tours").add("PaymentScreenRoundingUp", {
             PaymentScreen.clickValidate(),
 
             Chrome.clickOrders(),
+            TicketScreen.isReady(),
             TicketScreen.selectFilter("Paid"),
             TicketScreen.selectOrder("001"),
             inLeftSide([
@@ -134,6 +143,7 @@ registry.category("web_tour.tours").add("PaymentScreenRoundingDown", {
             PaymentScreen.clickValidate(),
 
             Chrome.clickOrders(),
+            TicketScreen.isReady(),
             TicketScreen.selectFilter("Paid"),
             TicketScreen.selectOrder("001"),
             inLeftSide([
@@ -150,6 +160,7 @@ registry.category("web_tour.tours").add("PaymentScreenRoundingDown", {
 });
 
 registry.category("web_tour.tours").add("PaymentScreenTotalDueWithOverPayment", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -194,10 +205,13 @@ registry.category("web_tour.tours").add("PaymentScreenInvoiceOrder", {
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickInvoiceButton(),
             PaymentScreen.clickValidate(),
+            // Edit payment button shouldn't be available for posted orders
+            negateStep({ trigger: ".feedback-screen .edit-order-payment:contains(Edit Payment)" }),
         ].flat(),
 });
 
 registry.category("web_tour.tours").add("test_pos_large_amount_confirmation_dialog", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -216,6 +230,7 @@ registry.category("web_tour.tours").add("test_pos_large_amount_confirmation_dial
 });
 
 registry.category("web_tour.tours").add("test_add_money_button_with_different_decimal_separator", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),

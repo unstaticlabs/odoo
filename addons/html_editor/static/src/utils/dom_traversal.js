@@ -343,13 +343,31 @@ export function getCommonAncestor(nodes, root = undefined) {
  *
  * @param {Element} root
  * @param {string} selector
- * @returns {Generator<Element>}
+ * @returns {Element[]}
  */
-export const selectElements = function* (root, selector) {
+export const selectElements = function (root, selector) {
+    const elements = [];
     if (root.matches(selector)) {
-        yield root;
+        elements.push(root);
     }
-    for (const elem of root.querySelectorAll(selector)) {
-        yield elem;
-    }
+    elements.push(...root.querySelectorAll(selector));
+    return elements;
 };
+
+/**
+ * Loops over all children of a node recursively and calls traverseChildrenPredicate.
+ * If traverseChildrenPredicate returns false, it skips the children of that node.
+ *
+ * @param {Element} node
+ * @param {Function<Element>} [traverseChildrenPredicate] (node: Node) => boolean?
+ */
+export function traverseNode(node, traverseChildrenPredicate) {
+    const iterators = [[node]];
+    while (iterators.length) {
+        for (const child of iterators.pop()) {
+            if (traverseChildrenPredicate(child) !== false) {
+                iterators.push(child.children);
+            }
+        }
+    }
+}

@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # marcescu, 2022
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 04:04+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-06-06 13:30+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_track/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -126,40 +126,38 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
 "<div>\n"
 "    Estimado/a <t t-out=\"object.partner_id.name or object.partner_name or "
-"''\">Brandon Freeman</t><br/>:\n"
-"    Nos complace informarle de que su propuesta <t t-out=\"object.name or "
-"''\">¿Sobre qué trata este evento?</t> ha sido aceptada y confirmada para el "
-"evento <t t-out=\"object.event_id.name or ''\">OpenWood Collection Online "
-"Reveal</t>.\n"
+"''\">Brandon Freeman</t>:<br/>\n"
+"    Nos complace informarle de que se ha aceptado y confirmado su propuesta "
+"<t t-out=\"object.name or ''\">De qué trata este evento</t> para el evento "
+"<t t-out=\"object.event_id.name or ''\">Presentación en línea de la "
+"colección OpenWood</t>.\n"
 "    <br/>\n"
-"    Aquí encontrará más información:\n"
+"    Encontrará más detalles aquí:\n"
 "    <div style=\"margin: 16px 0px 16px 0px;\">\n"
-"        <a t-attf-href=\"/event/{{ object.event_id.id }}/track/{{ "
-"object.id }}\" t-attf-style=\"padding: 8px 16px 8px 16px; font-size: 14px; "
-"color: {{object.company_id.email_primary_color or '#FFFFFF'}}; text-"
-"decoration: none !important; background-color: {"
-"{object.company_id.email_secondary_color or '#875A7B'}}; border-radius:3px\">"
-"\n"
-"            Ver charla\n"
+"        <a t-attf-href=\"/event/{{ object.event_id.id }}/track/"
+"{{ object.id }}\" t-attf-style=\"padding: 8px 16px 8px 16px; font-size: "
+"14px; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; text-"
+"decoration: none !important; background-color: "
+"{{object.company_id.email_secondary_color or '#875A7B'}}; border-"
+"radius:3px\">\n"
+"            Ver presentación\n"
 "        </a>\n"
 "    </div>\n"
 "    <br/><br/>\n"
 "    Gracias,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></div>"
-"\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 
@@ -1078,6 +1076,11 @@ msgid "Activity Exception Decoration"
 msgstr "Decoración de Actividad de Excepción"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Planes de actividades"
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Estado de la actividad"
@@ -1251,6 +1254,16 @@ msgstr "Número de archivos adjuntos"
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
 msgstr "Audiencia"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
@@ -2623,6 +2636,11 @@ msgid "Published"
 msgstr "Publicado"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr "Fecha de publicación"
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
 msgid "Raising qualitive insights from your customers"
 msgstr "Aumentando conocimientos cualitativos de sus clientes"
@@ -3323,8 +3341,8 @@ msgid ""
 "    cinched securely WITHOUT the need to tie and untie tricky or complicated "
 "knots."
 msgstr ""
-"Mediante el uso de un método de envoltorio exclusivo para correas de carga (¡"
-"NO cuerdas elásticas!) se permite que la madera se\n"
+"Mediante el uso de un método de envoltorio exclusivo para correas de carga "
+"(¡NO cuerdas elásticas!) se permite que la madera se\n"
 "    sujete de forma segura SIN necesidad de atar y desatar nudos difíciles o "
 "complicados."
 
@@ -3367,7 +3385,8 @@ msgstr "Voz del cliente"
 #. module: website_event_track
 #: model_terms:ir.actions.act_window,help:website_event_track.website_visitor_action_from_track
 msgid "Wait for visitors to add this track to their list of favorites"
-msgstr "Esperar a que los visitantes añadan esta sesión a su lista de favoritos"
+msgstr ""
+"Esperar a que los visitantes añadan esta sesión a su lista de favoritos"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_online
@@ -3650,190 +3669,12 @@ msgid "starts on"
 msgstr "comienza el"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr "x"
-
-#~ msgid ""
-#~ "<a t-att-href=\"url_for('/event')\" class=\"btn btn-primary btn-block "
-#~ "o_translate_inline\">Home page</a>"
-#~ msgstr ""
-#~ "<a t-att-href=\"url_for('/event')\" class=\"btn btn-primary btn-block "
-#~ "o_translate_inline\">Página de inicio</a>"
-
-#~ msgid ""
-#~ "Get prepared and\n"
-#~ "                    <a class=\"o_translate_inline\" t-att-href=\"'/event/"
-#~ "%s/track' % (slug(event))\">register to your favorites talks now.</a>"
-#~ msgstr ""
-#~ "Prepárate y\n"
-#~ "                    <a class=\"o_translate_inline\" t-att-href=\"'/event/"
-#~ "%s/track' % (slug(event))\">apúntate ya a tus charlas favoritas.</a>"
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<b>Contact Information</b>"
-#~ msgstr "<b>Información de contacto</b>"
-
-#~ msgid "<b>Speaker Profile</b>"
-#~ msgstr "<b>Perfil del orador</b>"
-
-#~ msgid "<b>Talk Intro</b>"
-#~ msgstr "<b>Introducción de la plática</b>"
-
-#~ msgid "<i class=\"fa fa-bell me-2 text-muted\"/> Favorite Talks"
-#~ msgstr "Pláticas favoritas"
-
-#~ msgid "<i class=\"fa fa-folder-open\"/> Favorites"
-#~ msgstr "<i class=\"fa fa-folder-open\"/> Favoritos"
-
-#~ msgid "<span class=\"d-none d-md-block ms-2\">&amp;bull;</span>"
-#~ msgstr "<span class=\"d-none d-md-block ms-2\">&amp;bull;</span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Introduction</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Introducción de la "
-#~ "plática</span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Title</span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Título de plática</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Charlas relámpago </strong>. Son 30 minutos de conversaciones\n"
-#~ "sobre temas muy diferentes. La mayoría de los temas son aceptados en las "
-#~ "charlas relámpago."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong> Conversaciones regulares </strong>. Son conversaciones estándar "
-#~ "con presentaciones,\n"
-#~ "Ubicadas en espacios de 60 minutos."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Permitir grabación del audio y vídeo de su presentación, para publicarlo "
-#~ "en nuestro sitio web."
-
-#~ msgid "Canceled Stage"
-#~ msgstr "Etapa cancelada"
-
-#~ msgid "Error"
-#~ msgstr "Error"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Filtrar seguimientos..."
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar por"
-
-#~ msgid "No results found"
-#~ msgstr "No se encontraron resultados"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Número de mensajes que requieren una acción"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "¡Las propuestas están cerradas!"
-
-#~ msgid "Schedule some tracks to get started"
-#~ msgstr "Programe algunas grabaciones para empezar"
-
-#~ msgid "Select categories"
-#~ msgstr "Seleccionar categorías"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Mostrar todos los registros que tienen la próxima fecha de acción antes "
-#~ "de hoy"
-
-#~ msgid "Speaker Email"
-#~ msgstr "Correo electrónico del ponente"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Propuestas de charlas"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "Plática añadida a sus favoritos"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "La plática ya está en sus favoritos"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "La URL completa para acceder al documento a través del sitio web."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "Este evento no acepta propuestas."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Publicación temporalizada de material (diapositivas), para publicar en "
-#~ "nuestro sitio web."
-
-#~ msgid "We did not find any track matching your"
-#~ msgstr "No encontramos ninguna grabación que coincida con su"
-
-#~ msgid ""
-#~ "We will accept a broad range of\n"
-#~ "                            presentations, from reports on academic and\n"
-#~ "                            commercial projects to tutorials and case\n"
-#~ "                            studies. As long as the presentation is\n"
-#~ "                            interesting and potentially useful to the\n"
-#~ "                            audience, it will be considered for\n"
-#~ "                            inclusion in the programme."
-#~ msgstr ""
-#~ "Aceptaremos una amplia variedad de\n"
-#~ "presentaciones, desde reportes sobre proyectos académicos y\n"
-#~ "comerciales, tutoriales y estudios de casos.\n"
-#~ "Siempre y cuando la presentación sea\n"
-#~ "interesante y puede resultar útil para la audiencia, se considerará\n"
-#~ "su inclusión en el programa."
-
-#~ msgid "search."
-#~ msgstr "buscar."
-
-#~ msgid "tracks"
-#~ msgstr "grabaciones"

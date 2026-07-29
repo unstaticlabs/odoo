@@ -3,13 +3,13 @@
 # * sale_management
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 23:57+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 02:34+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "sale_management/ru/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -69,11 +69,17 @@ msgid "Archived"
 msgstr "Архивировано"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Компании"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -150,13 +156,6 @@ msgid "Display Type"
 msgstr "Тип отображения"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"Нет доступа. Пропустите эти данные для резюме электронной почты пользователя"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr "Запрещенный товар, количество и ЕИ в строке КП для неучтенных продаж"
@@ -167,6 +166,18 @@ msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr ""
 "Дает порядок заказа при отображении списка продажи строк коммерческого "
 "предложений."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -261,7 +272,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -332,6 +343,12 @@ msgstr "Шаблоны Коммерческого предложения"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
 msgstr "Актуальность коммерческого предложения"
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
@@ -417,6 +434,8 @@ msgstr ""
 "заказов на продажу, и исключите ошибки."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -516,8 +535,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -527,8 +546,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -551,130 +570,3 @@ msgstr "дней"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "например, стандартный пакет консультационных услуг"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Ваш шаблон не может содержать товары нескольких компаний."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "В шаблоне указаны товары из компании %(product_company)s, а сам шаблон "
-#~ "оформлен на следующую компанию: %(template_company)s.\n"
-#~ "Пожалуйста, либо смените компанию в шаблоне, либо удалите товары, "
-#~ "относящиеся к другим компаниям."
-
-#~ msgid "1.5"
-#~ msgstr "1.5"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Опции</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Добавить в корзину"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Добавить к  заказу"
-
-#~ msgid "Category"
-#~ msgstr "Категория"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Пересчет между единицами измерения может произойти только в том случае, "
-#~ "если они принадлежат к одной и той же категории. Пересчет будет "
-#~ "осуществляться на основе коэффициентов."
-
-#~ msgid "Disc.%"
-#~ msgstr "Скидка (%)"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Скидка (%)"
-
-#~ msgid "Extra Chips"
-#~ msgstr "Дополнительные чипсы"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Указывает порядок следования при отображении списка дополнительных "
-#~ "продуктов."
-
-#~ msgid "Group By"
-#~ msgstr "Группировать по"
-
-#~ msgid "Large Meeting Table"
-#~ msgstr "Стол большой переговорный"
-
-#~ msgid "Line"
-#~ msgstr "Линия"
-
-#~ msgid "Office Chair"
-#~ msgstr "Cтул офисный"
-
-#~ msgid "Optional Products"
-#~ msgstr "Дополнительные продукты"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Строки для  дополнительных продуктов"
-
-#~ msgid "Options"
-#~ msgstr "Опции"
-
-#~ msgid "Present on Quotation"
-#~ msgstr " Котировка"
-
-#~ msgid "Quantity:"
-#~ msgstr "Количество:"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Вариант шаблона котировки"
-
-#~ msgid "Remove"
-#~ msgstr "Удалить"
-
-#~ msgid "Sale Options"
-#~ msgstr "Варианты продажи"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Ссылка на заказ на продажу"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Шаблон строк коммерческого предложения"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Это поле будет отмечено, если продукт опционной линии уже присутствует в "
-#~ "предложении."
-
-#~ msgid "Unit Price"
-#~ msgstr "Цена за единицу"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Цена за единицу:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Ед. изм"
-
-#~ msgid "UoM"
-#~ msgstr "Ед. изм."
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Нельзя добавить опции к подтвержденному заказу."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "В вашем предложении содержатся товары из компании %(product_company)s, в "
-#~ "то время как ваше предложение принадлежит компании %(quote_company)s.\n"
-#~ " Пожалуйста, измените компанию вашего предложения или удалите продукты "
-#~ "других компаний (%(bad_products)s)."

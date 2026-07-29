@@ -34,9 +34,21 @@ export class PaymentPage extends Component {
     }
 
     selectMethod(methodId) {
+        if (methodId === this.cashPaymentMethod?.id) {
+            this.selfOrder.confirmationPage(
+                "pay",
+                this.selfOrder.config.self_ordering_mode,
+                this.selfOrder.currentOrder.access_token
+            );
+            return;
+        }
         this.state.selection = false;
         this.state.paymentMethodId = methodId;
         this.startPayment();
+    }
+
+    get paymentMethods() {
+        return this.selfOrder.models["pos.payment.method"].filter((pm) => !pm.is_cash_count);
     }
 
     get selectedPaymentMethod() {
@@ -50,6 +62,24 @@ export class PaymentPage extends Component {
     async startPayment() {
         this.selfOrder.paymentError = false;
         try {
+            if (this.selectedPaymentMethod.payment_terminal) {
+                const result = this.selfOrder.currentOrder.addPaymentline(
+                    this.selectedPaymentMethod
+                );
+                if (!result.status) {
+                    throw new Error(`Adding payment line failed: ${result.data}`);
+                }
+                const newPaymentLine = result.data;
+                try {
+                    const paymentSuccessful = await newPaymentLine.pay();
+                    if (!paymentSuccessful) {
+                        throw new Error("Payment terminal payment failed");
+                    }
+                } catch (err) {
+                    this.selfOrder.currentOrder.removePaymentline(newPaymentLine);
+                    throw err;
+                }
+            }
             await rpc(`/kiosk/payment/${this.selfOrder.config.id}/kiosk`, {
                 order: this.selfOrder.currentOrder.serializeForORM(),
                 access_token: this.selfOrder.access_token,
@@ -59,5 +89,12 @@ export class PaymentPage extends Component {
             this.selfOrder.handleErrorNotification(error);
             this.selfOrder.paymentError = true;
         }
+    }
+
+    get cashPaymentMethod() {
+        if (this.selfOrder.config.self_ordering_mode === "kiosk") {
+            return this.selfOrder.models["pos.payment.method"].find((pm) => pm.is_cash_count);
+        }
+        return false;
     }
 }

@@ -41,10 +41,11 @@ class QuotationDocumentController(Controller):
         for ufile in files:
             try:
                 mimetype = ufile.content_type
+                pdf_bytes = ufile.read()
                 request.env['quotation.document'].create({
                     'name': ufile.filename,
                     'mimetype': mimetype,
-                    'raw': ufile.read(),
+                    'raw': pdf_bytes,
                     **additional_vals,
                 }).flush_recordset()
             except UserError as e:

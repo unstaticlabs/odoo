@@ -7,7 +7,6 @@
     'sequence': 20,
     'summary': 'Enterprise website builder',
     'website': 'https://www.odoo.com/app/website',
-    'version': '1.0',
     'depends': [
         'digest',
         'web',
@@ -27,7 +26,6 @@
             'geoip2': 'python3-geoip2',
         },
     },
-    'installable': True,
     'data': [
         # security.xml first, data.xml need the group to exist (checking it)
         'security/website_security.xml',
@@ -134,6 +132,7 @@
         'views/snippets/s_pricelist_boxed.xml',
         'views/snippets/s_adventure.xml',
         'views/snippets/s_image_title.xml',
+        'views/snippets/s_bento_grid_avatars.xml',
         'views/snippets/s_key_images.xml',
         'views/snippets/s_kickoff.xml',
         'views/snippets/s_discovery.xml',
@@ -146,6 +145,7 @@
         'views/snippets/s_shape_image.xml',
         'views/snippets/s_empowerment.xml',
         'views/snippets/s_split_intro.xml',
+        'views/snippets/s_splash_intro.xml',
         'views/snippets/s_text_highlight.xml',
         'views/snippets/s_pricelist_cafe.xml',
         'views/snippets/s_progress_bar.xml',
@@ -180,8 +180,10 @@
         'views/snippets/s_freegrid.xml',
         'views/snippets/s_card_offset.xml',
         'views/snippets/s_image.xml',
+        'views/snippets/s_icon.xml',
         'views/snippets/s_video.xml',
         'views/snippets/s_cta_badge.xml',
+        'views/snippets/s_avatars.xml',
         'views/snippets/s_unveil.xml',
         'views/snippets/s_image_hexagonal.xml',
         'views/snippets/s_striped_center_top.xml',
@@ -209,6 +211,7 @@
         'views/ir_model_views.xml',
         'views/res_partner_views.xml',
         'views/neutralize_views.xml',
+        'views/digest_digest_views.xml',
         'wizard/base_language_install_views.xml',
         'wizard/blocked_third_party_domains.xml',
         'wizard/website_robots.xml',
@@ -224,8 +227,14 @@
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
     'assets': {
+        "im_livechat.assets_embed_core": [
+            "website/static/src/mail/core/common/**/*",
+        ],
         "mail.assets_public": [
-            "website/static/src/**/common/**/*",
+            "website/static/src/mail/core/common/**/*",
+        ],
+        "portal.assets_chatter_helpers": [
+            "website/static/src/mail/core/common/**/*",
         ],
         'web.assets_frontend': [
             'html_builder/static/src/utils/scrolling.js',
@@ -243,6 +252,7 @@
             ('remove', 'website/static/src/snippets/**/*.edit.js'),
             'website/static/src/libs/zoomodoo/zoomodoo.scss',
             'website/static/src/scss/website.scss',
+            'website/static/src/scss/portal.scss',
             'website/static/src/scss/website_common.scss',
             'website/static/src/scss/website_controller_page.scss',
             'website/static/src/scss/website.ui.scss',
@@ -329,7 +339,7 @@
             'website/static/src/components/autocomplete_with_pages/*',
             'website/static/src/xml/website.xml',
             'website/static/src/scss/website_controller_page_kanban.scss',
-            'website/static/src/**/common/**/*',
+            'website/static/src/mail/core/common/**/*',
 
             'website/static/src/xml/website_form_editor.xml',
             # TODO Remove the module's form js - this is for testing.
@@ -376,9 +386,6 @@
             'google_recaptcha/static/src/js/recaptcha.js',
             'website/static/src/js/content/generate_video_iframe.js',
         ],
-        'web.tests_assets': [
-            'website/static/tests/website_service_mock.js',
-        ],
         'web._assets_frontend_helpers': [
             ('prepend', 'website/static/src/scss/bootstrap_overridden.scss'),
         ],
@@ -386,6 +393,7 @@
             ('after', 'web/static/src/scss/utilities_custom.scss', 'html_builder/static/src/scss/utilities_custom.scss'),
         ],
         'html_editor.assets_link_popover': [
+            'html_builder/static/src/utils/utils_css.js',
             'website/static/src/js/editor/html_editor.js',
             'website/static/src/xml/html_editor.xml',
         ],
@@ -397,15 +405,11 @@
             'web/static/lib/bootstrap/scss/_variables-dark.scss',
             'web/static/lib/bootstrap/scss/_maps.scss',
             'website/static/src/scss/website.edit_mode.scss',
-            'website/static/src/snippets/s_image_gallery/000.xml',
-            'website/static/src/snippets/s_image_gallery/001.xml',
             'website/static/src/js/send_mail_form.js',
             'website/static/src/xml/website_form.xml',
             'website/static/src/xml/website_form_editor.xml',
             'website/static/src/xml/website.cookies_bar.xml',
-        ],
-        'website.assets_all_wysiwyg': [
-            ('include', 'website.assets_wysiwyg'),
+            'website/static/src/mail/core/common/**/*',
         ],
         'html_editor.assets_media_dialog': [
             'website/static/src/components/media_dialog/*',

@@ -35,7 +35,7 @@ class TestPOSLoyaltyProductLoading(TestPointOfSaleHttpCommon):
             })],
         })
 
-        self.env['ir.config_parameter'].sudo().set_param('point_of_sale.limited_product_count', 1)
+        self.env['ir.config_parameter'].sudo().set_int('point_of_sale.limited_product_count', 1)
 
         self.main_pos_config.open_ui()
         current_session = self.main_pos_config.current_session_id

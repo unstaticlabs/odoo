@@ -69,6 +69,7 @@ registry.category("web_tour.tours").add("PosLoyaltyLoyaltyProgram1", {
 });
 
 registry.category("web_tour.tours").add("PosLoyaltyLoyaltyProgram2", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             // Order1: Immediately set the customer to Test Partner AAA which has 4 points.
@@ -138,6 +139,7 @@ registry.category("web_tour.tours").add("PosLoyaltyLoyaltyProgram2", {
 });
 
 registry.category("web_tour.tours").add("PosLoyaltyChangeRewardQty", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -290,7 +292,7 @@ registry.category("web_tour.tours").add("PosOrderClaimReward", {
             Chrome.startPoS(),
             Dialog.confirm("Open Register"),
             ProductScreen.clickPartnerButton(),
-            ProductScreen.clickCustomer("Test Partner"),
+            ProductScreen.clickCustomer("Test Partner", true),
             ProductScreen.addOrderline("Desk Organizer", "3"),
             PosLoyalty.isPointsDisplayed(true),
             PosLoyalty.claimReward("Free Product - Whiteboard Pen"),
@@ -304,7 +306,7 @@ registry.category("web_tour.tours").add("PosOrderNoPoints", {
         [
             Chrome.startPoS(),
             ProductScreen.clickPartnerButton(),
-            ProductScreen.clickCustomer("Test Partner 2"),
+            ProductScreen.clickCustomer("Test Partner 2", true),
             ProductScreen.addOrderline("Desk Organizer", "3"),
             PosLoyalty.isPointsDisplayed(false),
             PosLoyalty.finalizeOrder("Cash", "15.3"),

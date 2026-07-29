@@ -210,8 +210,8 @@ export class ListCoreViewPlugin extends OdooCoreViewPlugin {
         }
         const unusedLists = new Set(this.getters.getListIds());
         for (const sheetId of this.getters.getSheetIds()) {
-            for (const cellId in this.getters.getCells(sheetId)) {
-                const position = this.getters.getCellPosition(cellId);
+            for (const cell of this.getters.getCells(sheetId)) {
+                const position = this.getters.getCellPosition(cell.id);
                 const listId = this.getListIdFromPosition(position);
                 if (listId) {
                     unusedLists.delete(listId);
@@ -279,13 +279,16 @@ export class ListCoreViewPlugin extends OdooCoreViewPlugin {
             const cell = this.getters.getCorrespondingFormulaCell(position);
             const sheetId = position.sheetId;
             if (cell && cell.isFormula) {
-                const listFunction = getFirstListFunction(cell.compiledFormula.tokens);
+                const listFunction = getFirstListFunction(cell.compiledFormula, this.getters);
                 if (listFunction) {
                     const content = astToFormula(listFunction.args[0]);
-                    const listId = this.getters.evaluateFormula(sheetId, content)?.toString() || false;
+                    const listId =
+                        this.getters.evaluateFormula(sheetId, content)?.toString() || false;
                     this.listPositionCache.set(position, listId);
+                    return listId;
                 }
             }
+            this.listPositionCache.set(position, undefined);
         }
         return this.listPositionCache.get(position) || undefined;
     }
@@ -299,7 +302,7 @@ export class ListCoreViewPlugin extends OdooCoreViewPlugin {
         if (!cell?.isFormula) {
             return undefined;
         }
-        const { functionName, args } = getFirstListFunction(cell.compiledFormula.tokens);
+        const { functionName, args } = getFirstListFunction(cell.compiledFormula, this.getters);
         const fieldArg = functionName === "ODOO.LIST.HEADER" ? args[1] : args[2];
         const dataSource = this.getters.getListDataSource(listId);
         if (!fieldArg || !dataSource.isValid()) {
@@ -333,7 +336,7 @@ export class ListCoreViewPlugin extends OdooCoreViewPlugin {
         if (!cell?.isFormula) {
             return false;
         }
-        const { functionName } = getFirstListFunction(cell.compiledFormula.tokens);
+        const { functionName } = getFirstListFunction(cell.compiledFormula, this.getters);
         const dataSource = this.getters.getListDataSource(listId);
         return (
             functionName === "ODOO.LIST.HEADER" &&
@@ -397,6 +400,9 @@ export class ListCoreViewPlugin extends OdooCoreViewPlugin {
     }
 
     isListUnused(listId) {
-        return this._getUnusedLists().includes(listId);
+        return (
+            this._getUnusedLists().includes(listId) &&
+            !this.getters.isDataSourceLinkedToChart("list", listId)
+        );
     }
 }

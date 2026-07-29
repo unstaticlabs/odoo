@@ -11,11 +11,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:01+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/hr_fleet/"
-"da/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-23 13:10+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
+"hr_fleet/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,6 +36,12 @@ msgid ""
 msgstr ""
 "<span class=\"o_stat_value\">1</span>\n"
 "                        <span class=\"o_stat_text\">Medarbejder</span>"
+
+#. module: hr_fleet
+#: model_terms:ir.ui.view,arch_db:hr_fleet.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr_fleet.view_employee_form
+msgid "<span>Unassign Company Car</span>"
+msgstr ""
 
 #. module: hr_fleet
 #: model:ir.model,name:hr_fleet.model_mail_activity_plan_template
@@ -60,26 +66,23 @@ msgstr "Vedhæftninger"
 
 #. module: hr_fleet
 #. odoo-python
-#: code:addons/hr_fleet/models/employee.py:0
+#: code:addons/hr_fleet/models/hr_employee.py:0
 msgid "Cannot remove address from employees with linked cars."
 msgstr "Adressen på medarbejdere med tilknyttede firmabiler kan ikke fjernes."
 
 #. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__employee_cars_count
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_public__employee_cars_count
 msgid "Cars"
 msgstr "Biler"
 
 #. module: hr_fleet
 #. odoo-python
-#: code:addons/hr_fleet/models/employee.py:0
+#: code:addons/hr_fleet/models/hr_employee.py:0
+#: model_terms:ir.ui.view,arch_db:hr_fleet.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr_fleet.view_employee_form
 msgid "Cars History"
 msgstr ""
-
-#. module: hr_fleet
-#: model_terms:ir.ui.view,arch_db:hr_fleet.hr_departure_wizard_view_form
-msgid "Company Car"
-msgstr "Firmabil"
 
 #. module: hr_fleet
 #: model_terms:ir.ui.view,arch_db:hr_fleet.fleet_vehicle_assignation_log_employee_view_list
@@ -92,19 +95,15 @@ msgid "Delete"
 msgstr "Slet"
 
 #. module: hr_fleet
-#: model:ir.model,name:hr_fleet.model_hr_departure_wizard
-msgid "Departure Wizard"
-msgstr "Fratrædelsesassistent"
-
-#. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_assignation_log__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_log_contract__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_log_services__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_odometer__display_name
-#: model:ir.model.fields,field_description:hr_fleet.field_hr_departure_wizard__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__display_name
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_departure__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_public__display_name
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_version__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_ir_attachment__display_name
 #: model:ir.model.fields,field_description:hr_fleet.field_mail_activity_plan_template__display_name
 msgid "Display Name"
@@ -143,9 +142,31 @@ msgid "Employee %s is not linked to a vehicle."
 msgstr "Medarbejder %s er ikke knyttet til et køretøj."
 
 #. module: hr_fleet
+#: model:ir.model,name:hr_fleet.model_hr_version
+msgid "Employee Contract"
+msgstr ""
+
+#. module: hr_fleet
+#: model:ir.model,name:hr_fleet.model_hr_employee_departure
+msgid "Employee Departure"
+msgstr ""
+
+#. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle__driver_employee_name
 msgid "Employee Name"
 msgstr "Medarbejderens navn"
+
+#. module: hr_fleet
+#. odoo-python
+#: code:addons/hr_fleet/models/hr_employee_departure.py:0
+msgid "Employee has been removed from %(car)s future driver list"
+msgstr ""
+
+#. module: hr_fleet
+#: model_terms:ir.ui.view,arch_db:hr_fleet.hr_employee_departure_view_form
+#: model_terms:ir.ui.view,arch_db:hr_fleet.view_employee_form
+msgid "Fleet"
+msgstr ""
 
 #. module: hr_fleet
 #: model:ir.model.fields.selection,name:hr_fleet.selection__mail_activity_plan_template__responsible_type__fleet_manager
@@ -159,11 +180,6 @@ msgid "Fleet Manager is limited to Employee plans."
 msgstr "Flådeleder er begrænset til medarbejderplaner."
 
 #. module: hr_fleet
-#: model_terms:ir.ui.view,arch_db:hr_fleet.view_employee_form
-msgid "Fleet Mobility Card"
-msgstr "Flådemobilitetskort"
-
-#. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle__future_driver_employee_id
 msgid "Future Driver (Employee)"
 msgstr "Fremtidig fører (medarbejder)"
@@ -174,9 +190,10 @@ msgstr "Fremtidig fører (medarbejder)"
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_log_contract__id
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_log_services__id
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_odometer__id
-#: model:ir.model.fields,field_description:hr_fleet.field_hr_departure_wizard__id
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__id
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_departure__id
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_public__id
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_version__id
 #: model:ir.model.fields,field_description:hr_fleet.field_ir_attachment__id
 #: model:ir.model.fields,field_description:hr_fleet.field_mail_activity_plan_template__id
 msgid "ID"
@@ -186,13 +203,6 @@ msgstr "ID"
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__license_plate
 msgid "License Plate"
 msgstr "Nummerplade"
-
-#. module: hr_fleet
-#: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle__mobility_card
-#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__mobility_card
-#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_public__mobility_card
-msgid "Mobility Card"
-msgstr "Mobilitetskort"
 
 #. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_fleet_vehicle_assignation_log__attachment_number
@@ -217,7 +227,9 @@ msgid "Related Employee"
 msgstr "Tilknyttet medarbejder"
 
 #. module: hr_fleet
-#: model:ir.model.fields,field_description:hr_fleet.field_hr_departure_wizard__release_campany_car
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__departure_do_unassign_company_car
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_employee_departure__do_unassign_company_car
+#: model:ir.model.fields,field_description:hr_fleet.field_hr_version__departure_do_unassign_company_car
 msgid "Release Company Car"
 msgstr "Frigør firmabil"
 
@@ -225,6 +237,27 @@ msgstr "Frigør firmabil"
 #: model:ir.model,name:hr_fleet.model_fleet_vehicle_log_services
 msgid "Services for vehicles"
 msgstr "Køretøjsservice"
+
+#. module: hr_fleet
+#. odoo-python
+#: code:addons/hr_fleet/models/hr_employee_departure.py:0
+msgid ""
+"The future driver has been removed due to the end of collaboration with "
+"%(employee)s"
+msgstr ""
+
+#. module: hr_fleet
+#. odoo-python
+#: code:addons/hr_fleet/models/hr_employee_departure.py:0
+msgid "The vehicle %(car)s has been freed"
+msgstr ""
+
+#. module: hr_fleet
+#. odoo-python
+#: code:addons/hr_fleet/models/hr_employee_departure.py:0
+msgid ""
+"The vehicle has been freed due to the end of collaboration with %(employee)s"
+msgstr ""
 
 #. module: hr_fleet
 #. odoo-python
@@ -256,6 +289,3 @@ msgstr "Køretøjskontrakt"
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__car_ids
 msgid "Vehicles (private)"
 msgstr "Køretøjer (privat)"
-
-#~ msgid "User"
-#~ msgstr "Bruger"

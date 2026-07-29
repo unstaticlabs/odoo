@@ -69,9 +69,6 @@ export class PosOrderlineAccounting extends Base {
             ? this.unitPrices.total_included
             : this.unitPrices.total_excluded;
     }
-    get displayPriceUnitIncl() {
-        return this.unitPrices.total_included;
-    }
     get displayPriceUnitExcl() {
         return this.unitPrices.total_excluded;
     }
@@ -86,11 +83,6 @@ export class PosOrderlineAccounting extends Base {
     }
     get priceExcl() {
         return this.currency.round(this.prices.total_excluded * this.order_id.orderSign);
-    }
-    get priceUnitInclNoDiscount() {
-        return this.currency.round(
-            this.unitPrices.no_discount_total_included * this.order_id.orderSign
-        );
     }
     get priceInclNoDiscount() {
         return this.currency.round(
@@ -147,7 +139,7 @@ export class PosOrderlineAccounting extends Base {
 
     get taxGroupLabels() {
         let taxes_id = this.tax_ids;
-        if (this.order_id.fiscal_position_id) {
+        if (this.order_id?.fiscal_position_id) {
             taxes_id = this.order_id.fiscal_position_id.getTaxesAfterFiscalPosition(this.tax_ids);
         }
         return [
@@ -184,7 +176,6 @@ export class PosOrderlineAccounting extends Base {
         const currency = this.config.currency_id;
         const extraValues = { currency_id: currency };
         const product = this.getProduct();
-        const productUom = this.getUnit();
         const priceUnit = this.price_unit || 0;
         const discount = this.getDiscount();
         const values = {
@@ -193,8 +184,8 @@ export class PosOrderlineAccounting extends Base {
             price_unit: priceUnit,
             discount: discount,
             tax_ids: this.tax_ids,
+            product_uom_id: product.uom_id,
             product_id: product,
-            product_uom_id: productUom,
             rate: 1.0,
             is_refund: this.isRefund(),
             ...customValues,

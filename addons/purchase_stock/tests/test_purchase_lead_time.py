@@ -6,9 +6,10 @@ from unittest.mock import patch
 
 from odoo import Command, fields
 from .common import PurchaseTestCommon
-from odoo.tests import Form, freeze_time
+from odoo.tests import tagged, Form, freeze_time
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPurchaseLeadTime(PurchaseTestCommon):
 
     def test_00_product_company_level_delays(self):
@@ -80,13 +81,12 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         picking_schedule_date = min(date_planned1, date_planned2)
         self.assertEqual(purchase2.picking_ids.scheduled_date, picking_schedule_date,
                          'Schedule date of In type shipment should be same as schedule date of purchase order.')
-
-        # Check deadline of pickings
+        # Check Scheduled date of pickings
         self.assertEqual(fields.Date.to_date(purchase2.picking_ids.date_deadline), fields.Date.to_date(purchase1.date_planned), "Deadline of pickings should be equals to the receipt date of purchase")
         purchase_form = Form(purchase2)
         purchase_form.date_planned = purchase2.date_planned + timedelta(days=2)
         purchase_form.save()
-        self.assertEqual(purchase2.picking_ids.date_deadline, purchase2.date_planned, "Deadline of pickings should be propagate")
+        self.assertEqual(purchase2.picking_ids.scheduled_date, purchase2.date_planned, "Scheduled Date of pickings should be propagated")
 
     def test_02_product_level_delay(self):
         """ To check schedule dates of multiple purchase order line of the same purchase order,
@@ -193,7 +193,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         # rule
         move_1 = self.env['stock.move'].create({
             'product_id': product_1.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.warehouse.wh_output_stock_loc_id.id,
             'product_uom_qty': 10,
@@ -209,7 +209,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
 
         move_2 = self.env['stock.move'].create({
             'product_id': product_1.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.warehouse.wh_output_stock_loc_id.id,
             'product_uom_qty': 5,
@@ -295,7 +295,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         # Create a demand (outgoing move) which will generate a manual orderpoint
         self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -318,7 +318,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         # Create more demand
         self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 3,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -361,7 +361,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         self.env['stock.move'].create({
             'date': datetime.today() + timedelta(days=3),
             'product_id': prod.id,
-            'product_uom': prod.uom_id.id,
+            'uom_id': prod.uom_id.id,
             'product_uom_qty': 5.0,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -397,7 +397,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
             delivery_moves |= self.env['stock.move'].create({
                 'date': datetime.today() + timedelta(days=i),
                 'product_id': product.id,
-                'product_uom': product.uom_id.id,
+                'uom_id': product.uom_id.id,
                 'product_uom_qty': 5.0,
                 'location_id': self.stock_location.id,
                 'location_dest_id': self.customer_location.id,

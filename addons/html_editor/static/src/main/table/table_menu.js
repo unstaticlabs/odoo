@@ -1,8 +1,18 @@
 import { closestElement } from "@html_editor/utils/dom_traversal";
-import { Component, onMounted, useEffect, useExternalListener, useRef } from "@odoo/owl";
+import {
+    Component,
+    onMounted,
+    onWillUnmount,
+    useEffect,
+    useExternalListener,
+    useRef,
+} from "@odoo/owl";
+import { getColumnIndex, getRowIndex } from "@html_editor/utils/table";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { _t } from "@web/core/l10n/translation";
+import { getIframeAdjustedBoundingRect, isEmpty } from "@html_editor/utils/dom_info";
+import { getBaseContainerSelector } from "@html_editor/utils/base_container";
 
 export class TableMenu extends Component {
     static template = "html_editor.TableMenu";
@@ -21,20 +31,33 @@ export class TableMenu extends Component {
         resetTableSize: Function,
         clearColumnContent: Function,
         clearRowContent: Function,
+        toggleAlternatingRows: Function,
         close: Function,
+        tableDragDropOverlay: Object,
         dropdownState: Object,
         target: { validate: (el) => el.nodeType === Node.ELEMENT_NODE },
-        document: { validate: (el) => el.nodeType === Node.DOCUMENT_NODE },
+        document: { validate: (p) => p.nodeType === Node.DOCUMENT_NODE },
+        editable: { validate: (p) => p.nodeType === Node.ELEMENT_NODE },
         direction: { type: String, optional: true },
     };
     static defaultProps = { direction: "ltr" };
     static components = { Dropdown, DropdownItem };
 
     setup() {
-        this.dropdownRef = useRef("dropdown");
+        this.menuRef = useRef("menuRef");
+        const onPointerDown = (ev) => this.onPointerDown(ev);
         onMounted(() => {
-            this.overlayEl = this.dropdownRef.el;
+            this.overlayEl = this.menuRef.el;
+            this.overlayEl.addEventListener("pointerdown", onPointerDown);
         });
+        onWillUnmount(() => {
+            this.menuRef?.el.removeEventListener("pointerdown", onPointerDown);
+        });
+        useExternalListener(this.props.document, "pointerup", this.onPointerUp);
+        if (this.props.document !== document) {
+            // Listen outside the iframe.
+            useExternalListener(document, "pointerup", this.onPointerUp);
+        }
         useEffect(
             () => {
                 if (this.props.type === "column") {
@@ -75,15 +98,28 @@ export class TableMenu extends Component {
         return rowHasHeight || cellHasWidth;
     }
 
-    get hasCustomRowHeight() {
-        return !!this.props.target.closest("tr").style.height;
+    get hasCustomSize() {
+        return this.props.type === "row"
+            ? !!this.props.target.parentElement.style?.height
+            : !!this.props.target.style?.width;
     }
 
-    get hasCustomColumnWidth() {
-        return (
-            !!this.props.target.closest("td")?.style?.width ||
-            !!this.props.target.closest("th")?.style?.width
-        );
+    get hasContent() {
+        const baseContainerSelector = getBaseContainerSelector();
+        const cell = this.props.target;
+        const table = closestElement(cell, "table");
+        const targetCells =
+            this.props.type === "row"
+                ? [...cell.parentElement.children]
+                : [...table.rows].map((row) => row.cells[getColumnIndex(cell)]);
+        return targetCells.some((td) => {
+            const { children } = td;
+            return !(
+                children.length === 1 &&
+                children[0].matches(baseContainerSelector) &&
+                isEmpty(children[0])
+            );
+        });
     }
 
     updatePosition() {
@@ -91,22 +127,11 @@ export class TableMenu extends Component {
         if (!this.overlayEl || !target) {
             return;
         }
-        let frameRect = { top: 0, left: 0 };
-        let frameElement;
-        try {
-            frameElement = this.props.document.defaultView.frameElement;
-        } catch {
-            // We don't access the frameElement if we don't have access to it.
-            // (i.e. iframe origin or sandbox restriction)
-        }
-        if (frameElement) {
-            frameRect = frameElement.getBoundingClientRect();
-        }
-        const targetRect = target.getBoundingClientRect();
+        const targetRect = getIframeAdjustedBoundingRect(target);
         const container = this.overlayEl.parentElement;
         const containerRect = container.getBoundingClientRect();
-        const top = frameRect.top + targetRect.top - containerRect.top;
-        const left = frameRect.left + targetRect.left - containerRect.left;
+        const top = targetRect.top - containerRect.top;
+        const left = targetRect.left - containerRect.left;
         this.overlayEl.classList.remove("h-100", "w-100");
         if (type === "column") {
             Object.assign(this.overlayEl.style, {
@@ -117,9 +142,7 @@ export class TableMenu extends Component {
             });
         } else {
             const isLTR = direction === "ltr";
-            const inlineStartOffset = isLTR
-                ? left
-                : containerRect.right - (frameRect.left + targetRect.right);
+            const inlineStartOffset = isLTR ? left : containerRect.right - targetRect.right;
             Object.assign(this.overlayEl.style, {
                 position: "absolute",
                 top: `${top}px`,
@@ -133,6 +156,32 @@ export class TableMenu extends Component {
         this.props.close();
     }
 
+    onPointerDown(ev) {
+        this.longPressTimer = setTimeout(() => {
+            this.props.close();
+            // Open the TableDragDrop overlay.
+            this.props.tableDragDropOverlay.open({
+                target: this.props.target,
+                props: {
+                    type: this.props.type,
+                    pointerPos: { x: ev.clientX, y: ev.clientY },
+                    target: this.props.target,
+                    document: this.props.document,
+                    editable: this.props.editable,
+                    close: () => this.props.tableDragDropOverlay.close(),
+                    moveRow: this.props.moveRow,
+                    moveColumn: this.props.moveColumn,
+                },
+            });
+        }, 200); // long press threshold
+    }
+
+    onPointerUp() {
+        // Cancel long-press to prevent tableDragDropOverlay.
+        clearTimeout(this.longPressTimer);
+        delete this.longPressTimer;
+    }
+
     colItems() {
         const ltr = this.props.direction === "ltr";
         return [
@@ -140,13 +189,13 @@ export class TableMenu extends Component {
                 name: "move_left",
                 icon: "fa-chevron-left disabled",
                 text: ltr ? _t("Move left") : _t("Move right"),
-                action: this.props.moveColumn.bind(this, "left"),
+                action: (target) => this.props.moveColumn(getColumnIndex(target) - 1, target),
             },
             !this.isLast && {
                 name: "move_right",
                 icon: "fa-chevron-right",
                 text: ltr ? _t("Move right") : _t("Move left"),
-                action: this.props.moveColumn.bind(this, "right"),
+                action: (target) => this.props.moveColumn(getColumnIndex(target) + 1, target),
             },
             {
                 name: "insert_left",
@@ -166,7 +215,7 @@ export class TableMenu extends Component {
                 text: _t("Delete"),
                 action: this.props.removeColumn.bind(this),
             },
-            this.hasCustomColumnWidth && {
+            this.hasCustomSize && {
                 name: "reset_column_size",
                 icon: "fa-table",
                 text: _t("Reset column size"),
@@ -178,7 +227,7 @@ export class TableMenu extends Component {
                 text: _t("Reset table size"),
                 action: (target) => this.props.resetTableSize(target.closest("tbody")),
             },
-            {
+            this.hasContent && {
                 name: "clear_content",
                 icon: "fa-times-circle",
                 text: _t("Clear content"),
@@ -188,6 +237,8 @@ export class TableMenu extends Component {
     }
 
     rowItems() {
+        const table = closestElement(this.props.target, "table");
+        const hasAlternatingRowClass = table.classList.contains("o_alternating_rows");
         return [
             this.isFirst &&
                 !this.isTableHeader && {
@@ -207,13 +258,15 @@ export class TableMenu extends Component {
                 name: "move_up",
                 icon: "fa-chevron-up",
                 text: _t("Move up"),
-                action: (target) => this.props.moveRow("up", target.parentElement),
+                action: (target) =>
+                    this.props.moveRow(getRowIndex(target.parentElement) - 1, target.parentElement),
             },
             !this.isLast && {
                 name: "move_down",
                 icon: "fa-chevron-down",
                 text: _t("Move down"),
-                action: (target) => this.props.moveRow("down", target.parentElement),
+                action: (target) =>
+                    this.props.moveRow(getRowIndex(target.parentElement) + 1, target.parentElement),
             },
             !this.isTableHeader && {
                 name: "insert_above",
@@ -228,12 +281,20 @@ export class TableMenu extends Component {
                 action: (target) => this.props.addRow("after", target.parentElement),
             },
             {
+                name: "toggle_alternating_rows",
+                icon: "fa-paint-brush",
+                text: hasAlternatingRowClass
+                    ? _t("Clear alternate colors")
+                    : _t("Alternate row colors"),
+                action: () => this.props.toggleAlternatingRows(table),
+            },
+            {
                 name: "delete",
                 icon: "fa-trash",
                 text: _t("Delete"),
                 action: (target) => this.props.removeRow(target.parentElement),
             },
-            this.hasCustomRowHeight && {
+            this.hasCustomSize && {
                 name: "reset_row_size",
                 icon: "fa-table",
                 text: _t("Reset row size"),
@@ -245,7 +306,7 @@ export class TableMenu extends Component {
                 text: _t("Reset table size"),
                 action: (target) => this.props.resetTableSize(target.closest("tbody")),
             },
-            {
+            this.hasContent && {
                 name: "clear_content",
                 icon: "fa-times-circle",
                 text: _t("Clear content"),

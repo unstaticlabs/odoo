@@ -2,6 +2,7 @@
 import collections
 import logging
 from odoo.addons.base.tests.common import HttpCaseWithUserPortal, HttpCaseWithUserDemo
+from odoo.addons.base.tests.files import PNG_B64
 
 from contextlib import closing
 
@@ -116,12 +117,13 @@ class UtilPerf(HttpCaseWithUserPortal, HttpCaseWithUserDemo):
         self.assertDictEqual(sql_into_tables, insert_tables_perf, f'Insert queries does not match: {insert}{query_separator}{queries}{query_separator}')
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStandardPerformance(UtilPerf):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env['res.users'].browse(2).image_1920 = b'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNgYGAAAAAEAAH2FzhVAAAAAElFTkSuQmCC'
+        cls.env['res.users'].browse(2).image_1920 = PNG_B64
 
     @mute_logger('odoo.http')
     def test_10_perf_sql_img_controller(self):
@@ -197,6 +199,7 @@ class TestWebsitePerformanceCommon(UtilPerf):
         return (page, menu)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestWebsitePerformance(TestWebsitePerformanceCommon):
 
     def test_10_perf_sql_queries_page(self):
@@ -228,9 +231,8 @@ class TestWebsitePerformance(TestWebsitePerformanceCommon):
                     # menu and layout
                     'website_menu': 1,
                     'ir_ui_view': 1,
-                    'res_company': 1,
                 }
-                expected_query_count = 8
+                expected_query_count = 7
                 self._check_url_hot_query(self.page.url, expected_query_count, select_tables_perf, nocache=True)
                 self.assertEqual(self._get_url_hot_query(self.page.url, nocache=True), expected_query_count)
 
@@ -254,9 +256,8 @@ class TestWebsitePerformance(TestWebsitePerformanceCommon):
                     # menu and layout
                     'website_menu': 1,
                     'ir_ui_view': 1,
-                    'res_company': 1,
                 }
-                expected_query_count = 2 if cache else 8
+                expected_query_count = 2 if cache else 7
                 insert_tables_perf = {}
                 if not readonly_enabled:
                     insert_tables_perf = {
@@ -299,9 +300,8 @@ class TestWebsitePerformance(TestWebsitePerformanceCommon):
                     'website': 1,
                     # layout
                     'ir_ui_view': 1,
-                    'res_company': 1,
                 }
-                expected_query_count = 7
+                expected_query_count = 6
                 insert_tables_perf = {}
                 if not readonly_enabled:
                     insert_tables_perf = {
@@ -331,13 +331,11 @@ class TestWebsitePerformance(TestWebsitePerformanceCommon):
             'website_page': 1,
             # 1. `_serve_page` search page matching URL..
             # 2. ..then reads it (`is_visible`)
-            'website': 1,
-            # Check if website.cookies_bar is active
             'ir_ui_view': 1,
             # Check if `view.track` to track visitor or not
         }
-        self._check_url_hot_query(self.page.url, 5, select_tables_perf, nocache=True)
-        self.assertEqual(self._get_url_hot_query(self.page.url, nocache=True), 5)
+        self._check_url_hot_query(self.page.url, 4, select_tables_perf, nocache=True)
+        self.assertEqual(self._get_url_hot_query(self.page.url, nocache=True), 4)
 
     def test_40_perf_sql_queries_page_multi_level_menu(self):
         # menu structure should not impact SQL requests
@@ -367,12 +365,9 @@ class TestWebsitePerformance(TestWebsitePerformanceCommon):
             'website': 1,
             'website_menu': 1,
             'ir_ui_view': 1,
-            # Check if `view.track` to track visitor or not
-            # layout content (company name, logo)
-            'res_company': 1,
         }
-        self._check_url_hot_query(self.page.url, 8, select_tables_perf, nocache=True)
-        self.assertEqual(self._get_url_hot_query(self.page.url, nocache=True), 8)
+        self._check_url_hot_query(self.page.url, 7, select_tables_perf, nocache=True)
+        self.assertEqual(self._get_url_hot_query(self.page.url, nocache=True), 7)
 
 @tagged('-at_install', 'post_install')
 class TestWebsitePerformancePost(UtilPerf):

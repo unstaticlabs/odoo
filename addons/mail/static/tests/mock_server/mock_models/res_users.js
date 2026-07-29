@@ -22,6 +22,8 @@ export class ResUsers extends webModels.ResUsers {
         const MailGuest = this.env["mail.guest"];
         /** @type {import("mock_models").ResPartner} */
         const ResPartner = this.env["res.partner"];
+        /** @type {import("mock_models").ResUsers} */
+        const ResUsers = this.env["res.users"];
         /** @type {import("mock_models").ResUsersSettings} */
         const ResUsersSettings = this.env["res.users.settings"];
         /** @type {import("mock_models").MailMessageSubtype} */
@@ -40,20 +42,27 @@ export class ResUsers extends webModels.ResUsers {
         if (!this._is_public(this.env.uid)) {
             const userSettings = ResUsersSettings._find_or_create_for_user(this.env.uid);
             store.add({
-                self_partner: mailDataHelpers.Store.one(
-                    ResPartner.browse(this.env.user.partner_id),
+                self_user: mailDataHelpers.Store.one(
+                    ResUsers.browse(this.env.user.id),
                     makeKwArgs({
                         fields: [
-                            "active",
-                            "avatar_128",
-                            "im_status",
-                            "is_admin",
-                            mailDataHelpers.Store.one("main_user_id", ["notification_type"]),
-                            mailDataHelpers.Store.one("main_user_id", ["signature"]),
-                            "name",
+                            mailDataHelpers.Store.one(
+                                "partner_id",
+                                makeKwArgs({
+                                    fields: [
+                                        "active",
+                                        "avatar_128",
+                                        "is_admin",
+                                        mailDataHelpers.Store.one("main_user_id", ["partner_id"]),
+                                        "name",
+                                        "tz",
+                                        "user",
+                                        ...ResPartner._get_store_im_status_fields(),
+                                    ],
+                                })
+                            ),
                             "notification_type",
                             "signature",
-                            "user",
                         ],
                     })
                 ),
@@ -140,11 +149,11 @@ export class ResUsers extends webModels.ResUsers {
                 id: "inbox",
                 model: "mail.box",
             },
-            starred: {
-                counter: MailMessage._filter([["starred_partner_ids", "in", user.partner_id]])
+            bookmarkBox: {
+                counter: MailMessage._filter([["bookmarked_partner_ids", "in", [user.partner_id]]])
                     .length,
                 counter_bus_id: bus_last_id,
-                id: "starred",
+                id: "bookmark",
                 model: "mail.box",
             },
             initChannelsUnreadCounter: members.filter((member) => member.message_unread_counter)

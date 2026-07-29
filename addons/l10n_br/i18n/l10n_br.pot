@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-02 18:59+0000\n"
-"PO-Revision-Date: 2026-01-02 18:59+0000\n"
+"POT-Creation-Date: 2026-02-20 12:31+0000\n"
+"PO-Revision-Date: 2026-02-20 12:31+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -28,11 +28,6 @@ msgid "%s is not a valid email."
 msgstr ""
 
 #. module: l10n_br
-#: model_terms:ir.ui.view,arch_db:l10n_br.address_form_fields
-msgid "<option value=\"\">City...</option>"
-msgstr ""
-
-#. module: l10n_br
 #: model_terms:ir.ui.view,arch_db:l10n_br.br_partner_address_form
 msgid "<span> - </span>"
 msgstr ""
@@ -43,18 +38,13 @@ msgid "Account Chart Template"
 msgstr ""
 
 #. module: l10n_br
-#: model:ir.model,name:l10n_br.model_account_move_reversal
-msgid "Account Move Reversal"
-msgstr ""
-
-#. module: l10n_br
 #: model:l10n_latam.document.type,name:l10n_br.dt_10
 msgid "Aircraft Knowledge"
 msgstr ""
 
 #. module: l10n_br
 #: model:ir.model,name:l10n_br.model_res_partner_bank
-msgid "Bank Accounts"
+msgid "Bank Account"
 msgstr ""
 
 #. module: l10n_br
@@ -248,7 +238,7 @@ msgstr ""
 
 #. module: l10n_br
 #: model:ir.model,name:l10n_br.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_br
@@ -263,6 +253,12 @@ msgid "Contact"
 msgstr ""
 
 #. module: l10n_br
+#: model_terms:ir.ui.view,arch_db:l10n_br.report_invoice_document
+msgid "Copy and paste below<br/>PIX code into your banking application"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_res_country
 #: model_terms:ir.ui.view,arch_db:l10n_br.br_partner_address_form
 msgid "Country"
 msgstr ""
@@ -302,6 +298,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_br.field_l10n_br_zip_range__display_name
 #: model:ir.model.fields,field_description:l10n_br.field_res_city__display_name
 #: model:ir.model.fields,field_description:l10n_br.field_res_company__display_name
+#: model:ir.model.fields,field_description:l10n_br.field_res_country__display_name
 #: model:ir.model.fields,field_description:l10n_br.field_res_partner__display_name
 #: model:ir.model.fields,field_description:l10n_br.field_res_partner_bank__display_name
 msgid "Display Name"
@@ -657,6 +654,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_br.field_l10n_br_zip_range__id
 #: model:ir.model.fields,field_description:l10n_br.field_res_city__id
 #: model:ir.model.fields,field_description:l10n_br.field_res_company__id
+#: model:ir.model.fields,field_description:l10n_br.field_res_country__id
 #: model:ir.model.fields,field_description:l10n_br.field_res_partner__id
 #: model:ir.model.fields,field_description:l10n_br.field_res_partner_bank__id
 msgid "ID"
@@ -780,6 +778,11 @@ msgid "Journal Entry"
 msgstr ""
 
 #. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_move_reversal
+msgid "Journal Entry Reversal"
+msgstr ""
+
+#. module: l10n_br
 #: model:ir.model.fields,field_description:l10n_br.field_l10n_br_zip_range__write_uid
 msgid "Last Updated by"
 msgstr ""
@@ -835,6 +838,11 @@ msgstr ""
 #. module: l10n_br
 #: model:l10n_latam.document.type,name:l10n_br.dt_06
 msgid "Nota Fiscal / Electricity Bill"
+msgstr ""
+
+#. module: l10n_br
+#: model_terms:ir.ui.view,arch_db:l10n_br.report_invoice_document
+msgid "Or"
 msgstr ""
 
 #. module: l10n_br

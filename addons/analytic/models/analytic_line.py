@@ -169,7 +169,6 @@ class AccountAnalyticLine(models.Model):
 
     name = fields.Char(
         'Description',
-        required=True,
     )
     date = fields.Date(
         'Date',
@@ -189,6 +188,9 @@ class AccountAnalyticLine(models.Model):
     product_uom_id = fields.Many2one(
         'uom.uom',
         string='Unit',
+        compute='_compute_product_uom_id',
+        store=True,
+        readonly=False,
     )
     partner_id = fields.Many2one(
         'res.partner',
@@ -234,6 +236,10 @@ class AccountAnalyticLine(models.Model):
         default=lambda self: self.env['decimal.precision'].precision_get("Percentage Analytic"),
     )
 
+    def write(self, vals):
+        self._check_can_write(vals)
+        return super().write(vals)
+
     def _compute_analytic_distribution(self):
         for line in self:
             line.analytic_distribution = {line._get_distribution_key(): 100}
@@ -266,9 +272,16 @@ class AccountAnalyticLine(models.Model):
                 'message': self.env._("%s analytic lines created", len(to_create_vals)),
             })
 
+    def _compute_product_uom_id(self):
+        return
+
     def _split_amount_fname(self):
         return 'amount'
 
     def _search_fiscal_date(self, operator, value):
         fiscalyear_date_range = self.env.company.compute_fiscalyear_dates(fields.Date.today())
         return [('date', '>=', fiscalyear_date_range['date_from'] - relativedelta(years=1))]
+
+    # Hook to be shared between non related modules
+    def _check_can_write(self, vals):
+        return True

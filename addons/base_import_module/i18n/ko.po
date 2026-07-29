@@ -5,14 +5,14 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 23:58+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-10-15 07:20+0000\n"
 "Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
 "Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/ko/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -34,10 +34,10 @@ msgid ""
 "odoo/design-themes.\n"
 msgstr ""
 "\n"
-"데이터 모듈을 설치하려면 엔터프라이즈 버전이 필요할 수 있습니다. 자세한 "
-"내용은 https://www.odoo.com/pricing-plan 을 참조하세요.\n"
-"웹사이트 테마가 필요한 경우 https://github.com/odoo/design-themes 에서 "
-"다운로드할 수 있습니다.\n"
+"데이터 모듈을 설치하려면 엔터프라이즈 버전이 필요할 수 있습니다. 자세한 내용"
+"은 https://www.odoo.com/pricing-plan 을 참조하세요.\n"
+"웹사이트 테마가 필요한 경우 https://github.com/odoo/design-themes 에서 다운로"
+"드할 수 있습니다.\n"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.module_form_apps_inherit
@@ -51,11 +51,6 @@ msgstr "활성화"
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_module_filter_apps_inherit
 msgid "Apps"
 msgstr "앱"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "취소"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
@@ -128,7 +123,8 @@ msgstr "강제 초기화"
 #. module: base_import_module
 #: model:ir.model.fields,help:base_import_module.field_base_import_module__force
 msgid "Force init mode even if installed. (will update `noupdate='1'` records)"
-msgstr "설치된 경우에도 강제 초기화 모드.(`noupdate='1'` 레코드를 업데이트합니다)"
+msgstr ""
+"설치된 경우에도 강제 초기화 모드.(`noupdate='1'` 레코드를 업데이트합니다)"
 
 #. module: base_import_module
 #: model:ir.model,name:base_import_module.model_ir_http
@@ -209,8 +205,8 @@ msgid ""
 "Load demo data to test the industry's features with sample records. Do not "
 "load them if this is your production database."
 msgstr ""
-"데모 데이터를 로드하여 샘플 레코드로 업계 기능을 탐색합니다. 프로덕션 "
-"데이터베이스인 경우에는 로드하지 마세요."
+"데모 데이터를 로드하여 샘플 레코드로 업계 기능을 탐색합니다. 프로덕션 데이터"
+"베이스인 경우에는 로드하지 마세요."
 
 #. module: base_import_module
 #: model:ir.model,name:base_import_module.model_ir_module_module
@@ -310,8 +306,8 @@ msgid ""
 "The installation of the data module would fail as the following dependencies "
 "can't be found in the addons-path:\n"
 msgstr ""
-"추가 기능 경로에서 다음 종속성을 찾을 수 없으므로 데이터 모듈 설치에 "
-"실패합니다:\n"
+"추가 기능 경로에서 다음 종속성을 찾을 수 없으므로 데이터 모듈 설치에 실패합니"
+"다:\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -352,34 +348,3 @@ msgstr "완료"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "초기화"
-
-#~ msgid "Import App"
-#~ msgstr "앱 가져오기"
-
-#~ msgid "Import module"
-#~ msgstr "모듈 가져오기"
-
-#~ msgid "Last Modified on"
-#~ msgstr "최근 수정일"
-
-#~ msgid ""
-#~ "Note: you can only import data modules (.xml files and static assets)"
-#~ msgstr "참고 : 데이터 모듈(.xml 파일 및 정적 에셋)만 가져올 수 있습니다."
-
-#~ msgid "Open Modules"
-#~ msgstr "모듈 열기"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "가져올 모듈 패키지를 선택하세요 (.zip 파일):"
-
-#~ msgid "Studio customizations require Studio"
-#~ msgstr "Studio 사용자 정의를 위해서는 Studio 설치가 필요합니다."
-
-#~ msgid ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"
-#~ msgstr ""
-#~ "충족되지 않은 모듈 종속성 : \n"
-#~ "\n"
-#~ " - %s"

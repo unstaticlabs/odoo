@@ -15,7 +15,9 @@ import {
     useRef,
     useState,
     onWillUnmount,
+    useChildSubEnv,
 } from "@odoo/owl";
+
 const systrayRegistry = registry.category("systray");
 
 const getBoundingClientRect = Element.prototype.getBoundingClientRect;
@@ -40,6 +42,7 @@ export class NavBar extends Component {
         this.currentAppSectionsExtra = [];
         this.actionService = useService("action");
         this.menuService = useService("menu");
+        this.offlineService = useService("offline");
         this.pwa = useService("pwa");
         this.root = useRef("root");
         this.appSubMenus = useRef("appSubMenus");
@@ -70,6 +73,9 @@ export class NavBar extends Component {
             () => [adaptCounter]
         );
 
+        // allow systray items to trigger an adapt when their layout changes
+        useChildSubEnv({ redrawNavbar: renderAndAdapt });
+
         this.state = useState({
             isAllAppsMenuOpened: false,
             isAppMenuSidebarOpened: false,
@@ -86,7 +92,17 @@ export class NavBar extends Component {
     }
 
     get currentApp() {
-        return this.menuService.getCurrentApp();
+        const app = this.menuService.getCurrentApp();
+        if (app?.webIcon) {
+            const [webIconClass, webIconColor, webIconBg] = app.webIcon.split(",");
+            return {
+                ...app,
+                webIconClass,
+                webIconColor,
+                webIconBg,
+            };
+        }
+        return app;
     }
 
     get currentAppSections() {
@@ -219,6 +235,15 @@ export class NavBar extends Component {
     _openAppMenuSidebar() {
         this.state.isAppMenuSidebarOpened = !this.state.isAppMenuSidebarOpened;
     }
+
+    _isAvailable(menu) {
+        return (
+            !this.offlineService.offline ||
+            !menu.actionID ||
+            this.offlineService.isAvailableOffline(menu.actionID)
+        );
+    }
+
     onAllAppsBtnClick() {
         this.state.isAllAppsMenuOpened = !this.state.isAllAppsMenuOpened;
     }

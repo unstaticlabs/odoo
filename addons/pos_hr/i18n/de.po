@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Larissa Manderfeld, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 07:39+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/pos_hr/"
+"POT-Creation-Date: 2026-07-10 17:37+0000\n"
+"PO-Revision-Date: 2026-07-13 12:02+0000\n"
+"Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/pos_hr/"
 "de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -133,6 +133,7 @@ msgstr "Verwerfen"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__display_name
@@ -165,7 +166,8 @@ msgstr "Mitarbeiter:"
 #. odoo-python
 #: code:addons/pos_hr/models/hr_employee.py:0
 msgid "Employee: %(employee)s - PoS Config(s): %(config_list)s \n"
-msgstr "Mitarbeiter: %(employee)s - Kassenkonfiguration(en): %(config_list)s \n"
+msgstr ""
+"Mitarbeiter: %(employee)s - Kassenkonfiguration(en): %(config_list)s \n"
 
 #. module: pos_hr
 #: model:ir.model.fields,help:pos_hr.field_pos_config__advanced_employee_ids
@@ -207,6 +209,7 @@ msgstr "Geben Sie Ihre PIN ein"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__id
@@ -236,6 +239,12 @@ msgstr "Sperre"
 #: model_terms:ir.ui.view,arch_db:pos_hr.res_config_settings_view_form
 msgid "Minimal rights"
 msgstr "Minimale Rechte"
+
+#. module: pos_hr
+#. odoo-javascript
+#: code:addons/pos_hr/static/src/app/components/popups/cashier_selection_popup/cashier_selection_popup.xml:0
+msgid "More..."
+msgstr "Weitere …"
 
 #. module: pos_hr
 #. odoo-javascript
@@ -307,8 +316,13 @@ msgstr "Tagesbericht des Kassensystems"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassenverkäufe"
+msgid "Point of Sale Order"
+msgstr "Kassenauftrag"
+
+#. module: pos_hr
+#: model:ir.model,name:pos_hr.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr "Generator für Kassenbelege"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_order
@@ -317,8 +331,8 @@ msgstr "Bericht über Kassenverkäufe"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Kassenzahlungen"
+msgid "Point of Sale Payment"
+msgstr "Zahlung am Kassensystem"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_session
@@ -341,6 +355,12 @@ msgstr "Kassier wählen"
 #: model_terms:ir.ui.view,arch_db:pos_hr.res_config_settings_view_form
 msgid "Select Employee(s)"
 msgstr "Mitarbeiter auswählen"
+
+#. module: pos_hr
+#. odoo-javascript
+#: code:addons/pos_hr/static/src/app/screens/order_details_dialog.js:0
+msgid "Served By"
+msgstr "Bedient von"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_hr_single_employee_sales_report
@@ -396,41 +416,3 @@ msgid ""
 msgstr ""
 "Mitarbeiter, die in aktiven Kassensitzungen verwendet werden, können nicht "
 "gelöscht werden. Schließen Sie erst die Sitzung(en): \n"
-
-#~ msgid "If left empty, only Odoo users have extended rights in PoS"
-#~ msgstr ""
-#~ "Wenn leer, haben nur Odoo-Benutzer erweiterte Rechte im Kassensystem"
-
-#~ msgid "Allowed Employees"
-#~ msgstr "Erlaubte Mitarbeiter"
-
-#~ msgid "Change Cashier"
-#~ msgstr "Kassier wechseln"
-
-#~ msgid "Employee: %s - PoS Config(s): %s \n"
-#~ msgstr "Mitarbeiter: %s - Kassenkonfiguration: %s \n"
-
-#~ msgid "Employees with access"
-#~ msgstr "Mitarbeiter mit Zugriff"
-
-#~ msgid "If left empty, all employees can log in to the PoS session"
-#~ msgstr "Falls leer, können Mitarbeiter sich in der PoS-Sitzung anmelden"
-
-#~ msgid "Incorrect Password"
-#~ msgstr "Ungültiges Passwort"
-
-#~ msgid "Log in to"
-#~ msgstr "Anmelden bei"
-
-#~ msgid ""
-#~ "Person who uses the cash register. It can be a reliever, a student or an "
-#~ "interim employee."
-#~ msgstr ""
-#~ "Person, die die Barkasse verwendet. Es kann eine Aushilfe, ein Student "
-#~ "oder ein"
-
-#~ msgid "Scan your badge"
-#~ msgstr "Ausweis scannen"
-
-#~ msgid "or"
-#~ msgstr "oder"

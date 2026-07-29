@@ -1,4 +1,3 @@
-from odoo import http
 from odoo.tests import HttpCase, tagged
 from odoo.tools import mute_logger
 from odoo.tools.misc import file_open
@@ -10,7 +9,7 @@ class TestUpload(HttpCase):
     @mute_logger("odoo.addons.sale_pdf_quote_builder.controllers.quotation_document", "odoo.http")
     def test_wrong_pdf(self):
         self.authenticate("admin", "admin")
-        data = {'csrf_token': http.Request.csrf_token(self)}
+        data = {'csrf_token': self.csrf_token()}
         # Structurally valid but AES-encrypted PDF file (generated with PyPDF)
         with file_open('sale_pdf_quote_builder/tests/files/test_AES.pdf', 'rb') as f:
             files = [('ufile', ('test_AES.pdf', f.read(), 'application/pdf'))]

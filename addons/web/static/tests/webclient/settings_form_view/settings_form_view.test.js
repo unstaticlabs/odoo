@@ -13,6 +13,7 @@ import { animationFrame, Deferred, mockSendBeacon, mockTouch, runAllTimers } fro
 import {
     clickModalButton,
     clickSave,
+    contains,
     defineActions,
     defineModels,
     editSearch,
@@ -163,14 +164,8 @@ test("change setting on nav bar click in base settings on desktop", async () => 
     expect(".o_searchview input").toBeFocused({ message: "searchview input should be focused" });
     expect(".app_settings_block:not(.d-none) .app_settings_header").toHaveCount(1);
     expect(".o_setting_box a").toHaveCount(2);
-    expect(".o_setting_box span.fa:eq(0)").toHaveAttribute(
-        "title",
-        "this is bar info"
-    );
-    expect(".o_setting_box span.fa:eq(1)").toHaveAttribute(
-        "title",
-        "this is foo info"
-    );
+    expect(".o_setting_box span.fa:eq(0)").toHaveAttribute("title", "this is bar info");
+    expect(".o_setting_box span.fa:eq(1)").toHaveAttribute("title", "this is foo info");
     expect(".o_setting_box a:eq(0)").toHaveAttribute(
         "href",
         "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
@@ -254,6 +249,48 @@ test("change setting on nav bar click in base settings on desktop", async () => 
     expect(".app_settings_block:not(.d-none) .app_settings_header").toHaveCount(0);
 });
 
+test("Search setting on multiple apps", async () => {
+    await mountView({
+        type: "form",
+        resModel: "res.config.settings",
+        arch: /* xml */ `
+            <form string="Settings" class="oe_form_configuration o_base_settings" js_class="base_settings">
+                <app string="CRM" name="crm">
+                    <block title="Title of group Foo">
+                        <setting>
+                            <field name="foo"/>
+                        </setting>
+                    </block>
+                </app>
+                <app string="DRM" name="drm">
+                    <block title="Title of group Foo">
+                        <setting>
+                            <field name="foo"/>
+                        </setting>
+                    </block>
+                </app>
+                <app string="ERM" name="erm">
+                    <block title="Title of group Foo">
+                        <setting>
+                            <field name="foo"/>
+                        </setting>
+                    </block>
+                </app>
+            </form>
+        `,
+    });
+
+    await editSearch("Fo");
+    expect(".o_searchview input").toHaveValue("Fo", {
+        message: "input value should be updated",
+    });
+    expect(queryAllTexts(".o_settings_container .o_setting_box .o_form_label")).toEqual([
+        "Foo",
+        "Foo",
+        "Foo",
+    ]);
+});
+
 test.tags("mobile");
 test("change setting on nav bar click in base settings on mobile", async () => {
     await mountView({
@@ -319,14 +356,8 @@ test("change setting on nav bar click in base settings on mobile", async () => {
     expect(".o_form_editable").not.toHaveClass("o_form_nosheet");
     expect(".app_settings_block:not(.d-none) .app_settings_header").toHaveCount(1);
     expect(".o_setting_box a").toHaveCount(2);
-    expect(".o_setting_box span.fa:eq(0)").toHaveAttribute(
-        "title",
-        "this is bar info"
-    );
-    expect(".o_setting_box span.fa:eq(1)").toHaveAttribute(
-        "title",
-        "this is foo info"
-    );
+    expect(".o_setting_box span.fa:eq(0)").toHaveAttribute("title", "this is bar info");
+    expect(".o_setting_box span.fa:eq(1)").toHaveAttribute("title", "this is foo info");
     expect(".o_setting_box a:eq(0)").toHaveAttribute(
         "href",
         "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
@@ -1279,10 +1310,8 @@ test("click on save button which throws an error", async () => {
     expect(".o_form_button_save").toHaveCount(1);
     expect(".o_form_button_save").toHaveProperty("disabled", false);
 
-    await click(".o_field_boolean input[type='checkbox']");
-    await animationFrame();
-    await click(".o_form_button_save");
-    await animationFrame();
+    await contains(".o_field_boolean input[type='checkbox']").click();
+    await contains(".o_form_button_save").click();
     // error are caught asynchronously, so we have to wait for an extra animationFrame, for the error dialog to be mounted
     await animationFrame();
     expect.verifyErrors(["RPC_ERROR"]);
@@ -1368,7 +1397,7 @@ test("clicking a button with dirty settings -- discard", async () => {
         arch: /* xml */ `
             <form js_class="base_settings">
                 <app string="CRM" name="crm">
-                    <field name="product_ids" widget="many2many_tags" options="{ 'color_field': 'color' }"/>
+                    <field name="product_ids" widget="many2many_tags" options="{ 'color_field': 'color', 'on_tag_click': 'edit_color' }"/>
                     <field name="bar" />
                     <field name="foo" />
                     <button type="object" name="mymethod" class="myBtn"/>
@@ -1630,7 +1659,7 @@ test("settings can contain one2many fields", async () => {
         `,
     });
 
-    await click(".o_field_x2many_list_row_add a");
+    await click(".o_field_x2many_list_row_add button");
     await animationFrame();
     await click(".modal-body input");
     await edit("Added Task");

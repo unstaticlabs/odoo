@@ -1,9 +1,9 @@
+import { SIGNATURE_CLASS } from "@html_editor/main/user_signature_plugin";
 import { wrapInlinesInBlocks } from "@html_editor/utils/dom";
 import { childNodes } from "@html_editor/utils/dom_traversal";
 
 import { Composer } from "@mail/core/common/composer";
-
-import { markup } from "@odoo/owl";
+import { getInnerHtml } from "@mail/utils/common/html";
 
 import { createDocumentFragmentFromContent } from "@web/core/utils/html";
 import { patch } from "@web/core/utils/patch";
@@ -25,7 +25,7 @@ patch(Composer.prototype, {
         if (signature) {
             const signatureEl = renderToElement("html_editor.Signature", {
                 signature,
-                signatureClass: "o-signature-container",
+                signatureClass: SIGNATURE_CLASS,
             });
             fragment.append(document.createElement("BR"));
             fragment.append(signatureEl);
@@ -33,6 +33,6 @@ patch(Composer.prototype, {
         const container = document.createElement("DIV");
         container.append(...childNodes(fragment));
         wrapInlinesInBlocks(container, { baseContainerNodeName: "DIV" });
-        return markup(container.innerHTML);
+        return getInnerHtml(container);
     },
 });

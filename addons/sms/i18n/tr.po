@@ -18,26 +18,26 @@
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
 # Halil, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 22:17+0000\n"
+"PO-Revision-Date: 2025-11-28 12:49+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/sms/tr/>"
-"\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/sms/tr/"
+">\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -174,8 +174,8 @@ msgstr ""
 "olarak gönderilecektir.\n"
 "                                    mesajlaşma geçmişinde dahili not.\n"
 "                               </span>\n"
-"                                <span invisible=\"sms_method != 'comment'\">"
-"\n"
+"                                <span invisible=\"sms_method != "
+"'comment'\">\n"
 "                                    SMS, aşağıdaki alıcılara bir SMS olarak "
 "gönderilecektir\n"
 "                                    şablonu ile birlikte dahili bir not "
@@ -218,6 +218,12 @@ msgid ""
 msgstr ""
 "Bu şablonla bir sms yazarı açmak için ilgili modele bağlamsal bir işlem "
 "ekleyin"
+
+#. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
@@ -293,10 +299,7 @@ msgid "Buy credits."
 msgstr "Kredi satın alın."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "İptal"
@@ -331,8 +334,8 @@ msgstr "Gönderen adınızı seçin"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -423,12 +426,6 @@ msgid "Delivered"
 msgstr "Teslim Edilen"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Sil"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -451,8 +448,8 @@ msgstr "İsim Göster"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Belge Takipçileri"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -520,7 +517,8 @@ msgstr "Başarısızlık türü"
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_template__template_fs
 msgid "File from where the template originates. Used to reset broken template."
-msgstr "Şablonun kaynaklandığı dosya. Bozuk şablonu sıfırlamak için kullanılır."
+msgstr ""
+"Şablonun kaynaklandığı dosya. Bozuk şablonu sıfırlamak için kullanılır."
 
 #. module: sms
 #. odoo-python
@@ -580,9 +578,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -715,6 +713,12 @@ msgid "Marked for deletion"
 msgstr "Silinmek üzere işaretlendi"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -723,8 +727,8 @@ msgstr "Mesaj"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Mesaj Bildirimleri"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -736,8 +740,8 @@ msgstr "Kayıp Numara"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Modeller"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -816,8 +820,8 @@ msgid ""
 msgstr ""
 "Bir e-posta gönderirken seçmek için isteğe bağlı çeviri dili (ISO kodu). "
 "Ayarlanmazsa, ana ortağın dili kullanılacaktır. Bu genellikle uygun dili "
-"sağlayan bir yer tutucu ifade olmalıdır, örneğin {{ object.partner_id.lang }}"
-"."
+"sağlayan bir yer tutucu ifade olmalıdır, örneğin "
+"{{ object.partner_id.lang }}."
 
 #. module: sms
 #: model:ir.model,name:sms.model_sms_sms
@@ -1028,9 +1032,9 @@ msgstr "SMS Hesap Doğrulama Kodu Sihirbazı"
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1130,7 +1134,8 @@ msgstr "SMS içeriği"
 #. odoo-python
 #: code:addons/sms/models/ir_actions_server.py:0
 msgid "SMS template model of %(action_name)s does not match action model."
-msgstr "%(action_name)s adresinin SMS şablon modeli eylem modeliyle eşleşmiyor."
+msgstr ""
+"%(action_name)s adresinin SMS şablon modeli eylem modeliyle eşleşmiyor."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_sms__sms_tracker_id
@@ -1300,6 +1305,12 @@ msgstr "Şimdilik atla"
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "SMS Şablonu"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1694,264 +1705,3 @@ msgstr "kayıt:"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid ""
-#~ "%s out of the %s selected SMS Text Messages have successfully been resent."
-#~ msgstr "%s seçilen SMS Metin Mesajlarından %s başarıyla yeniden gönderildi."
-
-#~ msgid ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">No records</span>"
-#~ msgstr ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">Kayıt yok</span>"
-
-#~ msgid "Action Needed"
-#~ msgstr "Eylem Gerekiyor"
-
-#~ msgid "Action To Do"
-#~ msgstr "Yapılması Gerekenler"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Ek Sayısı"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Karalisteye alınan telefon cep telefonudur"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "Karalisteye alınan telefon sabit telefondur"
-
-#~ msgid "Buy credits"
-#~ msgstr "Kredi Satınal"
-
-#~ msgid "Can Cancel"
-#~ msgstr "İptal Edebilir"
-
-#~ msgid "Can Resend"
-#~ msgstr "Yeniden Gönderilebilir"
-
-#~ msgid "Canceled"
-#~ msgstr "İptal Edildi"
-
-#~ msgid ""
-#~ "Choose method for SMS sending:\n"
-#~ "SMS: mass SMS\n"
-#~ "Post as Message: log on document\n"
-#~ "Post as Note: mass SMS with archives"
-#~ msgstr ""
-#~ "SMS gönderme yöntemini seçin:\n"
-#~ "SMS: toplu SMS\n"
-#~ "Mesaj Olarak Gönder: belgede oturum aç\n"
-#~ "Not Olarak Gönder: arşivli toplu SMS"
-
-#~ msgid "Close"
-#~ msgstr "Kapat"
-
-#~ msgid "Edit Partners"
-#~ msgstr "İş Ortaklarını Düzenle"
-
-#~ msgid "Error Message"
-#~ msgstr "Hata Mesajı"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "Düzeltilmiş telefon numarasını depolamak için kullanılan alan. Aramaları "
-#~ "ve karşılaştırmaları hızlandırmaya yardımcı olur."
-
-#~ msgid "Followers"
-#~ msgstr "Takipçiler"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Takipçiler (İş ortakları)"
-
-#~ msgid "Has Insufficient Credit"
-#~ msgstr "Kredisi Yetersiz"
-
-#~ msgid "Has Message"
-#~ msgstr "Mesaj Var"
-
-#~ msgid "Has Unregistered Account"
-#~ msgstr "Kayıtlı Olmayan Hesabı Var"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "İşaretliyse, yeni mesajlar dikkatinize sunulacak."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "Temizlenen telefon numarası kara listedeyse, kişi artık herhangi bir "
-#~ "listeden toplu e-posta sms almaz"
-
-#~ msgid "Ignore all"
-#~ msgstr "Hepsini Yoksay"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Kara listeye alınmış, temizlenmiş bir telefon numarasının bir cep "
-#~ "telefonu numarası olup olmadığını gösterir. Bir modelde hem cep telefonu "
-#~ "hem de telefon alanı olduğunda hangi numaranın kara listeye alındığını "
-#~ "ayırt etmeye yardımcı olur."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Kara listeye alınmış, temizlenmiş bir telefon numarasının bir telefon "
-#~ "numarası olup olmadığını gösterir. Bir modelde hem cep telefonu hem de "
-#~ "telefon alanı olduğunda hangi numaranın kara listeye alındığını ayırt "
-#~ "etmeye yardımcı olur."
-
-#~ msgid "Is Follower"
-#~ msgstr "Takipçi"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Mesaj Teslim hatası"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Mesaj türü: e-posta mesajı için e-posta, sistem mesajı için bildirim,bir "
-#~ "kullanıcı cevaplar gibi diğer mesajlar için Yorum"
-
-#~ msgid "Messages"
-#~ msgstr "Mesajlar"
-
-#~ msgid "Notification"
-#~ msgstr "Bildirimler"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Eylemlerin Adedi"
-
-#~ msgid "Number of errors"
-#~ msgstr "Hata adedi"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Eylem gerektiren mesaj adedi"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Teslimat hatası olan mesaj adedi"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "E-posta gönderirken seçmek için isteğe bağlı çeviri dili (ISO kodu). "
-#~ "Ayarlanmazsa, İngilizce sürüm kullanılacaktır. Bu genellikle uygun dili "
-#~ "sağlayan bir yer tutucu ifadesi olmalıdır, örn. "
-#~ "{{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "İş Ortağı"
-
-#~ msgid "Phone Blacklist Mixin"
-#~ msgstr "Telefon Kara Listesi Karması"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Kara Listeye Alınmış Telefon"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefon/Mobil"
-
-#~ msgid "Post as Message"
-#~ msgstr "Mesaj Olarak Gönder"
-
-#~ msgid "Post as Note"
-#~ msgstr "Not Olarak Gönder"
-
-#~ msgid "Reason"
-#~ msgstr "Sebep"
-
-#~ msgid "Recipient"
-#~ msgstr "Alıcı"
-
-#~ msgid "Recipient Name"
-#~ msgstr "Alıcı Adı"
-
-#~ msgid "Recipients"
-#~ msgstr "Alıcılar"
-
-#~ msgid "Resend Notification"
-#~ msgstr "Bildirimi Tekrar Gönder"
-
-#~ msgid "SMS API"
-#~ msgstr "SMS API"
-
-#~ msgid "SMS Resend"
-#~ msgstr "SMS Yeniden Gönder"
-
-#~ msgid "Send & Close"
-#~ msgstr "Gönder ve Kapat"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "SMS Metin Mesajı Gönderin"
-
-#~ msgid "Send as"
-#~ msgstr "Olarak gönder"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "(SMS) olarak gönder"
-
-#~ msgid "Sending Failures"
-#~ msgstr "Gönderme Hataları"
-
-#~ msgid "Sending SMS can only be done on a mail.thread or a transient model"
-#~ msgstr ""
-#~ "SMS gönderme yalnızca mail.thread veya geçici bir modelde yapılabilir"
-
-#~ msgid "Set up an account"
-#~ msgstr "Hesap oluşturma"
-
-#~ msgid "Sms Resend"
-#~ msgstr "SMS Yeniden Gönder"
-
-#~ msgid "Try Again"
-#~ msgstr "Tekrar deneyin"
-
-#~ msgid ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-#~ msgstr ""
-#~ "Sunucu eylemi türü. Aşağıdaki değerler mevcuttur:\n"
-#~ "- 'Python Kodunu Yürüt': yürütülecek bir python kodu bloğu\n"
-#~ "- 'Yeni Kayıt Oluştur': yeni değerlerle yeni bir kayıt oluşturun\n"
-#~ "- 'Bir Kaydı Güncelle': bir kaydın değerlerini güncelleyin\n"
-#~ "- 'Birkaç eylemi yürütün': diğer birkaç sunucu eylemini tetikleyen bir "
-#~ "eylem tanımlayın\n"
-#~ "- 'E-posta Gönder': bir mesaj, not gönderin veya bir e-posta gönderin "
-#~ "(Tartış)\n"
-#~ "- 'Takipçi Ekle': Bir kayda takipçi ekleyin (Tartış)\n"
-#~ "- 'Sonraki Aktiviteyi Oluştur': bir aktivite oluşturun (Tartış)\n"
-#~ "- 'SMS Metin Mesajı Gönder': SMS gönderin, belgelere kaydedin (SMS)"
-
-#~ msgid "Use blacklist"
-#~ msgstr "Kullanıcı Kara Liste"
-
-#~ msgid "Website Messages"
-#~ msgstr "Websitesi Mesajları"
-
-#~ msgid "Website communication history"
-#~ msgstr "Websitesi iletişim geçmişi"
-
-#~ msgid "You do not have access to the message and/or related document."
-#~ msgstr "Mesaja ve / veya ilgili belgeye erişiminiz yok."
-
-#~ msgid "characters, fits in"
-#~ msgstr "karakterler, uyum"

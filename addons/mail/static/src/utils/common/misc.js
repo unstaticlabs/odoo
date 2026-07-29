@@ -1,7 +1,6 @@
-import { reactive } from "@odoo/owl";
+import { reactive, useEffect } from "@odoo/owl";
 import { AssetsLoadingError, getBundle } from "@web/core/assets";
 import { memoize } from "@web/core/utils/functions";
-import { rpc } from "@web/core/network/rpc";
 import { effect } from "@web/core/utils/reactive";
 
 export function assignDefined(obj, data, keys = Object.keys(data)) {
@@ -64,15 +63,6 @@ export function nearestGreaterThanOrEqual(list, target, itemToCompareVal) {
 export const mailGlobal = {
     isInTest: false,
 };
-
-/**
- * Use `rpc` instead.
- *
- * @deprecated
- */
-export function rpcWithEnv() {
-    return rpc;
-}
 
 // todo: move this some other place in the future
 export function isDragSourceExternalFile(dataTransfer) {
@@ -158,8 +148,16 @@ function compareVersion(v1, v2) {
     const parts2 = v2.split(".");
 
     for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-        const num1 = parseInt(parts1[i]) || 0;
-        const num2 = parseInt(parts2[i]) || 0;
+        let rawPart1 = parts1[i];
+        let rawPart2 = parts2[i];
+        if (typeof rawPart1 === "string" && rawPart1.startsWith("saas~")) {
+            rawPart1 = rawPart1.substring("saas~".length);
+        }
+        if (typeof rawPart2 === "string" && rawPart2.startsWith("saas~")) {
+            rawPart2 = rawPart2.substring("saas~".length);
+        }
+        const num1 = parseInt(rawPart1) || 0;
+        const num2 = parseInt(rawPart2) || 0;
         if (num1 < num2) {
             return -1;
         }
@@ -235,17 +233,44 @@ export const hasHardwareAcceleration = memoize(() => {
 });
 
 /**
+ * A hook that repeatedly calls a function with dynamically computed
+ * intervals.
+ *
+ * @template D type of dependencies
+ * @param {(...dependencies: D) => Number|void} fn A callback that is
+ * invoked initially, after dependencies change (if the dependencies are
+ * wrapped in `useState` or otherwise triggers a re-render) or when the
+ * delay has passed. Returning a falsy value cancels the interval.
+ * @param {() => D} dependencies Returns an array of dependencies.
+ */
+export function useDynamicInterval(fn, dependencies) {
+    useEffect((...dependencies) => {
+        let timer;
+        function tick() {
+            const nextDelay = fn(...dependencies);
+            if (nextDelay) {
+                timer = setTimeout(tick, Math.ceil(nextDelay));
+            }
+        }
+        tick();
+        return () => clearTimeout(timer);
+    }, dependencies);
+}
+
+/**
  * Runs a reactive effect whenever the dependencies change. The effect receives
  * the current values returned by `dependencies`. If the effect returns a
  * cleanup function, it is run before the next execution.
  *
- * @template {object[]} T
+ * @template T - type of reactive targets
+ * @template D - type of dependencies
  * @param {Object} options
- * @param {(...dependencies: any[]) => void | (() => void)} options.effect The
- *        effect callback. May return a cleanup function.
- * @param {(...args: [...T]) => Object|Array} options.dependencies Returns an array of
+ * @param {(dependencies: D) => (() => void) | void} options.effect The effect
+ *        callback. May return a cleanup function.
+ * @param {(...targets: T) => D} options.dependencies Returns an array/object of
  *        values to track. The effect is called only if these values change.
- * @param {[...T]} options.reactiveTargets Objects that the effect depends on.
+ * @param {[...T]} options.reactiveTargets Array of reactive objects that the
+ * effect depends on.
  */
 export function effectWithCleanup({ effect: effectFn, dependencies, reactiveTargets }) {
     let cleanup;

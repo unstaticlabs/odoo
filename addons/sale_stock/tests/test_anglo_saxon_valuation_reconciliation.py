@@ -192,7 +192,7 @@ class TestValuationReconciliationCommon(TestStockValuationCommon, TestSaleStockC
             'product_id': product.id,
             'location_id': self.env.ref('stock.stock_location_suppliers').id,
             'location_dest_id': stock_loc.id,
-            'product_uom': self.env.ref('uom.product_uom_unit').id,
+            'uom_id': self.env.ref('uom.product_uom_unit').id,
             'product_uom_qty': quantity,
             'price_unit': product.standard_price + 1,
             'picking_type_id': in_type.id,

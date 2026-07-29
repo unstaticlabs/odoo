@@ -3,13 +3,15 @@
 from odoo import Command
 from odoo.tests import Form
 
-from odoo.addons.project_purchase.tests.test_project_profitability import TestProjectPurchaseProfitability
+from odoo.addons.purchase.tests.test_purchase_invoice import TestPurchaseToInvoiceCommon
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
-class TestProjectPurchase(TestProjectPurchaseProfitability):
+class TestProjectPurchase(TestPurchaseToInvoiceCommon, AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env.user.group_ids += cls.env.ref('project.group_project_manager')
         cls.project_plan, _other_plans = cls.env['account.analytic.plan']._get_all_plans()
         cls.proj_analytic_account = cls.env['account.analytic.account'].create({
             'name': 'AA of Project',
@@ -21,6 +23,7 @@ class TestProjectPurchase(TestProjectPurchaseProfitability):
         })
 
         # Create additional analytic plans at setup to avoid adding fields in project.project between tests
+        cls.analytic_plan = cls.env['account.analytic.plan'].create({'name': 'Plan A'})
         cls.analytic_plan_1 = cls.env['account.analytic.plan'].create({'name': 'Purchase Project Plan 1'})
         cls.analytic_plan_2 = cls.env['account.analytic.plan'].create({'name': 'Purchase Project Plan 2'})
         cls.analytic_account_1 = cls.env['account.analytic.account'].create({
@@ -30,6 +33,11 @@ class TestProjectPurchase(TestProjectPurchaseProfitability):
         cls.analytic_account_2 = cls.env['account.analytic.account'].create({
             'name': 'Analytic Account - Plan 2',
             'plan_id': cls.analytic_plan_2.id,
+        })
+        cls.analytic_account = cls.env['account.analytic.account'].create({
+            'name': 'Project - AA',
+            'code': 'AA-1234',
+            'plan_id': cls.analytic_plan.id,
         })
 
     def test_project_on_pol_with_analytic_distribution_model(self):

@@ -20,6 +20,7 @@ class ForumPost(models.Model):
     _inherit = [
         'mail.thread',
         'website.seo.metadata',
+        'website.located.mixin',
         'website.searchable.mixin',
     ]
     _order = "is_correct DESC, vote_count DESC, last_activity_date DESC"
@@ -42,7 +43,6 @@ class ForumPost(models.Model):
     views = fields.Integer('Views', default=0, readonly=True, copy=False)
     active = fields.Boolean('Active', default=True)
     website_message_ids = fields.One2many(domain=lambda self: [('model', '=', self._name), ('message_type', 'in', ['email', 'comment', 'email_outgoing'])])
-    website_url = fields.Char('Website URL', compute='_compute_website_url')
     website_id = fields.Many2one(related='forum_id.website_id', readonly=True)
 
     # history
@@ -296,9 +296,9 @@ class ForumPost(models.Model):
 
     def _default_website_meta(self):
         res = super()._default_website_meta()
-        res['default_opengraph']['og:title'] = res['default_twitter']['twitter:title'] = self.name
-        res['default_opengraph']['og:description'] = res['default_twitter']['twitter:description'] = self.plain_content
-        res['default_opengraph']['og:image'] = res['default_twitter']['twitter:image'] = self.env['website'].image_url(self.create_uid, 'image_1024')
+        res['default_opengraph']['og:title'] = self.name
+        res['default_opengraph']['og:description'] = self.plain_content
+        res['default_opengraph']['og:image'] = self.env['website'].image_url(self.create_uid, 'image_1024')
         res['default_twitter']['twitter:card'] = 'summary'
         res['default_meta_description'] = self.plain_content
         return res
@@ -729,11 +729,10 @@ class ForumPost(models.Model):
     # ----------------------------------------------------------------------
 
     def _mail_get_operation_for_mail_message_operation(self, message_operation):
+        operations = super()._mail_get_operation_for_mail_message_operation(message_operation)
         if message_operation in ('write', 'unlink'):
-            filtered_self = self.filtered(lambda post: post.can_edit)
-        else:
-            filtered_self = self
-        return super(ForumPost, filtered_self)._mail_get_operation_for_mail_message_operation(message_operation)
+            operations = [(Domain('can_edit', '=', True) & domain, op) for domain, op in operations]
+        return operations
 
     def _notify_get_recipients_groups(self, message, model_description, msg_vals=False):
         groups = super()._notify_get_recipients_groups(
@@ -853,11 +852,12 @@ class ForumPost(models.Model):
     def _search_get_detail(self, website, order, options):
         with_description = options['displayDescription']
         with_date = options['displayDetail']
-        search_fields = ['name']
-        fetch_fields = ['id', 'name', 'website_url']
+        search_fields = ['name', 'tag_ids.name']
+        fetch_fields = ['id', 'name', 'website_url', 'tag_ids']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
+            'tags': {'name': 'tag_ids', 'type': 'tags', 'match': True},
         }
 
         domain = website.website_domain()
@@ -921,6 +921,7 @@ class ForumPost(models.Model):
         for post, data in zip(self, results_data):
             if with_date:
                 data['date'] = self.env['ir.qweb.field.date'].record_to_html(post, 'write_date', {})
+            data['tag_ids'] = post.tag_ids.read(['name'])
         return results_data
 
     def _get_related_posts(self, limit=5):
@@ -933,26 +934,35 @@ class ForumPost(models.Model):
 
         if not self.tag_ids:
             return self.env['forum.post']
-
-        self.env.cr.execute(SQL("""
-            SELECT forum_post.id,
-              -- Jaccard similarity
-                   (COUNT(DISTINCT intersection_tag_rel.forum_tag_id))::DECIMAL
-                   / COUNT(DISTINCT union_tag_rel.forum_tag_id)::DECIMAL AS similarity
-              FROM forum_post
-              -- common tags (intersection)
-              JOIN forum_tag_rel AS intersection_tag_rel
-                ON intersection_tag_rel.forum_post_id = forum_post.id
-               AND intersection_tag_rel.forum_tag_id = ANY(%(tag_ids)s)
-              -- union tags
-        RIGHT JOIN forum_tag_rel AS union_tag_rel
-                ON union_tag_rel.forum_post_id = forum_post.id
-                OR union_tag_rel.forum_post_id = %(current_post_id)s
-             WHERE id != %(current_post_id)s
-          GROUP BY forum_post.id
-          ORDER BY similarity DESC,
-                   forum_post.last_activity_date DESC
-             LIMIT %(limit)s
+        # Jaccard Similarity
+        # Formula: J(A,B) = |A ∩ B| / |A ∪ B|  # noqa: RUF003
+        #                 = |A ∩ B| / (|A| + |B| - |A ∩ B|)
+        #  A = set of tags of the current post
+        #  B = set of tags of the candidate post
+        # |S| = size of the set S
+        self.env.cr.execute(SQL(
+            """
+            WITH candidates AS (
+                -- intersection: posts that share at least one tag with the current post
+                SELECT forum_post_id, COUNT(forum_tag_id) AS intersection_count
+                  FROM forum_tag_rel
+                 WHERE forum_tag_id = ANY(%(tag_ids)s)
+                   AND forum_post_id != %(current_post_id)s
+              GROUP BY forum_post_id
+            )
+            SELECT p.id,
+                (c.intersection_count::DECIMAL /
+                (
+                    -- union: |A| + |B| - |A ∩ B|
+                    cardinality(%(tag_ids)s) +                                      -- |A|
+                    (SELECT COUNT(*) FROM forum_tag_rel WHERE forum_post_id = p.id) -- |B|
+                    - c.intersection_count                                          -- |A ∩ B|
+                )::DECIMAL) AS similarity
+            FROM candidates c
+            JOIN forum_post p
+              ON p.id = c.forum_post_id
+        ORDER BY similarity DESC, p.last_activity_date DESC
+           LIMIT %(limit)s;
         """, current_post_id=self.id, tag_ids=self.tag_ids.ids, limit=limit))
 
         result = self.env.cr.dictfetchall()

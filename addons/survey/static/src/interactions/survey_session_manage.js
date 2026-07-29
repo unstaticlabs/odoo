@@ -11,6 +11,8 @@ const nextPageTooltips = {
     closingWords: _t("End of Survey"),
     leaderboard: _t("Show Leaderboard"),
     leaderboardFinal: _t("Show Final Leaderboard"),
+    scoreboard: _t("Show Scoreboard"),
+    scoreboardFinal: _t("Show Final Scoreboard"),
     nextQuestion: _t("Next"),
     results: _t("Show Correct Answer(s)"),
     startScreen: _t("Start"),
@@ -90,6 +92,7 @@ export class SurveySessionManage extends Interaction {
         this.isStartScreen = this.el.dataset.isStartScreen;
         this.isFirstQuestion = this.el.dataset.isFirstQuestion;
         this.isLastQuestion = this.el.dataset.isLastQuestion;
+        this.allParticipantsShown = this.el.dataset.allParticipantsShown;
         this.surveyLastTriggeringAnswers = JSON.parse(
             this.el.dataset.surveyLastTriggeringAnswers || "[]"
         );
@@ -210,13 +213,16 @@ export class SurveySessionManage extends Interaction {
      *
      * @param {Event} ev
      */
-    onNext(ev) {
+    async onNext(ev) {
         const screenToDisplay = this.getNextScreen();
         switch (screenToDisplay) {
             case "userInputs":
                 this.chartUpdateState({ showInputs: true });
                 break;
             case "results":
+                await this.waitFor(
+                    rpc(`/survey/session/disable_answers/${this.surveyAccessToken}`)
+                );
                 this.chartUpdateState({ showAnswers: true });
                 // when showing results, stop refreshing answers
                 clearInterval(this.resultsRefreshInterval);
@@ -480,10 +486,10 @@ export class SurveySessionManage extends Interaction {
      *
      * @param {KeyboardEvent} ev
      */
-    onKeyDown(ev) {
+    async onKeyDown(ev) {
         const hotkey = getActiveHotkey(ev);
         if (hotkey === "arrowright" || hotkey === "space") {
-            this.onNext(ev);
+            await this.onNext(ev);
         } else if (hotkey === "arrowleft") {
             this.onBack(ev);
         }
@@ -537,9 +543,9 @@ export class SurveySessionManage extends Interaction {
         ) {
             tooltip = nextPageTooltips.closingWords;
         } else {
-            const nextScreen = this.getNextScreen();
-            if (nextScreen === "nextQuestion" || this.surveyHasConditionalQuestions) {
-                tooltip = nextPageTooltips.nextQuestion;
+            let nextScreen = this.getNextScreen();
+            if (nextScreen.startsWith("leaderboard") && this.allParticipantsShown) {
+                nextScreen = nextScreen.replace('leaderboard', 'scoreboard');
             }
             tooltip = nextPageTooltips[nextScreen];
         }
@@ -591,7 +597,7 @@ export class SurveySessionManage extends Interaction {
         if (this.timerEl && !questionTimeLimitReached && !hasAnswered && timeLimitMinutes) {
             this.addListener(surveyManagerEl, "time_up", async () => {
                 if (this.currentScreen === "question" && this.isScoredQuestion) {
-                    this.onNext();
+                    await this.onNext();
                 }
             });
             this.timerEl.dispatchEvent(

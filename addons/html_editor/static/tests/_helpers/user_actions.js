@@ -2,6 +2,7 @@ import { closestBlock, isBlock } from "@html_editor/utils/blocks";
 import { findInSelection } from "@html_editor/utils/selection";
 import {
     animationFrame,
+    advanceTime,
     click,
     manuallyDispatchProgrammaticEvent,
     press,
@@ -13,8 +14,17 @@ import { execCommand } from "./userCommands";
 import { isMobileOS } from "@web/core/browser/feature_detection";
 import { isTextNode } from "@html_editor/utils/dom_info";
 import { closestElement } from "@html_editor/utils/dom_traversal";
+import { STEP_DEBOUNCE_DELAY } from "@html_editor/core/history_plugin";
 
 /** @typedef {import("@html_editor/plugin").Editor} Editor */
+
+/**
+ * Makes enough time pass to ensure that undo/redo will not collapse
+ * steps before and after this call.
+ */
+export async function ensureDistinctHistoryStep() {
+    await advanceTime(STEP_DEBOUNCE_DELAY + 1);
+}
 
 /**
  * Simulates text insertion in the editor by dispatching keyboard/input events
@@ -88,6 +98,9 @@ export async function insertText(editor, text) {
 }
 
 /**
+ * Inserts space in the editor by dispatching keyboard/input events
+ * for space character and inserting it into the current selection's position.
+ *
  * @param {Editor} editor
  */
 export async function insertSpace(editor) {
@@ -113,8 +126,10 @@ export async function insertSpace(editor) {
     if (!range.collapsed) {
         throw new Error("need to implement something... maybe");
     }
+
     // mimic the behavior of the browser when inserting a &nbsp
     document.execCommand("insertText", false, " ");
+
     const [inputEvent] = await manuallyDispatchProgrammaticEvent(editor.editable, "input", {
         inputType: "insertText",
         data: " ",
@@ -323,16 +338,16 @@ export function resetSize(editor) {
     editor.shared.table.resetTableSize(findInSelection(selection, "tbody"));
 }
 /** @param {Editor} editor */
-export function alignLeft(editor) {
-    execCommand(editor, "alignLeft");
+export function alignStart(editor) {
+    execCommand(editor, "alignStart");
 }
 /** @param {Editor} editor */
 export function alignCenter(editor) {
     execCommand(editor, "alignCenter");
 }
 /** @param {Editor} editor */
-export function alignRight(editor) {
-    execCommand(editor, "alignRight");
+export function alignEnd(editor) {
+    execCommand(editor, "alignEnd");
 }
 /** @param {Editor} editor */
 export function justify(editor) {

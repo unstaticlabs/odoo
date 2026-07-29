@@ -13,14 +13,14 @@
 # Marcelo Pereira <marcelo.pereira@arxi.pt>, 2022
 # Pedro Castro Silva <pedrocs@exo.pt>, 2022
 # Manuela Silva <mmsrs@sky.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 13:26+0000\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-11-16 15:08+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.odoo.com/projects/odoo-19/"
 "base_automation/pt/>\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_automation
 #. odoo-javascript
@@ -90,8 +90,8 @@ msgid ""
 "<code>payload</code>: the payload of the call (GET parameters, JSON body), "
 "as a dict."
 msgstr ""
-"<code>carga útil</code>: a carga útil da chamada (parâmetros GET, corpo JSON)"
-", como um dict."
+"<code>carga útil</code>: a carga útil da chamada (parâmetros GET, corpo "
+"JSON), como um dict."
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -99,8 +99,8 @@ msgid ""
 "<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
 "<code>timezone</code>: useful Python libraries"
 msgstr ""
-"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, <code>"
-"timezone</code>: bibliotecas Python úteis"
+"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
+"<code>timezone</code>: bibliotecas Python úteis"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_kanban
@@ -167,6 +167,11 @@ msgstr "Atividades"
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Marcador de Exceções de Atividade"
+
+#. module: base_automation
+#: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_state
@@ -530,8 +535,8 @@ msgstr "Nome do Modelo"
 #. odoo-python
 #: code:addons/base_automation/models/ir_actions_server.py:0
 msgid ""
-"Model of action %(action_name)s should match the one from automated rule %"
-"(rule_name)s."
+"Model of action %(action_name)s should match the one from automated rule "
+"%(rule_name)s."
 msgstr ""
 "O modelo da ação %(action_name)s deve corresponder a uma das regras de "
 "automação %(rule_name)s."
@@ -690,13 +695,9 @@ msgstr "Erro no envio de SMS"
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
+#: model:ir.model,name:base_automation.model_ir_cron
 msgid "Scheduled Action"
 msgstr "Ação Agendada"
-
-#. module: base_automation
-#: model:ir.model,name:base_automation.model_ir_cron
-msgid "Scheduled Actions"
-msgstr "Ações Agendadas"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -825,8 +826,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid ""
-"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the \"%"
-"(state_value)s\" action type"
+"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the "
+"\"%(state_value)s\" action type"
 msgstr ""
 "%(trigger_label)s \"%(trigger_value)s\" pode ser utilizado apenas com o tipo "
 "de ação \"%(state_value)s\""
@@ -1046,12 +1047,3 @@ msgstr "Nenhuma ação definida…"
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "path"
 msgstr ""
-
-#~ msgid "Action Name"
-#~ msgstr "Nome da Ação"
-
-#~ msgid "Delay after trigger date"
-#~ msgstr "Atraso depois da data limite"
-
-#~ msgid "Delay type"
-#~ msgstr "Tipo de atraso"

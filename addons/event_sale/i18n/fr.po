@@ -6,15 +6,16 @@
 # Cécile Collart <cco@odoo.com>, 2022
 # Martin Trigaux, 2023
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Manon Rondou (ronm)" <ronm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:27+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2026-01-08 09:16+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-1/"
 "event_sale/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
@@ -58,6 +59,11 @@ msgstr "<span>Modification de l'inscription du participant :</span>"
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
 msgid "Add"
 msgstr "Ajouter"
+
+#. module: event_sale
+#: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__additional_product_ids
+msgid "Additional Products"
+msgstr "Produits supplémentaires"
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
@@ -352,16 +358,16 @@ msgstr "ID"
 #: code:addons/event_sale/wizard/event_configurator.py:0
 msgid "Invalid slot choice \"%(slot_name)s\" for event \"%(event_name)s\"."
 msgstr ""
-"Choix de créneau invalide \"%(slot_name)s\" pour l'événement \"%(event_name)"
-"s\"."
+"Choix de créneau invalide \"%(slot_name)s\" pour l'événement "
+"\"%(event_name)s\"."
 
 #. module: event_sale
 #. odoo-python
 #: code:addons/event_sale/wizard/event_configurator.py:0
 msgid "Invalid ticket choice \"%(ticket_name)s\" for event \"%(event_name)s\"."
 msgstr ""
-"Choix de ticket \"%(ticket_name)s\" invalide pour l'événement \"%(event_name)"
-"s\"."
+"Choix de ticket \"%(ticket_name)s\" invalide pour l'événement "
+"\"%(event_name)s\"."
 
 #. module: event_sale
 #: model:ir.model.fields,field_description:event_sale.field_event_sale_report__invoice_partner_id
@@ -578,6 +584,15 @@ msgid "Select an Event"
 msgstr "Sélectionner un évènement"
 
 #. module: event_sale
+#: model:ir.model.fields,help:event_sale.field_event_event_configurator__additional_product_ids
+msgid ""
+"Select products to include with each registration. They will also show up "
+"separately on Sale Orders."
+msgstr ""
+"Sélectionnez les produits à inclure dans chaque inscription. Ils "
+"apparaîtront également séparément sur les commandes clients."
+
+#. module: event_sale
 #. odoo-python
 #: code:addons/event_sale/models/event_registration.py:0
 #: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__event_slot_id
@@ -692,124 +707,3 @@ msgstr "veuillez donner les détails des participants."
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
 msgid "to"
 msgstr "au"
-
-#~ msgid ""
-#~ "<span>Not enough seats available. All registrations were created as "
-#~ "\"Unconfirmed\" and can be updated later on.</span>"
-#~ msgstr ""
-#~ "<span>Pas assez de places disponibles. Toutes les inscriptions ont été "
-#~ "créées comme \"Non confirmées\" et peuvent être mises à jour "
-#~ "ultérieurement.</span>"
-
-#~ msgid ""
-#~ "A description of the ticket that you want to communicate to your "
-#~ "customers."
-#~ msgstr "Description du ticket à communiquer à vos clients."
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Un produit stockable est un produit dont on gère le stock. L'application "
-#~ "\"Inventaire\" doit être installée. \n"
-#~ "Un produit consommable est un produit pour lequel le stock n'est pas "
-#~ "géré.\n"
-#~ "Un service est un produit immatériel que vous fournissez."
-
-#~ msgid "Cancel"
-#~ msgstr "Annuler"
-
-#~ msgid "Configure an event"
-#~ msgstr "Configurer un événement"
-
-#~ msgid "Currency"
-#~ msgstr "Devise"
-
-#~ msgid "Description"
-#~ msgstr "Description"
-
-#~ msgid "Event Registration - Standard"
-#~ msgstr "Inscription à l'événement - Standard"
-
-#~ msgid "Event Registration - VIP"
-#~ msgstr "Inscription à l'événement - VIP"
-
-#~ msgid "Event Template Ticket"
-#~ msgstr "Modèle de ticket d'événement"
-
-#~ msgid "Event Tickets"
-#~ msgstr "Tickets d'événement"
-
-#~ msgid "Group By"
-#~ msgstr "Regrouper par"
-
-#~ msgid "Is Paid"
-#~ msgstr "Est payé"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Pièce comptable"
-
-#~ msgid "Locked"
-#~ msgstr "Bloqué"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobile"
-
-#~ msgid "Not Paid"
-#~ msgstr "Non payé"
-
-#~ msgid "Not enough seats for all registrations"
-#~ msgstr "Pas assez de places pour toutes les inscriptions"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Order Ref"
-#~ msgstr "Réf. de la commande"
-
-#~ msgid "Paid"
-#~ msgstr "Payé"
-
-#~ msgid "Price"
-#~ msgstr "Prix"
-
-#~ msgid "Price Reduce"
-#~ msgstr "Réduction de prix"
-
-#~ msgid "Price Reduce Tax inc"
-#~ msgstr "Remise toutes charges comprises"
-
-#~ msgid "Product Type"
-#~ msgstr "Type de produit"
-
-#~ msgid "Product Variant"
-#~ msgstr "Variante de produit"
-
-#~ msgid "Quotation Template Line"
-#~ msgstr "Ligne de modèle de devis"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Option du modèle de devis"
-
-#~ msgid "Sales (Tax Excluded)"
-#~ msgstr "Ventes (hors taxes)"
-
-#~ msgid "Sales End"
-#~ msgstr "Fin des ventes"
-
-#~ msgid "Sales Start"
-#~ msgstr "Début des ventes"
-
-#~ msgid "Skip"
-#~ msgstr "Ignorer"
-
-#~ msgid "Ticket changed from"
-#~ msgstr "Ticket modifié de"
-
-#~ msgid "Transaction"
-#~ msgstr "Transaction"
-
-#~ msgid "please give attendee details."
-#~ msgstr "veuillez donner les détails des participants."

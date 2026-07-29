@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import fields, Command
 from odoo.models import BaseModel
-from odoo.tests import Form, HttpCase, new_test_user, tagged, save_test_file
+from odoo.tests import HttpCase, new_test_user, tagged, save_test_file
 from odoo.tools import config, file_path, file_open
 from odoo.tools.float_utils import float_round
 
@@ -98,14 +98,14 @@ class AccountTestInvoicingCommon(ProductCommon):
         # ==== Products ====
         cls.product_a = cls._create_product(
             name='product_a',
-            lst_price=1000.0,
+            list_price=1000.0,
             standard_price=800.0,
             uom_id=cls.uom_unit.id,
         )
         cls.product_b = cls._create_product(
             name='product_b',
             uom_id=cls.uom_dozen.id,
-            lst_price=200.0,
+            list_price=200.0,
             standard_price=160.0,
             property_account_income_id=cls.copy_account(cls.company_data['default_account_revenue']).id,
             property_account_expense_id=cls.copy_account(cls.company_data['default_account_expense']).id,
@@ -314,8 +314,8 @@ class AccountTestInvoicingCommon(ProductCommon):
         if 'rates' not in kwargs:
             return super().setup_other_currency(code, rates=[
                 ('1900-01-01', 1.0),
-                ('2016-01-01', 3.0),
-                ('2017-01-01', 2.0),
+                ('2015-12-31', 3.0),
+                ('2016-12-31', 2.0),
             ], **kwargs)
         return super().setup_other_currency(code, **kwargs)
 
@@ -575,52 +575,33 @@ class AccountTestInvoicingCommon(ProductCommon):
         })
 
     @classmethod
-    def init_invoice(cls, move_type, partner=None, invoice_date=None, post=False, products=None, amounts=None, taxes=None, company=False, currency=None, journal=None):
+    def init_invoice(cls, move_type, partner=None, invoice_date='2019-01-01', post=False, products=None, amounts=None, taxes=None, company=None, currency=None, journal=None):
         """ This method is deprecated. Please call ``_create_invoice`` instead. """
-        products = [] if products is None else products
-        amounts = [] if amounts is None else amounts
-        move_form = Form(cls.env['account.move'] \
-                    .with_company(company or cls.env.company) \
-                    .with_context(default_move_type=move_type))
-        move_form.invoice_date = invoice_date or fields.Date.from_string('2019-01-01')
-        # According to the state or type of the invoice, the date field is sometimes visible or not
-        # Besides, the date field can be put multiple times in the view
-        # "invisible": "['|', ('state', '!=', 'draft'), ('auto_post', '!=', 'at_date')]"
-        # "invisible": ['|', '|', ('state', '!=', 'draft'), ('auto_post', '=', 'no'), ('auto_post', '=', 'at_date')]
-        # "invisible": "['&', ('move_type', 'in', ['out_invoice', 'out_refund', 'out_receipt']), ('quick_edit_mode', '=', False)]"
-        # :TestAccountMoveOutInvoiceOnchanges, :TestAccountMoveOutRefundOnchanges, .test_00_debit_note_out_invoice, :TestAccountEdi
-        if not move_form._get_modifier('date', 'invisible'):
-            move_form.date = move_form.invoice_date
-        move_form.partner_id = partner or cls.partner_a
-        # The journal_id field is invisible when there is only one available journal for the move type.
-        if journal and not move_form._get_modifier('journal_id', 'invisible'):
-            move_form.journal_id = journal
-        if currency:
-            move_form.currency_id = currency
+        if isinstance(taxes, list):
+            sum_tax = cls.env['account.tax']
+            for tax in taxes:
+                sum_tax += tax
+            taxes = sum_tax
+        invoice_line_ids = [
+            cls._prepare_invoice_line(product_id=product, tax_ids=taxes)
+            for product in (products or [])
+        ]
+        invoice_line_ids += [
+            cls._prepare_invoice_line(name='test line', price_unit=amount, tax_ids=taxes)
+            for amount in (amounts or [])
+        ]
 
-        for product in (products or []):
-            with move_form.invoice_line_ids.new() as line_form:
-                line_form.product_id = product
-                if taxes is not None:
-                    line_form.tax_ids.clear()
-                    for tax in taxes:
-                        line_form.tax_ids.add(tax)
-
-        for amount in (amounts or []):
-            with move_form.invoice_line_ids.new() as line_form:
-                line_form.name = "test line"
-                line_form.price_unit = amount
-                if taxes is not None:
-                    line_form.tax_ids.clear()
-                    for tax in taxes:
-                        line_form.tax_ids.add(tax)
-
-        rslt = move_form.save()
-
-        if post:
-            rslt.action_post()
-
-        return rslt
+        return cls._create_invoice(
+            move_type=move_type,
+            partner_id=partner or cls.partner_a,
+            company_id=company or cls.env.company,
+            currency_id=currency,
+            journal_id=journal,
+            date=invoice_date,
+            invoice_date=invoice_date,
+            invoice_line_ids=invoice_line_ids,
+            post=post,
+        )
 
     @classmethod
     def init_payment(cls, amount, post=False, date=None, partner=None, currency=None):
@@ -759,13 +740,15 @@ class AccountTestInvoicingCommon(ProductCommon):
         # QoL: delete all keys with None value from invoice_args
         cls._prepare_record_kwargs('account.move', invoice_args)
 
+        if "line_ids" not in invoice_args and "invoice_line_ids" not in invoice_args:
+            invoice_args["invoice_line_ids"] = [  # default invoice_line_ids
+                cls._prepare_invoice_line(product_id=cls.product_a),
+                cls._prepare_invoice_line(product_id=cls.product_b),
+            ]
+
         invoice = cls.env['account.move'].create([{
             'move_type': move_type,
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [  # default invoice_line_ids
-                cls._prepare_invoice_line(product_id=cls.product_a),
-                cls._prepare_invoice_line(product_id=cls.product_b),
-            ],
             **invoice_args,
         }])
 
@@ -1034,19 +1017,30 @@ class AccountTestInvoicingCommon(ProductCommon):
             current_amounts = {}
         self.assertDictEqual(current_amounts, expected_amounts)
 
-    def assert_invoice_outstanding_reconciled_widget(self, invoice, expected_amounts):
+    def assert_invoice_outstanding_reconciled_widget(self, invoice, expected_amounts, expected_exchange_info=None):
         """ Check the outstanding widget after the reconciliation.
-        :param invoice:             An invoice.
-        :param expected_amounts:    A map <move_id> -> <amount>
+        :param invoice:                     An invoice.
+        :param expected_amounts:            A map <move_id> -> <amount>
+        :param expected_exchange_info:      (Optional) Dictionary containing:
+            line_ids            List of Reconciled exchange IDs (integers)
+            exchange_amount     Total exchange amount
         """
         invoice.invalidate_recordset(['invoice_payments_widget'])
         widget_vals = invoice.invoice_payments_widget
 
         if widget_vals:
             current_amounts = {vals['move_id']: vals['amount'] for vals in widget_vals['content']}
+            expected_exchange_info = expected_exchange_info or {'line_ids': [], 'exchange_amount': 0.0}
+            current_exchange_info = {
+                'line_ids': widget_vals['exchange_info']['line_ids'],
+                'exchange_amount': widget_vals['exchange_info']['exchange_amount'],
+            }
         else:
             current_amounts = {}
+            current_exchange_info = {}
+
         self.assertDictEqual(current_amounts, expected_amounts)
+        self.assertDictEqual(current_exchange_info, expected_exchange_info or {})
 
     def _assert_tax_totals_summary(self, tax_totals, expected_results, soft_checking=False):
         """ Assert the tax totals.
@@ -1650,6 +1644,32 @@ class AccountTestInvoicingCommon(ProductCommon):
         return etree.fromstring(xml_tree_str)
 
 
+class AccountTestInvoicingWithBanksCommon(AccountTestInvoicingCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.partner_bank_account1 = cls.env['res.partner.bank'].create({
+            'account_number': "0123456789",
+            'partner_id': cls.partner_a.id,
+            'allow_out_payment': True,
+        })
+        cls.partner_bank_account2 = cls.env['res.partner.bank'].create({
+            'account_number': "9876543210",
+            'partner_id': cls.partner_a.id,
+            'allow_out_payment': True,
+        })
+        cls.comp_bank_account1 = cls.env['res.partner.bank'].create({
+            'account_number': "985632147",
+            'partner_id': cls.env.company.partner_id.id,
+            'allow_out_payment': True,
+        })
+        cls.comp_bank_account2 = cls.env['res.partner.bank'].create({
+            'account_number': "741258963",
+            'partner_id': cls.env.company.partner_id.id,
+            'allow_out_payment': True,
+        })
+
+
 class AccountTestMockOnlineSyncCommon(HttpCase):
     def start_tour(self, url_path, tour_name, **kwargs):
         with self.mock_online_sync_favorite_institutions():
@@ -1857,7 +1877,7 @@ class TestTaxCommon(AccountTestInvoicingHttpCommon):
     def convert_document_to_invoice(self, document):
         invoice_date = '2020-01-01'
         currency = document['currency']
-        self._ensure_rate(currency, invoice_date, document['rate'])
+        self._ensure_rate(currency, '2019-12-31', document['rate'])
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'invoice_date': invoice_date,
@@ -1874,13 +1894,13 @@ class TestTaxCommon(AccountTestInvoicingHttpCommon):
         if not self.js_tests:
             return
 
-        self.env['ir.config_parameter'].set_param(
+        self.env['ir.config_parameter'].set_str(
             'account.tests_shared_js_python',
             json.dumps([test for test, _expected_values, _assert_function in self.js_tests]),
         )
 
         self.start_tour('/account/init_tests_shared_js_python', 'tests_shared_js_python', login=self.env.user.login)
-        results = json.loads(self.env['ir.config_parameter'].get_param('account.tests_shared_js_python', '[]'))
+        results = json.loads(self.env['ir.config_parameter'].get_str('account.tests_shared_js_python') or '[]')
 
         self.assertEqual(len(results), len(self.js_tests))
         for index, (js_test, expected_values, assert_function), r in zip(count(1), self.js_tests, results):

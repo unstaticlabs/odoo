@@ -16,11 +16,14 @@ Thai accounting chart and localization.
     'depends': [
         'account_qr_code_emv',
         'account',
+        'l10n_account_withholding_tax',
     ],
     'auto_install': ['account'],
     'data': [
         'data/account_tax_report_data.xml',
         'views/report_invoice.xml',
+        'views/res_partner_view.xml',
+        'views/res_company_view.xml',
     ],
     'demo': [
         'demo/demo_company.xml',

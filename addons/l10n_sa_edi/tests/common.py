@@ -87,7 +87,6 @@ class TestSaEdiCommon(AccountEdiTestCommon):
         return cls.env['res.partner'].create({
             'name': 'Saud Ahmed',
             'ref': 'Saudi Aramco',
-            'company_type': 'company',
             'lang': 'en_US',
             # Contact info
             'email': 'saudi.aramco@example.com',
@@ -114,13 +113,12 @@ class TestSaEdiCommon(AccountEdiTestCommon):
         return cls.env['res.partner'].create({
             'name': 'Mohammed Ali',
             'ref': 'Mohammed Ali',
-            'company_type': 'person',
             'lang': 'en_US',
             'country_id': cls.saudi_arabia.id,
             'state_id': cls.riyadh.id,
             # Simplified invoices use different ID schemes
-            'l10n_sa_edi_additional_identification_scheme': 'MOM',  # Momra License
-            'l10n_sa_edi_additional_identification_number': '3123123213131',
+            'l10n_sa_edi_additional_identification_scheme': 'NAT',
+            'l10n_sa_edi_additional_identification_number': '1076543210',
         })
 
     @classmethod
@@ -148,7 +146,7 @@ class TestSaEdiCommon(AccountEdiTestCommon):
         ], limit=1)
 
         # Load ZATCA demo data (certificates, etc.)
-        cls.customer_invoice_journal._l10n_sa_load_edi_demo_data()
+        cls.customer_invoice_journal._l10n_sa_load_edi_test_data()
         PCSID_Data = json.loads(cls.customer_invoice_journal.l10n_sa_production_csid_json)
         pcsid_certificate = cls.env['certificate.certificate'].create({
             'name': 'PCSID Certificate',

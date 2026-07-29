@@ -7,17 +7,17 @@
 # Cécile Collart <cco@odoo.com>, 2022
 # Martin Trigaux, 2023
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-29 22:45+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-05-16 17:03+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_expense/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -81,7 +81,12 @@ msgstr ""
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
-msgstr "(dont"
+msgstr "(toutes taxes comprises"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
+msgstr "--<br/>"
 
 #. module: hr_expense
 #. odoo-python
@@ -143,6 +148,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr "<span>Le montant total ne correspond pas au montant initial.</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr "<strong>dépenses</strong> en attente d’approbation, de :"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr "Une nouvelle dépense attend votre approbation dans Odoo."
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Compte"
@@ -177,6 +192,11 @@ msgstr "Activités"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Indicateur d’exception d’activité"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -254,8 +274,13 @@ msgstr "Un compte de frais est attendu"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "Une dépense de même catégorie, montant et date existe déjà."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
+"Une note de frais avec la même catégorie, le même montant et la même date "
+"existe déjà.\n"
+"Êtes-vous sûr de vouloir soumettre celle-ci également ?"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -378,14 +403,6 @@ msgid "Can Reset"
 msgstr "Peut réinitialiser"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Annuler"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -414,10 +431,6 @@ msgstr "Communication"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Sociétés"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -504,7 +517,6 @@ msgstr "Taux de change"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Cher(e)"
 
@@ -592,12 +604,6 @@ msgid "Domain"
 msgstr "Domaine"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Télécharger notre app"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -609,6 +615,12 @@ msgstr "Brouillon"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Dupliquer la dépense"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr "Note de frais en double détectée"
 
 #. module: hr_expense
 #. odoo-python
@@ -645,6 +657,19 @@ msgid "Employee Expenses"
 msgstr "Dépenses de l'employé"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+"Saisissez une description et sélectionnez une catégorie pour continuer."
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr "Saisissez une description pour continuer."
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -654,6 +679,8 @@ msgstr ""
 "votre dépense."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -688,7 +715,6 @@ msgstr "Dépense dupliquée"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Approbateur des dépenses"
 
@@ -798,11 +824,6 @@ msgid "Expense split"
 msgstr "Fractionnement de la dépense"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr "Dépense à approuver"
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -836,11 +857,6 @@ msgid "Expenses Report"
 msgstr "Rapport de dépenses"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr "Validation des dépenses"
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -852,6 +868,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Dépenses des membres de votre équipe"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr "Dépenses à approuver"
@@ -942,14 +959,14 @@ msgid "Guideline"
 msgstr "Directive"
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr "Dépenses RH : envoyer un e-mail pour les notes de frais soumises"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "A un message"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr "Bonjour"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1116,6 +1133,11 @@ msgid "Label Currency Rate"
 msgstr "Libellé du taux de change"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr "Date de la dernière notification"
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1170,7 +1192,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Lunch with customer $12.32"
-msgstr "Lunch avec un client 12,32 €"
+msgstr "Déjeuner avec un client $12.32"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_main_attachment_id
@@ -1262,15 +1284,6 @@ msgstr "Nom"
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
 msgstr "Nouvelles écritures de dépenses"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
-msgstr ""
-"De nouvelles notes de frais sont en attente de votre validation. Vous pouvez "
-"les consulter en suivant ce lien."
 
 #. module: hr_expense
 #. odoo-python
@@ -1490,6 +1503,11 @@ msgid "Pay"
 msgstr "Payer"
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr "Paiement"
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Mode de paiement"
@@ -1515,11 +1533,6 @@ msgstr "Modes de paiement"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr "Modes de paiement disponibles pour les dépenses payées par la société"
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Paiements"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1721,6 +1734,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Restaurants, repas d'affaires, etc."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr "Examiner les dépenses"
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Erreur d'envoi SMS"
@@ -1750,10 +1768,10 @@ msgid "Scan"
 msgstr "Scanner"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Scannez ce QR code pour obtenir l'application Odoo :"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr "Sélectionnez une catégorie pour continuer."
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1846,11 +1864,6 @@ msgid "Split Possible"
 msgstr "Fractionnement possible"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Avertissement pour la mise à jour du prix standard"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1866,9 +1879,9 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "Statut basé sur les activités\n"
-"En retard : la date d'échéance est déjà dépassée\n"
+"En retard : l'échéance est déjà dépassée\n"
 "Aujourd'hui : la date d'activité est aujourd'hui\n"
-"Planifiée : activités futures"
+"Planifié : activités futures."
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1876,6 +1889,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Soumettre"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr "Soumettre la note de frais"
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1951,6 +1970,11 @@ msgid "Team Approver"
 msgstr "Approbateur de l'équipe"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr "Merci,"
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "The account %(name)s (%(code)s) is archived. Activate it to continue"
@@ -1963,8 +1987,8 @@ msgid ""
 "The attachment (%(attachment_name)s) has not been added to the report due to "
 "the following error: '%(error)s'"
 msgstr ""
-"La pièce jointe (%(attachment_name)s) n'a pas été ajoutée au rapport en "
-"raison de l'erreur suivante : \"%(error)s\""
+"La pièce jointe (%(attachment_name)s) n’a pas été ajoutée au rapport en "
+"raison de l’erreur suivante : '%(error)s'"
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_res_company__expense_journal_id
@@ -2050,13 +2074,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"Des dépenses non soumises sont liées à cette catégorie. La mise à jour du "
-"coût de la catégorie modifiera les montants des dépenses. Assurez-vous que "
-"c'est bien ce que vous voulez faire."
+"Il existe des notes de frais à l’état brouillon liées à cette catégorie. La "
+"mise à jour du coût de la catégorie modifiera les montants des notes de "
+"frais. Assurez-vous que c’est bien ce que vous souhaitez faire."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2179,10 +2202,10 @@ msgid "Untaxed Amount"
 msgstr "Montant hors taxes"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
-msgstr "Dépense sans titre %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
+msgstr "Mettre à jour le coût"
 
 #. module: hr_expense
 #. odoo-javascript
@@ -2201,8 +2224,7 @@ msgstr "Télécharger ou déposer un justificatif de dépense"
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid "Use the breadcrumbs to go back to the list of expenses."
-msgstr ""
-"Utilisez le chemin de navigation pour retourner à la liste des dépenses."
+msgstr "Utilisez le fil d'Ariane pour retourner à la liste des dépenses."
 
 #. module: hr_expense
 #: model:ir.actions.act_window,name:hr_expense.hr_expense_approve_duplicate_action
@@ -2218,11 +2240,6 @@ msgstr "Fournisseur"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Voir la dépense"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr "Voir les dépenses"
 
 #. module: hr_expense
 #. odoo-python
@@ -2278,12 +2295,6 @@ msgstr "Si la taxe est définie sur un produit sélectionné"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Assistant"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr "Vous ne pouvez pas soumettre une dépense sans catégorie."
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2399,6 +2410,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr "Vous ne pouvez pas diviser une dépense déjà comptabilisée."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr "Vous avez actuellement"
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2430,16 +2446,6 @@ msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Vous devez ajouter un mode de paiement manuel sur le journal (%s)"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Vous devez avoir au moins une catégorie qui peut être passée en dépenses "
-"dans votre base de données pour continuer !"
-
-#. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
 msgid "Your Expense"
 msgstr "Votre dépense"
@@ -2457,12 +2463,12 @@ msgstr "alias"
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
 msgid "e.g. Lunch"
-msgstr "par ex. Lunch"
+msgstr "par ex. Déjeuner"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "e.g. Lunch with Customer"
-msgstr "par ex. Lunch avec un client"
+msgstr "par ex. Déjeuner avec un Client"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -2497,7 +2503,7 @@ msgstr "par"
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "tax)"
-msgstr "de taxes)"
+msgstr ")"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.res_config_settings_view_form
@@ -2524,411 +2530,3 @@ msgstr "existe déjà avec le même reçu."
 
 #~ msgid "2023-08-11"
 #~ msgstr "11-08-2023"
-
-#~ msgid ""
-#~ "New expenses are awaiting your approval.\n"
-#~ "                You can review them by following this link"
-#~ msgstr ""
-#~ "De nouvelles dépenses attendent votre validation.\n"
-#~ "                Vous pouvez les examiner en suivant ce lien."
-
-#~ msgid "View Attachments"
-#~ msgstr "Voir les pièces jointes"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Paramètres de comptabilité"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Vous devez d'abord installer une localisation fiscale."
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'Notes de frais - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-
-#~ msgid ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Use this reference "
-#~ "as a subject prefix when submitting by email.</i></span>"
-#~ msgstr ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Utilisez cette "
-#~ "référence comme préfixe de sujet lors de la soumission par email.</i></"
-#~ "span>"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Date :</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Description :</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Employé :</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Paiement par :</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Total</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Validée par :</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Tous les rapports de notes de frais"
-
-#~ msgid "All Reports"
-#~ msgstr "Toues les rapports"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr ""
-#~ "Un rapport de notes de frais doit seulement contenir des lignes de la "
-#~ "même société."
-
-#~ msgid "Apple App Store"
-#~ msgstr "App Store d'Apple"
-
-#~ msgid "Approve Report"
-#~ msgstr "Approuver le rapport"
-
-#~ msgid "Approved By"
-#~ msgstr "Approuvé par"
-
-#~ msgid "Approved On"
-#~ msgstr "Approuvé le"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Référence de la facture"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Peut être inséré dans une note de frais"
-
-#~ msgid "Categories"
-#~ msgstr "Catégories"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Certifié conforme sur l'honneur,<br/>(Date et signature).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Il est possible de convertir deux unités de mesures si elles "
-#~ "appartiennent à la même catégorie. Cette conversion utilise les ratios "
-#~ "définis pour ces unités."
-
-#~ msgid "Create Report"
-#~ msgstr "Créer le rapport"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Créer un nouveau rapport de notes de frais"
-
-#~ msgid "Create a report to submit one or more expenses to your manager."
-#~ msgstr ""
-#~ "Créer un rapport pour soumettre une ou plusieurs notes de frais à votre "
-#~ "manager."
-
-#~ msgid "Date"
-#~ msgstr "Date"
-
-#~ msgid "Default Journals"
-#~ msgstr "Journaux par défaut"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Avez-vous essayé l'application mobile ?"
-
-#~ msgid "Done"
-#~ msgstr "Fait"
-
-#~ msgid "Drag and drop files to create expenses"
-#~ msgstr "Glissez et déposez des fichiers pour créer des notes de frais"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Adresse personnelle de l'employé"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Journal des notes de frais"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Ligne de notes de frais"
-
-#~ msgid "Expense Lines Are Editable By Current User"
-#~ msgstr ""
-#~ "Les lignes de notes de frais sont modifiables par l'utilisateur actuel"
-
-#~ msgid "Expense Report"
-#~ msgstr "Rapport de note de frais"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Résumé de la note de frais"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Rapports de note de frais"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Analyse des notes de frais"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Notes de frais à approuver"
-
-#~ msgid "Expense Sheet"
-#~ msgstr "Note de frais"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Note de frais approuvée"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Note de frais remboursée"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Note de frais refusée"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Les rapports de notes de frais regroupent l'ensemble des dépenses "
-#~ "engagées lors d'un événement précis."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Rapports de notes de frais à approuver"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Notes de frais par date"
-
-#~ msgid "Former Employees"
-#~ msgstr "Anciens employés"
-
-#~ msgid "General Information"
-#~ msgstr "Informations générales"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play Store"
-
-#~ msgid "Group By"
-#~ msgstr "Regrouper par"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Gérer des lignes avec des devises différentes"
-
-#~ msgid "Internal Note"
-#~ msgstr "Note interne"
-
-#~ msgid "Label Convert Rate"
-#~ msgstr "Taux de conversion (texte)"
-
-#~ msgid ""
-#~ "Managers can approve the report here, then an accountant can post the "
-#~ "accounting entries."
-#~ msgstr ""
-#~ "Les managers peuvent approuver le rapport ici, puis le comptable peut "
-#~ "publier les écritures comptables."
-
-#~ msgid "My Reports"
-#~ msgstr "Mes rapports"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Nouveau rapport de notes de frais"
-
-#~ msgid "New Expense Reports"
-#~ msgstr "Nouveaux rapports de notes de frais"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr ""
-#~ "Aucune adresse personnelle de l'employé %s trouvée, veuillez la définir."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Aucun rapport de notes de frais trouvé. Créons-en un !"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Aucun rapport de notes de frais trouvé. Créons-en un !"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Nombre de messages exigeant une action"
-
-#~ msgid ""
-#~ "Once your <b>Expense Report</b> is ready, you can submit it to your "
-#~ "manager and wait for approval."
-#~ msgstr ""
-#~ "Dès que votre <b>rapport de notes de frais</b> est prêt, vous pouvez le "
-#~ "soumettre à votre manager et attendre sa validation."
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr ""
-#~ "Seul un responsable RH ou l'employé concerné peuvent remettre la demande "
-#~ "en brouillon. "
-
-#~ msgid "Or"
-#~ msgstr "Ou"
-
-#~ msgid "Others"
-#~ msgstr "Autres"
-
-#~ msgid "Partial"
-#~ msgstr "Partiel"
-
-#~ msgid "Payment Status"
-#~ msgstr "Statut de paiement"
-
-#~ msgid "Price"
-#~ msgstr "Prix"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Prix dans la devise de la société"
-
-#~ msgid "Qty"
-#~ msgstr "Qté"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Motif du refus de la note de frais"
-
-#~ msgid "Ref."
-#~ msgstr "Réf."
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "La référence est éditable par l'utilisateur actuel"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Notes de frais refusées"
-
-#~ msgid "Register Payment"
-#~ msgstr "Enregistrer un paiement"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Rembourser les notes de frais sur les fiches de paie"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Remettre en brouillon"
-
-#~ msgid "Sample"
-#~ msgstr "Échantillon"
-
-#~ msgid ""
-#~ "Selected Unit of Measure for expense %(expense)s does not belong to the "
-#~ "same category as the Unit of Measure of product %(product)s."
-#~ msgstr ""
-#~ "L'unité de mesure sélectionnée pour la dépense %(expense)s n'appartient "
-#~ "pas à la même catégorie que l'unité de mesure du produit %(product)s."
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Configurer votre alias domain"
-
-#~ msgid "Sheet"
-#~ msgstr "Feuille"
-
-#~ msgid "Sheet Is Editable"
-#~ msgstr "Feuille est modifiable"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Montrez tous les enregistrements pour lesquels la date des prochaines "
-#~ "actions est pour aujourd'hui ou avant"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Prenez une photo de vos tickets de caisse et laissez <br>Odoo "
-#~ "automatiquement créer des notes de frais pour vous."
-
-#~ msgid "Specify expense journal to generate accounting entries."
-#~ msgstr "Veuillez préciser un journal pour générer les écritures comptables."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Le journal doit être défini sur une note de frais comptabilisée"
-
-#~ msgid ""
-#~ "This note will be shown to users when they select this expense product."
-#~ msgstr ""
-#~ "Cette note sera présentée aux utilisateurs lorsqu'ils sélectionneront ce "
-#~ "produit de note de frais."
-
-#~ msgid "To Report"
-#~ msgstr "À rapporter"
-
-#~ msgid "Unit Price Display"
-#~ msgstr "Affichage du prix unitaire"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Unité de mesure"
-
-#~ msgid "UoM Category"
-#~ msgstr "Catégorie d'UdM"
-
-#~ msgid "User"
-#~ msgstr "Utilisateur"
-
-#~ msgid "View Report"
-#~ msgstr "Voir le rapport"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr ""
-#~ "Vous perdez du temps à enregistrer vos reçus ? Changeons de méthode."
-
-#~ msgid ""
-#~ "When the cost of an expense product is different than 0, then the user "
-#~ "using this product won't be able to change the amount of the expense, "
-#~ "only the quantity. Use a cost different than 0 for expense categories "
-#~ "funded by the company at fixed cost like allowances for mileage, per "
-#~ "diem, accommodation or meal."
-#~ msgstr ""
-#~ "Lorsque le coût d'un produit de note de frais est différent de 0, alors "
-#~ "l'utilisateur utilisant ce produit ne pourra pas modifier le montant de "
-#~ "la note de frais, seulement la quantité. Utilisez un coût différent de 0 "
-#~ "pour les catégories de notes de frais financées par l'entreprise à coût "
-#~ "fixe comme les indemnités de kilométrage, les indemnités journalières, "
-#~ "l'hébergement ou les repas."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr ""
-#~ "Vous n'êtes pas autorisé à modifier la référence de ce rapport de notes "
-#~ "de frais."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Vous n'êtes pas autorisé à modifier ce rapport de notes de frais."
-
-#~ msgid "You can not create report without category."
-#~ msgstr "Vous ne pouvez pas créer de rapport sans catégorie."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr ""
-#~ "Des écritures comptables ne peuvent être générées que pour des notes de "
-#~ "frais approuvées."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr ""
-#~ "Vous ne pouvez pas ajouter des notes de frais pour un autre employé."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr ""
-#~ "Vous ne pouvez pas supprimer une note de frais comptabilisée ou payée."
-
-#~ msgid ""
-#~ "You cannot do this modification since the payment is linked to an expense "
-#~ "report."
-#~ msgstr ""
-#~ "Vous ne pouvez pas effectuer cette modification, puisque le paiement est "
-#~ "lié à une note de frais."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr ""
-#~ "Vous ne pouvez pas déclarer les notes de frais de différents employés "
-#~ "dans le même rapport."
-
-#~ msgid "You cannot report the expenses without amount!"
-#~ msgstr "Vous ne pouvez pas déclarer les notes de frais sans montant !"
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Vous ne pouvez pas ajouter deux fois la même ligne !"
-
-#~ msgid "You have no expense to report"
-#~ msgstr "Vous n'avez pas de note de frais à déclarer"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "e.g. Voyage à New York"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "à rembourser"
-
-#~ msgid "under validation"
-#~ msgstr "en cours de validation"

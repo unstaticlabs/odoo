@@ -87,9 +87,6 @@
 </t>
 
 <t t-name="website.s_website_form_field_option">
-    <t t-if="domState.elClassList.includes('s_website_form_model_required')">
-        <FormModelRequiredFieldAlert fieldName="domState.fieldName" modelName="domState.modelName" />
-    </t>
     <BuilderRow label.translate="Type">
         <BuilderSelect t-if="!domState.elClassList.includes('s_website_form_model_required')"
             id="'type_opt'" preview="false"
@@ -129,10 +126,11 @@
             <BuilderSelectItem actionValue="'url'">Url</BuilderSelectItem>
         </BuilderSelect>
     </BuilderRow>
-    <BuilderRow label.translate="Selection type">
+    <BuilderRow label.translate="Selection type" level="1">
         <BuilderSelect t-if="isExistingFieldSelectType and state.valueList"
             id="'existing_field_select_type_opt'" preview="false" action="'existingFieldSelectType'"
         >
+            <BuilderSelectItem actionValue="'many2many'" t-if="isExistingFieldSelectTypeMultiple">Checkbox</BuilderSelectItem>
             <BuilderSelectItem actionValue="'many2one'">Dropdown List</BuilderSelectItem>
             <BuilderSelectItem actionValue="'selection'">Radio</BuilderSelectItem>
         </BuilderSelect>
@@ -161,15 +159,19 @@
             <BuilderButton title.translate="Right" actionValue="'right'" iconImg="'/website/static/src/img/snippets_options/pos_right.svg'"/>
         </BuilderButtonGroup>
     </BuilderRow>
+    <BuilderRow label.translate="Link to country">
+        <BuilderCheckbox action="'linkStateToCountry'" t-if="this.canLinkStateToCountry.value"
+            id="'link_state_to_country_opt'" applyTo="'.s_website_form_input'"/>
+    </BuilderRow>
     <BuilderRow label.translate="Description">
         <BuilderCheckbox action="'toggleDescription'" preview="false"/>
     </BuilderRow>
-    <BuilderRow label.translate="Placeholder">
+    <BuilderRow label.translate="Placeholder" t-if="!isOtherOptionSupported">
         <BuilderTextInput attributeAction="'placeholder'"
             applyTo="`input[type='text'], input[type='email'], input[type='number'], input[type='tel'], input[type='url'], textarea`"
         />
     </BuilderRow>
-    <BuilderRow label.translate="Default Value">
+    <BuilderRow label.translate="Default Value" t-if="!isOtherOptionSupported">
         <BuilderTextInput action="'selectTextareaValue'" applyTo="'textarea'"/>
         <BuilderCheckbox attributeAction="'checked'" attributeActionValue="'checked'"
             applyTo="`[data-type='boolean'] input[type='checkbox']`" preview="false"
@@ -204,17 +206,16 @@
             min="1"
         />
     </BuilderRow>
-    <BuilderRow label.translate="Max File Size">
+    <BuilderRow label.translate="Max File Size"
+        tooltip.translate="Note that your server has its own upload limit (typically 64 MB on Odoo SaaS), which will take precedence over this value">
         <BuilderNumberInput
-            title.translate="The maximum size (in MB) an uploaded file can have."
             dataAttributeAction="'maxFileSize'"
             applyTo="`input[type='file']`"
-            default="1"
             unit="'MB'"
             applyWithUnit="false"
         />
     </BuilderRow>
-    <BuilderRow t-if="state.valueList">
+    <BuilderRow t-if="state.valueList and (!(this.domState.fieldName === 'state_id' and isActiveItem('link_state_to_country_opt')))">
         <div class="d-flex flex-column w-100">
             <p class="hb-row-label mb-0 flex-grow-0 flex-shrink-0 flex-basis-auto">
                 <t t-out="state.valueList.title" />
@@ -226,9 +227,17 @@
                 default="{ display_name: state.valueList.defaultItemName, selected: false }"
                 defaultNewValue="{ id: state.valueList.defaultItemName }"
                 forbidLastItemRemoval="true"
-                records="state.valueList.availableRecords"
-                isInputDisabled="state.valueList.isInputDisabled" />
+                records="state.valueList.availableRecords" />
         </div>
+    </BuilderRow>
+    <BuilderRow label.translate="Add Other" t-if="isOtherOptionSupported" tooltip.translate="Allow people to add their own option">
+        <BuilderCheckbox id="'otherOption'" dataAttributeAction="'otherOptionAllowed'" dataAttributeActionValue="'true'" preview="false"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Label" t-if="isActiveItem('otherOption')" tooltip.translate="Label for other option" level="1">
+        <BuilderTextInput dataAttributeAction="'otherOptionLabel'" default.translate="Other"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Placeholder" t-if="isActiveItem('otherOption')" level="1">
+        <BuilderTextInput dataAttributeAction="'otherOptionPlaceholder'"/>
     </BuilderRow>
     <BuilderRow label.translate="Requirement"
             t-if="domStateCurrentFieldInput.hasDateTimePicker or domStateCurrentFieldInput.isTextArea or canHaveTextValidationCondition.includes(domStateCurrentFieldInput.type)">
@@ -309,9 +318,9 @@
     <BuilderRow label.translate="Error Message" level="1" t-if="isActiveItem('error_message_opt')">
         <BuilderTextInput placeholder.translate="Write custom error message" id="'error_message_input_opt'" dataAttributeAction="'errorMessage'"/>
     </BuilderRow>
-    <BuilderRow label.translate="Visibility">
+    <BuilderRow label.translate="Visibility Rule">
         <BuilderSelect preview="false" action="'setVisibility'">
-            <BuilderSelectItem actionValue="'visible'" classAction="''">Always Visible</BuilderSelectItem>
+            <BuilderSelectItem actionValue="'visible'" classAction="''">None</BuilderSelectItem>
             <BuilderSelectItem actionValue="'hidden'" classAction="'s_website_form_field_hidden'">Hidden</BuilderSelectItem>
             <BuilderSelectItem id="'hidden_if_opt'" actionValue="'conditional'" classAction="'s_website_form_field_hidden_if d-none'">Visible only if</BuilderSelectItem>
         </BuilderSelect>
@@ -325,7 +334,7 @@
                     t-out="input.textContent"
                 />
             </BuilderSelect>
-            <BuilderSelect t-if="domStateDependency.type === 'checkbox' || domStateDependency.type === 'radio' || domStateDependency.nodeName === 'SELECT'"
+            <BuilderSelect t-if="domStateDependency.isMultipleInputs || domStateDependency.nodeName === 'SELECT'"
                 id="'hidden_condition_no_text_opt'" preview="false" dataAttributeAction="'visibilityComparator'"
             >
                 <BuilderSelectItem dataAttributeActionValue="'selected'">Is equal to</BuilderSelectItem>
@@ -381,7 +390,8 @@
                 <BuilderSelectItem dataAttributeActionValue="'fileSet'">Is set</BuilderSelectItem>
                 <BuilderSelectItem dataAttributeActionValue="'!fileSet'">Is not set</BuilderSelectItem>
             </BuilderSelect>
-            <BuilderSelect t-if="domStateDependency.isRecordField"
+            <BuilderSelect t-if="domStateDependency.isRecordField ||
+                (!domStateDependency.isMultipleInputs and domStateDependency.type === 'checkbox')"
                 id="'hidden_condition_record_opt'" dataAttributeAction="'visibilityComparator'" preview="false"
             >
                 <BuilderSelectItem dataAttributeActionValue="'selected'">Is equal to</BuilderSelectItem>
@@ -389,7 +399,7 @@
             </BuilderSelect>
         </div>
         <div class="d-flex position-relative p-1 px-2 ps-3 hb-row" data-name="hidden_condition_additional_text">
-            <BuilderSelect t-if="state.conditionValueList and (domStateDependency.type === 'checkbox' || domStateDependency.type === 'radio' || domStateDependency.nodeName === 'SELECT')"
+            <BuilderSelect t-if="!isMultiSelectVisible"
                 id="'hidden_condition_no_text_opt'" preview="false" dataAttributeAction="'visibilityCondition'"
             >
                 <!-- checkbox, select, radio possible values -->
@@ -398,6 +408,10 @@
                     t-out="record.textContent"
                 />
             </BuilderSelect>
+            <BuilderList t-if="isMultiSelectVisible" action="'setDependencyValueList'"
+                sortable="false"
+                isEditable="false"
+                itemShape="{ display_name: 'text', selected: 'boolean' }"/>
             <BuilderSelect t-if="state.conditionValueList and domStateDependency.isRecordField"
                 id="'hidden_condition_record_opt'" preview="false" dataAttributeAction="'visibilityCondition'"
             >
@@ -435,12 +449,6 @@
             <BuilderSelectItem classAction="''">Input Aligned</BuilderSelectItem>
         </BuilderSelect>
     </BuilderRow>
-</t>
-
-<t t-name="website.s_website_form_model_required_field_alert">
-    <div class="alert alert-info">
-        <span t-out="state.message"/>
-    </div>
 </t>
 
 </templates>

@@ -1,13 +1,10 @@
 import uuid
 from base64 import b64decode
-from dateutil.relativedelta import relativedelta
 from markupsafe import Markup
 from urllib.parse import quote, urlencode, urlparse
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import SQL
-from odoo.addons.l10n_tr_nilvera.const import NILVERA_ERROR_CODE_MESSAGES
 from odoo.addons.l10n_tr_nilvera.lib.nilvera_client import _get_nilvera_client
 
 MOVE_TYPE_CATEGORY_MAP = {
@@ -52,6 +49,94 @@ class AccountMove(models.Model):
         copy=False,
         default='not_sent',
     )
+    l10n_tr_gib_invoice_scenario = fields.Selection(
+        selection=[
+            ('TEMELFATURA', "Basic"),
+            ('KAMU', "Public Sector"),
+        ],
+        default='TEMELFATURA',
+        string="Invoice Scenario",
+        help="The scenario of the invoice to be sent to GİB.",
+    )
+    l10n_tr_gib_invoice_type = fields.Selection(
+        compute='_compute_l10n_tr_gib_invoice_type',
+        store=True,
+        readonly=False,
+        default='SATIS',
+        string="GIB Invoice Type",
+        selection=[
+            ('SATIS', "Sales"),
+            ('TEVKIFAT', "Withholding"),
+            ('IHRACKAYITLI', "Registered for Export"),
+            ('ISTISNA', "Tax Exempt"),
+            ('IADE', "Return"),
+            ('TEVKIFATIADE', "Withholding Return"),
+        ],
+        help="The type of invoice to be sent to GİB.",
+    )
+    l10n_tr_is_export_invoice = fields.Boolean(string="GİB Product Export Invoice")
+    l10n_tr_shipping_type = fields.Selection(
+        selection=[
+            ('1', "Sea Transportation"),
+            ('2', "Railway Transportation"),
+            ('3', "Road Transportation"),
+            ('4', "Air Transportation"),
+            ('5', "Post"),
+            ('6', "Combined Transportation"),
+            ('7', "Fixed Transportation"),
+            ('8', "Domestic Water Transportation"),
+            ('9', "Invalid Transportation Method"),
+        ],
+        string="Shipping Method",
+        help="The type of shipping.",
+    )
+    l10n_tr_exemption_code_id = fields.Many2one(
+        comodel_name='l10n_tr_nilvera_einvoice.account.tax.code',
+        compute='_compute_l10n_tr_exemption_code_id',
+        store=True,
+        readonly=False,
+        string="Exemption Reason",
+        help="The exception reason of the invoice.",
+    )
+    l10n_tr_exemption_code_domain_list = fields.Json(compute='_compute_l10n_tr_exemption_code_domain_list')
+    l10n_tr_nilvera_customer_status = fields.Selection(
+        string="Partner Nilvera Status",
+        related='partner_id.l10n_tr_nilvera_customer_status',
+    )
+    l10n_tr_nilvera_pdf_file = fields.Binary(
+        attachment=True,
+        string="Nilvera PDF File",
+        copy=False,
+    )
+    l10n_tr_nilvera_pdf_id = fields.Many2one(
+        comodel_name='ir.attachment',
+        string="Nilvera PDF Attachment",
+        compute=lambda self: self._compute_linked_attachment_id('l10n_tr_nilvera_pdf_id', 'l10n_tr_nilvera_pdf_file'),
+        depends=['l10n_tr_nilvera_pdf_file'],
+    )
+    l10n_tr_original_invoice_date = fields.Date(string="Original Invoice Date")
+
+    @api.depends("l10n_tr_gib_invoice_scenario", "l10n_tr_gib_invoice_type", "l10n_tr_is_export_invoice")
+    def _compute_l10n_tr_exemption_code_domain_list(self):
+        for record in self:
+            domain = []
+            if record.l10n_tr_gib_invoice_type == "ISTISNA":
+                domain.extend(("exception", "export_exception"))
+            if record.l10n_tr_gib_invoice_type == "IHRACKAYITLI":
+                domain.append("export_registration")
+            if record.l10n_tr_is_export_invoice:
+                domain.append("export_exception")
+            record.l10n_tr_exemption_code_domain_list = domain
+
+    @api.depends("l10n_tr_gib_invoice_scenario", "l10n_tr_is_export_invoice")
+    def _compute_l10n_tr_gib_invoice_type(self):
+        for record in self:
+            record.l10n_tr_gib_invoice_type = False
+
+    @api.depends("l10n_tr_gib_invoice_scenario", "l10n_tr_gib_invoice_type", "partner_id")
+    def _compute_l10n_tr_exemption_code_id(self):
+        for record in self:
+            record.l10n_tr_exemption_code_id = False
 
     def _get_import_file_type(self, file_data):
         """ Identify Nilvera UBL files. """
@@ -74,6 +159,10 @@ class AccountMove(models.Model):
     def _l10n_tr_get_category_move_type(self, document_category):
         return CATEGORY_MOVE_TYPE_MAP.get(document_category.lower())
 
+    def _l10n_tr_get_status_invoice_channel(self):
+        self.ensure_one()
+        return 'einvoice' if self.l10n_tr_is_export_invoice else self.partner_id.l10n_tr_nilvera_customer_status
+
     @api.model
     def _get_ubl_cii_builder_from_xml_tree(self, tree):
         customization_id = tree.find('{*}CustomizationID')
@@ -88,7 +177,26 @@ class AccountMove(models.Model):
                 move.message_post(body=_("To preserve accounting integrity and comply with legal requirements, invoices cannot be reused once an error occurs. Please create a new invoice to continue."))
             elif move.l10n_tr_nilvera_send_status != 'not_sent':
                 raise UserError(_("You cannot reset to draft an entry that has been sent to Nilvera."))
-        super().button_draft()
+        return super().button_draft()
+
+    def _l10n_tr_nilvera_einvoice_check_invalid_invoice_reference(self):
+        invalid_moves = self.env["account.move"]
+        for record in self:
+            _, parts = record._get_sequence_format_param(record.ref or "")
+            if (
+                record.move_type == "out_refund"
+                and not record.reversed_entry_id
+                and not (parts["prefix1"][:3] and parts["year"] and parts["seq"])
+            ):
+                invalid_moves |= record
+        return invalid_moves
+
+    def _l10n_tr_nilvera_check_invalid_type(self):
+        invalid_invoices = self.env["account.move"]
+        for record in self:
+            if record.l10n_tr_gib_invoice_type in {"IADE", "TEVKIFATIADE"} ^ record.move_type == "out_refund":
+                invalid_invoices |= record
+        return invalid_invoices
 
     def _post(self, soft=True):
         for move in self:
@@ -125,7 +233,7 @@ class AccountMove(models.Model):
                             indicates a client error (4xx), or if a server error occurs (500).
         :return: None
         """
-        with _get_nilvera_client(self.env.company) as client:
+        with _get_nilvera_client(self.env._, self.env.company) as client:
             response = client.request(
                 "POST",
                 endpoint,
@@ -139,7 +247,7 @@ class AccountMove(models.Model):
             elif response.status_code in {401, 403}:
                 raise UserError(_("Oops, seems like you're unauthorised to do this. Try another API key with more rights or contact Nilvera."))
             elif 400 <= response.status_code < 500:
-                error_message, error_codes = self._l10n_tr_nilvera_einvoice_get_error_messages_from_response(response)
+                error_message, error_codes = client._get_error_message_with_codes_from_response(response)
 
                 # If the sequence/series is not found on Nilvera, add it then retry.
                 if 3009 in error_codes and post_series:
@@ -179,9 +287,9 @@ class AccountMove(models.Model):
 
     def _l10n_tr_nilvera_get_submitted_document_status(self):
         for company, invoices in self.grouped("company_id").items():
-            with _get_nilvera_client(company) as client:
+            with _get_nilvera_client(self.env._, company) as client:
                 for invoice in invoices:
-                    invoice_channel = invoice.partner_id.l10n_tr_nilvera_customer_status
+                    invoice_channel = invoice._l10n_tr_get_status_invoice_channel()
                     document_category = invoice._l10n_tr_get_document_category(invoice_channel)
                     if not document_category or not invoice_channel:
                         continue
@@ -207,25 +315,11 @@ class AccountMove(models.Model):
                     else:
                         invoice.message_post(body=_("The invoice status couldn't be retrieved from Nilvera."))
 
-    def _get_nilvera_last_fetch_date(self, invoice_channel, journal_type):
-        """
-        Fetches the last fetched date for Nilvera e-invoice synchronization specific to the
-        current company. If no value exists, it sets a default date of one month prior to
-        the current date, stores it, and returns it.
-        """
-        # A config param is used to be able to store the date in stable. One for einvoice and one for earchive.
-        # Should be removed in master and replaced with two date fields on the company.
-        param_key = f"l10n_tr_nilvera_{invoice_channel}_{journal_type}.last_fetched_date.{self.env.company.id}"
-        last_fetched_date = self.env['ir.config_parameter'].sudo().get_param(param_key)
-        if not last_fetched_date:
-            last_fetched_date = (fields.Date.today() - relativedelta(months=1)).strftime("%Y-%m-%d")
-            self.env['ir.config_parameter'].sudo().set_param(param_key, last_fetched_date)
-        return last_fetched_date
-
     def _l10n_tr_nilvera_get_documents(self, invoice_channel="einvoice", document_category="Purchase", journal_type="purchase"):
-        with _get_nilvera_client(self.env.company) as client:
+        with _get_nilvera_client(self.env._, self.env.company) as client:
             endpoint = f"/{invoice_channel}/{quote(document_category)}"
-            start_date = self._get_nilvera_last_fetch_date(invoice_channel, journal_type)
+            last_fetched_date_field_name = f"l10n_tr_{invoice_channel}_{journal_type}_last_fetched_date"
+            start_date = self.env.company[last_fetched_date_field_name]
             end_date = fields.Datetime.context_timestamp(self.with_context(tz='Europe/Istanbul'), fields.Datetime.now()).strftime("%Y-%m-%dT%H:%M:%S")
             page = 1
 
@@ -249,7 +343,6 @@ class AccountMove(models.Model):
 
             moves = self.env['account.move']
             journal = self._l10n_tr_get_nilvera_invoice_journal(journal_type)
-            date_param_key = f"l10n_tr_nilvera_{invoice_channel}_{journal_type}.last_fetched_date.{self.env.company.id}"
             while page <= total_pages:
                 # Reuse first response, fetch subsequent pages.
                 if page > 1:
@@ -273,7 +366,7 @@ class AccountMove(models.Model):
                     self._l10n_tr_nilvera_add_pdf_to_invoice(client, move, document_uuid, document_category, invoice_channel)
                     moves |= move
                     # Update the last fetched date.
-                    self.env['ir.config_parameter'].sudo().set_param(date_param_key, created_date)
+                    self.env.company.write({last_fetched_date_field_name: created_date[:19].replace('T', ' ')})
                     self.env.cr.commit()
                 page += 1
             journal._notify_einvoices_received(moves)
@@ -291,20 +384,6 @@ class AccountMove(models.Model):
         if journal_type == "purchase":
             return self.env.company.l10n_tr_nilvera_purchase_journal_id
         return None
-
-    @api.deprecated("Deprecated since 19.0, logic moved to _l10n_tr_nilvera_get_documents")
-    def _l10n_tr_build_document_uuids_list(self, response):
-        contents = response.get("Content", [])
-        document_uuids = [content.get("UUID") for content in contents if content.get("UUID")]
-        # Should be unique per invoice so we get the records with the invoice to use the records
-        document_uuids_records = dict(self.env["account.move"]._read_group([("l10n_tr_nilvera_uuid", "in", document_uuids)], groupby=["l10n_tr_nilvera_uuid", "id"]))
-        document_uuids_references = {
-            content["UUID"]: content["InvoiceNumber"]
-            for content in contents
-            if content.get("UUID") and content.get("InvoiceNumber")
-        }
-
-        return document_uuids, document_uuids_records, document_uuids_references
 
     def _l10n_tr_nilvera_get_invoice_from_uuid(self, client, journal, document_uuid, document_category="Purchase", invoice_channel="einvoice"):
         response = client.request(
@@ -363,21 +442,23 @@ class AccountMove(models.Model):
         attachment = self.env['ir.attachment'].create({
             'name': filename,
             'res_id': invoice.id,
+            'res_field': 'l10n_tr_nilvera_pdf_file',
             'res_model': 'account.move',
             'raw': b64decode(response),
             'type': 'binary',
             'mimetype': 'application/pdf',
         })
+        self.invalidate_recordset(fnames=["l10n_tr_nilvera_pdf_id", "l10n_tr_nilvera_pdf_file"])
         # The created attachement coming form Nilvera should be the main attachment
         invoice.message_main_attachment_id = attachment
         invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachment.ids)
 
     def l10n_tr_nilvera_get_pdf(self):
-        with _get_nilvera_client(self.env.company) as client:
+        with _get_nilvera_client(self.env._, self.env.company) as client:
             for invoice in self:
                 if (
                         invoice.l10n_tr_nilvera_customer_status not in {'einvoice', 'earchive'}
-                        or invoice.message_main_attachment_id.id != invoice.invoice_pdf_report_id.id
+                        or invoice.l10n_tr_nilvera_pdf_id
                         or invoice.l10n_tr_nilvera_send_status != 'succeed'
                 ):
                     continue
@@ -389,35 +470,6 @@ class AccountMove(models.Model):
                     invoice_channel=invoice.l10n_tr_nilvera_customer_status,
                 )
 
-    def _l10n_tr_nilvera_einvoice_get_error_messages_from_response(self, response):
-        msg = ""
-        error_codes = []
-
-        response_json = response.json()
-        if errors := response_json.get('Errors'):
-            msg += _("The invoice couldn't be sent due to the following errors:\n")
-
-            for error in errors:
-                code = error.get('Code')
-                description = NILVERA_ERROR_CODE_MESSAGES.get(code, error.get('Description'))
-                msg += "\n%s - %s:\n%s\n" % (code, description, error.get('Detail'))
-                error_codes.append(code)
-
-        return msg, error_codes
-
-    def _l10n_tr_nilvera_einvoice_check_invalid_subscription_dates(self):
-        if 'deferred_start_date' not in self.invoice_line_ids._fields:
-            return False
-
-        # Ensure that either no lines have the start and end dates or all lines have the same start and end dates.
-        lines_to_check = self.invoice_line_ids.filtered(lambda line: line.display_type == 'product')
-        if not (subscription_lines := lines_to_check.filtered('deferred_start_date')):
-            return False
-
-        return len(subscription_lines) != len(lines_to_check) or len(set(subscription_lines.mapped(
-            lambda aml: (aml.deferred_start_date, aml.deferred_end_date))
-        )) > 1
-
     def _l10n_tr_nilvera_einvoice_check_negative_lines(self):
         return any(
             line.display_type not in {'line_note', 'line_section'}
@@ -428,7 +480,11 @@ class AccountMove(models.Model):
     def _get_partner_l10n_tr_nilvera_customer_alias_name(self):
         # Allows overriding the default customer alias with a custom one.
         self.ensure_one()
-        return self.partner_id.l10n_tr_nilvera_customer_alias_id.name
+        return (
+            self.l10n_tr_is_export_invoice
+            and self.company_id.l10n_tr_nilvera_export_alias
+            or self.partner_id.l10n_tr_nilvera_customer_alias_id.name
+        )
 
     def _get_invoice_nilvera_pdf_report_filename(self):
         """ Get the filename of the Nilvera PDF invoice report. """
@@ -463,29 +519,13 @@ class AccountMove(models.Model):
 
     def _cron_nilvera_get_sale_pdf(self, batch_size=100):
         """ Fetches the Nilvera generated PDFs for the sales generated on Odoo. """
-        # We fetch all invoices whose message_main_attachment_id is the same
-        # as their invoice_pdf_report_id attachment. After we add the Nilvera
-        # PDF, `_l10n_tr_nilvera_add_pdf_to_invoice` will set
-        # `message_main_attachment_id` to the Nilvera attachment, so they
-        # won't be picked up by next runs.
-        # This is a workaround to do this in stable without adding a dedicated field.
-        sql = SQL("""
-          SELECT am.id
-            FROM account_move am
-            JOIN ir_attachment ia
-              ON ia.res_model = 'account.move'
-             AND ia.res_id = am.id
-             AND ia.mimetype = 'application/pdf'
-             AND ia.res_field = 'invoice_pdf_report_file'
-           WHERE am.message_main_attachment_id = ia.id
-             AND am.l10n_tr_nilvera_send_status = 'succeed'
-             AND am.move_type = 'out_invoice'
-           LIMIT %s
-        """, batch_size)
-        move_ids = [row[0] for row in self.env.execute_query(sql)]
-        invoice_to_fetch_pdf = self.env['account.move'].browse(move_ids)
-        for company, invoices in invoice_to_fetch_pdf.grouped("company_id").items():
-            with _get_nilvera_client(company) as client:
+        invoices_to_fetch_pdf = self.env['account.move'].search([
+            ('l10n_tr_nilvera_send_status', '=', 'succeed'),
+            ('move_type', '=', 'out_invoice'),
+            ('l10n_tr_nilvera_pdf_file', '=', False),
+        ], limit=batch_size)
+        for company, invoices in invoices_to_fetch_pdf.grouped("company_id").items():
+            with _get_nilvera_client(self.env._, company) as client:
                 for invoice in invoices:
                     self._l10n_tr_nilvera_add_pdf_to_invoice(
                         client,
@@ -494,3 +534,53 @@ class AccountMove(models.Model):
                         document_category="Sale",
                         invoice_channel=invoice.l10n_tr_nilvera_customer_status,
                     )
+
+    def _get_starting_sequence(self):
+        """
+        Generate a valid name for credit notes.
+
+        Nilvera requires invoice names in the format:
+        <3 alphanumeric characters>/<year>/<sequence number>.
+
+        When creating a credit note, an R is added by standard, so
+        we remove the first letter of the journal prefix to make sure it
+        remains 3 characters (e.g., RINV → RNV).
+        """
+        starting_sequence = super()._get_starting_sequence()
+        if (
+            self.company_id.country_id.code == "TR"
+            and self.journal_id.refund_sequence
+            and self.move_type in {"out_refund", "in_refund"}
+        ):
+            starting_sequence = starting_sequence[0] + starting_sequence[2:]
+        return starting_sequence
+
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        if all(move.country_code != 'TR' or move.move_type != "out_invoice" for move in self):
+            return super()._reverse_moves(default_values_list, cancel=cancel)
+
+        if not default_values_list:
+            default_values_list = [{}] * len(self)
+
+        for default_vals, move in zip(default_values_list, self):
+            if move.country_code != 'TR' or move.move_type != "out_invoice":
+                continue
+            line_vals = move.line_ids.copy_data()
+            for line, vals in zip(move.line_ids, line_vals):
+                vals.update(
+                    {
+                        "l10n_tr_original_line_id": line.id,
+                        "l10n_tr_original_quantity": line.quantity,
+                        "l10n_tr_original_tax_without_withholding": line.price_total - line.price_subtotal,
+                    },
+                )
+            default_vals.update(
+                {
+                    'ref': move.name,
+                    'l10n_tr_gib_invoice_scenario': 'TEMELFATURA',
+                    'l10n_tr_gib_invoice_type': 'TEVKIFATIADE' if move.l10n_tr_gib_invoice_type == "TEVKIFAT" else "IADE",
+                    'line_ids': [Command.create(vals) for vals in line_vals],
+                },
+            )
+
+        return super()._reverse_moves(default_values_list, cancel=cancel)

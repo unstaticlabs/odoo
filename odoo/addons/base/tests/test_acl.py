@@ -5,11 +5,12 @@ from lxml import etree
 
 from odoo.exceptions import AccessError
 from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import tagged
 from odoo.tools.misc import mute_logger
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestACL(TransactionCaseWithUserDemo):
 
     @classmethod
@@ -31,7 +32,7 @@ class TestACL(TransactionCaseWithUserDemo):
     def _set_field_groups(self, model, field_name, groups):
         field = model._fields[field_name]
         self.patch(field, 'groups', groups)
-        self.env.invalidate_all()
+        self.env.transaction.reset()
         self.env.registry.clear_cache('templates')
 
     def test_field_visibility_restriction(self):
@@ -191,6 +192,7 @@ class TestACL(TransactionCaseWithUserDemo):
         self.assertTrue('email' in views['models']['res.partner']["fields"])
 
 
+@tagged('at_install', '-post_install')
 class TestIrRule(TransactionCaseWithUserDemo):
 
     def test_ir_rule(self):
@@ -261,7 +263,7 @@ class TestIrRule(TransactionCaseWithUserDemo):
 
         # modify the global rule on res_company which triggers a recursive check
         # of the rules on company
-        global_rule = self.env.ref('base.res_company_rule_employee')
+        global_rule = self.env.ref('base.res_company_rule_public')
         global_rule.domain_force = "[('id','in', company_ids)]"
 
         # read as demo user (exercising the global company rule)

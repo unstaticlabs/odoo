@@ -15,6 +15,7 @@ from odoo import tools
 
 @tagged('odoo2google', 'calendar_performance', 'is_query_count')
 @patch.object(ResUsers, '_get_google_calendar_token', lambda user: 'dummy-token')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSyncOdoo2Google(TestSyncGoogle):
     @classmethod
     def setUpClass(cls):
@@ -22,7 +23,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
         cls.env.user.partner_id.tz = "Europe/Brussels"
         cls.google_service = GoogleCalendarService(cls.env['google.service'])
         # Make sure this test will work for the next 30 years
-        cls.env['ir.config_parameter'].set_param('google_calendar.sync.range_days', 10000)
+        cls.env['ir.config_parameter'].set_int('google_calendar.sync.range_days', 10000)
 
     @patch_api
     def test_event_creation(self):
@@ -165,7 +166,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'location': '',
             'visibility': 'private',
             'guestsCanModify': True,
-            'reminders': {'useDefault': False, 'overrides': []},
+            'reminders': {'useDefault': False, 'overrides': [{'method': 'popup', 'minutes': 15}]},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'jean-luc@opoo.com', 'responseStatus': 'needsAction'},
                           {'email': 'phineas@opoo.com', 'responseStatus': 'needsAction'}],
@@ -191,7 +192,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': '',
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
@@ -252,7 +253,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': '',
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'recurrence': ['RRULE:FREQ=WEEKLY;COUNT=2;BYDAY=WE'],
@@ -287,7 +288,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': '',
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'recurrence': ['RRULE:FREQ=WEEKLY;COUNT=2;BYDAY=WE'],
@@ -338,7 +339,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.recurrence_id.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'recurrence': ['RRULE:FREQ=WEEKLY;WKST=SU;COUNT=1;BYDAY=WE'],
             'transparency': 'opaque',
         }, timeout=3)
@@ -386,7 +387,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': event.description,
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'jean-luc@opoo.com', 'self': True},
             'attendees': [{'email': 'jean-luc@opoo.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
@@ -427,7 +428,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'recurrence': ['RRULE:FREQ=WEEKLY;WKST=SU;COUNT=2;BYDAY=WE'],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: new_recurrence.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'transparency': 'opaque',
         }, timeout=3)
 
@@ -556,7 +557,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'jean-luc@opoo.com', 'responseStatus': 'declined'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'transparency': 'opaque',
         })
 
@@ -594,7 +595,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'recurrence': ['RRULE:FREQ=WEEKLY;WKST=SU;COUNT=2;BYDAY=WE'],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: new_recurrence.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'transparency': 'opaque',
         }, timeout=3)
 
@@ -637,7 +638,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event_1.id}},
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'status': 'cancelled',
             'transparency': 'opaque',
         }, timeout=3)
@@ -769,7 +770,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': '',
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
@@ -795,7 +796,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': '',
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': 'odoobot@example.com', 'self': True},
             'attendees': [{'email': 'odoobot@example.com', 'responseStatus': 'accepted'}],
             'extendedProperties': {'shared': {'%s_odoo_id' % self.env.cr.dbname: event.id}},
@@ -842,7 +843,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'location': '',
             'guestsCanModify': True,
             'transparency': 'opaque',
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': self.organizer_user.email, 'self': True},
             'attendees': [
                             {'email': self.attendee_user.email, 'responseStatus': 'needsAction'},
@@ -883,7 +884,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
             'description': event.description,
             'location': '',
             'guestsCanModify': True,
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'organizer': {'email': self.organizer_user.email, 'self': True},
             'attendees': [{'email': self.organizer_user.email, 'responseStatus': 'accepted'}],
             'recurrence': ['RRULE:FREQ=WEEKLY;COUNT=1;BYDAY=WE'],
@@ -939,7 +940,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
                 'location': '',
                 'guestsCanModify': True,
                 'transparency': 'opaque',
-                'reminders': {'overrides': [], 'useDefault': False},
+                'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
                 'organizer': {'email': self.organizer_user.email, 'self': True},
                 'attendees': [
                                 {'email': self.attendee_user.email, 'responseStatus': 'needsAction'},
@@ -972,7 +973,7 @@ class TestSyncOdoo2Google(TestSyncGoogle):
                             {'email': self.attendee_user.email, 'responseStatus': 'needsAction'},
                             {'email': self.organizer_user.email, 'responseStatus': 'accepted'}
                          ],
-            'reminders': {'overrides': [], 'useDefault': False},
+            'reminders': {'overrides': [{'method': 'popup', 'minutes': 15}], 'useDefault': False},
             'transparency': 'opaque',
         }
         self.assertGoogleEventInsertedMultiTime({

@@ -1,5 +1,5 @@
 import logging
-import pytz
+import zoneinfo
 import re
 
 from odoo import api, models, fields
@@ -258,7 +258,7 @@ class AccountMove(models.Model):
                     response = _mer_api_mark_paid(
                         move.company_id,
                         move.l10n_hr_mer_document_eid,
-                        fields.Datetime.now(pytz.timezone('Europe/Zagreb')).strftime('%Y-%m-%dT%H:%M:%S'),
+                        fields.Datetime.now(zoneinfo.ZoneInfo('Europe/Zagreb')).strftime('%Y-%m-%dT%H:%M:%S'),
                         amount_to_report,
                         move.l10n_hr_payment_method_type,
                     )

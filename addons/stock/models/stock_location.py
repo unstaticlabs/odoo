@@ -12,7 +12,7 @@ from odoo.fields import Domain
 
 class StockLocation(models.Model):
     _name = 'stock.location'
-    _description = "Inventory Locations"
+    _description = "Inventory Location"
     _parent_name = "location_id"
     _parent_store = True
     _order = 'complete_name, id'
@@ -101,15 +101,18 @@ class StockLocation(models.Model):
     _parent_path_id_idx = models.Index("(parent_path, id)")
 
     @api.depends('name', 'location_id.complete_name', 'usage')
-    @api.depends_context('formatted_display_name')
+    @api.depends_context('formatted_display_name', 'show_empty')
     def _compute_display_name(self):
         super()._compute_display_name()
+        formatted_display_name = self.env.context.get('formatted_display_name')
         for location in self:
             has_parent = location.location_id and location.usage != 'view'
-            if location.env.context.get('formatted_display_name') and has_parent:
+            if formatted_display_name and has_parent:
                 location.display_name = f"--{location.location_id.complete_name}/--{location.name}"
             elif has_parent:
                 location.display_name = f"{location.location_id.complete_name}/{location.name}"
+            if formatted_display_name and self.env.context.get('show_empty') and location.is_empty:
+                location.display_name += self.env._("\t--Empty--")
 
     @api.depends('outgoing_move_line_ids.quantity_product_uom', 'incoming_move_line_ids.quantity_product_uom',
                  'outgoing_move_line_ids.state', 'incoming_move_line_ids.state',
@@ -354,7 +357,7 @@ class StockLocation(models.Model):
                         ('product_id', '=', product.id),
                         ('location_dest_id', 'in', locations.ids),
                         ('state', 'not in', ['draft', 'done', 'cancel'])
-                    ], ['location_dest_id'], ['quantity:array_agg', 'product_uom_id:recordset'])
+                    ], ['location_dest_id'], ['quantity:array_agg', 'uom_id:recordset'])
                     quant_data = self.env['stock.quant']._read_group([
                         ('product_id', '=', product.id),
                         ('location_id', 'in', locations.ids),
@@ -516,7 +519,7 @@ class StockLocation(models.Model):
 
 class StockRoute(models.Model):
     _name = 'stock.route'
-    _description = "Inventory Routes"
+    _description = "Inventory Route"
     _order = 'sequence'
     _check_company_auto = True
 

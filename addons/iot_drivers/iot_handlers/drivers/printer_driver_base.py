@@ -7,7 +7,6 @@ import re
 import time
 
 from odoo.addons.iot_drivers.driver import Driver
-from odoo.addons.iot_drivers.main import iot_devices
 from odoo.addons.iot_drivers.event_manager import event_manager
 
 _logger = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ _logger = logging.getLogger(__name__)
 
 class PrinterDriverBase(Driver, ABC):
     connection_type = 'printer'
-    job_timeout_seconds = 30
+    job_timeout_seconds = 90
 
     RECEIPT_PRINTER_COMMANDS = {
         'star': {
@@ -42,18 +41,8 @@ class PrinterDriverBase(Driver, ABC):
         self._actions.update({
             'cashbox': self.open_cashbox,
             'print_receipt': self.print_receipt,
-            'status': self.print_status,
             '': self._action_default,
         })
-
-    @classmethod
-    def get_status(cls):
-        status = 'connected' if any(
-            iot_devices[d].device_type == "printer"
-            and iot_devices[d].device_connection == 'direct'
-            for d in iot_devices
-        ) else 'disconnected'
-        return {'status': status, 'messages': ''}
 
     def send_status(self, status, message=None, action_unique_id=None):
         """Sends a status update event for the printer.
@@ -219,11 +208,6 @@ class PrinterDriverBase(Driver, ABC):
         :param data: The data to send to the printer
         :param str action_unique_id: The unique identifier of the action
         """
-        pass
-
-    @abstractmethod
-    def print_status(self, data):
-        """Method called to test a printer, printing a status page."""
         pass
 
     @abstractmethod

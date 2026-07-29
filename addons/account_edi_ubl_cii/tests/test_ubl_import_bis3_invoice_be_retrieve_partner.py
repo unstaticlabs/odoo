@@ -92,7 +92,7 @@ class TestUblImportBis3InvoiceBERetrievePartner(TestUblImportBis3InvoiceBE):
     def test_partial_import_partner_retrieval_bank_account_number(self):
         """Check that the bank account number is used to retrieve the partner when importing a Bis 3 xml."""
         partner_bank = self.env['res.partner.bank'].create({
-            'acc_number': 'BE43200112345678',
+            'account_number': 'BE43200112345678',
             'partner_id': self.partner_a.id,
             'allow_out_payment': True,
         })

@@ -6,14 +6,14 @@
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 03:43+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-09-16 21:15+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
 "hr_gamification/th/>\n"
 "Language: th\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -54,8 +54,8 @@ msgid ""
 "of the group."
 msgstr ""
 "กำหนดรายการเป้าหมายให้กับผู้ใช้ที่เลือกเพื่อประเมิน\n"
-"                    ความท้าทายสามารถใช้ระยะเวลา (รายสัปดาห์ รายเดือน...) เพื่อสร้างเป้"
-"าหมายโดยอัตโนมัติ\n"
+"                    ความท้าทายสามารถใช้ระยะเวลา (รายสัปดาห์ รายเดือน...) "
+"เพื่อสร้างเป้าหมายโดยอัตโนมัติ\n"
 "                    เป้าหมายถูกสร้างขึ้นสำหรับผู้ใช้ที่ระบุหรือสมาชิกของกลุ่ม"
 
 #. module: hr_gamification
@@ -118,12 +118,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "เหรียญรางวัลโดยตรง"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr ""
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -288,32 +282,3 @@ msgstr "คุณไม่สามารถส่งเหรียญราง
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr ""
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr "ป้ายเป็นรางวัลของการทำงานที่ดี มอบให้กับคนที่คุณเชื่อว่าสมควรได้รับ"
-
-#~ msgid "Basic Employee"
-#~ msgstr "พนักงานทั่วไป"
-
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "มอบป้ายรางวัลแรกให้พนักงานคนนี้"
-
-#~ msgid "Received Badges"
-#~ msgstr "ได้รับป้ายรางวัล"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "ชื่อผู้ใช้ที่เกี่ยวข้องสำหรับทรัพยากรเพื่อจัดการการเข้าถึง"
-
-#~ msgid "Reward Employee"
-#~ msgstr "ให้รางวัลพนักงาน"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr "คุณสามารถส่งป้ายรางวัลให้เฉพาะพนักงานที่เชื่อมโยงกับผู้ใช้เท่านั้น"
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "เพื่อให้รางวัลแก่พนักงานสำหรับการกระทำที่ดี"

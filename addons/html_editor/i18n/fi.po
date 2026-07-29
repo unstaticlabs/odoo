@@ -2,25 +2,24 @@
 # This file contains the translation of the following modules:
 # * html_editor
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
-# Jarmo Kortetjärvi <jarmo.kortetjarvi@futural.fi>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 18:52+0000\n"
-"Last-Translator: Jarmo Kortetjärvi <jarmo.kortetjarvi@futural.fi>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-07-03 17:36+0000\n"
+"PO-Revision-Date: 2026-04-18 13:39+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "html_editor/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: html_editor
 #. odoo-javascript
@@ -36,19 +35,26 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/image_description.xml:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
-msgstr "'Otsikkotunniste' näytetään vihjetekstinä viedessäsi hiiren kuvan ylle."
+msgstr ""
+"'Otsikkotunniste' näytetään vihjetekstinä viedessäsi hiiren kuvan ylle."
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "'s description from"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "'s version from"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
 msgid "(URL or Embed)"
-msgstr "(URL-osoite tai upotus)"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid ", submited by"
-msgstr ", lähettänyt"
+msgstr "(URL-osoite tai upota)"
 
 #. module: html_editor
 #. odoo-javascript
@@ -180,7 +186,7 @@ msgstr "Lisää/poista kuvateksti"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Advanced mode"
-msgstr "Edistynyt tila"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -211,6 +217,12 @@ msgstr "Kaikki asiakirjat on ladattu"
 #: code:addons/html_editor/static/src/main/media/media_dialog/image_selector.js:0
 msgid "All images have been loaded"
 msgstr "Kaikki kuvat on ladattu"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/table/table_menu.js:0
+msgid "Alternate row colors"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -332,21 +344,21 @@ msgstr "Pohja"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/user_signature_plugin.js:0
+msgid "Basic Block"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/font_plugin.js:0
 msgid "Big section heading"
 msgstr "Iso kappaleen otsikko"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "Border"
-msgstr "Reunus"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "Border Size"
-msgstr "Reunuksen koko"
+#: code:addons/html_editor/static/src/core/format_plugin.js:0
+msgid "Bold (Ctrl + B)"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -356,33 +368,57 @@ msgstr "Luettelo ranskalaisilla viivoilla"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/list/list_plugin.js:0
+msgid "Bulleted list (Ctrl + Shift + 8)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_plugin.js:0
 msgid "Button"
 msgstr "Nappi"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Button Primary"
 msgstr "Ensisijainen painike"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Button Secondary"
 msgstr "Toissijainen painike"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/chatgpt/chatgpt_translate_dialog.xml:0
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
 msgid "Cancel"
 msgstr "Peruuta"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/media/media_dialog/upload_progress_toast/upload_progress_toast.xml:0
+msgid "Cancel Upload"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/others/embedded_components/plugins/caption_plugin/caption_plugin.js:0
 msgid "Caption"
-msgstr "Kuvateksti"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/align/align_plugin.js:0
+msgid "Center align"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
+msgid "Change the placeholder or the expression for an existing field"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -392,9 +428,21 @@ msgstr "Tarkistuslista"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/list/list_plugin.js:0
+msgid "Checklist (Ctrl + Shift + 9)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/fields/x2many_field/x2many_image_field.xml:0
 msgid "Clear"
 msgstr "Pyyhi"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/table/table_menu.js:0
+msgid "Clear alternate colors"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -410,13 +458,21 @@ msgstr "Klikkaa uudelleen nollataksesi muutokset"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/movenode_plugin.js:0
-msgid "Click to select"
-msgstr "Klikkaa valitaksesi"
+#: code:addons/html_editor/static/src/main/table/table_menu.xml:0
+msgid ""
+"Click to open options\n"
+"Drag to move"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/upload_progress_toast/upload_progress_toast.xml:0
+#: code:addons/html_editor/static/src/main/movenode_plugin.js:0
+msgid "Click to select"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
 #: code:addons/html_editor/static/src/others/embedded_components/core/file/readonly_file.js:0
 msgid "Close"
 msgstr "Sulje"
@@ -432,7 +488,7 @@ msgstr "Koodi"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/others/embedded_components/backend/syntax_highlighting/code_toolbar.xml:0
 msgid "Code copied to the clipboard."
-msgstr "Koodi kopioitu leikepöydälle."
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -442,9 +498,27 @@ msgstr "Koodinäkymä"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/font/gradient_picker/gradient_picker.xml:0
+msgid "Colors"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/column_plugin.js:0
 msgid "Columnize"
 msgstr "Sarakkeista"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "Comparing current description with"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/font/gradient_picker/gradient_picker.xml:0
+msgid "Conic"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -480,7 +554,7 @@ msgstr "Muunna sarakkeiksi"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/others/embedded_components/backend/syntax_highlighting/code_toolbar.xml:0
 msgid "Convert to paragraph"
-msgstr "Muunna kappaleeksi"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -537,7 +611,7 @@ msgstr "Rajaa kuva"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/color_picker_gradient_tab.xml:0
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Custom"
 msgstr "Mukautettu"
 
@@ -549,12 +623,25 @@ msgstr "Dailymotion"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
+msgid "Data"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Default"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/color_picker_gradient_tab.xml:0
 msgid "Define a custom gradient"
 msgstr "Määritä räätälöity liukuväri"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/media/media_dialog/file_selector.js:0
 #: code:addons/html_editor/static/src/main/table/table_menu.js:0
 msgid "Delete"
 msgstr "Poista"
@@ -567,6 +654,12 @@ msgstr "Kuvaus"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "Diff view mode"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Direct download"
 msgstr "Suora lataus"
@@ -574,6 +667,7 @@ msgstr "Suora lataus"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+#: code:addons/html_editor/static/src/main/chatgpt/chatgpt_translate_dialog.xml:0
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 #: code:addons/html_editor/static/src/main/media/image_crop.xml:0
 #: code:addons/html_editor/static/src/main/media/image_description.xml:0
@@ -598,8 +692,6 @@ msgstr "Hylkää"
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_integer__display_name
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_many2one__display_name
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_monetary__display_name
-#: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_qweb__display_name
-#: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_relative__display_name
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_selection__display_name
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_text__display_name
 #: model:ir.model.fields,field_description:html_editor.field_ir_ui_view__display_name
@@ -617,13 +709,7 @@ msgstr "Asiakirjat"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/movenode_plugin.js:0
 msgid "Drag to move"
-msgstr "Siirrä raahaamalla"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/others/dynamic_placeholder_plugin.js:0
-msgid "Dynamic Placeholder"
-msgstr "Dynaaminen paikanvaraaja"
+msgstr ""
 
 #. module: html_editor
 #. odoo-python
@@ -643,6 +729,12 @@ msgstr "Muokkaa"
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Edit Link"
 msgstr "Muokkaa linkkiä"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
+msgid "Edit field"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -717,6 +809,19 @@ msgid "Extend to the farthest side"
 msgstr "Laajenna kauimmaiseen laitaan"
 
 #. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
+msgid "Facebook"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Field"
+msgstr ""
+
+#. module: html_editor
 #: model:ir.model,name:html_editor.model_html_field_history_mixin
 msgid "Field html History"
 msgstr "Kentän html-historia"
@@ -726,18 +831,6 @@ msgstr "Kentän html-historia"
 #: code:addons/html_editor/static/src/main/media/media_dialog/upload_progress_toast/upload_progress_toast.js:0
 msgid "File could not be saved"
 msgstr "Tiedostoa ei voitu tallentaa"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/media/media_dialog/upload_progress_toast/upload_progress_toast.xml:0
-msgid "File has been uploaded"
-msgstr "Tiedosto on ladattu"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "Fill Color"
-msgstr "Täyttöväri"
 
 #. module: html_editor
 #. odoo-javascript
@@ -901,12 +994,12 @@ msgstr "Html"
 #. module: html_editor
 #: model:ir.model,name:html_editor.model_html_editor_converter_test_sub
 msgid "Html Editor Converter Subtest"
-msgstr "HTML-muokkaimen muuntimen osatesti"
+msgstr ""
 
 #. module: html_editor
 #: model:ir.model,name:html_editor.model_html_editor_converter_test
 msgid "Html Editor Converter Test"
-msgstr "HTML-muokkaimen muuntimen testi"
+msgstr ""
 
 #. module: html_editor
 #: model:ir.model.fields,field_description:html_editor.field_html_editor_converter_test_sub__id
@@ -925,8 +1018,6 @@ msgstr "HTML-muokkaimen muuntimen testi"
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_integer__id
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_many2one__id
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_monetary__id
-#: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_qweb__id
-#: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_relative__id
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_selection__id
 #: model:ir.model.fields,field_description:html_editor.field_ir_qweb_field_text__id
 #: model:ir.model.fields,field_description:html_editor.field_ir_ui_view__id
@@ -971,7 +1062,7 @@ msgstr "Kuvat"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.js:0
 msgid "Indicates the link is sponsored or paid content"
-msgstr "Ilmaisee linkin johtavan sponsoroituun tai maksettuun sisältöön"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -987,7 +1078,7 @@ msgstr "Lisää vaarabanneri"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/others/dynamic_placeholder_plugin.js:0
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
 msgid "Insert a field"
 msgstr "Lisää kenttä"
 
@@ -1001,7 +1092,7 @@ msgstr "Lisää vaakasuuntainen sääntöerotin"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/banner_plugin.js:0
 msgid "Insert a monospace banner"
-msgstr "Lisää tasavälinen banneri"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1067,7 +1158,7 @@ msgstr "Lisää kuva tai kuvake"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_plugin.js:0
 msgid "Insert image, icon or video"
-msgstr "Lisää kuva, symboli tai video"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1077,9 +1168,27 @@ msgstr "Lisää vasemmalle"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/link/link_plugin.js:0
+msgid "Insert link (Ctrl + K)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/table/table_menu.js:0
 msgid "Insert right"
 msgstr "Aseta oikealle"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/user_signature_plugin.js:0
+msgid "Insert your email signature"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/media/signature_plugin.js:0
+msgid "Insert your handwritten signature"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1088,10 +1197,16 @@ msgid "Instagram"
 msgstr "Instagram"
 
 #. module: html_editor
-#. odoo-python
-#: code:addons/html_editor/models/ir_ui_view.py:0
-msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "Kentän %(field_name)s arvo on virheellinen: %(value)s"
+#. odoo-javascript
+#: code:addons/html_editor/static/src/core/format_plugin.js:0
+msgid "Italic (Ctrl + I)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/align/align_plugin.js:0
+msgid "Justify"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1101,7 +1216,7 @@ msgstr "Otsikko"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Large"
 msgstr "Suuri"
 
@@ -1117,6 +1232,12 @@ msgstr "Viimeksi päivitetty"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/align/align_plugin.js:0
+msgid "Left align"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/gradient_picker/gradient_picker.xml:0
 msgid "Linear"
 msgstr "Lineaarinen"
@@ -1124,7 +1245,7 @@ msgstr "Lineaarinen"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_plugin.js:0
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Link"
 msgstr "Linkki"
 
@@ -1132,13 +1253,7 @@ msgstr "Linkki"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Link Popover"
-msgstr "Linkin ponnahdusikkuna"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
-msgid "Link copied to clipboard."
-msgstr "Linkki kopioitu leikepöydälle."
+msgstr ""
 
 #. module: html_editor
 #. odoo-python
@@ -1184,13 +1299,7 @@ msgstr "Silmukka"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
 msgid "MM:SS"
-msgstr "MM:SS"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/others/dynamic_placeholder_plugin.js:0
-msgid "Marketing Tools"
-msgstr "Markkinointityökalut"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1200,7 +1309,7 @@ msgstr "Media"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Medium"
 msgstr "Mediatyyppi"
 
@@ -1218,21 +1327,27 @@ msgstr "Puuttuva tiedosto"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Model"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/powerbox/powerbox_plugin.js:0
 msgid "Modules"
-msgstr "Moduulit"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/banner_plugin.js:0
 msgid "Monospace"
-msgstr "Tasavälinen"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/banner_plugin.js:0
 msgid "Monospace Banner"
-msgstr "Tasavälinen banneri"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1327,6 +1442,12 @@ msgstr "Numeroitu luettelo"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/main/list/list_plugin.js:0
+msgid "Numbered list (Ctrl + Shift + 7)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/attachment_error.xml:0
 msgid "Ok"
 msgstr "OK"
@@ -1357,7 +1478,7 @@ msgstr "Avaa uudessa välilehdessä"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Open in new tab"
-msgstr "Avaa uudessa välilehdessä"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1404,10 +1525,11 @@ msgstr "Sijainti Y"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.js:0
 msgid "Prevents the new page from accessing the original window (security)"
-msgstr "Estää uutta sivua pääsemästä alkuperäiseen ikkunaan (turvallisuus)"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.xml:0
 msgid "Preview"
 msgstr "Esikatselu"
@@ -1506,11 +1628,6 @@ msgid "Qweb Field Monetary"
 msgstr "Qweb-kenttä Raha"
 
 #. module: html_editor
-#: model:ir.model,name:html_editor.model_ir_qweb_field_relative
-msgid "Qweb Field Relative"
-msgstr "Qweb-kenttä Suhteellinen"
-
-#. module: html_editor
 #: model:ir.model,name:html_editor.model_ir_qweb_field_selection
 msgid "Qweb Field Selection"
 msgstr "Qweb-kenttä Valinta"
@@ -1519,11 +1636,6 @@ msgstr "Qweb-kenttä Valinta"
 #: model:ir.model,name:html_editor.model_ir_qweb_field_text
 msgid "Qweb Field Text"
 msgstr "Qweb-kenttä Teksti"
-
-#. module: html_editor
-#: model:ir.model,name:html_editor.model_ir_qweb_field_qweb
-msgid "Qweb Field qweb"
-msgstr "Qweb-kenttä qweb"
 
 #. module: html_editor
 #. odoo-javascript
@@ -1553,7 +1665,7 @@ msgstr "Poista (DELETE) kuva"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/core/format_plugin.js:0
 msgid "Remove Format (Ctrl + Space)"
-msgstr "Poista muotoilu (Ctrl + välilyönti)"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1572,7 +1684,13 @@ msgstr "Poista sarakkeet"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.js:0
 msgid "Removes referrer information sent to the target site"
-msgstr "Poistaa kohdesivustolle lähetetyt viittaustiedot"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/font/gradient_picker/gradient_picker.xml:0
+msgid "Repeating"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1673,6 +1791,18 @@ msgstr "Palauta historia"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "Revisions"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/main/align/align_plugin.js:0
+msgid "Right align"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/image_crop.xml:0
 msgid "Rotate Left"
 msgstr "Pyöritä vasemmalle"
@@ -1711,7 +1841,7 @@ msgstr "Hae kuvaa"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/image_selector.xml:0
 msgid "Search the web for royalty-free images"
-msgstr "Etsi verkosta rojaltivapaita kuvia"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1735,13 +1865,13 @@ msgstr "Valitse media"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Select button shape"
-msgstr "Valitse painikkeen muoto"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "Select button size"
-msgstr "Valitse painikkeen koko"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1805,6 +1935,12 @@ msgstr "Aseta muoto: Pienoiskuva"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "Show comparison"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/file_selector.xml:0
 msgid "Show optimized images"
 msgstr "Näytä optimoidut kuvat"
@@ -1812,18 +1948,15 @@ msgstr "Näytä optimoidut kuvat"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid ""
-"Showing all differences between the current version and the selected one "
-"updated by"
+msgid "Showing"
 msgstr ""
-"Näytetään kaikki eroavaisuudet nykyisen version ja valitun version välillä, "
-"jonka päivitti"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "Showing the document as it was on"
-msgstr "Asiakirjan näyttäminen sellaisena kuin se oli"
+#: code:addons/html_editor/static/src/main/media/signature_plugin.js:0
+#: code:addons/html_editor/static/src/main/user_signature_plugin.js:0
+msgid "Signature"
+msgstr "Allekirjoitus"
 
 #. module: html_editor
 #. odoo-javascript
@@ -1833,7 +1966,7 @@ msgstr "Koko"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.js:0
+#: code:addons/html_editor/static/src/utils/button_style.js:0
 msgid "Small"
 msgstr "Pieni"
 
@@ -1858,8 +1991,8 @@ msgstr "Kehotuksesi on liian pitkä. Yritä sanoa se lyhyemmin."
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "Split view"
-msgstr "Jaettu näkymä"
+msgid "Split"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1871,7 +2004,13 @@ msgstr "Tähdet"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
 msgid "Start at"
-msgstr "Aloita"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/core/format_plugin.js:0
+msgid "Strikethrough (Ctrl + 5)"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1912,9 +2051,15 @@ msgstr "Sisällysluettelo"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Technical name"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.js:0
 msgid "Tells search engines not to follow this link"
-msgstr "Kieltää hakukoneita seuraamasta tätä linkkiä"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1924,9 +2069,9 @@ msgstr "Teksti"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "Text Color"
-msgstr "Tekstin väri"
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Text shown if field is empty"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -1953,8 +2098,8 @@ msgid ""
 "The document was already saved from someone with a different history for "
 "model \"%(model)s\", field \"%(field)s\" with id \"%(id)d\"."
 msgstr ""
-"Asiakirja on jo tallennettu joltain, jolla on eri historia mallin \"%(model)"
-"s\", kentän \"%(field)s\" ja tunnuksen \"%(id)d\" osalta."
+"Asiakirja on jo tallennettu joltain, jolla on eri historia mallin \"%"
+"(model)s\", kentän \"%(field)s\" ja tunnuksen \"%(id)d\" osalta."
 
 #. module: html_editor
 #. odoo-javascript
@@ -1963,8 +2108,6 @@ msgid ""
 "The image could not be deleted because it is used in the\n"
 "                following pages or views:"
 msgstr ""
-"Kuvaa ei voitu poistaa, koska se on käytössä\n"
-"                seuraavilla sivuilla tai näkymissä:"
 
 #. module: html_editor
 #. odoo-javascript
@@ -2012,7 +2155,7 @@ msgstr "Tämä kuva on ulkoinen kuva"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
 msgid "This is the current version, nothing to compare."
-msgstr "Tämä on nykyinen versio, ei mitään verrattavaa."
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2035,6 +2178,12 @@ msgstr "Vaihda lista"
 #: code:addons/html_editor/static/src/core/format_plugin.js:0
 msgid "Toggle bold"
 msgstr "Vaihda lihavointi"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "Toggle comparison view"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2113,13 +2262,13 @@ msgstr "Kokeile etsiä muilla avainsanoilla."
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/table/table_menu.js:0
 msgid "Turn into header"
-msgstr "Muuta otsikoksi"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/table/table_menu.js:0
 msgid "Turn into row"
-msgstr "Muuta riviksi"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2153,6 +2302,12 @@ msgstr "Linkkiä ei voitu luoda valitulle sisällölle."
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/core/format_plugin.js:0
+msgid "Underline (Ctrl + U)"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/core/history_plugin.js:0
 msgid "Undo"
 msgstr "Peru"
@@ -2160,8 +2315,14 @@ msgstr "Peru"
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "Unified view"
-msgstr "Yhtenäinen näkymä"
+msgid "Unified"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/field_selector_popover.xml:0
+msgid "Update"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2189,9 +2350,9 @@ msgstr "Ladatun kuvan muotoa ei tueta. Kokeile: %s"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "Version date"
-msgstr "Version päivämäärä"
+#: code:addons/html_editor/static/src/main/media/media_dialog/video_selector.js:0
+msgid "Vertical"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2228,24 +2389,6 @@ msgstr "Videot mykistetään, kun automaattinen toisto on käytössä"
 #: model:ir.model,name:html_editor.model_ir_ui_view
 msgid "View"
 msgstr "Näytä"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "View Content"
-msgstr "Katso sisältö"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "View comparison"
-msgstr "Katso vertailu"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "View content"
-msgstr "Katso sisältö"
 
 #. module: html_editor
 #. odoo-javascript
@@ -2317,14 +2460,6 @@ msgstr ""
 "uudelleen."
 
 #. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/others/dynamic_placeholder_plugin.js:0
-msgid ""
-"You need to select a model before opening the dynamic placeholder selector."
-msgstr ""
-"Sinun on valittava malli ennen dynaamisen paikannimen valitsimen avaamista."
-
-#. module: html_editor
 #. odoo-python
 #: code:addons/html_editor/controllers/main.py:0
 msgid "You need to specify either data or url to create an attachment."
@@ -2368,6 +2503,12 @@ msgstr "ja"
 
 #. module: html_editor
 #. odoo-javascript
+#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
+msgid "by"
+msgstr ""
+
+#. module: html_editor
+#. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/gradient_picker/gradient_picker.xml:0
 msgid "deg"
 msgstr "astetta"
@@ -2376,13 +2517,19 @@ msgstr "astetta"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/separator_plugin.js:0
 msgid "divider"
-msgstr "jakaja"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/media/file_plugin.js:0
 msgid "document"
 msgstr "dokumentti"
+
+#. module: html_editor
+#. odoo-javascript
+#: code:addons/html_editor/static/src/backend/dynamic_field/dynamic_field_plugin.js:0
+msgid "dynamic placeholder"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2400,19 +2547,13 @@ msgstr "tiedosto"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/separator_plugin.js:0
 msgid "line"
-msgstr "rivi"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/link/link_popover.xml:0
 msgid "noopener"
-msgstr "noopener"
-
-#. module: html_editor
-#. odoo-javascript
-#: code:addons/html_editor/static/src/components/history_dialog/history_dialog.xml:0
-msgid "on"
-msgstr "on"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2422,15 +2563,9 @@ msgstr "tai"
 
 #. module: html_editor
 #. odoo-javascript
-#: code:addons/html_editor/static/src/main/link/link_popover.xml:0
-msgid "px"
-msgstr "px"
-
-#. module: html_editor
-#. odoo-javascript
 #: code:addons/html_editor/static/src/main/font/font_plugin.js:0
 msgid "title"
-msgstr "otsikko"
+msgstr ""
 
 #. module: html_editor
 #. odoo-javascript
@@ -2447,71 +2582,10 @@ msgstr "websocket-viestien käsittely"
 #. odoo-javascript
 #: code:addons/html_editor/static/src/main/table/table_picker.xml:0
 msgid "x"
-msgstr "x"
+msgstr ""
 
 #~ msgid "Remove Format"
 #~ msgstr "Poista muotoilu"
 
-#~ msgid "Copy Link"
-#~ msgstr "Kopioi linkki"
-
-#~ msgid "Shape"
-#~ msgstr "Muoto"
-
-#~ msgid "Hide Dailymotion logo"
-#~ msgstr "Piilota Dailymotion-logo"
-
-#~ msgid "Hide sharing button"
-#~ msgstr "Piilota jakopainike"
-
-#~ msgid "Youku"
-#~ msgstr "Youku"
-
-#~ msgid "Basic Bloc"
-#~ msgstr "Peruslohko"
-
-#~ msgid "Comparison"
-#~ msgstr "Vertailu"
-
-#~ msgid "Content"
-#~ msgstr "Sisältö"
-
-#~ msgid ""
-#~ "Discover a world of awesomeness in our copyright-free image haven. No "
-#~ "legal drama, just nice images!"
-#~ msgstr ""
-#~ "Tutustu mahtavuuden maailmaan tekijänoikeuksista vapaassa "
-#~ "kuvaparatiisissamme. Ei juridista draamaa, vain hienoja kuvia!"
-
-#~ msgid "Embed a video"
-#~ msgstr "Upota video"
-
-#~ msgid "Error"
-#~ msgstr "Virhe"
-
-#~ msgid "Icon"
-#~ msgstr "Kuvake"
-
-#~ msgid "Image"
-#~ msgstr "Kuva"
-
-#~ msgid "Image description"
-#~ msgstr "Kuvan kuvaus"
-
-#~ msgid "Insert Video"
-#~ msgstr "Lisää video"
-
-#~ msgid "Insert a Video"
-#~ msgstr "Videon lisääminen"
-
 #~ msgid "Insert your signature"
 #~ msgstr "Lisää allekirjoituksesi"
-
-#~ msgid "Save"
-#~ msgstr "Tallenna"
-
-#~ msgid "Signature"
-#~ msgstr "Allekirjoitus"
-
-#~ msgid "Video Link"
-#~ msgstr "Videon linkki"

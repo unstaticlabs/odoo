@@ -4,8 +4,13 @@ import {
     setupWebsiteBuilderWithSnippet,
 } from "@website/../tests/builder/website_helpers";
 import { contains, onRpc } from "@web/../tests/web_test_helpers";
-import { getDragHelper, waitForEndOfOperation } from "@html_builder/../tests/helpers";
-import { click, queryOne } from "@odoo/hoot-dom";
+import {
+    getDragHelper,
+    unfoldAllOptionsGroups,
+    waitForEndOfOperation,
+} from "@html_builder/../tests/helpers";
+import { ensureDistinctHistoryStep } from "@html_editor/../tests/_helpers/user_actions";
+import { click, queryOne, animationFrame, edit, waitFor } from "@odoo/hoot-dom";
 
 defineWebsiteModels();
 
@@ -14,6 +19,101 @@ async function setupEmptySocialMedia(options) {
     queryAll(":iframe div.s_social_media a").forEach((el) => el.remove());
     builder.getEditor().shared.history.addStep();
     return builder;
+}
+async function setDropdownOption(
+    containerTitle,
+    optionLabel,
+    menuText,
+    snippetSelector,
+    verifySelector
+) {
+    await click(`[data-container-title='${containerTitle}'] [data-label='${optionLabel}'] button`);
+    await animationFrame();
+    await click(`.o_popover .o-dropdown-item:contains(${menuText})`);
+    await waitFor(`${snippetSelector}${verifySelector}`);
+}
+
+async function testSocialSnippetOptions(snippetName, containerTitle, iconName) {
+    const snippetSelector = `:iframe .${snippetName}`;
+    onRpc("website", "read", ({ args }) => {
+        expect(args[0]).toEqual([1]);
+        expect(args[1]).toInclude(`social_${iconName}`);
+        return [
+            {
+                id: 1,
+                social_github: `https://${iconName}.com/odoo`,
+            },
+        ];
+    });
+
+    onRpc(`${location.origin}/website/social/facebook`, () => ({
+        title: "title",
+        description: "description",
+    }));
+
+    onRpc(`/html_editor/link_preview_internal`, () => ({
+        title: "title",
+        description: "description",
+    }));
+
+    const core = await setupWebsiteBuilderWithSnippet(snippetName, {
+        styleContent: `.${snippetName}.no_icon_color a {
+            color: inherit !important;
+        }`,
+    });
+
+    expect(snippetSelector).toHaveCount(1);
+    await click(`${snippetSelector} i:first-child`);
+    await core.waitSidebarUpdated();
+    await unfoldAllOptionsGroups();
+    await click(
+        `[data-container-title='${containerTitle}'] [data-label='Color'] input[type='checkbox']`
+    );
+    await animationFrame();
+    expect(":iframe .no_icon_color").toHaveCount(1);
+    const textColor = "rgb(255, 0, 0)";
+    core.getEditableContent().style.color = textColor;
+    const icon = await queryOne(`${snippetSelector} a .fa-${iconName}`);
+    if (icon) {
+        const iconColor = getComputedStyle(icon).color;
+        expect(iconColor).toBe(textColor);
+    }
+    const forbidden = ["Size", "Style", "Border", "Alignment", "Padding", "Animation"];
+    for (const label of forbidden) {
+        expect(`[data-container-title='Icon'] [data-label='${label}']`).toHaveCount(0);
+    }
+    const required = ["Animation", "Background Color"];
+    for (const label of required) {
+        expect(`[data-container-title='${containerTitle}'] [data-label='${label}']`).toHaveCount(1);
+    }
+    await setDropdownOption(
+        containerTitle,
+        "Link Style",
+        "Underline On Hover",
+        snippetSelector,
+        "[data-icon-underline='hover']"
+    );
+    await setDropdownOption(
+        containerTitle,
+        "Link Style",
+        "Always Underline",
+        snippetSelector,
+        "[data-icon-underline='always']"
+    );
+
+    await click(
+        `[data-container-title='${containerTitle}'] [data-label='Size'] input[type='range']`
+    );
+    await edit("70");
+    await animationFrame();
+    expect(`${snippetSelector} > a > i`).toHaveStyle("--fa-icon-size: 4.375rem");
+
+    await click(
+        `[data-container-title='${containerTitle}'] [data-label='Size'] input[type='number']`
+    );
+    await edit("100");
+    await animationFrame();
+    expect(`${snippetSelector} > a > i`).toHaveStyle("--fa-icon-size: 6.25rem");
 }
 
 test("add social medias", async () => {
@@ -131,6 +231,7 @@ test("reorder social medias", async () => {
 
     await contains("tr:nth-child(3) input[type=checkbox]").click();
     await contains("tr:nth-child(3) button.o_drag_handle").dragAndDrop("tr:nth-child(1)");
+    await ensureDistinctHistoryStep();
     await contains("tr:nth-child(3) button.o_drag_handle").dragAndDrop("tr:nth-child(1)");
 
     expect("tr:nth-child(1) input[type=text]").toHaveValue("https://www.example.com/first");
@@ -210,4 +311,12 @@ test("Edit share icon", async () => {
     await dragAndDropSnippet("s_share");
     await contains(":iframe .s_share a i").dblclick();
     expect(".modal-content").toBeDisplayed();
+});
+
+test("Social Media snippet options are correct", async () => {
+    await testSocialSnippetOptions("s_social_media", "Social Media", "github");
+});
+
+test("Share snippet options are correct", async () => {
+    await testSocialSnippetOptions("s_share", "Share", "facebook");
 });

@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:30+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"account_qr_code_emv/uz/>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: account_qr_code_emv
 #. odoo-python
@@ -35,9 +33,8 @@ msgstr "EMV QR kodini yaratish uchun bank hisobi zarur."
 
 #. module: account_qr_code_emv
 #: model:ir.model,name:account_qr_code_emv.model_res_partner_bank
-#, fuzzy
-msgid "Bank Accounts"
-msgstr "Bank hisobvaraqlari"
+msgid "Bank Account"
+msgstr ""
 
 #. module: account_qr_code_emv
 #: model:ir.model.fields,field_description:account_qr_code_emv.field_account_setup_bank_manual_config__country_proxy_keys
@@ -125,8 +122,8 @@ msgstr "Proksi qiymati ko‘rsatilmagan."
 #: code:addons/account_qr_code_emv/models/res_bank.py:0
 #, fuzzy
 msgid ""
-"No EMV QR Code is available for the country of the account %"
-"(account_number)s."
+"No EMV QR Code is available for the country of the account "
+"%(account_number)s."
 msgstr ""
 "%(account_number)s hisob raqami mamlakati uchun EMV QR kodi mavjud emas."
 

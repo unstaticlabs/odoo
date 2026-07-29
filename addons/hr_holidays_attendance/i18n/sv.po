@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.2a1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 18:37+0000\n"
-"PO-Revision-Date: 2026-07-02 00:01+0000\n"
+"POT-Creation-Date: 2026-03-06 18:36+0000\n"
+"PO-Revision-Date: 2026-06-22 14:48+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_holidays_attendance/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-python
-#: code:addons/hr_holidays_attendance/models/hr_leave_type.py:0
+#: code:addons/hr_holidays_attendance/models/hr_work_entry_type.py:0
 msgid "%s hours available"
 msgstr "%s timmar tillgängliga"
 
@@ -102,7 +102,7 @@ msgid "Days"
 msgstr "Dagar"
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_employee_view_form_inherit
 msgid "Deduct Extra Hours"
 msgstr "Dra av övertid"
@@ -119,11 +119,6 @@ msgid "Difference"
 msgstr "Skillnad"
 
 #. module: hr_holidays_attendance
-#: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_manager_view_form
-msgid "Discard"
-msgstr "Avbryt"
-
-#. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_line__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_rule__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_employee__display_name
@@ -131,7 +126,7 @@ msgstr "Avbryt"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__display_name
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__display_name
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__display_name
 msgid "Display Name"
@@ -195,7 +190,7 @@ msgstr "Timmar"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__id
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__id
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__id
 msgid "ID"
@@ -237,7 +232,7 @@ msgid "New Allocation Request"
 msgstr "Ny tilldelningsförfrågan"
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 msgid ""
 "Once a time off of this type is approved, extra hours in attendances will be "
 "deducted."
@@ -326,12 +321,7 @@ msgid "Time Off Taken from Extra Hours:"
 msgstr "Ledighet som kommer från övertid:"
 
 #. module: hr_holidays_attendance
-#: model:ir.model,name:hr_holidays_attendance.model_hr_leave_type
-msgid "Time Off Type"
-msgstr "Ledighetstyp"
-
-#. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__leave_type_names
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__work_entry_type_names
 msgid "Time Off Types"
 msgstr "Ledighetstyper"
 
@@ -351,6 +341,11 @@ msgstr "Total övertid i antal timmar som går att kompensera för:"
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Total Extra Hours Worked:"
 msgstr "Totalt antal timmar arbetad övertid:"
+
+#. module: hr_holidays_attendance
+#: model:ir.model,name:hr_holidays_attendance.model_hr_work_entry_type
+msgid "Work Entry Type"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
@@ -396,29 +391,3 @@ msgstr ""
 #: code:addons/hr_holidays_attendance/static/src/components/accrual_levels/accrual_levels.xml:0
 msgid "every worked hour."
 msgstr "varje arbetad timme."
-
-#~ msgid "Total Overtime"
-#~ msgstr "Totalt övertid"
-
-#~ msgid "Attendance"
-#~ msgstr "Närvaro"
-
-#~ msgid "Extra Hours"
-#~ msgstr "Extra timmar"
-
-#~ msgid "Request Overtime"
-#~ msgstr "Begär övertid"
-
-#~ msgid ""
-#~ "The employee does not have enough extra hours to extend this allocation."
-#~ msgstr ""
-#~ "Den anställde har inte tillräckligt med extra timmar för att förlänga "
-#~ "denna tilldelning."
-
-#~ msgid "The employee does not have enough extra hours to extend this leave."
-#~ msgstr ""
-#~ "Den anställde har inte tillräckligt med extra timmar för att förlänga "
-#~ "denna ledighet."
-
-#~ msgid "User"
-#~ msgstr "Användare"

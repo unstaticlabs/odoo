@@ -1,9 +1,18 @@
+.o_bottom_sheet_body > .o_datetime_picker {
+    width: 100%;
+    padding: 0!important;
+}
+
 .o_datetime_picker {
     --DateTimePicker__Template-rows: 3;
     --DateTimePicker__Template-columns: 4;
     --DateTimePicker__Day-template-rows: 6;
 
     width: $o-datetime-picker-width;
+
+    &.o_datetime_picker_reduced {
+        width: $o-datetime-picker-reduced-width;
+    }
 
     // Day
     .o_selected {
@@ -84,6 +93,10 @@
             border-radius: $border-radius-pill;
             pointer-events: none;
         }
+    }
+
+    .o_day_of_week_cell, .o_week_number_cell {
+        background-color: var(--DateTimePicker__day-week-cell-bg, #{$gray-100});
     }
 
     .o_week_number_cell {

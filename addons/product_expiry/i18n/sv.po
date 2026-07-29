@@ -8,18 +8,16 @@
 # Martin Trigaux, 2022
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
 # Simon S, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Jacob Ljungström <jacob.ljungstrom03@gmail.com>, 2025.
-# symbiotech <symbiotech3@gmail.com>, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:52+0000\n"
-"Last-Translator: symbiotech <symbiotech3@gmail.com>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-19 09:36+0000\n"
+"Last-Translator: Jacob Ljungström <jacob.ljungstrom03@gmail.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "product_expiry/sv/>\n"
 "Language: sv\n"
@@ -27,7 +25,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: product_expiry
 #. odoo-python
@@ -45,8 +43,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product_expiry.view_move_form_expiry
 msgid ""
 "<span class=\"badge rounded-pill float-end text-bg-warning\" invisible=\"not "
-"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; expiration_date)"
-"\">Expiring</span>\n"
+"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; "
+"expiration_date)\">Expiring</span>\n"
 "            <span class=\"badge rounded-pill float-end text-bg-danger\" "
 "invisible=\"not product_expiry_alert\">Expired</span>"
 msgstr ""
@@ -182,11 +180,6 @@ msgstr "Datum"
 #: model:ir.model.fields,field_description:product_expiry.field_expiry_picking_confirmation__description
 msgid "Description"
 msgstr "Beskrivning"
-
-#. module: product_expiry
-#: model_terms:ir.ui.view,arch_db:product_expiry.confirm_expiry_view
-msgid "Discard"
-msgstr "Avbryt"
 
 #. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_res_config_settings__group_expiry_date_on_delivery_slip
@@ -356,15 +349,16 @@ msgid ""
 "number."
 msgstr ""
 "Antal dagar före utgångsdatumet efter vilket en varning ska utfärdas för "
-"partiet/serienumret. Det kommer att beräknas på parti- eller serienumret."
+"partiet/serienumret. Det kommer att beräknas beräknas på parti- eller "
+"serienumret."
 
 #. module: product_expiry
 #: model:ir.model.fields,help:product_expiry.field_product_product__removal_time
 #: model:ir.model.fields,help:product_expiry.field_product_template__removal_time
 msgid ""
 "Number of days before the Expiration Date after which the goods should be "
-"removed from the stock and not be counted in the Fresh On Hand Stock "
-"anymore.It will be computed on the lot/serial number."
+"removed from the stock and not be counted in the Fresh On Hand Stock anymore."
+"It will be computed on the lot/serial number."
 msgstr ""
 
 #. module: product_expiry
@@ -418,8 +412,8 @@ msgstr "Produktvariant"
 
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_quant
-msgid "Quants"
-msgstr "Kvantiteter"
+msgid "Quant"
+msgstr ""
 
 #. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_product_product__removal_time
@@ -444,7 +438,7 @@ msgstr "Visa partier"
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_move
 msgid "Stock Move"
-msgstr "Lagertransport"
+msgstr "Lagerflytt"
 
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_report_stock_quantity
@@ -454,7 +448,7 @@ msgstr "Rapport om lagerkvantitet"
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_forecasted_product_product
 msgid "Stock Replenishment Report"
-msgstr "Lagerpåfyllningsrapport"
+msgstr "Lagerpåfyllnadsrapport"
 
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_rule
@@ -677,23 +671,3 @@ msgstr ""
 #: model:product.removal,method:product_expiry.removal_fefo
 msgid "fefo"
 msgstr "fefo"
-
-#~ msgid ""
-#~ "Number of days before the Expiration Date after which the goods should be "
-#~ "removed from the stock. It will be computed on the lot/serial number."
-#~ msgstr ""
-#~ "Antal dagar före utgångsdatumet efter vilket varorna ska tas bort från "
-#~ "lagret. Det kommer att beräknas på parti- eller serienumret."
-
-#~ msgid "Proceed except for expired one"
-#~ msgstr "Fortsätt förutom för utgångna"
-
-#~ msgid "Procurement Group"
-#~ msgstr "Anskaffningsgrupp"
-
-#~ msgid ""
-#~ "This is the date on which the goods with this Serial Number should be "
-#~ "removed from the stock. This date will be used in FEFO removal strategy."
-#~ msgstr ""
-#~ "Detta är det datum då varorna med detta serienummer ska tas bort från "
-#~ "lagret. Detta datum kommer att användas i FEFO-uttagningsstrategin."

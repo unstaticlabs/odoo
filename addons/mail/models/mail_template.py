@@ -18,7 +18,7 @@ class MailTemplate(models.Model):
     "Templates for sending email"
     _name = 'mail.template'
     _inherit = ['mail.render.mixin', 'template.reset.mixin']
-    _description = 'Email Templates'
+    _description = 'Email Template'
     _order = 'user_id, name, id'
 
     _unrestricted_rendering = True
@@ -64,7 +64,7 @@ class MailTemplate(models.Model):
     partner_to = fields.Char('To (Partners)',
                              help="Comma-separated ids of recipient partners (placeholders may be used here)")
     email_cc = fields.Char('Cc', help="Carbon copy recipients (placeholders may be used here)")
-    reply_to = fields.Char('Reply To', help="Email address to which replies will be redirected when sending emails in mass; only used when the reply is not logged in the original discussion thread.")
+    reply_to = fields.Char('Reply To Address')
     # content
     body_html = fields.Html(
         'Body', render_engine='qweb', render_options={'post_process': True},
@@ -83,6 +83,12 @@ class MailTemplate(models.Model):
         string='Dynamic Reports',
         domain="[('model', '=', model)]")
     email_layout_xmlid = fields.Char('Email Notification Layout', copy=False)
+    email_layout_force_header = fields.Boolean('Force Header', default=False,
+        help="If checked, the header will be always shown in the email body when this template is used with"
+        "notification layout.")
+    email_layout_force_footer = fields.Boolean('Force Footer', default=False,
+        help="If checked, the footer will be always shown in the email body when this template is used with"
+        "notification layout.")
     # options
     mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing Mail Server', readonly=False, index='btree_not_null',
                                      help="Optional preferred server for outgoing mails. If not set, the highest "
@@ -349,10 +355,8 @@ class MailTemplate(models.Model):
         if render_results is None:
             render_results = {}
 
-        # generating reports is done on a per-record basis, better ensure cache
-        # is filled up to avoid rendering and browsing in a loop
-        if res_ids and 'report_template_ids' in render_fields and self.report_template_ids:
-            self.env[self.model].browse(res_ids)
+        # remove empty res_ids
+        res_ids = list(filter(None, res_ids))
 
         for res_id in res_ids:
             values = render_results.setdefault(res_id, {})
@@ -441,6 +445,7 @@ class MailTemplate(models.Model):
         self.ensure_one()
         if render_results is None:
             render_results = {}
+        res_ids = list(filter(None, res_ids))
         Model = self.env[self.model].with_prefetch(res_ids)
 
         # if using default recipients -> ``_message_get_default_recipients`` gives
@@ -659,10 +664,17 @@ class MailTemplate(models.Model):
             partner_to = partner_to.split(',')
         if not isinstance(partner_to, (list, tuple)):
             partner_to = [partner_to]
-        return [
-            int(pid.strip()) if isinstance(pid, str) else int(pid) for pid in partner_to
-            if (isinstance(pid, str) and pid.strip().isdigit()) or (pid and not isinstance(pid, str))
-        ]
+
+        def to_id(v):
+            if isinstance(v, str):
+                v = v.strip()
+            if not v:
+                return None
+            try:
+                return int(v)
+            except ValueError:
+                return None
+        return [pid for pto in partner_to if (pid := to_id(pto))]
 
     # ------------------------------------------------------------
     # EMAIL
@@ -677,7 +689,7 @@ class MailTemplate(models.Model):
         """ Generates a new mail.mail. Template is rendered on record given by
         res_id and model coming from template.
 
-        :param int res_id: id of the record to render the template
+        :param int res_id: id of the record to render the template (may be ``False`` if no record)
         :param bool force_send: send email immediately; otherwise use the mail
             queue (recommended);
         :param dict email_values: update generated mail with those values to further
@@ -706,13 +718,11 @@ class MailTemplate(models.Model):
         """
         # Grant access to send_mail only if access to related document
         self.ensure_one()
-        self._send_check_access(res_ids)
+        self._send_check_access([res_id for res_id in res_ids if res_id])
         sending_email_layout_xmlid = email_layout_xmlid or self.email_layout_xmlid
 
         mails_sudo = self.env['mail.mail'].sudo()
-        batch_size = int(
-            self.env['ir.config_parameter'].sudo().get_param('mail.batch_size')
-        ) or 50  # be sure to not have 0, as otherwise no iteration is done
+        batch_size = self.env['ir.config_parameter'].sudo().get_int('mail.batch_size') or 50  # be sure to not have 0, as otherwise no iteration is done
         RecordModel = self.env[self.model].with_prefetch(res_ids)
         record_ir_model = self.env['ir.model']._get(self.model)
 
@@ -738,7 +748,8 @@ class MailTemplate(models.Model):
             values_list = [res_ids_values[res_id] for res_id in res_ids_chunk]
 
             # get record in batch to use the prefetch
-            records = RecordModel.browse(res_ids_chunk)
+            prefetch_ids = [res_id for res_id in res_ids_chunk if res_id]  # avoid browsing False
+            records = RecordModel.browse(prefetch_ids)
             attachments_list = []
 
             # lang and company is used for rendering layout
@@ -748,7 +759,9 @@ class MailTemplate(models.Model):
                     res_ids_langs = self._render_lang(res_ids_chunk)
                 res_ids_companies = records._mail_get_companies(default=self.env.company)
 
-            for record in records:
+            for res_id in res_ids_chunk:
+                # special case: use empty record when res_id is False
+                record = RecordModel.browse(res_id).with_prefetch(prefetch_ids)
                 values = res_ids_values[record.id]
                 values['recipient_ids'] = [(4, pid) for pid in (values.get('partner_ids') or [])]
                 values['attachment_ids'] = [(4, aid) for aid in (values.get('attachment_ids') or [])]

@@ -13,7 +13,6 @@ from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.const import REPORT_REASONS_MAPPING, SENSITIVE_KEYS
 from odoo.addons.payment.logging import get_payment_logger
 
-
 # Pass the possibly empty set of sensitive keys to the logger in case a provider module extends it.
 _logger = get_payment_logger(__name__, sensitive_keys=SENSITIVE_KEYS)
 
@@ -125,6 +124,12 @@ class PaymentProvider(models.Model):
         store=True,
         readonly=False,
         context={'active_test': False},
+    )
+    minimum_amount = fields.Monetary(
+        string="Minimum Amount",
+        help="The minimum payment amount that this payment provider is available for. Leave blank "
+        "to make it available for any payment amount.",
+        currency_field='main_currency_id',
     )
     maximum_amount = fields.Monetary(
         string="Maximum Amount",
@@ -604,7 +609,7 @@ class PaymentProvider(models.Model):
                 reason=REPORT_REASONS_MAPPING['incompatible_country'],
             )
 
-        # Handle the maximum amount.
+        # Handle the minimum and maximum amounts.
         currency = self.env['res.currency'].browse(currency_id).exists()
         if not is_validation and currency:  # The currency is required to convert the amount.
             company = self.env['res.company'].browse(company_id).exists()
@@ -613,6 +618,10 @@ class PaymentProvider(models.Model):
             unfiltered_providers = providers
             providers = providers.filtered(
                 lambda p: (
+                    not p.minimum_amount
+                    or currency.compare_amounts(p.minimum_amount, converted_amount) != 1
+                )
+                and (
                     not p.maximum_amount
                     or currency.compare_amounts(p.maximum_amount, converted_amount) != -1
                 )
@@ -621,7 +630,7 @@ class PaymentProvider(models.Model):
                 report,
                 unfiltered_providers - providers,
                 available=False,
-                reason=REPORT_REASONS_MAPPING['exceed_max_amount'],
+                reason=REPORT_REASONS_MAPPING['exceed_min_or_max_amount'],
             )
 
         # Handle the available currencies; allow all currencies if the list is empty.
@@ -675,19 +684,6 @@ class PaymentProvider(models.Model):
         :rtype: bool
         """
         return False
-
-    def _should_build_inline_form(self, is_validation=False):
-        """ Return whether the inline payment form should be instantiated.
-
-        For a provider to handle both direct payments and payments with redirection, it must
-        override this method and return whether the inline payment form should be instantiated (i.e.
-        if the payment should be direct) based on the operation (online payment or validation).
-
-        :param bool is_validation: Whether the operation is a validation.
-        :return: Whether the inline form should be instantiated.
-        :rtype: bool
-        """
-        return True
 
     def _get_validation_amount(self):
         """ Return the amount to use for validation operations.
@@ -804,11 +800,7 @@ class PaymentProvider(models.Model):
         except requests.exceptions.HTTPError:
             try:
                 error_msg = self._parse_response_error(response)
-            except Exception:  # Catch any error during error parsing to avoid the conflicting JSONDecodeError classes in simplejosn and stdlib json.
-                _logger.exception(
-                    "An error occurred while parsing the error message of the response from "
-                    "provider %s. The original error message will be used instead.", self.name
-                )
+            except requests.exceptions.JSONDecodeError:  # The provider failed to parse plain text.
                 error_msg = response.text
             raise ValidationError(_("The payment provider rejected the request.\n%s", error_msg))
         return self._parse_response_content(response, **kwargs)

@@ -1,8 +1,8 @@
 import { undo } from "@html_editor/../tests/_helpers/user_actions";
 import { Plugin } from "@html_editor/plugin";
 import { setContent, setSelection } from "@html_editor/../tests/_helpers/selection";
-import { expect, test } from "@odoo/hoot";
-import { Deferred, queryOne, tick, waitFor } from "@odoo/hoot-dom";
+import { advanceTime, animationFrame, expect, test } from "@odoo/hoot";
+import { queryOne, tick, waitFor } from "@odoo/hoot-dom";
 import { xml } from "@odoo/owl";
 import { contains } from "@web/../tests/web_test_helpers";
 import {
@@ -338,12 +338,12 @@ test("Applying an overlay button action should wait for the actions in progress"
         }
     }
     addPlugin(TestPlugin);
-    const customActionDef = new Deferred();
+    const customActionDef = Promise.withResolvers();
     addActionOption({
         customAction: class extends BuilderAction {
             static id = "customAction";
             load() {
-                return customActionDef;
+                return customActionDef.promise;
             }
             apply({ editingElement }) {
                 editingElement.classList.add("customAction");
@@ -434,7 +434,7 @@ test("The overlay buttons should only appear for elements in editable areas, unl
         `<div class="content">
             <div class="test-not-editable">NOT IN EDITABLE</div>
         </div>
-        <div class="content o_editable">
+        <div class="content o_savable">
             <div class="test-editable">IN EDITABLE</div>
         </div>`
     );
@@ -462,6 +462,35 @@ test("An inner snippet alone in a column should not have overlay options", async
     // Only the "Blockquote" should have an overlay.
     expect(".oe_overlay").toHaveCount(3);
     expect(".oe_overlay.oe_active").toHaveCount(1);
+});
+
+test("The overlay buttons should be hidden when the toolbar is open", async () => {
+    const { getEditor } = await setupWebsiteBuilder(`
+        <section>
+            <div class="container">
+                <div class="test-options-target">test here</div>
+            </div>
+        </section>
+    `);
+    const editor = getEditor();
+    // Check that the overlay buttons are not hidden.
+    await contains(":iframe .test-options-target").click();
+    expect(".o-we-toolbar.o_overlay_options:not(.d-none)").toHaveCount(1);
+    const text = editor.editable.querySelector(".test-options-target");
+    const selection = {
+        anchorNode: text.childNodes[0],
+        anchorOffset: 2,
+        focusNode: text.childNodes[0],
+        focusOffset: 5,
+    };
+    setSelection(selection);
+    await animationFrame();
+    // Check that the toolbar buttons are shown.
+    await waitFor(".o-we-toolbar:not(.o_overlay_options)");
+    expect(".o-we-toolbar:not(.o_overlay_options)").toHaveCount(1);
+    // Check that the overlay buttons are hidden.
+    await advanceTime(550); // wait for the toolbar hide delay
+    expect(".o-we-toolbar.o_overlay_options.d-none").toHaveCount(1);
 });
 
 test("Should hide 'move up' button when previous sibling is 'o_we_no_overlay'", async () => {

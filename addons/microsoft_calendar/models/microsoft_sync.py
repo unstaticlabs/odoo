@@ -1,11 +1,11 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
+import datetime
 import logging
 from contextlib import contextmanager
 from functools import wraps
-import pytz
-from dateutil.parser import parse
 from datetime import timedelta
+
+from dateutil.parser import parse
 
 from odoo import api, fields, models
 from odoo.fields import Domain
@@ -279,8 +279,8 @@ class MicrosoftCalendarSync(models.AbstractModel):
         :return: synchronized odoo
         """
         existing = microsoft_events.match_with_odoo_events(self.env)
-        cancelled = microsoft_events.cancelled()
-        new = microsoft_events - existing - cancelled
+        cancelled = existing.cancelled()
+        new = microsoft_events - existing - microsoft_events.cancelled()
         new_recurrence = new.filter(lambda e: e.is_recurrent())
 
         # create new events and reccurrences
@@ -312,7 +312,7 @@ class MicrosoftCalendarSync(models.AbstractModel):
 
         # Get sync lower bound days range for checking if old events must be updated in Odoo.
         ICP = self.env['ir.config_parameter'].sudo()
-        lower_bound_day_range = ICP.get_param('microsoft_calendar.sync.lower_bound_range')
+        lower_bound_day_range = ICP.get_int('microsoft_calendar.sync.lower_bound_range')
 
         # update other events
         for mevent in (existing - cancelled).filter(lambda e: e.lastModifiedDateTime):
@@ -324,14 +324,14 @@ class MicrosoftCalendarSync(models.AbstractModel):
                 odoo_event = self.browse(mevent.odoo_id(self.env)).exists()
 
             if odoo_event:
-                odoo_event_updated_time = pytz.utc.localize(odoo_event.write_date)
+                odoo_event_updated_time = odoo_event.write_date.replace(tzinfo=datetime.UTC)
                 ms_event_updated_time = parse(mevent.lastModifiedDateTime)
 
                 # If the update comes from an old event/recurrence, check if time diff between updates is reasonable.
                 old_event_update_condition = True
                 if lower_bound_day_range:
                     update_time_diff = ms_event_updated_time - odoo_event_updated_time
-                    old_event_update_condition = odoo_event._check_old_event_update_required(int(lower_bound_day_range), update_time_diff)
+                    old_event_update_condition = odoo_event._check_old_event_update_required(lower_bound_day_range, update_time_diff)
 
                 if ms_event_updated_time >= odoo_event_updated_time and old_event_update_condition:
                     vals = dict(odoo_event._microsoft_to_odoo_values(mevent), need_sync_m=False)
@@ -464,8 +464,8 @@ class MicrosoftCalendarSync(models.AbstractModel):
         Keep current behavior by default (5s), but allow admins to increase it
         through a system parameter.
         """
-        timeout = self.env['ir.config_parameter'].sudo().get_param('microsoft_calendar.graph_timeout')
-        if not timeout or not timeout.isdigit():
+        timeout = self.env['ir.config_parameter'].sudo().get_int('microsoft_calendar.graph_timeout')
+        if not timeout:
             return 5
         return max(1, int(timeout))
 

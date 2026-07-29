@@ -6,10 +6,12 @@ import { Plugin } from "@html_editor/plugin";
 import { withSequence } from "@html_editor/utils/resource";
 import { registry } from "@web/core/registry";
 import { renderToElement } from "@web/core/utils/render";
+import { BorderConfigurator } from "@html_builder/plugins/border_configurator_option";
 
 export class CountdownOption extends BaseOptionComponent {
     static template = "website.CountdownOption";
     static selector = ".s_countdown";
+    static components = { BorderConfigurator };
     static cleanForSave = (editingEl) => {
         editingEl.classList.remove("s_countdown_enable_preview");
     };
@@ -22,12 +24,10 @@ class CountdownOptionPlugin extends Plugin {
         builder_options: [withSequence(before(SNIPPET_SPECIFIC_END), CountdownOption)],
         so_content_addition_selector: [".s_countdown"],
         builder_actions: {
-            // TODO AGAU: update after merging generalized restart interactions
-            //  remove this and xml BuilderContext
-            ReloadCountdownAction,
             SetEndActionAction,
             PreviewEndMessageAction,
             SetLayoutAction,
+            SelectCountdownInlineTemplateAction,
         },
         on_cloned_handlers: ({ cloneEl }) => {
             const countdownEls = getElementsWithOption(cloneEl, ".s_countdown");
@@ -122,15 +122,6 @@ export class BaseCountdownAction extends BuilderAction {
     }
 }
 
-// TODO AGAU: update after merging generalized restart interactions
-//  remove this and xml BuilderContext
-export class ReloadCountdownAction extends BaseCountdownAction {
-    static id = "reloadCountdown";
-    apply({ editingElement }) {
-        return this.dispatchTo("update_interactions", editingElement);
-    }
-}
-
 export class SetEndActionAction extends BaseCountdownAction {
     static id = "setEndAction";
     apply(context) {
@@ -167,4 +158,42 @@ export class SetLayoutAction extends BaseCountdownAction {
         return this.isLayoutApplied(context);
     }
 }
+
+export class SelectCountdownInlineTemplateAction extends BuilderAction {
+    static id = "selectCountdownInlineTemplate";
+    static dependencies = ["builderActions", "edit_interaction"];
+
+    setup() {
+        this.getAction = this.dependencies.builderActions.getAction;
+    }
+
+    async prepare({ actionParam }) {
+        await this.getAction("selectTemplate").prepare({ actionParam: actionParam });
+    }
+
+    isApplied({ editingElement, params: { templateClass } }) {
+        if (templateClass) {
+            return !!editingElement.querySelector(`.${templateClass}`);
+        }
+        return true;
+    }
+
+    apply(action) {
+        this.dependencies.edit_interaction.restartInteractions(
+            action.editingElement.closest(".s_countdown")
+        );
+        this.getAction("selectTemplate").apply(action);
+        // Reset the monospace font option if we select a template that doesn't provide it.
+        if (["o_template_default", "o_template_text"].includes(action.params.templateClass)) {
+            action.editingElement
+                .closest(".o_count_monospace")
+                ?.classList.remove("o_count_monospace");
+        }
+    }
+
+    clean(action) {
+        return this.getAction("selectTemplate").clean(action);
+    }
+}
+
 registry.category("website-plugins").add(CountdownOptionPlugin.id, CountdownOptionPlugin);

@@ -34,48 +34,50 @@ class PosPrinter(models.Model):
     name = fields.Char('Printer Name', required=True, default='Printer', help='An internal identification of the printer')
     printer_type = fields.Selection(
         string='Printer Type',
-        default='iot',
+        default='epson_epos',
         selection=[
-            ('iot', 'Use a printer connected to the IoT Box'),
-            ('epson_epos', 'Use an Epson printer'),
+            ('epson_epos', 'ePoS'),
         ]
     )
-    proxy_ip = fields.Char('Proxy IP Address', help="The IP Address or hostname of the Printer's hardware proxy")
+    use_type = fields.Selection(selection=[
+        ('preparation', "Preparation"),
+        ('receipt', "Receipt"),
+    ], string="Type", default="preparation")
     product_categories_ids = fields.Many2many('pos.category', 'printer_category_rel', 'printer_id', 'category_id', string='Printed Product Categories')
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
-    pos_config_ids = fields.Many2many('pos.config', 'pos_config_printer_rel', 'printer_id', 'config_id')
-    epson_printer_ip = fields.Char(
+    pos_config_ids = fields.Many2many('pos.config', 'pos_config_receipt_printer_rel', 'printer_id', 'config_id', string="Point of Sale")
+    printer_ip = fields.Char(
         string='Epson Printer IP Address',
         help=(
             "Local IP address of an Epson receipt printer, or its serial number if the "
             "'Automatic Certificate Update' option is enabled in the printer settings."
         ),
-        default="0.0.0.0"
     )
+    use_lna = fields.Boolean(string="Use Local Network Access")
+
+    def copy_data(self, default=None):
+        default = dict(default or {})
+        vals_list = super().copy_data(default=default)
+        if 'name' not in default:
+            for printer, vals in zip(self, vals_list):
+                vals['name'] = _("%s (copy)", printer.name)
+        return vals_list
 
     @api.model
     def _load_pos_data_domain(self, data, config):
-        return [('id', 'in', config.printer_ids.ids)]
+        return [('id', 'in', config.preparation_printer_ids.ids + config.receipt_printer_ids.ids)]
 
     @api.model
     def _load_pos_data_fields(self, config):
-        return ['id', 'name', 'proxy_ip', 'product_categories_ids', 'printer_type', 'epson_printer_ip']
+        return ['id', 'name', 'product_categories_ids', 'printer_type', 'use_type', 'use_lna', 'printer_ip']
 
-    @api.model
-    def use_local_network_access(self):
-        use_lna = bool(self.env['ir.config_parameter'].sudo().get_param('point_of_sale.use_lna'))
-        return {
-            'use_lna': use_lna
-        }
-
-    @api.constrains('epson_printer_ip')
-    def _constrains_epson_printer_ip(self):
+    @api.constrains('printer_ip')
+    def _constrains_printer_ip(self):
         for record in self:
-            if record.printer_type == 'epson_epos' and not record.epson_printer_ip:
-                raise ValidationError(_("Epson Printer IP Address cannot be empty."))
+            if record.printer_type == 'epson_epos' and not record.printer_ip:
+                raise ValidationError(_("Printer IP Address cannot be empty."))
 
-    @api.onchange("epson_printer_ip")
-    def _onchange_epson_printer_ip(self):
+    @api.onchange("printer_ip")
+    def _onchange_printer_ip(self):
         for rec in self:
-            if rec.epson_printer_ip:
-                rec.epson_printer_ip = format_epson_certified_domain(rec.epson_printer_ip)
+            if rec.printer_ip:
+                rec.printer_ip = format_epson_certified_domain(rec.printer_ip)

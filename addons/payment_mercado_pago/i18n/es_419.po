@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * payment_mercado_pago
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
 # "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 01:50+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2026-02-27 18:38+0000\n"
+"PO-Revision-Date: 2026-03-14 13:01+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
-"odoo-19/payment_mercado_pago/es_419/>\n"
+"odoo-s19-2/payment_mercado_pago/es_419/>\n"
 "Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: payment_mercado_pago
 #: model_terms:ir.ui.view,arch_db:payment_mercado_pago.payment_provider_form
@@ -140,7 +140,7 @@ msgstr "Mercado Pago"
 #. module: payment_mercado_pago
 #: model:ir.model.fields,field_description:payment_mercado_pago.field_payment_provider__mercado_pago_access_token
 msgid "Mercado Pago Access Token"
-msgstr "Token de acceso de Mercado Pago"
+msgstr "Token de acceso a Marcado Pago"
 
 #. module: payment_mercado_pago
 #: model:ir.model.fields,field_description:payment_mercado_pago.field_payment_provider__mercado_pago_access_token_expiry
@@ -165,7 +165,7 @@ msgstr "Mercado Pago es compatible con Oauth"
 #. module: payment_mercado_pago
 #: model:ir.model.fields,field_description:payment_mercado_pago.field_payment_provider__mercado_pago_public_key
 msgid "Mercado Pago Public Key"
-msgstr "Clave pública de Mercado Pago"
+msgstr "Clave pública de mercado pago"
 
 #. module: payment_mercado_pago
 #: model:ir.model.fields,field_description:payment_mercado_pago.field_payment_provider__mercado_pago_refresh_token
@@ -363,30 +363,3 @@ msgid ""
 msgstr ""
 "Se realizó el cargo a su tarjeta. En su resumen verá el cargo como una "
 "descripción."
-
-#~ msgid "Could not establish the connection to the API."
-#~ msgstr "No se pudo establecer la conexión con la API."
-
-#~ msgid "No transaction found matching reference %s."
-#~ msgstr ""
-#~ "No se encontró ninguna transacción que coincida con la referencia %s."
-
-#~ msgid "Received data with invalid status: %s"
-#~ msgstr "Se recibió la información con un estado que no es válido: %s"
-
-#~ msgid "Received data with missing reference."
-#~ msgstr "Datos recibidos sin referencia."
-
-#~ msgid ""
-#~ "The communication with the API failed. Mercado Pago gave us the following "
-#~ "information: '%(error_message)s' (code %(error_code)s)"
-#~ msgstr ""
-#~ "Falló la comunicación con la API. Mercado pago envió esta información: '%"
-#~ "(error_message)s' (código %(error_code)s)"
-
-#~ msgid ""
-#~ "The communication with the API failed. The response is empty. Please "
-#~ "verify your access token."
-#~ msgstr ""
-#~ "Ocurrió un error al comunicarse con la API, la respuesta está vacía. "
-#~ "Verifique su token de acceso."

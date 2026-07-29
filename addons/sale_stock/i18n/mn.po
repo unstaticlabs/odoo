@@ -20,10 +20,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 18:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:21+0000\n"
+"POT-Creation-Date: 2026-04-17 18:39+0000\n"
+"PO-Revision-Date: 2026-06-13 13:25+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_stock/mn/>\n"
 "Language: mn\n"
 "MIME-Version: 1.0\n"
@@ -94,16 +94,8 @@ msgstr ""
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.report_saleorder_document_inherit_sale_stock
 msgid "<strong>Incoterm</strong>"
 msgstr "<strong>Худалдааны нөхцөл</strong>"
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order_line__is_storable
-msgid "A storable product is a product for which you manage stock."
-msgstr ""
-"Нөөцлөх бараа гэдэг нь таны нөөцийн тоо хэмжээг нь удирдан хянах боломжтой "
-"бараа юм."
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order_line__qty_delivered_method
@@ -120,8 +112,9 @@ msgstr ""
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_account_accrued_orders_wizard
+#, fuzzy
 msgid "Accrued Orders Wizard"
-msgstr ""
+msgstr "Хуримтлагдсан захиалгын туслах"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -136,8 +129,8 @@ msgstr "Тусгайлан дамжлага тохируулах"
 
 #. module: sale_stock
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__direct
-msgid "As soon as possible"
-msgstr "Боломжтой болмогц"
+msgid "As soon as possible, with back orders"
+msgstr ""
 
 #. module: sale_stock
 #. odoo-javascript
@@ -158,22 +151,15 @@ msgid "Available in stock"
 msgstr "Нөөцөд боломжтой"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__delivery_status
-msgid ""
-"Blue: Not Delivered/Started\n"
-"            Orange: Partially Delivered\n"
-"            Green: Fully Delivered"
-msgstr ""
-
-#. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_stock_rules_report__so_route_ids
 msgid "Choose to apply SO lines specific routes."
 msgstr "Борлуулалтын захиалгын мөрүүдэд тусгайлан дамжлага сонгож зааж өгөх."
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_res_company
-msgid "Companies"
-msgstr "Компаниуд"
+#, fuzzy
+msgid "Company"
+msgstr "Компани"
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__effective_date
@@ -214,11 +200,6 @@ msgstr "Хүргэлт"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_count
 msgid "Delivery Orders"
 msgstr "Хүргэлтийн захиалгууд"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_status
-msgid "Delivery Status"
-msgstr ""
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__expected_date
@@ -303,11 +284,6 @@ msgid "Expected Delivery"
 msgstr "Товлосон хүргэлт"
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.view_order_form_inherit_sale_stock
-msgid "Expected:"
-msgstr ""
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__forecast_expected_date
 msgid "Forecast Expected Date"
 msgstr ""
@@ -322,11 +298,6 @@ msgstr "Таамагласан нөөц"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__free_qty_today
 msgid "Free Qty Today"
 msgstr "Өнөөдрийн үнэгүй тоо"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__full
-msgid "Fully Delivered"
-msgstr ""
 
 #. module: sale_stock
 #. odoo-javascript
@@ -365,31 +336,9 @@ msgid "ID"
 msgstr "ID"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
-msgid ""
-"If you deliver all products at once, the delivery order will be scheduled "
-"based on the greatest product lead time. Otherwise, it will be based on the "
-"shortest."
-msgstr ""
-"Хэрэв та бүх барааг нэгэн зэрэг хүргэхээр бол, хүргэлтийн товлосон огноо нь "
-"хамгийн их хүлээлтийн хугацаатай барааны хүргэх огноогоор тооцогдоно. Нэгэн "
-"зэрэг хүргэхгүй нөхцөлд, хамгийн бага хүлээлт хугацаатай барааны хүргэх "
-"огноогоор тооцогдоно."
-
-#. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.exception_on_so
 msgid "Impacted Transfer(s):"
 msgstr "Холбогдох баримт(ууд):"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm
-msgid "Incoterm"
-msgstr "Худалдааны нөхцөл"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm_location
-msgid "Incoterm Location"
-msgstr ""
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
@@ -397,28 +346,22 @@ msgid "Incoterm details"
 msgstr ""
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.sale_order_portal_content_inherit_sale_stock
-msgid "Incoterm:"
-msgstr ""
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__incoterm
-msgid ""
-"International Commercial Terms are a series of predefined commercial terms "
-"used in international transactions."
-msgstr ""
-"Олон улсын худалдааны нөхцөл нь улс дамнасан арилжаа худалдаанд зориулан "
-"тодорхойлогдсон нөхцлүүдийн жагсаалт юм."
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "Тооллогын дамжлага"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_mto
 msgid "Is Mto"
 msgstr "MTO эсэх"
+
+#. module: sale_stock
+#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
+#, fuzzy
+msgid "It specifies goods to be deliver partially or all at once"
+msgstr ""
+"Энд барааг хэсэгчилж хүргэх боломжтой байх эсвэл бүгдийг нэг дор хүргэдэг "
+"байх эсэхийг тодорхойлно."
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__json_popover
@@ -443,8 +386,9 @@ msgstr ""
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__late_availability
 #: model_terms:ir.ui.view,arch_db:sale_stock.sale_stock_sale_order_view_search_inherit
+#, fuzzy
 msgid "Late Availability"
-msgstr ""
+msgstr "Бэлэн байдал нь хоцорсон"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__customer_lead
@@ -512,7 +456,6 @@ msgid "Not Available"
 msgstr "Нөөцгүй"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__pending
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Not Delivered"
 msgstr ""
@@ -539,15 +482,9 @@ msgid "On"
 msgstr "Асаах"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__partial
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Partially Delivered"
 msgstr ""
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__default_picking_policy
-msgid "Picking Policy"
-msgstr "Бэлтгэх бодлого"
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_product_template
@@ -558,11 +495,6 @@ msgstr "Бараа"
 #: model:ir.model,name:sale_stock.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
 msgstr "Барааны хөдөлгөөн (Дэлгэрэнгүй)"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_available_today
-msgid "Qty Available Today"
-msgstr "Өнөөдөр боломжтой тоо"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_to_deliver
@@ -691,11 +623,6 @@ msgid "Schedule deliveries earlier to avoid delays"
 msgstr "Хоцролтоос сэргийлж хүргэлтийг урьдчилан төлөвлөх"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__scheduled_date
-msgid "Scheduled Date"
-msgstr "Товлогдсон огноо"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__security_lead
 msgid "Security Lead Time"
 msgstr "Аюулгүйн урьтал хугацаа"
@@ -711,16 +638,6 @@ msgid "Selectable on Sales Order Line"
 msgstr "Борлуулалтын захиалгын мөрүүд дээр сонгох боломжтой"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__one
-msgid "Ship all products at once"
-msgstr "Бүх бараа бэлэн болсон үед хүргэнэ"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__direct
-msgid "Ship products as soon as available, with back orders"
-msgstr "Бэлэн байгаа барааг түрүүлж хүргэнэ, дутуу бараанд нөхөн баримт үүсгэнэ"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__picking_policy
 msgid "Shipping Policy"
 msgstr "Хүргэлтийн бодлого"
@@ -731,7 +648,6 @@ msgid "Shipping Status"
 msgstr ""
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__started
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Started"
 msgstr ""
@@ -807,11 +723,6 @@ msgid "This product is replenished on demand."
 msgstr "Энэ барааны эрэлт үүсэхэд татан авалт хийгдэнэ."
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_storable
-msgid "Track Inventory"
-msgstr "Нөөц мөшгилт"
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_picking
 msgid "Transfer"
 msgstr "Шилжүүлэг"
@@ -838,11 +749,6 @@ msgid "View Forecast"
 msgstr "Урьдчилсан таамгийг харах"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__virtual_available_at_date
-msgid "Virtual Available At Date"
-msgstr "Огноонд харгалзах ирээдүйн нөөц"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_report__warehouse_id
@@ -859,11 +765,6 @@ msgstr "Анхааруулга!"
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__one
 msgid "When all products are ready"
 msgstr "Бүх бараа бэлэн үед"
-
-#. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.res_config_settings_view_form_stock
-msgid "When to start shipping"
-msgstr "Хэзээ хүргэлт хийж эхлэх вэ"
 
 #. module: sale_stock
 #. odoo-python
@@ -912,55 +813,3 @@ msgstr ""
 
 #~ msgid "Stock Valuation"
 #~ msgstr "Журналын бичилт"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Preparation</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>Бэлтгэх ажиллагаа</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-times\"/> <b>Cancelled</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-times\"/> <b>Цуцлагдсан</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-truck\"/> <b>Shipped</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-truck\"/> <b>Хүргэгдсэн</b>"
-
-#~ msgid "<strong>Customer Reference:</strong>"
-#~ msgstr "<strong>Захиалагчийн код:</strong>"
-
-#~ msgid "<strong>Delivery Orders</strong>"
-#~ msgstr "<strong>Хүргэх захиалга</strong>"
-
-#~ msgid "<strong>Incoterm: </strong>"
-#~ msgstr "<strong>Тээврийн нөхцөл: </strong>"
-
-#~ msgid "<strong>Incoterm:</strong>"
-#~ msgstr "<strong>Тээврийн нөхцөл:</strong>"
-
-#~ msgid "Display incoterms on Sales Order and related invoices"
-#~ msgstr "Борлуулалт ба нэхэмжлэл дээр инкотерм ашиглах"
-
-#~ msgid "Incoterms"
-#~ msgstr "Худалдааны нөхцөл"
-
-#~ msgid "Inventory"
-#~ msgstr "Агуулах"
-
-#~ msgid "Procurement Group"
-#~ msgstr "Нөөц хангалтын бүлэг"
-
-#~ msgid "Route"
-#~ msgstr "Дамжлага"
-
-#~ msgid "Sale Order"
-#~ msgstr "Борлуулалтын захиалга"
-
-#~ msgid ""
-#~ "The delivery address has been changed on the Sales Order<br/>\n"
-#~ "                        From <strong>\"%s\"</strong> To <strong>\"%s\"</"
-#~ "strong>,\n"
-#~ "                        You should probably update the partner on this "
-#~ "document."
-#~ msgstr ""
-#~ "Борлуулалтын захиалга дээрх хүргэлтийн хаяг шинэчлэгдсэн<br/>\n"
-#~ "                        <strong>\"%s\"</strong> байснаас <strong>\"%s\"</"
-#~ "strong>боловч,\n"
-#~ "                        Та энэ баримтанд сонгогдсон харилцагчийг шинэчлэх "
-#~ "шаардлагатай байж мэднэ."

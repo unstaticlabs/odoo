@@ -37,3 +37,6 @@ export class TranslateLinkInlinePlugin extends Plugin {
 }
 
 registry.category("website-plugins").add(TranslateLinkInlinePlugin.id, TranslateLinkInlinePlugin);
+registry
+    .category("translation-plugins")
+    .add(TranslateLinkInlinePlugin.id, TranslateLinkInlinePlugin);

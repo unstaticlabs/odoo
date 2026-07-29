@@ -7,13 +7,13 @@
 # Jorunn D. Newth, 2022
 # Marius Stedjan <marius@stedjan.com>, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-29 11:22+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 18:41+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.odoo.com/projects/odoo-19/"
 "snailmail/nb_NO/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -115,10 +115,6 @@ msgstr "Farge"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Firmaer"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Firma"
@@ -289,8 +285,8 @@ msgstr "Melding"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Meldingsvarsler"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -409,11 +405,6 @@ msgstr "Tradisjonell post"
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
-msgstr ""
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
 msgstr ""
 
 #. module: snailmail
@@ -608,24 +599,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "Postnummer"
-
-#~ msgid "Address"
-#~ msgstr "Adresse"
-
-#~ msgid "Canceled"
-#~ msgstr "Avbrutt"
-
-#~ msgid "Close"
-#~ msgstr "Lukk"
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Street 2..."
-#~ msgstr "Gate 2..."
-
-#~ msgid "Street..."
-#~ msgstr "Gate..."
-
-#~ msgid "ZIP"
-#~ msgstr "Postnummer"

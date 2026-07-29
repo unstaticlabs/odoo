@@ -1,5 +1,5 @@
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as CashMoveList from "@point_of_sale/../tests/pos/tours/utils/cash_move_list_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
@@ -10,6 +10,9 @@ import { refresh } from "@point_of_sale/../tests/generic_helpers/utils";
 import { registry } from "@web/core/registry";
 import { inLeftSide } from "@point_of_sale/../tests/pos/tours/utils/common";
 import * as PartnerList from "@point_of_sale/../tests/pos/tours/utils/partner_list_util";
+
+const { DateTime } = luxon;
+const nextYear = DateTime.now().year + 1;
 
 registry.category("web_tour.tours").add("ChromeTour", {
     steps: () =>
@@ -35,18 +38,18 @@ registry.category("web_tour.tours").add("ChromeTour", {
             Chrome.clickOrders(),
             TicketScreen.checkStatus("002", "Payment"),
 
-            // Order 3 is at Receipt Screen
+            // Order 3 is paid
             Chrome.createFloatingOrder(),
             ProductScreen.addOrderline("Whiteboard Pen", "5", "6", "30.0"),
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.0" }),
             PaymentScreen.validateButtonIsHighlighted(true),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            Chrome.clickOrders(),
-            TicketScreen.checkStatus("003", "Receipt"),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickScreen(),
 
             // Select order 1, should be at Product Screen
+            Chrome.clickOrders(),
             TicketScreen.selectOrder("001"),
             TicketScreen.loadSelectedOrder(),
             ProductScreen.productIsDisplayed("Desk Pad"),
@@ -62,12 +65,6 @@ registry.category("web_tour.tours").add("ChromeTour", {
             PaymentScreen.emptyPaymentlines("12.0"),
             PaymentScreen.validateButtonIsHighlighted(false),
 
-            // Select order 3, should be at Receipt Screen
-            Chrome.clickOrders(),
-            TicketScreen.selectOrder("003"),
-            TicketScreen.loadSelectedOrder(),
-            ReceiptScreen.totalAmountContains("30.0"),
-
             // Pay order 1, with change
             Chrome.clickOrders(),
             TicketScreen.selectOrder("001"),
@@ -78,26 +75,19 @@ registry.category("web_tour.tours").add("ChromeTour", {
             PaymentScreen.enterPaymentLineAmount("Cash", "20", true, { change: "18.0" }),
             PaymentScreen.validateButtonIsHighlighted(true),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.totalAmountContains("2.0"),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                total_amount: "2.0",
+            }),
 
-            // Order 1 now should have Receipt status
-            Chrome.clickOrders(),
-            TicketScreen.checkStatus("001", "Receipt"),
-
-            // Select order 3, should still be at Receipt Screen
-            // and the total amount doesn't change.
-            TicketScreen.selectOrder("003"),
-            TicketScreen.loadSelectedOrder(),
-            ReceiptScreen.totalAmountContains("30.0"),
-
-            // click next screen on order 3
+            // click next screen on order 1
             // then delete the new empty order
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.orderIsEmpty(),
             Chrome.clickOrders(),
             TicketScreen.deleteOrder("004"),
 
-            // After deleting order 1 above, order 2 became
+            // After paying order 1 above, order 2 became
             // the 1st-row order and it has payment status
             TicketScreen.nthRowContains(1, "Payment"),
             TicketScreen.deleteOrder("002"),
@@ -112,11 +102,18 @@ registry.category("web_tour.tours").add("ChromeTour", {
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickInvoiceButton(),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            { trigger: ".receipt-screen .pos-config-name:contains(Shop)" },
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                cssRules: [
+                    {
+                        css: ".pos-config-name",
+                        text: "Shop",
+                    },
+                ],
+            }),
 
             // Cancelling a floating order should remove it from the floating orders list.
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             Chrome.hasFloatingOrder("004"),
         ].flat(),
 });
@@ -130,13 +127,21 @@ registry.category("web_tour.tours").add("OrderModificationAfterValidationError",
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.0" }),
             PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
 
             // Dialog showing the error
             Dialog.confirm(),
 
-            PaymentScreen.clickBack(),
-            { ...ProductScreen.back(), isActive: ["mobile"] },
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
+            ProductScreen.selectFloatingOrder(0),
+            PaymentScreen.isShown(),
+            PaymentScreen.clickBack(),
+            ProductScreen.isShown(),
+            {
+                isActive: ["mobile"],
+                ...ProductScreen.back(),
+            },
 
             // Allow order changes after the error
             ProductScreen.clickDisplayedProduct("Test Product", true, "2"),
@@ -144,6 +149,7 @@ registry.category("web_tour.tours").add("OrderModificationAfterValidationError",
 });
 
 registry.category("web_tour.tours").add("test_tracking_number_closing_session", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -152,7 +158,7 @@ registry.category("web_tour.tours").add("test_tracking_number_closing_session", 
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
             Chrome.clickMenuOption("Close Register"),
             {
@@ -168,8 +174,8 @@ registry.category("web_tour.tours").add("test_tracking_number_closing_session", 
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.enterPaymentLineAmount("Bank", "20"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
         ].flat(),
 });
 
@@ -186,7 +192,7 @@ registry.category("web_tour.tours").add("test_reload_page_before_payment_with_cu
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Customer Account"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
             ProductScreen.clickDisplayedProduct("Desk Organizer", true, "1.0"),
             ProductScreen.clickPayButton(),
@@ -200,7 +206,47 @@ registry.category("web_tour.tours").add("test_reload_page_before_payment_with_cu
         ].flat(),
 });
 
+registry.category("web_tour.tours").add("test_edit_paid_order", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.addOrderline("Desk Organizer"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Cash"),
+            PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickEditPayment(),
+            // Add customer
+            PaymentScreen.clickPartnerButton(),
+            PaymentScreen.clickCustomer("Partner Test 1"),
+            PaymentScreen.clickInvoiceButton(),
+            PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
+            // Ship later case
+            ProductScreen.addOrderline("Desk Organizer"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Cash"),
+            PaymentScreen.clickPartnerButton(),
+            PaymentScreen.clickCustomer("Partner Full"),
+            // This will set today's date as shipping date
+            PaymentScreen.clickShipLaterButton(),
+            PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                is_shipping_date: true,
+            }),
+            FeedbackScreen.clickEditPayment(),
+            // clicking once will make it empty and on clicking again it will open date picking
+            PaymentScreen.setShipLaterDate(`${nextYear}-05-30`),
+            PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
+        ].flat(),
+});
+
 registry.category("web_tour.tours").add("test_cash_in_out", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -230,12 +276,21 @@ registry.category("web_tour.tours").add("test_zero_decimal_places_currency", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.receiptIsThere(),
-            ReceiptScreen.totalAmountContains("100"),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                total_amount: "100",
+                has_portal_url: true,
+            }),
+            FeedbackScreen.clickNextOrder(),
+            ProductScreen.clickDisplayedProduct("Test Product", true, "1.00"),
+            ProductScreen.clickPayButton(),
+            // To verify first payment method is clicked by default
+            PaymentScreen.clickValidate(),
         ].flat(),
 });
 
 registry.category("web_tour.tours").add("SessionStatisticsDisplay", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -246,14 +301,14 @@ registry.category("web_tour.tours").add("SessionStatisticsDisplay", {
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.validateButtonIsHighlighted(true),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
             ProductScreen.addOrderline("Monitor Stand", "2", "10"),
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.validateButtonIsHighlighted(true),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
             Chrome.clickMenuOption("Backend", { expectUnloadPage: true }),
             {

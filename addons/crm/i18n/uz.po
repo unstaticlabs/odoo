@@ -14,16 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 11:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/crm/uz/>\n"
+"POT-Creation-Date: 2026-06-19 17:36+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_all_assigned_month_count
@@ -140,12 +139,6 @@ msgstr "<i class=\"fa fa-briefcase\" title=\"Imkoniyat nomi\"/>"
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
 #, fuzzy
-msgid "<i class=\"fa fa-building\" title=\"Company\"/>"
-msgstr "<i class=\"fa fa-building\" title=\"Kompaniya\"/>"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
-#, fuzzy
 msgid "<i class=\"fa fa-envelope\" title=\"Contact Email\"/>"
 msgstr "<i class=\"fa fa-envelope\" title=\"Aloqa elektron pochtasi\"/>"
 
@@ -224,6 +217,11 @@ msgstr ""
 "yangilanadi.\" invisible=\"not partner_phone_update\"/>"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "<span class=\"me-1\"> of </span>"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 #, fuzzy
 msgid ""
@@ -232,8 +230,8 @@ msgid ""
 "                                    <span class=\"o_stat_text\" "
 "invisible=\"duplicate_lead_count &gt; 1\">Similar Lead</span>"
 msgstr ""
-"<span class=\"o_stat_text\" invisible=\"duplicate_lead_count &lt; 2\">"
-"O‘xshash ehtimoliy mijozlar</span> <span class=\"o_stat_text\" "
+"<span class=\"o_stat_text\" invisible=\"duplicate_lead_count &lt; "
+"2\">O‘xshash ehtimoliy mijozlar</span> <span class=\"o_stat_text\" "
 "invisible=\"duplicate_lead_count &gt; 1\">O‘xshash ehtimoliy mijoz</span>"
 
 #. module: crm
@@ -254,6 +252,11 @@ msgid "<span class=\"o_stat_text\"> Leads</span>"
 msgstr "<span class=\"o_stat_text\"> Ehtimoliy mijozlar</span>"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
+msgid "<span class=\"o_stat_text\">Opportunities</span>"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 #, fuzzy
 msgid ""
@@ -268,20 +271,17 @@ msgid "<span class=\"opacity-50 p-2\"> %</span>"
 msgstr "<span class=\"opacity-50 p-2\"> %</span>"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-#, fuzzy
-msgid "<span> leads assigned the last 30 days out of a maximum of </span>"
+#: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
+msgid ""
+"<span> leads assigned this month</span>\n"
+"                            <span invisible=\"not show_assignment_max\"> on "
+"a maximum of </span>"
 msgstr ""
-"<span> ta potensial mijoz so‘nggi 30 kun ichida tayinlangan, bu oy uchun "
-"maksimal </span>"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
-#, fuzzy
-msgid ""
-"<span> leads assigned this month\n"
-"                            on a maximum of </span>"
-msgstr "<span> ta potensial mijozdan </span>"
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "<span> leads per 30 days </span>"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
@@ -297,21 +297,20 @@ msgstr "<span>Potensial mijoz/imkoniyat birlashtirildi</span>"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
-#, fuzzy
 msgid ""
 "<span>Periodically assign leads based on priorities and filters.</span><br/"
 ">\n"
 "                                <span invisible=\"not "
 "crm_use_auto_assignment\">\n"
 "                                    All sales teams will use this setting by "
-"default unless\n"
-"                                    specified otherwise.\n"
+"default.\n"
 "                                </span>"
 msgstr ""
-"<span>Ustuvorliklar va filtrlar asosida potensial mijozlarni vaqti-vaqti "
-"bilan taqsimlang.</span><br/> <span invisible=\"not "
-"crm_use_auto_assignment\"> Agar boshqacha ko‘rsatilmagan bo‘lsa, barcha "
-"savdo guruhlari ushbu sozlamadan standart holat sifatida foydalanadi. </span>"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "<span>days</span>"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
@@ -322,112 +321,29 @@ msgstr "<span>shunga.</span>"
 #. module: crm
 #: model:mail.template,body_html:crm.mail_template_demo_crm_lead
 msgid ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
-"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
-"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-"align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-"style=\"padding: 24px; background-color: white; color: #454748; border-"
-"collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"100%\" style=\"background-color: white; padding: 0; border-"
-"collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <span style=\"font-size: 10px;\">Your Lead/Opportunity</"
-"span><br/>\n"
-"                    <span style=\"font-size: 20px; font-weight: bold;\" t-"
-"out=\"object.name or ''\">Interest in your products</span>\n"
-"                </td><td valign=\"middle\" align=\"right\">\n"
-"                    <img t-attf-src=\"/logo.png?"
-"company={{ object.company_id.id }}\" style=\"padding: 0px; margin: 0px; "
-"height: 48px;\" t-att-alt=\"object.company_id.name\"/>\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-"
-"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-"size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;\"/>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-"0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr>\n"
-"                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                        <div>\n"
-"                            Hi <t t-out=\"object.partner_id and "
-"object.partner_id.name or ''\">Acme Corporation</t>,<br/><br/>\n"
-"                            Welcome to <t t-out=\"object.company_id.name or "
-"''\">My Company (San Francisco)</t>.\n"
-"                            It's great to meet you! Now that you're on "
-"board, you'll discover what <t t-out=\"object.company_id.name or ''\">My "
-"Company (San Francisco)</t> has to offer. My name is <t t-"
-"out=\"object.user_id.name or ''\">Marc Demo</t> and I'll help you get the "
-"most out of Odoo. Could we plan a quick demo soon?<br/>\n"
-"                            Feel free to reach out at any time!<br/><br/>\n"
-"                            Best,<br/>\n"
-"                            <t t-if=\"object.user_id\">\n"
-"                                <b><t t-out=\"object.user_id.name or "
-"''\">Marc Demo</t></b>\n"
-"                                <br/>Email: <t t-out=\"object.user_id.email "
-"or ''\">mark.brown23@example.com</t>\n"
-"                                <br/>Phone: <t t-out=\"object.user_id.phone "
-"or ''\">+1 650-123-4567</t>\n"
-"                            </t>\n"
-"                            <t t-else=\"\">\n"
-"                                <t t-out=\"object.company_id.name or ''\">My "
-"Company (San Francisco)</t>\n"
-"                            </t>\n"
-"                        </div>\n"
-"                    </td>\n"
-"                </tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px; padding: 0 8px 0 8px; "
-"font-size:11px;\">\n"
-"            <hr width=\"100%\" style=\"background-"
-"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-"size:0px;min-height:1px;line-height:0; margin: 16px 0px 4px 0px;\"/>\n"
-"            <b t-out=\"object.company_id.name or ''\">My Company (San "
-"Francisco)</b><br/>\n"
-"            <div style=\"color: #999999;\">\n"
-"                <t t-out=\"object.company_id.phone or ''\">+1 650-123-4567</"
+"<t>\n"
+"Hi <t t-out=\"object.partner_id and object.partner_id.name or ''\">Acme "
+"Corporation</t>,<br/><br/>\n"
+"Welcome to <t t-out=\"object.company_id.name or ''\">My Company (San "
+"Francisco)</t>.\n"
+"It's great to meet you! Now that you're on board, you'll discover what <t t-"
+"out=\"object.company_id.name or ''\">My Company (San Francisco)</t> has to "
+"offer. My name is <t t-out=\"object.user_id.name or ''\">Marc Demo</t> and "
+"I'll help you get the most out of Odoo. Could we plan a quick demo soon?<br/"
+">\n"
+"Feel free to reach out at any time!<br/><br/>\n"
+"Best,<br/>\n"
+"<t t-if=\"object.user_id\">\n"
+"    <b><t t-out=\"object.user_id.name or ''\">Marc Demo</t></b>\n"
+"    <br/>Email: <t t-out=\"object.user_id.email or "
+"''\">mark.brown23@example.com</t>\n"
+"    <br/>Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</t>\n"
+"</t>\n"
+"<t t-else=\"\">\n"
+"    <t t-out=\"object.company_id.name or ''\">My Company (San Francisco)</"
 "t>\n"
-"                <t t-if=\"object.company_id.email\">\n"
-"                    | <a t-attf-href=\"'mailto:%s' % "
-"{{ object.company_id.email }}\" style=\"text-decoration:none; color: "
-"#999999;\" t-out=\"object.company_id.email or ''\">info@yourcompany.com</a>\n"
-"                </t>\n"
-"                <t t-if=\"object.company_id.website\">\n"
-"                    | <a t-attf-href=\"'%s' % {{ object.company_id.website }}"
-"\" style=\"text-decoration:none; color: #999999;\" t-"
-"out=\"object.company_id.website or ''\">http://www.example.com</a>\n"
-"                </t>\n"
-"            </div>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
-"</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    Powered by <a target=\"_blank\" href=\"https://www.odoo.com?"
-"utm_source=db&amp;utm_medium=email\" t-attf-style=\"color: "
-"{{object.company_id.email_secondary_color or '#875A7B'}};;\">Odoo</a>\n"
-"</td></tr>\n"
-"</table>\n"
-"        "
+"</t>\n"
+"        </t>"
 msgstr ""
 
 #. module: crm
@@ -464,20 +380,6 @@ msgid "A lead in a Won stage cannot be lost. Move it to another stage first."
 msgstr ""
 "G‘alaba bosqichidagi yetakchi yo‘qotilishi mumkin emas. Avval uni boshqa "
 "bosqichga o‘tkazing."
-
-#. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_lead.py:0
-#, fuzzy
-msgid "A new lead has been created and is not assigned to any team."
-msgstr "Yangi yetakchi yaratildi, ammo hech qaysi jamoaga biriktirilmadi."
-
-#. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_lead.py:0
-#, fuzzy
-msgid "A new lead has been created for the team \"%(team_name)s\"."
-msgstr "\"%(team_name)s\" jamoasi uchun yangi yetakchi yaratildi."
 
 #. module: crm
 #. odoo-javascript
@@ -560,12 +462,6 @@ msgstr ""
 "va yetakchilar bilan o‘zaro aloqalar haqida umumiy ma'lumot beradi."
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#, fuzzy
-msgid "Activities of"
-msgstr "Faoliyatlari"
-
-#. module: crm
 #: model:ir.model,name:crm.model_mail_activity
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 #, fuzzy
@@ -585,6 +481,7 @@ msgid "Activity Exception Decoration"
 msgstr "Faoliyat istisno bezagi"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_lead__activity_plans_ids
 #: model:ir.ui.menu,name:crm.mail_activity_plan_menu_config_lead
 #, fuzzy
 msgid "Activity Plans"
@@ -632,12 +529,6 @@ msgstr ""
 "Faoliyat rejalari bir necha marta bosish orqali faoliyatlar ro‘yxatini "
 "belgilash uchun ishlatiladi (masalan, \"Namoyish tayyorlash jarayoni\", "
 "\"Malakani aniqlash\" va hokazo)"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#, fuzzy
-msgid "Activity type"
-msgstr "Faoliyat turi"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
@@ -741,10 +632,9 @@ msgid "All set. Let’s <b>Schedule</b> it."
 msgstr ""
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
-#, fuzzy
-msgid "Analysis"
-msgstr "Tahlil"
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__unlimited
+msgid "Always in rotation"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner_mass__deduplicate
@@ -760,51 +650,29 @@ msgstr "Takrorlanishni bartaraf etish"
 #: model_terms:ir.ui.view,arch_db:crm.crm_lost_reason_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_recurring_plan_view_search
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
 #, fuzzy
 msgid "Archived"
 msgstr "Arxivlangan"
 
 #. module: crm
 #. odoo-python
-#: code:addons/crm/models/crm_team.py:0
-#, fuzzy
+#: code:addons/crm/models/crm_lead.py:0
 msgid ""
 "As you are a member of no Sales Team, you are showed the Pipeline of the "
-"<b>first team by default.</b>\n"
-"                                        To work with the CRM, you should <a "
-"name=\"%d\" type=\"action\" tabindex=\"-1\">join a team.</a>"
+"<b>first team by default.</b>"
 msgstr ""
-"Hech qanday Savdo jamoasiga a'zo bo‘lmaganingiz sababli, sizga <b>sukut "
-"bo‘yicha birinchi jamoa Quvuri ko‘rsatilmoqda.</b> CRM bilan ishlash uchun "
-"<a name=\"%d\" type=\"action\" tabindex=\"-1\">jamoaga qo‘shilishingiz "
-"kerak.</a>"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_team.py:0
-#, fuzzy
-msgid ""
-"As you are a member of no Sales Team, you are showed the Pipeline of the "
-"<b>first team by default.</b>\n"
-"                                        To work with the CRM, you should "
-"join a team."
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.xml:0
+msgid "Ask your Team Leader to get access"
 msgstr ""
-"Siz hech qanday savdo jamoasining a'zosi bo‘lmaganingiz sababli, sizga <b>"
-"sukut bo‘yicha birinchi jamoaning quvuri ko‘rsatiladi.</b> CRM bilan ishlash "
-"uchun biror jamoaga qo‘shilishingiz kerak."
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
 #, fuzzy
 msgid "Assign Leads"
 msgstr "Lidlarni tayinlash"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
-#, fuzzy
-msgid "Assign opportunities to"
-msgstr "Imkoniyatlarni tayinlash"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
@@ -895,6 +763,11 @@ msgid "Auto Assignment Next Execution Date"
 msgstr "Avtomatik tayinlashning keyingi ijro sanasi"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team_member__assignment_rules
+msgid "Auto-Assignment Rules"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__automated_probability
 #, fuzzy
 msgid "Automated Probability"
@@ -954,15 +827,13 @@ msgstr "CRM faoliyati tahlili"
 
 #. module: crm
 #: model:ir.model,name:crm.model_crm_recurring_plan
-#, fuzzy
-msgid "CRM Recurring revenue plans"
-msgstr "CRM takroriy daromad rejalari"
+msgid "CRM Recurring Revenue Plan"
+msgstr ""
 
 #. module: crm
 #: model:ir.model,name:crm.model_crm_stage
-#, fuzzy
-msgid "CRM Stages"
-msgstr "CRM bosqichlari"
+msgid "CRM Stage"
+msgstr ""
 
 #. module: crm
 #: model:ir.actions.server,name:crm.ir_cron_crm_lead_assign_ir_actions_server
@@ -990,20 +861,6 @@ msgstr "Kampaniya"
 #, fuzzy
 msgid "Campaign:"
 msgstr "Kampaniya:"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner_mass
-#, fuzzy
-msgid "Cancel"
-msgstr "Bekor qilish"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-#, fuzzy
-msgid "Capacity"
-msgstr "Sig‘im"
 
 #. module: crm
 #. odoo-python
@@ -1135,7 +992,6 @@ msgstr "Rang indeksi"
 #: model:ir.model.fields,field_description:crm.field_crm_lead__company_id
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
-#: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner
@@ -1263,12 +1119,6 @@ msgid "Contact:"
 msgstr "Kontakt:"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
-#, fuzzy
-msgid "Contacts"
-msgstr "Kontaktlar"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner__name
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner_mass__name
 #, fuzzy
@@ -1309,6 +1159,12 @@ msgid "Convert Lead to Opportunity (not in mass)"
 msgstr "Potensial mijozni imkoniyatga aylantirish (yakka tartibda)"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Convert into an Opportunity to see it in your Pipeline"
+msgstr ""
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_case_tree_view_leads
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner_mass
 #, fuzzy
 msgid "Convert to Opportunities"
@@ -1413,6 +1269,12 @@ msgid "Create a Recurring Plan"
 msgstr "Takrorlanuvchi reja yaratish"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Create a landing page"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__lead_mining_in_pipeline
 #, fuzzy
 msgid "Create a lead mining request directly from the opportunity pipeline."
@@ -1437,8 +1299,6 @@ msgid "Create a new lead"
 msgstr "Yangi potensial mijoz yaratish"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_team.py:0
 #: model:ir.model,website_form_label:crm.model_crm_lead
 #, fuzzy
 msgid "Create an Opportunity"
@@ -1501,18 +1361,6 @@ msgid "Creation Date"
 msgstr "Yaratilgan sana"
 
 #. module: crm
-#: model:ir.actions.server,name:crm.action_opportunity_forecast
-#, fuzzy
-msgid "Crm: Forecast"
-msgstr "CRM: Prognoz"
-
-#. module: crm
-#: model:ir.actions.server,name:crm.action_your_pipeline
-#, fuzzy
-msgid "Crm: My Pipeline"
-msgstr "CRM: Mening quvurim"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__company_currency
 #, fuzzy
 msgid "Currency"
@@ -1532,12 +1380,6 @@ msgstr "Moslashtirilgan qaytarilgan xabar"
 #, fuzzy
 msgid "Customer"
 msgstr "Mijoz"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__commercial_partner_id
-#, fuzzy
-msgid "Customer Company"
-msgstr "Mijoz korxonasi"
 
 #. module: crm
 #: model:ir.ui.menu,name:crm.res_partner_menu_customer
@@ -1668,13 +1510,6 @@ msgid "Digest"
 msgstr "Qisqacha ma'lumot"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_lost_view_form
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_pls_update_view_form
-#, fuzzy
-msgid "Discard"
-msgstr "Bekor qilish"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_calendar_event__display_name
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__display_name
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner__display_name
@@ -1702,13 +1537,9 @@ msgid "Display Name"
 msgstr "Ko‘rsatiladigan nom"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/digest.py:0
-#, fuzzy
-msgid "Do not have access, skip this data for user's digest email"
+#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
+msgid "Display your partners on a dedicated website page."
 msgstr ""
-"Ruxsat yo‘q, foydalanuvchining qisqacha ma'lumot xati uchun bu ma'lumotlarni "
-"o‘tkazib yuboring"
 
 #. module: crm
 #. odoo-python
@@ -1716,6 +1547,12 @@ msgstr ""
 #, fuzzy
 msgid "Do you really want to update this stage?"
 msgstr "Haqiqatan ham bu bosqichni yangilamoqchimisiz?"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Do you want to install the \"%(module_name)s\" App?"
+msgstr ""
 
 #. module: crm
 #. odoo-javascript
@@ -1795,22 +1632,16 @@ msgid "Email Domain Criterion"
 msgstr "Elektron pochta domeni mezoni"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Email Marketing"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__email_state
 #, fuzzy
 msgid "Email Quality"
 msgstr "Elektron pochta sifati"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__email_cc
-#, fuzzy
-msgid "Email cc"
-msgstr "Elektron pochta nusxasi"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
-#, fuzzy
-msgid "Email cc:"
-msgstr "Elektron pochta nusxasi:"
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_team__alias_domain
@@ -1877,6 +1708,11 @@ msgid "Estimate of the date on which the opportunity will be won."
 msgstr "Imkoniyat g‘alaba qozonishi mumkin bo‘lgan taxminiy sana."
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
+msgid "Every"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_all_assigned_month_exceeded
 #, fuzzy
 msgid "Exceed monthly lead assignement"
@@ -1940,6 +1776,12 @@ msgstr "Qo‘shimcha maydonlar..."
 
 #. module: crm
 #. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Failed to install \"%(module_name)s\""
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 #: model:ir.model.fields,field_description:crm.field_crm_lead_scoring_frequency_field__field_id
 #, fuzzy
@@ -1969,6 +1811,11 @@ msgid "Fields that can be used for predictive lead scoring computation"
 msgstr ""
 "Istiqbolli mijozlarni bashoratli baholash uchun foydalanish mumkin bo‘lgan "
 "maydonlar"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Fold by Default"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_stage__fold
@@ -2045,11 +1892,22 @@ msgstr "%(source_name)s dan: %(source_subject)s"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #, fuzzy
 msgid "Future Activities"
 msgstr "Kelajakdagi faoliyatlar"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.xml:0
+msgid "Generate"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Generate leads from Outlook & Gmail"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__module_crm_iap_mine
@@ -2074,11 +1932,9 @@ msgid "Get Lost Reason"
 msgstr "Yo‘qotish sababini oling"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-#, fuzzy
-msgid "Give your team the requirements to move an opportunity to this stage."
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "Give priority if"
 msgstr ""
-"Jamoangizga imkoniyatni ushbu bosqichga o‘tkazish uchun talablarni bering."
 
 #. module: crm
 #. odoo-python
@@ -2250,6 +2106,29 @@ msgid "Import Template for Leads & Opportunities"
 msgstr "Istiqbolli mijozlar va imkoniyatlar uchun import shabloni"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Import leads from CSV"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Import leads from a CSV or Excel file"
+msgstr ""
+
+#. module: crm
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__limited
+msgid "In rotation, with a limit"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/webclient/share_target/crm_share_target_item.xml:0
+msgid "In sales team"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
 #, fuzzy
 msgid "Inactive"
@@ -2275,6 +2154,12 @@ msgstr ""
 "bo‘lganda, qaysi raqam qora ro‘yxatga kiritilganini aniqlashga yordam beradi."
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Installing \"%(module_name)s\""
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,help:crm.field_res_config_settings__crm_auto_assignment_interval_type
 #, fuzzy
 msgid "Interval type between each cron run (e.g. each 2 days or each 2 hours)"
@@ -2298,12 +2183,6 @@ msgstr ""
 #, fuzzy
 msgid "Is Follower"
 msgstr "Kuzatuvchimi"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__is_partner_visible
-#, fuzzy
-msgid "Is Partner Visible"
-msgstr "Hamkor ko‘rinadimi"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__won_status
@@ -2342,6 +2221,16 @@ msgstr "Lavozim"
 #, fuzzy
 msgid "Job Position:"
 msgstr "Lavozim:"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Keep current team"
+msgstr ""
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Keep current user"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_digest_digest__kpi_crm_lead_created_value
@@ -2439,13 +2328,14 @@ msgstr "Oxirgi yangilangan sana"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #, fuzzy
 msgid "Late Activities"
 msgstr "Kechikkan faoliyatlar"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/webclient/share_target/crm_share_target_item.js:0
 #: model:ir.model,name:crm.model_crm_lead
 #: model:ir.model.fields.selection,name:crm.selection__crm_activity_report__lead_type__lead
 #: model:ir.model.fields.selection,name:crm.selection__crm_lead__type__lead
@@ -2473,12 +2363,6 @@ msgstr "Yetakchini tayinlash"
 #, fuzzy
 msgid "Lead Assignment"
 msgstr "Yetakchini tayinlash"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-#, fuzzy
-msgid "Lead Assignment Filter"
-msgstr "Yetakchini tayinlash filtri"
 
 #. module: crm
 #. odoo-python
@@ -2510,12 +2394,6 @@ msgstr "Yetakchi yaratish"
 #, fuzzy
 msgid "Lead Mining"
 msgstr "Yetakchilarni qidirish"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-#, fuzzy
-msgid "Lead Priority Filter"
-msgstr "Yetakchi ustuvorligi filtri"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_properties_definition
@@ -2554,6 +2432,12 @@ msgid "Lead Scoring Starting Date in String"
 msgstr "Yetakchini baholashning boshlanish sanasi (matn ko‘rinishida)"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Lead Sourcing"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_tree
 #, fuzzy
@@ -2583,6 +2467,11 @@ msgstr ""
 #, fuzzy
 msgid "Lead/Opportunity created"
 msgstr "Yetakchi/Imkoniyat yaratildi"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_creation_message
+msgid "Lead/Opportunity created<br/>"
+msgstr ""
 
 #. module: crm
 #. odoo-python
@@ -2662,6 +2551,12 @@ msgstr "Lidlar generatsiyasi"
 #, fuzzy
 msgid "Leads are the qualification step before the creation of an opportunity."
 msgstr "Lidlar - bu imkoniyat yaratilishidan oldingi malaka bosqichidir."
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/wizard/crm_merge_opportunities.py:0
+msgid "Leads merged"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_activity
@@ -2860,6 +2755,12 @@ msgid "MRR"
 msgstr "MRR"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Mail plugins"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 #, fuzzy
 msgid ""
@@ -2878,14 +2779,10 @@ msgstr "Takroriy rejalarni boshqarish"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
-#, fuzzy
 msgid ""
-"Manage members or partners. Members get grades and pricelists, partners "
+"Manage members or partners. Members get levels and pricelists, partners "
 "allow lead assignment and commission plans."
 msgstr ""
-"A'zolar yoki hamkorlarni boshqarish. A'zolar darajalar va narxlar ro‘yxatini "
-"oladi, hamkorlar esa lidlarni tayinlash va komissiya rejalariga ruxsat "
-"beradi."
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_res_config_settings__crm_auto_assignment_action
@@ -3014,13 +2911,13 @@ msgid "Membership / Partnership"
 msgstr "A'zolik / Sheriklik"
 
 #. module: crm
-#: model:ir.actions.act_window,name:crm.action_merge_opportunities
 #: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
 #, fuzzy
 msgid "Merge"
 msgstr "Birlashtirish"
 
 #. module: crm
+#: model:ir.actions.act_window,name:crm.action_merge_opportunities
 #: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
 #, fuzzy
 msgid "Merge Leads/Opportunities"
@@ -3342,6 +3239,11 @@ msgid "Number of Actions"
 msgstr "Harakatlar soni"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team__opportunity_count
+msgid "Number of assigned opportunities"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__message_has_error_counter
 #, fuzzy
 msgid "Number of errors"
@@ -3424,6 +3326,11 @@ msgstr ""
 #, fuzzy
 msgid "Ongoing"
 msgstr "Davom etayotgan"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "Only assign if"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
@@ -3592,6 +3499,11 @@ msgstr ""
 "Agar o‘rnatilsa, bu yangi yozuvlar yaratilishini butunlay o‘chiradi."
 
 #. module: crm
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__opt-out
+msgid "Out of rotation"
+msgstr ""
+
+#. module: crm
 #: model:crm.recurring.plan,name:crm.crm_recurring_plan_over_3_years
 #, fuzzy
 msgid "Over 3 years"
@@ -3659,10 +3571,14 @@ msgid "Partner is blacklisted"
 msgstr "Hamkor qora ro‘yxatga kiritilgan"
 
 #. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_team_member__assignment_optout
-#, fuzzy
-msgid "Pause assignment"
-msgstr "Vazifani to‘xtatib turish"
+#: model:ir.model.fields,field_description:crm.field_res_config_settings__module_website_partnership
+msgid "Partners Website Page"
+msgstr ""
+
+#. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team__assignment_optout
+msgid "Pause auto assignment"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields.selection,name:crm.selection__crm_activity_report__won_status__pending
@@ -3883,6 +3799,12 @@ msgid "Qualified"
 msgstr "Malakali"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Qualify leads with a Survey"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__rating_ids
 #, fuzzy
 msgid "Ratings"
@@ -3896,6 +3818,11 @@ msgid "Ready to boost your sales? Let's have a look at your <b>Pipeline</b>."
 msgstr ""
 "Savdoni oshirishga tayyormisiz? Keling, <b>Savdo quvuri</b>ngizni ko‘rib "
 "chiqaylik."
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Reassign To"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__alias_force_thread_id
@@ -3930,6 +3857,11 @@ msgid "Recurring Revenues"
 msgstr "Takroriy daromadlar"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Reference"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__referred
 #, fuzzy
 msgid "Referred By"
@@ -3950,7 +3882,6 @@ msgstr "Tegishli mijoz"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__crm_auto_assignment_interval_number
-#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 #, fuzzy
 msgid "Repeat every"
 msgstr "Har safar takrorlash"
@@ -4005,6 +3936,11 @@ msgstr "Ringover VOIP telefon"
 #, fuzzy
 msgid "Rotting"
 msgstr "Buzilish"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Rotting in"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__crm_use_auto_assignment
@@ -4119,6 +4055,12 @@ msgstr "Imkoniyatlarni qidirish"
 
 #. module: crm
 #. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Search in our directory of 580M+ entities"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 #, fuzzy
 msgid "See AI-computed chances details"
@@ -4139,6 +4081,23 @@ msgid "Select at least two Leads/Opportunities from the list to merge them."
 msgstr ""
 "Birlashtirish uchun ro‘yxatdan kamida ikkita potensial mijoz/imkoniyatni "
 "tanlang."
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Select or create a contact..."
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Send a Survey"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Send an email and get leads from replies"
+msgstr ""
 
 #. module: crm
 #: model:ir.actions.act_window,name:crm.action_lead_mail_compose
@@ -4178,10 +4137,9 @@ msgid "Settings"
 msgstr "Sozlamalar"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-#, fuzzy
-msgid "Shared with all teams"
-msgstr "Barcha jamoalar bilan ulashilgan"
+#: model:ir.model.fields,field_description:crm.field_crm_team__show_assignment_max
+msgid "Show Assignment Max"
+msgstr ""
 
 #. module: crm
 #: model:res.groups,name:crm.group_use_lead
@@ -4197,7 +4155,6 @@ msgstr "Takroriy daromadlar menyusini ko‘rsatish"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #, fuzzy
 msgid "Show all opportunities for which the next action date is before today"
@@ -4229,10 +4186,15 @@ msgid "Show only opportunity"
 msgstr "Faqat imkoniyatni ko‘rsatish"
 
 #. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_team__assignment_optout
-#, fuzzy
-msgid "Skip auto assignment"
-msgstr "Avtomatik tayinlashni o‘tkazib yuborish"
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Show to all teams"
+msgstr ""
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/wizard/crm_merge_opportunities.py:0
+msgid "Something went wrong, please try again later"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__source_id
@@ -4705,6 +4667,12 @@ msgid "Tip: Turn a selection of opportunities into a map"
 msgstr "Maslahat: Tanlangan imkoniyatlarni xaritaga aylantiring"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_list_simplified
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Title"
+msgstr ""
+
+#. module: crm
 #. odoo-python
 #: code:addons/crm/models/crm_lead.py:0
 #, fuzzy
@@ -4716,8 +4684,21 @@ msgstr ""
 "(max_length)s guruhlar bo‘yicha birlashtirilishi mumkin."
 
 #. module: crm
+#. odoo-python
+#: code:addons/crm/models/crm_lead.py:0
+msgid ""
+"To work with the CRM, you should <a name=\"%d\" type=\"action\" "
+"tabindex=\"-1\">join a team.</a>"
+msgstr ""
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/models/crm_lead.py:0
+msgid "To work with the CRM, you should join a team."
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #, fuzzy
 msgid "Today Activities"
@@ -4766,6 +4747,12 @@ msgid "Try sending an email"
 msgstr "Email yuborishga urinib ko‘ring"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Turn visitors into leads via a form"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__lead_type
 #: model:ir.model.fields,field_description:crm.field_crm_lead__type
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
@@ -4796,6 +4783,11 @@ msgstr "Turi:"
 #, fuzzy
 msgid "UTM Campaign"
 msgstr "UTM kampaniyasi"
+
+#. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_lead__utm_reference
+msgid "UTM Reference"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_lead__user_company_ids
@@ -5043,10 +5035,21 @@ msgid "Welcome Demo"
 msgstr "Xush kelibsiz namoyishi"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "What are the requirements to move an opportunity to this stage?"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_lost_view_form
 #, fuzzy
 msgid "What went wrong?"
 msgstr "Nima noto‘g‘ri ketdi?"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/views/crm_kanban/crm_column_progress.js:0
+msgid "Without activities scheduled"
+msgstr ""
 
 #. module: crm
 #: model:crm.stage,name:crm.stage_lead4
@@ -5143,7 +5146,8 @@ msgstr "Siz oxirgi 7 kundagi shaxsiy rekordingizni yangiladingiz."
 #: code:addons/crm/models/crm_lead.py:0
 #, fuzzy
 msgid "You just expanded the map! First win in %(country)s."
-msgstr "Siz xaritani kengaytirdingiz! %(country)s davlatidagi birinchi g‘alaba."
+msgstr ""
+"Siz xaritani kengaytirdingiz! %(country)s davlatidagi birinchi g‘alaba."
 
 #. module: crm
 #: model_terms:ir.actions.act_window,help:crm.crm_case_form_view_salesteams_opportunity
@@ -5171,7 +5175,8 @@ msgstr "Siz g‘alabalar seriyasidasiz. 3 kunda 3 ta bitim, tabriklaymiz!"
 #: code:addons/crm/models/crm_lead.py:0
 #, fuzzy
 msgid "You're on fire! Fifth deal won today 🔥"
-msgstr "Siz zo‘r natijalarga erishyapsiz! Bugun beshinchi bitim yutib olindi 🔥"
+msgstr ""
+"Siz zo‘r natijalarga erishyapsiz! Bugun beshinchi bitim yutib olindi 🔥"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
@@ -5192,6 +5197,11 @@ msgid "alias"
 msgstr "taxallus"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "assigned)"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "at"
 msgstr ""
@@ -5204,16 +5214,20 @@ msgid "e.g. \"Monthly\""
 msgstr "masalan, \"Oylik\""
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-#, fuzzy
-msgid "e.g. Negotiation"
-msgstr "masalan, Muzokara"
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "e.g. (555) 555-0199"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 #, fuzzy
 msgid "e.g. Product Pricing"
 msgstr "masalan, Mahsulot narxini belgilash"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "e.g. Qualification"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lost_reason_view_form
@@ -5226,6 +5240,11 @@ msgstr "masalan, Juda qimmat"
 #, fuzzy
 msgid "e.g. https://www.odoo.com"
 msgstr "masalan, https://www.odoo.com"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "e.g. john.doe@email.com"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
@@ -5362,184 +5381,3 @@ msgstr "haqiqiy elektron pochta manzili"
 #, fuzzy
 msgid "valid phone number"
 msgstr "haqiqiy telefon raqami"
-
-#, fuzzy
-#~ msgid ""
-#~ "<span class=\"opacity-50 p-2\" "
-#~ "groups=\"crm.group_use_recurring_revenues\"> + </span>\n"
-#~ "                                        <span class=\"opacity-50 p-2\" "
-#~ "groups=\"!crm.group_use_recurring_revenues\"> at </span>"
-#~ msgstr ""
-#~ "<span class=\"opacity-50 p-2\" "
-#~ "groups=\"crm.group_use_recurring_revenues\"> + </span> <span "
-#~ "class=\"opacity-50 p-2\" groups=\"!crm.group_use_recurring_revenues\"> da "
-#~ "</span>"
-
-#, fuzzy
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
-#~ "top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-"
-#~ "serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-#~ "align=\"center\">\n"
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"padding: 24px; background-color: white; color: #454748; border-"
-#~ "collapse:separate;\">\n"
-#~ "<tbody>\n"
-#~ "    <!-- HEADER -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"100%\" style=\"background-color: white; padding: 0; border-"
-#~ "collapse:separate;\">\n"
-#~ "                <tr><td valign=\"middle\">\n"
-#~ "                    <span style=\"font-size: 10px;\">Your Lead/"
-#~ "Opportunity</span><br/>\n"
-#~ "                    <span style=\"font-size: 20px; font-weight: bold;\" t-"
-#~ "out=\"object.name or ''\">Interest in your products</span>\n"
-#~ "                </td><td valign=\"middle\" align=\"right\">\n"
-#~ "                    <img t-attf-src=\"/logo.png?"
-#~ "company={{ object.company_id.id }}\" style=\"padding: 0px; margin: 0px; "
-#~ "height: 48px;\" t-att-alt=\"object.company_id.name\"/>\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-#~ "                    <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;\"/>\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- CONTENT -->\n"
-#~ "    <tr>\n"
-#~ "        <td style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-#~ "0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr>\n"
-#~ "                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
-#~ "                        <div>\n"
-#~ "                            Hi <t t-out=\"object.partner_id and "
-#~ "object.partner_id.name or ''\">Deco Addict</t>,<br/><br/>\n"
-#~ "                            Welcome to <t t-out=\"object.company_id.name "
-#~ "or ''\">My Company (San Francisco)</t>.\n"
-#~ "                            It's great to meet you! Now that you're on "
-#~ "board, you'll discover what <t t-out=\"object.company_id.name or ''\">My "
-#~ "Company (San Francisco)</t> has to offer. My name is <t t-"
-#~ "out=\"object.user_id.name or ''\">Marc Demo</t> and I'll help you get the "
-#~ "most out of Odoo. Could we plan a quick demo soon?<br/>\n"
-#~ "                            Feel free to reach out at any time!<br/><br/"
-#~ ">\n"
-#~ "                            Best,<br/>\n"
-#~ "                            <t t-if=\"object.user_id\">\n"
-#~ "                                <b><t t-out=\"object.user_id.name or "
-#~ "''\">Marc Demo</t></b>\n"
-#~ "                                <br/>Email: <t t-"
-#~ "out=\"object.user_id.email or ''\">mark.brown23@example.com</t>\n"
-#~ "                                <br/>Phone: <t t-"
-#~ "out=\"object.user_id.phone or ''\">+1 650-123-4567</t>\n"
-#~ "                            </t>\n"
-#~ "                            <t t-else=\"\">\n"
-#~ "                                <t t-out=\"object.company_id.name or "
-#~ "''\">My Company (San Francisco)</t>\n"
-#~ "                            </t>\n"
-#~ "                        </div>\n"
-#~ "                    </td>\n"
-#~ "                </tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- FOOTER -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px; padding: 0 8px 0 "
-#~ "8px; font-size:11px;\">\n"
-#~ "            <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin: 16px 0px 4px 0px;\"/>\n"
-#~ "            <b t-out=\"object.company_id.name or ''\">My Company (San "
-#~ "Francisco)</b><br/>\n"
-#~ "            <div style=\"color: #999999;\">\n"
-#~ "                <t t-out=\"object.company_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                <t t-if=\"object.company_id.email\">\n"
-#~ "                    | <a t-attf-href=\"'mailto:%s' % "
-#~ "{{ object.company_id.email }}\" style=\"text-decoration:none; color: "
-#~ "#999999;\" t-out=\"object.company_id.email or ''\">info@yourcompany.com</"
-#~ "a>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.company_id.website\">\n"
-#~ "                    | <a t-attf-href=\"'%s' % "
-#~ "{{ object.company_id.website }}\" style=\"text-decoration:none; color: "
-#~ "#999999;\" t-out=\"object.company_id.website or ''\">http://"
-#~ "www.example.com</a>\n"
-#~ "                </t>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</tbody>\n"
-#~ "</table>\n"
-#~ "</td></tr>\n"
-#~ "<!-- POWERED BY -->\n"
-#~ "<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "    Powered by <a target=\"_blank\" href=\"https://www.odoo.com?"
-#~ "utm_source=db&amp;utm_medium=email\" t-attf-style=\"color: "
-#~ "{{object.company_id.email_secondary_color or '#875A7B'}};;\">Odoo</a>\n"
-#~ "</td></tr>\n"
-#~ "</table>\n"
-#~ "        "
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
-#~ "top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-"
-#~ "serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-#~ "align=\"center\"> <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"padding: 24px; background-color: white; color: "
-#~ "#454748; border-collapse:separate;\"> <tbody> <!-- SARLAVHA --> <tr> <td "
-#~ "align=\"center\" style=\"min-width: 590px;\"> <table border=\"0\" "
-#~ "cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"background-"
-#~ "color: white; padding: 0; border-collapse:separate;\"> <tr><td "
-#~ "valign=\"middle\"> <span style=\"font-size: 10px;\">Sizning Potensial "
-#~ "mijozingiz/Imkoniyatingiz</span><br/> <span style=\"font-size: 20px; font-"
-#~ "weight: bold;\" t-out=\"object.name or ''\">Mahsulotlarimizga qiziqish</"
-#~ "span> </td><td valign=\"middle\" align=\"right\"> <img t-attf-src=\"/"
-#~ "logo.png?company={{ object.company_id.id }}\" style=\"padding: 0px; "
-#~ "margin: 0px; height: 48px;\" t-att-alt=\"object.company_id.name\"/> </"
-#~ "td></tr> <tr><td colspan=\"2\" style=\"text-align:center;\"> <hr "
-#~ "width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium "
-#~ "none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; "
-#~ "margin:4px 0px 32px 0px;\"/> </td></tr> </table> </td> </tr> <!-- MAZMUN "
-#~ "--> <tr> <td style=\"min-width: 590px;\"> <table border=\"0\" "
-#~ "cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: "
-#~ "590px; background-color: white; padding: 0px 8px 0px 8px; border-"
-#~ "collapse:separate;\"> <tr> <td valign=\"top\" style=\"font-size: 13px;\"> "
-#~ "<div> Salom <t t-out=\"object.partner_id and object.partner_id.name or "
-#~ "''\">Deco Addict</t>,<br/><br/> <t t-out=\"object.company_id.name or "
-#~ "''\">My Company (San Francisco)</t>ga xush kelibsiz. Siz bilan "
-#~ "tanishganimdan xursandman! Endi siz <t t-out=\"object.company_id.name or "
-#~ "''\">My Company (San Francisco)</t> kompaniyasining imkoniyatlari bilan "
-#~ "tanishasiz. Mening ismim <t t-out=\"object.user_id.name or ''\">Marc "
-#~ "Demo</t> va men sizga Odoo‘dan samarali foydalanishda yordam beraman. "
-#~ "Yaqin orada qisqa namoyish o‘tkazishni rejalashtirsak bo‘ladimi?<br/> "
-#~ "Istalgan vaqtda menga murojaat qilishingiz mumkin!<br/><br/> Hurmat bilan,"
-#~ "<br/> <t t-if=\"object.user_id\"> <b><t t-out=\"object.user_id.name or "
-#~ "''\">Marc Demo</t></b> <br/>Email: <t t-out=\"object.user_id.email or "
-#~ "''\">mark.brown23@example.com</t> <br/>Telefon: <t t-"
-#~ "out=\"object.user_id.phone or ''\">+1 650-123-4567</t> </t> <t t-"
-#~ "else=\"\"> <t t-out=\"object.company_id.name or ''\">My Company (San "
-#~ "Francisco)</t> </t> </div> </td> </tr> </table> </td> </tr> <!-- PASTKI "
-#~ "QISM --> <tr> <td align=\"center\" style=\"min-width: 590px; padding: 0 "
-#~ "8px 0 8px; font-size:11px;\"> <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin: 16px 0px 4px 0px;\"/> <b t-"
-#~ "out=\"object.company_id.name or ''\">My Company (San Francisco)</b><br/> "
-#~ "<div style=\"color: #999999;\"> <t t-out=\"object.company_id.phone or "
-#~ "''\">+1 650-123-4567</t> <t t-if=\"object.company_id.email\"> | <a t-attf-"
-#~ "href=\"'mailto:%s' % {{ object.company_id.email }}\" style=\"text-"
-#~ "decoration:none; color: #999999;\" t-out=\"object.company_id.email or "
-#~ "''\">info@yourcompany.com</a> </t> <t t-if=\"object.company_id.website\"> "
-#~ "| <a t-attf-href=\"'%s' % {{ object.company_id.website }}\" style=\"text-"
-#~ "decoration:none; color: #999999;\" t-out=\"object.company_id.website or "
-#~ "''\">http://www.example.com</a> </t> </div> </td> </tr> </tbody> </table> "
-#~ "</td></tr> <!-- QUVVATLANADI --> <tr><td align=\"center\" style=\"min-"
-#~ "width: 590px;\"> <a target=\"_blank\" href=\"https://www.odoo.com?"
-#~ "utm_source=db&amp;utm_medium=email\" t-attf-style=\"color: "
-#~ "{{object.company_id.email_secondary_color or '#875A7B'}};;\">Odoo</a> "
-#~ "tomonidan quvvatlanadi </td></tr> </table>"

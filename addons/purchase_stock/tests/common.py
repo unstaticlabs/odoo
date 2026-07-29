@@ -37,7 +37,7 @@ class PurchaseTestCommon(TestStockValuationCommon):
                 (0, 0, {
                     'product_id': product.id,
                     'product_qty': quantity,
-                    'product_uom_id': kwargs.get('uom', product.uom_id).id,
+                    'uom_id': kwargs.get('uom', product.uom_id).id,
                     'price_unit': price_unit,
                     'tax_ids': kwargs.get('tax_ids', [Command.clear()]),
                 })],

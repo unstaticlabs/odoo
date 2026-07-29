@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, models
+from odoo.exceptions import ValidationError
 
 
 class SaleOrder(models.Model):
@@ -38,5 +39,8 @@ class SaleOrder(models.Model):
     def _allow_express_checkout(self):
         res = super()._allow_express_checkout()
         if res and any(self.order_line.product_id.mapped("gelato_product_uid")):
-            return not self._ensure_partner_address_is_complete()
+            try:
+                self.partner_shipping_id._gelato_validate_address()
+            except ValidationError:
+                return False
         return res

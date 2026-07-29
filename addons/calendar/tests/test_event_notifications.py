@@ -143,7 +143,7 @@ class TestEventNotifications(CalendarMailCommon):
 
     @freeze_time('2018')  # class event has hardcoded dates
     def test_message_invite(self):
-        self.env['ir.config_parameter'].sudo().set_param('mail.mail_force_send_limit', None)
+        self.env['ir.config_parameter'].sudo().set_int('mail.mail_force_send_limit', 100)
         with self.assertSinglePostNotifications([{'partner': self.partner, 'type': 'inbox'}], {
             'message_type': 'user_notification',
             'subtype': 'mail.mt_note',
@@ -172,7 +172,7 @@ class TestEventNotifications(CalendarMailCommon):
     @freeze_time('2018')  # class event has hardcoded dates
     def test_message_invite_email_notif_mass_queued(self):
         """Check that more than 20 notified attendees means mails are queued."""
-        self.env['ir.config_parameter'].sudo().set_param('mail.mail_force_send_limit', None)
+        self.env['ir.config_parameter'].sudo().set_int('mail.mail_force_send_limit', 100)
         additional_attendees = self.env['res.partner'].create([{
             'name': f'test{n}',
             'email': f'test{n}@example.com'} for n in range(101)])
@@ -324,7 +324,7 @@ class TestEventNotifications(CalendarMailCommon):
                     'start': now + relativedelta(minutes=50),
                     'stop': now + relativedelta(minutes=55),
                     'partner_ids': [(4, self.partner.id)],
-                    'alarm_ids': [(4, alarm.id)]
+                    'alarm_ids': [(6, 0, alarm.ids)]
                 })
 
     def test_bus_notif_organizer(self):
@@ -680,7 +680,7 @@ class TestEventNotifications(CalendarMailCommon):
                     'start': now + relativedelta(minutes=50),
                     'stop': now + relativedelta(minutes=55),
                     'partner_ids': [(4, self.partner.id)],
-                    'alarm_ids': [(4, alarm.id)]
+                    'alarm_ids': [(6, 0, alarm.ids)]
                 })
 
     def test_calendar_recurring_event_delete_notification(self):

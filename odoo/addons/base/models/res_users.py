@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import binascii
-import contextlib
 import collections
+import contextlib
 import datetime
 import hmac
 import ipaddress
@@ -14,21 +14,29 @@ import time
 from functools import wraps
 from hashlib import sha256
 from itertools import chain
-from markupsafe import Markup
+from zoneinfo import ZoneInfo
 
-import pytz
-from lxml import etree
+from markupsafe import Markup
 from passlib.context import CryptContext as _CryptContext
 
-from odoo import api, fields, models, tools, _
+from odoo import _, api, fields, models, tools
 from odoo.api import SUPERUSER_ID
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.fields import Command, Domain
-from odoo.http import request, DEFAULT_LANG
-from odoo.tools import email_domain_extract, is_html_empty, frozendict, reset_cached_properties, str2bool, SQL
-
+from odoo.http import request
+from odoo.http.session import DEFAULT_LANG
+from odoo.tools import (
+    SQL,
+    email_domain_extract,
+    frozendict,
+    is_html_empty,
+    reset_cached_properties,
+    str2bool,
+)
+from odoo.tools.date_utils import all_timezones
 
 _logger = logging.getLogger(__name__)
+
 
 class CryptContext:
     def __init__(self, *args, **kwargs):
@@ -172,33 +180,9 @@ class ResUsers(models.Model):
         company_ids = companies if isinstance(companies, str) else models.to_record_ids(companies)
         return Domain('company_ids', 'in', company_ids)
 
-    @property
-    def SELF_READABLE_FIELDS(self):
-        """ The list of fields a user can read on their own user record.
-        In order to add fields, please override this property on model extensions.
-        """
-        return [
-            'signature', 'company_id', 'login', 'email', 'name', 'image_1920',
-            'image_1024', 'image_512', 'image_256', 'image_128', 'lang', 'tz',
-            'tz_offset', 'group_ids', 'partner_id', 'write_date', 'action_id',
-            'avatar_1920', 'avatar_1024', 'avatar_512', 'avatar_256', 'avatar_128',
-            'share', 'device_ids', 'api_key_ids', 'phone', 'display_name',
-        ]
-
-    @property
-    def SELF_WRITEABLE_FIELDS(self):
-        """ The list of fields a user can write on their own user record.
-        In order to add fields, please override this property on model extensions.
-        """
-        return ['signature', 'action_id', 'company_id', 'email', 'name', 'image_1920', 'lang', 'tz', 'api_key_ids', 'phone']
-
-    @api.model
-    @tools.ormcache(cache='stable')
-    def _self_accessible_fields(self) -> tuple[frozenset[str], frozenset[str]]:
-        """Readable and writable fields by portal users."""
-        readable = frozenset(self.SELF_READABLE_FIELDS)
-        writeable = frozenset(self.SELF_WRITEABLE_FIELDS)
-        return readable, writeable
+    def _valid_field_parameter(self, field, name):
+        # see `_has_field_access``
+        return name == 'user_writeable' or super()._valid_field_parameter(field, name)
 
     def _default_groups(self):
         """Default groups for employees
@@ -222,14 +206,15 @@ class ResUsers(models.Model):
         help="Specify a value only when creating a user or if you're "\
              "changing the user's password, otherwise leave empty. After "\
              "a change of password, the user has to login again.")
-    api_key_ids = fields.One2many('res.users.apikeys', 'user_id', string="API Keys")
-    signature = fields.Html(string="Email Signature", compute='_compute_signature', readonly=False, store=True)
+    api_key_ids = fields.One2many('res.users.apikeys', 'user_id', string="API Keys", user_writeable=True)
+    signature = fields.Html(string="Email Signature", compute='_compute_signature', readonly=False, store=True, user_writeable=True)
     active = fields.Boolean(default=True)
     active_partner = fields.Boolean(related='partner_id.active', readonly=True, string="Partner is Active")
     action_id = fields.Many2one('ir.actions.actions', string='Home Action',
         help="If specified, this action will be opened at log on for this user, in addition to the standard menu.")
     log_ids = fields.One2many('res.users.log', 'create_uid', string='User log entries')
     device_ids = fields.One2many('res.device', 'user_id', string='User devices')
+    session_ids = fields.One2many('res.session', 'user_id', string='User sessions')
     login_date = fields.Datetime(related='log_ids.create_date', string='Latest Login', readonly=False)
     share = fields.Boolean(compute='_compute_share', compute_sudo=True, string='Share User', store=True,
          help="External user with limited access, created only for the purpose of sharing data.")
@@ -242,17 +227,22 @@ class ResUsers(models.Model):
     # Special behavior for this field: res.company.search() will only return the companies
     # available to the current user (should be the user's companies?), when the user_preference
     # context is set.
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+        user_writeable=True,
+        default=lambda self: self.env.company.id,
         help='The default company for this user.', context={'user_preference': True})
     company_ids = fields.Many2many('res.company', 'res_company_users_rel', 'user_id', 'cid',
         string='Companies', default=lambda self: self.env.company.ids)
 
     # overridden inherited fields to bypass access rights, in case you have
     # access to the user but not its corresponding partner
-    name = fields.Char(related='partner_id.name', inherited=True, readonly=False)
-    email = fields.Char(related='partner_id.email', inherited=True, readonly=False)
+    name = fields.Char(related='partner_id.name', inherited=True, readonly=False, user_writeable=True)
+    email = fields.Char(related='partner_id.email', inherited=True, readonly=False, user_writeable=True)
     email_domain_placeholder = fields.Char(compute="_compute_email_domain_placeholder")
-    phone = fields.Char(related='partner_id.phone', inherited=True, readonly=False)
+    phone = fields.Char(related='partner_id.phone', inherited=True, readonly=False, user_writeable=True)
+    image_1920 = fields.Binary(related='partner_id.image_1920', inherited=True, readonly=False, user_writeable=True)
+    lang = fields.Selection(related='partner_id.lang', inherited=True, readonly=False, user_writeable=True)
+    tz = fields.Selection(related='partner_id.tz', inherited=True, readonly=False, user_writeable=True)
 
     group_ids = fields.Many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid', string='Groups', default=lambda s: s._default_groups(), help="Groups explicitly assigned to the user")
     all_group_ids = fields.Many2many('res.groups', string="Groups and implied groups",
@@ -308,6 +298,15 @@ class ResUsers(models.Model):
     def _rpc_api_keys_only(self):
         """ To be overridden if RPC access needs to be restricted to API keys, e.g. for 2FA """
         return False
+
+    def _get_auth_methods(self):
+        """ Return a list of authentication methods available to the user. """
+        self.ensure_one()
+        auth_methods = []
+        if mfa_type := self._mfa_type():
+            auth_methods.append(mfa_type)
+        auth_methods.append('password')
+        return auth_methods
 
     def _check_credentials(self, credential, env):
         """ Validates the current user's password.
@@ -470,7 +469,7 @@ class ResUsers(models.Model):
     @api.depends('tz')
     def _compute_tz_offset(self):
         for user in self:
-            user.tz_offset = datetime.datetime.now(pytz.timezone(user.tz or 'GMT')).strftime('%z')
+            user.tz_offset = datetime.datetime.now(ZoneInfo(user.tz or 'UTC')).strftime('%z')
 
     @api.depends('all_group_ids')
     def _compute_accesses_count(self):
@@ -554,25 +553,16 @@ class ResUsers(models.Model):
         if not self.env.ref('base.group_system').user_ids:
             raise ValidationError(_("You must have at least an administrator user."))
 
-    def onchange(self, values, field_names, fields_spec):
-        # Hacky fix to access fields in `SELF_READABLE_FIELDS` in the onchange logic.
-        # Put field values in the cache.
-        if self == self.env.user:
-            [self.sudo()[field_name] for field_name in self._self_accessible_fields()[0]]
-        return super().onchange(values, field_names, fields_spec)
-
-    def read(self, fields=None, load='_classic_read'):
-        readable, _ = self._self_accessible_fields()
-        if fields and self == self.env.user and all(key in readable or key.startswith('context_') for key in fields):
-            # safe fields only, so we read as super-user to bypass access rights
-            self = self.sudo()
-        return super().read(fields=fields, load=load)
-
+    @api.model
     def _has_field_access(self, field, operation):
-        return super()._has_field_access(field, operation) or (
-            operation == 'read'
-            and self._origin == self.env.user
-            and field.name in self._self_accessible_fields()[0]
+        # For writing a field, the user has elevated privileges (sudo or manager
+        # group) or the field is marked as user_writeable. The records which the
+        # user can change are protected by record rules.
+        return super()._has_field_access(field, operation) and (
+            operation != 'write'
+            or getattr(field, 'user_writeable', False)
+            or self.env.su
+            or self.env.user.has_group('base.group_erp_manager')
         )
 
     @api.model_create_multi
@@ -580,7 +570,7 @@ class ResUsers(models.Model):
         users = super().create(vals_list)
         setting_vals = []
         for user in users:
-            if not user.res_users_settings_ids and user._is_internal():
+            if not user.sudo().res_users_settings_ids and user._is_internal():
                 setting_vals.append({'user_id': user.id})
             # if partner is global we keep it that way
             if user.partner_id.company_id:
@@ -602,17 +592,6 @@ class ResUsers(models.Model):
         if vals.get('active'):
             # unarchive partners before unarchiving the users
             self.partner_id.action_unarchive()
-        if self == self.env.user:
-            writeable = self._self_accessible_fields()[1]
-            for key in list(vals):
-                if key not in writeable:
-                    break
-            else:
-                if 'company_id' in vals:
-                    if vals['company_id'] not in self.env.user.company_ids.ids:
-                        del vals['company_id']
-                # safe fields only, so we write as super-user to bypass access rights
-                self = self.sudo()
 
         res = super().write(vals)
 
@@ -623,6 +602,8 @@ class ResUsers(models.Model):
                     user.partner_id.write({'company_id': user.company_id.id})
 
         if 'company_id' in vals or 'company_ids' in vals:
+            # Access cache depends on the company, clear it
+            self.env.transaction.clear_access_cache()
             # Reset lazy properties `company` & `companies` on all envs,
             # This is unlikely in a business code to change the company of a user and then do business stuff
             # but in case it happens this is handled.
@@ -631,15 +612,16 @@ class ResUsers(models.Model):
                 if env.user in self:
                     reset_cached_properties(env)
 
-        if 'group_ids' in vals and self.ids:
+        if 'group_ids' in vals and any(self._ids):
             # clear caches linked to the users
-            self.env['ir.model.access'].call_cache_clearing_methods()
+            self.env.invalidate_all()
+            self.env.registry.clear_cache()
 
         # per-method / per-model caches have been removed so the various
         # clear_cache/clear_caches methods pretty much just end up calling
         # Registry.clear_cache
         invalidation_fields = self._get_invalidation_fields()
-        if invalidation_fields & vals.keys():
+        if not invalidation_fields.isdisjoint(vals):
             self.env.registry.clear_cache()
 
         return res
@@ -769,7 +751,7 @@ class ResUsers(models.Model):
                 user = user.with_user(user).sudo()
                 auth_info = user._check_credentials(credential, user_agent_env)
                 tz = request.cookies.get('tz') if request else None
-                if tz in pytz.all_timezones and (not user.tz or not user.login_date):
+                if tz in all_timezones and (not user.tz or not user.login_date):
                     # first login or missing tz -> set tz to browser tz
                     user.tz = tz
                 user._update_last_login()
@@ -804,8 +786,8 @@ class ResUsers(models.Model):
                 try:
                     base = user_agent_env['base_location']
                     ICP = env['ir.config_parameter']
-                    if not ICP.get_param('web.base.url.freeze'):
-                        ICP.set_param('web.base.url', base)
+                    if not ICP.get_bool('web.base.url.freeze'):
+                        ICP.set_str('web.base.url', base)
                 except Exception:
                     _logger.exception("Failed to update web.base.url configuration parameter")
         return auth_info
@@ -992,12 +974,15 @@ class ResUsers(models.Model):
             'tag': 'reload_context',
         }
 
+    @check_identity
     def action_change_password_wizard(self):
         return {
             'type': 'ir.actions.act_window',
             'target': 'new',
             'res_model': 'change.password.wizard',
             'view_mode': 'form',
+            'name': 'Change Password',
+            'context': {'active_ids': self.ids, 'active_model': 'res.users'}
         }
 
     @check_identity
@@ -1026,8 +1011,8 @@ class ResUsers(models.Model):
         return (self.env.user if self.id == self.env.uid else self)._action_revoke_all_devices()
 
     def _action_revoke_all_devices(self):
-        devices = self.env["res.device"].search([("user_id", "=", self.id)])
-        devices.filtered(lambda d: not d.is_current)._revoke()
+        sessions = self.env["res.session"].search([("user_id", "=", self.id)])
+        sessions.filtered(lambda d: not d.is_current)._revoke()
         return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     @api.readonly
@@ -1208,7 +1193,7 @@ class ResUsers(models.Model):
             # ``needs_update`` will indicate that the stored hash should be
             # replaced by a more recent algorithm.
             deprecated=['auto'],
-            pbkdf2_sha512__rounds=max(MIN_ROUNDS, int(cfg.get_param('password.hashing.rounds', 0))),
+            pbkdf2_sha512__rounds=max(MIN_ROUNDS, cfg.get_int('password.hashing.rounds')),
         )
 
     @contextlib.contextmanager
@@ -1299,11 +1284,11 @@ class ResUsers(models.Model):
         :rtype: bool
         """
         cfg = self.env['ir.config_parameter'].sudo()
-        min_failures = int(cfg.get_param('base.login_cooldown_after', 5))
+        min_failures = cfg.get_int('base.login_cooldown_after', 5)
         if min_failures == 0:
             return False
 
-        delay = int(cfg.get_param('base.login_cooldown_duration', 60))
+        delay = cfg.get_int('base.login_cooldown_duration') or 60
         return failures >= min_failures and (datetime.datetime.now() - previous) < datetime.timedelta(seconds=delay)
 
     def _register_hook(self):
@@ -1317,33 +1302,6 @@ class ResUsers(models.Model):
     def _mfa_url(self):
         """ If an MFA method is enabled, returns the URL for its second step. """
         return
-
-    @api.model
-    def fields_get(self, allfields=None, attributes=None):
-        res = super().fields_get(allfields, attributes=attributes)
-
-        # add self readable/writable fields
-        readable_fields, writeable_fields = self._self_accessible_fields()
-        missing = (writeable_fields | readable_fields).difference(res.keys())
-        if allfields:
-            missing = missing.intersection(allfields)
-        if missing:
-            self = self.sudo()  # noqa: PLW0642
-            res.update({
-                key: dict(values, readonly=key not in writeable_fields, searchable=False)
-                for key, values in super().fields_get(sorted(missing), attributes).items()
-            })
-        return res
-
-    def _get_view_postprocessed(self, view, arch, **options):
-        arch, models = super()._get_view_postprocessed(view, arch, **options)
-        if view == self.env.ref('base.view_users_form_simple_modif'):
-            tree = etree.fromstring(arch)
-            for node_field in tree.xpath('//field[@__groups_key__]'):
-                if node_field.get('name') in self.SELF_READABLE_FIELDS:
-                    node_field.attrib.pop('__groups_key__')
-            arch = etree.tostring(tree)
-        return arch, models
 
 
 ResUsersPatchedInTest = ResUsers
@@ -1460,10 +1418,7 @@ class ChangePasswordWizard(models.TransientModel):
 
     def change_password_button(self):
         self.ensure_one()
-        self.user_ids.change_password_button()
-        if self.env.user in self.user_ids.user_id:
-            return {'type': 'ir.actions.client', 'tag': 'reload'}
-        return {'type': 'ir.actions.act_window_close'}
+        return self.user_ids.change_password_button()
 
 
 class ChangePasswordUser(models.TransientModel):
@@ -1475,12 +1430,16 @@ class ChangePasswordUser(models.TransientModel):
     user_login = fields.Char(string='User Login', readonly=True)
     new_passwd = fields.Char(string='New Password', default='')
 
+    @check_identity
     def change_password_button(self):
         for line in self:
             if line.new_passwd:
                 line.user_id._change_password(line.new_passwd)
         # don't keep temporary passwords in the database longer than necessary
         self.write({'new_passwd': False})
+        if self.env.user in self.user_id:
+            return {'type': 'ir.actions.client', 'tag': 'reload'}
+        return {'type': 'ir.actions.act_window_close'}
 
 
 class ChangePasswordOwn(models.TransientModel):
@@ -1518,7 +1477,7 @@ DEFAULT_PROGRAMMATIC_API_KEYS_LIMIT = 10  # programmatic API key creation is ref
 
 class ResUsersApikeys(models.Model):
     _name = 'res.users.apikeys'
-    _description = 'Users API Keys'
+    _description = 'User API Key'
     _auto = False # so we can have a secret column
     _allow_sudo_commands = False
 
@@ -1617,7 +1576,7 @@ class ResUsersApikeys(models.Model):
 
     def _ensure_can_manage_keys_programmatically(self):
         # Administrators would not be restricted by the ICP check alone,
-        # as they could temporarily enable the setting via set_param().
+        # as they could temporarily enable the setting via set_bool().
         # However, this is considered bad practice because it would create a time window
         # where anyone could manage API keys programmatically.
         # Additionally, the enable / call / restore process involves three distinct calls,
@@ -1627,7 +1586,7 @@ class ResUsersApikeys(models.Model):
         # However, if programmatic API key management were to be enabled by default,
         # this exception should be removed, as disabling the feature should be global.
         ICP = self.env['ir.config_parameter'].sudo()
-        programmatic_api_keys_enabled = str2bool(ICP.get_param('base.enable_programmatic_api_keys'), False)
+        programmatic_api_keys_enabled = str2bool(ICP.get_bool('base.enable_programmatic_api_keys'), False)
         if not (self.env.is_system() or programmatic_api_keys_enabled):
             raise UserError(_("Programmatic API keys are not enabled"))
 
@@ -1660,7 +1619,7 @@ class ResUsersApikeys(models.Model):
                                          '|', ('expiration_date', '=', False), ('expiration_date', '>=', self.env.cr.now())])
             try:
                 ICP = self.env['ir.config_parameter'].sudo()
-                nb_keys_limit = int(ICP.get_param('base.programmatic_api_keys_limit', DEFAULT_PROGRAMMATIC_API_KEYS_LIMIT))
+                nb_keys_limit = int(ICP.get_int('base.programmatic_api_keys_limit', DEFAULT_PROGRAMMATIC_API_KEYS_LIMIT))
             except ValueError:
                 _logger.warning("Invalid value for 'base.programmatic_api_keys_limit', using default value.")
                 nb_keys_limit = DEFAULT_PROGRAMMATIC_API_KEYS_LIMIT

@@ -2,17 +2,18 @@
 # This file contains the translation of the following modules:
 # * onboarding
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 07:51+0000\n"
-"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:25+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-2/"
 "onboarding/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
@@ -60,11 +61,6 @@ msgstr "Bu yapılandırma adımlarını gizlemek istediğinizden emin misiniz?"
 #: model:ir.model.fields,field_description:onboarding.field_onboarding_onboarding_step__button_text
 msgid "Button text"
 msgstr "Buton Metni"
-
-#. module: onboarding
-#: model_terms:ir.ui.view,arch_db:onboarding.onboarding_container
-msgid "Cancel"
-msgstr "İptal"
 
 #. module: onboarding
 #: model_terms:ir.ui.view,arch_db:onboarding.onboarding_container
@@ -118,6 +114,12 @@ msgstr "Oluşturuldu"
 #: model:ir.model.fields,field_description:onboarding.field_onboarding_onboarding_step__description
 msgid "Description"
 msgstr "Açıklama"
+
+#. module: onboarding
+#: model_terms:ir.ui.view,arch_db:onboarding.onboarding_container
+#, fuzzy
+msgid "Discard"
+msgstr "Çöp"
 
 #. module: onboarding
 #: model:ir.model.fields,field_description:onboarding.field_onboarding_onboarding__display_name
@@ -212,8 +214,8 @@ msgstr "Paneli kapatırken yürütülecek ekleme modeli eyleminin adı."
 #. module: onboarding
 #: model:ir.model.fields,help:onboarding.field_onboarding_onboarding_step__panel_step_open_action_name
 msgid ""
-"Name of the onboarding step model action to execute when opening the step, "
-"e.g. action_open_onboarding_1_step_1"
+"Name of the onboarding step model action to execute when opening the step, e."
+"g. action_open_onboarding_1_step_1"
 msgstr ""
 "Adım açıldığında yürütülecek başlangıç adım modeli eyleminin adı, örn. "
 "action_open_onboarding_1_step_1"
@@ -426,6 +428,3 @@ msgstr "o_onboarding_confetti"
 #: model_terms:ir.ui.view,arch_db:onboarding.onboarding_panel
 msgid "onboarding.onboarding.step"
 msgstr "onboarding.onboarding.step"
-
-#~ msgid "#{alt}"
-#~ msgstr "#{alt}"

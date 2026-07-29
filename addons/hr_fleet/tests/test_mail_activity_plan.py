@@ -8,6 +8,7 @@ from odoo.tests import tagged, users
 
 
 @tagged('mail_activity', 'mail_activity_plan')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestActivitySchedule(ActivityScheduleHRCase):
 
     @classmethod
@@ -31,7 +32,7 @@ class TestActivitySchedule(ActivityScheduleHRCase):
                     "name": "A3",
                 }).id,
                 "manager_id": cls.user_manager.id,
-                "plan_to_change_car": False,
+                "plan_to_change_vehicle": False,
             })
             employee.car_ids = car
 

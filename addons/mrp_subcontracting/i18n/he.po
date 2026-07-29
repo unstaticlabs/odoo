@@ -13,15 +13,15 @@
 # ExcaliberX <excaliberx@gmail.com>, 2022
 # Yihya Hugirat <hugirat@gmail.com>, 2022
 # דודי מלכה <Dudimalka6@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:40+0000\n"
+"POT-Creation-Date: 2026-03-06 18:37+0000\n"
+"PO-Revision-Date: 2025-12-20 09:35+0000\n"
 "Last-Translator: or balmas <or@laylinetech.com>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "mrp_subcontracting/he/>\n"
@@ -31,7 +31,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: mrp_subcontracting
 #. odoo-python
@@ -106,8 +106,8 @@ msgstr "בחר סוג קבלן משנה אם ברצונך לעשות מיקור 
 
 #. module: mrp_subcontracting
 #: model:ir.model,name:mrp_subcontracting.model_res_company
-msgid "Companies"
-msgstr "חברות"
+msgid "Company"
+msgstr ""
 
 #. module: mrp_subcontracting
 #: model_terms:ir.ui.view,arch_db:mrp_subcontracting.mrp_subcontracting_move_tree_view
@@ -160,6 +160,7 @@ msgstr "פרטים"
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_bom__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_production__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_production_serials__display_name
+#: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_workorder__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_product_product__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_product_supplierinfo__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_report_mrp_report_bom_structure__display_name
@@ -185,7 +186,7 @@ msgid "Done"
 msgstr "בוצע"
 
 #. module: mrp_subcontracting
-#: model_terms:ir.ui.view,arch_db:mrp_subcontracting.portal_my_home_productions
+#: model:portal.entry,description:mrp_subcontracting.portal_manufacturing_orders
 msgid "Follow manufacturing orders you have to fulfill"
 msgstr "עקוב אחר פקודות הייצור שעליך לבצע"
 
@@ -199,6 +200,7 @@ msgstr "האם נרשם?"
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_bom__id
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_production__id
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_production_serials__id
+#: model:ir.model.fields,field_description:mrp_subcontracting.field_mrp_workorder__id
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_product_product__id
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_product_supplierinfo__id
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_report_mrp_report_bom_structure__id
@@ -233,8 +235,8 @@ msgstr "העברה נכנסת"
 
 #. module: mrp_subcontracting
 #: model:ir.model,name:mrp_subcontracting.model_stock_location
-msgid "Inventory Locations"
-msgstr "איתורי מלאי"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: mrp_subcontracting
 #: model:ir.model.fields,field_description:mrp_subcontracting.field_stock_quant__is_subcontract
@@ -272,7 +274,7 @@ msgid "Manufacturing Order"
 msgstr "הוראת ייצור"
 
 #. module: mrp_subcontracting
-#: model_terms:ir.ui.view,arch_db:mrp_subcontracting.portal_my_home_productions
+#: model:portal.entry,name:mrp_subcontracting.portal_manufacturing_orders
 #: model_terms:ir.ui.view,arch_db:mrp_subcontracting.subcontracting_portal_production_form_view
 msgid "Manufacturing Orders"
 msgstr "הוראות ייצור"
@@ -339,8 +341,8 @@ msgstr "ייצור"
 
 #. module: mrp_subcontracting
 #: model:ir.model,name:mrp_subcontracting.model_stock_quant
-msgid "Quants"
-msgstr "אנליסטים כמותיים"
+msgid "Quant"
+msgstr ""
 
 #. module: mrp_subcontracting
 #. odoo-python
@@ -575,6 +577,11 @@ msgid "Warehouse"
 msgstr "מחסן"
 
 #. module: mrp_subcontracting
+#: model:ir.model,name:mrp_subcontracting.model_mrp_workorder
+msgid "Work Order"
+msgstr ""
+
+#. module: mrp_subcontracting
 #. odoo-python
 #: code:addons/mrp_subcontracting/models/mrp_bom.py:0
 msgid ""
@@ -610,45 +617,3 @@ msgstr "למשל PO0032"
 #: code:addons/mrp_subcontracting/controllers/portal.py:0
 msgid "state"
 msgstr ""
-
-#~ msgid "Continue"
-#~ msgstr "המשך"
-
-#~ msgid "Discard"
-#~ msgstr "בטל"
-
-#~ msgid "Display Action Record Components"
-#~ msgstr "הצג פעולת רישום רכיבים"
-
-#~ msgid "Hide"
-#~ msgstr "הסתר"
-
-#~ msgid "Move Line Nosuggest"
-#~ msgstr "Move Line Nosuggest"
-
-#~ msgid "Operation not supported"
-#~ msgstr "הפעולה אינה נתמכת"
-
-#~ msgid "Operations without package"
-#~ msgstr "פעולות ללא אריזה"
-
-#~ msgid "Production Order"
-#~ msgstr "הוראת ייצור"
-
-#~ msgid "Raw Materials for %s"
-#~ msgstr "חומרי גלם עבור %s"
-
-#~ msgid "Record Production"
-#~ msgstr "רשום ייצור "
-
-#~ msgid "Record components"
-#~ msgstr "רשום רכיבים"
-
-#~ msgid "Reserved"
-#~ msgstr "שמור"
-
-#~ msgid "Sequence subcontracting"
-#~ msgstr "רצף מיקור חוץ"
-
-#~ msgid "To subcontract, use a planned transfer."
-#~ msgstr "כדי לבצע מיקור חוץ, השתמש בהעברה מתוכננת."

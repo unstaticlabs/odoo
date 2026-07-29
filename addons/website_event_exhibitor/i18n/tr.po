@@ -2,19 +2,20 @@
 # This file contains the translation of the following modules:
 # * website_event_exhibitor
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 00:55+0000\n"
-"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:43+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_exhibitor/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
@@ -108,6 +109,12 @@ msgid "Activity Exception Decoration"
 msgstr "Etkinlik İstisna Dekorasyonu"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+#, fuzzy
+msgid "Activity Plans"
+msgstr "Aktivite Planları"
+
+#. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
 msgid "Activity State"
 msgstr "Aktivite Durumu"
@@ -170,6 +177,18 @@ msgstr "Ek Sayısı"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "Katılımcılar toplantıya katılabilecek"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Auto publish on"
+msgstr "Otomatik yayınla"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Sayfayı seçilen tarih ve saatte otomatik olarak yayınlayın."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -668,6 +687,12 @@ msgid "Published"
 msgstr "Yayınlandı"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+#, fuzzy
+msgid "Published date"
+msgstr "Yayınlanma tarihi"
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -961,6 +986,11 @@ msgid ""
 msgstr ""
 "bitti.\n"
 "                <br/>"
+
+#. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. odoo-javascript

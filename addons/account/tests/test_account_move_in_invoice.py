@@ -19,7 +19,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
         cls.other_currency = cls.setup_other_currency('EUR')
 
-        cls.invoice = cls.init_invoice('in_invoice', products=cls.product_a+cls.product_b)
+        cls.invoice = cls.init_invoice('in_invoice', products=cls.product_a + cls.product_b)
 
         cls.product_line_vals_1 = {
             'name': 'product_a',
@@ -32,7 +32,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'price_unit': 800.0,
             'price_subtotal': 800.0,
             'price_total': 920.0,
-            'tax_ids': cls.product_a.supplier_taxes_id.ids,
+            'tax_ids': cls.product_a.supplier_taxes_id.filtered(lambda t: t.company_id == cls.invoice.company_id).ids,
             'tax_line_id': False,
             'currency_id': cls.company_data['currency'].id,
             'amount_currency': 800.0,
@@ -51,7 +51,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'price_unit': 160.0,
             'price_subtotal': 160.0,
             'price_total': 208.0,
-            'tax_ids': cls.product_b.supplier_taxes_id.ids,
+            'tax_ids': cls.product_b.supplier_taxes_id.filtered(lambda t: t.company_id == cls.invoice.company_id).ids,
             'tax_line_id': False,
             'currency_id': cls.company_data['currency'].id,
             'amount_currency': 160.0,
@@ -1180,7 +1180,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         self.invoice.action_post()
 
         bank1 = self.env['res.partner.bank'].create({
-            'acc_number': 'BE43798822936101',
+            'account_number': 'BE43798822936101',
             'partner_id': self.company_data['company'].partner_id.id,
             'allow_out_payment': True,
         })
@@ -2447,7 +2447,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
                 })
             reversal = move_reversal.refund_moves()
             reverse_move = self.env['account.move'].browse(reversal['res_id'])
-            if reverse_move.move_type in ('out_refund', 'in_refund'):
+            if reverse_move.is_refund():
                 reverse_move.write({
                     'invoice_line_ids': [
                         Command.update(reverse_move.invoice_line_ids.id, {'price_unit': amount}),
@@ -2827,7 +2827,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'standard_price': 110.0,
             'seller_ids': [Command.create({
                 'partner_id': self.partner_a.id,
-                'product_uom_id': uom_kgm.id,
+                'uom_id': uom_kgm.id,
             })]
         })
         # customer invoice should have sale uom
@@ -2854,17 +2854,17 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
                 Command.create({
                     'partner_id': self.partner_a.id,
                     'company_id': self.env.company.id,
-                    'product_uom_id': uom_unit.id,
+                    'uom_id': uom_unit.id,
                 }),
                 Command.create({
                     'partner_id': self.partner_a.id,
                     'company_id': self.env.company.id,
-                    'product_uom_id': uom_gram.id,
+                    'uom_id': uom_gram.id,
                 }),
                 Command.create({
                     'partner_id': self.partner_a.id,
                     'company_id': other_company.id,
-                    'product_uom_id': uom_kgm.id,
+                    'uom_id': uom_kgm.id,
                 }),
             ]
         })

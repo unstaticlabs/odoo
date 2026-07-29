@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:52+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-03-13 18:36+0000\n"
+"PO-Revision-Date: 2026-06-23 13:43+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_online_payment/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -242,6 +242,7 @@ msgid "POS Order"
 msgstr "POS-ordre"
 
 #. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay
 msgid "Payment"
 msgstr "Betaling"
@@ -268,11 +269,6 @@ msgid "Payment provider requirement"
 msgstr ""
 
 #. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_account_payment
-msgid "Payments"
-msgstr "Betalinger"
-
-#. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
 msgid "Please ensure you have a customer with an email address on this order."
@@ -285,18 +281,18 @@ msgstr "POS-konfiguration"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "POS-ordrer"
-
-#. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "POS-betalingsformer"
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "POS-betalinger"
+msgid "Point of Sale Payment"
+msgstr ""
+
+#. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_session
@@ -373,8 +369,8 @@ msgstr "POS-ordren knyttet til denne betaling"
 #. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
-msgid "The QR Code for paying could not be generated."
-msgstr "QR-koden til betaling kunne ikke genereres."
+msgid "The QR code payment could not be generated."
+msgstr ""
 
 #. module: pos_online_payment
 #. odoo-python

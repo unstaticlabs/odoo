@@ -5,7 +5,6 @@ import logging
 from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
 from odoo.fields import Domain
-from odoo.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
@@ -29,11 +28,12 @@ NO_FLAG_COUNTRIES = [
 ]
 
 
-class ResCountry(models.Model):
+class ResCountry(models.CachedModel):
     _name = 'res.country'
     _description = 'Country'
     _order = 'name, id'
     _rec_names_search = ['name', 'code']
+    _cached_data_fields = ('code', 'currency_id', 'phone_code')
 
     name = fields.Char(
         string='Country Name', required=True, translate=True)
@@ -106,11 +106,14 @@ class ResCountry(models.Model):
     @api.model
     @tools.ormcache('code', cache='stable')
     def _phone_code_for(self, code):
-        return self.search([('code', '=', code)]).phone_code
+        data = self._cached_data()
+        for country_code, phone_code in zip(data['code'], data['phone_code']):
+            if country_code == code:
+                return phone_code
+        return False
 
     @api.model_create_multi
     def create(self, vals_list):
-        self.env.registry.clear_cache('stable')
         for vals in vals_list:
             if vals.get('code'):
                 vals['code'] = vals['code'].upper()
@@ -120,20 +123,11 @@ class ResCountry(models.Model):
         if vals.get('code'):
             vals['code'] = vals['code'].upper()
         res = super().write(vals)
-        if ('code' in vals or 'phone_code' in vals):
-            # Intentionally simplified by not clearing the cache in create and unlink.
-            self.env.registry.clear_cache('stable')
-        if 'address_view_id' in vals or 'vat_label' in vals:
+        if 'address_view_id' in vals:
             # Changing the address view of the company must invalidate the view cached for res.partner
             # because of _view_get_address
-            # Same goes for vat_label
-            # because of _get_view override from FormatVATLabelMixin
             self.env.registry.clear_cache('templates')
         return res
-
-    def unlink(self):
-        self.env.registry.clear_cache('stable')
-        return super().unlink()
 
     def get_address_fields(self):
         self.ensure_one()
@@ -152,11 +146,11 @@ class ResCountry(models.Model):
     def _check_address_format(self):
         for record in self:
             if record.address_format:
-                address_fields = self.env['res.partner']._formatting_address_fields() + ['state_code', 'state_name', 'country_code', 'country_name', 'company_name']
+                address_fields = self.env['res.partner']._formatting_address_fields() + ['state_code', 'state_name', 'country_code', 'country_name', 'parent_name']
                 try:
                     record.address_format % {i: 1 for i in address_fields}
                 except (ValueError, KeyError):
-                    raise UserError(_('The layout contains an invalid format key'))
+                    raise UserError(self.env._('The layout contains an invalid format key'))
 
     @api.depends('country_group_ids')
     def _compute_country_group_codes(self):

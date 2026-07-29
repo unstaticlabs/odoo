@@ -15,13 +15,13 @@
         <xpath expr="//div[@id='partner_vat_no_shipping']" position="attributes">
             <attribute name="t-if" add="o.company_id.l10n_in_is_gst_registered" separator="and"/>
         </xpath>
-        <xpath expr="//div[@name='address_not_same_as_shipping']//t[@t-set='address']" position="inside">
+        <xpath expr="//t[@name='address_not_same_as_shipping']" position="inside">
             <t t-call="l10n_in.place_of_supply"/>
         </xpath>
-        <xpath expr="//div[@name='address_same_as_shipping']//t[@t-set='address']" position="inside">
+        <xpath expr="//t[@name='address_same_as_shipping']" position="inside">
             <t t-call="l10n_in.place_of_supply"/>
         </xpath>
-        <xpath expr="//div[@name='no_shipping']//t[@t-set='address']" position="inside">
+        <xpath expr="//t[@name='no_shipping']" position="inside">
             <t t-call="l10n_in.place_of_supply"/>
         </xpath>
 
@@ -37,7 +37,7 @@
             </td>
         </xpath>
 
-        <xpath expr="//t[@name='account_invoice_line_accountable']/following-sibling::*[1]/td[1]" position="after">
+        <xpath expr="//t[@name='account_invoice_line_section']/td[1]" position="after">
             <td t-if="o.company_id.account_fiscal_country_id.code == 'IN' and o.company_id.l10n_in_is_gst_registered"></td>
         </xpath>
 
@@ -92,30 +92,30 @@
                                 <th class="text-end" t-if="hsn_summary['has_cess']">CESS</th>
                             </thead>
                             <tr t-foreach="hsn_summary['items']" t-as="item">
-                                <td t-esc="item['l10n_in_hsn_code']"/>
+                                <td t-out="item['l10n_in_hsn_code']"/>
                                 <td class="text-end">
-                                    <span t-esc="item['quantity']"/>
-                                    <span t-if="hsn_summary['display_uom']">(<t t-esc="item['uom_name']"/>)</span>
+                                    <span t-out="item['quantity']"/>
+                                    <span t-if="hsn_summary['display_uom']">(<t t-out="item['uom_name']"/>)</span>
                                 </td>
-                                <td class="text-end" t-esc="item['rate']"/>
+                                <td class="text-end" t-out="item['rate']"/>
                                 <td class="text-end">
-                                    <span t-esc="item['amount_untaxed']"
+                                    <span t-out="item['amount_untaxed']"
                                           t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                                 <td class="text-end" t-if="hsn_summary['has_gst']">
-                                    <span t-esc="item['tax_amount_sgst']"
+                                    <span t-out="item['tax_amount_sgst']"
                                           t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                                 <td class="text-end" t-if="hsn_summary['has_gst']">
-                                    <span t-esc="item['tax_amount_cgst']"
+                                    <span t-out="item['tax_amount_cgst']"
                                           t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                                 <td class="text-end" t-if="hsn_summary['has_igst']">
-                                    <span t-esc="item['tax_amount_igst']"
+                                    <span t-out="item['tax_amount_igst']"
                                           t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                                 <td class="text-end" t-if="hsn_summary['has_cess']">
-                                    <span t-esc="item['tax_amount_cess']"
+                                    <span t-out="item['tax_amount_cess']"
                                           t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
                                 </td>
                             </tr>

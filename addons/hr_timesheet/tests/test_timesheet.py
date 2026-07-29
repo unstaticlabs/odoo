@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from lxml import etree
+from freezegun import freeze_time
 from unittest.mock import patch
 
 from odoo import fields
 from odoo.fields import Command
-from odoo.tests import Form, TransactionCase, new_test_user
+from odoo.tests import tagged, Form, TransactionCase, new_test_user
 from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 
 
@@ -15,6 +14,20 @@ class TestCommonTimesheet(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super(TestCommonTimesheet, cls).setUpClass()
+
+        cls.env.company.resource_calendar_id = cls.env['resource.calendar'].create({
+            'attendance_ids': [
+                (0, 0,
+                    {
+                        'dayofweek': weekday,
+                        'hour_from': hour,
+                        'hour_to': hour + 4,
+                    })
+                for weekday in ['0', '1', '2', '3', '4']
+                for hour in [8, 13]
+            ],
+            'name': 'Standard 40h/week',
+        })
 
         # Crappy hack to disable the rule from timesheet grid, if it exists
         # The registry doesn't contain the field timesheet_manager_id.
@@ -73,6 +86,12 @@ class TestCommonTimesheet(TransactionCase):
             'email': 'useremployee2@test.com',
             'group_ids': [(6, 0, [cls.env.ref('hr_timesheet.group_hr_timesheet_user').id])],
         })
+        cls.user_approver = cls.env['res.users'].create({
+            'name': 'User Approver',
+            'login': 'user_timesheet_approver',
+            'email': 'userapprover@test.com',
+            'group_ids': [(6, 0, [cls.env.ref('hr_timesheet.group_hr_timesheet_approver').id])],
+        })
         cls.user_manager = cls.env['res.users'].create({
             'name': 'User Officer',
             'login': 'user_manager',
@@ -115,6 +134,7 @@ class TestCommonTimesheet(TransactionCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestTimesheet(TestCommonTimesheet):
 
     def setUp(self):
@@ -196,6 +216,10 @@ class TestTimesheet(TestCommonTimesheet):
             'employee_id': self.empl_employee2.id,
         })
         self.assertEqual(timesheet1.user_id, self.user_employee2, 'Changing timesheet employee should change the related user')
+
+    def test_timesheet_search_rights_on_version_fields(self):
+        """ Check that a user with no rights on Employee can still search on hr.version fields. """
+        self.env['account.analytic.line'].with_user(self.user_approver).search([('employee_id.department_id', '!=', False)])
 
     def test_create_unlink_project(self):
         """ Check project creation, and if necessary the analytic account generated when project should track time. """
@@ -666,8 +690,6 @@ class TestTimesheet(TestCommonTimesheet):
         self.env.company.timesheet_encode_uom_id = self.env.ref('uom.product_uom_day')
         self.assertEqual(project.total_timesheet_time, 1, "Total timesheet time should be 1 day")
         project.allocated_hours = 0.0
-        panel_data = project.get_panel_data()
-        self.assertEqual(panel_data['buttons'][1]['number'], "1 Days", "Should display '1 Days'")
         self.assertEqual(project.timesheet_encode_uom_id, self.env.company.timesheet_encode_uom_id, "Timesheet encode uom should be the one from the company of the env, since the project has no company.")
         project_update_days = self.env['project.update'].create({
             'name': 'Project update 2',
@@ -883,11 +905,20 @@ class TestTimesheet(TestCommonTimesheet):
         timesheet.invalidate_recordset(['calendar_display_name'])
         self.assertEqual(timesheet.calendar_display_name, f"{self.project_customer.name} (1.5d)")
 
+    @freeze_time("2025-10-31 08:00:00")
     def test_multi_create_timesheets_from_calendar(self):
         """
         Simulate creating timesheets using the multi-create feature in the calendar view
         """
         HrTimesheet = self.env['account.analytic.line'].with_context(timesheet_calendar=True)
+
+        timesheet = HrTimesheet.with_user(self.user_manager).create({
+            'name': 'Timesheet',
+            'task_id': self.task1.id,
+            'unit_amount': 1,
+        })
+        self.assertEqual(timesheet.employee_id, self.user_manager.employee_id)
+        self.assertTrue(timesheet, "Timesheet should be created even without an employee")
 
         timesheet = HrTimesheet.create({
             'project_id': self.project_customer.id,
@@ -911,15 +942,12 @@ class TestTimesheet(TestCommonTimesheet):
             'name': "part time",
             'hours_per_day': 8.0,
             'attendance_ids': [
-                (0, 0, {'name': "Monday Morning", 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': "Monday Lunch", 'dayofweek': '0', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': "Monday Evening", 'dayofweek': '0', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': "Thursday Morning", 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': "Thursday Lunch", 'dayofweek': '3', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': "Thursday Evening", 'dayofweek': '3', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': "Friday Morning", 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': "Friday Lunch", 'dayofweek': '4', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': "Friday Evening", 'dayofweek': '4', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 13, 'hour_to': 17}),
             ],
         })
 

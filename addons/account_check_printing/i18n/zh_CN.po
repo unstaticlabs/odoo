@@ -6,15 +6,14 @@
 # Martin Trigaux, 2022
 # Emily Jia <eji@odoo.com>, 2023
 # Jeffery CHEN <jeffery9@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 11:43+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 15:19+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/account_check_printing/zh_Hans/>\n"
 "Language: zh_CN\n"
@@ -22,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_check_printing
 #. odoo-python
@@ -63,11 +62,6 @@ msgstr "大写金额"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "Bills"
 msgstr "账单"
-
-#. module: account_check_printing
-#: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
-msgid "Cancel"
-msgstr "取消"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__bank_check_printing_layout
@@ -151,8 +145,8 @@ msgstr "待打印支票"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
-msgid "Companies"
-msgstr "公司"
+msgid "Company"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
@@ -236,7 +230,6 @@ msgstr "手动编号"
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_account_payment__payment_method_line_id
-#, fuzzy
 msgid ""
 "Manual: Pay or Get paid by any method outside of Odoo.\n"
 "Payment Providers: Each payment provider has its own Payment Method. Request "
@@ -253,13 +246,6 @@ msgid ""
 "U.S. ISO20022: Pay in the US by submitting an ISO20022 file to your bank. "
 "Module account_iso20022 is necessary.\n"
 msgstr ""
-"线下支付：在Odoo系统外完成收付款操作。\n"
-"支付网关：各服务商提供专属支付渠道，通过客户预留的支付令牌发起卡交易。\n"
-"支票付款：使用支票支付并直接打印。\n"
-"批量存支票：一次性处理多张支票生成存款单。需安装account_batch_payment模块。\n"
-"SEPA转账：通过标准文件实现欧洲区付款。需安装account_iso20022模块。\n"
-"SEPA扣款：凭客户授权在欧洲区自动收款。需安装account_iso20022模块。\n"
-"美国ISO20022：通过ISO20022文件实现美国付款。需安装account_iso20022模块。\n"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_multi_stub
@@ -286,19 +272,15 @@ msgid "None"
 msgstr "无"
 
 #. module: account_check_printing
-#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
-msgid "Payment Method"
-msgstr "付款方式"
+#: model:ir.model,name:account_check_printing.model_account_payment
+msgid "Payment"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_account_payment_method
-msgid "Payment Methods"
+#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
+msgid "Payment Method"
 msgstr "付款方式"
-
-#. module: account_check_printing
-#: model:ir.model,name:account_check_printing.model_account_payment
-msgid "Payments"
-msgstr "付款"
 
 #. module: account_check_printing
 #. odoo-python
@@ -392,11 +374,10 @@ msgstr "检查布局出现问题，请在开票/记账设置中选择其他布�
 #. module: account_check_printing
 #. odoo-python
 #: code:addons/account_check_printing/models/account_journal.py:0
-#, fuzzy
 msgid ""
-"The check number you entered (%(num)s) exceeds the maximum allowed value of %"
-"(max)d. Please enter a smaller number."
-msgstr "您输入的支票号码（%(num)s ）超过了%(max)d 的允许最大值。请输入较小的数字。"
+"The check number you entered (%(num)s) exceeds the maximum allowed value of "
+"%(max)d. Please enter a smaller number."
+msgstr ""
 
 #. module: account_check_printing
 #. odoo-python
@@ -466,7 +447,8 @@ msgstr "作废支票"
 msgid ""
 "You have to choose a check layout. For this, go in Invoicing/Accounting "
 "Settings, search for 'Checks layout' and set one."
-msgstr "您必须选择检查布局。为此，请进入开票/记账设置，搜索\"检查布局\"并设置一个。"
+msgstr ""
+"您必须选择检查布局。为此，请进入开票/记账设置，搜索\"检查布局\"并设置一个。"
 
 #. module: account_check_printing
 #. odoo-python
@@ -485,48 +467,3 @@ msgstr "out_refund"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "sep"
 msgstr "sep"
-
-#~ msgid "Contact"
-#~ msgstr "联系人"
-
-#~ msgid "Journal Entry"
-#~ msgstr "会计凭证"
-
-#~ msgid ""
-#~ "Manual: Pay or Get paid by any method outside of Odoo.\n"
-#~ "Payment Providers: Each payment provider has its own Payment Method. "
-#~ "Request a transaction on/to a card thanks to a payment token saved by the "
-#~ "partner when buying or subscribing online.\n"
-#~ "Check: Pay bills by check and print it from Odoo.\n"
-#~ "Batch Deposit: Collect several customer checks at once generating and "
-#~ "submitting a batch deposit to your bank. Module account_batch_payment is "
-#~ "necessary.\n"
-#~ "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit "
-#~ "Transfer file to your bank. Module account_sepa is necessary.\n"
-#~ "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your "
-#~ "partner will have granted to you. Module account_sepa is necessary.\n"
-#~ msgstr ""
-#~ "手动：通过 Odoo 之外的任何方式支付或获得支付。\n"
-#~ "支付提供商：每个支付提供商都有自己的支付方式。由于合作伙伴在在线购买或订阅"
-#~ "时保存的支付令牌，请求在卡上/向卡进行交易。\n"
-#~ "支票：通过支票支付账单并从 Odoo 打印。\n"
-#~ "批量存款：一次收集多张客户支票，生成并提交批量存入您的银行。模块 "
-#~ "account_batch_payment 是必需的。\n"
-#~ "SEPA Credit Transfer：通过向您的银行提交 SEPA Credit Transfer 文件，在 "
-#~ "SEPA 区域支付。模块 account_sepa 是必需的。\n"
-#~ "SEPA 直接借记：由于您的合作伙伴授予您的授权，您可以在 SEPA 区域获得支付。"
-#~ "模块 account_sepa 是必需的。\n"
-
-#~ msgid "Preferred Payment Method"
-#~ msgstr "首选支付方式"
-
-#~ msgid ""
-#~ "Preferred payment method when paying this vendor. This is used to filter "
-#~ "vendor bills by preferred payment method to register payments in mass. "
-#~ "Use cases: create bank files for batch wires, check runs."
-#~ msgstr ""
-#~ "向此供应商支付时的首选支付方式。这用于按首选支付方式筛选供应商帐单，以批量"
-#~ "登记支付。用例：为批处理线创建银行文件，检查运行情况。"
-
-#~ msgid "Register Payment"
-#~ msgstr "登记支付"

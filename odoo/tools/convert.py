@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 __all__ = [
-    'convert_file', 'convert_sql_import',
-    'convert_csv_import', 'convert_xml_import'
+    'convert_csv_import',
+    'convert_file',
+    'convert_sql_import',
+    'convert_xml_import'
 ]
 import base64
 import csv
@@ -13,9 +14,10 @@ import os.path
 import pprint
 import re
 import subprocess
+import typing
 import warnings
-from datetime import datetime, timedelta
-from typing import Literal, Optional
+import zoneinfo
+from datetime import datetime, timedelta, UTC, tzinfo
 
 from dateutil.relativedelta import relativedelta
 from lxml import etree, builder
@@ -28,12 +30,19 @@ from .config import config
 from .misc import file_open, file_path, SKIPPED_ELEMENT_TYPES
 from odoo.exceptions import ValidationError
 
-from .safe_eval import safe_eval, pytz, time
+from .safe_eval import safe_eval, time
 
 _logger = logging.getLogger(__name__)
 
-ConvertMode = Literal['init', 'update']
-IdRef = dict[str, int | Literal[False]]
+ConvertMode = typing.Literal['init', 'update']
+IdRef = dict[str, int | typing.Literal[False]]
+
+
+class Pytz(typing.NamedTuple):
+    timezone: typing.Callable[[str], zoneinfo.ZoneInfo]
+    utc: tzinfo
+    UTC: tzinfo
+
 
 class ParseError(Exception):
     ...
@@ -49,7 +58,7 @@ def _get_eval_context(self, env, model_str):
                   relativedelta=relativedelta,
                   version=release.major_version,
                   ref=self.id_get,
-                  pytz=pytz)
+                  pytz=Pytz(zoneinfo.ZoneInfo, UTC, UTC))
     if model_str:
         context['obj'] = env[model_str].browse
     return context
@@ -128,6 +137,9 @@ def _eval_xml(self, node, env):
             return _process("".join(etree.tostring(n, method='html', encoding='unicode') for n in node))
 
         if node.get('file'):
+            if t == 'bytes':
+                with file_open(node.get('file'), 'rb', env=env) as f:
+                    return f.read()
             if t == 'base64':
                 with file_open(node.get('file'), 'rb', env=env) as f:
                     return base64.b64encode(f.read())
@@ -160,6 +172,8 @@ def _eval_xml(self, node, env):
                 return [_eval_xml(self, n, env) for n in node.iterchildren('value')]
             case 'tuple':
                 return tuple(_eval_xml(self, n, env) for n in node.iterchildren('value'))
+            case 'bytes':
+                raise ValueError("bytes type is only compatible with file data")
             case 'base64':
                 raise ValueError("base64 type is only compatible with file data")
             case t:
@@ -191,6 +205,11 @@ def _eval_xml(self, node, env):
             pass  # already bound to an empty recordset
         else:
             record_ids, *args = args
+            # skip falsy ids
+            try:
+                record_ids = tuple(record_id for record_id in record_ids if record_id)
+            except TypeError:
+                record_ids = (record_ids,) if record_ids else ()
             model = model.browse(record_ids)
             method = getattr(model, method_name)
         # invoke method
@@ -345,7 +364,6 @@ form: module.record_id""" % (xml_id,)
                 install_mode=True,
                 install_module=self.module,
                 install_filename=self.xml_filename,
-                install_xmlid=rec_id,
             )
 
         self._test_xml_id(rec_id)
@@ -453,6 +471,8 @@ form: module.record_id""" % (xml_id,)
             sequence = self.next_sequence()
             if sequence:
                 res['sequence'] = sequence
+        if 'xmlid' not in res and 'xmlid' in model._fields:
+            res['xmlid'] = xid
 
         data = dict(xml_id=xid, values=res, noupdate=self.noupdate)
         if foreign_record_to_create:
@@ -470,6 +490,7 @@ form: module.record_id""" % (xml_id,)
         # This helper transforms a <template> element into a <record> and forwards it
         tpl_id = el.get('id', el.get('t-name'))
         full_tpl_id = tpl_id
+        attrib = el.attrib
         if '.' not in full_tpl_id:
             full_tpl_id = '%s.%s' % (self.module, tpl_id)
         # set the full template name for qweb <module>.<id>
@@ -478,7 +499,7 @@ form: module.record_id""" % (xml_id,)
             el.tag = 't'
         else:
             el.tag = 'data'
-        el.attrib.pop('id', None)
+        attrib.pop('id', None)
 
         if self.module.startswith('theme_'):
             model = 'theme.ir.ui.view'
@@ -490,8 +511,8 @@ form: module.record_id""" % (xml_id,)
             'model': model,
         }
         for att in ['forcecreate', 'context']:
-            if att in el.attrib:
-                record_attrs[att] = el.attrib.pop(att)
+            if att in attrib:
+                record_attrs[att] = attrib.pop(att)
 
         Field = builder.E.field
         name = el.get('name', tpl_id)
@@ -500,33 +521,33 @@ form: module.record_id""" % (xml_id,)
         record.append(Field(name, name='name'))
         record.append(Field(full_tpl_id, name='key'))
         record.append(Field("qweb", name='type'))
-        if 'track' in el.attrib:
-            record.append(Field(el.get('track'), name='track'))
-        if 'priority' in el.attrib:
-            record.append(Field(el.get('priority'), name='priority'))
-        if 'inherit_id' in el.attrib:
-            record.append(Field(name='inherit_id', ref=el.get('inherit_id')))
-        if 'website_id' in el.attrib:
-            record.append(Field(name='website_id', ref=el.get('website_id')))
-        if 'key' in el.attrib:
-            record.append(Field(el.get('key'), name='key'))
+        if 'track' in attrib:
+            record.append(Field(attrib.pop('track'), name='track'))
+        if 'priority' in attrib:
+            record.append(Field(attrib.pop('priority'), name='priority'))
+        if 'inherit_id' in attrib:
+            record.append(Field(name='inherit_id', ref=attrib.pop('inherit_id')))
+        if 'website_id' in attrib:
+            record.append(Field(name='website_id', ref=attrib.pop('website_id')))
+        if 'key' in attrib:
+            record.append(Field(attrib.pop('key'), name='key'))
 
         # If the "active" value is set on the root node (instead of an inner
         # <field>), it is treated as the value for the "active" field but only
         # when *not updating*. This allows to update the record in a more recent
         # version without changing its active state (compatibility).
-        if el.get('active') in ("True", "False"):
+        if (active := attrib.pop('active', None)) in ("True", "False"):
             view_id = self.id_get(tpl_id, raise_if_not_found=False)
             if self.mode != "update" or not view_id:
-                record.append(Field(name='active', eval=el.get('active')))
+                record.append(Field(name='active', eval=active))
 
-        if el.get('customize_show') in ("True", "False"):
-            record.append(Field(name='customize_show', eval=el.get('customize_show')))
-        groups = el.attrib.pop('groups', None)
+        if (customize_show := attrib.pop('customize_show', None)) in ("True", "False"):
+            record.append(Field(name='customize_show', eval=customize_show))
+        groups = attrib.pop('groups', None)
         if groups:
             grp_lst = [("ref('%s')" % x) for x in groups.split(',')]
             record.append(Field(name="group_ids", eval="[Command.set(["+', '.join(grp_lst)+"])]"))
-        if el.get('primary') == 'True':
+        if attrib.pop('primary', None) == 'True':
             # Pseudo clone mode, we'll set the t-name to the full canonical xmlid
             el.append(
                 builder.E.xpath(
@@ -639,7 +660,7 @@ form: module.record_id""" % (xml_id,)
             value = self._sequences[-1] = value + 10
         return value
 
-    def __init__(self, env, module, idref: Optional[IdRef], mode: ConvertMode, noupdate: bool = False, xml_filename: str = ''):
+    def __init__(self, env, module, idref: IdRef | None, mode: ConvertMode, noupdate: bool = False, xml_filename: str = ''):
         self.mode = mode
         self.module = module
         self.envs = [env(context=dict(env.context, lang=None))]
@@ -668,7 +689,7 @@ def convert_file(
         env,
         module,
         filename,
-        idref: Optional[IdRef],
+        idref: IdRef | None,
         mode: ConvertMode = 'update',
         noupdate=False,
         kind=None,
@@ -706,7 +727,7 @@ def convert_csv_import(
         module,
         fname,
         csvcontent,
-        idref: Optional[IdRef] = None,
+        idref: IdRef | None = None,
         mode: ConvertMode = 'init',
         noupdate=False,
 ):
@@ -763,7 +784,7 @@ def convert_xml_import(
         env,
         module,
         xmlfile,
-        idref: Optional[IdRef] = None,
+        idref: IdRef | None = None,
         mode: ConvertMode = 'init',
         noupdate=False,
         report=None,

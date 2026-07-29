@@ -18,7 +18,7 @@
                     <t t-foreach="month.weeks" t-as="week" t-key="week.number">
                         <t t-if="props.showWeekNumbers">
                             <div
-                                class="o_week_number_cell d-flex justify-content-end align-items-center pe-3 fw-bolder"
+                                class="o_week_number_cell d-flex justify-content-center align-items-center fw-bolder"
                                 t-esc="week.number"
                             />
                         </t>
@@ -99,6 +99,7 @@
 
     <t t-name="web.DateTimePicker">
         <div
+            t-att-class="{'o_datetime_picker_reduced': !props.showWeekNumbers}"
             class="o_datetime_picker d-flex flex-column gap-2 user-select-none p-2"
             t-attf-style="--DateTimePicker__Day-template-columns: {{ props.showWeekNumbers ? 8 : 7 }}"
         >
@@ -131,16 +132,27 @@
                         />
                     </t>
                 </button>
-                <button
-                    t-if="props.showRangeToggler"
-                    class="o_toggle_range btn btn-secondary btn-sm ms-auto"
-                    tabindex="-1"
-                    title="Toggle date range mode"
-                    t-on-click="props.onToggleRange"
-                    t-att-class="{'active': props.range}"
-                >
-                    <i class="fa fa-calendar-plus-o" />
-                </button>
+                <div t-if="props.showRangeToggler" class="btn-group ms-auto">
+                    <button
+                        class="o_toggle_range btn btn-secondary btn-sm"
+                        tabindex="-1"
+                        title="Single date"
+                        t-on-click="props.onToggleRange"
+                        t-att-class="{'active': !props.range}"
+                    >
+                        Date
+                    </button>
+                    <button
+                        class="o_toggle_range btn btn-secondary btn-sm"
+                        tabindex="-1"
+                        title="Date range"
+                        t-on-click="props.onToggleRange"
+                        t-att-class="{'active': props.range}"
+                    >
+                        Range
+                    </button>
+                </div>
+
             </nav>
             <t t-if="state.precision === 'days'">
                 <t t-call="web.DateTimePicker.Days" />

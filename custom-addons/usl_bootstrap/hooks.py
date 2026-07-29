@@ -105,11 +105,11 @@ class Bootstrap:
             "notification_type": "inbox",
         })
         self._upsert("bank_account_shine_dev", "res.partner.bank", {
-            "acc_number": "FR7630006000011234567890189",
+            "account_number": "FR7630006000011234567890189",
             "partner_id": self.company.partner_id.id,
             "company_id": self.company.id,
             "allow_out_payment": True,
-        }, [("acc_number", "=", "FR7630006000011234567890189")])
+        }, [("account_number", "=", "FR7630006000011234567890189")])
 
     def _load_accounting(self):
         if self.company.chart_template != "fr":
@@ -268,11 +268,11 @@ class Bootstrap:
         user = self.env.ref("base.user_admin")
         partner = user.partner_id
         bank = self._upsert("bank_account_valentin_dev", "res.partner.bank", {
-            "acc_number": "FR7630004000039876543210176",
+            "account_number": "FR7630004000039876543210176",
             "partner_id": partner.id,
             "company_id": self.company.id,
             "allow_out_payment": True,
-        }, [("acc_number", "=", "FR7630004000039876543210176")])
+        }, [("account_number", "=", "FR7630004000039876543210176")])
         employee = self.env["hr.employee"].search([("user_id", "=", user.id)], limit=1)
         values = {
             "name": "Valentin",

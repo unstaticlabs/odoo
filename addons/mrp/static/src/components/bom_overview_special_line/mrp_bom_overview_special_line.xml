@@ -13,19 +13,15 @@
             </span>
         </td>
         <td name="quantity" class="text-end">
-            <span t-if="props.type == 'operations'" t-esc="formatFloatTime(data.operations_time)"/>
+            <span t-if="props.type == 'operations'" t-esc="formatFloatTime(data.operations_time, {'unit': 'minutes', 'showSeconds': true})"/>
             <span t-elif="props.type == 'byproducts'" t-esc="formatFloat(data.byproducts_total, {'digits': [false, precision]})"/>
         </td>
-        <td name="uom" t-if="showUom" class="text-start">
-            <span t-if="props.type == 'operations'">Minutes</span>
-        </td>
-        <td t-if="forecastMode"/>
-        <td t-if="forecastMode"/>
-        <td t-if="forecastMode"/>
-        <td t-if="forecastMode"/>
-        <td t-if="forecastMode"/>
-        <td t-else=""/>
-        <td name="bom_cost" class="text-end">
+        <td name="uom" t-if="showUom" class="text-start"/>
+        <td name="free_to_use" t-if="forecastMode"/>
+        <td name="status" t-if="forecastMode"/>
+        <td name="lead_time" t-if="forecastMode"/>
+        <td name="route" t-if="forecastMode"/>
+        <td name="bom_cost" class="text-end" t-attf-colspan="{{ forecastMode ? 1 : 2 }}">
             <span t-if="props.type == 'operations'" t-esc="formatMonetary(data.operations_cost)"/>
             <span t-elif="props.type == 'byproducts'" t-esc="formatMonetary(data.byproducts_cost)"/>
         </td>

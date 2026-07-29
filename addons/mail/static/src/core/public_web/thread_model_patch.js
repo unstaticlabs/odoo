@@ -1,77 +1,46 @@
-import { patch } from "@web/core/utils/patch";
 import { Thread } from "@mail/core/common/thread_model";
+import { fields } from "@mail/model/misc";
+
+import { patch } from "@web/core/utils/patch";
 import { router } from "@web/core/browser/router";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 
-patch(Thread.prototype, {
-    /**
-     * Handle the notification of a new message based on the notification setting of the user.
-     * Thread on mute:
-     * 1. No longer see the unread status: the bold text disappears and the channel name fades out.
-     * 2. Without sound + need action counter.
-     * Thread Notification Type:
-     * All messages:All messages sound + need action counter
-     * Mentions:Only mention sounds + need action counter
-     * Nothing: No sound + need action counter
-     *
-     * @param {import("models").Message} message
-     */
-    async notifyMessageToUser(message) {
-        const channel_notifications =
-            this.self_member_id?.custom_notifications || this.store.settings.channel_notifications;
-        if (
-            !this.self_member_id?.mute_until_dt &&
-            !this.store.self.im_status.includes("busy") &&
-            (this.channel_type !== "channel" ||
-                (this.channel_type === "channel" &&
-                    (channel_notifications === "all" ||
-                        (channel_notifications === "mentions" &&
-                            message.partner_ids?.includes(this.store.self)))))
-        ) {
-            if (this.model === "discuss.channel" && this.inChathubOnNewMessage) {
-                await this.store.chatHub.initPromise;
-                let chatWindow = this.store.ChatWindow.get({ thread: this });
-                if (!chatWindow) {
-                    chatWindow = this.store.ChatWindow.insert({ thread: this });
-                    if (
-                        this.autoOpenChatWindowOnNewMessage &&
-                        this.store.chatHub.opened.length < this.store.chatHub.maxOpened
-                    ) {
-                        chatWindow.open();
-                    } else {
-                        chatWindow.fold();
-                    }
+/** @type {import("models").Thread} */
+const threadModelPatch = {
+    setup() {
+        super.setup(...arguments);
+        /**
+         * Inverse of discuss.thread, useful to efficiently check whether this thread is the one
+         * currently displayed in discuss app.
+         */
+        this.discussAppAsThread = fields.One("DiscussApp", {
+            inverse: "thread",
+            /** @this {import("models").Thread} */
+            onUpdate() {
+                if (!this.discussAppAsThread && this.channel?.parent_channel_id) {
+                    this.channel.isLocallyPinned = false;
                 }
-            }
-            if (this.notifyWhenOutOfFocus) {
-                this.store.env.services["mail.out_of_focus"].notify(message, this);
-            }
-        }
+            },
+        });
     },
     /** Condition for whether the conversation should become present in chat hub on new message */
     get inChathubOnNewMessage() {
         return !this.store.discuss.isActive;
     },
-    get autoOpenChatWindowOnNewMessage() {
-        return false;
-    },
-    get notifyWhenOutOfFocus() {
-        return true;
-    },
     /** @param {boolean} pushState */
     setAsDiscussThread(pushState) {
         if (pushState === undefined) {
-            pushState = this.notEq(this.store.discuss.thread);
+            pushState = !this.discussAppAsThread;
         }
         this.store.discuss.thread = this;
         this.store.discuss.activeTab = !this.store.env.services.ui.isSmall
             ? "notification"
             : this.model === "mail.box"
-            ? this.store.self.main_user_id?.notification_type === "inbox"
+            ? this.store.self_user?.notification_type === "inbox"
                 ? "inbox"
-                : "starred"
-            : ["chat", "group"].includes(this.channel_type)
+                : "bookmark"
+            : ["chat", "group"].includes(this.channel?.channel_type)
             ? "chat"
             : "channel";
         if (pushState) {
@@ -99,20 +68,6 @@ patch(Thread.prototype, {
             this.store.env.services.action.currentController.action.context.active_id = activeId;
         }
     },
-    async unpin() {
-        this.isLocallyPinned = false;
-        if (this.eq(this.store.discuss.thread)) {
-            router.replaceState({ active_id: undefined });
-        }
-        if (this.model === "discuss.channel" && this.self_member_id?.is_pinned !== false) {
-            await this.store.env.services.orm.silent.call(
-                "discuss.channel",
-                "channel_pin",
-                [this.id],
-                { pinned: false }
-            );
-        }
-    },
     /** @param {string} body */
     async askLeaveConfirmation(body) {
         await new Promise((resolve) => {
@@ -124,4 +79,5 @@ patch(Thread.prototype, {
             });
         });
     },
-});
+};
+patch(Thread.prototype, threadModelPatch);

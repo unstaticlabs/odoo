@@ -5,14 +5,13 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Vlad Patenko <vlad.patenko@gmail.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:13+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 22:56+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
 "website_slides_forum/uk/>\n"
@@ -20,11 +19,11 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -131,9 +130,9 @@ msgid ""
 "You can search questions by their title or tags. It’s also OK to answer your "
 "own question."
 msgstr ""
-"<b>Перед тим, як ви спитаєте - переконайтеся, що ви пошукали схожі "
-"запитання.</b> Ви можете знайти запитання за їхнім заголовком чи тегами. "
-"Буде ОК, якщо ви будете відповідати на власне запитання."
+"<b>Перед тим, як ви спитаєте - переконайтеся, що ви пошукали схожі запитання."
+"</b> Ви можете знайти запитання за їхнім заголовком чи тегами. Буде ОК, якщо "
+"ви будете відповідати на власне запитання."
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -177,11 +176,6 @@ msgstr ""
 msgid ""
 "<span class=\"flex-grow-1\">Why can other people edit my questions/answers?</"
 "span>"
-msgstr ""
-
-#. module: website_slides_forum
-#: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_breadcrumb
-msgid "<strong>Forum</strong>"
 msgstr ""
 
 #. module: website_slides_forum
@@ -521,7 +515,7 @@ msgid ""
 "like I do.”"
 msgstr ""
 "немає реальної проблеми, яку потрібно вирішити: \"Мені цікаво, якщо інші "
-"люди відчувають, що я роблю.\""
+"люди відчувають, що я роблю\"."
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -549,36 +543,3 @@ msgid ""
 msgstr ""
 "ваша відповідь надається разом із питанням, і ви очікуєте більше відповідей: "
 "\"Я використовую ______ для ______, що ви використовуєте?\""
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>Які запитання я можу тут задавати?</b>"
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>Чого слід уникати у моїх запитаннях?</b>"
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>Чого слід уникати у моїх відповідях?</b>"
-
-#~ msgid "<b>Why can other people edit my questions/answers?</b>"
-#~ msgstr "<b>Чому інші люди можуть редагувати мої відповіді/запитання?</b>"
-
-#~ msgid "<i class=\"fa fa-home\"/> Course"
-#~ msgstr "<i class=\"fa fa-home\"/> Курс"
-
-#~ msgid "Courses Discussions"
-#~ msgstr "Обговорення курсів"
-
-#~ msgid "Description"
-#~ msgstr "Опис"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Сховати вступ"
-
-#~ msgid "Register"
-#~ msgstr "Зареєструйтеся"
-
-#~ msgid "Reviews"
-#~ msgstr "Відгуки"
-
-#~ msgid "See all Courses"
-#~ msgstr "Переглянути усі курси"

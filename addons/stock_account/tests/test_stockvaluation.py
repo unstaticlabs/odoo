@@ -8,11 +8,12 @@ from unittest.mock import patch
 from odoo import Command
 from odoo.exceptions import UserError
 from odoo.fields import Datetime, Date
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 
 from odoo.addons.stock_account.tests.common import TestStockValuationCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockValuation(TestStockValuationCommon):
     def test_realtime(self):
         """ Stock moves update stock value with product x cost price,
@@ -244,7 +245,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': transit_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
         })
         move8._action_confirm()
@@ -476,14 +477,14 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product2.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'value_manual': 200.0,
             'move_line_ids': [(0, 0, {
                 'product_id': product2.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
-                'product_uom_id': self.uom.id,
+                'uom_id': self.uom.id,
                 'quantity': 10.0,
             })]
         })
@@ -809,7 +810,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 8.0,
             'price_unit': 1,
             'state': 'done',
@@ -817,7 +818,7 @@ class TestStockValuation(TestStockValuationCommon):
                 'product_id': product.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
-                'product_uom_id': self.uom.id,
+                'uom_id': self.uom.id,
                 'quantity': 8.0,
                 'state': 'done',
             })]
@@ -839,7 +840,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 60.0,
             'price_unit': 15,
         })
@@ -857,7 +858,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 140.0,
             'price_unit': 15.50,
         })
@@ -875,7 +876,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 190.0,
         })
         move3._action_confirm()
@@ -891,7 +892,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 70.0,
             'price_unit': 16.00,
         })
@@ -909,7 +910,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 30.0,
         })
         move5._action_confirm()
@@ -925,7 +926,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 99,
         })
@@ -944,7 +945,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 50.0,
         })
         move7._action_confirm()
@@ -1013,7 +1014,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -1028,7 +1029,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 3.0,
             'price_unit': 5,
         })
@@ -1050,7 +1051,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -1074,7 +1075,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -1087,7 +1088,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 5,
         })
@@ -1115,7 +1116,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5,
             'price_unit': 10,
         })
@@ -1135,7 +1136,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10,
             'price_unit': 20,
         })
@@ -1167,7 +1168,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1,
             'price_unit': 10,
         })
@@ -1183,7 +1184,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1,
             'price_unit': 20,
         })
@@ -1198,7 +1199,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.customer_location.id,
             'location_dest_id': self.supplier_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1,
             'price_unit': 20,
         })
@@ -1219,7 +1220,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10,
             'price_unit': 10,
         })
@@ -1233,7 +1234,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 15.0,
         })
         move2._action_confirm()
@@ -1253,7 +1254,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10,
             'price_unit': 10,
         })
@@ -1266,7 +1267,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 15.0,
         })
         move2._action_confirm()
@@ -1283,7 +1284,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 10,
         })
@@ -1300,7 +1301,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 20.0,
         })
         move2._action_confirm()
@@ -1389,7 +1390,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 10,
         })
@@ -1410,7 +1411,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 10,
         })
@@ -1429,7 +1430,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 20,
         })
@@ -1448,7 +1449,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5.0,
         })
         move3._action_confirm()
@@ -1464,7 +1465,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 30.0,
         })
         move4._action_confirm()
@@ -1480,7 +1481,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 20.0,
             'price_unit': 20,
         })
@@ -1507,7 +1508,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5.0,
         })
         move6._action_confirm()
@@ -1523,7 +1524,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
             'price_unit': 10,
         })
@@ -1564,7 +1565,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': inventory_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
         })
         move2._action_confirm()
@@ -1588,7 +1589,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -1611,7 +1612,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -1646,7 +1647,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
         })
         move1._action_confirm()
@@ -1666,7 +1667,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
         })
         move1._action_confirm()
@@ -1765,7 +1766,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 2.0,
         })
         move1._action_confirm()
@@ -1777,14 +1778,14 @@ class TestStockValuation(TestStockValuationCommon):
                 'quantity': 1,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': subloc1.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
             (0, None, {
                 'product_id': product.id,
                 'quantity': 1,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': subloc2.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
         ]})
         move1.picked = True
@@ -1798,7 +1799,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 2.0,
         })
         move2._action_confirm()
@@ -1811,14 +1812,14 @@ class TestStockValuation(TestStockValuationCommon):
                 'quantity': 1,
                 'location_id': subloc1.id,
                 'location_dest_id': self.supplier_location.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
             (0, None, {
                 'product_id': product.id,
                 'quantity': 1,
                 'location_id': subloc2.id,
                 'location_dest_id': self.supplier_location.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
         ]})
         move2.picked = True
@@ -1846,7 +1847,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 2.0,
         })
         move1._action_confirm()
@@ -1857,14 +1858,14 @@ class TestStockValuation(TestStockValuationCommon):
                 'quantity': 1,
                 'location_id': self.stock_location.id,
                 'location_dest_id': self.stock_location.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
             (0, None, {
                 'product_id': product.id,
                 'quantity': 1,
                 'location_id': self.stock_location.id,
                 'location_dest_id': scrap.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
         ]})
         move1.picked = True
@@ -1886,7 +1887,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 2.0,
         })
         move2._action_confirm()
@@ -1897,14 +1898,14 @@ class TestStockValuation(TestStockValuationCommon):
                 'quantity': 1,
                 'location_id': customer1.id,
                 'location_dest_id': self.stock_location.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
             (0, None, {
                 'product_id': product.id,
                 'quantity': 1,
                 'location_id': self.stock_location.id,
                 'location_dest_id': customer1.id,
-                'product_uom_id': self.uom.id
+                'uom_id': self.uom.id
             }),
         ]})
         move2.picked = True
@@ -2061,16 +2062,16 @@ class TestStockValuation(TestStockValuationCommon):
         self.assertEqual(product.qty_available, 95)
         self.assertEqual(product.total_value, 1425)
 
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date1)).qty_available, 20)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date1)).total_value, 200)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date2)).qty_available, 30)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date2)).total_value, 320)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date3)).qty_available, 15)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date3)).total_value, 170)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date4)).qty_available, -5)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date4)).total_value, -60)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date5)).qty_available, 95)
-        self.assertEqual(product.with_context(to_date=Datetime.to_string(date5)).total_value, 1425)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date1)).qty_available, 10)
+        self.assertEqual(product.with_context(debug=True, to_date=Datetime.to_string(date1)).total_value, 100)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date2)).qty_available, 20)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date2)).total_value, 220)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date3)).qty_available, 5)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date3)).total_value, 60)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date4)).qty_available, -15)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date4)).total_value, -180)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date5)).qty_available, 85)
+        self.assertEqual(product.with_context(to_date=Datetime.to_string(date5)).total_value, 1275)
 
     def test_at_date_fifo_stable_after_std_price_drift(self):
         """ Historical FIFO valuation must remain stable when standard_price
@@ -2130,7 +2131,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': inventory_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 12.0,
         })
         move1._action_confirm()
@@ -2150,7 +2151,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 12.0,
         })
         move2._action_confirm()
@@ -2181,7 +2182,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': inventory_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 10.0,
         })
         move1._action_confirm()
@@ -2195,7 +2196,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': inventory_location.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5.0,
         })
         move2._action_confirm()
@@ -2297,7 +2298,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': stock_1.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 5.0,
         })
         move_1._action_confirm()
@@ -2312,7 +2313,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': stock_2.id,
             'product_id': product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 4.0,
         })
         move_2._action_confirm()
@@ -2556,7 +2557,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': product.id,
-            'product_uom': uom_dozen.id,
+            'uom_id': uom_dozen.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -2703,7 +2704,7 @@ class TestStockValuation(TestStockValuationCommon):
             'product_id': product.id,
             'location_id': self.env.ref('stock.stock_location_suppliers').id,
             'location_dest_id': self.stock_location.id,
-            'product_uom': unit_uom.id,
+            'uom_id': unit_uom.id,
             'product_uom_qty': 12,
             'picking_type_id': self.picking_type_in.id,
         })
@@ -2713,7 +2714,7 @@ class TestStockValuation(TestStockValuationCommon):
         move.move_line_ids = [
             Command.update(
                 move.move_line_ids[0].id,
-                {'quantity': 1, 'product_uom_id': dozen_uom.id}
+                {'quantity': 1, 'uom_id': dozen_uom.id}
             )
         ]
         move.picked = True
@@ -2814,13 +2815,14 @@ class TestStockValuation(TestStockValuationCommon):
             [('name', '=', 'Scrap'), ('company_id', '=', self.env.company.id)], limit=1
         )
         scrap_location.valuation_account_id = self.account_stock_variation
-        scrap_form = Form(self.env['stock.scrap'].with_context(default_picking_id=receipt.id))
+        scrap_form = Form.from_action(self.env, receipt.action_scrap())
         scrap_form.product_id = product
-        scrap_form.scrap_qty = 2
+        scrap_form.quantity = 2
         scrap = scrap_form.save()
-        scrap.action_validate()
+        scrap.action_scrap()
+        all_moves = self.env['stock.move'].search([('picking_id', '=', receipt.id)])
         self.assertRecordValues(
-            receipt.move_ids,
+            all_moves,
             [
                 {'quantity': 10.0, 'remaining_qty': 8.0, 'value': 150.0, 'remaining_value': 120.0},
                 {'quantity': 2.0, 'remaining_qty': 0.0, 'value': 30.0, 'remaining_value': 0.0},
@@ -2898,7 +2900,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_dest_id': self.stock_location.id,
             'move_ids': [Command.create({
                 'product_id': product.id,
-                'product_uom': uom_g.id,
+                'uom_id': uom_g.id,
                 'product_uom_qty': 11,
                 'quantity': 11,
                 'location_id': self.supplier_location.id,
@@ -3131,7 +3133,7 @@ class TestStockValuation(TestStockValuationCommon):
         invoice = self._create_invoice(self.product_avco_auto, quantity=10, price_unit=100, product_uom=self.env.ref('uom.product_uom_pack_6'))
         self.assertEqual(self.product_avco_auto.standard_price, 10)
         self.assertRecordValues(
-            invoice.journal_line_ids,
+            invoice.line_ids,
             [
                 {'account_id': self.category_avco_auto.property_account_income_categ_id.id, 'credit': 1000.0, 'debit': 0.0},
                 {'account_id': self.account_receivable.id, 'credit': 0.0, 'debit': 1000.0},
@@ -3147,7 +3149,7 @@ class TestStockValuation(TestStockValuationCommon):
         move = self.env['stock.move'].create({
             'product_id': self.product_avco_auto.id,
             'product_uom_qty': 1,
-            'product_uom': self.product_avco_auto.uom_id.id,
+            'uom_id': self.product_avco_auto.uom_id.id,
             'location_id': self.customer_location.id,
             'location_dest_id': self.stock_location.id,
         })
@@ -3290,6 +3292,7 @@ class TestStockValuation(TestStockValuationCommon):
         self._make_out_move(product_avco, quantity=5)
 
         product_avco.write({'categ_id': self.category_avco.id})
+        product_avco._update_standard_price()
 
         report_lines = self.env['stock.avco.report'].search([('product_id', '=', product_avco.id)]).sorted('date, id')[1:]
 
@@ -3304,26 +3307,6 @@ class TestStockValuation(TestStockValuationCommon):
                 {'added_value': -100, 'total_quantity': 10, 'total_value': 200, 'avco_value': 20},
             ]
         )
-
-    def test_accounting_user_can_reopen_inventory_valuation_report_after_closing(self):
-        """Ensure users with accounting privileges but not stock can reopen the Inventory Valuation
-        report after closing, without triggering access errors on technical models.
-        """
-
-        accounting_user = self._create_new_internal_user(
-            name='Accounting User',
-            login='accounting_user',
-            groups='account.group_account_manager',
-        )
-        accounting_user.write({
-            'company_id': self.company.id,
-            'company_ids': [Command.set(self.company.ids)],
-        })
-
-        self._make_in_move(self.product_standard, 10, unit_cost=10)
-        self.company.with_user(accounting_user).action_close_stock_valuation(at_date=Date.today(), auto_post=True)
-        report = self.env['stock_account.stock.valuation.report'].with_user(accounting_user)._get_report_data(date=Date.today())
-        self.assertTrue(report)
 
     def test_avg_cost_partially_consigned(self):
         """Ensures the avg_cost is correctly computed when the product is partially
@@ -3371,7 +3354,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_id': lot_product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 30.0,
             'lot_ids': [Command.set([lot.id])],
         })
@@ -3386,7 +3369,7 @@ class TestStockValuation(TestStockValuationCommon):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': lot_product.id,
-            'product_uom': self.uom.id,
+            'uom_id': self.uom.id,
             'product_uom_qty': 1.0,
             'price_unit': 15.50,
             'lot_ids': [Command.set([lot.id])],
@@ -3400,6 +3383,29 @@ class TestStockValuation(TestStockValuationCommon):
 
         # Old code would have set the standard price to the product's standard price (10)
         self.assertEqual(lot.standard_price, 5)
+
+    def test_generate_entry_multi_company(self):
+        """ Check that closing is correct (i.e. focuses only on main company) when multiple companies are selected
+        """
+        # 2 in @ 10 in main company
+        self._make_in_move(self.product_avco_auto, 2, unit_cost=10)
+
+        # 2 in @ 50 in other company
+        self.product_avco_auto.with_company(self.other_company).categ_id.property_cost_method = 'average'
+        self.product_avco_auto.with_company(self.other_company).categ_id.property_valuation = 'real_time'
+        self._make_in_move(self.product_avco_auto, 2, unit_cost=50, company=self.other_company)
+
+        # Bill 1 @ 10 in main company
+        self._create_bill(self.product_avco_auto, 1, 10, post=True)
+
+        # closing amount for self.company should be 20 (value in inventory in
+        # self.company) - 10 (amount in stock valuation account in self.company) = 10
+        closing = self.company.with_context(allowed_company_ids=[self.company.id, self.other_company.id]).action_close_stock_valuation()
+        closing_lines = self.env['account.move'].browse(closing['res_id']).line_ids
+        self.assertRecordValues(closing_lines.sorted('debit'), [
+            {'account_id': self.product_avco_auto.categ_id.account_stock_variation_id.id, 'debit': 0, 'credit': 10},
+            {'account_id': self.product_avco_auto.categ_id.property_stock_valuation_account_id.id, 'debit': 10, 'credit': 0}
+        ])
 
     def test_archived_location_valuation(self):
         # Ensure that an archive location is still considered as valued when computing the total_value and avg_cost
@@ -3432,29 +3438,6 @@ class TestStockValuation(TestStockValuationCommon):
             # Check values 1 day after the moves
             self.assertEqual(self.product_avco.with_context(to_date=date_1).avg_cost, 10)
             self.assertEqual(self.product_avco.with_context(to_date=date_1).total_value, 10)
-
-    def test_generate_entry_multi_company(self):
-        """ Check that closing is correct (i.e. focuses only on main company) when multiple companies are selected
-        """
-        # 2 in @ 10 in main company
-        self._make_in_move(self.product_avco_auto, 2, unit_cost=10)
-
-        # 2 in @ 50 in other company
-        self.product_avco_auto.with_company(self.other_company).categ_id.property_cost_method = 'average'
-        self.product_avco_auto.with_company(self.other_company).categ_id.property_valuation = 'real_time'
-        self._make_in_move(self.product_avco_auto, 2, unit_cost=50, company=self.other_company)
-
-        # Bill 1 @ 10 in main company
-        self._create_bill(self.product_avco_auto, 1, 10, post=True)
-
-        # closing amount for self.company should be 20 (value in inventory in
-        # self.company) - 10 (amount in stock valuation account in self.company) = 10
-        closing = self.company.with_context(allowed_company_ids=[self.company.id, self.other_company.id]).action_close_stock_valuation()
-        closing_lines = self.env['account.move'].browse(closing['res_id']).line_ids
-        self.assertRecordValues(closing_lines.sorted('debit'), [
-            {'account_id': self.product_avco_auto.categ_id.account_stock_variation_id.id, 'debit': 0, 'credit': 10},
-            {'account_id': self.product_avco_auto.categ_id.property_stock_valuation_account_id.id, 'debit': 10, 'credit': 0}
-        ])
 
     def test_cron_post_stock_valuation_domain(self):
         """ Cron must process daily/periodic every day and add monthly/periodic
@@ -3551,35 +3534,6 @@ class TestStockValuation(TestStockValuationCommon):
         self.assertEqual(len(closing_moves), 1)
         self.assertEqual(closing_moves.company_id.id, self.branch.id)
 
-    def test_multi_company_valuation(self):
-        self.category_fifo.with_company(self.branch).write({
-            'property_cost_method': 'fifo',
-        })
-        self.product_fifo.write({
-            'tracking': 'lot',
-            'lot_valuated': True,
-            'standard_price': 10,
-        })
-        branch_warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.branch.id)], limit=1)
-        branch_stock_location = branch_warehouse.lot_stock_id
-        lot = self.env['stock.lot'].create({
-            'name': 'Lot 1',
-            'product_id': self.product_fifo.id,
-            'lot_valuated': True,
-        })
-        self._make_in_move(
-            product=self.product_fifo,
-            quantity=1.0,
-            unit_cost=100,
-            location_dest_id=branch_stock_location.id,
-            company=self.branch,
-            lot_ids=lot,
-            create_picking=True,
-        )
-        self.assertEqual(lot.with_company(self.branch).standard_price, 100.00)
-        lot_multi_company = lot.with_context(allowed_company_ids=[self.env.company.id, self.branch.id])
-        self.assertEqual(lot_multi_company.with_company(self.env.company).total_value, 100.00)
-
     def test_cron_generate_entry_multi_company(self):
         """ Check that in periodic, the closing entry generated by the cron is correct with multi-company.
         And that there is no traceback if one of the companies has no closing move to create.
@@ -3614,6 +3568,35 @@ class TestStockValuation(TestStockValuationCommon):
             {'account_id': self.product_standard.with_company(self.other_company).categ_id.account_stock_variation_id.id,            'debit': 0.0, 'credit': 30.0},
             {'account_id': self.product_standard.with_company(self.other_company).categ_id.property_stock_valuation_account_id.id,   'debit': 30, 'credit': 0.0}
         ])
+
+    def test_multi_company_valuation(self):
+        self.category_fifo.with_company(self.branch).write({
+            'property_cost_method': 'fifo',
+        })
+        self.product_fifo.write({
+            'tracking': 'lot',
+            'lot_valuated': True,
+            'standard_price': 10,
+        })
+        branch_warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.branch.id)], limit=1)
+        branch_stock_location = branch_warehouse.lot_stock_id
+        lot = self.env['stock.lot'].create({
+            'name': 'Lot 1',
+            'product_id': self.product_fifo.id,
+            'lot_valuated': True,
+        })
+        self._make_in_move(
+            product=self.product_fifo,
+            quantity=1.0,
+            unit_cost=100,
+            location_dest_id=branch_stock_location.id,
+            company=self.branch,
+            lot_ids=lot,
+            create_picking=True,
+        )
+        self.assertEqual(lot.with_company(self.branch).standard_price, 100.00)
+        lot_multi_company = lot.with_context(allowed_company_ids=[self.env.company.id, self.branch.id])
+        self.assertEqual(lot_multi_company.with_company(self.env.company).total_value, 100.00)
 
     def test_update_standard_price_with_limited_access_users(self):
         """ Ensure that custom record rules do not impact the standard_price compute """

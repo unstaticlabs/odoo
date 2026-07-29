@@ -2,7 +2,6 @@
 
 from odoo import _, models
 from odoo.exceptions import UserError
-from odoo.tools import str2bool
 
 
 class SaleOrder(models.Model):
@@ -133,10 +132,8 @@ class SaleOrder(models.Model):
         res = super()._needs_customer_address()
 
         if self.order_line and all(line.event_ticket_id for line in self.order_line):
-            return str2bool(
-                self.env["ir.config_parameter"].sudo().get_param(
-                    "website_event_sale.require_billing_details_for_events", "False"
-                )
+            return self.env["ir.config_parameter"].sudo().get_bool(
+                    "website_event_sale.require_billing_details_for_events"
             )
 
         return res

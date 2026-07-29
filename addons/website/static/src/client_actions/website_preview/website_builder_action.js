@@ -12,14 +12,14 @@ import {
     useState,
     useSubEnv,
 } from "@odoo/owl";
-import { LazyComponent, loadBundle } from "@web/core/assets";
+import { loadBundle } from "@web/core/assets";
+import { LazyComponent } from "@web/core/lazy_component";
 import { browser } from "@web/core/browser/browser";
 import { getActiveHotkey } from "@web/core/hotkeys/hotkey_service";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { ResizablePanel } from "@web/core/resizable_panel/resizable_panel";
 import { RPCError } from "@web/core/network/rpc";
-import { Deferred } from "@web/core/utils/concurrency";
 import { uniqueId } from "@web/core/utils/functions";
 import { useChildRef, useService, useBus } from "@web/core/utils/hooks";
 import { effect } from "@web/core/utils/reactive";
@@ -34,6 +34,7 @@ import { isBrowserChrome, isBrowserMicrosoftEdge } from "@web/core/browser/featu
 import { router } from "@web/core/browser/router";
 import { getScrollingElement } from "@web/core/utils/scrolling";
 import { CreatePageMessage } from "./create_page_message";
+import { post } from "@web/core/network/http_service";
 
 const websiteSystrayRegistry = registry.category("website_systray");
 
@@ -65,6 +66,7 @@ export class WebsiteBuilderClientAction extends Component {
 
     setup() {
         this.target = null;
+        this.folded = [];
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.dialog = useService("dialog");
@@ -164,7 +166,7 @@ export class WebsiteBuilderClientAction extends Component {
                 fn();
             }
         });
-        this.publicRootReady = new Deferred();
+        this.publicRootReady = Promise.withResolvers();
         this.setIframeLoaded();
         this.addSystrayItems();
         onWillDestroy(() => {
@@ -229,9 +231,11 @@ export class WebsiteBuilderClientAction extends Component {
             overlayRef: this.overlayRef,
             iframeLoaded: iframeLoaded,
             isMobile: this.websiteContext.isMobile,
+            initialTab: this.initialTab,
+            onlyCustomizeTab: this.translation,
             config: {
                 initialTarget: this.target,
-                initialTab: this.initialTab || this.translation ? "customize" : "blocks",
+                initialFolded: this.folded,
                 builderSidebar: {
                     withHiddenSidebar: async (cb) => {
                         try {
@@ -241,12 +245,7 @@ export class WebsiteBuilderClientAction extends Component {
                             this.state.showSidebar = true;
                         }
                     },
-                    // TODO: remove `toggle` in master
-                    toggle: (show) => {
-                        this.state.showSidebar = show ?? !this.state.showSidebar;
-                    },
                 },
-                isTranslationMode: this.translation,
             },
         };
         return { translation: this.translation, builderProps };
@@ -294,7 +293,7 @@ export class WebsiteBuilderClientAction extends Component {
 
         // Wait for navigation to complete if currently navigating
         if (this.isNavigatingToAnotherPage) {
-            await this.isNavigatingToAnotherPage;
+            await this.isNavigatingToAnotherPage.promise;
         }
 
         await this.loadIframeAndBundles(true);
@@ -314,7 +313,7 @@ export class WebsiteBuilderClientAction extends Component {
     async loadIframeAndBundles(isEditing) {
         await this.iframeLoaded;
         if (isEditing) {
-            await this.publicRootReady;
+            await this.publicRootReady.promise;
             await this.loadAssetsEditBundle();
         }
     }
@@ -441,43 +440,62 @@ export class WebsiteBuilderClientAction extends Component {
     setupClickListener() {
         // The clicks on the iframe are listened, so that links with external
         // redirections can be opened in the top window.
-        this.websiteContent.el.contentDocument.addEventListener("click", (ev) => {
-            if (!this.state.isEditing) {
-                // Forward clicks to close backend client action's navbar
-                // dropdowns.
-                this.websiteContent.el.dispatchEvent(new MouseEvent("click", ev));
-            } else {
+        this.websiteContent.el.contentDocument.addEventListener("click", async (ev) => {
+            if (this.state.isEditing) {
                 // When in edit mode, prevent the default behaviours of clicks
                 // as to avoid DOM changes not handled by the editor.
                 // (Such as clicking on a link that triggers navigating to
                 // another page.)
                 ev.preventDefault();
-            }
-            const linkEl = ev.target.closest("[href]");
-            if (!linkEl) {
                 return;
             }
 
-            const { href, target } = linkEl;
-            if (href && target !== "_blank" && !this.state.isEditing) {
-                if (isTopWindowURL(linkEl)) {
-                    ev.preventDefault();
-                    try {
-                        browser.location.assign(href);
-                    } catch {
-                        this.notification.add(_t("%s is not a valid URL.", href), {
-                            title: _t("Invalid URL"),
-                            type: "danger",
-                        });
-                    }
-                } else if (
-                    this.websiteContent.el.contentWindow.location.pathname !==
-                    new URL(href).pathname
-                ) {
-                    // This scenario triggers a navigation inside the iframe.
-                    this.websiteService.websiteRootInstance = undefined;
+            // Forward clicks to close backend client action's navbar
+            // dropdowns.
+            this.websiteContent.el.dispatchEvent(new MouseEvent("click", ev));
 
-                    this.isNavigatingToAnotherPage = new Deferred();
+            const closestEl = ev.target.closest("[href], [action]");
+            let url;
+
+            if (closestEl?.action) {
+                const { action, method } = closestEl;
+                if (isTopWindowURL(new URL(action))) {
+                    if (method === "post") {
+                        // Prevent the default form submission before awaiting
+                        // post(). Otherwise, the browser may submit the form
+                        // before the later preventDefault() call.
+                        ev.preventDefault();
+                        const href = await post(action, { csrf_token: odoo.csrf_token }, "url");
+                        url = new URL(href);
+                    } else {
+                        url = new URL(action);
+                    }
+                }
+            } else if (closestEl?.href) {
+                const { href, target } = closestEl;
+                if (target !== "_blank") {
+                    if (isTopWindowURL(closestEl)) {
+                        url = new URL(href);
+                    } else if (
+                        this.websiteContent.el.contentWindow.location.pathname !==
+                        new URL(href).pathname
+                    ) {
+                        // This scenario triggers a navigation inside the iframe.
+                        this.websiteService.websiteRootInstance = undefined;
+                        this.isNavigatingToAnotherPage = Promise.withResolvers();
+                    }
+                }
+            }
+
+            if (url) {
+                ev.preventDefault();
+                try {
+                    browser.location.assign(url);
+                } catch {
+                    this.notification.add(_t("%s is not a valid URL.", url), {
+                        title: _t("Invalid URL"),
+                        type: "danger",
+                    });
                 }
             }
         });
@@ -538,6 +556,7 @@ export class WebsiteBuilderClientAction extends Component {
     async reloadEditor(param = {}) {
         this.initialTab = param.initialTab;
         this.target = param.target || null;
+        this.folded = param.folded || [];
         await this.reloadIframe(this.state.isEditing, param.url);
         // Disable the current instance of the builder and trigger a new
         // instance of it with `t-key`
@@ -546,8 +565,9 @@ export class WebsiteBuilderClientAction extends Component {
     }
 
     async reloadIframeAndCloseEditor() {
-        this.initialTab = null;
+        delete this.initialTab;
         this.target = null;
+        this.folded = [];
         const isEditing = false;
         this.state.isEditing = isEditing;
         this.addSystrayItems();
@@ -609,7 +629,7 @@ export class WebsiteBuilderClientAction extends Component {
     }
 
     preparePublicRootReady() {
-        const deferred = new Deferred();
+        const deferred = Promise.withResolvers();
         this.publicRootReady = deferred;
         this.websiteContent.el.contentWindow.addEventListener(
             "PUBLIC-ROOT-READY",

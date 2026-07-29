@@ -1,10 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import logging
-import pytz
 import textwrap
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
+from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from markupsafe import escape
@@ -206,7 +206,7 @@ class EventEvent(models.Model):
         string='Specific Questions', domain=[('once_per_order', '=', False)])
 
     def _compute_use_barcode(self):
-        use_barcode = self.env['ir.config_parameter'].sudo().get_param('event.use_event_barcode') == 'True'
+        use_barcode = self.env['ir.config_parameter'].sudo().get_bool('event.use_event_barcode')
         for record in self:
             record.use_barcode = use_barcode
 
@@ -307,7 +307,7 @@ class EventEvent(models.Model):
         for event in self:
             event = event._set_tz_context()
             current_datetime = fields.Datetime.context_timestamp(event, fields.Datetime.now())
-            date_end_tz = event.date_end.astimezone(pytz.timezone(event.date_tz or 'UTC')) if event.date_end else False
+            date_end_tz = event.date_end.astimezone(ZoneInfo(event.date_tz or 'UTC')) if event.date_end else False
             event.event_registrations_open = event.kanban_state != 'cancel' and \
                 event.event_registrations_started and \
                 (date_end_tz >= current_datetime if date_end_tz else True) and \
@@ -667,7 +667,7 @@ class EventEvent(models.Model):
             # allow the registration desk users to post messages on Event
             # can not be done with "_mail_post_access" otherwise public user will be
             # able to post on published Event (see website_event)
-            return dict.fromkeys(self, 'read')
+            return [(Domain.TRUE, 'read')]
         return super()._mail_get_operation_for_mail_message_operation(message_operation)
 
     def _set_tz_context(self):
@@ -758,8 +758,9 @@ class EventEvent(models.Model):
 
     def action_open_slot_calendar(self):
         self.ensure_one()
-        now = datetime.now().astimezone(pytz.timezone(self.env.user.tz or 'UTC'))
+        now = datetime.now().astimezone(ZoneInfo(self.env.user.tz or 'UTC'))
         next_hour = now + timedelta(hours=1)
+        initial_date = min(max(datetime.now(), self.date_begin), self.date_end)
         return {
             'type': 'ir.actions.act_window',
             'name': _('Slots'),
@@ -770,16 +771,13 @@ class EventEvent(models.Model):
             'domain': [('event_id', '=', self.id)],
             'context': {
                 'default_event_id': self.id,
-                # Default hours for the list view and mobile quick create.
-                # Desktop calendar multi create using defaults in local storage
-                # (= the last selected time range or fallback on 12PM-1PM).
+                'default_date': initial_date,
+                # Default hours except for the desktop calendar multi create (multi create uses
+                # defaults from range picker saved in local storage or fallback on 12PM-1PM).
                 'default_start_hour': next_hour.hour,
                 'default_end_hour': (next_hour + timedelta(hours=1)).hour,
-                # To disable calendar days outside of event date range.
-                'event_calendar_range_start_date': self.date_begin.astimezone(pytz.timezone(self.date_tz)).date(),
-                'event_calendar_range_end_date': self.date_end.astimezone(pytz.timezone(self.date_tz)).date(),
                 # Calendar view initial date.
-                'initial_date': min(max(datetime.now(), self.date_begin), self.date_end),
+                'initial_date': initial_date,
             },
         }
 
@@ -796,8 +794,8 @@ class EventEvent(models.Model):
     def _get_date_range_str(self, start_datetime=False, lang_code=False):
         self.ensure_one()
         datetime = start_datetime or self.date_begin
-        today_tz = pytz.utc.localize(fields.Datetime.now()).astimezone(pytz.timezone(self.date_tz))
-        event_date_tz = pytz.utc.localize(datetime).astimezone(pytz.timezone(self.date_tz))
+        today_tz = fields.Datetime.now().replace(tzinfo=UTC).astimezone(ZoneInfo(self.date_tz))
+        event_date_tz = datetime.replace(tzinfo=UTC).astimezone(ZoneInfo(self.date_tz))
         diff = (event_date_tz.date() - today_tz.date())
         if diff.days <= 0:
             return _('today')
@@ -845,9 +843,12 @@ class EventEvent(models.Model):
             start = slot.start_datetime if slot else event.date_begin
             end = slot.end_datetime if slot else event.date_end
 
-            cal_event.add('created').value = fields.Datetime.now().replace(tzinfo=pytz.timezone('UTC'))
-            cal_event.add('dtstart').value = start.astimezone(pytz.timezone(event.date_tz))
-            cal_event.add('dtend').value = end.astimezone(pytz.timezone(event.date_tz))
+            # vobject does *not* like datetime.UTC (this was fixed by
+            # py-vobject/vobject#88 which isn't even in 0.9.9, current release
+            # as of now)
+            cal_event.add('created').value = fields.Datetime.now().replace(tzinfo=ZoneInfo("UTC"))
+            cal_event.add('dtstart').value = start.astimezone(ZoneInfo(event.date_tz))
+            cal_event.add('dtend').value = end.astimezone(ZoneInfo(event.date_tz))
             cal_event.add('summary').value = event.name
             external_description = event._get_external_description()
             cal_event.add('description').value = external_description

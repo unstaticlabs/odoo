@@ -1,29 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * website_event_track
+# 	* website_event_track
 #
 # Translators:
 # Martin Trigaux, 2022
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2022
-# Vlad Patenko <vlad.patenko@gmail.com>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 22:29+0000\n"
-"Last-Translator: Vlad Patenko <vlad.patenko@gmail.com>\n"
-"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
-"website_event_track/uk/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2022-09-22 05:56+0000\n"
+"Last-Translator: Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2022\n"
+"Language-Team: Ukrainian (https://app.transifex.com/odoo/teams/41243/uk/)\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
 #. module: website_event_track
 #. odoo-python
@@ -126,11 +124,10 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
@@ -650,6 +647,11 @@ msgid "Activity Exception Decoration"
 msgstr "Оформлення виключення дії"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Стан дії"
@@ -817,6 +819,16 @@ msgstr "Підрахунок прикріплення"
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
 msgstr "Аудиторія"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
@@ -1414,7 +1426,7 @@ msgstr "Майбутні дії"
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_confirmation_end_page_hook
 #: model_terms:ir.ui.view,arch_db:website_event_track.registration_complete
 msgid "Get prepared and"
-msgstr "Приготуйтеся та"
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:event.track,description:website_event_track.event_7_track_18
@@ -1469,7 +1481,7 @@ msgstr "Найвищий"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.pwa_offline
 msgid "Home page"
-msgstr "Головна"
+msgstr ""
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track21
@@ -1830,7 +1842,7 @@ msgid ""
 "Link to Q&amp;A here! The time has come to hide those old block walls. Love "
 "simple and transformation type projects like this! :)-"
 msgstr ""
-"Перейдіть на Q&amp;A тут! Настав час приховати ці старі блочні стіни. Любіть "
+"Перейдіть на Q&A тут! Настав час приховати ці старі блочні стіни. Любіть "
 "такі прості та трансформаційні проекти! :)-"
 
 #. module: website_event_track
@@ -2108,7 +2120,7 @@ msgstr "Зображення"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.tracks_display_list
 msgid "Plan your experience by adding your favorites talks to your wishlist"
-msgstr "Плануйте свій досвід, зберігаючи улюлені виступи"
+msgstr "Плануйте свій досвід, зберігаючи улюлені виступи."
 
 #. module: website_event_track
 #. odoo-javascript
@@ -2181,6 +2193,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_track.view_event_track_search
 msgid "Published"
 msgstr "Опубліковано"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
@@ -2692,7 +2709,7 @@ msgstr "Розташування відстеження"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_type_view_form_inherit_track
 msgid "Track Proposals Menu Item"
-msgstr "Пункт меню «Відстеження пропозицій»"
+msgstr "Пункт меню «Відстеження пропозицій»."
 
 #. module: website_event_track
 #: model:mail.message.subtype,name:website_event_track.mt_track_ready
@@ -2909,7 +2926,8 @@ msgstr "Голос клієнта"
 #. module: website_event_track
 #: model_terms:ir.actions.act_window,help:website_event_track.website_visitor_action_from_track
 msgid "Wait for visitors to add this track to their list of favorites"
-msgstr "Зачекайте, поки відвідувачі додадуть цей трек до свого списку улюблених"
+msgstr ""
+"Зачекайте, поки відвідувачі додадуть цей трек до свого списку улюблених"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_online
@@ -3166,7 +3184,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_confirmation_end_page_hook
 #: model_terms:ir.ui.view,arch_db:website_event_track.registration_complete
 msgid "register to your favorites talks now."
-msgstr "зареєструйте ваші улюблені виступи."
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_content
@@ -3179,164 +3197,12 @@ msgid "starts on"
 msgstr "починається"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr ""
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<b>Contact Information</b>"
-#~ msgstr "<b>Контактна інформація</b>"
-
-#~ msgid "<b>Speaker Profile</b>"
-#~ msgstr "<b>Профіль спікера</b>"
-
-#~ msgid "<b>Talk Intro</b>"
-#~ msgstr "<b>Інтро виступу</b>"
-
-#~ msgid "<i class=\"fa fa-folder-open\"/> Favorites"
-#~ msgstr "<i class=\"fa fa-folder-open\"/> Закладки"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Introduction</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Введення виступу</span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Title</span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Заголовок виступу</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Блискавичні виступи</strong>. Це 30 хвилин розмов на\n"
-#~ "різні теми. Більшість тем приймаються в блискавичних виступах."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>Регулярні виступи</strong>. Це стандартні розмови зі слайдами,\n"
-#~ "                                    виділені в слоти по 60 хвилин."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Дозвольте запис відео та звуку їх\n"
-#~ "презентації, для публікації на нашому сайті."
-
-#~ msgid "Canceled Stage"
-#~ msgstr "Закритий етап"
-
-#~ msgid "Error"
-#~ msgstr "Помилка"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Фільтр відстежень..."
-
-#~ msgid "Group By"
-#~ msgstr "Групувати за"
-
-#~ msgid "No results found"
-#~ msgstr "Не знайдено результатів"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Кількість повідомлень, які потебують дії"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "Пропозиції закриті!"
-
-#~ msgid "Schedule some tracks to get started"
-#~ msgstr "Заплануйте деякі треки для старту"
-
-#~ msgid "Select categories"
-#~ msgstr "Оберіть категорії"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Показати всі записи, які мають дату наступної дії до сьогоднішньої"
-
-#~ msgid "Speaker Email"
-#~ msgstr "Електронна пошта спікера"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Пропозиції виступу"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "Виступ додано до ваших закладок"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "Виступ вже додано до ваших закладок"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "URL-адреса повністю, для доступу до документації через сайт."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "Ця подія не приймає пропозицій."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Своєчасний випуск презентаційного матеріалу (слайди)\n"
-#~ "для публікації на нашому сайті."
-
-#~ msgid "We did not find any track matching your"
-#~ msgstr "Ми не знайшли жодного відстеження, що відповідає вашому"
-
-#~ msgid ""
-#~ "We will accept a broad range of\n"
-#~ "                            presentations, from reports on academic and\n"
-#~ "                            commercial projects to tutorials and case\n"
-#~ "                            studies. As long as the presentation is\n"
-#~ "                            interesting and potentially useful to the\n"
-#~ "                            audience, it will be considered for\n"
-#~ "                            inclusion in the programme."
-#~ msgstr ""
-#~ "Ми приймаємо широкий спектр презентацій, \n"
-#~ "від звітів про академічні та комерційні проекти \n"
-#~ "до навчальних посібників та тематичних досліджень.\n"
-#~ " Поки презентація буде цікавою та потенційно\n"
-#~ " корисною для аудиторії, вона\n"
-#~ " розглядатиметься для включення\n"
-#~ " в програму."
-
-#~ msgid "search."
-#~ msgstr "пошук."
-
-#~ msgid "tracks"
-#~ msgstr "відстеження"

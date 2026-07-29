@@ -1,6 +1,8 @@
 import { describe, expect, test } from "@odoo/hoot";
-import { load } from "@odoo/o-spreadsheet";
+import { load, helpers } from "@odoo/o-spreadsheet";
 import { defineSpreadsheetActions, defineSpreadsheetModels } from "../helpers/data";
+
+const { schemeToColorScale } = helpers;
 
 defineSpreadsheetModels();
 defineSpreadsheetActions();
@@ -814,6 +816,60 @@ test("Date filters are migrated", () => {
     expect(filters[2].rangeType).toBe(undefined);
 
     expect(filters[0].disabledPeriods).toBe(undefined);
+});
+
+test("Odoo Menu references are converted starting from 19.1.1", () => {
+    const data = {
+        version: "18.5.10",
+        chartOdooMenusReferences: {
+            chart1: "menu.menu_1",
+            chart2: "menu.menu_2",
+        },
+    };
+    const migratedData = load(data);
+    expect(migratedData.odooLinkReferences).toEqual({
+        chart1: { type: "odooMenu", odooMenuId: "menu.menu_1" },
+        chart2: { type: "odooMenu", odooMenuId: "menu.menu_2" },
+    });
+});
+
+test("Odoo geo charts color scales are migrated", () => {
+    const data = {
+        version: "18.5.10",
+        sheets: [
+            {
+                figures: [
+                    {
+                        id: "fig1",
+                        tag: "chart",
+                        data: {
+                            chartId: "chart1",
+                            type: "odoo_geo",
+                            colorScale: "reds",
+                        },
+                    },
+                    {
+                        id: "fig1",
+                        tag: "carousel",
+                        data: {
+                            chartDefinitions: {
+                                chart2: {
+                                    type: "odoo_geo",
+                                    colorScale: "greens",
+                                },
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+    const migratedData = load(data);
+    const figures = migratedData.sheets[0].figures;
+    expect(figures[0].data.colorScale).toEqual(schemeToColorScale("reds"));
+    expect(figures[1].data.chartDefinitions["chart2"].colorScale).toEqual(
+        schemeToColorScale("greens")
+    );
 });
 
 test("18.5.10: ODOO.FILTER.VALUE to ODOO.FILTER.LABEL in cells", () => {

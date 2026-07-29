@@ -5,17 +5,17 @@
 # Translators:
 # Martin Trigaux, 2022
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-16 10:50+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-06 13:26+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_customer/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -82,6 +82,16 @@ msgstr "Todos los sectores"
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
 msgstr "Archivado"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
@@ -205,7 +215,8 @@ msgstr "Filtrar por sector"
 #: model:ir.model.fields,help:website_customer.field_res_partner__website_tag_ids
 #: model:ir.model.fields,help:website_customer.field_res_users__website_tag_ids
 msgid "Filter published customers on the .../customers website page"
-msgstr "Filtre los clientes publicados en la página .../customers del sitio web"
+msgstr ""
+"Filtre los clientes publicados en la página .../customers del sitio web"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -257,7 +268,7 @@ msgstr ""
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
 msgid "No results found for \""
-msgstr "No se han encontrado resultados para \""
+msgstr "No se encontraron resultados para \""
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -282,6 +293,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__partner_ids
 msgid "Partners"
 msgstr "Contactos"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_customer
 #. odoo-python
@@ -377,43 +393,3 @@ msgstr "Etiquetas del sitio web"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "Mapa mundial"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"Enlace "
-#~ "externo\" title=\"Enlace externo\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "Implementado por"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Última modificación el"
-
-#~ msgid "No result found"
-#~ msgstr "No se ha encontrado ningún resultado"
-
-#~ msgid "Our References"
-#~ msgstr "Nuestras referencias"
-
-#~ msgid "References Page"
-#~ msgstr "Página de referencias"
-
-#~ msgid "References by Country"
-#~ msgstr "Referencias por país"
-
-#~ msgid "References by Industries"
-#~ msgstr "Referencias por sectores"
-
-#~ msgid "References by Tag"
-#~ msgstr "Referencias por etiqueta"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "La URL completa para acceder al documento a través del sitio web."
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "Con la confianza de millones en todo el mundo"
-
-#~ msgid "reference(s))"
-#~ msgstr "referencia(s))"

@@ -3,6 +3,7 @@
 import base64
 import gzip
 import uuid
+from datetime import UTC
 
 from dateutil.relativedelta import relativedelta
 from werkzeug.urls import url_encode, url_parse
@@ -22,7 +23,9 @@ class ProductFeed(models.Model):
     _description = "Product Feed"
 
     name = fields.Char(required=True)
-    website_id = fields.Many2one('website', required=True)
+    website_id = fields.Many2one(
+        "website", required=True, default=lambda self: self.env.company.website_id
+    )
     pricelist_id = fields.Many2one(
         'product.pricelist',
         help="Specify a pricelist to localize the feed with a specific currency."
@@ -288,10 +291,10 @@ class ProductFeed(models.Model):
     def _prepare_gmc_price_info(self, product):
         """Prepare price-related information for Google Merchant Center.
 
-        Note: If the product is flagged to prevent zero price sales, an empty dictionary is
-        returned.
+        Note: If the product is not sellable on the website, an empty dictionary is returned
+        and the product is excluded from the feed.
 
-        :return: A dictionary containing nothing if the product is "prevent zero price sale", or:
+        :return: A dictionary containing nothing if sale is prevented (zero price or specific category), or:
             - List price,
             - Sale price (if applicable), and
             - Comparison prices (e.g., $100 / ml) if "Product Reference Price" is enabled.
@@ -309,7 +312,7 @@ class ProductFeed(models.Model):
             date=fields.Date.context_today(self),
             website=self.website_id,
         )
-        if combination_info['prevent_zero_price_sale']:
+        if combination_info['prevent_sale']:
             return {}
 
         price_info = {
@@ -325,8 +328,10 @@ class ProductFeed(models.Model):
             start_date = combination_info['discount_start_date']
             end_date = combination_info['discount_end_date']
             if start_date and end_date:
-                price_info['sale_price_effective_date'] = '/'.join(
-                    map(utils.gmc_format_date, (start_date, end_date)),
+                price_info['sale_price_effective_date'] = (
+                    start_date.replace(tzinfo=UTC).isoformat(timespec='minutes')
+                    + '/' +
+                    end_date.replace(tzinfo=UTC).isoformat(timespec='minutes')
                 )
 
         # Note: Google only supports a restricted set of unit and computes the comparison prices

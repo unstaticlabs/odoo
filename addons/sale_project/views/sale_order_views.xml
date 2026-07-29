@@ -12,7 +12,7 @@
                     name="action_view_project_ids"
                     type="object"
                     class="oe_stat_button"
-                    icon="fa-puzzle-piece"
+                    icon="fa-check"
                     invisible="not show_project_button"
                     groups="project.group_project_user"
                 >
@@ -79,7 +79,7 @@
             <sheet position="after">
                 <footer>
                     <button string="Confirm &amp; Close" special="save" class="btn btn-primary"/>
-                    <button string="Discard" special="cancel" class="btn btn-secondary"/>
+                    <button special="cancel" class="btn btn-secondary"/>
                 </footer>
             </sheet>
         </field>

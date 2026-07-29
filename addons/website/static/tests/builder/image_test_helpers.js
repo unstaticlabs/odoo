@@ -1,5 +1,6 @@
 import { before, globals } from "@odoo/hoot";
-import { onRpc } from "@web/../tests/web_test_helpers";
+import { contains, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
+import { ImagePositionOverlay } from "@html_builder/plugins/image/image_position_overlay";
 
 // Pre-fetch image routes so they're cached and available faster during tests
 const imgCache = new Map();
@@ -82,4 +83,23 @@ export function mockImageRequests() {
         onRpcImg("/html_builder/static/image_shapes/geometric/geo_square.svg");
         onRpcImg("/website/static/src/img/website_logo.svg");
     });
+}
+
+export function patchDragImage(el, from, to) {
+    patchWithCleanup(ImagePositionOverlay.prototype, {
+        onDragMove(ev) {
+            // Mock the movementX and movementY readonly property
+            super.onDragMove({
+                preventDefault: () => {},
+                movementX: ev.clientX === to.x ? to.x - from.x : 0,
+                movementY: ev.clientY === to.y ? to.y - from.y : 0,
+            });
+        },
+    });
+    const startDrag = () => contains(el).drag({ position: from });
+    const endDrag = async (dragActions) => {
+        await dragActions.moveTo(el, { position: to });
+        await dragActions.drop();
+    };
+    return { startDrag, endDrag };
 }

@@ -9,7 +9,7 @@
             t-ref="root"
         >
             <t t-if="showNoContentHelper">
-    			<ActionHelper noContentHelp="props.noContentHelp" showRibbon="props.list.model.useSampleModel"/>
+                <ActionHelper noContentHelp="props.noContentHelp"/>
             </t>
             <table t-attf-class="o_list_table table table-sm table-hover position-relative mb-0 {{props.list.isGrouped ? 'o_list_table_grouped' : 'o_list_table_ungrouped table-striped'}}" t-ref="table">
                 <thead>
@@ -45,10 +45,10 @@
                             <th t-else="" t-on-keydown="(ev) => this.onCellKeydown(ev)" t-att-class="{'o_list_button w-print-0 p-print-0': column.type === 'button_group'}"/>
                         </t>
                         <th t-if="hasOpenFormViewColumn" t-on-keydown="(ev) => this.onCellKeydown(ev)" class="o_list_open_form_view w-print-0 p-print-0"/>
-                        <th t-if="hasActionsColumn" t-on-keydown="(ev) => this.onCellKeydown(ev)" class="o_list_controller o_list_actions_header w-print-0 p-print-0 position-sticky end-0">
+                        <th t-if="hasActionsColumn" t-on-keydown="(ev) => this.onCellKeydown(ev)" class="o_list_controller o_list_actions_header w-print-0 p-print-0 position-sticky end-0 z-2">
                             <div t-if="displayOptionalFields or hasOptionalOpenFormViewColumn" class="o_optional_columns_dropdown d-print-none text-center border-top-0">
-                                <Dropdown position="'bottom-end'">
-                                    <button class="btn p-0" tabindex="-1">
+                                <Dropdown position="'bottom-end'" menuRef="optionalColumnsDropdownRef" onOpened.bind="onOptionalColumnsDropdownOpened">
+                                    <button class="btn p-0" tabindex="-1" data-available-offline="">
                                         <i class="o_optional_columns_dropdown_toggle oi oi-fw oi-settings-adjust"/>
                                     </button>
 
@@ -148,16 +148,14 @@
                     t-on-keydown="(ev) => this.onCellKeydown(ev, null)"
                 >
                     <t t-foreach="controls" t-as="control" t-key="control_index">
-                        <a
+                        <button
                             t-if="control.type === 'create' and !evalColumnInvisible(control.invisible)"
-                            href="#"
-                            role="button"
-                            t-att-class="control_index !== 0 ? 'ml16' : ''"
+                            t-attf-class="btn btn-link #{control_index !== 0 ? 'ml16' : ''}"
                             t-att-tabindex="props.list.editedRecord ? '-1' : '0'"
                             t-on-click.stop.prevent="() => this.add({ context: control.context })"
                         >
                             <t t-esc="control.string"/>
-                        </a>
+                        </button>
                         <ViewButton
                             t-if="control.type === 'button' and !evalColumnInvisible(control.invisible)"
                             className="`${control.className} ${control_index !== 0 ? 'ml16' : ''}`"
@@ -206,7 +204,7 @@
     </t>
 
     <t t-name="web.ListRenderer.GroupRow">
-        <tr t-attf-class="{{group.count > 0 ? 'o_group_has_content' : ''}} o_group_header {{!group.isFolded ? 'o_group_open' : ''}} cursor-pointer {{ canResequenceRows and group_index > 0 ? 'o_row_draggable' : '' }}"
+        <tr t-attf-class="{{group.count > 0 ? 'o_group_has_content' : ''}} o_group_header {{!group.isFolded ? 'o_group_open' : ''}} cursor-pointer {{ canResequenceRows and group_index > 0 ? 'o_row_draggable' : '' }} {{state.altKeyMode ? 'o_multi_group_expand_available' : ''}}"
             t-att-data-group-id="group.id"
             t-on-click="(ev) => this.onGroupHeaderClicked(ev, group)"
         >
@@ -214,16 +212,22 @@
                 tabindex="-1"
                 t-attf-class="o_group_name fs-6 fw-bold {{!group.isFolded ? 'text-black' : 'text-body'}}"
                 t-att-colspan="getGroupNameCellColSpan(group)">
+                <div t-if="state.altKeyMode" class="o_multi_group_expand_tooltip d-none position-absolute rounded-3 p-1 start-50 top-50 fw-normal">
+                    <t t-if="group.isFolded">Click to expand all groups</t>
+                    <t t-else="">Click to collapse all groups</t>
+                </div>
                 <div class="d-flex align-items-center">
                     <span t-attf-class="o_group_caret fa fa-fw {{group.isFolded ? 'fa-caret-right' : 'fa-caret-down' }} me-1"
                         t-attf-style="--o-list-group-level: {{getGroupLevel(group)}}"/>
-                    <t t-esc="group.displayName"/> (<t t-esc="group.count"/>)
+                    <span class="fw-normal">
+                        <t t-out="odoomark(group.displayName)"/>
+                    </span>
                     <div t-if="(groupByButtons[group.groupByField.name] and !group.isFolded and group.record.resId)" class="o_group_buttons">
                         <t t-foreach="groupByButtons[group.groupByField.name]" t-as="button" t-key="button.id">
                             <t t-if="!evalInvisible(button.invisible, group.record)">
                                 <t t-if="button.clickParams.type === 'edit'">
-                                    <button t-att-title="button.title" class="btn" t-on-click.stop="() => this.editGroupRecord(group)" tabindex="-1">
-                                        <i t-attf-class="fa fa-fw {{button.icon}} o_button_icon"/>
+                                    <button class="btn btn-secondary" t-on-click.stop="() => this.editGroupRecord(group)" tabindex="-1">
+                                        View
                                     </button>
                                 </t>
                                 <t t-else="">
@@ -240,8 +244,13 @@
                             </t>
                         </t>
                     </div>
-                    <div t-if="showGroupPager(group)" t-on-click.stop="" class="ms-auto">
-                        <Pager t-props="getGroupPagerProps(group)"/>
+                    <div class="d-flex align-items-center ms-auto gap-2">
+                        <t t-if="!showGroupPager(group)" class="m-1">
+                            <span><t t-esc="group.count"/></span>
+                        </t>
+                        <div t-att-class="showGroupPager(group) ? '' : 'o_pager_hidden'" t-on-click.stop="">
+                            <Pager t-props="getGroupPagerProps(group)"/>
+                        </div>
                     </div>
                 </div>
             </th>

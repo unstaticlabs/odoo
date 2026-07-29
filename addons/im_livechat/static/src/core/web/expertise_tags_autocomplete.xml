@@ -6,8 +6,10 @@
             t-att-class="{'o_input': !props.disabled, 'o-disabled': props.disabled}"
             t-ref="root"
         >
-            <TagsList displayText="true" tags="tags"/>
-            <div t-if="!props.disabled" class="flex-grow-1 d-inline-flex w-100" style="flex-basis: 0;" >
+            <div class="d-flex flex-wrap gap-1">
+                <BadgeTag t-foreach="props.channel.livechat_expertise_ids" t-as="expertise" t-key="expertise.id" text="expertise.name" color="expertise.color" onDelete="props.disabled ? null : () => this.unlinkExpertise(expertise)"/>
+            </div>
+            <div t-if="!props.disabled" class="flex-grow-1 d-inline-flex w-100" style="flex-basis: 0;">
                 <Many2XAutocomplete
                     placeholder="placeholder"
                     resModel="'im_livechat.expertise'"
@@ -15,7 +17,7 @@
                     isToMany="true"
                     fieldString.translate="Expertise"
                     update.bind="addExpertises"
-                    quickCreate="store.self_partner?.main_user_id?.is_livechat_manager ? (name) => this.createAndLinkExpertise(name) : null"
+                    quickCreate="store.self_user?.is_livechat_manager ? (name) => this.createAndLinkExpertise(name) : null"
                     getDomain="() => []"
                 >
                     <t t-set-slot="autoCompleteItem" t-slot-scope="autoCompleteItemScope">

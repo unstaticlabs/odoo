@@ -8,7 +8,6 @@
     <t t-set="filteredTemplates" t-value="dynamicOptionParams.getFilteredTemplates()"/>
     <t t-set="isSingleMode" t-value="dynamicOptionParams.domState.isSingleMode"/>
     <t t-set="numberOfRecords" t-value="dynamicOptionParams.domState.numberOfRecords"/>
-    <t t-set="modelNameFilter" t-value="dynamicOptionParams.modelNameFilter"/>
     <!-- Single record filter options -->
     <BuilderRow label.translate="Model" t-if="!modelNameFilter and isSingleMode">
         <BuilderSelect action="'dynamicModel'" preview="false" id="'model_opt'"></BuilderSelect>
@@ -36,7 +35,7 @@
             <t t-foreach="filteredTemplates" t-as="template" t-key="template.key">
                 <t t-if="template.thumb">
                     <BuilderSelectItem actionParam="template">
-                        <Img src="template.thumb" alt="template.name" svgCheck="false"/>
+                        <Image src="template.thumb" alt="template.name" svgCheck="false"/>
                     </BuilderSelectItem>
                 </t>
                 <t t-else="">
@@ -45,7 +44,7 @@
             </t>
         </BuilderSelect>
     </BuilderRow>
-    <BuilderRow label.translate="Cover Image" t-if="isSingleMode and !!showCoverImage?.()">
+    <BuilderRow label.translate="Cover Image" t-if="isSingleMode and !!showCoverImageOption?.()">
         <BuilderButtonGroup>
             <BuilderButton title.translate="Left" classAction="'s_dynamic_snippet_cover_left'" iconImg="'/website/static/src/img/snippets_options/pos_left.svg'"/>
             <BuilderButton title.translate="Right" classAction="''" iconImg="'/website/static/src/img/snippets_options/pos_right.svg'"/>

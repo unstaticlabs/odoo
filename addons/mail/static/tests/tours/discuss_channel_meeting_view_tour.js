@@ -1,6 +1,5 @@
 import { browser } from "@web/core/browser/browser";
 import { registry } from "@web/core/registry";
-import { dragenterFiles } from "@web/../tests/utils";
 
 const CLICK_ON_CHAT_STEP = "click-on-chat-action";
 
@@ -8,20 +7,20 @@ function getMeetingViewTourSteps({ inWelcomePage = false } = {}) {
     const steps = [
         { trigger: ".o-mail-Meeting" },
         {
-            trigger: ".o-mail-Meeting [title='Invite People']",
+            trigger: ".o-mail-Meeting [title='Members']",
             run: "click",
         },
-        { trigger: ".o-mail-Meeting .o-mail-ActionPanel:contains('Invite people')" },
+        { trigger: ".o-mail-Meeting .o-mail-ActionPanel:contains('Members')" },
         {
-            trigger: ".o-mail-Meeting [title='Invite People']", // close it
+            trigger: ".o-mail-Meeting [title='Members']", // close it
             run: "click",
         },
         { trigger: ".o-mail-Meeting:not(:has(.o-mail-ActionPanel))" },
         {
-            trigger: ".o-mail-Meeting [title='Invite People']",
+            trigger: ".o-mail-Meeting [title='Members']",
             run: "click",
         },
-        { trigger: ".o-mail-Meeting .o-mail-ActionPanel:contains('Invite people')" },
+        { trigger: ".o-mail-Meeting .o-mail-ActionPanel:contains('Members')" },
         {
             trigger: ".o-mail-Meeting [title='Chat']",
             run: "click",
@@ -29,11 +28,16 @@ function getMeetingViewTourSteps({ inWelcomePage = false } = {}) {
         },
         {
             trigger:
-                ".o-mail-Meeting .o-mail-ActionPanel .o-mail-Thread:contains('john (base.group_user) and bob (base.group_user)')",
+                ".o-mail-Meeting .o-mail-ActionPanel .o-mail-Thread:contains('Meeting - Jan 1, 2026')",
         },
         {
+            trigger: ".o-mail-Meeting .o-mail-ActionPanel .o-mail-Composer-input",
+            run: "click",
+        },
+        { trigger: ".o-mail-Meeting [title='Chat']:not(:has(.badge))" },
+        {
             trigger: ".o-mail-Message[data-persistent]:contains('Hello everyone!')",
-            run: "hover && click .o-mail-Message-actions button[title='Expand']",
+            run: "hover && click .o-mail-Meeting .o-mail-Message-actions button[title='Expand']",
         },
         {
             trigger: ".o-dropdown-item:contains('Mark as Unread')",
@@ -46,9 +50,12 @@ function getMeetingViewTourSteps({ inWelcomePage = false } = {}) {
         },
         {
             trigger: ".o-mail-Meeting [title='Chat']:not(:has(.badge))",
-            async run({ waitFor }) {
+        },
+        {
+            trigger: ".o-mail-Meeting .o-mail-ActionPanel",
+            async run({ dragFiles, waitFor }) {
                 const files = [new File(["hi there"], "file2.txt", { type: "text/plain" })];
-                await dragenterFiles(".o-mail-Meeting .o-mail-ActionPanel", files);
+                await dragFiles(files);
                 // Ensure other dropzones such as discuss or chat window dropzones are not active in meeting view.
                 await waitFor(".o-Dropzone", { only: true });
             },
@@ -65,7 +72,14 @@ function getMeetingViewTourSteps({ inWelcomePage = false } = {}) {
         { trigger: "body:not(:has(.o-mail-Meeting))" },
     ];
     if (inWelcomePage) {
-        steps.unshift({ trigger: "[title='Join Channel']", run: "click" });
+        steps.unshift(
+            { trigger: "input[name='guest_name']", run: "edit Guest" },
+            {
+                trigger: ".modal .btn-close",
+                run: "click",
+            },
+            { trigger: "[title='Join Channel']", run: "click" }
+        );
     }
     return steps;
 }
@@ -77,18 +91,7 @@ registry
             // Avoid starting with mic/camera to prevent an unhandleable browser permission popup.
             browser.localStorage.setItem("discuss_call_preview_join_mute", "true");
             browser.localStorage.setItem("discuss_call_preview_join_video", "false");
-            const steps = getMeetingViewTourSteps();
-            const clickOnChatIndex = steps.find((step) => step.content === CLICK_ON_CHAT_STEP);
-            steps.splice(
-                clickOnChatIndex,
-                0,
-                {
-                    trigger: ".o-mail-Composer.o-focused .o-mail-Composer-input",
-                    run: "edit Hello everyone!",
-                },
-                { trigger: ".o-mail-Composer button[title='Send']:enabled", run: "click" }
-            );
-            return steps;
+            return getMeetingViewTourSteps();
         },
     })
     .add("discuss.meeting_view_public_tour", {

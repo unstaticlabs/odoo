@@ -7,9 +7,11 @@ import { registry } from "@web/core/registry";
 import { renderToFragment } from "@web/core/utils/render";
 import { SocialMediaLinks } from "./social_media_links";
 import { selectElements } from "@html_editor/utils/dom_traversal";
-import { SNIPPET_SPECIFIC, TITLE_LAYOUT_SIZE } from "@html_builder/utils/option_sequence";
+import { SNIPPET_SPECIFIC, TITLE_LAYOUT_SIZE, ANIMATE } from "@html_builder/utils/option_sequence";
 import { BuilderAction } from "@html_builder/core/builder_action";
+import { AnimateOption } from "./animate_option";
 import { BaseOptionComponent } from "@html_builder/core/utils";
+import { socialMediaElementsSelector } from "@html_builder/plugins/image/replace_media_option";
 
 /**
  * @typedef { Object } SocialMediaOptionShared
@@ -27,7 +29,7 @@ import { BaseOptionComponent } from "@html_builder/core/utils";
 /**
  * @typedef { Object } SocialMediaInfo
  * @property { boolean } [recorded] whether the social media is one from the orm
- * @property { import("plugins").TranslatedString } label
+ * @property { string|Markup|LazyTranslatedString } label
  * @property { string } iconClass the icon class to use for the social media
  * @property { RegExp } [extraHostnameRegex] a regex for host names that belongs to this social media, but are not catch by the default mechanism
  */
@@ -125,9 +127,14 @@ export class SocialMediaOption extends BaseOptionComponent {
     static selector = ".s_share, .s_social_media";
 }
 
+export class SocialMediaAnimateOption extends AnimateOption {
+    static selector = ".s_social_media, .s_share";
+    static applyTo = socialMediaElementsSelector;
+}
+
 class SocialMediaOptionPlugin extends Plugin {
     static id = "socialMediaOptionPlugin";
-    static dependencies = ["history"];
+    static dependencies = ["history", "animateOption"];
     static shared = [
         "newLinkElement",
         "getRecordedSocialMedia",
@@ -144,9 +151,11 @@ class SocialMediaOptionPlugin extends Plugin {
         builder_options: [
             withSequence(TITLE_LAYOUT_SIZE, SocialMediaOption),
             withSequence(SNIPPET_SPECIFIC, SocialMediaLinks),
+            withSequence(ANIMATE, SocialMediaAnimateOption),
         ],
         so_content_addition_selector: [".s_share", ".s_social_media"],
         builder_actions: {
+            ResetSocialMediaIconSizeAction,
             DeleteSocialMediaLinkAction,
             ToggleRecordedSocialMediaLinkAction,
             EditRecordedSocialMediaLinkAction,
@@ -161,6 +170,10 @@ class SocialMediaOptionPlugin extends Plugin {
             ".s_share .s_share_title",
             ".s_social_media a > i",
             ".s_social_media .s_social_media_title",
+        ],
+        auto_unfold_container_providers: [
+            { selector: ".s_social_media > a > *", target: ".s_social_media" },
+            { selector: ".s_share > a > *", target: ".s_share" },
         ],
     };
 
@@ -374,6 +387,15 @@ class SocialMediaOptionPlugin extends Plugin {
         } else {
             return link;
         }
+    }
+}
+
+export class ResetSocialMediaIconSizeAction extends BuilderAction {
+    static id = "resetSocialMediaIconSize";
+    apply({ editingElement }) {
+        [...editingElement.classList]
+            .filter((className) => /^fa-[2-5]x$/.test(className))
+            .forEach((className) => editingElement.classList.remove(className));
     }
 }
 

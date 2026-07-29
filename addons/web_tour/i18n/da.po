@@ -11,17 +11,23 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-29 21:59+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 16:23+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/web_tour/"
-"da/>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
+"web_tour/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 2026.6.1\n"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "'%s' created"
+msgstr ""
 
 #. module: web_tour
 #. odoo-javascript
@@ -43,15 +49,68 @@ msgstr ""
 "skal være unikt!"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid ""
+"Are you sure you want to clear all steps?\n"
+"All steps will be lost."
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid ""
+"Are you sure you want to close the tour recorder?\n"
+"All changes will be lost."
+msgstr ""
+
+#. module: web_tour
 #: model:ir.model.fields.selection,name:web_tour.selection__web_tour_tour_step__tooltip_position__bottom
 msgid "Bottom"
 msgstr "Nederst"
 
 #. module: web_tour
 #. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Cancel"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
+msgid "Clear"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Clear all steps?"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
 #: code:addons/web_tour/static/src/tour_utils.js:0
 msgid "Click the top left corner to navigate across apps."
 msgstr "Klik i øverste venstre hjørne for at skifte mellem apps."
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
+msgid "Close"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Close recorder"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Close tour recorder?"
+msgstr ""
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__content
@@ -82,18 +141,18 @@ msgid "Custom tour '%s' couldn't be saved!"
 msgstr "Tilpasset rundvisning '%s' kunne ikke gemmes!"
 
 #. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
-msgid "Custom tour '%s' has been added."
-msgstr "Tilpasset rundvisning '%s' er blevet tilføjet."
-
-#. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_ir_http__display_name
 #: model:ir.model.fields,field_description:web_tour.field_res_users__display_name
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__display_name
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__display_name
 msgid "Display Name"
 msgstr "Visningsnavn"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_service.js:0
+msgid "Enable the tour recorder"
+msgstr ""
 
 #. module: web_tour
 #: model:ir.actions.server,name:web_tour.tour_export_js_action
@@ -131,15 +190,11 @@ msgid "Menu"
 msgstr "Menu"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__name
 msgid "Name"
 msgstr "Navn"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Name:"
-msgstr "Navn:"
 
 #. module: web_tour
 #. odoo-javascript
@@ -190,25 +245,25 @@ msgstr "Gem"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll down to reach the next step."
 msgstr "Scroll ned for at gå til næste trin."
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll left to reach the next step."
 msgstr "Scroll til venstre for at gå til næste trin."
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll right to reach the next step."
 msgstr "Scroll til højre for at gå til næste trin."
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll up to reach the next step."
 msgstr "Scroll op for at gå til næste trin."
 
@@ -230,6 +285,8 @@ msgid "Start Tour"
 msgstr "Start rundvisning"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__url
 msgid "Starting URL"
 msgstr "Start-URL"
@@ -245,12 +302,6 @@ msgstr "Trin"
 #: model_terms:ir.ui.view,arch_db:web_tour.tour_form
 msgid "Steps"
 msgstr "Trin"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Steps:"
-msgstr "Trin:"
 
 #. module: web_tour
 #. odoo-javascript
@@ -286,6 +337,7 @@ msgid "Top"
 msgstr "Top"
 
 #. module: web_tour
+#: model:ir.model,name:web_tour.model_web_tour_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__tour_id
 msgid "Tour"
 msgstr "Rundvisning"
@@ -297,21 +349,16 @@ msgstr "Trin i rundvisning"
 
 #. module: web_tour
 #: model:ir.actions.act_window,name:web_tour.tour_action
-#: model:ir.model,name:web_tour.model_web_tour_tour
 #: model:ir.ui.menu,name:web_tour.menu_tour_action
 msgid "Tours"
 msgstr "Rundvisninger"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__trigger
 msgid "Trigger"
 msgstr "Udløser"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Url:"
-msgstr "URL:"
 
 #. module: web_tour
 #: model:ir.model,name:web_tour.model_res_users
@@ -324,6 +371,12 @@ msgid "User Consumed"
 msgstr "Anvendt af brugeren"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "View tour"
+msgstr ""
+
+#. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.tour_form
 msgid "e.g. My_Tour"
 msgstr "f.eks. Min_rundvisning"
@@ -332,58 +385,3 @@ msgstr "f.eks. Min_rundvisning"
 #: model:ir.model.fields.selection,name:web_tour.selection__web_tour_tour_step__tooltip_position__left
 msgid "left"
 msgstr "venstre"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "name_of_the_tour"
-msgstr "navn_på_rundvisning"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "n°"
-msgstr "nr."
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "trigger"
-msgstr "udløser"
-
-#~ msgid ""
-#~ "<strong><b>Good job!</b> You went through all steps of this tour.</strong>"
-#~ msgstr ""
-#~ "<strong><b>Godt arbejde!</b>Du gennemgik alle trin i denne rundvisning.</"
-#~ "strong>"
-
-#~ msgid "Click on the <i>Home icon</i> to navigate across apps."
-#~ msgstr ""
-#~ "Klik på <i>Hjem ikonet</i> for at navigere på tværs af applikationer."
-
-#~ msgid "Consumed by"
-#~ msgstr "Forbrugt af"
-
-#~ msgid "Disable Tours"
-#~ msgstr "Deaktiver rundvisninger"
-
-#~ msgid "Open bugger menu."
-#~ msgstr "Åben bugger menu."
-
-#~ msgid "Path"
-#~ msgstr "Sti"
-
-#~ msgid "Start"
-#~ msgstr "Start"
-
-#~ msgid "Start tour"
-#~ msgstr "Start tur"
-
-#~ msgid "Test"
-#~ msgstr "Test"
-
-#~ msgid "Test tour"
-#~ msgstr "Test rundvisning"
-
-#~ msgid "Tour name"
-#~ msgstr "Navn på rundtur"

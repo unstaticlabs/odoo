@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import tagged, TransactionCase
 from odoo.exceptions import UserError
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class test_res_lang(TransactionCase):
 
     def test_00_intersperse(self):
@@ -70,7 +72,7 @@ class test_res_lang(TransactionCase):
         dummy_data = ResLang._get_data(id=0)
 
         # test __eq__
-        self.env.registry.clear_cache()
+        self.env.registry.clear_cache('stable')
         self.assertEqual(ResLang._get_data(id=fr_id), fr_data)
         self.assertEqual(ResLang._get_data(id=0), dummy_data)
 
@@ -85,19 +87,22 @@ class test_res_lang(TransactionCase):
         # test dict conversion
         self.assertEqual(
             dict(ResLang._get_data(id=fr_id)),
-            ResLang.browse(fr_id).read(ResLang.CACHED_FIELDS)[0]
+            ResLang.browse(fr_id).read(ResLang._cached_data_fields)[0]
         )
         self.assertEqual(
             dict(ResLang._get_data(id=0)),
-            dict.fromkeys(ResLang.CACHED_FIELDS, False)
+            dict.fromkeys(ResLang._cached_data_fields, False) | {'id': False}
         )
 
         # test performance
-        self.env.cache.clear()
-        self.env.registry.clear_cache()
+        self.env.transaction.clear()
+        self.env.registry.clear_cache('stable')
         # 1 query for res_lang +
         # 1 query for ir_attachment to compute `flag_image_url`
         with self.assertQueryCount(2):
+            # get cached field value for an active language
+            self.assertEqual(ResLang.browse(en_id).url_code, en_url_code)
+        with self.assertQueryCount(0):
             # get cached field value for an active language
             self.assertEqual(ResLang._get_data(code='en_US').url_code, en_url_code)
             # get another cached field value for another active language

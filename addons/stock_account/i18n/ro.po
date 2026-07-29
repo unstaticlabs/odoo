@@ -8,17 +8,18 @@
 # Cozmin Candea <office@terrabit.ro>, 2022
 # Martin Trigaux, 2022
 # Hongu Cosmin <cosmin513@gmail.com>, 2022
-# Dorin Hongu <dhongu@gmail.com>, 2023, 2025, 2026.
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Dorin Hongu <dhongu@gmail.com>, 2023, 2025.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 03:17+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:55+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +27,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -169,8 +170,8 @@ msgstr "Linie cont analitic"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Planuri analitice"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -218,6 +219,12 @@ msgid "Bacon"
 msgstr "Bacon"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -242,10 +249,6 @@ msgstr "Origine COGS"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Companii"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -541,9 +544,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Referință / Motiv ajustare inventar"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Locații inventar"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -605,8 +614,6 @@ msgid ""
 "It exists closing entries after the selected date. Cancel them before "
 "generate an entry prior to them"
 msgstr ""
-"Există înregistrări de închidere după data selectată. Anulați-le înainte să "
-"generați o înregistrare anterioară acestora"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_move
@@ -775,7 +782,8 @@ msgstr "Preț unitar"
 #. odoo-python
 #: code:addons/stock_account/models/product.py:0
 msgid "Price update from %(old_price)s to %(new_price)s by %(user)s"
-msgstr "Actualizare preț de la %(old_price)s la %(new_price)s de către %(user)s"
+msgstr ""
+"Actualizare preț de la %(old_price)s la %(new_price)s de către %(user)s"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_product_template
@@ -829,8 +837,8 @@ msgstr "Cont cheltuieli indirecte producție în curs"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Poziții de stoc"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1210,9 +1218,6 @@ msgstr "stock_move_id"
 msgid "units"
 msgstr "unități"
 
-#~ msgid "6.00"
-#~ msgstr "6.00"
-
 #~ msgid ""
 #~ "Value of the product (automatically computed in AVCO).\n"
 #~ "        Used to value the product when the purchase cost is not known "
@@ -1224,428 +1229,12 @@ msgstr "unități"
 #~ "achiziție nu este cunoscut (ex: ajustare de stoc).\n"
 #~ "        Folosită pentru calculul marjelor în comenzile de vânzare."
 
+#~ msgid "6.00"
+#~ msgstr "6.00"
+
 #~ msgid ""
 #~ "You cannot modify the scheduled date of this operation because it falls "
 #~ "within a locked fiscal period."
 #~ msgstr ""
 #~ "Nu puteți modifica data programată a acestei operațiuni deoarece se "
 #~ "încadrează într-o perioadă fiscală blocată."
-
-#~ msgid "%(quantity)s %(uom)s at product's standard price %(price)s"
-#~ msgstr "%(quantity)s %(uom)s la prețul standard al produsului %(price)s"
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Manual: notele contabile pentru evaluarea inventarului nu sunt "
-#~ "înregistrate automat.\n"
-#~ " Automatizat: o notă contabilă este creată automat pentru a evalua "
-#~ "inventarul atunci când un produs intră sau iese din companie.\n"
-#~ "        "
-
-#~ msgid " Product cost updated from %(previous)s to %(new_cost)s."
-#~ msgstr "Costul produsului actualizat de la %(previous)s la %(new_cost)s."
-
-#~ msgid ""
-#~ "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
-#~ msgstr ""
-#~ "%(user)scost modificat de la%(previous)s la %(new_price)s - %(product)s"
-
-#~ msgid ""
-#~ "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
-#~ "(product)s"
-#~ msgstr ""
-#~ "%(user)s a modificat valoarea stocului de la %(previous)s la %"
-#~ "(new_value)s - %(product)s"
-
-#~ msgid ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Use a "
-#~ "negative added value to record a decrease in the product value</small>"
-#~ msgstr ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Utilizați o "
-#~ "valoare adăugată negativă pentru a înregistra o scădere a valorii "
-#~ "produsului</small>"
-
-#~ msgid "<b>Set other input/output accounts on specific </b>"
-#~ msgstr "<b>Setați alte conturi de intrare/ieșire pe specific </b>"
-
-#~ msgid "Account Move"
-#~ msgstr "Mișcare contabilă"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Proprietăți Cont Stoc"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Înregistrări contabile"
-
-#~ msgid "Add Manual Valuation"
-#~ msgstr "Adaugă evaluare manuală"
-
-#~ msgid "Added value"
-#~ msgstr "Valoare adăugată"
-
-#~ msgid "Automated"
-#~ msgstr "Automat"
-
-#~ msgid "Cancel"
-#~ msgstr "Anulează"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Nu se poate găsi un cont de intrare stoc pentru produsul %s. Trebuie să "
-#~ "definiți unul în categoria produsului sau în locație, înainte de a "
-#~ "procesa această operație."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Nu a fost găsit un cont de ieșire din stoc pentru produsul %s. Trebuie să "
-#~ "definiți unul în categoria de produs sau în locație înainte de a procesa "
-#~ "această operație."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "Modificarea metodei dvs. de cost este o schimbare importantă care va "
-#~ "afecta evaluarea inventarului. Sunteți sigur că doriți să faceți această "
-#~ "schimbare?"
-
-#~ msgid "Choose a date to get the valuation at that date"
-#~ msgstr "Alegeți o dată pentru a obține evaluarea la acea dată"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "Eroare de configurare. Configurați contul de diferență de preț pentru "
-#~ "produsul sau categoria sa pentru a procesa această operațiune."
-
-#~ msgid "Costing method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Schimbarea metodei de cost pentru categoria de produse %s: de la %s până "
-#~ "la %s."
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Cont omolog"
-
-#~ msgid ""
-#~ "Counterpart journal items for all incoming stock moves will be posted in "
-#~ "this account, unless there is a specific valuation account\n"
-#~ "                set on the source location. This is the default value for "
-#~ "all products in this category. It can also directly be set on each "
-#~ "product."
-#~ msgstr ""
-#~ "Elementele jurnalului omolog pentru toate intrările în stoc vor fi "
-#~ "postate în acest cont, cu excepția cazului în care există un cont de "
-#~ "evaluare specific\n"
-#~ "                setat în locația sursă. Aceasta este valoarea implicită "
-#~ "pentru toate produsele din această categorie. Poate fi setat și direct pe "
-#~ "fiecare produs."
-
-#~ msgid "Current Quantity"
-#~ msgstr "Cantitatea actuală"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr ""
-#~ "Unitatea de măsură implicită folosită în toate operațiunile stocului."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "Datorită unei schimbări a unei categorii a unui produs ( de la %s până la "
-#~ "%s), metoda de calculare s-a schimbat pentru șablonul produsului %s: de "
-#~ "la%s până la %s."
-
-#~ msgid "Group by..."
-#~ msgstr "Grupează după..."
-
-#~ msgid "Has Remaining Qty"
-#~ msgstr "Are cantitate rămasă"
-
-#~ msgid "Incoming"
-#~ msgstr "Intrări"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Linie factură"
-
-#~ msgid "Invoice value correction with invoice currency"
-#~ msgstr "Corecție valoare factură cu valuta facturii"
-
-#~ msgid "Journal"
-#~ msgstr "Jurnal"
-
-#~ msgid "Linked To"
-#~ msgstr "Legat de "
-
-#~ msgid "Manual Stock Valuation: %s."
-#~ msgstr "Evaluarea manuală a stocului: %s."
-
-#~ msgid "Manual Stock Valuation: No Reason Given."
-#~ msgstr "Evaluarea manuală a stocului: fără motiv."
-
-#~ msgid "Moved Quantity"
-#~ msgstr "Cantitate mutată"
-
-#~ msgid "New value"
-#~ msgstr "Valoare nouă"
-
-#~ msgid "New value by quantity"
-#~ msgstr "Valoare nouă după cantitate"
-
-#~ msgid "Open Valuation Layer"
-#~ msgstr "Deschide stratul de evaluare"
-
-#~ msgid "Other Info"
-#~ msgstr "Alte informații"
-
-#~ msgid "Outgoing"
-#~ msgstr "Ieșiri"
-
-#~ msgid "Product Revaluation"
-#~ msgstr "Reevaluare produs"
-
-#~ msgid "Product Template"
-#~ msgstr "Șablon produs"
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "Valoarea produsului modificată manual( de la%s până la%s)"
-
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgid "Quantity Svl"
-#~ msgstr "Cantitate Svl"
-
-#~ msgid "Reason"
-#~ msgstr "Motiv"
-
-#~ msgid "Reason of the revaluation"
-#~ msgstr "Motivul reevaluării"
-
-#~ msgid "Related product"
-#~ msgstr "Produs compatibil"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Cant rămasă"
-
-#~ msgid "Return Picking"
-#~ msgstr "Retur Ridicare"
-
-#~ msgid "Revaluation of %s"
-#~ msgstr "Reevaluarea lui %s"
-
-#~ msgid "Revalue"
-#~ msgstr "Reevaluare"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Cont intrare în stoc"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Cont ieșire din stoc"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "Istoricul cantităților de stoc"
-
-#~ msgid "Stock Request an Inventory Count"
-#~ msgstr "Solicită o verificare a stocului"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Cont pentru Inventarul Stocului (Intrare)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Cont pentru Inventarul Stocului (Iesire)"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Nivel evaluare stoc"
-
-#~ msgid ""
-#~ "The Stock Input and/or Output accounts cannot be the same as the Stock "
-#~ "Valuation account."
-#~ msgstr ""
-#~ "Conturile de intrare și / sau de ieșire a stocurilor nu pot fi aceleași "
-#~ "cu contul de evaluare a stocului."
-
-#~ msgid ""
-#~ "The action leads to the creation of a journal entry, for which you don't "
-#~ "have the access rights."
-#~ msgstr ""
-#~ "Acțiunea conduce spre a fi creată o notă contabilă, pentru care nu aveți "
-#~ "dreptul de accesare."
-
-#~ msgid "The added value doesn't have any impact on the stock valuation"
-#~ msgstr "Valoarea adăugată nu are niciun impact asupra evaluării stocurilor"
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "Liniile de mișcare nu sunt într-o stare consistentă: unele intră iar "
-#~ "altele părăsesc compania."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "Liniile de mișcare nu sunt într-o stare consistentă: ele fac o "
-#~ "intercompanie într-un singur pas în timp ce ar trebui să treacă prin "
-#~ "locația de tranzit intercompanie."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "Liniile de mișcare nu sunt într-o stare consistentă: nu împărtășesc "
-#~ "aceeași origine sau destinație a companiei."
-
-#~ msgid ""
-#~ "There are no valuation layers. Valuation layers are created when there "
-#~ "are product moves that impact the valuation of the stock."
-#~ msgstr ""
-#~ "Nu există niveluri de evaluare. Nivelurile de evaluare sunt create atunci "
-#~ "când există mișcări de produse care afectează evaluarea stocului."
-
-#~ msgid "Total Remaining Quantity"
-#~ msgstr "Cantitatea totală rămasă"
-
-#~ msgid "Unit Value"
-#~ msgstr "Preț"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Unitatea de măsură"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Folosit pentru evaluarea stocului in timp-real. Atunci când este setat pe "
-#~ "o locație virtuala (de tip non intern), acest cont va fi folosit pentru a "
-#~ "menține valoarea produselor care sunt mutate dintr-o locatie interna in "
-#~ "aceasta locație, in locul Contulul general pentru Iesirea Stocului setat "
-#~ "pe produs. Acesta nu are niciun efect asupra locațiilor interne."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Folosit pentru evaluarea inventarului in timp-real. Atunci cand este "
-#~ "setat pe o locație virtuala (de tip non interna), acest cont va fi "
-#~ "folosit pentru a pastra valoarea produselor care sunt mutate din aceasta "
-#~ "locație intr-o locație interna, in loc de Contul general De Iesire a "
-#~ "Stocului setat pentru produse. Acesta nu are niciun efect asupra "
-#~ "locațiilor interne."
-
-#~ msgid "Valuation Report"
-#~ msgstr "Raport de evaluare"
-
-#~ msgid "Valuation at Date"
-#~ msgstr "Valuare la data"
-
-#~ msgid "Valuation method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Modificarea metodei de evaluare pentru categoria de produse %s: de la %s "
-#~ "până la %s."
-
-#~ msgid "Value Svl"
-#~ msgstr "Valoare Svl"
-
-#~ msgid "Warning"
-#~ msgstr "Atenție"
-
-#~ msgid ""
-#~ "When doing automated inventory valuation, counterpart journal items for "
-#~ "all outgoing stock moves will be posted in this account,\n"
-#~ "                unless there is a specific valuation account set on the "
-#~ "destination location. This is the default value for all products in this "
-#~ "category.\n"
-#~ "                It can also directly be set on each product."
-#~ msgstr ""
-#~ "Când se face evaluarea automatizată a inventarului, elementele jurnal "
-#~ "opuse pentru toate mișcările de stoc iesitoare vor fi postate in acest "
-#~ "cont, \n"
-#~ "                cu excepția cazului în care există un cont de evaluare "
-#~ "specific setat pe locația destinație. Aceasta este valoarea implicită "
-#~ "pentru toate produsele din această categorie. \n"
-#~ "                Poate fi setat direct și pe fiecare produs."
-
-#~ msgid "Wizard model to reavaluate a stock inventory for a product"
-#~ msgstr ""
-#~ "Model wizard de reevaluare a unui inventar de stocuri pentru un produs"
-
-#~ msgid "You cannot revalue a product with a standard cost method."
-#~ msgstr "Nu puteți reevalua un produs cu metoda costului standard."
-
-#~ msgid "You cannot revalue a product with an empty or negative stock."
-#~ msgstr "Nu puteți reevalua un produs cu un stoc gol sau negativ."
-
-#~ msgid ""
-#~ "You cannot update the cost of a product in automated valuation as it "
-#~ "leads to the creation of a journal entry, for which you don't have the "
-#~ "access rights."
-#~ msgstr ""
-#~ "Nu puteți actualiza costului unui produs în metoda automatizată de "
-#~ "evaluare deoarece conduce la crearea unei note contabile, pentru care nu "
-#~ "aveți dreptul de acces."
-
-#~ msgid ""
-#~ "You don't have any input valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Nu aveți niciun cont de evaluare a intrărilor definit în categoria "
-#~ "dumneavoastră de produse. Trebuie să definiți unu înainte de procedarea "
-#~ "acestei operațiuni."
-
-#~ msgid ""
-#~ "You don't have any stock input account defined on your product category. "
-#~ "You must define one before processing this operation."
-#~ msgstr ""
-#~ "Nu aveți niciun cont de intrare în stoc definit în categoria "
-#~ "dumneavoastră de produse. Trebuie să definiți unu înainte de procedarea "
-#~ "acestei operațiuni."
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "u aveți niciun jurnal de stoc definit în categoria dvs. de produse, "
-#~ "verificați dacă ați instalat un plan de conturi."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Nu aveți definit un cont de evaluare stoc în datele de baza ale "
-#~ "produsului sau în categorie. Trebuie să definiți unul înainte de a "
-#~ "procesa această operație."
-
-#~ msgid "You must set a counterpart account on your product category."
-#~ msgstr "Trebuie să setați un cont de contrapartidă pe categoria de produse."
-
-#~ msgid "by"
-#~ msgstr "de"
-
-#~ msgid "for"
-#~ msgstr "pentru"
-
-#~ msgid "locations"
-#~ msgstr "locații"

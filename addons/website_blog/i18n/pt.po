@@ -17,14 +17,14 @@
 # Manuela Silva <mmsrs@sky.com>, 2022
 # Martin Trigaux, 2022
 # Mónica Pinheiro, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 23:17+0000\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2025-11-08 17:46+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.odoo.com/projects/odoo-19/"
 "website_blog/pt/>\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_blog
 #. odoo-python
@@ -54,7 +54,12 @@ msgstr "'. A mostrar resultados para '"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.date_selector
-msgid "-- All dates"
+msgid "-- Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.date_selector
+msgid "-- Unpublished"
 msgstr ""
 
 #. module: website_blog
@@ -203,20 +208,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 msgstr "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.s_dynamic_snippet_blog_posts_single_aside_preview_data
@@ -543,6 +534,16 @@ msgid "Author Name"
 msgstr "Nome de Autor"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_post__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__author_avatar
 msgid "Avatar"
 msgstr "Avatar"
@@ -624,12 +625,19 @@ msgstr "Além do olho"
 #: model:ir.model,name:website_blog.model_blog_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__blog_id
 #: model:ir.ui.menu,name:website_blog.menu_website_blog_root_global
+#: model:res.groups.privilege,name:website_blog.res_groups_privilege_blog
 #: model:website.menu,name:website_blog.menu_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_blog_view_search
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_blog_form
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_search
+#: model_terms:ir.ui.view,arch_db:website_blog.website_blog
 msgid "Blog"
 msgstr "Blog"
+
+#. module: website_blog
+#: model:res.groups,name:website_blog.group_website_blog_manager
+msgid "Blog Manager"
+msgstr ""
 
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__name
@@ -700,6 +708,11 @@ msgid "Blog Tags"
 msgstr "Marcadores do blog"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Blog Teaser"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_cover_post_fullwidth_design
 msgid "Blog Title"
 msgstr "Título do blog"
@@ -745,6 +758,11 @@ msgstr "Inferior"
 #: code:addons/website_blog/static/src/website_builder/blog_page_option.xml:0
 msgid "Breadcrumb"
 msgstr "Trilha de Navegação"
+
+#. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_3
@@ -1020,11 +1038,6 @@ msgstr "Escreva um título, o subtítulo é opcional."
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Enter your post's title"
 msgstr "Insira o título da sua publicação"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Facebook"
-msgstr "Facebook"
 
 #. module: website_blog
 #: model:blog.post,subtitle:website_blog.blog_post_3
@@ -1445,11 +1458,6 @@ msgstr ""
 #: model_terms:blog.post,content:website_blog.blog_post_3
 msgid "Leisure Facilities"
 msgstr "Instalações de lazer"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_blog
 #. odoo-javascript
@@ -1883,7 +1891,13 @@ msgid "Publication Date"
 msgstr "Data de publicação"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 msgid "Published"
 msgstr "Publicada"
 
@@ -1893,25 +1907,20 @@ msgid "Published ("
 msgstr "Publicado ("
 
 #. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
-msgid "Published Date"
-msgstr "Data de publicação"
-
-#. module: website_blog
 #: model:mail.message.subtype,description:website_blog.mt_blog_blog_published
 #: model:mail.message.subtype,name:website_blog.mt_blog_blog_published
 msgid "Published Post"
 msgstr "Postagem publicada"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 msgid "Publishing Options"
 msgstr "Opções de Publicação"
-
-#. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__post_date
-msgid "Publishing date"
-msgstr "Data de publicação"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.sidebar_blog_index
@@ -1992,6 +2001,17 @@ msgid "Satellites"
 msgstr "Satélites"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_list
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
+msgid "Scheduled ("
+msgstr ""
+
+#. module: website_blog
 #. odoo-javascript
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Search for an image. (eg: type \"business\")"
@@ -2068,23 +2088,13 @@ msgstr "Compartilhar links"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on Facebook"
-msgstr "Compartilhar no Facebook"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on LinkedIn"
-msgstr "Compartilhar no Linkedin"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on X"
-msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
 msgid "Share this post"
 msgstr "Compartilhar esta publicação"
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Shown as a preview on the /blog page"
+msgstr ""
 
 #. module: website_blog
 #. odoo-javascript
@@ -2426,15 +2436,6 @@ msgid "The best time to view the moon."
 msgstr "O melhor momento para ver a lua."
 
 #. module: website_blog
-#: model:ir.model.fields,help:website_blog.field_blog_post__post_date
-msgid ""
-"The blog post will be visible for your visitors as of this date on the "
-"website if it is set as published."
-msgstr ""
-"A publicação ficará visível no site para os seus visitantes a partir desta "
-"data se estiver definido como publicada."
-
-#. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_2
 msgid ""
 "The cliffs in this region are among the highest in the world and to see "
@@ -2447,11 +2448,13 @@ msgstr ""
 "Maui de helicóptero vale a pena para ver a beleza deste ambiente natural."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr "O URL absoluto completo para acessar o documento pelo site."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_url
 msgid "The full relative URL to access the document through the website."
 msgstr "O URL relativo completo para acessar o documento pelo site."
@@ -2705,14 +2708,14 @@ msgid "Travel"
 msgstr "Viagem"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Twitter"
-msgstr "Twitter"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
 msgid "Unpublished ("
 msgstr "Não publicado ("
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Unschedule"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.post_heading
@@ -2766,6 +2769,7 @@ msgid "Website"
 msgstr "Website"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_absolute_url
 msgid "Website Absolute URL"
 msgstr "URL absoluto do site"
@@ -2787,6 +2791,7 @@ msgid "Website Snippet Filter"
 msgstr "Filtro de bloco de código do site"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_url
 msgid "Website URL"
 msgstr "URL do Website"
@@ -2955,11 +2960,6 @@ msgid "to leave a comment"
 msgstr "para deixar um comentário"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
-msgid "unpublished"
-msgstr "não publicado"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid ""
 "|\n"
@@ -2970,18 +2970,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid "| No comments yet"
 msgstr "| Nenhum comentário ainda"
-
-#~ msgid "&amp;nbsp;"
-#~ msgstr "&amp;nbsp;"
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar por"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Número de mensagens que requerem uma ação"
-
-#~ msgid "Read more"
-#~ msgstr "Ler mais"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "O URL completo para aceder ao documento através do Website."

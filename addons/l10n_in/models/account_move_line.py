@@ -33,13 +33,12 @@ class AccountMoveLine(models.Model):
             ("sale_eco_9_5", "ECO 9(5)"),
             ("sale_out_of_scope", "Out of Scope"),
             ("purchase_b2b_regular", "B2B Regular"),
-            ("purchase_b2c_regular", "B2C Regular"),  # will be removed in master
             ("purchase_b2b_rcm", "B2B RCM"),
             ("purchase_b2c_rcm", "B2C RCM"),
             ("purchase_imp_services", "IMP(services-RCM)"),
             ("purchase_imp_goods", "IMP(goods)"),
             ("purchase_cdnr_regular", "CDNR Regular"),
-            ("purchase_cdnur_regular", "CDNUR Regular"),  # will be removed in master
+            ("purchase_cdnur_overseas", "CDNUR Overseas"),  # will be removed in master
             ("purchase_cdnr_rcm", "CDNR RCM"),
             ("purchase_cdnur_rcm", "CDNUR RCM"),
             ("purchase_nil_rated", "Nil Rated"),

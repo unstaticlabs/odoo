@@ -6,6 +6,7 @@ import {
     goBackToBlocks,
     registerWebsitePreviewTour,
     selectFullText,
+    unfoldOptionsGroup,
 } from "@website/js/tours/tour_utils";
 import { browser } from "@web/core/browser/browser";
 import { delay } from "@web/core/utils/concurrency";
@@ -45,6 +46,7 @@ registerWebsitePreviewTour(
         selectFullText("first paragraph", ".s_text_image p:not([data-selection-placeholder])"),
         checkIfParagraphSelected(":iframe .s_text_image p:not([data-selection-placeholder])"),
         checkIfTextToolbarVisible,
+        ...unfoldOptionsGroup("Text - Image"),
         {
             content: "Click on the width option.",
             trigger: "[data-action-param='o_container_small']",
@@ -100,26 +102,22 @@ registerWebsitePreviewTour(
             name: "Text",
             groupName: "Text",
         }),
-		{
-		    content: "Wait for the Scroll to finish",
-		    trigger: ":iframe .s_text_block",
-		    run: async function() {
-		        // Default scroll duration is 600ms
-		        await delay(610);
-		    },
-		},
+        {
+            content: "Wait for the Scroll to finish",
+            trigger: ":iframe .s_text_block",
+            run: async function () {
+                // Default scroll duration is 600ms
+                await delay(610);
+            },
+        },
         selectFullText("first paragraph", ".s_text_block p:not([data-selection-placeholder])"),
         checkIfParagraphSelected(":iframe .s_text_block p:not([data-selection-placeholder])"),
         checkIfTextToolbarVisible,
         ...changeOptionInPopover("Text", "Layout", "[data-action-value='3']"),
         {
             content: "The snippet should have the correct number of columns.",
-            trigger: ":iframe .s_text_block .container > .row .col-lg-4:eq(3)",
-            run() {
-                if ([...this.anchor.children].filter(child => !child.hasAttribute("data-selection-placeholder")).length !== 3) {
-                    console.error("The snippet does not have the correct number of columns");
-                }
-            },
+            trigger:
+                ":iframe .s_text_block .container > .row:has(.col-lg-4:not([data-selection-placeholder]):count(3))",
         },
         checkIfParagraphSelected(":iframe .s_text_block p:not([data-selection-placeholder])"),
         // Test keeping the text selection when removing all columns of a

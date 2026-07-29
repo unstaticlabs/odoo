@@ -14,6 +14,13 @@ class ResPartner(models.Model):
     )
     sale_order_ids = fields.One2many('sale.order', 'partner_id', 'Sales Order')
     sale_warn_msg = fields.Text('Message for Sales Order')
+    incoterm_id = fields.Many2one(
+        comodel_name='account.incoterms',
+        string='Incoterm',
+        help='International Commercial Terms are a series of predefined commercial'
+             ' terms used in international transactions.',
+    )
+    incoterm_location = fields.Char(string='Incoterm Location')
 
     @api.model
     def _get_sale_order_domain_count(self):
@@ -47,7 +54,7 @@ class ResPartner(models.Model):
             return data_list
         for partner in self.filtered('sale_order_count'):
             data_list[partner.id].append(
-                {'iconClass': 'fa-usd', 'value': partner.sale_order_count, 'label': self.env._('Sale Orders'), 'tagClass': 'o_tag_color_2'}
+                {'iconClass': 'fa-usd', 'value': partner.sale_order_count, 'label': self.env._('Sale Orders')}
             )
         return data_list
 
@@ -96,6 +103,7 @@ class ResPartner(models.Model):
             ]),
             ('order_line', 'any', [('untaxed_amount_to_invoice', '>', 0)]),
             ('state', '=', 'sale'),
+            ('invoicing_closed', '=', False),
         ])
         for (partner, currency), orders in sale_orders.grouped(
             lambda so: (so.partner_invoice_id, so.currency_id),

@@ -1,6 +1,14 @@
 import { markRaw, reactive, toRaw } from "@odoo/owl";
 import { Store } from "./store";
-import { STORE_SYM, isFieldDefinition, isMany, isRelation, modelRegistry } from "./misc";
+import {
+    STORE_SYM,
+    fields,
+    isFieldDefinition,
+    isMany,
+    isRelation,
+    modelRegistry,
+    technicalKeysOnRecords,
+} from "./misc";
 import { Record } from "./record";
 import { StoreInternal } from "./store_internal";
 import { ModelInternal } from "./model_internal";
@@ -55,6 +63,19 @@ export function makeStore(env, { localRegistry } = {}) {
                          * @param {Record} recordFullProxy
                          */
                         get(record, name, recordFullProxy) {
+                            if (Model._.parentFields.has(name)) {
+                                const parentFieldName = Model._.parentFields.get(name);
+                                const parentRecordFullProxy = recordFullProxy[parentFieldName];
+                                if (!parentRecordFullProxy) {
+                                    const ParentModel =
+                                        Models[Model._.fieldsTargetModel.get(parentFieldName)];
+                                    if (isMany(ParentModel, name)) {
+                                        return [];
+                                    }
+                                    return;
+                                }
+                                return Reflect.get(parentRecordFullProxy, name);
+                            }
                             recordFullProxy = record._.downgradeProxy(record, recordFullProxy);
                             if (record._.gettingField || !Model._.fields.get(name)) {
                                 let res = Reflect.get(...arguments);
@@ -92,6 +113,12 @@ export function makeStore(env, { localRegistry } = {}) {
                          * @param {string} name
                          */
                         deleteProperty(record, name) {
+                            if (Model._.parentFields.has(name)) {
+                                const parentFieldName = Model._.parentFields.get(name);
+                                const parentRecordProxyInternal =
+                                    record._proxyInternal[parentFieldName];
+                                return Reflect.deleteProperty(parentRecordProxyInternal, name);
+                            }
                             return store.MAKE_UPDATE(function recordDeleteProperty() {
                                 if (isRelation(Model, name)) {
                                     const recordList = record[name];
@@ -106,6 +133,12 @@ export function makeStore(env, { localRegistry } = {}) {
                          * when updating multiple fields at the same time.
                          */
                         set(record, name, val, receiver) {
+                            if (Model._.parentFields.has(name)) {
+                                const parentFieldName = Model._.parentFields.get(name);
+                                const parentRecordProxyInternal =
+                                    record._proxyInternal[parentFieldName];
+                                return Reflect.set(parentRecordProxyInternal, name, val);
+                            }
                             // ensure each field write goes through the updatingAttrs method exactly once
                             if (record._.updatingAttrs.has(name)) {
                                 record[name] = val;
@@ -133,9 +166,6 @@ export function makeStore(env, { localRegistry } = {}) {
                         store = record;
                         Record.store = store;
                     }
-                    for (const name of Model._.fields.keys()) {
-                        record._.prepareField(record, name, recordProxy);
-                    }
                     return recordProxy;
                 }
             },
@@ -151,9 +181,13 @@ export function makeStore(env, { localRegistry } = {}) {
         const obj = new OgClass();
         obj.setup();
         for (const [name, val] of Object.entries(obj)) {
-            if (isFieldDefinition(val)) {
-                Model._.prepareField(name, val);
+            if (technicalKeysOnRecords.includes(name)) {
+                continue;
             }
+            if (!isFieldDefinition(val)) {
+                obj[name] = fields.Attr(val);
+            }
+            Model._.prepareField(name, obj[name]);
         }
     }
     // Sync inverse fields
@@ -190,6 +224,43 @@ export function makeStore(env, { localRegistry } = {}) {
                 // // FIXME: lazy fields are not working properly with inverse.
                 Model._.fieldsEager.set(name, true);
                 OtherModel._.fieldsEager.set(inverse, true);
+            }
+        }
+    }
+    // Map inherited properties
+    for (const Model of Object.values(Models)) {
+        if (Model._inherits) {
+            const ownProperties = new Set([
+                ...Model._.fields.keys(),
+                ...Object.getOwnPropertyNames(Model.prototype),
+            ]);
+            for (const [parentModelName, parentFieldName] of Object.entries(Model._inherits)) {
+                const inverseField = Model._.fieldsInverse.get(parentFieldName);
+                if (!inverseField) {
+                    throw new Error(
+                        `Missing inverse field of "${parentFieldName}" for _inherits in "${Model.getName()}"`
+                    );
+                }
+                Model._.inheritsFields.add(parentFieldName);
+                const ParentModel = Models[parentModelName];
+                ParentModel._.inheritsInverseFields.add(inverseField);
+                // fields
+                for (const fieldName of ParentModel._.fields.keys()) {
+                    if (ownProperties.has(fieldName)) {
+                        continue;
+                    }
+                    Model._.parentFields.set(fieldName, parentFieldName);
+                }
+                // getters and functions
+                for (const key of Object.getOwnPropertyNames(ParentModel.prototype)) {
+                    if (ownProperties.has(key)) {
+                        continue;
+                    }
+                    const descriptor = Object.getOwnPropertyDescriptor(ParentModel.prototype, key);
+                    if (descriptor.get || typeof descriptor.value === "function") {
+                        Model._.parentFields.set(key, parentFieldName);
+                    }
+                }
             }
         }
     }

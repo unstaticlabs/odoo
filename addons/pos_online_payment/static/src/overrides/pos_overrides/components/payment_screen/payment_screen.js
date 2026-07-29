@@ -3,17 +3,18 @@ import { patch } from "@web/core/utils/patch";
 import { serializeDateTime } from "@web/core/l10n/dates";
 
 patch(PaymentScreen.prototype, {
-    async addNewPaymentLine(paymentMethod) {
-        // Sync the order to the server only for the first online payment line: syncing a
-        // draft order strips its online payment lines, wiping previously added ones.
-        const hasOnlinePaymentLine = this.paymentLines.some(
-            (line) => line.payment_method_id.is_online_payment
-        );
-        if (paymentMethod.is_online_payment && !hasOnlinePaymentLine) {
+    async validateOrder(isForceValidate) {
+        // Order will be now synced on validate order if online payment is configured.
+        const opts = this.validationOptions;
+        if (
+            !this.currentOrder.isSynced &&
+            (opts.fastPaymentMethod?.is_online_payment ||
+                this.paymentLines.find((p) => p.payment_method_id.is_online_payment))
+        ) {
             this.currentOrder.date_order = serializeDateTime(luxon.DateTime.now());
             this.pos.addPendingOrder([this.currentOrder.id]);
             await this.pos.syncAllOrders();
         }
-        return await super.addNewPaymentLine(...arguments);
+        await super.validateOrder(isForceValidate);
     },
 });

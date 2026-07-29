@@ -81,7 +81,7 @@ class ProductTemplate(models.Model):
         return domain
 
     @api.model
-    def load_product_from_pos(self, config_id, domain, offset=0, limit=0):
+    def load_product_from_pos(self, config_id, domain, offset=0, limit=None):
         load_archived = self.env.context.get('load_archived', False)
         domain = Domain(domain)
         config = self.env['pos.config'].browse(config_id)
@@ -118,13 +118,6 @@ class ProductTemplate(models.Model):
         # (kept for referential integrity when used in a sale order) resolve correctly on the frontend
         product_attr = product_tmpl_attr_line.attribute_id
         product_attr_read = product_attr._load_pos_data_read(product_attr, config)
-
-        # product.template.attribute.exclusion loading
-        product_tmpl_excl = self.env['product.template.attribute.exclusion']
-        product_tmpl_exclusion = product_tmpl_attr_value.exclude_for + product_tmpl_excl.search([
-            ('product_tmpl_id', 'in', product_tmpls.ids),
-        ])
-        product_tmpl_exclusion_read = product_tmpl_excl._load_pos_data_read(product_tmpl_exclusion, config)
 
         # product.product loading
         product_read = products._load_pos_data_read(products.with_context(display_default_code=False), config)
@@ -163,7 +156,6 @@ class ProductTemplate(models.Model):
             'product.combo.item': combo_item_read,
             'product.template.attribute.value': product_tmpl_attr_value_read,
             'product.template.attribute.line': product_tmpl_attr_line_read,
-            'product.template.attribute.exclusion': product_tmpl_exclusion_read,
         }
 
     @api.model
@@ -239,14 +231,14 @@ class ProductTemplate(models.Model):
         self._process_pos_ui_product_product(read_records, config)
         return read_records
 
-    def _load_product_with_domain(self, domain, load_archived=False, offset=0, limit=0):
+    def _load_product_with_domain(self, domain, load_archived=False, offset=0, limit=None):
         context = {**self.env.context, 'display_default_code': False, 'active_test': not load_archived, 'bin_size': True}
         domain = self._server_date_to_domain(domain)
         return self.with_context(context).search(
             domain,
             order='sequence,default_code,name',
             offset=offset,
-            limit=limit if limit else False
+            limit=limit or None,
         )
 
     def _process_pos_ui_product_product(self, products, config_id):
@@ -350,7 +342,7 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         config = self.env['pos.config'].browse(pos_config_id)
         product_variant = self.env['product.product'].browse(product_variant_id) if product_variant_id else False
-        template_or_variants = product_variant or self.product_variant_ids
+        template_or_variant = product_variant or self
 
         # Tax related
         tax_to_use = self.env['account.tax']
@@ -385,17 +377,21 @@ class ProductTemplate(models.Model):
             pricelists = config.available_pricelist_ids
         else:
             pricelists = config.pricelist_id
-        price_per_pricelist_id = pricelists._price_get(product_variant or self, quantity) if pricelists else False
+        price_per_pricelist_id = pricelists._price_get(template_or_variant, quantity) if pricelists else False
         pricelist_list = [{'name': pl.name, 'price': price_per_pricelist_id[pl.id]} for pl in pricelists]
 
         # Warehouses
         warehouse_list = [
             {'id': w.id,
             'name': w.name,
-            'available_quantity': sum(template_or_variants.with_context({'warehouse_id': w.id}).mapped('qty_available')),
-            'free_qty': sum(template_or_variants.with_context({'warehouse_id': w.id}).mapped('free_qty')),
-            'forecasted_quantity': sum(template_or_variants.with_context({'warehouse_id': w.id}).mapped('virtual_available')),
-            'uom': template_or_variants.uom_id.name}
+            'available_quantity': template_or_variant.with_context({'warehouse_id': w.id}).qty_available,
+            'free_qty': (
+                    template_or_variant.with_context({'warehouse_id': w.id}).free_qty
+                    if product_variant
+                    else sum(self.product_variant_ids.with_context({'warehouse_id': w.id}).mapped('free_qty'))
+                ),
+            'forecasted_quantity': template_or_variant.with_context({'warehouse_id': w.id}).virtual_available,
+            'uom': template_or_variant.uom_name}
             for w in self.env['stock.warehouse'].search([('company_id', '=', config.company_id.id)])]
 
         if config.picking_type_id.warehouse_id:

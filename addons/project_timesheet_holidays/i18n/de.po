@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Larissa Manderfeld, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 05:00+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-12 17:37+0000\n"
+"PO-Revision-Date: 2026-06-20 15:29+0000\n"
+"Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
 "project_timesheet_holidays/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -36,7 +36,7 @@ msgstr "Kostenstellenbuchungen"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr "Unternehmen"
 
 #. module: project_timesheet_holidays
@@ -47,7 +47,7 @@ msgstr "Konfigurationseinstellungen"
 #. module: project_timesheet_holidays
 #: model:ir.model,website_form_label:project_timesheet_holidays.model_project_task
 msgid "Create a Task"
-msgstr "Aufgabe erstellen"
+msgstr "Eine Aufgabe erstellen"
 
 #. module: project_timesheet_holidays
 #: model:ir.model.fields,field_description:project_timesheet_holidays.field_account_analytic_line__display_name
@@ -202,8 +202,8 @@ msgid ""
 "Please use the Time Off application to request new time off instead."
 msgstr ""
 "Sie können keine Zeiterfassungen für eine Aufgabe erstellen, die mit einer "
-"Abwesenheitsart verknüpft ist. Verwenden Sie stattdessen die „Abwesenheiten“-"
-"App, um eine neue Abwesenheit zu beantragen."
+"Abwesenheitsart verknüpft ist. Bitte verwenden Sie stattdessen die "
+"„Abwesenheiten“-App, um eine neue Abwesenheit zu beantragen."
 
 #. module: project_timesheet_holidays
 #. odoo-python
@@ -232,47 +232,11 @@ msgid ""
 "use the Time Off application to modify your time off requests instead."
 msgstr ""
 "Sie können Zeiterfassungen, die mit einer Abwesenheitsart verknüpft sind, "
-"nicht ändern. Verwenden Sie stattdessen die „Abwesenheiten“-App, um Ihre "
-"Abwesenheitsanfrage zu ändern."
+"nicht ändern. Bitte verwenden Sie stattdessen die „Abwesenheiten“-App, um "
+"Ihre Abwesenheitsanfrage zu ändern."
 
 #. module: project_timesheet_holidays
 #. odoo-python
 #: code:addons/project_timesheet_holidays/__init__.py:0
 msgid "allow_timesheets"
 msgstr "allow_timesheets"
-
-#~ msgid ""
-#~ "Both the internal project and task are required to generate a timesheet "
-#~ "for the time off %s. If you don't want a timesheet, you should leave the "
-#~ "internal project and task empty."
-#~ msgstr ""
-#~ "Sowohl das interne Projekt als auch die Aufgabe sind erforderlich, um "
-#~ "einen Stundenzettel für die Abwesenheit zu erstellen%s. Wenn Sie keinen "
-#~ "Stundenzettel wünschen, lassen Sie das interne Projekt und die Aufgabe "
-#~ "leer."
-
-#~ msgid "Generate Timesheet"
-#~ msgstr "Zeiterfassung erstellen"
-
-#~ msgid "Global Time Off"
-#~ msgstr "Unternehmensweite freie Zeit"
-
-#~ msgid ""
-#~ "If checked, when validating a time off, timesheet will be generated in "
-#~ "the Vacation Project of the company."
-#~ msgstr ""
-#~ "Wenn diese Option aktiviert ist, wird bei der Validierung einer "
-#~ "Freistellung ein Stundenzettel im Urlaubsprojekt des Unternehmens "
-#~ "erstellt."
-
-#~ msgid "Is Time off Task"
-#~ msgstr "Ist Abwesenheitsaufgabe"
-
-#~ msgid "Operation not supported"
-#~ msgstr "Vorgang nicht unterstützt"
-
-#~ msgid "Time Off (%s/%s)"
-#~ msgstr "Abwesenheiten (%s/%s)"
-
-#~ msgid "Time Off Type"
-#~ msgstr "Abwesenheitstyp"

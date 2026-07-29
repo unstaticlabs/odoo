@@ -5,8 +5,10 @@ import * as PartnerList from "@point_of_sale/../tests/pos/tours/utils/partner_li
 import * as TextInputPopup from "@point_of_sale/../tests/generic_helpers/text_input_popup_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
+import * as ChoseComboPopup from "@point_of_sale/../tests/pos/tours/utils/chose_combo_popup_util";
 import { LONG_PRESS_DURATION } from "@point_of_sale/utils";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 
 export function firstProductIsFavorite(name) {
     return [
@@ -55,8 +57,21 @@ export function selectFloatingOrder(index) {
             run: "click",
         },
         {
-            trigger: `.list-container-items .btn:eq(${index})`,
+            isActive: ["mobile"],
+            trigger: `.modal-dialog .list-container-items .btn:eq(${index})`,
             run: "click",
+        },
+        {
+            isActive: ["desktop"],
+            trigger: `.list-container-items .floating-order-container`,
+            run: () => {
+                const btns = document.querySelectorAll(
+                    ".list-container-items .floating-order-container .btn"
+                );
+                if (btns[index]) {
+                    btns[index].click();
+                }
+            },
         },
     ];
 }
@@ -69,10 +84,26 @@ export function checkFloatingOrderCount(expectedCount) {
             run: "click",
         },
         {
+            isActive: ["mobile"],
             content: `check there are ${expectedCount} floating order`,
-            trigger: ".list-container-items .btn",
+            trigger: ".modal-dialog .list-container-items .btn",
             run: () => {
-                const btns = document.querySelectorAll(".list-container-items .btn");
+                const btns = document.querySelectorAll(".modal-dialog .list-container-items .btn");
+                if (btns.length !== expectedCount) {
+                    throw new Error(
+                        `Expected ${expectedCount} floating order buttons, found ${btns.length}`
+                    );
+                }
+            },
+        },
+        {
+            isActive: ["desktop"],
+            content: `check there are ${expectedCount} floating order`,
+            trigger: ".list-container-items",
+            run: () => {
+                const btns = document.querySelectorAll(
+                    ".list-container-items .floating-order-container .btn"
+                );
                 if (btns.length !== expectedCount) {
                     throw new Error(
                         `Expected ${expectedCount} floating order buttons, found ${btns.length}`
@@ -205,27 +236,34 @@ export function clickPartnerButton() {
         },
         {
             content: "partner screen is shown",
-            trigger: PartnerList.partnerListTrigger(),
+            trigger: `${PartnerList.clickPartner().trigger}`,
         },
     ];
 }
-export function clickCustomer(name) {
-    return [...PartnerList.clickPartner(name), { ...back(), isActive: ["mobile"] }];
-}
-export function selectPreset(selectedPreset, presetToSelect) {
+export function clickCustomer(name, pressEnter = false) {
     return [
+        ...PartnerList.searchCustomerValue(name, pressEnter),
+        PartnerList.clickPartner(name),
+        { ...back(), isActive: ["mobile"] },
+    ];
+}
+export function selectPreset(selectedPreset, presetToSelect, presetPopup = true) {
+    const steps = [
         clickReview(),
         {
             content: "click preset button",
             trigger: `.product-screen button:contains("${selectedPreset}")`,
             run: "click",
         },
-        {
-            content: `click preset '${presetToSelect}' from preset modal`,
-            trigger: `.modal-body button:contains(${presetToSelect})`,
-            run: "click",
-        },
     ];
+    if (presetPopup) {
+        steps.push({
+            content: `click preset '${presetToSelect}' from preset modal`,
+            trigger: `.modal-body button:contains("${presetToSelect}")`,
+            run: "click",
+        });
+    }
+    return steps;
 }
 export function customerIsSelected(name) {
     return [
@@ -237,7 +275,7 @@ export function customerIsSelected(name) {
     ];
 }
 export function clickRefund() {
-    return [clickReview(), ...clickControlButton("Refund")];
+    return [clickReview(), Chrome.clickOrders(), ...selectFilter("Paid")];
 }
 export function controlButtonTrigger(name = "") {
     return `.control-buttons button:contains("${name}")`;
@@ -295,6 +333,17 @@ export function clickInternalNoteButton(buttonLabel) {
             isActive: ["desktop"],
             content: "click Internal Note button",
             trigger: controlButtonTrigger(buttonLabel),
+            run: "click",
+        },
+    ];
+}
+
+export function cancelOrder() {
+    return [
+        ...clickControlButton("Cancel Order"),
+        {
+            content: "Confirm cancel order",
+            trigger: ".o_dialog .modal-footer button:contains('Ok')",
             run: "click",
         },
     ];
@@ -805,22 +854,9 @@ export function finishOrder() {
     return [
         ...PaymentScreen.clickValidate(),
         Chrome.isSyncStatusConnected(),
-        {
-            isActive: ["desktop"],
-            content: "click Next Order",
-            trigger: ".receipt-screen .button.next.highlight:visible",
-            run: "click",
-        },
-        {
-            isActive: ["mobile"],
-            content: "Click Next Order",
-            trigger: ".receipt-screen .btn-switchpane.validation-button.highlight[name='done']",
-            run: "click",
-        },
-        {
-            content: "check if we left the receipt screen",
-            trigger: ".pos-content div:not(:has(.receipt-screen))",
-        },
+        ...FeedbackScreen.isShown(),
+        ...FeedbackScreen.clickNextOrder(),
+        ...isShown(),
     ];
 }
 
@@ -861,6 +897,22 @@ export function customerIs(name) {
 export function checkTotalAmount(amount) {
     return {
         trigger: `.order-summary .total:contains(${amount})`,
+    };
+}
+
+export function checkTotalAmountStriclyLessThan(amount) {
+    return {
+        content: `Check if the total amount is lesser than ${amount}`,
+        trigger: `.order-summary .total`,
+        run: function () {
+            const totalElement = document.querySelector(".order-summary .total");
+            const totalValue = parseFloat(totalElement.textContent.replace(/[^0-9.]+/g, ""));
+            if (totalValue > amount) {
+                throw new Error(
+                    `Expected total amount to be less than ${amount}, but got ${totalValue}`
+                );
+            }
+        },
     };
 }
 
@@ -1017,7 +1069,6 @@ export function clickFastPaymentButton(paymentMethodName) {
         },
     ];
 }
-
 export function longPressOrderline(productName, delay = 500) {
     return [
         {
@@ -1043,6 +1094,79 @@ export function openCartMobile() {
             trigger: ".switchpane .btn-switchpane:contains('Cart')",
             run: "click",
             isActive: ["mobile"],
+        },
+    ];
+}
+
+export function clickApplyCombo(
+    isOptionShown = false,
+    optionsShown = [],
+    optionToChoose = "",
+    dialogStillPresent = false
+) {
+    const steps = [
+        {
+            content: "Check apply combo button is there",
+            trigger: ".combo-proposition",
+        },
+        {
+            content: "Click apply combo button",
+            trigger: ".combo-proposition button.btn",
+            run: "click",
+        },
+    ];
+    if (isOptionShown) {
+        steps.push(ChoseComboPopup.isShown());
+        for (const option of optionsShown) {
+            steps.push(ChoseComboPopup.isOptionShown(option));
+        }
+        steps.push(ChoseComboPopup.apply(optionToChoose));
+    }
+    if (dialogStillPresent) {
+        steps.push(ChoseComboPopup.isShown());
+        steps.push(Dialog.cancel());
+    }
+    return inLeftSide(steps.flat());
+}
+
+export function clickBreakCombo() {
+    return [
+        {
+            content: "Click break combo button",
+            trigger: ".break-combo-button",
+            run: "click",
+        },
+    ];
+}
+
+export function selectFilter(name) {
+    return [
+        {
+            trigger: `.pos-search-bar .filter`,
+            run: "click",
+        },
+        {
+            trigger: `.pos-search-bar .filter ul`,
+        },
+        {
+            trigger: `.pos-search-bar .filter ul li:contains("${name}")`,
+            run: "click",
+        },
+    ];
+}
+export function productIsSnoozed(product_name) {
+    return [
+        {
+            trigger: `article.product.opacity-50:has(.product-name:contains('${product_name}'))`,
+            content: "Check that the product card is grayed out",
+        },
+    ];
+}
+export function productIsNotSnoozed(product_name) {
+    return [
+        {
+            trigger: `article.product:not(.opacity-50):has(.product-name:contains('${product_name}'))`,
+            content: "Check that the product card is not grayed out",
         },
     ];
 }

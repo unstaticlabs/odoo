@@ -34,7 +34,7 @@ class RatingRating(models.Model):
     parent_res_name = fields.Char('Parent Document Name', compute='_compute_parent_res_name', store=True)
     parent_res_model_id = fields.Many2one('ir.model', 'Parent Related Document Model', index=True, ondelete='cascade')
     parent_res_model = fields.Char('Parent Document Model', store=True, related='parent_res_model_id.model', index=True, readonly=False)
-    parent_res_id = fields.Integer('Parent Document', index=True)
+    parent_res_id = fields.Many2oneReference('Parent Document', model_field='parent_res_model', index=True)
     parent_ref = fields.Reference(
         string='Parent Ref', selection='_selection_target_model',
         compute='_compute_parent_ref', readonly=True)
@@ -208,5 +208,5 @@ class RatingRating(models.Model):
             data_by_model[rating.res_model]['record_ids'].append(rating.res_id)
         return data_by_model
 
-    def _to_store_defaults(self, target):
-        return ["rating", "rating_image_url", "rating_text"]
+    def _store_rating_fields(self, res: Store.FieldList):
+        res.extend(["rating", "rating_image_url", "rating_text"])

@@ -12,6 +12,9 @@ class I18nTest(TransactionCase):
         formatted_text = format_list(self.env, ["To be", "Not to be"], "or")
         self.assertEqual(formatted_text, "To be or Not to be", "Should take the style into account.")
 
+        formatted_text = format_list(self.env, ["Veni", "vidi", "vici"], "standard-narrow")
+        self.assertEqual(formatted_text, "Veni, vidi, vici", "Should support “narrow” style with “standard” type.")
+
         lang._activate_lang("fr_FR")
 
         formatted_text = format_list(lang.with_context(lang="fr_FR").env, ["Athos", "Porthos", "Aramis"])

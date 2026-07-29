@@ -2,7 +2,6 @@
 
 {
     'name': 'Hungary - E-invoicing',
-    'version': '1.0.0',
     'category': 'Accounting/Localizations/EDI',
     'author': 'DO Tech (OdooTech Zrt.), BDSC Business Consulting Kft. & Odoo S.A.',
     'description': """
@@ -10,11 +9,10 @@
 * Perform the Tax Audit Export (Adóhatósági Ellenőrzési Adatszolgáltatás) in NAV 3.0 format.
     """,
     'website': 'https://www.odootech.hu',
-    'depends': ['account_debit_note', 'base_iban', 'l10n_hu'],
+    'depends': ['account_debit_note', 'l10n_hu'],
     'data': [
         'security/ir.model.access.csv',
         'data/uom.uom.csv',
-        'data/account_cash_rounding.xml',
         'data/template_requests.xml',
         'data/template_invoice.xml',
         'data/ir_cron.xml',
@@ -33,7 +31,6 @@
     'demo': [
         'demo/demo_partner.xml',
     ],
-    'post_init_hook': 'post_init',
     'auto_install': ['l10n_hu'],
     'license': 'LGPL-3',
 }

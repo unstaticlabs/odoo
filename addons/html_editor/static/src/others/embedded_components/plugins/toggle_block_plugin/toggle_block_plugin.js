@@ -543,8 +543,18 @@ export class ToggleBlockPlugin extends Plugin {
     }
 
     insertToggleBlock() {
+        let currentBlock;
+        const selection = this.dependencies.selection.getSelectionData().deepEditableSelection;
+        if (selection.isCollapsed) {
+            currentBlock = closestBlock(selection.startContainer);
+        }
+
         const block = this.renderToggleBlock();
-        const target = block.querySelector(`${titleSelector} > ${baseContainerGlobalSelector}`);
+        let target = block.querySelector(`${titleSelector} > ${baseContainerGlobalSelector}`);
+        if (currentBlock && isParagraphRelatedElement(currentBlock)) {
+            target.replaceWith(currentBlock);
+            target = currentBlock;
+        }
         this.dependencies.dom.insert(block);
         this.dependencies.selection.setCursorStart(target);
         this.dependencies.history.addStep();
@@ -591,7 +601,7 @@ export class ToggleBlockPlugin extends Plugin {
         }
     }
 
-    renderToggleBlock() {
+    renderToggleBlock(initialText) {
         const baseContainer = this.dependencies.baseContainer.createBaseContainer();
         return parseHTML(
             this.document,
@@ -601,6 +611,7 @@ export class ToggleBlockPlugin extends Plugin {
                     class: baseContainer.className,
                 },
                 embeddedProps: JSON.stringify({ toggleBlockId: this.getUniqueIdentifier() }),
+                initialText,
             })
         );
     }

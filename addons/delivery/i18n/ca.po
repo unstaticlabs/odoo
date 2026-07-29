@@ -16,24 +16,24 @@
 # Quim - eccit <quim@eccit.com>, 2022
 # Ivan Espinola, 2022
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 16:06+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-03-07 14:32+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/delivery/"
-"ca/>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-2/"
+"delivery/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.1\n"
 
 #. module: delivery
 #. odoo-python
@@ -107,8 +107,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>Descripció d'enviament</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -118,8 +118,8 @@ msgid ""
 "for customers to follow."
 msgstr ""
 "Una descripció del mètode de lliurament que voleu comunicar als vostres "
-"clients en el correu electrònic de confirmació de vendes i comanda de "
-"vendes.P. ex. instruccions perquè els clients les segueixin."
+"clients en el correu electrònic de confirmació de vendes i comanda de vendes."
+"P. ex. instruccions perquè els clients les segueixin."
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__integration_level
@@ -140,8 +140,8 @@ msgstr "Afegir"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
-msgstr "Afegeix un mètode d'enviament"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -207,23 +207,8 @@ msgstr "Pot generar retorn"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "Transportista"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "Descripció de l'operador de telefonia mòbil"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -336,14 +321,9 @@ msgid "Define a new delivery method"
 msgstr "Defineix un nou mètode de lliurament"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "Transportista"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Assistent de selecció del transportista de lliurament"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -357,18 +337,28 @@ msgid "Delivery Message"
 msgstr "Missatge de lliurament"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "Mètode de lliurament"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "Mètodes lliurament"
 
@@ -404,13 +394,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "El cost de l'enviament s'ha de tornar a calcular"
 
 #. module: delivery
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
+msgid ""
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
 #: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
 "            which zips it is available to."
 msgstr ""
 
 #. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "Descripció"
@@ -424,11 +430,6 @@ msgstr "Destinació"
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
 msgstr "Determini l'ordre de visualització"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "Descartar"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -501,7 +502,7 @@ msgstr "Empleni aquest camp si facturarà l'enviament basat en la recol·lecció
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
 
@@ -796,16 +797,11 @@ msgstr "El prefix ja existeix!"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"Prefixos de codis zip als quals s'aplica aquest operador. Tingueu en compte "
-"que les expressions regulars es poden utilitzar per donar suport a països "
-"amb diferents longituds de codi postal, és a dir, es pot afegir «$» al final "
-"del prefix per a coincidir amb el zip exacte (p. ex. «100$» només coincidirà "
-"amb «100» i no amb «1000»)"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -902,17 +898,6 @@ msgstr ""
 "producció."
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "Mètode d'enviament"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "Mètodes d'enviament"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 msgid "Shipping Weight"
 msgstr "Pes de l'enviament"
@@ -925,16 +910,6 @@ msgid ""
 msgstr ""
 "L'assegurança d'enviament és un servei que pot reemborsar als remitents les "
 "parcel·les dels quals es perden, es roben i/o es danyen en trànsit."
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"Detalls del mètode d'enviament que s'inclouran a les comandes de venda "
-"inferiors i els seus correus electrònics de confirmació. P. ex. Instruccions "
-"perquè els clients les segueixin."
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1129,8 +1104,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
 
 #. module: delivery
@@ -1179,28 +1154,3 @@ msgstr "p. ex., UPS Express"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
 msgstr ""
-
-#~ msgid "<strong>Shipping Description:</strong>"
-#~ msgstr "<strong>Descripció d'enviament:</strong>"
-
-#~ msgid "Default delivery method used in sales orders."
-#~ msgstr "Mètode d'entrega predeterminat utilitzat en les comandes de vendes."
-
-#~ msgid "Delivery Rating Success"
-#~ msgstr "Èxit de qualificació d'entrega"
-
-#~ msgid "Destination Availability"
-#~ msgstr "Disponibilitat de destinació"
-
-#~ msgid ""
-#~ "Filling this form allows you to filter delivery carriers according to the "
-#~ "delivery address of your customer."
-#~ msgstr ""
-#~ "Aquest formulari li permet filtrar els transportistes segons la direcció "
-#~ "d'entrega del seu client."
-
-#~ msgid "Free Shipping"
-#~ msgstr "Enviament gratuït"
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar per"

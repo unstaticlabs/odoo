@@ -40,6 +40,13 @@
                                 help="Total Registrations for this Event">
                             <field name="seats_taken" widget="statinfo" string="Attendees"/>
                         </button>
+                        <button name="action_open_slot_calendar"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar"
+                                invisible="not is_multi_slots">
+                            <field name="event_slot_count" widget="statinfo" string="Slots"/>
+                        </button>
                     </div>
                     <field name="active" invisible="1"/>
                     <field name="company_id" invisible="1"/>
@@ -67,7 +74,7 @@
                             </div>
                             <field name="lang"/>
                             <field name="event_type_id" string="Template"/>
-                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_quick_create': True}"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color', 'no_quick_create': True}"/>
                         </group>
                         <group name="right_event_details">
                             <field name="organizer_id"/>
@@ -98,7 +105,7 @@
                             <field name="event_mail_ids">
                                 <list string="Communication" editable="bottom" decoration-danger="mail_state == 'error'">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="template_ref" options="{'no_quick_create': True, 'no_create_edit': True}" context="{'filter_template_on_event': True, 'default_model': 'event.registration'}" widget="EventMailTemplateReferenceField"/>
+                                    <field name="template_ref" options="{'no_quick_create': True}" context="{'filter_template_on_event': True, 'default_model': 'event.registration'}" widget="EventMailTemplateReferenceField"/>
                                     <field name="interval_nbr" readonly="interval_unit == 'now'"/>
                                     <field name="interval_unit"/>
                                     <field name="interval_type"/>
@@ -179,7 +186,7 @@
                 <field name="company_id" groups="base.group_multi_company" readonly="1" optional="show"/>
                 <field name="date_begin" readonly="1"/>
                 <field name="date_end" readonly="1"/>
-                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}" optional="hide"/>
                 <field name="seats_taken" string="Total Attendees" sum="Total" readonly="1"/>
                 <field name="seats_used" sum="Total" readonly="1"/>
                 <field name="seats_max" string="Maximum Seats" sum="Total" readonly="1" optional="hide"/>
@@ -235,14 +242,14 @@
                 <templates>
                     <t t-name="card" class="p-0 row">
                         <aside class="col-4 text-bg-primary p-2 text-center d-flex flex-column justify-content-center">
-                            <div t-esc="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('d')" class="fs-1"/>
+                            <div t-out="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('d')" class="fs-1"/>
                             <div>
-                                <t t-esc="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('MMM yyyy')"/>
+                                <t t-out="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('MMM yyyy')"/>
                             </div>
-                            <div><t t-esc="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('t')"/></div>
+                            <div><t t-out="luxon.DateTime.fromISO(record.date_begin.raw_value).toFormat('t')"/></div>
                                 <div t-if="record.date_begin.raw_value !== record.date_end.raw_value">
                                     <i class="oi oi-arrow-right me-2" title="End date"/>
-                                    <t t-esc="luxon.DateTime.fromISO(record.date_end.raw_value).toFormat('d MMM')"/>
+                                    <t t-out="luxon.DateTime.fromISO(record.date_end.raw_value).toFormat('d MMM')"/>
                                 </div>
                         </aside>
                         <main class="col pt-3 pb-2 px-3 justify-content-between">

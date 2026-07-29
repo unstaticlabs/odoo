@@ -2,11 +2,11 @@
 import contextlib
 import functools
 import logging
-from lxml import etree
 import unittest
+from zoneinfo import ZoneInfoNotFoundError, ZoneInfo
 
-import pytz
 import werkzeug
+from lxml import etree
 
 import odoo
 from odoo import api, models, tools
@@ -163,7 +163,7 @@ class IrHttp(models.AbstractModel):
         public_users = super()._get_public_users()
         website = request.env(user=SUPERUSER_ID)['website'].with_context(lang='en_US').get_current_website()  # sudo
         if website:
-            public_users.append(website._get_cached('user_id'))
+            public_users.append(website.user_id.id)
         return public_users
 
     @classmethod
@@ -174,7 +174,7 @@ class IrHttp(models.AbstractModel):
         if not request.session.uid:
             website = request.env(user=SUPERUSER_ID)['website'].with_context(lang='en_US').get_current_website()  # sudo
             if website:
-                request.update_env(user=website._get_cached('user_id'))
+                request.update_env(user=website.user_id.id)
 
         if not request.env.uid:
             super()._auth_method_public()
@@ -235,9 +235,9 @@ class IrHttp(models.AbstractModel):
     def _frontend_pre_dispatch(cls):
         super()._frontend_pre_dispatch()
 
-        if not request.env.context.get('tz'):
-            with contextlib.suppress(pytz.UnknownTimeZoneError):
-                request.update_context(tz=pytz.timezone(request.geoip.location.time_zone).zone)
+        if not request.env.context.get('tz') and (tz := request.geoip.location.time_zone):
+            with contextlib.suppress(ZoneInfoNotFoundError):
+                request.update_context(tz=ZoneInfo(tz).key)
 
         website = request.env['website'].get_current_website()
         user = request.env.user
@@ -247,8 +247,8 @@ class IrHttp(models.AbstractModel):
         # propagate to the global context of the tab. If the company of
         # the website is not in the allowed companies of the user, set
         # the main company of the user.
-        website_company_id = website._get_cached('company_id')
-        if user.id == website._get_cached('user_id'):
+        website_company_id = website.company_id.id
+        if user == website.user_id:
             # avoid a read on res_company_user_rel in case of public user
             allowed_company_ids = [website_company_id]
         elif website_company_id in user._get_company_ids():
@@ -285,7 +285,7 @@ class IrHttp(models.AbstractModel):
     def _get_default_lang(cls):
         if getattr(request, 'is_frontend', True):
             website = request.env['website'].sudo().get_current_website()
-            return request.env['res.lang']._get_data(id=website._get_cached('default_lang_id'))
+            return request.env['res.lang']._get_data(id=website.default_lang_id.id)
         return super()._get_default_lang()
 
     @classmethod
@@ -323,11 +323,12 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _serve_redirect(cls):
         req_page = request.httprequest.path
+        req_page_noslug = ir_http._UNSLUG_RE.sub(r'\2', req_page)
         req_page_with_qs = request.httprequest.environ['REQUEST_URI']
         domain = (
             Domain('redirect_type', 'in', ('301', '302'))
             # trailing / could have been removed by server_page
-            & Domain('url_from', 'in', [req_page_with_qs, req_page.rstrip('/'), req_page + '/'])
+            & Domain('url_from', 'in', [req_page_with_qs, req_page.rstrip('/'), req_page + '/', req_page_noslug])
             & request.website.website_domain()
         )
         return request.env['website.rewrite'].sudo().search(domain, order='url_from DESC', limit=1)
@@ -350,10 +351,15 @@ class IrHttp(models.AbstractModel):
 
         redirect = cls._serve_redirect()
         if redirect:
+            redirect_to = redirect.url_to
+            if redirect_to.startswith('/') and ir_http._UNSLUG_RE.search(redirect_to):
+                # rewrite the url to add or fix the slug
+                redirect_to = request.env['ir.http']._url_localized(redirect_to, request.lang.code)
             return request.redirect(
-                _build_url_w_params(redirect.url_to, request.params),
+                _build_url_w_params(redirect_to, request.params),
                 code=redirect.redirect_type,
-                local=False)  # safe because only designers can specify redirects
+                local=False,  # safe because only designers can specify redirects
+            )
 
     @classmethod
     def _get_exception_code_values(cls, exception):
@@ -413,7 +419,7 @@ class IrHttp(models.AbstractModel):
         if request.env.user.has_group('website.group_website_restricted_editor'):
             session_info.update({
                 'website_id': request.website.id,
-                'website_company_id': request.website._get_cached('company_id'),
+                'website_company_id': request.website.company_id.id,
             })
         session_info['bundle_params']['website_id'] = request.website.id
         return session_info
@@ -454,9 +460,9 @@ class ModelConverter(ir_http.ModelConverter):
         # Allow to current_website_id directly in route domain
         args['current_website_id'] = env['website'].get_current_website().id
         domain = safe_eval(self.domain, args)
+        domain = Domain(domain)
         if dom:
-            domain += dom
-        for record in Model.search(domain):
-            # return record so URL will be the real endpoint URL as the record will go through `slug()`
-            # the same way as endpoint URL is retrieved during dispatch (301 redirect), see `to_url()` from ModelConverter
-            yield record
+            domain &= Domain(dom)
+        # return record so URL will be the real endpoint URL as the record will go through `slug()`
+        # the same way as endpoint URL is retrieved during dispatch (301 redirect), see `to_url()` from ModelConverter
+        yield from Model.search(domain)

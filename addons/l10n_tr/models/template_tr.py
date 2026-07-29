@@ -33,7 +33,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'expense_account_id': 'tr150',
                 'income_account_id': 'tr600',
                 'tax_calculation_rounding_method': 'round_per_line',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'tr150',
             },
         }

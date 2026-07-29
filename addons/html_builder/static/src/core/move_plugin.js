@@ -10,7 +10,10 @@ import { isElementInViewport } from "@html_builder/utils/utils";
 import { scrollTo } from "@html_builder/utils/scrolling";
 import { localization } from "@web/core/l10n/localization";
 
-/** @typedef {import("plugins").CSSSelector} CSSSelector */
+/**
+ * @typedef {import("plugins").CSSSelector} CSSSelector
+ * @typedef {import("@html_builder/core/drag_and_drop_plugin").DragState} DragState
+ */
 /**
  * @typedef {{
  *     selector: CSSSelector;
@@ -18,6 +21,10 @@ import { localization } from "@web/core/l10n/localization";
  *     direction: "horizontal" | "vertical";
  *     noScroll?: boolean;
  * }[]} is_movable_selector
+ * @typedef {((arg: {
+ *      movedEl: HTMLElement,
+ *      dragState: DragState,
+ * }) => void)[]} on_element_arrow_moved_handlers
  */
 export class MovePlugin extends Plugin {
     static id = "move";
@@ -150,7 +157,7 @@ export class MovePlugin extends Plugin {
             if (previousSiblingEl) {
                 const direction = isVertical ? "up" : reverseButtons ? "right" : "left";
                 const button = {
-                    class: `fa fa-fw fa-angle-${direction}`,
+                    class: `fa fa-fw fw-bolder fa-angle-${direction}`,
                     title: isVertical
                         ? _t("Move up")
                         : this.isEditableRTL
@@ -164,7 +171,7 @@ export class MovePlugin extends Plugin {
             if (nextSiblingEl) {
                 const direction = isVertical ? "down" : reverseButtons ? "left" : "right";
                 const button = {
-                    class: `fa fa-fw fa-angle-${direction}`,
+                    class: `fa fa-fw fw-bolder fa-angle-${direction}`,
                     title: isVertical
                         ? _t("Move down")
                         : this.isEditableRTL
@@ -245,6 +252,9 @@ export class MovePlugin extends Plugin {
      * @param {String} direction "prev" or "next"
      */
     onMoveClick(direction) {
+        const dragState = {};
+        dragState.originPreviousEl = this.overlayTarget.previousElementSibling;
+        dragState.originNextEl = this.overlayTarget.nextElementSibling;
         const isMobile = this.config.isMobileView(this.overlayTarget);
         let hasMobileOrder = !!this.overlayTarget.style.order;
         const parentEl = this.overlayTarget.parentNode;
@@ -279,6 +289,10 @@ export class MovePlugin extends Plugin {
                 this.overlayTarget
             );
         }
+        this.dispatchTo("on_element_arrow_moved_handlers", {
+            movedEl: this.overlayTarget,
+            dragState,
+        });
 
         // Scroll to the element.
         if (!this.noScroll && !isElementInViewport(this.overlayTarget)) {

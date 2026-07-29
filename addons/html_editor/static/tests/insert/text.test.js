@@ -1,6 +1,6 @@
 import { describe, expect, test } from "@odoo/hoot";
 import { setupEditor, testEditor } from "../_helpers/editor";
-import { deleteBackward, insertText } from "../_helpers/user_actions";
+import { deleteBackward, insertSpace, insertText } from "../_helpers/user_actions";
 import { getContent } from "../_helpers/selection";
 import { execCommand } from "../_helpers/userCommands";
 import { press } from "@odoo/hoot-dom";
@@ -92,6 +92,54 @@ describe("collapsed selection", () => {
                 </div>
             `),
         });
+    });
+
+    test("should replace '->' with '→' and be a undoable step", async () => {
+        const { editor, el } = await setupEditor("<p>ab[]</p>");
+        await insertText(editor, "->");
+        await insertSpace(editor);
+        expect(getContent(el)).toBe("<p>ab→&nbsp;[]</p>");
+        execCommand(editor, "historyUndo");
+        expect(getContent(el)).toBe("<p>ab->&nbsp;[]</p>");
+    });
+
+    test("should replace '<-' with '←' and be a undoable step", async () => {
+        const { editor, el } = await setupEditor("<p>ab[]</p>");
+        await insertText(editor, "<-");
+        await insertSpace(editor);
+        expect(getContent(el)).toBe("<p>ab←&nbsp;[]</p>");
+        execCommand(editor, "historyUndo");
+        expect(getContent(el)).toBe("<p>ab<-&nbsp;[]</p>");
+    });
+
+    test("should replace '=>' with '⮕' and be a undoable step", async () => {
+        const { editor, el } = await setupEditor("<p>ab[]</p>");
+        await insertText(editor, "=>");
+        await insertSpace(editor);
+        expect(getContent(el)).toBe("<p>ab⮕&nbsp;[]</p>");
+        execCommand(editor, "historyUndo");
+        expect(getContent(el)).toBe("<p>ab=>&nbsp;[]</p>");
+    });
+
+    test("should not replace last chars with symbol", async () => {
+        const { editor, el } = await setupEditor(
+            unformat(`
+                <div class="o-paragraph">\ufeff
+                    <span class="o_file_box o-contenteditable-false" contenteditable="false">
+                        <span class="d-flex flex-grow-1 align-items-center alert alert-info">
+                            <span class="o_file_image d-flex o_image user-select-none" contenteditable="false">
+                                <br>
+                            </span>
+                            <span class="o_file_name_container mx-2 d-flex flex-grow-1">
+                                <a class="o_link_readonly w-100" contenteditable="false" href="#">odoo_gmail.png</a>
+                            </span>
+                        </span>
+                    </span>\ufeff&nbsp;--> Document (fr&nbsp;[]
+                </div>
+            `)
+        );
+        await insertSpace(editor);
+        expect(getContent(el).includes("→")).toBe(false);
     });
 });
 

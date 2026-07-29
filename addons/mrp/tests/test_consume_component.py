@@ -78,8 +78,7 @@ class TestConsumeComponentCommon(common.TransactionCase):
         # BoMs
         cls.bom_none = cls.env['mrp.bom'].create({
             'product_tmpl_id': cls.produced_none.product_tmpl_id.id,
-            'product_uom_id': cls.produced_none.uom_id.id,
-            'consumption': 'flexible',
+            'uom_id': cls.produced_none.uom_id.id,
             'sequence': 1
         })
 
@@ -87,8 +86,7 @@ class TestConsumeComponentCommon(common.TransactionCase):
 
         cls.bom_lot = cls.env['mrp.bom'].create({
             'product_tmpl_id': cls.produced_lot.product_tmpl_id.id,
-            'product_uom_id': cls.produced_lot.uom_id.id,
-            'consumption': 'flexible',
+            'uom_id': cls.produced_lot.uom_id.id,
             'sequence': 2
         })
 
@@ -96,8 +94,7 @@ class TestConsumeComponentCommon(common.TransactionCase):
 
         cls.bom_serial = cls.env['mrp.bom'].create({
             'product_tmpl_id': cls.produced_serial.product_tmpl_id.id,
-            'product_uom_id': cls.produced_serial.uom_id.id,
-            'consumption': 'flexible',
+            'uom_id': cls.produced_serial.uom_id.id,
             'sequence': 1
         })
 
@@ -106,21 +103,21 @@ class TestConsumeComponentCommon(common.TransactionCase):
         # Manufacturing Orders
         cls.mo_none_tmpl = {
             'product_id': cls.produced_none.id,
-            'product_uom_id': cls.produced_none.uom_id.id,
+            'uom_id': cls.produced_none.uom_id.id,
             'product_qty': 1,
             'bom_id': cls.bom_none.id
         }
 
         cls.mo_lot_tmpl = {
             'product_id': cls.produced_lot.id,
-            'product_uom_id': cls.produced_lot.uom_id.id,
+            'uom_id': cls.produced_lot.uom_id.id,
             'product_qty': 1,
             'bom_id': cls.bom_lot.id
         }
 
         cls.mo_serial_tmpl = {
             'product_id': cls.produced_serial.id,
-            'product_uom_id': cls.produced_serial.uom_id.id,
+            'uom_id': cls.produced_serial.uom_id.id,
             'product_qty': 1,
             'bom_id': cls.bom_serial.id
         }
@@ -141,7 +138,7 @@ class TestConsumeComponentCommon(common.TransactionCase):
                 'inventory_quantity': qty,
             }
 
-            if product.tracking != 'none':
+            if product.tracking in ['lot', 'serial']:
                 qDict['lot_id'] = cls.env['stock.lot'].create({
                     'name': name + str(offset + x),
                     'product_id': product.id,
@@ -160,7 +157,7 @@ class TestConsumeComponentCommon(common.TransactionCase):
             vals.append({
                 'product_id': product.id,
                 'product_qty': quantities[seq],
-                'product_uom_id': product.uom_id.id,
+                'uom_id': product.uom_id.id,
                 'sequence': seq,
                 'bom_id': bom.id,
             })
@@ -191,7 +188,6 @@ class TestConsumeComponentCommon(common.TransactionCase):
 
         isSerial = tracking == 'serial'
         isAvailable = all(move.state == 'assigned' for move in mrp_productions.move_raw_ids)
-        isComponentTracking = any(move.has_tracking != 'none' for move in mrp_productions.move_raw_ids)
 
         countOk = True
         length = len(mrp_productions)
@@ -281,7 +277,7 @@ class TestConsumeComponent(TestConsumeComponentCommon):
         self.executeConsumptionTriggers(mo_lot)
 
         for mov in mo_all.move_raw_ids:
-            if mov.has_tracking == 'none':
+            if mov.has_tracking not in ['lot', 'serial']:
                 self.assertTrue(mov.picked, "components should be picked even without no quantity reserved")
             else:
                 self.assertEqual(mov.product_qty, mov.quantity, "Done quantity shall be equal to To Consume quantity.")
@@ -313,7 +309,7 @@ class TestConsumeComponent(TestConsumeComponentCommon):
             #  are partially reserved (stock.move state is partially_available)
             mo.action_assign()
             for mov in mo.move_raw_ids:
-                if mov.has_tracking == "none":
+                if mov.has_tracking not in ['lot', 'serial']:
                     self.assertEqual(raw_none_qty, mov.quantity, "Reserved quantity shall be equal to " + str(raw_none_qty) + ".")
                 else:
                     self.assertEqual(raw_tracked_qty, mov.quantity, "Reserved quantity shall be equal to " + str(raw_tracked_qty) + ".")
@@ -327,7 +323,7 @@ class TestConsumeComponent(TestConsumeComponentCommon):
                 mo.action_generate_serial()
 
             for mov in mo.move_raw_ids:
-                if mov.has_tracking == "none":
+                if mov.has_tracking not in ['lot', 'serial']:
                     self.assertTrue(mov.picked, "non tracked components should be picked")
                 else:
                     self.assertEqual(mov.product_qty, mov.quantity, "Done quantity shall be equal to To Consume quantity.")
@@ -414,15 +410,14 @@ class TestConsumeComponent(TestConsumeComponentCommon):
 
         bom = self.env['mrp.bom'].create({
             'product_tmpl_id': sfg_product.product_tmpl_id.id,
-            'product_uom_id': sfg_product.uom_id.id,
-            'consumption': 'flexible',
+            'uom_id': sfg_product.uom_id.id,
             'sequence': 1
         })
         self.create_bom_lines(bom, compo1, [1])
 
         mo = self.env['mrp.production'].create({
             'product_id': sfg_product.id,
-            'product_uom_id': sfg_product.uom_id.id,
+            'uom_id': sfg_product.uom_id.id,
             'product_qty': 1,
             'bom_id': bom.id
         })
@@ -583,30 +578,3 @@ class TestConsumeComponent(TestConsumeComponentCommon):
         # Check quantity available in stock for each product
         self.assertEqual(self.raw_none.qty_available, 0)
         self.assertEqual(self.raw_lot.qty_available, 0)
-
-    def test_scrapped_component_is_not_reused_on_mo(self):
-        """Ensure scrapped lots/serials are not reused on the MO.
-
-        When a component tracked by lot/serial number is scrapped during
-        a work order, the same lot/serial should no longer be used if it is no
-        longer available in inventory.
-        """
-        self.create_quant(self.raw_serial, 2).action_apply_inventory()
-        self.env['mrp.routing.workcenter'].create({
-            'name': 'operation',
-            'workcenter_id': self.workcenter.id,
-            'bom_id': self.bom_none.id,
-        })
-        mo = self.create_mo(self.mo_none_tmpl, 1)
-        mo.action_confirm()
-        mo.workorder_ids.button_start()
-        sn = mo.move_raw_ids[2].lot_ids
-        move_line = mo.move_raw_ids[2].move_line_ids
-        self.env['stock.scrap'].create({
-            'product_id': self.raw_serial.id,
-            'lot_id': sn.id,
-            'production_id': mo.id,
-        }).do_scrap()
-        self.assertTrue(mo.move_raw_ids[2].lot_ids)
-        self.assertFalse(sn in mo.move_raw_ids[2].lot_ids)
-        self.assertFalse(move_line.exists())

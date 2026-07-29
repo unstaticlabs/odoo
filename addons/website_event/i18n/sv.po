@@ -14,25 +14,24 @@
 # Martin Trigaux, 2022
 # Chrille Hedberg <hedberg.chrille@gmail.com>, 2022
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2025, 2026.
-# Mikael Akerberg <mikael.akerberg@mariaakerberg.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 21:53+0000\n"
-"Last-Translator: Mikael Akerberg <mikael.akerberg@mariaakerberg.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2026-04-11 14:37+0000\n"
+"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_website_visitor__event_registration_count
@@ -134,22 +133,6 @@ msgid "<i class=\"fa fa-clock-o me-2\" role=\"presentation\"/>8:15 PM"
 msgstr ""
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-discord text-discord\" aria-label=\"Discord\" "
-"title=\"Discord\"/>"
-msgstr ""
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-facebook text-facebook\" aria-label=\"Facebook\" "
-"title=\"Facebook\"/>"
-msgstr ""
-"<i class=\"fa fa-facebook text-facebook\" aria-label=\"Facebook\" "
-"title=\"Facebook\"/>"
-
-#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_configure_tickets_button
 msgid ""
 "<i class=\"fa fa-gear me-1\" role=\"img\" aria-label=\"Configure\" "
@@ -159,36 +142,9 @@ msgstr ""
 "title=\"Konfigurera evenemangsbiljetter\"/><em>Konfigurera biljetter</em>"
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-github text-github\" aria-label=\"Github\" title=\"Github\"/"
-">"
-msgstr ""
-"<i class=\"fa fa-github text-github\" aria-label=\"Github\" "
-"title=\"Github\"/>"
-
-#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 msgstr "<i class=\"fa fa-globe me-1\" title=\"Hemsida\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-"title=\"Instagram\"/>"
-msgstr ""
-"<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-"title=\"Instagram\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -206,29 +162,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "<i class=\"fa fa-map-marker\" title=\"Location\"/> Online event"
 msgstr "<i class=\"fa fa-map-marker\" title=\"Plats\"/> Online-evenemang"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-tiktok text-tiktok\" aria-label=\"TikTok\" title=\"TikTok\"/"
-">"
-msgstr ""
-"<i class=\"fa fa-tiktok text-tiktok\" aria-label=\"TikTok\" "
-"title=\"TikTok\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-msgstr "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-"title=\"Youtube\"/>"
-msgstr ""
-"<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-"title=\"Youtube\"/>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.navbar
@@ -258,15 +191,6 @@ msgstr "<small class=\"text-muted\">Lägg till i kalendern:</small>"
 #: model_terms:ir.ui.view,arch_db:website_event.modal_slot_registration
 msgid "<small>Next</small><i class=\"fa fa-caret-right ms-2\"/>"
 msgstr ""
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid ""
-"<span class=\"badge text-bg-secondary text-uppercase "
-"o_wevent_badge\">Speaker</span>"
-msgstr ""
-"<span class=\"badge text-bg-secondary text-uppercase o_wevent_badge\">"
-"Talare</span>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -355,8 +279,8 @@ msgid ""
 msgstr ""
 "<span itemprop=\"availability\" content=\"http://schema.org/SoldOut\" "
 "class=\"text-danger\">\n"
-"                                        <i class=\"fa fa-ban me-2\"/>"
-"Slutsålt\n"
+"                                        <i class=\"fa fa-ban me-2\"/"
+">Slutsålt\n"
 "                                    </span>"
 
 #. module: website_event
@@ -538,8 +462,7 @@ msgid "All"
 msgstr "Alla"
 
 #. module: website_event
-#. odoo-python
-#: code:addons/website_event/controllers/main.py:0
+#: model_terms:ir.ui.view,arch_db:website_event.event_location
 msgid "All Countries"
 msgstr "Alla länder"
 
@@ -552,11 +475,6 @@ msgid "All Events"
 msgstr "Alla evenemang"
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.event_location
-msgid "All countries"
-msgstr "Alla länder"
-
-#. module: website_event
 #: model:event.question,title:website_event.event_question_allergies
 msgid "Allergies"
 msgstr "Allergier"
@@ -565,19 +483,6 @@ msgstr "Allergier"
 #: model:ir.model.fields,help:website_event.field_event_event__website_menu
 msgid "Allows to display and manage event-specific menus on website."
 msgstr "Tillåter att visa och hantera händelsespecifika menyer på webbplatsen."
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid ""
-"At just 13 years old, John DOE was already starting to develop his first "
-"business applications for customers. After mastering civil engineering, he "
-"founded TinyERP. This was the first phase of OpenERP which would later "
-"became Odoo, the most installed open-source business software worldwide."
-msgstr ""
-"Redan vid 13 års ålder började John Doe utveckla sina första "
-"affärsapplikationer för kunder. Efter att ha blivit civilingenjör grundade "
-"han TinyERP. Detta var den första fasen av OpenERP som senare skulle bli "
-"Odoo, den mest installerade affärsmjukvaran med öppen källkod i världen."
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
@@ -600,6 +505,20 @@ msgid "Author"
 msgstr "Författare"
 
 #. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__publish_on
+#: model:ir.model.fields,field_description:website_event.field_event_tag__publish_on
+#: model:ir.model.fields,field_description:website_event.field_event_tag_category__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event
+#: model:ir.model.fields,help:website_event.field_event_event__publish_on
+#: model:ir.model.fields,help:website_event.field_event_tag__publish_on
+#: model:ir.model.fields,help:website_event.field_event_tag_category__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.navbar
 msgid "Back to All Events"
 msgstr "Tillbaka till Alla evenemang"
@@ -614,6 +533,11 @@ msgstr ""
 #: model:event.question.answer,name:website_event.event_question_about_2_answer_1
 msgid "Blog Post"
 msgstr "Blogginlägg"
+
+#. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_event
 #. odoo-python
@@ -633,12 +557,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event.field_event_tag_category__can_publish
 msgid "Can Publish"
 msgstr "Kan publicera"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.modal_ticket_registration
-#: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
-msgid "Cancel"
-msgstr "Avbryt"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -677,11 +595,6 @@ msgstr "Community"
 #: model:ir.model.fields.selection,name:website_event.selection__website_event_menu__menu_type__community
 msgid "Community Menu"
 msgstr "Meny för community"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "Company"
-msgstr "Företag"
 
 #. module: website_event
 #. odoo-python
@@ -778,6 +691,12 @@ msgstr ""
 #: code:addons/website_event/static/src/website_builder/event_searchbar_option_plugin.js:0
 msgid "Description"
 msgstr "Beskrivning"
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.modal_ticket_registration
+#: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
+msgid "Discard"
+msgstr ""
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_event_event__display_name
@@ -934,10 +853,22 @@ msgid "Event published"
 msgstr "Evenemang publicerat"
 
 #. module: website_event
+#: model:mail.message.subtype,description:website_event.mt_event_scheduled
+#: model:mail.message.subtype,name:website_event.mt_event_scheduled
+msgid "Event scheduled"
+msgstr ""
+
+#. module: website_event
 #: model:mail.message.subtype,description:website_event.mt_event_unpublished
 #: model:mail.message.subtype,name:website_event.mt_event_unpublished
 msgid "Event unpublished"
 msgstr "Evenemang avpublicerat"
+
+#. module: website_event
+#: model:mail.message.subtype,description:website_event.mt_event_unscheduled
+#: model:mail.message.subtype,name:website_event.mt_event_unscheduled
+msgid "Event unscheduled"
+msgstr ""
 
 #. module: website_event
 #. odoo-javascript
@@ -1119,6 +1050,19 @@ msgid "ID"
 msgstr "ID"
 
 #. module: website_event
+#. odoo-javascript
+#: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
+msgid ""
+"If enabled, online events will be included when user filters by country."
+msgstr ""
+
+#. module: website_event
+#. odoo-javascript
+#: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
+msgid "Include online"
+msgstr ""
+
+#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.s_dynamic_snippet_events_single_aside_preview_data
 #: model_terms:ir.ui.view,arch_db:website_event.s_dynamic_snippet_events_single_offset_preview_data
 #: model_terms:ir.ui.view,arch_db:website_event.s_event_upcoming_snippet_card_preview_data
@@ -1168,16 +1112,6 @@ msgstr "Deltar"
 #: model:ir.model.fields,field_description:website_event.field_event_tag_category__is_published
 msgid "Is Published"
 msgstr "Är publicerad"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "John DOE"
-msgstr "John Doe"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "John Doe's avatar"
-msgstr "John Doe's avatar"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_ticket_access
@@ -1417,10 +1351,23 @@ msgid "Publish"
 msgstr "Publicera"
 
 #. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
 #: model_terms:ir.ui.view,arch_db:website_event.event_event_view_search
 #: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
 msgid "Published"
 msgstr "Publicerad"
+
+#. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__published_date
+#: model:ir.model.fields,field_description:website_event.field_event_tag__published_date
+#: model:ir.model.fields,field_description:website_event.field_event_tag_category__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_event
 #. odoo-javascript
@@ -1602,10 +1549,21 @@ msgid "Sample"
 msgstr "Prov"
 
 #. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
+#: model_terms:ir.ui.view,arch_db:website_event.event_pages_tree_view
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_event
 #. odoo-python
 #: code:addons/website_event/models/event_event.py:0
 #: model_terms:ir.ui.view,arch_db:website_event.event_time
 msgid "Scheduled Events"
+msgstr ""
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.events_list
+msgid "Scheduled for"
 msgstr ""
 
 #. module: website_event
@@ -1650,7 +1608,7 @@ msgstr ""
 #: code:addons/website_event/static/src/website_builder/event_page_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "Share"
-msgstr "Dela"
+msgstr "Andel"
 
 #. module: website_event
 #. odoo-javascript
@@ -1798,6 +1756,11 @@ msgstr "Topp"
 #: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
 msgid "Top Bar Filter"
 msgstr "Filter för övre bar"
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
+msgid "Unschedule"
+msgstr ""
 
 #. module: website_event
 #. odoo-python
@@ -2027,7 +1990,12 @@ msgstr "tillgängligt)"
 #. odoo-python
 #: code:addons/website_event/models/event_event.py:0
 msgid "date_end"
-msgstr "date_end"
+msgstr ""
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.index_topbar
+msgid "events"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_dates
@@ -2048,135 +2016,3 @@ msgstr "w-100"
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "w-100 py-sm-3 mt-sm-2"
 msgstr "w-100 py-sm-3 mt-sm-2"
-
-#~ msgid "(Ref:"
-#~ msgstr "(er referens:"
-
-#~ msgid "<b>Drag and Drop</b> this snippet below the event title."
-#~ msgstr "<b>Dra och släpp</b> denna snippet under eventtiteln."
-
-#~ msgid ""
-#~ "<font style=\"font-size: 62px;\" "
-#~ "class=\"o_default_snippet_text\">Introduction</font>"
-#~ msgstr ""
-#~ "<font style=\"font-size: 62px;\" "
-#~ "class=\"o_default_snippet_text\">Presentation</font>"
-
-#~ msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to Google Calendar"
-#~ msgstr "<i class=\"fa fa-fw fa-calendar\"/> Lägg till Google-kalendern"
-
-#~ msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to iCal/Outlook"
-#~ msgstr "<i class=\"fa fa-fw fa-calendar\"/> Lägg till iCal/Outlook"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-
-#~ msgid ""
-#~ "<span>Tickets</span>\n"
-#~ "                        <span class=\"btn p-0 close d-none\">×</span>"
-#~ msgstr ""
-#~ "<span>Biljetter</span>\n"
-#~ "                        <span class=\"btn p-0 close d-none\">×</span>"
-
-#~ msgid "Add to Calendar"
-#~ msgstr "Lägg till i kalender"
-
-#~ msgid "Date &amp; Time"
-#~ msgstr "Datum &amp; tid"
-
-#~ msgid "End -"
-#~ msgstr "Slut -"
-
-#~ msgid "Event Location"
-#~ msgstr "Plats för evenemang"
-
-#~ msgid "Event Name"
-#~ msgstr "Namn på evenemanget"
-
-#~ msgid "Event not found!"
-#~ msgstr "Evenemang saknas!"
-
-#~ msgid "Events Page"
-#~ msgstr "Evenemangssida"
-
-#~ msgid "Extra Register Button"
-#~ msgstr "Extra Registrerings Knapp"
-
-#~ msgid "Get the direction"
-#~ msgstr "Få vägbeskrivning"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgid "Location Menu"
-#~ msgstr "Platsmeny"
-
-#~ msgid "Location Menus"
-#~ msgstr "Platsmenyer"
-
-#~ msgid "No events found."
-#~ msgstr "Inga evenemang hittade."
-
-#~ msgid "Phone"
-#~ msgstr "Telefon"
-
-#~ msgid "Please select at least one ticket."
-#~ msgstr "Välj minst en biljett."
-
-#~ msgid "Questions"
-#~ msgstr "Frågor"
-
-#~ msgid "Ref:"
-#~ msgstr "Referens:"
-
-#~ msgid "Register Button"
-#~ msgstr "Knapp för anmälan"
-
-#~ msgid "Registrations are <b>closed</b>"
-#~ msgstr "Anmälan är <b>stängd</b>"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Begränsa publicering till denna webbplats."
-
-#~ msgid "Return to the event list."
-#~ msgstr "Återgå till listan med evenemang."
-
-#~ msgid "SHARE"
-#~ msgstr "DELA"
-
-#~ msgid "Search an event..."
-#~ msgstr "Sök evenemang ..."
-
-#~ msgid "Sorry, the requested event is not available anymore."
-#~ msgstr "Tyvärr är det önskade arrangemanget är inte längre tillgängligt."
-
-#~ msgid "Start -"
-#~ msgstr "Start -"
-
-#~ msgid "Templates"
-#~ msgstr "Mallar"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Fullständig URL för åtkomst av dokument via webbplatsen."
-
-#~ msgid "Ticket Sales starting on"
-#~ msgstr "Biljettförsäljning börjar"
-
-#~ msgid "Tickets for this Event are <b>Sold Out</b>"
-#~ msgstr "Biljetter till detta evenemang är <b>slutsålt</b>"
-
-#~ msgid "Toggle navigation"
-#~ msgstr "Växla navigering"
-
-#~ msgid "Use the top button '<b>+ New</b>' to create an event."
-#~ msgstr "Använd den översta knappen<i> +Ny </i> för att skapa ett evenemang."
-
-#~ msgid "Which field are you working in"
-#~ msgstr "Vilket område arbetar du inom"
-
-#~ msgid "iCal/Outlook"
-#~ msgstr "iCal/Outlook"

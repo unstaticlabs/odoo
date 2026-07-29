@@ -27,6 +27,12 @@ class ResCompany(models.Model):
         string='Print',
         help="Choose how the URL to the portal will be print on the receipt.",
         required=True)
+    receipt_address = fields.Char(compute="_get_receipt_address", store=False)
+
+    @api.depends('street', 'city', 'state_id', 'zip')
+    def _get_receipt_address(self):
+        for record in self:
+            record.receipt_address = ", ".join(filter(None, [record.street, record.city, record.state_id.code, record.zip]))
 
     @api.model
     def _load_pos_data_domain(self, data, config):
@@ -38,7 +44,7 @@ class ResCompany(models.Model):
             'id', 'currency_id', 'email', 'website', 'company_registry', 'vat', 'name', 'phone', 'partner_id',
             'country_id', 'state_id', 'tax_calculation_rounding_method', 'nomenclature_id', 'point_of_sale_use_ticket_qr_code',
             'point_of_sale_ticket_unique_code', 'point_of_sale_ticket_portal_url_display_mode', 'street', 'city', 'zip',
-            'account_fiscal_country_id',
+            'account_fiscal_country_id', 'street2',
         ]
 
     @api.constrains('fiscalyear_lock_date', 'tax_lock_date', 'sale_lock_date', 'hard_lock_date')

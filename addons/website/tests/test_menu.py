@@ -6,10 +6,11 @@ from unittest.mock import Mock, patch
 from werkzeug.urls import url_parse
 
 from odoo.addons.http_routing.tests.common import MockRequest
-from odoo.tests import common
+from odoo.tests import tagged, common
 from odoo.exceptions import UserError
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMenu(common.TransactionCase):
     def setUp(self):
         super(TestMenu, self).setUp()
@@ -71,7 +72,7 @@ class TestMenu(common.TransactionCase):
         # Ensure new website got a top menu
         total_menus = Menu.search_count([])
         Website.create({'name': 'new website'})
-        self.assertEqual(total_menus + 4, Menu.search_count([]), "New website's bootstraping should have duplicate default menu tree (Top/Home/Contactus/Sub Default Menu)")
+        self.assertEqual(total_menus + 3, Menu.search_count([]), "New website's bootstraping should have duplicate default menu tree (Top/Home/Sub Default Menu)")
 
     def test_04_specific_menu_translation(self):
         IrModuleModule = self.env['ir.module.module']
@@ -311,6 +312,7 @@ class TestMenu(common.TransactionCase):
             self.main_menu.parent_id = self.another_menu.id
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMenuHttp(common.HttpCase):
     def setUp(self):
         super().setUp()

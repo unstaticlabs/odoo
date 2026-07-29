@@ -4,11 +4,10 @@ from itertools import product
 
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.exceptions import UserError
-from odoo.tests import HttpCase, new_test_user, tagged, users
+from odoo.tests import HttpCase, new_test_user, users
 from odoo.tools.misc import hash_sign
 
 
-@tagged("-at_install", "post_install")
 class TestDiscussChannelInvite(HttpCase, MailCommon):
     def test_01_invite_by_email_flow(self):
         bob = new_test_user(self.env, "bob", groups="base.group_user", email="bob@test.com")
@@ -83,7 +82,7 @@ class TestDiscussChannelInvite(HttpCase, MailCommon):
                 "group_public_id": self.env.ref("base.group_user").id,
             }
         )
-        for channel in [chat, private_channel]:
+        for channel in private_channel:
             with self.assertRaises(UserError) as exc:
                 channel.invite_by_email(["some@email.com"])
             self.assertEqual(
@@ -91,7 +90,7 @@ class TestDiscussChannelInvite(HttpCase, MailCommon):
                 f"Inviting by email is not allowed for this channel type ({channel.channel_type}).",
             )
         with self.mock_mail_gateway():
-            for channel in [group_chat, public_channel]:
+            for channel in [chat, group_chat, public_channel]:
                 channel.invite_by_email(["some@email.com"])
                 self.assertMailMail(
                     self.env["res.partner"],
@@ -167,13 +166,13 @@ class TestDiscussChannelInvite(HttpCase, MailCommon):
             ),
             # Channel types that do not allow inviting by email, not selectable.
             *product(
-                [chat, private_channel],
+                private_channel,
                 ["bob@odoo.com", "alfred@odoo.com", "jane@odoo.com"],
                 [False],
             ),
             # Channel types that allow inviting by email, valid email, selectable.
             *product(
-                [group_chat, public_channel],
+                [chat, group_chat, public_channel],
                 ["bob@odoo.com", "alfred@odoo.com", "jane@odoo.com"],
                 [True],
             ),
@@ -197,3 +196,17 @@ class TestDiscussChannelInvite(HttpCase, MailCommon):
             group_chat.invite_by_email(["alfred@test.com"])
         last_message = group_chat._get_last_messages()
         self.assertEqual(last_message.message_type, "user_notification")
+
+    def test_07_invite_link_rotation_revokes_old_access(self):
+        public_channel = self.env["discuss.channel"].create(
+            {"name": "Rotation Test Channel", "group_public_id": False},
+        )
+        old_url = public_channel.invitation_url
+        response = self.url_open(old_url)
+        self.assertEqual(response.status_code, 200)
+        public_channel.action_reset_invitation_uuid()
+        new_url = public_channel.invitation_url
+        response = self.url_open(old_url)
+        self.assertEqual(response.status_code, 404)
+        response = self.url_open(new_url)
+        self.assertEqual(response.status_code, 200)

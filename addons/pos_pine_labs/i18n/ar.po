@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * pos_pine_labs
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:36+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-09-16 13:44+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "pos_pine_labs/ar/>\n"
 "Language: ar\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_pine_labs
 #: model:ir.model.fields,help:pos_pine_labs.field_pos_payment_method__pine_labs_client
@@ -141,14 +141,14 @@ msgid "PineLabs Transaction ID"
 msgstr ""
 
 #. module: pos_pine_labs
-#: model:ir.model,name:pos_pine_labs.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "طرق الدفع في نقطة البيع"
+#: model:ir.model,name:pos_pine_labs.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr ""
 
 #. module: pos_pine_labs
-#: model:ir.model,name:pos_pine_labs.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "مدفوعات نقطة البيع"
+#: model:ir.model,name:pos_pine_labs.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_pine_labs
 #. odoo-javascript
@@ -196,6 +196,3 @@ msgstr "Transaction failed due to inactivity"
 #: model:ir.model.fields.selection,name:pos_pine_labs.selection__pos_payment_method__pine_labs_allowed_payment_mode__upi
 msgid "Upi"
 msgstr "Upi"
-
-#~ msgid "Pine Labs PlutusTransactionReferenceID"
-#~ msgstr "Pine Labs PlutusTransactionReferenceID"

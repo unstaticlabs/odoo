@@ -2,16 +2,15 @@
 # This file contains the translation of the following modules:
 # * spreadsheet_account
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:59+0000\n"
-"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2025-10-13 12:17+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "spreadsheet_account/ar/>\n"
 "Language: ar\n"
@@ -20,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -35,8 +34,8 @@ msgid ""
 "'%s' is not a valid period. Supported formats are \"21/12/2022\", "
 "\"Q1/2022\", \"12/2022\", and \"2022\"."
 msgstr ""
-"'%s' ليست فترة صحيحة. الصيغ المدعومة هي \"21/12/2022\"، \"Q1/2022\" ،\"12/"
-"2022\"، و \"2022\"."
+"'%s' ليست فترة صحيحة. الصيغ المدعومة هي \"21/12/2022\"، \"Q1/2022\" ،"
+"\"12/2022\"، و \"2022\"."
 
 #. module: spreadsheet_account
 #: model:ir.model,name:spreadsheet_account.model_account_account
@@ -57,8 +56,8 @@ msgstr "التدقيق في الخلايا"
 
 #. module: spreadsheet_account
 #: model:ir.model,name:spreadsheet_account.model_res_company
-msgid "Companies"
-msgstr "الشركات"
+msgid "Company"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -77,6 +76,12 @@ msgstr "البطاقة الائتمانية"
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Current Assets"
 msgstr "الأصول المتداولة"
+
+#. module: spreadsheet_account
+#. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Current Fiscal Year"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -113,6 +118,12 @@ msgstr "رأس المال"
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Expenses"
 msgstr "النفقات"
+
+#. module: spreadsheet_account
+#. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Fiscal Year"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -202,7 +213,7 @@ msgstr "المدين"
 #. odoo-javascript
 #: code:addons/spreadsheet_account/static/src/accounting_functions.js:0
 msgid "Return the balance of accounts for the specified tag(s) and period"
-msgstr "قم بإظهار أرصدة الحسابات للعلامات والفترة المحددة"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -253,7 +264,7 @@ msgstr "التعيين كقيمة صحيحة لتشمل القيود غير ال
 #. odoo-javascript
 #: code:addons/spreadsheet_account/static/src/plugins/accounting_plugin.js:0
 msgid "The balance for given account tag could not be computed."
-msgstr "تعذر حساب الرصيد الخاص بعلامة الحساب المحددة."
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -333,7 +344,7 @@ msgstr "تعذر حساب المبلغ المتبقي لحسابات معينة.
 #. odoo-javascript
 #: code:addons/spreadsheet_account/static/src/accounting_functions.js:0
 msgid "The tag ids (separated by a comma)."
-msgstr "معرفات العلامات (مفصولة بفاصلة)."
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript

@@ -25,6 +25,39 @@ partnerCompareRegistry.add(
 );
 
 partnerCompareRegistry.add(
+    "mail.self-last",
+    (p1, p2, { store }) => {
+        const isSelf1 = p1.eq(store.self);
+        const isSelf2 = p2.eq(store.self);
+        if (isSelf1 && !isSelf2) {
+            return 1;
+        }
+        if (!isSelf1 && isSelf2) {
+            return -1;
+        }
+    },
+    { sequence: 7 }
+);
+
+partnerCompareRegistry.add(
+    "mail.recent-authors",
+    function recentAuthors(p1, p2, { context: { latestMessageIdByAuthorId } }) {
+        const p1MessageId = latestMessageIdByAuthorId.get(p1.id);
+        const p2MessageId = latestMessageIdByAuthorId.get(p2.id);
+        if (p1MessageId !== undefined && p2MessageId === undefined) {
+            return -1;
+        }
+        if (p1MessageId === undefined && p2MessageId !== undefined) {
+            return 1;
+        }
+        if (p1MessageId !== undefined && p2MessageId !== undefined && p1MessageId !== p2MessageId) {
+            return p2MessageId - p1MessageId;
+        }
+    },
+    { sequence: 10 }
+);
+
+partnerCompareRegistry.add(
     "mail.internal-users",
     (p1, p2) => {
         const isAInternalUser = p1.main_user_id?.share === false;

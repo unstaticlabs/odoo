@@ -3,10 +3,11 @@
 
 from collections import defaultdict
 from datetime import datetime
-from pytz import timezone
+from zoneinfo import ZoneInfo
 
 from odoo import api, fields, models
 from odoo.tools.intervals import Intervals
+from odoo.addons.mail.tools.discuss import Store
 
 
 class ResourceResource(models.Model):
@@ -14,6 +15,9 @@ class ResourceResource(models.Model):
 
     user_id = fields.Many2one(copy=False)
     employee_id = fields.One2many('hr.employee', 'resource_id', check_company=True, context={'active_test': False})
+    tz = fields.Selection(compute='_compute_tz', inverse='_inverse_tz', store=True, readonly=False)
+    hours_per_week = fields.Float(compute='_compute_hours_per_week', inverse='_inverse_hours_per_week', store=True, readonly=False)
+    hours_per_day = fields.Float(compute='_compute_hours_per_day', inverse='_inverse_hours_per_day', store=True, readonly=False)
 
     job_title = fields.Char(compute='_compute_job_title', compute_sudo=True)
     department_id = fields.Many2one('hr.department', compute='_compute_department_id', compute_sudo=True)
@@ -23,6 +27,33 @@ class ResourceResource(models.Model):
     show_hr_icon_display = fields.Boolean(related='employee_id.show_hr_icon_display')
     hr_icon_display = fields.Selection(related='employee_id.hr_icon_display')
     calendar_id = fields.Many2one(inverse='_inverse_calendar_id')
+
+    @api.depends('employee_id.current_version_id.tz')
+    def _compute_tz(self):
+        for resource in self.filtered('employee_id.current_version_id'):
+            resource.tz = resource.employee_id.current_version_id.tz
+
+    def _inverse_tz(self):
+        for resource in self.filtered('employee_id'):
+            resource.employee_id.current_version_id.tz = resource.tz
+
+    @api.depends('employee_id.current_version_id.hours_per_week')
+    def _compute_hours_per_week(self):
+        for resource in self.filtered('employee_id.current_version_id'):
+            resource.hours_per_week = resource.employee_id.current_version_id.hours_per_week
+
+    def _inverse_hours_per_week(self):
+        for resource in self.filtered('employee_id'):
+            resource.employee_id.current_version_id.hours_per_week = resource.hours_per_week
+
+    @api.depends('employee_id.current_version_id.hours_per_day')
+    def _compute_hours_per_day(self):
+        for resource in self.filtered('employee_id.current_version_id'):
+            resource.hours_per_day = resource.employee_id.current_version_id.hours_per_day
+
+    def _inverse_hours_per_day(self):
+        for resource in self.filtered('employee_id'):
+            resource.employee_id.current_version_id.hours_per_day = resource.hours_per_day
 
     @api.depends('employee_id')
     def _compute_job_title(self):
@@ -77,14 +108,14 @@ class ResourceResource(models.Model):
     def _get_contracts_valid_periods(self, start, end):
         res = defaultdict(lambda: defaultdict(Intervals))
         timezones = {resource.tz for resource in self}
-        date_start = min(start.astimezone(timezone(tz)).date() for tz in timezones)
-        date_end = max(end.astimezone(timezone(tz)).date() for tz in timezones)
+        date_start = min(start.astimezone(ZoneInfo(tz)).date() for tz in timezones)
+        date_end = max(end.astimezone(ZoneInfo(tz)).date() for tz in timezones)
         contracts = self.employee_id._get_versions_with_contract_overlap_with_period(date_start, date_end)
         for contract in contracts:
-            tz = timezone(contract.employee_id.tz)
+            tz = ZoneInfo(contract.employee_id.tz)
             res[contract.employee_id.resource_id.id][contract.resource_calendar_id] |= Intervals([(
-                tz.localize(datetime.combine(contract.date_start, datetime.min.time())) if contract.date_start > start.astimezone(tz).date() else start,
-                tz.localize(datetime.combine(contract.date_end, datetime.max.time())) if contract.date_end and contract.date_end < end.astimezone(tz).date() else end,
+                datetime.combine(contract.date_start, datetime.min.time(), tzinfo=tz) if contract.date_start > start.astimezone(tz).date() else start,
+                datetime.combine(contract.date_end, datetime.max.time(), tzinfo=tz) if contract.date_end and contract.date_end < end.astimezone(tz).date() else end,
                 self.env['resource.calendar.attendance']
             )])
         return res
@@ -128,10 +159,22 @@ class ResourceResource(models.Model):
 
         return calendars_within_period_per_resource
 
-    def _get_calendar_at(self, date_target, tz=False):
-        result = super()._get_calendar_at(date_target)
-        resources_with_employee = self.filtered(lambda r: r.employee_id)
+    def _get_calendar_data_at(self, date_target, tz=False):
+        result = super()._get_calendar_data_at(date_target)
+        resources_with_employee = self.filtered('employee_id')
         employee_calendars = resources_with_employee.employee_id._get_calendars(date_target.astimezone(tz))
+        employee_hours_per_week = resources_with_employee.employee_id._get_hours_per_week_batch(date_target.astimezone(tz))
+        employee_hours_per_day = resources_with_employee.employee_id._get_hours_per_day_batch(date_target.astimezone(tz))
         for resource in resources_with_employee:
-            result[resource] = employee_calendars[resource.employee_id.id]
+            result[resource] = {
+                'resource_calendar_id': employee_calendars[resource.employee_id.id],
+                'hours_per_week': employee_hours_per_week[resource.employee_id.id],
+                'hours_per_day': employee_hours_per_day[resource.employee_id.id],
+            }
         return result
+
+    def _store_avatar_card_fields(self, res: Store.FieldList):
+        super()._store_avatar_card_fields(res)
+        res.attr("department_id")
+        # sudo: resource.resource - can access employee information of resource
+        res.one("employee_id", "_store_avatar_card_fields", sudo=True)

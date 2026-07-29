@@ -1,7 +1,6 @@
 import re
 from unittest.mock import patch
 
-import odoo
 from odoo.tests.common import HttpCase, tagged
 
 
@@ -9,7 +8,8 @@ from odoo.tests.common import HttpCase, tagged
 class TestAuthLDAP(HttpCase):
 
     def test_auth_ldap(self):
-        def _get_ldap_dicts(*args, **kwargs):
+        def _get_ldap_dicts(self):
+            template_user = self.env.ref("base.template_portal_user_id")
             return [
                 {
                     "id": 1,
@@ -20,7 +20,7 @@ class TestAuthLDAP(HttpCase):
                     "ldap_password": "admin",
                     "ldap_filter": "cn=%s",
                     "ldap_base": "dc=odoo,dc=com",
-                    "user": (6, "Marc Demo"),
+                    "user": (template_user.id, template_user.name),
                     "create_user": True,
                     "ldap_tls": False,
                 }
@@ -55,11 +55,9 @@ class TestAuthLDAP(HttpCase):
             )
             res.raise_for_status()
 
-        session = odoo.http.root.session_store.get(res.cookies["session_id"])
-        self.assertEqual(
-            session.sid, res.cookies["session_id"], "A session must exist at this point")
+        self.assertTrue(res.session, "A session must exist at this point")
 
         self.env.cr.execute(
             "SELECT id FROM res_users WHERE login = %s and id = %s",
-            ("test_ldap_user", session.uid))
+            ("test_ldap_user", res.session.uid))
         self.assertTrue(self.env.cr.rowcount, "User should be present")

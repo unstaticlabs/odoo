@@ -17,24 +17,24 @@
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
 # Chrille Hedberg <hedberg.chrille@gmail.com>, 2022
 # Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:10+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-04 12:55+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/portal/"
-"sv/>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
+"portal/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -46,6 +46,11 @@ msgstr "\" för att bekräfta din åtgärd."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s dagar försenat"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -70,8 +75,7 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
 
 #. module: portal
@@ -123,16 +127,6 @@ msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 msgstr ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">Land...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">Stat/provins...</option>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -261,7 +255,7 @@ msgid "Add extra content to display in the email"
 msgstr "Lägg till extra innehåll i e-posten"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "Lägg till, ta bort eller ändra dina adresser"
 
@@ -276,8 +270,8 @@ msgid "Address Management"
 msgstr ""
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "Adresser"
 
@@ -314,10 +308,9 @@ msgid "Billing address"
 msgstr "Faktureringsadress"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "Avbryt"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -374,12 +367,17 @@ msgid "Company Name"
 msgstr "Företagsnamn"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "Inställningar"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "Konfigurera dina anslutningsparametrar"
 
@@ -396,7 +394,11 @@ msgid "Confirm Password"
 msgstr "Bekräfta lösenord"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "Anslutning &amp; Säkerhet"
@@ -418,7 +420,7 @@ msgstr "Kontaktuppgifter"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Contacts"
-msgstr "Kontakter"
+msgstr "Kontaktpersoner"
 
 #. module: portal
 #. odoo-javascript
@@ -432,11 +434,17 @@ msgid "Country"
 msgstr "Land"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr "Land..."
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "Skapa en kund"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -444,6 +452,7 @@ msgid "Created by"
 msgstr "Skapad av"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -498,6 +507,11 @@ msgid "Description"
 msgstr "Beskrivning"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "Detaljer"
@@ -525,11 +539,17 @@ msgstr ""
 "                                       </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -645,6 +665,7 @@ msgstr "Hem"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -670,6 +691,11 @@ msgstr ""
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
+msgstr ""
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
 msgstr ""
 
 #. module: portal
@@ -737,6 +763,7 @@ msgstr ""
 "                och fullständig,"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -744,6 +771,7 @@ msgid "Last Updated by"
 msgstr "Senast uppdaterad av"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -785,11 +813,11 @@ msgstr "Meddelande"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
-"Model %(model_name)s stöder inte symbolisk signatur så den har %(field_name)"
-"sfält."
+"Model %(model_name)s stöder inte symbolisk signatur så den har "
+"%(field_name)sfält."
 
 #. module: portal
 #. odoo-python
@@ -811,7 +839,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Name your key"
-msgstr "Döp din lösenordsnyckel"
+msgstr "Namnge din nyckel"
 
 #. module: portal
 #. odoo-javascript
@@ -851,12 +879,13 @@ msgstr "Endast interna användare och portalanvändare kan skapa API-nycklar"
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 msgid "Oops! Something went wrong. Try to reload the page and log in."
-msgstr "Hoppan! Nu gick något fel! Försök att ladda om sidan och logga in igen."
+msgstr ""
+"Hoppan! Nu gick något fel! Försök att ladda om sidan och logga in igen."
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__partner_ids
 msgid "Partners"
-msgstr "Partners"
+msgstr "Partner"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -879,6 +908,11 @@ msgid "Phone"
 msgstr "Telefon"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -895,6 +929,11 @@ msgstr "Hantering av portalåtkomst"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "URL till portal"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -988,7 +1027,7 @@ msgstr ""
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Scope"
-msgstr "Omfång"
+msgstr "Omfattning"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
@@ -1050,6 +1089,11 @@ msgid "Show As Optional Inherit"
 msgstr "Visa som extra arv"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "Logga in"
@@ -1081,6 +1125,11 @@ msgid "State / Province"
 msgstr "Län"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "Status"
@@ -1089,6 +1138,11 @@ msgstr "Status"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "Gata och nummer"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1112,7 +1166,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/portal/controllers/portal.py:0
 msgid "The attachment %s cannot be removed because it is linked to a message."
-msgstr "Bilagan %s kan inte raderas eftersom den är länkad till ett meddelande."
+msgstr ""
+"Bilagan %s kan inte raderas eftersom den är länkad till ett meddelande."
 
 #. module: portal
 #. odoo-python
@@ -1229,6 +1284,11 @@ msgstr ""
 "portalen."
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
 msgstr "Växla filter"
@@ -1295,9 +1355,9 @@ msgstr "Visa"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1311,7 +1371,7 @@ msgstr "Visa"
 #: model:ir.model.fields,field_description:portal.field_res_partner__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_res_users__website_message_ids
 msgid "Website Messages"
-msgstr "Hemsidesmeddelanden"
+msgstr "Webbplatsmeddelanden"
 
 #. module: portal
 #: model:ir.model.fields,help:portal.field_account_analytic_account__website_message_ids
@@ -1333,9 +1393,9 @@ msgstr "Hemsidesmeddelanden"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1349,7 +1409,7 @@ msgstr "Hemsidesmeddelanden"
 #: model:ir.model.fields,help:portal.field_res_partner__website_message_ids
 #: model:ir.model.fields,help:portal.field_res_users__website_message_ids
 msgid "Website communication history"
-msgstr "Hemsidans kommunikationshistorik"
+msgstr "Webbplatsens kommunikationshistorik"
 
 #. module: portal
 #. odoo-javascript
@@ -1370,7 +1430,7 @@ msgstr "Skriv ett meddelande..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "Skriv ett meddelande…"
 
@@ -1413,6 +1473,12 @@ msgstr "Du bör ange \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "Du bör först ge portalen åtkomst till partnern \"%s\"."
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1462,9 +1528,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "lösenord"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1484,106 +1550,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr ""
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>Redigera säkerhetsinställningarna"
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> Ändra"
-
-#~ msgid "Account Security"
-#~ msgstr "Kontosäkerhet"
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "En åtkomsttoken måste anges för respektive dokument."
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "Det är inte tillåtet att ändra företagsnamn när dokument har utfärdats "
-#~ "för ditt konto. Kontakta oss direkt för denna åtgärd."
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr ""
-#~ "Bekräfta\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "Kunde inte spara fil <strong>%s</strong>"
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr ""
-#~ "I dagsläget tillgängligt för alla att granska dokumentet. Klicka på "
-#~ "begränsa till interna anställda."
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr ""
-#~ "Just nu begränsat till interna användare. Klicka för att göra det "
-#~ "tillgängligt för alla."
-
-#~ msgid "Discard"
-#~ msgstr "Avbryt"
-
-#~ msgid "Documents"
-#~ msgstr "Dokument"
-
-#~ msgid "Employees Only"
-#~ msgstr "Anställda enbart"
-
-#~ msgid "Internal Note"
-#~ msgstr "Intern notering"
-
-#~ msgid "Name"
-#~ msgstr "Namn"
-
-#~ msgid "Prev"
-#~ msgstr "Föreg"
-
-#~ msgid "Published on %s"
-#~ msgstr "Publicerad på %s"
-
-#~ msgid "Street"
-#~ msgstr "Gata"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr "Bilagan %s finns inte eller så har du inte åtkomst till den."
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr "Dokumentet finns inte eller så saknar du rättigheter till det."
-
-#~ msgid "There are no comments for now."
-#~ msgstr "Det finns inga kommentarer just nu."
-
-#~ msgid "VAT Number"
-#~ msgstr "Skatteregisteringsnummer"
-
-#~ msgid "Visible"
-#~ msgstr "Synlig"
-
-#~ msgid "You are invited to access %s"
-#~ msgstr "Du har getts åtkomst till %s"
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "Du har bjudits in att följa dokumentet:"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "Postnummer"
-
-#~ msgid "avatar"
-#~ msgstr "avatar"
-
-#~ msgid "comment"
-#~ msgstr "kommentar"
-
-#~ msgid "comments"
-#~ msgstr "kommentarer"

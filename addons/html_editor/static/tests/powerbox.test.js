@@ -6,6 +6,7 @@ import {
     hover,
     manuallyDispatchProgrammaticEvent,
     press,
+    queryAll,
     queryAllTexts,
     scroll,
     waitFor,
@@ -20,7 +21,7 @@ import {
 } from "./_helpers/collaboration";
 import { setupEditor } from "./_helpers/editor";
 import { getContent } from "./_helpers/selection";
-import { insertText, redo, undo } from "./_helpers/user_actions";
+import { ensureDistinctHistoryStep, insertText, redo, undo } from "./_helpers/user_actions";
 import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { PowerboxPlugin } from "@html_editor/main/powerbox/powerbox_plugin";
 import { SearchPowerboxPlugin } from "@html_editor/main/powerbox/search_powerbox_plugin";
@@ -28,6 +29,7 @@ import { withSequence } from "@html_editor/utils/resource";
 import { execCommand } from "./_helpers/userCommands";
 import { expectElementCount } from "./_helpers/ui_expectations";
 import { VideoPlugin } from "@html_editor/main/media/video_plugin";
+import { deepEqual } from "@web/core/utils/objects";
 
 function commandNames() {
     return queryAllTexts(".o-we-command-name");
@@ -96,7 +98,7 @@ describe("search", () => {
         const { el, editor } = await setupEditor("<p>ab[]</p>");
         await insertText(editor, "/");
         await animationFrame();
-        expect(commandNames(el).length).toBe(27);
+        expect(commandNames(el).length).toBe(28);
         await insertText(editor, "head");
         await animationFrame();
         expect(commandNames(el)).toEqual(["Heading 1", "Heading 2", "Heading 3"]);
@@ -106,7 +108,7 @@ describe("search", () => {
         const { el, editor } = await setupEditor("<p>ab[]</p>");
         await insertText(editor, "/");
         await animationFrame();
-        expect(commandNames(el).length).toBe(27);
+        expect(commandNames(el).length).toBe(28);
         await insertText(editor, "title");
         await animationFrame();
         const commands = commandNames(el);
@@ -119,7 +121,7 @@ describe("search", () => {
         const { el, editor } = await setupEditor("<p>ab[]</p>");
         await insertText(editor, "/");
         await animationFrame();
-        expect(commandNames(el).length).toBe(27);
+        expect(commandNames(el).length).toBe(28);
         await insertText(editor, "line");
         await animationFrame();
         expect(commandNames(el).includes("Separator")).toBe(true);
@@ -136,8 +138,8 @@ describe("search", () => {
         const { el, editor } = await setupEditor("<p>ab[]</p>");
         await insertText(editor, "/");
         await animationFrame();
-        expect(commandNames(el).length).toBe(27);
-        expect(".o-we-category").toHaveCount(6);
+        expect(commandNames(el).length).toBe(28);
+        expect(".o-we-category").toHaveCount(7);
         expect(queryAllTexts(".o-we-category")).toEqual([
             "FORMAT",
             "STRUCTURE",
@@ -145,6 +147,7 @@ describe("search", () => {
             "MEDIA",
             "NAVIGATION",
             "WIDGET",
+            "BASIC BLOCK",
         ]);
 
         await insertText(editor, "h");
@@ -158,7 +161,7 @@ describe("search", () => {
         const { el, editor } = await setupEditor("<p>ab[]</p>", { props: { iframe: true } });
         await insertText(editor, "/");
         await animationFrame();
-        expect(commandNames(el).length).toBe(27);
+        expect(commandNames(el).length).toBe(28);
         await insertText(editor, "head");
         await animationFrame();
         expect(commandNames(el)).toEqual(["Heading 1", "Heading 2", "Heading 3"]);
@@ -210,7 +213,7 @@ describe("search", () => {
         await insertText(editor, "/");
         await animationFrame();
         await expectElementCount(".o-we-powerbox", 1);
-        expect(commandNames(el).length).toBe(27);
+        expect(commandNames(el).length).toBe(28);
 
         await insertText(editor, "headx");
         await animationFrame();
@@ -580,6 +583,68 @@ test("should toggle list on empty paragraph", async () => {
     await expectElementCount(".o-we-powerbox", 0);
 });
 
+test("should display the correct shorthand label for the corresponding command", async () => {
+    class TestPlugin extends Plugin {
+        static id = "test";
+        resources = {
+            user_commands: { id: "testCommand", run: () => {} },
+            powerbox_categories: { id: "test", name: "Test" },
+            powerbox_items: [
+                {
+                    title: "Test1",
+                    description: "Test1",
+                    categoryId: "test",
+                    commandId: "testCommand",
+                },
+            ],
+            shorthands: [
+                {
+                    commandId: "testCommand",
+                    literals: ["$"],
+                },
+            ],
+        };
+    }
+    const { editor, el } = await setupEditor(`<p>[]</p>`, {
+        config: { Plugins: [...MAIN_PLUGINS, TestPlugin] },
+    });
+    await expectElementCount(".o-we-powerbox", 0);
+    await insertText(editor, "/test1");
+    expect(getContent(el)).toBe("<p>/test1[]</p>");
+    await expectElementCount(".o-we-powerbox", 1);
+    expect(commandNames(el)).toEqual(["Test1"]);
+    expect(".active .o-we-command-name").toHaveText("Test1");
+    expect(".o-we-powerbox .o-we-command-shorthand").toHaveText("$");
+});
+
+test("should display shorthand label for each powerbox command having a shorthand", async () => {
+    const { editor } = await setupEditor(`<p>[]</p>`);
+    await expectElementCount(".o-we-powerbox", 0);
+    await insertText(editor, "/");
+    await expectElementCount(".o-we-powerbox", 1);
+
+    const shorthands = editor.getResource("shorthands");
+    const powerboxItems = editor.getResource("powerbox_items");
+    const commandEls = queryAll(".o-we-powerbox .o-we-command");
+
+    for (const { commandId, commandParams, title } of powerboxItems) {
+        const matchedShorthand = shorthands.find(
+            (item) => item.commandId === commandId && deepEqual(commandParams, item.commandParams)
+        );
+        if (!matchedShorthand) {
+            continue;
+        }
+
+        const commandTitle = title || editor.shared.userCommand.getCommand(commandId).title;
+        const commandEl = commandEls.find(
+            (el) => el.querySelector(".o-we-command-name").textContent === commandTitle
+        );
+
+        const shorthandEl = commandEl.querySelector(".o-we-command-shorthand");
+        expect(shorthandEl).toHaveText(matchedShorthand.literals[0]);
+    }
+});
+
 class NoOpPlugin extends Plugin {
     static id = "noOp";
     resources = {
@@ -649,7 +714,14 @@ test("should discard /command insertion from history when command is executed", 
     // @todo @phoenix: remove this once we manage inputs.
     // Simulate <br> removal by contenteditable when something is inserted
     el.querySelector("p > br").remove();
-    await insertText(editor, "abc/heading1");
+    await insertText(editor, "a");
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "b");
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "c");
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "/heading1");
+    await ensureDistinctHistoryStep();
     expect(getContent(el)).toBe("<p>abc/heading1[]</p>");
     await animationFrame();
     await expectElementCount(".o-we-powerbox", 1);
@@ -674,7 +746,10 @@ test("should discard /command insertion from history when command is executed", 
 
 test("should adapt the search of the powerbox when undo/redo", async () => {
     const { editor, el } = await setupEditor("<p>ab[]</p>");
-    await insertText(editor, "/heading1");
+    await insertText(editor, "/heading");
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "1");
+    await ensureDistinctHistoryStep();
     await animationFrame();
     expect(commandNames(el)).toEqual(["Heading 1"]);
 

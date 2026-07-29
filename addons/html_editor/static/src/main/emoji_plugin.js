@@ -1,6 +1,12 @@
+import { SuggestionList } from "@html_editor/components/suggestion/suggestion_list";
 import { Plugin } from "@html_editor/plugin";
+import { isContentEditable, isTextNode } from "@html_editor/utils/dom_info";
+import { reactive } from "@odoo/owl";
+import { emojiLoader } from "@web/core/emoji_picker/emoji_loader";
 import { EmojiPicker } from "@web/core/emoji_picker/emoji_picker";
 import { _t } from "@web/core/l10n/translation";
+import { fuzzyLookup } from "@web/core/utils/search";
+import { debounce } from "@web/core/utils/timing";
 
 /**
  * @typedef { Object } EmojiShared
@@ -9,10 +15,15 @@ import { _t } from "@web/core/l10n/translation";
 
 export class EmojiPlugin extends Plugin {
     static id = "emoji";
-    static dependencies = ["history", "overlay", "dom", "selection"];
+    static dependencies = ["history", "overlay", "dom", "selection", "delete"];
     static shared = ["showEmojiPicker"];
     /** @type {import("plugins").EditorResources} */
     resources = {
+        delete_backward_overrides: this.handleDeleteBackward.bind(this),
+        input_handlers: this.onInput.bind(this),
+        delete_handlers: () => this.updateEmojiList(),
+        post_undo_handlers: () => this.updateEmojiList(),
+        post_redo_handlers: () => this.updateEmojiList(),
         user_commands: [
             {
                 id: "addEmoji",
@@ -30,11 +41,106 @@ export class EmojiPlugin extends Plugin {
         ],
     };
 
+    /** @type {string | null} */
+    match = null;
+
     setup() {
+        this.loadEmojiPromise = emojiLoader.load();
+
         this.overlay = this.dependencies.overlay.createOverlay(EmojiPicker, {
             hasAutofocus: true,
             className: "popover",
         });
+        this.emojiListOverlay = this.dependencies.overlay.createOverlay(SuggestionList, {
+            className: "popover",
+        });
+        this.emojiListState = reactive({ list: [] });
+        this.addDomListener(this.document, "keydown", this.onKeyDown);
+    }
+
+    /** @deprecated use {@link emojiLoader.map} instead */
+    get emojiDict() {
+        return emojiLoader.map;
+    }
+
+    destroy() {
+        this.loadEmojiPromise.abort();
+    }
+
+    handleDeleteBackward() {
+        if (this.match) {
+            this.dependencies.history.undo();
+            this.match = null;
+            return true;
+        }
+    }
+
+    /**
+     * @param {InputEvent} ev
+     */
+    onInput(ev) {
+        if (!emojiLoader.loaded || ev.inputType === "deleteContentBackward") {
+            return;
+        }
+        const selection = this.dependencies.selection.getEditableSelection();
+        if (
+            !isTextNode(selection.startContainer) ||
+            !isContentEditable(selection.startContainer) ||
+            !selection.isCollapsed
+        ) {
+            this.match = null;
+            return;
+        }
+        const start = selection.startOffset;
+        const text = selection.anchorNode.textContent;
+
+        for (let candidatePosition = start - 1; candidatePosition >= 0; candidatePosition--) {
+            const match = text.substring(candidatePosition, start);
+            if (!emojiLoader.map.has(match)) {
+                continue;
+            }
+            // Ensure the character before is a space or start of text
+            const charBefore = text[candidatePosition - 1];
+            if (charBefore && !/\s/.test(charBefore)) {
+                continue;
+            }
+            // Replace the matched text with the emoji
+            const emoji = emojiLoader.map.get(match);
+            this.dependencies.selection.setSelection({
+                anchorNode: selection.anchorNode,
+                anchorOffset: candidatePosition,
+                focusNode: selection.focusNode,
+                focusOffset: start,
+            });
+            this.emojiListOverlay.close();
+            this.dependencies.dom.insert(emoji.codepoints);
+            this.dependencies.history.addStep();
+            this.match = match;
+            return;
+        }
+        this.match = null;
+        if (ev.data === ":") {
+            this.emojiListOverlay.close();
+            const selection = this.dependencies.selection.getEditableSelection();
+            this.offset = start - 1;
+            this.shouldUpdateEmojiList = true;
+            this.searchNode = selection.startContainer;
+        } else if (this.isSearching(selection)) {
+            this.updateEmojiList();
+        } else {
+            this.emojiListOverlay.close();
+            this.shouldUpdateEmojiList = false;
+        }
+    }
+
+    /**
+     * @param {KeyboardEvent} ev
+     */
+    onKeyDown(ev) {
+        if (ev.key === "Escape") {
+            this.emojiListOverlay.close();
+            this.shouldUpdateEmojiList = false;
+        }
     }
 
     /**
@@ -61,5 +167,56 @@ export class EmojiPlugin extends Plugin {
             },
             target,
         });
+    }
+
+    updateEmojiList = debounce(this._updateEmojiList, 100);
+    _updateEmojiList() {
+        if (!this.shouldUpdateEmojiList || !emojiLoader.loaded) {
+            return;
+        }
+
+        const selection = this.dependencies.selection.getEditableSelection();
+        const searchTerm = this.searchNode.nodeValue.slice(this.offset, selection.endOffset) || "";
+        // Keywords may contain spaces (e.g. "grinning face") which
+        // would cause suggestion list to open on space. Replacing
+        // them with underscores prevents this.
+        const emojis = fuzzyLookup(searchTerm, emojiLoader.emojis, (e) => [
+            ...e.shortcodes,
+            ...e.keywords.map((k) => k.replaceAll(" ", "_")),
+        ]).slice(0, 8);
+        this.emojiListState.list = emojis.map((e) => ({
+            value: e.codepoints,
+            label: e.shortcodes[0],
+        }));
+        if (searchTerm.length > 2 && emojis.length) {
+            this.emojiListOverlay.open({
+                props: {
+                    state: this.emojiListState,
+                    onSelect: ({ value }) => {
+                        const selection = this.document.getSelection();
+                        selection.extend(this.searchNode, this.offset);
+                        this.dependencies.delete.deleteSelection();
+                        this.dependencies.dom.insert(value);
+                        this.dependencies.history.addStep();
+                        this.emojiListOverlay.close();
+                    },
+                    overlay: this.emojiListOverlay,
+                },
+            });
+        } else {
+            this.emojiListOverlay.close();
+        }
+    }
+
+    /**
+     * @param {import("@html_editor/core/selection_plugin").EditorSelection} selection
+     */
+    isSearching(selection) {
+        return (
+            selection.endContainer === this.searchNode &&
+            this.searchNode.nodeValue &&
+            this.searchNode.nodeValue[this.offset] === ":" &&
+            selection.endOffset > this.offset
+        );
     }
 }

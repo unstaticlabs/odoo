@@ -4,36 +4,44 @@ import functools
 import hashlib
 import logging
 import os
-import psycopg2
 import random
+import selectors
 import socket
 import struct
-import selectors
 import threading
 import time
 from collections import defaultdict, deque
 from contextlib import contextmanager, suppress
 from enum import IntEnum
 from itertools import count
-from psycopg2.pool import PoolError
 from queue import PriorityQueue
 from urllib.parse import urlparse
 from weakref import WeakSet
 
-from werkzeug.local import LocalStack
+import psycopg2
+from psycopg2.pool import PoolError
 from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.exceptions import BadRequest, HTTPException, ServiceUnavailable
+from werkzeug.local import LocalStack
 
 import odoo
-from odoo import api, modules
-from .models.bus import dispatch
-from .tools import orjson
-from odoo.http import root, Request, Response, SessionExpiredException, get_default_session
+from odoo import modules
+from odoo.http.requestlib import Request
+from odoo.http.response import Response
+from odoo.http.retrying import retrying
+from odoo.http.session import (
+    SessionExpiredException,
+    get_default_session,
+    session_store,
+)
 from odoo.modules.registry import Registry
-from odoo.service import model as service_model
 from odoo.service.server import CommonServer
-from odoo.service.security import check_session
+from odoo.sql_db import db_connect
 from odoo.tools import config
+
+from .models.bus import dispatch, fetch_bus_notifications
+from .session_helpers import check_session, new_env
+from .tools import orjson
 
 _logger = logging.getLogger(__name__)
 
@@ -52,7 +60,7 @@ def acquire_cursor(db):
             # Yield before trying to acquire the cursor to let other
             # greenlets release their cursor.
             time.sleep(0)
-            with suppress(PoolError), Registry(db).cursor() as cr:
+            with suppress(PoolError), db_connect(db).cursor() as cr:
                 yield cr
                 return
             time.sleep(delay + random.uniform(0, JITTER_ON_POOL_ERROR))
@@ -641,7 +649,7 @@ class Websocket:
         dispatch.unsubscribe(self)
         self._trigger_lifecycle_event(LifecycleEvent.CLOSE)
         with acquire_cursor(self._db) as cr:
-            env = self.new_env(cr, self._session)
+            env = new_env(cr, self._session)
             env["ir.websocket"]._on_websocket_closed(self._cookies)
 
     def _handle_control_frame(self, frame):
@@ -718,16 +726,37 @@ class Websocket:
         if not self.__event_callbacks[event_type]:
             return
         with acquire_cursor(self._db) as cr:
-            env = self.new_env(cr, self._session, set_lang=True)
+            env = new_env(cr, self._session, set_lang=True)
             for callback in self.__event_callbacks[event_type]:
                 try:
-                    service_model.retrying(functools.partial(callback, env, self), env)
+                    retrying(functools.partial(callback, env, self), env)
                 except Exception:
                     _logger.warning(
                         'Error during Websocket %s callback',
                         LifecycleEvent(event_type).name,
                         exc_info=True
                     )
+
+    def _assert_session_validity(self):
+        """Ensure the current session exists and validate it using
+        `check_session`.
+
+        :raises: SessionExpiredException if the session does not exist or fails
+          validation.
+
+        """
+        session = session_store().get(self._session.sid)
+        if not session:
+            e = "session non longer exists"
+            raise SessionExpiredException(e)
+        if 'next_sid' in session:
+            self._session = session_store().get(session['next_sid'])
+            self._assert_session_validity()
+            return
+        if session.uid is None:
+            return
+        with acquire_cursor(session.db) as cr:
+            check_session(cr, session)
 
     def _send_control_command(self, command, data=None):
         """Send a command to the websocket event loop.
@@ -745,36 +774,21 @@ class Websocket:
         """
         match command:
             case ControlCommand.DISPATCH:
+                self._assert_session_validity()
                 self._dispatch_bus_notifications()
             case ControlCommand.CLOSE:
                 self._disconnect(data['code'], data.get('reason'))
 
     def _dispatch_bus_notifications(self):
-        """
-        Dispatch notifications related to the registered channels. If
-        the session is expired, close the connection with the
-        `SESSION_EXPIRED` close code. If no cursor can be acquired,
-        close the connection with the `TRY_LATER` close code.
-        """
-        session = root.session_store.get(self._session.sid)
-        if not session:
-            raise SessionExpiredException()
-        if 'next_sid' in session:
-            self._session = root.session_store.get(session['next_sid'])
-            return self._dispatch_bus_notifications()
-         # Mark the notification request as processed.
         self._waiting_for_dispatch = False
-        with acquire_cursor(session.db) as cr:
-            env = self.new_env(cr, session)
-            if session.uid is not None and not check_session(session, env):
-                raise SessionExpiredException()
-            notifications = env["bus.bus"]._poll(
-                self._channels, self._last_notif_sent_id, [n[0] for n in self._notif_history]
+        with acquire_cursor(self._session.db) as cr:
+            notifications = fetch_bus_notifications(
+                cr, self._channels, self._last_notif_sent_id, [n[0] for n in self._notif_history]
             )
         if not notifications:
             return
         for notif in notifications:
-            bisect.insort(self._notif_history, (notif["id"], time.time()), key=lambda x: x[0])
+            bisect.insort(self._notif_history, (notif['id'], time.time()), key=lambda x: x[0])
         # Discard all the smallest notification ids that have expired and
         # increment the last id accordingly. History can only be trimmed of ids
         # that are below the new last id otherwise some notifications might be
@@ -796,23 +810,6 @@ class Websocket:
             self._last_notif_sent_id = self._notif_history[last_index][0]
             self._notif_history = self._notif_history[last_index + 1 :]
         self._send(notifications)
-
-    def new_env(self, cr, session, *, set_lang=False):
-        """
-        Create a new environment.
-        Make sure the transaction has a `default_env` and if requested, set the
-        language of the user in the context.
-        """
-        uid = session.uid
-        # lang is not guaranteed to be correct, set None
-        ctx = dict(session.context, lang=None)
-        env = api.Environment(cr, uid, ctx)
-        if set_lang:
-            lang = env['res.lang']._get_code(ctx['lang'])
-            env = env(context=dict(ctx, lang=lang))
-        if not env.transaction.default_env:
-            env.transaction.default_env = env
-        return env
 
 
 class TimeoutManager:
@@ -919,17 +916,15 @@ class WebsocketRequest:
         self.session = self._get_session()
 
         try:
-            self.registry = Registry(self.db)
-            threading.current_thread().dbname = self.registry.db_name
-            self.registry.check_signaling()
+            self.registry = Registry(self.db).check_signaling()
         except (
             AttributeError, psycopg2.OperationalError, psycopg2.ProgrammingError
         ) as exc:
             raise InvalidDatabaseException() from exc
 
         with acquire_cursor(self.db) as cr:
-            self.env = self.ws.new_env(cr, self.session, set_lang=True)
-            service_model.retrying(
+            self.env = new_env(cr, self.session, set_lang=True)
+            retrying(
                 functools.partial(self._serve_ir_websocket, event_name, data),
                 self.env,
             )
@@ -943,9 +938,9 @@ class WebsocketRequest:
         self.env["ir.websocket"]._serve_ir_websocket(event_name, data)
 
     def _get_session(self):
-        session = root.session_store.get(self.ws._session.sid)
+        session = session_store().get(self.ws._session.sid)
         if 'next_sid' in session:
-            self.ws._session = root.session_store.get(session['next_sid'])
+            self.ws._session = session_store().get(session['next_sid'])
             return self._get_session()
         if not session:
             raise SessionExpiredException()
@@ -1070,9 +1065,9 @@ class WebsocketConnectionHandler:
                     'scheme': request.httprequest.scheme,
                 },
             )
-            session = root.session_store.new()
+            session = session_store().new()
             session.update(get_default_session(), db=request.session.db)
-            root.session_store.save(session)
+            session_store().save(session)
             return session
         return None
 
@@ -1144,9 +1139,17 @@ class WebsocketConnectionHandler:
 
 def _kick_all(code=CloseCode.GOING_AWAY):
     """ Disconnect all the websocket instances. """
+    _logger.info('disconnecting %s websockets', len(_websocket_instances))
+    count = 0
+    wait_threshold = max(odoo.sql_db._Pool._maxconn // 8, 8) if odoo.sql_db._Pool else 32
     for websocket in _websocket_instances:
         if websocket.state is ConnectionState.OPEN:
             websocket.close(code)
+            count += 1
+            if count % wait_threshold == 0:
+                time.sleep(0.5)
+                _logger.debug('kicking websockets %s/%s ...', count, len(_websocket_instances))
+    _logger.debug('kicking websockets %s/%s done', count, len(_websocket_instances))
 
 
 CommonServer.on_stop(_kick_all)

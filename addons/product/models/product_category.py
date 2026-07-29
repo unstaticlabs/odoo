@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.fields import Domain
 
 
 class ProductCategory(models.Model):
@@ -12,12 +12,15 @@ class ProductCategory(models.Model):
     _parent_name = "parent_id"
     _parent_store = True
     _rec_name = 'complete_name'
-    _order = 'complete_name'
+    _order = 'parent_id desc, name asc'
 
-    name = fields.Char('Name', index='trigram', required=True)
+    name = fields.Char('Name', index='trigram', required=True, translate=True)
     complete_name = fields.Char(
-        'Complete Name', compute='_compute_complete_name', recursive=True,
-        store=True)
+        string='Complete Name',
+        compute='_compute_complete_name',
+        search='_search_complete_name',
+        recursive=True,
+    )
     parent_id = fields.Many2one('product.category', 'Parent Category', index=True, ondelete='cascade')
     parent_path = fields.Char(index=True)
     child_id = fields.One2many('product.category', 'parent_id', 'Child Categories')
@@ -27,12 +30,26 @@ class ProductCategory(models.Model):
     product_properties_definition = fields.PropertiesDefinition('Product Properties')
 
     @api.depends('name', 'parent_id.complete_name')
+    @api.depends_context('lang')
     def _compute_complete_name(self):
         for category in self:
             if category.parent_id:
                 category.complete_name = '%s / %s' % (category.parent_id.complete_name, category.name)
             else:
                 category.complete_name = category.name
+
+    def _search_complete_name(self, operator, value):
+        if operator in Domain.NEGATIVE_OPERATORS:
+            return NotImplemented
+        if self.env.context.get('import_file'):
+            complete_name = next(iter(value))
+            candidates = self.search([('name', '=', complete_name.split(' / ')[-1])])
+            return [('id', 'in', candidates.filtered(lambda c: c.complete_name == complete_name).ids)]
+        return [
+            '|',
+            ('name', operator, value),
+            ('id', 'child_of', self.search([('name', operator, value)]).ids),
+        ]
 
     def _compute_product_count(self):
         read_group_res = self.env['product.template']._read_group([('categ_id', 'child_of', self.ids)], ['categ_id'], ['__count'])
@@ -42,11 +59,6 @@ class ProductCategory(models.Model):
             for sub_categ_id in categ.search([('id', 'child_of', categ.ids)]).ids:
                 product_count += group_data.get(sub_categ_id, 0)
             categ.product_count = product_count
-
-    @api.constrains('parent_id')
-    def _check_category_recursion(self):
-        if self._has_cycle():
-            raise ValidationError(_('You cannot create recursive categories.'))
 
     @api.model
     def name_create(self, name):

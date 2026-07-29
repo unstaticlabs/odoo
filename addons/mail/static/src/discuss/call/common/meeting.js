@@ -2,7 +2,6 @@ import { Composer } from "@mail/core/common/composer";
 import { Thread } from "@mail/core/common/thread";
 import { Call } from "@mail/discuss/call/common/call";
 import { CallActionList } from "@mail/discuss/call/common/call_action_list";
-import { ChannelInvitation } from "@mail/discuss/core/common/channel_invitation";
 import {
     inDiscussCallViewProps,
     useInDiscussCallView,
@@ -17,6 +16,8 @@ import { MeetingSideActions } from "./meeting_side_actions";
 import { useThreadActions } from "@mail/core/common/thread_actions";
 import { useMessageSearch } from "@mail/core/common/message_search_hook";
 
+const PIP_EXTRA_ACTION_IDS = ["copy-invite-link", "meeting-chat"];
+
 /** @typedef {"chat"|"invite"} MeetingPanel */
 
 /**
@@ -30,7 +31,6 @@ export class Meeting extends Component {
     static components = {
         Call,
         CallActionList,
-        ChannelInvitation,
         Composer,
         Dropdown,
         MeetingSideActions,
@@ -54,14 +54,16 @@ export class Meeting extends Component {
                 openChat: () =>
                     this.threadActions.actions
                         .find((action) => action.id === "meeting-chat")
-                        ?.open(),
+                        ?.actionPanelOpen(),
             },
         });
-        this.threadActions = useThreadActions({ thread: () => this.thread });
+        this.threadActions = useThreadActions({ thread: () => this.channel.thread });
         this.messageHighlight = useMessageScrolling();
-        this.messageSearch = useMessageSearch(this.thread);
+        this.messageSearch = useMessageSearch(this.channel.thread);
         useChildSubEnv({
-            closeActionPanel: () => this.threadActions.activeAction?.close(),
+            /** @deprecated */
+            closeActionPanel: (opts) => this.threadActions.activeAction?.actionPanelClose(opts),
+            hasPreviousActionPanel: () => this.threadActions.actionStack.length > 0,
             messageHighlight: this.messageHighlight,
             messageSearch: this.messageSearch,
         });
@@ -69,7 +71,14 @@ export class Meeting extends Component {
         onWillUnmount(() => (this.store.meetingViewOpened = false));
     }
 
-    get thread() {
+    get channel() {
         return this.store.rtc.channel;
+    }
+
+    get pipExtraActions() {
+        if (!this.rtc.isPipMode) {
+            return [];
+        }
+        return this.threadActions.actions.filter((a) => PIP_EXTRA_ACTION_IDS.includes(a.id));
     }
 }

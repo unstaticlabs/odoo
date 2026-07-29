@@ -51,7 +51,6 @@
                                 type="object"
                                 class="btn btn-link px-0 fw-normal"
                                 t-on-click="() => this.handleButtonClick('action_create_new')"
-                                groups="account.group_account_invoice"
                             >
                                 Create manually
                             </a>

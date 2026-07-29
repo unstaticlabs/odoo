@@ -13,7 +13,13 @@ import {
 import { base64Img, setupEditor, testEditor } from "../_helpers/editor";
 import { unformat } from "../_helpers/format";
 import { getContent, setSelection } from "../_helpers/selection";
-import { deleteBackward, insertText, tripleClick, undo } from "../_helpers/user_actions";
+import {
+    deleteBackward,
+    ensureDistinctHistoryStep,
+    insertText,
+    tripleClick,
+    undo,
+} from "../_helpers/user_actions";
 import { EMBEDDED_COMPONENT_PLUGINS, MAIN_PLUGINS } from "@html_editor/plugin_sets";
 import {
     compareHighlightedContent,
@@ -99,8 +105,8 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: "<p>ab c[]</p>",
                 stepFunction: deleteBackward,
-                // The space should be converted to an unbreakable space
-                // so it is visible.
+                // The space should be converted to a non-breaking space so it
+                // is visible.
                 contentAfter: "<p>ab&nbsp;[]</p>",
             });
         });
@@ -173,6 +179,7 @@ describe("Selection collapsed", () => {
                 contentBefore: "<p>ab<b>c[]</b>de</p>",
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
+                    await ensureDistinctHistoryStep();
                     await insertText(editor, "x");
                     undo(editor);
                 },
@@ -427,7 +434,7 @@ describe("Selection collapsed", () => {
             });
         });
 
-        test("should unwrap a block next to an inline unbreakable element", async () => {
+        test("should unwrap a block next to an inline unsplittable element", async () => {
             await testEditor({
                 contentBefore: `<div><p>abc</p><span class="oe_unbreakable"></span><p>[]def</p></div>`,
                 stepFunction: async (editor) => {
@@ -442,7 +449,7 @@ describe("Selection collapsed", () => {
             });
         });
 
-        test("should remove an inline unbreakable contenteditable='false' sibling element", async () => {
+        test("should remove an inline unsplittable contenteditable='false' sibling element", async () => {
             await testEditor({
                 contentBefore: `<div><p>abc</p><span class="oe_unbreakable" contenteditable="false">d</span>[]efg</div>`,
                 contentBeforeEdit:
@@ -1811,7 +1818,7 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete part of the text within a paragraph (backward, forward selection)", async () => {
+    test("should delete part of the text within a paragraph", async () => {
         // Forward selection
         await testEditor({
             contentBefore: "<p>ab[cd]ef</p>",
@@ -1819,17 +1826,8 @@ describe("Selection not collapsed", () => {
             contentAfter: "<p>ab[]ef</p>",
         });
     });
-    test("should delete part of the text within a paragraph (backward, backward selection)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<p>ab]cd[ef</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>ab[]ef</p>",
-        });
-    });
 
-    test("should delete across two paragraphs (1)", async () => {
-        // Forward selection
+    test("should delete across two paragraphs", async () => {
         await testEditor({
             contentBefore: "<p>ab[cd</p><p>ef]gh</p>",
             stepFunction: deleteBackward,
@@ -1837,32 +1835,15 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete across two paragraphs (2)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<p>ab]cd</p><p>ef[gh</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>ab[]gh</p>",
-        });
-    });
-
-    test("should delete part of the text across two paragraphs (backward, forward selection)", async () => {
+    test("should delete part of the text across two paragraphs", async () => {
         await testEditor({
             contentBefore: "<div>a<p>b[c</p><p>d]e</p>f</div>",
             stepFunction: deleteBackward,
             contentAfter: "<div>a<p>b[]e</p>f</div>",
         });
     });
-    test("should delete part of the text across two paragraphs (backward, backward selection)", async () => {
-        await testEditor({
-            contentBefore: "<div>a<p>b]c</p><p>d[e</p>f</div>",
-            stepFunction: deleteBackward,
-            contentAfter: "<div>a<p>b[]e</p>f</div>",
-        });
-    });
 
-    test("should delete all the text in a paragraph (1)", async () => {
-        // Forward selection
+    test("should delete all the text in a paragraph", async () => {
         await testEditor({
             contentBefore: "<p>[abc]</p>",
             stepFunction: deleteBackward,
@@ -1870,17 +1851,7 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete all the text in a paragraph (2)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<p>]abc[</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>[]<br></p>",
-        });
-    });
-
     test("should delete a complex selection accross format nodes and multiple paragraphs (1)", async () => {
-        // Forward selection
         await testEditor({
             contentBefore: "<p><b>ab[cd</b></p><p><b>ef<br>gh</b>ij<i>kl]</i>mn</p>",
             stepFunction: deleteBackward,
@@ -1889,7 +1860,6 @@ describe("Selection not collapsed", () => {
     });
 
     test("should delete a complex selection accross format nodes and multiple paragraphs (2)", async () => {
-        // Forward selection
         await testEditor({
             contentBefore: "<p><b>ab[cd</b></p><p><b>ef<br>gh</b>ij<i>k]l</i>mn</p>",
             stepFunction: deleteBackward,
@@ -1897,25 +1867,7 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete a complex selection accross format nodes and multiple paragraphs (3)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<p><b>ab]cd</b></p><p><b>ef<br>gh</b>ij<i>kl[</i>mn</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p><b>ab[]</b>mn</p>",
-        });
-    });
-
-    test("should delete a complex selection accross format nodes and multiple paragraphs (4)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<p><b>ab]cd</b></p><p><b>ef<br>gh</b>ij<i>k[l</i>mn</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p><b>ab[]</b><i>l</i>mn</p>",
-        });
-    });
-
-    test("should delete all contents of a complex DOM with format nodes and multiple paragraphs (backward, forward selection)", async () => {
+    test("should delete all contents of a complex DOM with format nodes and multiple paragraphs", async () => {
         await testEditor({
             contentBefore: "<p><b>[abcd</b></p><p><b>ef<br>gh</b>ij<i>kl</i>mn]</p>",
             stepFunction: deleteBackward,
@@ -1923,16 +1875,7 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete all contents of a complex DOM with format nodes and multiple paragraphs (backward, backward selection)", async () => {
-        await testEditor({
-            contentBefore: "<p><b>]abcd</b></p><p><b>ef<br>gh</b>ij<i>kl</i>mn[</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>[]<br></p>",
-        });
-    });
-
-    test("should delete a selection accross a heading1 and a paragraph (1)", async () => {
-        // Forward selection
+    test("should delete a selection accross a heading1 and a paragraph", async () => {
         await testEditor({
             contentBefore: "<h1>ab [cd</h1><p>ef]gh</p>",
             stepFunction: deleteBackward,
@@ -1940,17 +1883,7 @@ describe("Selection not collapsed", () => {
         });
     });
 
-    test("should delete a selection accross a heading1 and a paragraph (2)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<h1>ab ]cd</h1><p>ef[gh</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<h1>ab []gh</h1>",
-        });
-    });
-
     test("should delete a selection from the beginning of a heading1 with a format to the middle of a paragraph (1)", async () => {
-        // Forward selection
         await testEditor({
             contentBefore: "<h1><b>[abcd</b></h1><p>ef]gh1</p>",
             stepFunction: deleteBackward,
@@ -1959,29 +1892,10 @@ describe("Selection not collapsed", () => {
     });
 
     test("should delete a selection from the beginning of a heading1 with a format to the middle of a paragraph (2)", async () => {
-        // Forward selection
         await testEditor({
             contentBefore: "<h1>[<b>abcd</b></h1><p>ef]gh2</p>",
             stepFunction: deleteBackward,
             contentAfter: "<p>[]gh2</p>",
-        });
-    });
-
-    test("should delete a selection from the beginning of a heading1 with a format to the middle of a paragraph (3)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<h1><b>]abcd</b></h1><p>ef[gh3</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>[]gh3</p>",
-        });
-    });
-
-    test("should delete a selection from the beginning of a heading1 with a format to the middle of a paragraph (4)", async () => {
-        // Backward selection
-        await testEditor({
-            contentBefore: "<h1>]<b>abcd</b></h1><p>ef[gh4</p>",
-            stepFunction: deleteBackward,
-            contentAfter: "<p>[]gh4</p>",
         });
     });
 

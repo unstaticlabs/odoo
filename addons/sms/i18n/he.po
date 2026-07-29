@@ -18,16 +18,14 @@
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
 # Roy Sayag, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Yoram Lavi <yoram@digitale.co.il>, 2026.
-# or balmas <or@laylinetech.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 19:27+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
+"PO-Revision-Date: 2025-11-11 17:16+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/sms/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
@@ -35,12 +33,12 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
 msgid "# Invalid recipients"
-msgstr "# נמענים לא תקינים"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_valid_count
@@ -180,6 +178,12 @@ msgid ""
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -247,10 +251,7 @@ msgid "Buy credits."
 msgstr "לקנות נקודות זכות."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "בטל"
@@ -285,8 +286,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "חברות"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -377,12 +378,6 @@ msgid "Delivered"
 msgstr "נמסר"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "בטל"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -405,8 +400,8 @@ msgstr "שם לתצוגה"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "עוקבים אחר המסמך"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -534,9 +529,9 @@ msgstr "מזהה"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -665,6 +660,12 @@ msgid "Marked for deletion"
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -673,8 +674,8 @@ msgstr "הודעה"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "התראות הודעה"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -686,8 +687,8 @@ msgstr "חסר מספר"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "דגמים"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -967,9 +968,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1237,6 +1238,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "תבנית SMS"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1590,141 +1597,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
 msgid "record:"
 msgstr "רשומה:"
-
-#~ msgid "Action Needed"
-#~ msgstr "נדרשת פעולה"
-
-#~ msgid "Action To Do"
-#~ msgstr "פעולה לביצוע"
-
-#~ msgid "Attachment Count"
-#~ msgstr "כמות קבצים מצורפים"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "אל תכלול טלפון נייד מהרשימה שחורה"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "אל תכלול טלפון מהרשימה שחורה"
-
-#~ msgid "Buy credits"
-#~ msgstr "קניית נקודות זכות"
-
-#~ msgid "Canceled"
-#~ msgstr "בוטל"
-
-#~ msgid "Close"
-#~ msgstr "סגור"
-
-#~ msgid "Edit Partners"
-#~ msgstr "ערוך שותפים"
-
-#~ msgid "Error Message"
-#~ msgstr "הודעת שגיאה"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr "שדה המשמש לאחסון מספר טלפון מאומת. עוזר לזרז חיפושים והשוואות."
-
-#~ msgid "Followers"
-#~ msgstr "עוקבים"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "עוקבים (לקוחות/ספקים)"
-
-#~ msgid "Has Message"
-#~ msgstr "יש הודעה"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "אם מסומן, הודעות חדשות דורשות את תשומת לבך."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "אם מספר הטלפון המחוטא נמצא ברשימה השחורה, איש הקשר לא יקבל יותר הודעות "
-#~ "דואר המוניות מכל רשימה"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "מציין אם מספר טלפון המופיע ברשימה השחורה הוא מספר טלפון. עוזר להבחין איזה "
-#~ "מספר מופיע ברשימה השחורה כאשר במודל יש גם שדה נייד וגם טלפון."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "מציין אם מספר טלפון מחוטא ברשימה השחורה הוא מספר טלפון. עוזר להבחין איזה "
-#~ "מספר מופיע ברשימה השחורה כאשר במודל יש גם שדה נייד וגם טלפון."
-
-#~ msgid "Is Follower"
-#~ msgstr "עוקב"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "הודעת שגיאת שליחה"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "סוג הודעה: אימייל להודעת דואר אלקטרוני, התראה על הודעת מערכת, הערה "
-#~ "להודעות אחרות כגון תשובות משתמשים"
-
-#~ msgid "Messages"
-#~ msgstr "הודעות"
-
-#~ msgid "Notification"
-#~ msgstr "התראה"
-
-#~ msgid "Number of Actions"
-#~ msgstr "מספר פעולות"
-
-#~ msgid "Number of errors"
-#~ msgstr "מספר השגיאות"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "מספר הודעות עם שגיאת משלוח"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "שפת תרגום אופציונלית (קוד ISO) לבחירה בעת שליחת אימייל. אם לא מוגדר, "
-#~ "הגרסה האנגלית תשמש. בדרך כלל זה צריך להיות ביטוי מציין מיקום המספק את "
-#~ "השפה המתאימה, למשל. {{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "לקוח/ספק"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "שותף ברשימה השחורה"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "נייד"
-
-#~ msgid "Reason"
-#~ msgstr "סיבה"
-
-#~ msgid "Recipient"
-#~ msgstr "נמען"
-
-#~ msgid "Recipients"
-#~ msgstr "נמענים"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "שלח הודעת SMS"
-
-#~ msgid "Website Messages"
-#~ msgstr "הודעות מאתר האינטרנט"
-
-#~ msgid "Website communication history"
-#~ msgstr "היסטורית התקשרויות מאתר האינטרנט"

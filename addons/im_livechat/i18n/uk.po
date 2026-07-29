@@ -4,27 +4,26 @@
 #
 # Translators:
 # Martin Trigaux, 2022
-# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Denys Nykula <nykula@ukr.net>, 2026.
+# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 18:36+0000\n"
-"PO-Revision-Date: 2026-07-15 07:43+0000\n"
-"Last-Translator: Denys Nykula <nykula@ukr.net>\n"
+"POT-Creation-Date: 2026-04-03 18:37+0000\n"
+"PO-Revision-Date: 2025-11-08 21:54+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
 "im_livechat/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: im_livechat
 #. odoo-python
@@ -68,6 +67,24 @@ msgid "% of Happiness"
 msgstr "% вдоволення"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(days)sd"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(hours)sh"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(minutes)sm"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-python
 #: code:addons/im_livechat/models/chatbot_script_step.py:0
 msgid "%(title)s - Step %(sequence)d"
@@ -82,10 +99,24 @@ msgstr "%s (копія)"
 #. module: im_livechat
 #. odoo-python
 #: code:addons/im_livechat/models/chatbot_script.py:0
-#: code:addons/im_livechat/models/discuss_channel.py:0
 msgid ""
 "'%(input_email)s' does not look like a valid email. Can you please try again?"
-msgstr "'%(input_email)s' виглядає як недійсний email. Можете спробувати знову?"
+msgstr ""
+"'%(input_email)s' виглядає як недійсний email. Можете спробувати знову?"
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/chatbot_script.py:0
+msgid ""
+"'%(input_phone)s' does not look like a valid phone number. Can you please "
+"try again?"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/chatbot_script_step.py:0
+msgid "'%s' is not a valid phone number."
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_rule__action
@@ -105,6 +136,12 @@ msgstr ""
 "* «Сховати» приховує кнопку чату на сторінках.\n"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "< 1m"
+msgstr ""
+
+#. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
 msgid ""
 "<i class=\"fa fa-smile-o text-success\" title=\"Percentage of happy "
@@ -116,7 +153,8 @@ msgstr ""
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_test_script_page
 msgid "<i class=\"oi oi-fw oi-arrow-right\"/>Back to edit mode"
-msgstr "<i class=\"oi oi-fw oi-arrow-right\"/>Повернутися до режиму редагування"
+msgstr ""
+"<i class=\"oi oi-fw oi-arrow-right\"/>Повернутися до режиму редагування"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -149,8 +187,8 @@ msgid ""
 "<span>Reminder: This step will only be played if no operator is available.</"
 "span>"
 msgstr ""
-"<span>Нагадування: Цей крок буде відтворено, лише якщо оператор "
-"недоступний.</span>"
+"<span>Нагадування: Цей крок буде відтворено, лише якщо оператор недоступний."
+"</span>"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_form
@@ -239,7 +277,6 @@ msgstr "Адміністратор"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__partner_id
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel_member__livechat_member_type__agent
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel_member_history__livechat_member_type__agent
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -258,7 +295,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_agent_partner_ids
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__user_ids
 #: model:ir.ui.menu,name:im_livechat.menu_reporting_livechat_agent
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Agents"
@@ -270,15 +306,15 @@ msgid "Agents (History)"
 msgstr ""
 
 #. module: im_livechat
+#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__available_operator_ids_count
+msgid "Agents Connected"
+msgstr ""
+
+#. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid ""
 "Agents who are inactive in Odoo for more than 30 minutes will be considered "
 "disconnected."
-msgstr ""
-
-#. module: im_livechat
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_all_conversations
-msgid "All Conversations"
 msgstr ""
 
 #. module: im_livechat
@@ -362,11 +398,6 @@ msgid "Average time in hours to give the first answer to the visitor"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-msgid "Bot"
-msgstr "Бот"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__operator_partner_id
 msgid "Bot Operator"
 msgstr "Оператор боту"
@@ -410,7 +441,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.ui.menu,name:im_livechat.canned_responses
 msgid "Canned Responses"
-msgstr "Готові відповіді"
+msgstr "Запитувані відповіді"
 
 #. module: im_livechat
 #. odoo-python
@@ -424,10 +455,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__channel_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__channel_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__livechat_channel_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
 msgid "Channel"
 msgstr "Канал"
@@ -440,6 +469,7 @@ msgstr "Член каналу"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__channel_name
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 msgid "Channel Name"
 msgstr "Назва каналу"
 
@@ -471,6 +501,12 @@ msgstr ""
 "конфігурації)."
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/embed/common/livechat_button.xml:0
+msgid "Chat with us"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.actions.act_window,name:im_livechat.chatbot_script_action
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_answer__chatbot_script_id
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__chatbot_script_id
@@ -478,7 +514,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__chatbot_script_id
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel_member__livechat_member_type__bot
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel_member_history__livechat_member_type__bot
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -575,9 +610,9 @@ msgid "Closed Live Chat session should not have a status."
 msgstr ""
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__color
+#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__color
 msgid "Color"
-msgstr "Колір"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
@@ -617,7 +652,7 @@ msgstr "Розмова"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
 msgid "Conversation has ended"
 msgstr ""
 
@@ -625,7 +660,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/im_livechat/models/discuss_channel.py:0
 msgid "Conversation with %s"
-msgstr "Розмова з %s"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_digest_digest__kpi_livechat_conversations
@@ -642,7 +677,6 @@ msgstr "Країни"
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__country_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__session_country_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_kanban
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
@@ -668,17 +702,6 @@ msgid "Country of the visitor of the channel"
 msgstr "Країна відвідувача каналу"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-msgid "Country:"
-msgstr ""
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-msgid "Create"
-msgstr "Створити"
-
-#. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.chatbot_script_action
 msgid "Create a Chatbot"
 msgstr "Створити чатбот"
@@ -696,7 +719,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__create_uid
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__create_uid
 msgid "Created by"
 msgstr "Створив"
@@ -709,15 +731,12 @@ msgstr "Створив"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__create_date
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__create_date
 msgid "Created on"
 msgstr "Створено"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__visitor_partner_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 msgid "Customer"
@@ -739,7 +758,6 @@ msgid "Customers (Partners)"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -747,7 +765,6 @@ msgid "Date"
 msgstr "Дата"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_kanban
 msgid "Date:"
 msgstr "Дата:"
@@ -762,6 +779,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
 msgid "Date: Last week"
+msgstr ""
+
+#. module: im_livechat
+#: model:ir.model.fields,help:im_livechat.field_discuss_channel__livechat_looking_for_help_since_dt
+msgid "Datetime when the chat entered the 'Looking for help' status."
 msgstr ""
 
 #. module: im_livechat
@@ -799,6 +821,7 @@ msgstr "Типовий колір заголовка каналу під час 
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_action
+#: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_config_action
 msgid "Define a new website live chat channel"
 msgstr "Визначіть новий канал живого чату веб-сатйу"
 
@@ -814,11 +837,6 @@ msgstr ""
 "враховано."
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-msgid "Description"
-msgstr "Опис"
-
-#. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/embed/common/feedback_panel/feedback_panel.xml:0
 msgid "Did we correctly answer your question?"
@@ -830,15 +848,16 @@ msgid "Digest"
 msgstr "Огляд"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: im_livechat
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_discuss_demo
 #: model:im_livechat.expertise,name:im_livechat.chatbot_script_expertise_discuss_demo
 msgid "Discuss"
 msgstr "Обговорення"
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__conversation_ids
-msgid "Discuss Channels"
-msgstr ""
 
 #. module: im_livechat
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_discuss_livechat_demo
@@ -864,7 +883,6 @@ msgstr "Канал обговорення"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__display_name
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_ir_qweb__display_name
@@ -875,6 +893,7 @@ msgstr "Канал обговорення"
 #: model:ir.model.fields,field_description:im_livechat.field_res_partner__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__display_name
+#: model:ir.model.fields,field_description:im_livechat.field_utm_mixin__display_name
 msgid "Display Name"
 msgstr "Назва для відображення"
 
@@ -895,12 +914,6 @@ msgstr ""
 #: code:addons/im_livechat/static/src/embed/common/feedback_panel/feedback_panel.xml:0
 msgid "Download a copy of this conversation"
 msgstr ""
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/livechat_button.xml:0
-msgid "Drag to Move"
-msgstr "Перетягніть"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__duration
@@ -962,8 +975,6 @@ msgstr ""
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.actions.act_window,name:im_livechat.expertise_action
 #: model:ir.ui.menu,name:im_livechat.expertise_menu
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -971,11 +982,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
 msgid "Expertise"
-msgstr ""
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-msgid "Expertise:"
 msgstr ""
 
 #. module: im_livechat
@@ -1167,15 +1173,14 @@ msgid "Help Status"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_looking_for_help_action
-msgid ""
-"Help out by joining requests from teammates, or mark your own conversations "
-"as needing help."
+#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
+msgid "Here's a copy of your conversation with"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
-msgid "Here's a copy of your conversation with"
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Here's the most recent message:"
 msgstr ""
 
 #. module: im_livechat
@@ -1184,7 +1189,6 @@ msgid "Hide"
 msgstr "Приховати"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 msgid "History"
 msgstr "Історія"
@@ -1258,7 +1262,6 @@ msgstr "У мене питання ціни"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__id
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__id
 #: model:ir.model.fields,field_description:im_livechat.field_ir_qweb__id
@@ -1269,6 +1272,7 @@ msgstr "У мене питання ціни"
 #: model:ir.model.fields,field_description:im_livechat.field_res_partner__id
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__id
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__id
+#: model:ir.model.fields,field_description:im_livechat.field_utm_mixin__id
 msgid "ID"
 msgstr "ID"
 
@@ -1345,8 +1349,8 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
 #: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__in_progress
 msgid "In progress"
 msgstr "В процесі"
@@ -1369,11 +1373,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__message_is_follower
 msgid "Is Follower"
 msgstr "Стежить"
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__is_forward_operator
-msgid "Is Forward Operator"
-msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__is_forward_operator_child
@@ -1402,12 +1401,6 @@ msgid "Join Channel"
 msgstr "Приєднатися до каналу"
 
 #. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/thread_actions.js:0
-msgid "Join Chat"
-msgstr ""
-
-#. module: im_livechat
 #: model:ir.model,name:im_livechat.model_discuss_call_history
 msgid "Keep the call history"
 msgstr ""
@@ -1434,7 +1427,7 @@ msgstr "Значення Kpi відповіді живого чату"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/channel_member_list_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/channel_member_patch.xml:0
 msgid "Lang"
 msgstr "Мова"
 
@@ -1449,14 +1442,8 @@ msgstr ""
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_lang_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__lang_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 msgid "Language"
 msgstr "Мова"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-msgid "Language:"
-msgstr "Мова:"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -1464,25 +1451,21 @@ msgid "Languages"
 msgstr "Мови"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 msgid "Last 24 Hours"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 msgid "Last 30 Days"
 msgstr "Останні 30 днів"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 msgid "Last 365 Days"
 msgstr "Останні 365 днів"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 msgid "Last 7 Days"
 msgstr "Останні 7 днів"
@@ -1495,7 +1478,6 @@ msgstr "Останні 7 днів"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__write_uid
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__write_uid
 msgid "Last Updated by"
 msgstr "Востаннє оновив"
@@ -1508,7 +1490,6 @@ msgstr "Востаннє оновив"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__write_date
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__write_date
 msgid "Last Updated on"
 msgstr "Останнє оновлення"
@@ -1538,8 +1519,22 @@ msgstr "Покинути канал"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/common/close_confirmation.xml:0
-#: code:addons/im_livechat/static/src/core/public_web/thread_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Leave Conversation"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/common/close_confirmation.js:0
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.js:0
+msgid ""
+"Leaving will end the live chat with %(channel_name)s. Are you sure you want "
+"to continue?"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/common/close_confirmation.js:0
 msgid "Leaving will end the live chat. Do you want to proceed?"
 msgstr ""
 
@@ -1554,6 +1549,8 @@ msgid "Limited"
 msgstr ""
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_app/discuss_app_model_patch.js:0
 #: model:ir.ui.menu,name:im_livechat.menu_livechat_root
 #: model:res.groups.privilege,name:im_livechat.res_groups_privilege_live_chat
 #: model_terms:ir.ui.view,arch_db:im_livechat.digest_digest_view_form_inherit
@@ -1568,21 +1565,23 @@ msgid "Live Chat Button"
 msgstr "Кнопка живого чату"
 
 #. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
+msgid "Live Chat Channel Search"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.actions.act_window,name:im_livechat.im_livechat_channel_action
+#: model:ir.actions.act_window,name:im_livechat.im_livechat_channel_config_action
+#: model:ir.ui.menu,name:im_livechat.livechat_channels_config
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 msgid "Live Chat Channels"
 msgstr ""
 
 #. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
 #: model:ir.actions.report,name:im_livechat.action_report_livechat_conversation
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "Live Chat Conversation"
-msgstr ""
-
-#. module: im_livechat
-#: model:ir.model,name:im_livechat.model_im_livechat_conversation_tag
-#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_conversation_tag_ids
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__conversation_tag_ids
-msgid "Live Chat Conversation Tags"
 msgstr ""
 
 #. module: im_livechat
@@ -1598,6 +1597,12 @@ msgid "Live Chat History"
 msgstr ""
 
 #. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
+#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
+msgid "Live Chat Name"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_note
 msgid "Live Chat Note"
 msgstr ""
@@ -1605,6 +1610,14 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_failure
 msgid "Live Chat Session Failure"
+msgstr ""
+
+#. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
+msgid "Live Chat Support Statistics"
 msgstr ""
 
 #. module: im_livechat
@@ -1624,13 +1637,6 @@ msgid "Live chat channel"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
-msgid "LiveChat Channel Search"
-msgstr "Пошук каналу живого чату"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_app_model_patch.js:0
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_livechat_demo
 #: model:im_livechat.expertise,name:im_livechat.chatbot_script_expertise_livechat_demo
 msgid "Livechat"
@@ -1656,8 +1662,8 @@ msgstr ""
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_im_livechat_channel_rule
-msgid "Livechat Channel Rules"
-msgstr "Правила каналу чату"
+msgid "Livechat Channel Rule"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__channel_type__livechat
@@ -1706,17 +1712,6 @@ msgid "Livechat Member Type"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
-#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
-msgid "Livechat Name"
-msgstr ""
-
-#. module: im_livechat
-#: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_operator_id
-msgid "Livechat Operator ID is required for a channel of type livechat."
-msgstr "ID оператора живого чату необхідний для каналу типу живого чату."
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_outcome
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__session_outcome
 msgid "Livechat Outcome"
@@ -1738,14 +1733,6 @@ msgid "Livechat Support Channel Report"
 msgstr "Звіт каналу підтримки живого чату"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
-msgid "Livechat Support Statistics"
-msgstr "Статистика підтримки живого чату"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__livechat_username
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__livechat_username
 msgid "Livechat Username"
@@ -1757,18 +1744,19 @@ msgid "Livechat languages"
 msgstr "Мови живого чату"
 
 #. module: im_livechat
-#: model:ir.actions.act_window,name:im_livechat.discuss_channel_looking_for_help_action
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_looking_for_help
-msgid "Looking for Help"
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_app/discuss_app_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
+#: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__need_help
+msgid "Looking for help"
 msgstr ""
 
 #. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_app_model_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
-#: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__need_help
-msgid "Looking for help"
+#: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_looking_for_help_since_dt_constraint
+msgid ""
+"Looking for help date should only be set if the channel is looking for help "
+"and must be empty otherwise."
 msgstr ""
 
 #. module: im_livechat
@@ -1827,7 +1815,6 @@ msgstr "Помилка доставлення повідомлення"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__message_ids
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 msgid "Messages"
 msgstr "Повідомлення"
@@ -1849,17 +1836,6 @@ msgid "Monday"
 msgstr "Понеділок"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-msgid "My Expertise"
-msgstr ""
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-msgid "My Languages"
-msgstr ""
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -1867,11 +1843,10 @@ msgid "My Sessions"
 msgstr "Мої сесії"
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__name
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__name
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__name
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_search
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 msgid "Name"
 msgstr "Назва"
 
@@ -1928,11 +1903,6 @@ msgid "No conversation found"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_looking_for_help_action
-msgid "No conversations found"
-msgstr ""
-
-#. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_action
 #: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_action_from_livechat_channel
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_agent_history_action
@@ -1955,12 +1925,6 @@ msgstr "Історія не знайдена"
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_report_channel__session_outcome__no_agent
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
 msgid "No one Available"
-msgstr ""
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-msgid "No tags found"
 msgstr ""
 
 #. module: im_livechat
@@ -2034,7 +1998,6 @@ msgstr "Кількість повідомлень з помилкою доста
 
 #. module: im_livechat
 #: model:chatbot.script,title:im_livechat.chatbot_script_welcome_bot_demo
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "Odoo"
 msgstr "Odoo"
 
@@ -2085,17 +2048,14 @@ msgid "Open automatically"
 msgstr "ВІдкривати автоматично"
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_operator_id
-msgid "Operator"
-msgstr "Оператор"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__operator_expertise_ids
 msgid "Operator Expertise"
 msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__user_ids
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 msgid "Operators"
 msgstr "Оператори"
 
@@ -2117,7 +2077,6 @@ msgid "Outcome"
 msgstr "Результат"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_list
 msgid "Participants"
 msgstr "Учасники"
@@ -2150,11 +2109,6 @@ msgid "Please do! If there is anything we can help with, let us know"
 msgstr "Будь ласка! Якщо ми можемо чимось допомогти, дайте нам знати"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
-msgid "Powered by"
-msgstr "Зроблено"
-
-#. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__chatbot_script_step__step_type__question_selection
 msgid "Question"
 msgstr "Запитання"
@@ -2166,7 +2120,7 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-python
-#: code:addons/im_livechat/controllers/main.py:0
+#: code:addons/im_livechat/models/discuss_channel.py:0
 #: model:ir.model,name:im_livechat.model_rating_rating
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__rating_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__rating
@@ -2183,6 +2137,7 @@ msgstr "Оцінка"
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_pivot
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
 msgid "Rating (%)"
@@ -2266,8 +2221,8 @@ msgstr "Пов'язане поштове повідомлення"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_actions_patch.xml:0
-#: code:addons/im_livechat/static/src/core/web/discuss_sidebar_category_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/discuss_app/sidebar/category_patch.xml:0
 msgid "Relevant to your expertise"
 msgstr ""
 
@@ -2282,6 +2237,11 @@ msgid "Reporting"
 msgstr "Звітність"
 
 #. module: im_livechat
+#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_looking_for_help_since_dt
+msgid "Requested At"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/js/colors_reset_button/colors_reset_button.xml:0
 msgid "Reset to default colors"
@@ -2292,12 +2252,8 @@ msgstr "Скинути до типових кольорів"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__time_to_answer
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
-msgid "Response Time"
-msgstr ""
-
-#. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
-msgid "Response Time (hh:mm:ss)"
+msgid "Response Time"
 msgstr ""
 
 #. module: im_livechat
@@ -2352,12 +2308,6 @@ msgstr "Збережіть ваш канал, щоби отримати відж
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-msgid "Say something"
-msgstr "Скажіть щось"
-
-#. module: im_livechat
-#. odoo-javascript
 #: code:addons/im_livechat/static/src/embed/common/composer_patch.js:0
 msgid "Say something..."
 msgstr "Скажіть щось..."
@@ -2393,16 +2343,9 @@ msgid "Search History"
 msgstr ""
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 msgid "Search history"
 msgstr "Пошук історії"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-msgid "Search or create new tags"
-msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -2414,12 +2357,6 @@ msgstr "Пошук звіту"
 #: code:addons/im_livechat/static/src/core/web/channel_commands_patch.js:0
 msgid "See 15 last visited pages"
 msgstr "Дивитися 15 останніх відвідуваних сторінок"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-msgid "Select an option above"
-msgstr "Виберіть опцію вище"
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2440,8 +2377,6 @@ msgid "Sequence"
 msgstr "Послідовність"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_list
 msgid "Session Date"
@@ -2502,6 +2437,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_pivot
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 msgid "Sessions"
 msgstr "Сесії"
 
@@ -2535,11 +2471,6 @@ msgstr "Показувати зі сповіщенням"
 #: code:addons/im_livechat/static/src/core/web/thread_actions.js:0
 msgid "Someone has already joined this conversation"
 msgstr ""
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__source_id
-msgid "Source"
-msgstr "Джерело"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
@@ -2615,40 +2546,7 @@ msgstr ""
 #. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/composer_patch.js:0
-msgid "Tab to next livechat"
-msgstr "Перейдіть до наступного чату"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-msgid "Tag has already been selected"
-msgstr ""
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
-#: model:ir.actions.act_window,name:im_livechat.livechat_conversation_tag_action
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_conversation_tag
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_conversation_tag_view_form
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_conversation_tag_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
-msgid "Tags"
-msgstr "Мітки"
-
-#. module: im_livechat
-#: model:ir.model.fields,help:im_livechat.field_discuss_channel__livechat_conversation_tag_ids
-#: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_member_history__conversation_tag_ids
-#: model:ir.model.fields,help:im_livechat.field_im_livechat_report_channel__conversation_tag_ids
-msgid "Tags to qualify the conversation."
-msgstr ""
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__conversation_tag_ids
-msgid "Tags used in this conversation"
+msgid "Tab to next live chat"
 msgstr ""
 
 #. module: im_livechat
@@ -2691,8 +2589,8 @@ msgid ""
 "chat button will be hidden on the specified URL from the visitors located in "
 "these 2 countries. This feature requires GeoIP installed on your server."
 msgstr ""
-"Це правило застосовуватиметься лише до цих країн. Приклад: якщо ви вибрали «"
-"Бельгію» та «Сполучені Штати» та встановили дію «Приховати», кнопка чату "
+"Це правило застосовуватиметься лише до цих країн. Приклад: якщо ви вибрали "
+"«Бельгію» та «Сполучені Штати» та встановили дію «Приховати», кнопка чату "
 "буде прихована за вказаною URL-адресою від відвідувачів, які перебувають у "
 "цих 2 країнах. Ця функція вимагає встановлення GeoIP на вашому сервері."
 
@@ -2736,9 +2634,13 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/common/thread_model_patch.js:0
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-msgid "This livechat conversation has ended."
+#: code:addons/im_livechat/static/src/core/common/discuss_channel_model_patch.js:0
+msgid "This live chat conversation has ended."
+msgstr ""
+
+#. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
+msgid "This message has been removed"
 msgstr ""
 
 #. module: im_livechat
@@ -2836,6 +2738,11 @@ msgstr ""
 "каналу."
 
 #. module: im_livechat
+#: model:ir.model,name:im_livechat.model_utm_mixin
+msgid "UTM Mixin"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__uuid
 msgid "UUID"
 msgstr "UUID"
@@ -2860,21 +2767,10 @@ msgid "Unlimited"
 msgstr "Необмежено"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
-msgid "Unrated"
-msgstr "Без рейтингу"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-msgid "Unselect tag"
-msgstr ""
-
-#. module: im_livechat
 #: model_terms:digest.tip,tip_description:im_livechat.digest_tip_im_livechat_0
 msgid ""
-"Use canned responses to define templates of messages in the livechat app. To "
-"load a canned response, start your sentence with '::' and select the "
+"Use canned responses to define templates of messages in the Live Chat app. "
+"To load a canned response, start your sentence with '::' and select the "
 "template."
 msgstr ""
 
@@ -2960,14 +2856,6 @@ msgstr "Відвідувач покинув розмову."
 msgid ""
 "Visitors who leave a positive review will be redirected to this optional "
 "link."
-msgstr ""
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
-#: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__waiting
-msgid "Waiting for customer"
 msgstr ""
 
 #. module: im_livechat
@@ -3106,6 +2994,7 @@ msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_action
+#: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_config_action
 msgid ""
 "You can create channels for each website on which you want\n"
 "                to integrate the website live chat widget, allowing your "
@@ -3119,7 +3008,7 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_categories_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_category_patch.xml:0
 msgid "You have joined this live chat channel"
 msgstr ""
 
@@ -3142,7 +3031,7 @@ msgstr "за"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/channel_member_list_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/channel_member_patch.xml:0
 msgid "country"
 msgstr "країна"
 
@@ -3183,9 +3072,21 @@ msgid "in a call"
 msgstr ""
 
 #. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
+msgid "invited %s to the conversation"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_categories_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_category_patch.xml:0
 msgid "joined"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
+msgid "joined the conversation"
 msgstr ""
 
 #. module: im_livechat
@@ -3208,416 +3109,3 @@ msgstr "секунди"
 #: model:ir.model,name:im_livechat.model_ir_websocket
 msgid "websocket message handling"
 msgstr "обробка повідомлень websocket"
-
-#~ msgid " (copy)"
-#~ msgstr " (копія)"
-
-#~ msgid "# of Sessions"
-#~ msgstr "К-сть сесій"
-
-#~ msgid "# of speakers"
-#~ msgstr "К-сть спікерів"
-
-#~ msgid "% Happy"
-#~ msgstr "% Задоволених"
-
-#~ msgid "%s and %s are typing..."
-#~ msgstr "%s та %s набирає текст..."
-
-#~ msgid "%s has joined"
-#~ msgstr "%s приєднався"
-
-#~ msgid "%s is typing..."
-#~ msgstr "%s набирає текст..."
-
-#~ msgid "%s, %s and more are typing..."
-#~ msgstr "%s, %s і більше набирають текст..."
-
-#~ msgid ", on the"
-#~ msgstr ", на"
-
-#~ msgid "-------- Show older messages --------"
-#~ msgstr "-------- Показати старіші повідомлення --------"
-
-#~ msgid "1 is Monday, 7 is Sunday"
-#~ msgstr "1 - це Понеділок, 7 - це Неділя"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user\" role=\"img\" aria-label=\"User\" title=\"User\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user\" role=\"img\" aria-label=\"User\" title=\"User\"/>"
-
-#~ msgid "<span style=\"font-size: 10px;\">Livechat Conversation</span><br/>"
-#~ msgstr "<span style=\"font-size: 10px;\">Розмова живого чату</span><br/>"
-
-#~ msgid "<span>Best regards,</span><br/><br/>"
-#~ msgstr "<span>З найкращими побажаннями,</span><br/><br/>"
-
-#~ msgid "<span>Hello,</span><br/>Here's a copy of your conversation with"
-#~ msgstr "<span>Вітаємо,</span><br/>Це копія вашої розмови з"
-
-#~ msgid ""
-#~ "A session is without answer if the operator did not answer. \n"
-#~ "                                       If the visitor is also the "
-#~ "operator, the session will always be answered."
-#~ msgstr ""
-#~ "Сесія не відповідає, якщо оператор не відповів.\n"
-#~ "                                      Якщо відвідувач також є оператором, "
-#~ "то сесія завжди буде відповідати."
-
-#~ msgid "Anonymous"
-#~ msgstr "Анонім"
-
-#~ msgid "Anonymous Name"
-#~ msgstr "Ім'я аноніма"
-
-#~ msgid "Ask something ..."
-#~ msgstr "Запитайте що-небудь..."
-
-#~ msgid "Attendees"
-#~ msgstr "Учасники"
-
-#~ msgid "Avatar"
-#~ msgstr "Аватар"
-
-#~ msgid "Average duration"
-#~ msgstr "Середня тривалість"
-
-#~ msgid "Average message"
-#~ msgstr "Середнє повідомлення"
-
-#~ msgid "Average time in seconds to give the first answer to the visitor"
-#~ msgstr "Середній час у секундах, щоб дати першу відповідь відвідувачу"
-
-#~ msgid "Average time to give the first answer to the visitor"
-#~ msgstr "Середній час надання першої відповіді відвідувачу"
-
-#~ msgid "Bad"
-#~ msgstr "Погано"
-
-#~ msgid ""
-#~ "Canned responses allow you to insert prewritten responses in\n"
-#~ "                your messages by typing <i>:shortcut</i>. The shortcut "
-#~ "is\n"
-#~ "                replaced directly in your message, so that you can still "
-#~ "edit\n"
-#~ "                it before sending."
-#~ msgstr ""
-#~ "Запитані відповіді дозволяють вставити попередньо записані відповіді у\n"
-#~ "ваші повідомлення, набравши <i>:shortcut</i>. Ярлик\n"
-#~ "замінено безпосередньо у вашому повідомленні, так що ви все одно можете "
-#~ "редагувати\n"
-#~ "це перед відправленням."
-
-#~ msgid "Channel Header Color"
-#~ msgstr "Колір хедеру каналу"
-
-#~ msgid "Channel Rules"
-#~ msgstr "Правила каналу"
-
-#~ msgid "Chat Input Placeholder"
-#~ msgstr "Наповнювач поля вводу"
-
-#~ msgid "Chat with one of our collaborators"
-#~ msgstr "Спілкуйтеся з одним із наших співробітників"
-
-#~ msgid "Close chat window"
-#~ msgstr "Закрити вікно чату"
-
-#~ msgid "Close conversation"
-#~ msgstr "Закрити розмову"
-
-#~ msgid "Code"
-#~ msgstr "Код"
-
-#~ msgid "Conversation Sent"
-#~ msgstr "Розмова надіслана"
-
-#~ msgid "Conversation ended..."
-#~ msgstr "Розмова завершена..."
-
-#~ msgid ""
-#~ "Copy and paste this code into your website, within the &lt;head&gt; tag:"
-#~ msgstr ""
-#~ "Скопіюйте та вставте цей код на свій веб-сайт у межах тегу &lt;head&gt; :"
-
-#~ msgid "Create a channel and start chatting to fill up your history."
-#~ msgstr "Створіть канал і почніть спілкуватися, щоб заповнити історію."
-
-#~ msgid "Create a new canned response"
-#~ msgstr "Створіть нову автоматичну відповідь"
-
-#~ msgid "Creation Date"
-#~ msgstr "Дата створення"
-
-#~ msgid "Creation date"
-#~ msgstr "Дата створення"
-
-#~ msgid "Creation date (hour)"
-#~ msgstr "Дата створення (година)"
-
-#~ msgid "Customer Ratings"
-#~ msgstr "Оцінювання клієнта"
-
-#~ msgid "Day Number"
-#~ msgstr "Номер дня"
-
-#~ msgid "Days of activity"
-#~ msgstr "Дні дій"
-
-#~ msgid "Default text displayed on the Livechat Support Button"
-#~ msgstr "Типовий тест для відображення на кнопці живого чату"
-
-#~ msgid ""
-#~ "Define rules for your live support channel. You can apply an action for "
-#~ "the given URL, and per country.<br/>To identify the country, GeoIP must "
-#~ "be installed on your server, otherwise, the countries of the rule will "
-#~ "not be taken into account."
-#~ msgstr ""
-#~ "Визначте правила для свого каналу підтримки в режимі реального часу. Ви "
-#~ "можете застосувати дію для вказаної URL-адреси та для кожної країни.<br/"
-#~ ">Для визначення країни на вашому сервері має бути встановлено GeoIP, "
-#~ "інакше країни правила не враховуватимуться."
-
-#~ msgid "Duration of the conversation (in seconds)"
-#~ msgstr "Тривалість розмови (в секундах)"
-
-#~ msgid "Enable the bot only if there is no operator available"
-#~ msgstr "Вмикайте бота, тільки якщо немає доступного оператора"
-
-#~ msgid "Enabled only if no operator"
-#~ msgstr "Включено, тільки якщо немає оператора"
-
-#~ msgid ""
-#~ "For websites built with the Odoo CMS, go to Website &gt; Configuration "
-#~ "&gt; Settings and select the Website Live Chat Channel you want to add to "
-#~ "your website."
-#~ msgstr ""
-#~ "Для веб-сайтів, створених на Odoo CMS, перейдіть у Веб-сайт &gt; "
-#~ "Налаштування &gt; Налаштування та оберіть Канал живого чату веб-сайту, "
-#~ "який ви хочете додати до вашого веб-сайту."
-
-#~ msgid "Good"
-#~ msgstr "Добре"
-
-#~ msgid "Group By..."
-#~ msgstr "Групувати за..."
-
-#~ msgid "Have a Question? Chat with us."
-#~ msgstr "Є запитання? Напишіть нам."
-
-#~ msgid "How to use the Website Live Chat widget?"
-#~ msgstr "Як використовувати віджет живого чату на сайті?"
-
-#~ msgid "Invalid email address"
-#~ msgstr "Невірна адреса електронної пошти"
-
-#~ msgid "Is category livechat open"
-#~ msgstr "Чи відкрита категорія чату"
-
-#~ msgid "Is livechat ongoing?"
-#~ msgstr "Живий чат триває?"
-
-#~ msgid "Is visitor anonymous"
-#~ msgstr "Чи відвідувач анонім"
-
-#~ msgid "Last 24h"
-#~ msgstr "Останні 24 години"
-
-#~ msgid "Listeners of a Channel"
-#~ msgstr "Учасники каналу"
-
-#~ msgid "Livechat Button"
-#~ msgstr "Кнопка живого чату"
-
-#~ msgid "Livechat Button Color"
-#~ msgstr "Колір кнопки живого чату"
-
-#~ msgid ""
-#~ "Livechat Support Channel Statistics allows you to easily check and "
-#~ "analyse your company livechat session performance. Extract information "
-#~ "about the missed sessions, the audience, the duration of a session, etc."
-#~ msgstr ""
-#~ "Статистика каналу підтримки Живого чату дозволяє легко перевіряти та "
-#~ "аналізувати ефективність сесії живого чату вашої компанії. Отримати "
-#~ "інформацію про пропущені сесії, аудиторію, тривалість сесії тощо."
-
-#~ msgid "Livechat Support Operator Report"
-#~ msgstr "Звіт оператора підтримки живого чату"
-
-#~ msgid "Livechat Window"
-#~ msgstr "Вікно живого чату"
-
-#~ msgid "Livechat session is active until visitor leaves the conversation."
-#~ msgstr "Сесія живого чату активна поки відвідувачі не покинуть розмову."
-
-#~ msgid "Loading older messages..."
-#~ msgstr "Завантажити старіші повідомлення..."
-
-#~ msgid "Missed sessions"
-#~ msgstr "Пропущені сессії"
-
-#~ msgid "New messages"
-#~ msgstr "Нові повідомлення"
-
-#~ msgid "No customer ratings on live chat session yet"
-#~ msgstr "Жодних рейтингів клієнтів на сеансі живого чату ще немає"
-
-#~ msgid "No operator available"
-#~ msgstr "Немає вільних операторів"
-
-#~ msgid "Note by"
-#~ msgstr "Автор примітки"
-
-#~ msgid "Number of days since the first session of the operator"
-#~ msgstr "Кількість днів після першого сеансу оператора"
-
-#~ msgid "Number of different speakers"
-#~ msgstr "Кількість різних спікерів"
-
-#~ msgid "OK"
-#~ msgstr "Ок"
-
-#~ msgid "Online Chat Name"
-#~ msgstr "Назва онлайн-чату"
-
-#~ msgid "Oops! Something went wrong."
-#~ msgstr "От халепа! Щось пішло не так."
-
-#~ msgid "Open automatically timer"
-#~ msgstr "таймер автоматичного відкриття"
-
-#~ msgid "Operator Analysis"
-#~ msgstr "Аналіз оператора"
-
-#~ msgid ""
-#~ "Operators\n"
-#~ "                                            <br/>\n"
-#~ "                                            <i class=\"fa fa-comments\" "
-#~ "role=\"img\" aria-label=\"Comments\" title=\"Comments\"/>"
-#~ msgstr ""
-#~ "Оператори\n"
-#~ "                                            <br/>\n"
-#~ "                                            <i class=\"fa fa-comments\" "
-#~ "role=\"img\" aria-label=\"Comments\" title=\"Comments\"/>"
-
-#~ msgid ""
-#~ "Operators that do not show any activity In Odoo for more than 30 minutes "
-#~ "will be considered as disconnected."
-#~ msgstr ""
-#~ "Оператори, які не показують ніякої активності в Odoo протягом більше ніж "
-#~ "30 хвилин вважатимуться відключеними."
-
-#~ msgid "Please call me on: "
-#~ msgstr "Зателефонуйте мені: "
-
-#~ msgid "Please check your internet connection."
-#~ msgstr "Перевірте з'єднання з інтернетом."
-
-#~ msgid "Please contact me on: "
-#~ msgstr "Зв'яжіться зі мною: "
-
-#~ msgid "Please wait"
-#~ msgstr "Будь ласка, зачекайте"
-
-#~ msgid "Please wait..."
-#~ msgstr "Будь ласка, зачекайте..."
-
-#~ msgid "Rating: %s"
-#~ msgstr "Рейтинг: %s"
-
-#~ msgid "Ratings for livechat channel"
-#~ msgstr "Рейтинги для каналу живого чату"
-
-#~ msgid "Report"
-#~ msgstr "Звіт"
-
-#~ msgid "Restart"
-#~ msgstr "Перезапустити"
-
-#~ msgid "Session Statistics"
-#~ msgstr "Статистика сессії"
-
-#~ msgid "Session expired... Please refresh and try again."
-#~ msgstr "Сесія закінчилася... Оновіть та спробуйте ще раз."
-
-#~ msgid "Session not rated"
-#~ msgstr "Сесію не оцінено"
-
-#~ msgid "Session(s) without answer"
-#~ msgstr "Сесія(ї) без відповіді"
-
-#~ msgid "Sessions History"
-#~ msgstr "Історія сесій"
-
-#~ msgid "Text that prompts the user to initiate the chat."
-#~ msgstr "Текст, який пропонує користувачеві ініціювати чат."
-
-#~ msgid "There is no rating for this channel at the moment"
-#~ msgstr "На даний момент немає рейтингу для цього каналу"
-
-#~ msgid "This Week"
-#~ msgstr "Цього тижня"
-
-#~ msgid "Time to answer"
-#~ msgstr "Час відповісти"
-
-#~ msgid "Today"
-#~ msgstr "Сьогодні"
-
-#~ msgid "Treated sessions"
-#~ msgstr "Оброблені сесії"
-
-#~ msgid "Try again"
-#~ msgstr "Спробуйте знову"
-
-#~ msgid ""
-#~ "Type <b>:shortcut</b> to insert a canned response in your message.<br>"
-#~ msgstr ""
-#~ "Тип <b>:shortcut</b> щоб вставити готову відповідь у своє повідомлення."
-#~ "<br>"
-
-#~ msgid ""
-#~ "Use canned responses to define templates of messages in the livechat app. "
-#~ "To load a canned response, start your sentence with ':' and select the "
-#~ "template."
-#~ msgstr ""
-#~ "Використовуйте готові відповіді для визначення шаблонів повідомлень у "
-#~ "модулі живого чату. Щоби завантажити готову відповідь, почніть ваше "
-#~ "речення з ':' та оберіть шаблон."
-
-#~ msgid "Visitor has left the conversation."
-#~ msgstr "Відвідувач покинув розмову."
-
-#~ msgid "Visitor is Happy"
-#~ msgstr "Відвідувач щасливий"
-
-#~ msgid "Website Live Chat Channels"
-#~ msgstr "Чат-канали веб-сайту"
-
-#~ msgid "Yesterday"
-#~ msgstr "Вчора"
-
-#~ msgid "Your chatter history is empty"
-#~ msgstr "Ваша історія чату пуста"
-
-#~ msgid "chatbot_image"
-#~ msgstr "chatbot_image"
-
-#~ msgid "is typing"
-#~ msgstr "набирає"
-
-#~ msgid ""
-#~ "or copy this url and send it by email to your customers or suppliers:"
-#~ msgstr ""
-#~ "або скопіюйте цю URL-адресу та надішліть її електронною поштою своїм "
-#~ "клієнтам або постачальникам:"
-
-#~ msgid "read less"
-#~ msgstr "приховати"
-
-#~ msgid "read more"
-#~ msgstr "читати далі"
-
-#~ msgid "{{author_name}}"
-#~ msgstr "{{author_name}}"

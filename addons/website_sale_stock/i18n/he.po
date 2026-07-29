@@ -13,15 +13,16 @@
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
 # NoaFarkash, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# or balmas <or@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-30 19:10+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-13 18:01+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_sale_stock/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
@@ -39,8 +40,34 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
+msgstr ""
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Add to wishlist"
+msgstr "הוסף לרשימת המועדפים"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+msgid "Added to your wishlist"
 msgstr ""
 
 #. module: website_sale_stock
@@ -56,8 +83,9 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__assign
+#, fuzzy
 msgid "Assign"
-msgstr ""
+msgstr "שייך"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__stock_notification_partner_ids
@@ -66,8 +94,9 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
 msgid "Below"
-msgstr ""
+msgstr "למטה"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_res_config_settings
@@ -83,11 +112,6 @@ msgstr "המשך מכירה"
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__default_allow_out_of_stock_order
 msgid "Continue selling when out-of-stock"
 msgstr "המשך במכירה כשהמלאי לא זמין"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "לקוח יקר,"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -109,18 +133,26 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "קומבינציית שולחן כתיבה"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "שם לתצוגה"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -129,35 +161,62 @@ msgid "Get notified when back in stock"
 msgstr ""
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Hello"
+msgstr "שלום"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "מזהה"
 
 #. module: website_sale_stock
 #. odoo-python
 #: code:addons/website_sale_stock/controllers/main.py:0
+#, fuzzy
 msgid "Invalid Email"
-msgstr ""
+msgstr "מייל שגוי"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "מלאי"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "ברירות מחדל של מלאי"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "לוגו"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "Mitchell Admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -174,8 +233,9 @@ msgstr "לא זמין במלאי"
 #. module: website_sale_stock
 #. odoo-javascript
 #: code:addons/website_sale_stock/static/src/js/product/product.xml:0
+#, fuzzy
 msgid "Out of stock"
-msgstr ""
+msgstr "לא זמין במלאי"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -203,8 +263,9 @@ msgstr "מוצר"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_combo
+#, fuzzy
 msgid "Product Combo"
-msgstr ""
+msgstr "שילוב מוצרים"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_feed
@@ -217,6 +278,18 @@ msgid "Product Variant"
 msgstr "וריאנט מוצר"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+#, fuzzy
+msgid "Product Wishlist"
+msgstr "מוצר מועדף"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Product image"
+msgstr "תמונת מוצר"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
 msgid "Product ribbon"
 msgstr ""
@@ -225,11 +298,6 @@ msgstr ""
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr ""
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "בברכה,"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -281,15 +349,15 @@ msgstr ""
 "מוצרים מסוימים הפכו ללא זמינים והעגלה שלך עודכנה. אנו מתנצלים על אי הנוחות."
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "המוצר הבא עכשיו זמין."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+#, fuzzy
+msgid "Stock Notification"
+msgstr "התראות מלאי"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "המוצר '%(product_name)s' עכשיו זמין"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr ""
 
 #. module: website_sale_stock
 #. odoo-python
@@ -379,24 +447,3 @@ msgstr ""
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr ""
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr "כיצד להציג מוצרים בעלי כמויות נמוכות (בהישג יד - שמור)"
-
-#~ msgid "Only"
-#~ msgstr "רק"
-
-#~ msgid "Units"
-#~ msgstr "יחידה"
-
-#~ msgid "You already added"
-#~ msgstr "כבר הוספת"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr "כבר הוספת את כל המוצרים הזמינים בעגלה שלך."
-
-#~ msgid "in your cart."
-#~ msgstr "בעגלה שלך."
-
-#~ msgid "left in stock."
-#~ msgstr "נשאר במלאי."

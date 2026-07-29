@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -36,6 +35,7 @@
         'views/res_config_settings_views.xml',
         'views/hr_department_views.xml',
         'views/hr_job_views.xml',
+        'views/hr_job_tag_views.xml',
         'views/mail_activity_views.xml',
         'views/mail_activity_plan_views.xml',
         'views/digest_views.xml',
@@ -48,7 +48,6 @@
     'demo': [
         'data/hr_recruitment_demo.xml',
     ],
-    'installable': True,
     'application': True,
     'assets': {
         'web.assets_backend': [
@@ -59,6 +58,15 @@
         ],
         'web.assets_unit_tests': [
             'hr_recruitment/static/tests/**/*',
+        ],
+        "im_livechat.assets_embed_core": [
+            "hr_recruitment/static/src/core/common/**/*",
+        ],
+        "mail.assets_public": [
+            "hr_recruitment/static/src/core/common/**/*",
+        ],
+        "portal.assets_chatter_helpers": [
+            "hr_recruitment/static/src/core/common/**/*",
         ],
     },
     'author': 'Odoo S.A.',

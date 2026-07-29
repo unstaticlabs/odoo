@@ -78,12 +78,22 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             'country_id': cls.env.ref('base.it').id,
             'vat': 'IT04119190371',
         })
+        cls._setup_taxes_included()
+
+    @classmethod
+    def _setup_taxes_included(cls):
+        cls.tax_sale_good_20_tax_included = cls.env['account.chart.template'].ref('tva_normale').copy({'name': '20%G Testing'})
+        cls.tax_sale_good_20_tax_included.price_include_override = 'tax_included'
+        cls.tax_on_payment_20_tax_included = cls.env['account.chart.template'].ref('tva_normale_encaissement').copy({'name': '20%G Payment Testing'})
+        cls.tax_on_payment_20_tax_included.price_include_override = 'tax_included'
+        cls.tax_purchase_tax_on_payment = cls.env['account.chart.template'].ref('tva_acq_encaissement').copy({'name': '20%G Purchase Testing'})
+        cls.tax_purchase_tax_on_payment.price_include_override = 'tax_included'
 
     def _get_tax_on_payment(self):
         return self.env['account.chart.template'].ref('tva_sale_service_0')
 
     def _get_tax_on_payment_20(self):
-        return self.env['account.chart.template'].ref('tva_acq_encaissement')
+        return self.env['account.chart.template'].ref('tva_normale_encaissement')
 
     def _get_tax_sale_good_intra_0(self):
         return self.env['account.chart.template'].ref('tva_sale_good_intra_0')
@@ -92,13 +102,13 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         return self.env['account.chart.template'].ref('tva_sale_service_intra_0')
 
     def _get_tax_sale_good_20_tax_included(self):
-        return self.env['account.chart.template'].ref('tva_normale_ttc')
+        return self.tax_sale_good_20_tax_included
 
     def _get_tax_on_payment_20_tax_included(self):
-        return self.env['account.chart.template'].ref('tva_acq_encaissement_TTC')
+        return self.tax_on_payment_20_tax_included
 
     def _get_purchase_tax_on_payment(self):
-        return self.env['account.chart.template'].ref('tva_acq_encaissement')
+        return self.tax_purchase_tax_on_payment
 
     def _create_reporting_move(
         self,
@@ -2030,7 +2040,7 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             }],
         )
         self.assertFalse(invoice.l10n_fr_pdp_last_flow_id)
-        self.env['ir.config_parameter'].set_param(
+        self.env['ir.config_parameter'].set_str(
             f'l10n_fr_pdp.flow10.start.date.{invoice.company_id.id}',
             '2024-11-01',
         )

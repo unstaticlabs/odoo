@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * pos_sms
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 18:59+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-11-08 01:52+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/pos_sms/"
 "tr/>\n"
 "Language: tr\n"
@@ -18,24 +18,23 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_sms
 #: model:sms.template,body:pos_sms.sms_template_data_point_of_sale
 msgid ""
 "\n"
 "                {{ object.company_id.name }} : Your order with reference: "
-"{{ object.pos_reference }} was processed succesfully with amount "
-"{{  object.currency_id.format(object.amount_total) }}. Use "
-"{{ object.pos_reference }}  for further reference\n"
+"{{ object.pos_reference }} was processed succesfully with amount {{  object."
+"currency_id.format(object.amount_total) }}. Use {{ object.pos_reference }}  "
+"for further reference\n"
 "            "
 msgstr ""
 "\n"
 "                {{ object.company_id.name }} :  {{ object.pos_reference }} "
-"referanslı siparişiniz, {{  object.currency_id.format"
-"(object.amount_total) }} tutarı ile başarılı bir şekilde işleme alındı. Daha "
-"fazla referans bilgisi için lütfen şunu kullanın: {{ object.pos_reference }}"
-"\n"
+"referanslı siparişiniz, {{  object.currency_id.format(object."
+"amount_total) }} tutarı ile başarılı bir şekilde işleme alındı. Daha fazla "
+"referans bilgisi için lütfen şunu kullanın: {{ object.pos_reference }}\n"
 "            "
 
 #. module: pos_sms
@@ -69,8 +68,8 @@ msgstr "Satış Noktası Yapılandırması"
 
 #. module: pos_sms
 #: model:ir.model,name:pos_sms.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Satış Noktası Siparişi"
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_sms
 #: model_terms:ir.ui.view,arch_db:pos_sms.pos_sms_res_config_settings_view_form

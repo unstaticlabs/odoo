@@ -8,6 +8,12 @@ import { hasTouch } from "@web/core/browser/feature_detection";
 
 const useDialogDraggable = makeDraggableHook({
     name: "useDialogDraggable",
+    onDragStart() {
+        document.documentElement.style.cursor = "grabbing";
+    },
+    onDragEnd() {
+        document.documentElement.style.cursor = "";
+    },
     onWillStartDrag({ ctx, addCleanup, addStyle, getRect }) {
         const { height, width } = getRect(ctx.current.element);
         ctx.current.container = document.createElement("div");
@@ -118,8 +124,16 @@ export class Dialog extends Component {
         this.bodyTabIndex = hasTouch() ? "0" : undefined;
     }
 
+    get size() {
+        return this.props.size;
+    }
+
     get isFullscreen() {
-        return this.props.fullscreen || this.env.isSmall;
+        return this.props.fullscreen || (this.env.isSmall && this.design !== "minimal");
+    }
+
+    get design() {
+        return ["sm", "md"].includes(this.size) ? "minimal" : "default";
     }
 
     get contentStyle() {

@@ -1,7 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import werkzeug
-
 from odoo import http
 from odoo.http import request
 
@@ -37,23 +35,6 @@ class WebsiteBackend(http.Controller):
     def get_iframe_fallback(self):
         return request.render('website.iframefallback')
 
-    @http.route('/website/check_new_content_access_rights', type="jsonrpc", auth='user', readonly=True)
-    def check_create_access_rights(self, models):
-        """
-        TODO: In master, remove this route and method and find a better way
-        to do this. This route is only here to ensure that the "New Content"
-        modal displays the correct elements for each user, and there might be
-        a way to do it with the framework rather than having a dedicated
-        controller route. (maybe by using a template or a JS util)
-        """
-        if not request.env.user.has_group('website.group_website_restricted_editor'):
-            raise werkzeug.exceptions.Forbidden()
-
-        return {
-            model: request.env[model].has_access('create')
-            for model in models
-        }
-
     @http.route('/website/track_installing_modules', type='jsonrpc', auth='user', readonly=True)
     def website_track_installing_modules(self, selected_features, total_features=None):
         """
@@ -62,7 +43,7 @@ class WebsiteBackend(http.Controller):
         show the progress between installed and yet to install features.
         """
         features_not_installed = request.env['website.configurator.feature']\
-            .browse(selected_features).module_id.upstream_dependencies(exclude_states=('',))\
+            .browse(selected_features).module_id.upstream_dependencies(exclude_states=())\
             .filtered(lambda feature: feature.state != 'installed')
 
         # On the 1st run, the total tallies the targeted, not yet installed

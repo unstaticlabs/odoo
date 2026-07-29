@@ -56,7 +56,6 @@ export class ColorSelector extends Component {
                     selectedColors[this.props.mode]
                 );
                 this.state.getTargetedElements = this.props.getTargetedElements;
-                this.state.mode = this.props.mode;
             },
             [this.props.getSelectedColors()]
         );

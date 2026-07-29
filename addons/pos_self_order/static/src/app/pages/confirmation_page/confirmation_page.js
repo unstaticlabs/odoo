@@ -2,9 +2,9 @@ import { Component, onMounted, onWillUnmount, useState, useEffect } from "@odoo/
 import { useSelfOrder } from "@pos_self_order/app/services/self_order_service";
 import { cookie } from "@web/core/browser/cookie";
 import { useService } from "@web/core/utils/hooks";
-import { OrderReceipt } from "@point_of_sale/app/screens/receipt_screen/receipt/order_receipt";
 import { rpc } from "@web/core/network/rpc";
 import { PrintingFailurePopup } from "@pos_self_order/app/components/printing_failure_popup/printing_failure_popup";
+import { logPosMessage } from "@point_of_sale/app/utils/pretty_console_log";
 
 export class ConfirmationPage extends Component {
     static template = "pos_self_order.ConfirmationPage";
@@ -13,7 +13,6 @@ export class ConfirmationPage extends Component {
     setup() {
         this.selfOrder = useSelfOrder();
         this.router = useService("router");
-        this.printer = useService("printer");
         this.dialog = useService("dialog");
         this.changeToDisplay = [];
         this.state = useState({
@@ -30,11 +29,20 @@ export class ConfirmationPage extends Component {
         });
         useEffect(
             () => {
-                if (!this.confirmedOrder) {
+                if (
+                    !this.confirmedOrder ||
+                    !this.confirmedOrder.uiState?.receiptReady ||
+                    typeof this.confirmedOrder.id !== "number"
+                ) {
                     return;
                 }
 
-                this.printOrder();
+                const printReceipts = async () => {
+                    await this.printOrder();
+                    await this.printOrderChanges();
+                };
+
+                printReceipts();
             },
             () => [this.confirmedOrder?.uiState?.receiptReady]
         );
@@ -48,7 +56,7 @@ export class ConfirmationPage extends Component {
     }
 
     get confirmedOrder() {
-        return this.selfOrder.currentOrder;
+        return this.selfOrder.models["pos.order"].getBy("uuid", this.selfOrder.selectedOrderUuid);
     }
 
     async initOrder(retry = true) {
@@ -75,7 +83,7 @@ export class ConfirmationPage extends Component {
         }
 
         this.selfOrder.selectedOrderUuid = order.uuid;
-        this.confirmedOrder.uiState.receiptReady = await this.beforePrintOrder();
+        this.confirmedOrder.uiState.receiptReady = this.beforePrintOrder();
         this.state.onReload = false;
     }
 
@@ -87,9 +95,39 @@ export class ConfirmationPage extends Component {
         );
     }
 
-    async beforePrintOrder() {
+    beforePrintOrder() {
         // meant to be overriden.
         return true;
+    }
+
+    async printOrderChanges() {
+        const order = this.confirmedOrder;
+        if (this.selfOrder.config.self_ordering_mode === "mobile") {
+            // Need the server answer to be sure a customer doesn't try
+            // to print its changes several times.
+            const result = await rpc("/pos-self-order/update-last-changes", {
+                access_token: this.selfOrder.access_token,
+                order_id: order.id,
+                order_access_token: order.access_token,
+            });
+            const changes = result.last_order_preparation_change;
+            try {
+                order.last_order_preparation_change = JSON.parse(changes);
+            } catch (error) {
+                logPosMessage(
+                    "ConfirmationPage",
+                    "printOrderChanges",
+                    "Error while getting old preparation changes",
+                    "#ff0000",
+                    [error]
+                );
+                // Do not print changes if we can't parse them, to avoid
+                // printing wrong information and to avoid blocking the
+                // user in case of error.
+                return;
+            }
+        }
+        await this.selfOrder.ticketPrinter.printOrderChanges({ order, webFallback: false });
     }
 
     async printOrder() {
@@ -97,23 +135,23 @@ export class ConfirmationPage extends Component {
             try {
                 this.isPrinting = true;
                 const order = this.confirmedOrder;
-                const result = await this.printer.print(
-                    OrderReceipt,
-                    {
-                        order: order,
-                    },
-                    this.printOptions
-                );
+                const result = await this.selfOrder.ticketPrinter.printOrderReceipt({
+                    order,
+                    webFallback: false,
+                });
+
                 if (!this.selfOrder.has_paper) {
                     this.updateHasPaper(true);
                 }
-                order.nb_print = 1;
-                if (order.isSynced && result) {
-                    await rpc("/pos_self_order/kiosk/increment_nb_print/", {
-                        access_token: this.selfOrder.access_token,
-                        order_id: order.id,
-                        order_access_token: order.access_token,
-                    });
+                if (order.state === "paid") {
+                    order.nb_print = 1;
+                    if (order.isSynced && result) {
+                        await rpc("/pos_self_order/kiosk/increment_nb_print/", {
+                            access_token: this.selfOrder.access_token,
+                            order_id: order.id,
+                            order_access_token: order.access_token,
+                        });
+                    }
                 }
             } catch (e) {
                 if (["EPTR_REC_EMPTY", "EPTR_COVER_OPEN"].includes(e.errorCode)) {
@@ -168,5 +206,8 @@ export class ConfirmationPage extends Component {
         }
 
         return this.state.onReload;
+    }
+    get orderTimeStr() {
+        return this.confirmedOrder.preset_time.toFormat("h:mm a");
     }
 }

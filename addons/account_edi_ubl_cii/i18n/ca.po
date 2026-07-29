@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * account_edi_ubl_cii
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:47+0000\n"
+"PO-Revision-Date: 2026-01-31 12:22+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-1/"
 "account_edi_ubl_cii/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -86,16 +86,6 @@ msgstr "AE - Inversió del subjecte passiu"
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__as
 msgid "AS2 exchange"
 msgstr "Intercanvi AS2"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
-msgid "Account Move Send"
-msgstr "Enviar moviment de compte"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9923
@@ -242,7 +232,7 @@ msgstr ""
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl.py:0
 #: code:addons/account_edi_ubl_cii/models/account_edi_xml_ubl_20.py:0
 msgid "Conditional cash/payment discount"
-msgstr "Descompte condicionat per pagament anticipat"
+msgstr "Descompte condicional per pagament anticipat"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -533,7 +523,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl.py:0
 msgid "Format used to import the invoice: %s"
-msgstr "Format usat per a importar la factura: %s"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -817,6 +807,12 @@ msgid "Malta VAT"
 msgstr "Malta - IVA"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Missing '_title' for multi-level constraints."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9940
 msgid "Monaco VAT"
 msgstr "Mònaco - IVA"
@@ -870,6 +866,12 @@ msgstr "O.F.T.P. (Protocol de transferència de fitxers ODETTE)"
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
 msgid "Odoo"
 msgstr "Odoo"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Other Errors:"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.view_partner_property_form
@@ -997,9 +999,19 @@ msgid "San Marino VAT"
 msgstr "San Marino - IVA"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9948
 msgid "Serbia VAT"
 msgstr "Sèrbia - IVA"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__ubl_sg
@@ -1061,6 +1073,11 @@ msgstr "L'impost %(tax_name)s no és vàlid: %(error_message)s"
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_category_code
 msgid "Tax Category Code"
 msgstr "Codi de categoria de l'impost"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason
+msgid "Tax Exemption Reason"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason_code
@@ -2092,6 +2109,22 @@ msgid "Z - Zero rated goods"
 msgstr "Z - Béns exempts"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
+"customer '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
+"company '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_partner__invoice_edi_format
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_users__invoice_edi_format
 msgid "eInvoice format"
@@ -2133,6 +2166,3 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ msgstr ""
 #~ "No s'ha trovat preu brut, preu net, ni import subtotal de línia per a una "
 #~ "línia de XML"
-
-#~ msgid "Your endpoint"
-#~ msgstr "El seu punt de connexió"

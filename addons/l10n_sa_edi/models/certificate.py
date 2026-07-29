@@ -1,11 +1,11 @@
 import base64
 
 from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.x509 import ObjectIdentifier
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
 
-from odoo import _, api, models, service
+from odoo import _, api, models, release
 from odoo.exceptions import UserError
 
 CERT_TEMPLATE_NAME = {
@@ -29,7 +29,6 @@ class CertificateCertificate(models.Model):
     def _l10n_sa_get_csr_vals(self, journal):
         company_id = journal.company_id
         parent_company_id = journal.company_id.parent_id
-        version_info = service.common.exp_version()
         return {
             "country_name": {
                 "value": company_id.country_id.code,
@@ -60,7 +59,7 @@ class CertificateCertificate(models.Model):
                 "name": _("Locality Name"),
             },
             "egs_serial": {
-                "value": f"1-Odoo|2-{version_info['server_serie']}|3-{journal.id}",
+                "value": f"1-Odoo|2-{release.major_version}|3-{journal.id}",
                 "name": _("Journal Serial Number"),
             },
             "org_uid": {

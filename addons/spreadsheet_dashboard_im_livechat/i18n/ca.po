@@ -2,15 +2,14 @@
 # This file contains the translation of the following modules:
 # * spreadsheet_dashboard_im_livechat
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 21:50+0000\n"
-"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-09-16 04:49+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
 "spreadsheet_dashboard_im_livechat/ca/>\n"
 "Language: ca\n"
@@ -18,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -121,7 +120,7 @@ msgstr ""
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Country"
-msgstr "País"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -451,48 +450,3 @@ msgstr "darrer període"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "since last period"
 msgstr "des de l'últim període"
-
-#~ msgid "Average Rating"
-#~ msgstr "Valoració mitjana"
-
-#~ msgid "Average session (seconds)"
-#~ msgstr "Durada mitjana de la sessió (segons)"
-
-#~ msgid "Avg. Session Duration"
-#~ msgstr "Mitjana Durada de la sessió"
-
-#~ msgid "Avg. Time to Answer"
-#~ msgstr "Mitjana Hora de respondre"
-
-#~ msgid "Avg. time to answer"
-#~ msgstr "Mitjana hora de respondre"
-
-#~ msgid "Daily Sessions"
-#~ msgstr "Sessions diàries"
-
-#~ msgid "David Morenas"
-#~ msgstr "David Morenas"
-
-#~ msgid "Emilia Stones"
-#~ msgstr "Emilia Stones"
-
-#~ msgid "Live chat"
-#~ msgstr "Xat en directe"
-
-#~ msgid "Michael Bay"
-#~ msgstr "Michael Bay"
-
-#~ msgid "Operator"
-#~ msgstr "Operador"
-
-#~ msgid "Rating"
-#~ msgstr "Valoració"
-
-#~ msgid "Sessions by Operator"
-#~ msgstr "Sessions per operador"
-
-#~ msgid "Time to answer (seconds)"
-#~ msgstr "Temps de resposta (segons)"
-
-#~ msgid "Top Operators"
-#~ msgstr "Operadors principals"

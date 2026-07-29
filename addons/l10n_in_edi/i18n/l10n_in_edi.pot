@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 19:05+0000\n"
-"PO-Revision-Date: 2026-02-20 19:05+0000\n"
+"POT-Creation-Date: 2026-02-20 12:31+0000\n"
+"PO-Revision-Date: 2026-02-20 12:31+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -89,11 +89,6 @@ msgid "API credentials validated successfully"
 msgstr ""
 
 #. module: l10n_in_edi
-#: model:ir.model,name:l10n_in_edi.model_account_move_send
-msgid "Account Move Send"
-msgstr ""
-
-#. module: l10n_in_edi
 #: model_terms:ir.ui.view,arch_db:l10n_in_edi.invoice_form_inherit_l10n_in_edi
 msgid ""
 "Are you sure you want to cancel this invoice without waiting for the EDI "
@@ -153,16 +148,16 @@ msgid "Check Partner Data"
 msgstr ""
 
 #. module: l10n_in_edi
-#: model:ir.model,name:l10n_in_edi.model_res_company
-msgid "Companies"
-msgstr ""
-
-#. module: l10n_in_edi
 #. odoo-python
 #: code:addons/l10n_in_edi/models/res_company.py:0
 msgid ""
 "Companies should have a complete address, verify their Street, City, State, "
 "Country and Zip code."
+msgstr ""
+
+#. module: l10n_in_edi
+#: model:ir.model,name:l10n_in_edi.model_res_company
+msgid "Company"
 msgstr ""
 
 #. module: l10n_in_edi
@@ -194,11 +189,6 @@ msgstr ""
 #: model:ir.model.fields.selection,name:l10n_in_edi.selection__account_move__l10n_in_edi_cancel_reason__2
 #: model:ir.model.fields.selection,name:l10n_in_edi.selection__l10n_in_edi_cancel__cancel_reason__2
 msgid "Data Entry Mistake"
-msgstr ""
-
-#. module: l10n_in_edi
-#: model_terms:ir.ui.view,arch_db:l10n_in_edi.view_ewaybill_cancel_form
-msgid "Discard"
 msgstr ""
 
 #. module: l10n_in_edi
@@ -518,6 +508,11 @@ msgstr ""
 msgid ""
 "Set an appropriate GST tax on invoice lines (if it's zero rated or nil rated"
 " then apply it too)"
+msgstr ""
+
+#. module: l10n_in_edi
+#: model:ir.model,name:l10n_in_edi.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
 msgstr ""
 
 #. module: l10n_in_edi

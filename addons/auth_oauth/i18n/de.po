@@ -12,10 +12,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:47+0000\n"
+"POT-Creation-Date: 2025-10-08 18:37+0000\n"
+"PO-Revision-Date: 2026-06-20 15:29+0000\n"
 "Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
 "auth_oauth/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,7 @@ msgstr "Zugriff verweigert"
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_config_settings__auth_oauth_google_enabled
 msgid "Allow users to sign in with Google"
-msgstr "Erlauben Sie es Benutzern, sich mit einem Google-Konto anzumelden"
+msgstr "Benutzern erlauben, sich mit Google-Konto anzumelden"
 
 #. module: auth_oauth
 #: model_terms:ir.ui.view,arch_db:auth_oauth.res_config_settings_view_form
@@ -136,7 +136,7 @@ msgstr "Bezeichnung der Anmeldeschaltfläche"
 #. odoo-python
 #: code:addons/auth_oauth/models/res_users.py:0
 msgid "Missing subject identity"
-msgstr "Betreffkennung fehlt"
+msgstr "Betreffidentität fehlt"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_users__oauth_access_token
@@ -146,18 +146,18 @@ msgstr "Speicherung des OAuth-Zugriffstokens"
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_users__oauth_provider_id
 msgid "OAuth Provider"
-msgstr "OAuth-Anbieter"
+msgstr "OAuth-Provider"
 
 #. module: auth_oauth
 #: model:ir.ui.menu,name:auth_oauth.menu_oauth_providers
 #: model_terms:ir.ui.view,arch_db:auth_oauth.res_config_settings_view_form
 msgid "OAuth Providers"
-msgstr "OAuth-Anbieter"
+msgstr "OAuth-Provider"
 
 #. module: auth_oauth
 #: model:ir.model.constraint,message:auth_oauth.constraint_res_users_uniq_users_oauth_provider_oauth_uid
 msgid "OAuth UID must be unique per provider"
-msgstr "Die OAuth-UID muss pro Anbieter eindeutig sein"
+msgstr "OAuth-UID muss je Provider eindeutig sein"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_users__oauth_uid
@@ -167,27 +167,27 @@ msgstr "OAuth-Benutzer-ID"
 #. module: auth_oauth
 #: model:ir.model,name:auth_oauth.model_auth_oauth_provider
 msgid "OAuth2 provider"
-msgstr "OAuth2-Anbieter"
+msgstr "OAuth2-Provider"
 
 #. module: auth_oauth
 #: model:ir.model.fields,help:auth_oauth.field_res_users__oauth_uid
 msgid "Oauth Provider user_id"
-msgstr "user_id des Oauth-Anbieters"
+msgstr "Oauth-Provider user_id"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__name
 msgid "Provider name"
-msgstr "Name des Anbieters"
+msgstr "Provider-Name"
 
 #. module: auth_oauth
 #: model:ir.actions.act_window,name:auth_oauth.action_oauth_provider
 msgid "Providers"
-msgstr "Anbieter"
+msgstr "Provider"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__scope
 msgid "Scope"
-msgstr "Umfang"
+msgstr "Bereich"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__sequence
@@ -268,21 +268,3 @@ msgstr "Arch"
 #: model_terms:ir.ui.view,arch_db:auth_oauth.res_config_settings_view_form
 msgid "e.g. 1234-xyz.apps.googleusercontent.com"
 msgstr "z. B. 1234-xyz.apps.googleusercontent.com"
-
-#~ msgid "- or -"
-#~ msgstr "- oder -"
-
-#~ msgid "Log in with Facebook"
-#~ msgstr "Mit Facebook anmelden"
-
-#~ msgid "Log in with Google"
-#~ msgstr "Login mit Google"
-
-#~ msgid "Log in with Odoo.com"
-#~ msgstr "Login mit Odoo.com"
-
-#~ msgid "OAuth Access Token"
-#~ msgstr "OAuth Zugangstoken"
-
-#~ msgid "Oauth"
-#~ msgstr "Oauth"

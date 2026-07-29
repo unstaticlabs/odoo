@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -14,7 +13,7 @@
         'sms',
     ],
     'data': [
-        'data/utm.xml',
+        'data/utm_data.xml',
         'security/ir.model.access.csv',
         'report/mailing_trace_report_views.xml',
         'views/mailing_list_views.xml',
@@ -42,6 +41,7 @@
         ],
     },
     'application': True,
+    'iap_paid_service': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

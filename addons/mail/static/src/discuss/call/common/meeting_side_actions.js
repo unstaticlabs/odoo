@@ -3,6 +3,8 @@ import { ActionList } from "@mail/core/common/action_list";
 import { Component, useSubEnv } from "@odoo/owl";
 
 import { useService } from "@web/core/utils/hooks";
+import { useCallActions } from "./call_actions";
+import { ACTION_TAGS } from "@mail/core/common/action";
 
 /** @typedef {"chat"|"invite"} MeetingPanel */
 
@@ -13,17 +15,24 @@ import { useService } from "@web/core/utils/hooks";
  */
 export class MeetingSideActions extends Component {
     static template = "mail.MeetingSideActions";
-    static props = ["threadActions"];
+    static props = ["threadActions", "isSmall?"];
     static components = { ActionList };
 
     setup() {
         this.store = useService("mail.store");
+        this.callActions = useCallActions({ channel: () => this.store.rtc.channel });
         useSubEnv({ inMeetingSideActions: true });
     }
 
     computeActions() {
-        const quickThreadActionIds = ["invite-people", "meeting-chat"];
         const threadActions = this.props.threadActions;
+        if (this.store.rtc.channel.default_display_mode === "video_full_screen") {
+            this.actions = threadActions.actions.filter((action) =>
+                ["member-list", "meeting-chat"].includes(action.id)
+            );
+            return;
+        }
+        const quickThreadActionIds = this.props.isSmall ? [] : ["invite-people", "meeting-chat"];
         const { quick, other, group } = threadActions.partition;
         const partitionedActions = {
             quick: quick.filter((action) => !quickThreadActionIds.includes(action.id)),
@@ -45,5 +54,11 @@ export class MeetingSideActions extends Component {
             })
         );
         this.actions = actions;
+    }
+
+    get layoutActions() {
+        return this.callActions.actions.filter((action) =>
+            action.tags.includes(ACTION_TAGS.CALL_LAYOUT)
+        );
     }
 }

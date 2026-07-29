@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * project_todo
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Ryoko Tsuda <ryoko@quartile.co>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Ryoko Tsuda <ryoko@quartile.co>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 21:34+0000\n"
-"Last-Translator: Ryoko Tsuda <ryoko@quartile.co>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-13 11:21+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-1/"
 "project_todo/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -34,16 +34,16 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        Ensure you follow the correct format and order. For example: Send "
-"invitations #event @Mitchell !\n"
-"    </span>"
+"        <span style=\"font-size: 14px;\">\n"
+"            Ensure you follow the correct format and order. For example: "
+"Send invitations #event @Mitchell !\n"
+"        </span>"
 msgstr ""
 "<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        正しい形式と順序に従ってください。例：招待状を送信 #event @Mitchell "
-"!\n"
-"    </span>"
+"        <span style=\"font-size: 14px;\">\n"
+"            正しい形式と順序に従ってください。例：招待状を送信 #event "
+"@Mitchell !\n"
+"        </span>"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -69,8 +69,8 @@ msgid ""
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
 "                    セパレータを追加\n"
-"                    (/<span style=\"font-style: italic;\">セパレータ</span>)"
-"\n"
+"                    (/<span style=\"font-style: italic;\">セパレータ</"
+"span>)\n"
 "                </span>"
 
 #. module: project_todo
@@ -128,15 +128,28 @@ msgid ""
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
 "            テキストを選び\n"
-"            <font style=\"background-color: #017E84; color: white\">"
-"ハイライト</font>、\n"
-"            <span style=\"text-decoration-line: line-through;\">取消線</span>"
-"\n"
+"            <font style=\"background-color: #017E84; color: white\">ハイライ"
+"ト</font>、\n"
+"            <span style=\"text-decoration-line: line-through;\">取消線</"
+"span>\n"
 "            または\n"
 "            <span style=\"font-weight: bolder;\">スタイル</span>\n"
 "            <span style=\"font-style: italic; text-decoration-line: "
 "underline;\">テキスト</span>\n"
 "        </span>を適用します。"
+
+#. module: project_todo
+#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
+msgid ""
+"<span style=\"font-size: 14px;\">\n"
+"            Use these keywords in the title to streamline your to-dos:\n"
+"        </span>\n"
+"        <br/>"
+msgstr ""
+"<span style=\"font-size: 14px;\">\n"
+"            タイトルにこれらのキーワードを使って、ToDo を効率化しましょう::\n"
+"        </span>\n"
+"        <br/>"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -161,8 +174,8 @@ msgid ""
 "    </span>"
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
-"        ToDoや割当タスクのある自分個人のパイプラインにアクセスするには、"
-"プロジェクトアプリで\n"
+"        ToDoや割当タスクのある自分個人のパイプラインにアクセスするには、プロ"
+"ジェクトアプリで\n"
 "        <span>\n"
 "            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">自"
 "分のタスク</font>をクリックします。\n"
@@ -217,8 +230,8 @@ msgstr ""
 "<span style=\"font-size: 14px;\">\n"
 "        ステージを\n"
 "        <span style=\"font-weight: bolder;\">\n"
-"            <font class=\"text-o-color-2\">かんばんビュー</font>から"
-"カスタマイズして\n"
+"            <font class=\"text-o-color-2\">かんばんビュー</font>からカスタマ"
+"イズして\n"
 "        </span>\n"
 "        お気に入りのワークフローを反映させましょう。\n"
 "    </span>"
@@ -238,11 +251,11 @@ msgid ""
 "    <br/>"
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
-"        もしあなたのToDoを特定のプロジェクトに割当たい場合は、 ⚙️ メニューを"
-"開いて\n"
+"        もしあなたのToDoを特定のプロジェクトに割当たい場合は、 ⚙️ メニューを開"
+"いて\n"
 "        <span>\n"
-"            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">"
-"タスクに変換</font>をクリックします。\n"
+"            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">タ"
+"スクに変換</font>をクリックします。\n"
 "        </span>\n"
 "        このアクションにより、他の人にもタスクが表示されます。\n"
 "    </span>\n"
@@ -260,19 +273,6 @@ msgstr ""
 "        それを活用して仕事を管理し、外出先でメモを取り、それに基づいてタスク"
 "を作成しましょう。\n"
 "    </span>"
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
-msgid ""
-"<span style=\"font-size: 14px;\">\n"
-"        Use these keywords in the title to streamline your to-dos:\n"
-"    </span>\n"
-"    <br/>"
-msgstr ""
-"<span style=\"font-size: 14px;\">\n"
-"        タイトルにこれらのキーワードを使って、ToDo を効率化しましょう:\n"
-"    </span>\n"
-"    <br/>"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -319,8 +319,8 @@ msgid ""
 "    <br/>\n"
 "    <span style=\"font-size: 14px;\">Ready to give it a spin?</span>"
 msgstr ""
-"<span style=\"font-size: 14px;\">この非公開ToDoを使って自由に遊んでみましょ"
-"う</span>\n"
+"<span style=\"font-size: 14px;\">この非公開ToDoを使って自由に遊んでみましょう"
+"</span>\n"
 "    <br/>\n"
 "    <span style=\"font-size: 14px;\">試してみますか？</span>"
 
@@ -333,61 +333,61 @@ msgstr "<span style=\"font-size: 14px;\">以下を試して下さい</span>"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as urgent"
+"                    <font class=\"text-o-color-2\">!!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as urgent"
 msgstr ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!!:</font>\n"
-"            </span>\n"
-"            To-do を緊急としてマーク"
+"                    <font class=\"text-o-color-2\">!!!:</font>\n"
+"                </span>\n"
+"                To-do を緊急としてマーク"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as high priority"
+"                    <font class=\"text-o-color-2\">!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as high priority"
 msgstr ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!:</font>\n"
-"            </span>\n"
-"            To-Doを高い優先度としてマーク"
+"                    <font class=\"text-o-color-2\">!!:</font>\n"
+"                </span>\n"
+"                To-doを高い優先度としてマーク"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as medium priority"
+"                    <font class=\"text-o-color-2\">!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as medium priority"
 msgstr ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!:</font>\n"
-"            </span>\n"
-"            To-doを中程度の優先度としてマーク"
+"                    <font class=\"text-o-color-2\">!:</font>\n"
+"                </span>\n"
+"                To-doを中程度の優先度としてマーク"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">#tags:</font>\n"
-"            </span>\n"
-"            Add tags to categorize the to-do"
+"                    <font class=\"text-o-color-2\">#tags:</font>\n"
+"                </span>\n"
+"                Add tags to categorize the to-do"
 msgstr ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">#tags:</font>\n"
-"            </span>\n"
-"            タグを追加してTo-doをカテゴリ分けする"
+"                    <font class=\"text-o-color-2\">#タグ:</font>\n"
+"                </span>\n"
+"                タグを追加してTo-doをカテゴリ分けする"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">@user:</font>\n"
-"            </span>\n"
-"            Assign the to-do to a specific user"
+"                    <font class=\"text-o-color-2\">@user:</font>\n"
+"                </span>\n"
+"                Assign the to-do to a specific user"
 msgstr ""
 "<span style=\"font-weight: bolder;\">\n"
 "                <font class=\"text-o-color-2\">@user:</font>\n"
@@ -427,7 +427,7 @@ msgstr "To-Doを追加"
 
 #. module: project_todo
 #. odoo-javascript
-#: code:addons/project_todo/static/src/web/activity/activity_menu_patch.js:0
+#: code:addons/project_todo/static/src/core/web/activity_menu_patch.js:0
 msgid "Add a To-Do"
 msgstr "To-Doを追加"
 
@@ -531,12 +531,6 @@ msgstr "期日"
 #: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_kanban
 msgid "Delete"
 msgstr "削除"
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.mail_activity_todo_create_popup
-#: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_conversion_form
-msgid "Discard"
-msgstr "破棄"
 
 #. module: project_todo
 #: model:ir.model.fields,field_description:project_todo.field_mail_activity_todo_create__display_name
@@ -706,8 +700,10 @@ msgid ""
 msgstr "To Do の説明には、現時点で復元できる過去のコンテンツが一切ありません。"
 
 #. module: project_todo
+#. odoo-javascript
 #. odoo-python
 #: code:addons/project_todo/models/res_users.py:0
+#: code:addons/project_todo/static/src/webclient/share_target/todo_share_target_item.js:0
 msgid "To-Do"
 msgstr "To Do"
 
@@ -862,18 +858,3 @@ msgstr "例. 招待を送る"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid "todo-access"
 msgstr "Todo-アクセス"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
-
-#~ msgid "Onboarding todo already generated for those users"
-#~ msgstr "これらのユーザ用にオンボーディングToDoを作成"
-
-#~ msgid "The To-do description was empty at the time."
-#~ msgstr "その時点で、To Do の説明は空でした。"
-
-#~ msgid "To-do..."
-#~ msgstr "To-do..."
-
-#~ msgid "menu load To-dos"
-#~ msgstr "メニューロードToDo"

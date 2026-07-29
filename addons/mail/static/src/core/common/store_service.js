@@ -1,8 +1,6 @@
-import { Store as BaseStore, fields, makeStore, storeInsertFns } from "@mail/core/common/record";
-import { threadCompareRegistry } from "@mail/core/common/thread_compare";
+import { Store as BaseStore, fields, makeStore } from "@mail/model/export";
 import {
     attClassObjectToString,
-    cleanTerm,
     generateEmojisOnHtml,
     prettifyMessageText,
 } from "@mail/utils/common/format";
@@ -10,6 +8,9 @@ import { compareDatetime } from "@mail/utils/common/misc";
 
 import { reactive } from "@odoo/owl";
 
+import { browser } from "@web/core/browser/browser";
+import { cookie } from "@web/core/browser/cookie";
+import { isMobileOS } from "@web/core/browser/feature_detection";
 import { _t } from "@web/core/l10n/translation";
 import { rpc } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
@@ -17,13 +18,8 @@ import { user } from "@web/core/user";
 import { Deferred, Mutex } from "@web/core/utils/concurrency";
 import { renderToElement } from "@web/core/utils/render";
 import { debounce } from "@web/core/utils/timing";
-import { session } from "@web/session";
-import { browser } from "@web/core/browser/browser";
-import { loader } from "@web/core/emoji_picker/emoji_picker";
-import { patch } from "@web/core/utils/patch";
-import { isMobileOS } from "@web/core/browser/feature_detection";
 import { getOrigin } from "@web/core/utils/urls";
-import { cookie } from "@web/core/browser/cookie";
+import { session } from "@web/session";
 import { isMarkup, createDocumentFragmentFromContent } from "@web/core/utils/html";
 
 /**
@@ -33,41 +29,6 @@ import { isMarkup, createDocumentFragmentFromContent } from "@web/core/utils/htm
 let prevLastMessageId = null;
 let temporaryIdOffset = 0.01;
 
-export const pyToJsModels = {
-    "discuss.channel": "Thread",
-    "mail.thread": "Thread",
-};
-
-export const addFieldsByPyModel = {
-    "discuss.channel": { model: "discuss.channel" },
-};
-
-patch(storeInsertFns, {
-    makeContext(store) {
-        if (!(store instanceof Store)) {
-            return super.makeContext(...arguments);
-        }
-        return { pyModels: Object.values(pyToJsModels) };
-    },
-    getActualModelName(store, ctx, pyOrJsModelName) {
-        if (!(store instanceof Store)) {
-            return super.getActualModelName(...arguments);
-        }
-        if (ctx.pyModels.includes(pyOrJsModelName)) {
-            console.warn(
-                `store.insert() should receive the python model name instead of “${pyOrJsModelName}”.`
-            );
-        }
-        return pyToJsModels[pyOrJsModelName] || pyOrJsModelName;
-    },
-    getExtraFieldsFromModel(store, pyOrJsModelName) {
-        if (!(store instanceof Store)) {
-            return super.getExtraFieldsFromModel(...arguments);
-        }
-        return addFieldsByPyModel[pyOrJsModelName];
-    },
-});
-
 export class Store extends BaseStore {
     static FETCH_DATA_DEBOUNCE_DELAY = 1;
     static OTHER_LONG_TYPING = 60000;
@@ -75,22 +36,17 @@ export class Store extends BaseStore {
 
     FETCH_LIMIT = 30;
     DEFAULT_AVATAR = "/mail/static/src/img/smiley/avatar.jpg";
+
+    bookmarkBox = fields.One("mail.thread");
+    history = fields.One("mail.thread");
+    inbox = fields.One("mail.thread");
     isReady = new Deferred();
-    /** This is the current logged partner / guest */
-    self_partner = fields.One("res.partner");
     self_guest = fields.One("mail.guest");
+    self_user = fields.One("res.users");
+    /** This is the current logged partner / guest */
     get self() {
-        return this.self_partner || this.self_guest;
+        return this.self_user?.partner_id || this.self_guest;
     }
-    allChannels = fields.Many("Thread", {
-        inverse: "storeAsAllChannels",
-        onUpdate() {
-            const busService = this.store.env.services.bus_service;
-            if (!busService.isActive && this.allChannels.some((t) => !t.isTransient)) {
-                busService.start();
-            }
-        },
-    });
     /**
      * Indicates whether the current user is using the application through the
      * public page.
@@ -121,7 +77,6 @@ export class Store extends BaseStore {
         sort: (f1, f2) => f2.lastMessage?.id - f1.lastMessage?.id,
     });
     settings = fields.One("Settings");
-    emojiLoader = loader;
 
     /** @type {[[string, any, import("models").DataResponse]]} */
     fetchParams = [];
@@ -140,69 +95,9 @@ export class Store extends BaseStore {
         },
     ];
 
-    isNotificationPermissionDismissed = fields.Attr(false, {
-        compute() {
-            return (
-                browser.localStorage.getItem("mail.user_setting.push_notification_dismissed") ===
-                "true"
-            );
-        },
-        /** @this {import("models").DiscussApp} */
-        onUpdate() {
-            if (this.isNotificationPermissionDismissed) {
-                browser.localStorage.setItem(
-                    "mail.user_setting.push_notification_dismissed",
-                    "true"
-                );
-            } else {
-                browser.localStorage.removeItem("mail.user_setting.push_notification_dismissed");
-            }
-        },
-    });
+    isNotificationPermissionDismissed = fields.Attr(false, { localStorage: true });
 
     messagePostMutex = new Mutex();
-
-    menuThreads = fields.Many("Thread", {
-        /** @this {import("models").Store} */
-        compute() {
-            /** @type {import("models").Thread[]} */
-            const searchTerm = cleanTerm(this.discuss.searchTerm);
-            let threads = Object.values(this.Thread.records).filter(
-                (thread) =>
-                    (thread.displayToSelf ||
-                        (thread.needactionMessages.length > 0 && thread.model !== "mail.box")) &&
-                    cleanTerm(thread.displayName).includes(searchTerm)
-            );
-            const tab = this.discuss.activeTab;
-            if (tab === "inbox") {
-                threads = threads.filter(({ channel_type }) =>
-                    this.tabToThreadType("mailbox").includes(channel_type)
-                );
-            } else if (tab === "starred") {
-                threads = [this.starred];
-            } else if (tab !== "notification") {
-                threads = threads.filter(({ channel_type }) =>
-                    this.tabToThreadType(tab).includes(channel_type)
-                );
-            }
-            return threads;
-        },
-        /**
-         * @this {import("models").Store}
-         * @param {import("models").Thread} thread1
-         * @param {import("models").Thread} thread2
-         */
-        sort(thread1, thread2) {
-            const compareFunctions = threadCompareRegistry.getAll();
-            for (const fn of compareFunctions) {
-                const result = fn(thread1, thread2);
-                if (result !== undefined) {
-                    return result;
-                }
-            }
-            return thread2.localId > thread1.localId ? 1 : -1;
-        },
-    });
 
     shouldSimulateDarkTheme(ctx) {
         return (
@@ -211,7 +106,6 @@ export class Store extends BaseStore {
                 ctx?.env.isDiscussPipBanner ||
                 ctx?.env?.inWelcomePage) &&
             this.isOdooWhiteTheme &&
-            !ctx?.env.inMeetingSideActions &&
             !ctx?.env.inDiscussActionPanel
         );
     }
@@ -221,7 +115,6 @@ export class Store extends BaseStore {
         return attClassObjectToString({
             "o-discuss-dropdownMenu d-flex flex-column border-secondary": true,
             "o-simulateDarkTheme": simulateDarkTheme,
-            "bg-view": !simulateDarkTheme,
         });
     }
 
@@ -270,20 +163,20 @@ export class Store extends BaseStore {
      * @param {boolean} [options.readonly=true] when set to false, the server will open a read-write
      *  cursor to process this request which is necessary if the request is expected to change data.
      * @param {boolean} [options.silent=true]
-     * @returns {Deferred}
      */
     async fetchStoreData(
         name,
         params,
         { requestData = false, readonly = true, silent = true } = {}
     ) {
+        /** @type {import("models").DataResponse} */
         const dataRequest = this.DataResponse.createRequest();
         dataRequest._autoResolve = !requestData;
         this.fetchParams.push([name, params, dataRequest]);
         this.fetchReadonly = this.fetchReadonly && readonly;
         this.fetchSilent = this.fetchSilent && silent;
         this._fetchStoreDataDebounced();
-        return dataRequest._resultDef;
+        return dataRequest._resultResolvers.promise;
     }
 
     /** Import data received from init_messaging */
@@ -362,7 +255,7 @@ export class Store extends BaseStore {
             },
             (error) => {
                 for (const [, , dataRequest] of fetchParams) {
-                    dataRequest._resultDef.reject(error);
+                    dataRequest._resultResolvers.reject(error);
                 }
             }
         );
@@ -380,13 +273,14 @@ export class Store extends BaseStore {
     }
 
     async startMeeting() {
-        const thread = await this.createGroupChat({
+        /** @type {import("models").DiscussChannel} */
+        const channel = await this.createGroupChat({
             default_display_mode: "video_full_screen",
             partners_to: [this.self.id],
         });
-        await this.store.chatHub.initPromise;
-        this.ChatWindow.get(thread)?.update({ autofocus: 0 });
-        await this.env.services["discuss.rtc"].toggleCall(thread, { camera: true });
+        await this.chatHub.initPromise;
+        channel.chatWindow?.update({ autofocus: 0 });
+        await this.env.services["discuss.rtc"].toggleCall(channel, { camera: true });
         if (this.rtc.selfSession) {
             this.rtc.enterFullscreen({ autoOpenAction: "invite-people" });
         }
@@ -409,7 +303,7 @@ export class Store extends BaseStore {
         const id = Number(link.dataset.oeId);
         if (link.classList.contains("o_channel_redirect") && model && id) {
             ev.preventDefault();
-            this.Thread.getOrFetch({ model, id }).then((thread) => {
+            this["mail.thread"].getOrFetch({ model, id }).then((thread) => {
                 if (thread) {
                     thread.open({ focus: true });
                 } else {
@@ -442,7 +336,7 @@ export class Store extends BaseStore {
                             window.open(link.href);
                         }
                     } else {
-                        if (this.self_partner) {
+                        if (this.self_user) {
                             showAccessError();
                         } else {
                             window.open(link.href);
@@ -473,7 +367,7 @@ export class Store extends BaseStore {
                 browser.location.host === url.host &&
                 browser.location.pathname.startsWith("/odoo")
             ) {
-                this.ChatWindow.get({ thread })?.fold();
+                this.ChatWindow.get({ channel: thread.channel })?.fold();
             }
         }
         return false;
@@ -494,7 +388,7 @@ export class Store extends BaseStore {
             const { type, payload } = data;
             if (type === "notification-display-request") {
                 const { correlationId, model, res_id } = payload;
-                const thread = this.Thread.get({ model, id: res_id });
+                const thread = this["mail.thread"].get({ model, id: res_id });
                 let isTabFocused;
                 try {
                     isTabFocused = parent.document.hasFocus();
@@ -507,7 +401,7 @@ export class Store extends BaseStore {
                 const isInbox =
                     this.store.self.main_user_id?.notification_type === "inbox" &&
                     model !== "discuss.channel";
-                if ((isTabFocused && thread?.isDisplayed) || isInbox) {
+                if ((isTabFocused && thread?.channel?.isDisplayed) || isInbox) {
                     navigator.serviceWorker.controller?.postMessage({
                         type: "notification-display-response",
                         payload: { correlationId },
@@ -531,7 +425,6 @@ export class Store extends BaseStore {
      * @param {Object} param0
      * @param {number} param0.userId
      * @param {number} param0.partnerId
-     * @returns {Promise<import("models").Thread | undefined>}
      */
     async getChat({ userId, partnerId }) {
         const partner = await this.getPartner({ userId, partnerId });
@@ -595,15 +488,13 @@ export class Store extends BaseStore {
                   (a) => a.textContent
               )
             : [body];
-        validMentions.threads = mentionedChannels.filter((thread) => {
-            const mention = thread.parent_channel_id
-                ? `#${thread.parent_channel_id.displayName} > ${thread.displayName}`
-                : `#${thread.displayName}`;
+        validMentions.channels = mentionedChannels.filter((channel) => {
+            const mention = `#${channel.fullNameWithParent}`;
             return segments.some((segment) => segment.includes(mention));
         });
         validMentions.partners = mentionedPartners.filter((partner) =>
             segments.some((segment) =>
-                segment.includes(`@${thread?.getPersonaName?.(partner) ?? partner.name}`)
+                segment.includes(`@${thread?.getPersonaName(partner) ?? partner.name}`)
             )
         );
         validMentions.roles = mentionedRoles.filter((role) =>
@@ -627,6 +518,7 @@ export class Store extends BaseStore {
             mentionedChannels,
             mentionedPartners,
             mentionedRoles,
+            subject,
         } = postData;
         const subtype = isNote ? "mail.mt_note" : "mail.mt_comment";
         const validMentions = this.getMentionsFromText(body, {
@@ -655,6 +547,7 @@ export class Store extends BaseStore {
             email_add_signature: emailAddSignature,
             message_type: "comment",
             subtype_xmlid: subtype,
+            subject,
         };
         if (attachments.length) {
             postData.attachment_ids = attachments.map(({ id }) => id);
@@ -666,7 +559,7 @@ export class Store extends BaseStore {
         if (role_ids.length) {
             Object.assign(postData, { role_ids });
         }
-        if (thread.model === "discuss.channel" && validMentions?.specialMentions.length) {
+        if (thread.channel && validMentions?.specialMentions.length) {
             postData.special_mentions = validMentions.specialMentions;
         }
         if (attachments.length) {
@@ -711,7 +604,7 @@ export class Store extends BaseStore {
      * @param {Object} param0
      * @param {number} param0.userId
      * @param {number} param0.partnerId
-     * @returns {Promise<import("models").Persona> | undefined}
+     * @returns {Promise<import("models").ResPartner>}
      */
     async getPartner({ userId, partnerId }) {
         if (userId) {
@@ -769,7 +662,7 @@ export class Store extends BaseStore {
             { readonly: false, requestData: true }
         );
         if (forceOpen) {
-            await channel.open({ focus: true });
+            channel.open({ focus: true });
         }
         return channel;
     }
@@ -803,26 +696,29 @@ export class Store extends BaseStore {
      * @param {true|false|undefined} is_notification
      */
     async searchMessagesInThread(searchTerm, thread, before, is_notification) {
-        const { count, data, messages } = await rpc(thread.getFetchRoute(), {
-            ...thread.getFetchParams(),
-            fetch_params: {
-                is_notification,
-                search_term: await prettifyMessageText(searchTerm), // formatted like message_post
-                before,
+        const { count, messages } = await this.fetchStoreData(
+            thread.getFetchRoute(),
+            {
+                ...thread.getFetchParams(),
+                fetch_params: {
+                    is_notification,
+                    search_term: await prettifyMessageText(searchTerm), // formatted like message_post
+                    before,
+                },
             },
-        });
-        this.insert(data);
+            { readonly: thread.model === "mail.box", requestData: true }
+        );
         return {
             count,
             loadMore: messages.length === this.FETCH_LIMIT,
-            messages: this["mail.message"].insert(messages),
+            messages,
         };
     }
 }
 Store.register();
 
 export const storeService = {
-    dependencies: ["bus_service", "im_status", "ui", "popover"],
+    dependencies: ["bus_service", "im_status", "ui", "popover", "discuss.upgrade"],
     /**
      * @param {import("@web/env").OdooEnv} env
      * @param {import("services").ServiceFactories} services

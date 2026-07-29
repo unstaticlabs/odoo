@@ -1,11 +1,13 @@
 import json
 import base64
 
-from odoo.tests.common import HttpCase, new_test_user
+from odoo.tests.common import tagged, HttpCase, new_test_user
 from odoo.tools import mute_logger
 
 from .common import DashboardTestCommon
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestShareController(DashboardTestCommon, HttpCase):
 
     @classmethod

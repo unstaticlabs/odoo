@@ -6,12 +6,14 @@ import re
 import time
 from collections import Counter
 
+from odoo import api, fields, models, tools
+from odoo.exceptions import UserError
+from odoo.fields import Domain
+from odoo.http import Response
+from odoo.tools import SQL, escape_psql
+
 from odoo.addons.base.models.ir_http import EXTENSION_TO_WEB_MIMETYPES
 from odoo.addons.website.tools import text_from_html
-from odoo import api, fields, models, tools, http
-from odoo.fields import Domain
-from odoo.tools import escape_psql, SQL
-from odoo.tools.translate import _
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +46,29 @@ class WebsitePage(models.Model):
         related='view_id.write_date')
 
     website_indexed = fields.Boolean('Is Indexed', default=True)
-    date_publish = fields.Datetime('Publishing Date')
     menu_ids = fields.One2many('website.menu', 'page_id', 'Related Menus')
     is_in_menu = fields.Boolean(compute='_compute_website_menu')
     is_homepage = fields.Boolean(compute='_compute_is_homepage', string='Homepage')
     is_visible = fields.Boolean(compute='_compute_visible', string='Is Visible')
     is_new_page_template = fields.Boolean(string="New Page Template", help='Add this page to the "+New" page templates. It will be added to the "Custom" category.')
+    parent_id = fields.Many2one('website.page', string="Parent Page")
+    parent_ids = fields.Many2many('website.page', compute='_compute_parent_ids')
 
     # don't use mixin website_id but use website_id on ir.ui.view instead
     website_id = fields.Many2one(related='view_id.website_id', store=True, readonly=False, ondelete='cascade')
     arch = fields.Text(related='view_id.arch', readonly=False, depends_context=('website_id',))
+
+    @api.constrains('parent_id')
+    def _compute_parent_ids(self):
+        for page in self:
+            parent_ids = []
+            parent = page.parent_id
+            while parent:
+                if parent.id == page.id:
+                    raise UserError(self.env._("This would create a circular page hierarchy."))
+                parent_ids.append(parent.id)
+                parent = parent.parent_id
+            page.parent_ids = self.browse(reversed(parent_ids))
 
     def _compute_is_homepage(self):
         website = self.env['website'].get_current_website()
@@ -62,9 +77,7 @@ class WebsitePage(models.Model):
 
     def _compute_visible(self):
         for page in self:
-            page.is_visible = page.website_published and (
-                not page.date_publish or page.date_publish < fields.Datetime.now()
-            )
+            page.is_visible = page.website_published
 
     @api.depends('menu_ids')
     def _compute_website_menu(self):
@@ -188,10 +201,8 @@ class WebsitePage(models.Model):
             if 'visibility' in vals:
                 if vals['visibility'] != 'restricted_group':
                     vals['group_ids'] = False
-
-        if 'url' in vals or 'visibility' in vals or 'group_ids' in vals:
-            self.env.registry.clear_cache('templates')   # Clear cache because the response depends on the path and the rendering of the view changes.
-
+        # write on page == write on view
+        # the view will invalidate the 'templates' cache
         return super().write(vals)
 
     def get_website_meta(self):
@@ -249,38 +260,26 @@ class WebsitePage(models.Model):
         most_specific_pages = self.env['website']._get_website_pages(
             domain=base_domain, order=order
         )
-        results = most_specific_pages.filtered_domain(domain)  # already sudo
-        v_arch_db = self.env['ir.ui.view']._field_to_sql('v', 'arch_db')
 
         if with_description and search and most_specific_pages:
             # Perform search in translations
             # TODO Remove when domains will support xml_translate fields
-            rows = self.env.execute_query(SQL(
-                """
-                SELECT DISTINCT %(table)s.id
-                FROM %(table)s
-                LEFT JOIN ir_ui_view v ON %(table)s.view_id = v.id
-                WHERE (v.name ILIKE %(search)s
-                OR %(v_arch_db)s ILIKE %(search)s)
-                AND %(table)s.id IN %(ids)s
-                LIMIT %(limit)s
-                """,
-                table=SQL.identifier(self._table),
-                search=f"%{escape_psql(search)}%",
-                v_arch_db=v_arch_db,
-                ids=tuple(most_specific_pages.ids),
-                limit=len(most_specific_pages.ids),
-            ))
-            ids = {row[0] for row in rows}
-            if ids:
-                ids.update(results.ids)
-                domain = base_domain & Domain('id', 'in', ids)
-                model = self.sudo() if search_detail.get('requires_sudo') else self
-                results = model.search(
-                    domain,
-                    limit=len(ids),
-                    order=search_detail.get('order', order)
+            custom_view_domain = Domain.custom(
+                to_sql=lambda table: SQL(
+                    "%(name)s ILIKE %(search)s OR %(arch_db)s ILIKE %(search)s",
+                    name=table.name,
+                    arch_db=table.arch_db,
+                    search=f"%{escape_psql(search)}%",
                 )
+            )
+            # most_specific_pages is already filtered and ordered
+            pages = self.sudo().with_context(active_test=False).search(
+                Domain('view_id', 'any', custom_view_domain)
+                & Domain('id', 'in', most_specific_pages.ids)
+            )
+            # just update the domain for filtering
+            domain |= Domain('id', 'in', pages.ids)
+        results = most_specific_pages.filtered_domain(domain)  # already sudo
 
         def filter_page(search, page, all_pages):
             # Exclude pages that do not pass ACL.
@@ -330,7 +329,7 @@ class WebsitePage(models.Model):
         return True
 
     @api.model
-    def _post_process_response_from_cache(self, request: http.Request, response: http.Response) -> None:
+    def _post_process_response_from_cache(self, request, response) -> None:
         """ A hook called after a response is retrieved from the cache. This
         method allows for post-processing, such as incrementing counters or
         modifying HTTP headers, without regenerating the entire page.
@@ -383,7 +382,7 @@ class WebsitePage(models.Model):
                     return notCache.result[0]
 
             if time.time() < response.time + self._CACHE_DURATION:
-                resp = http.Response(
+                resp = Response(
                     headers=response.headers.copy(),
                     mimetype=response.mimetype,
                     content_type=response.content_type,
@@ -405,7 +404,7 @@ class WebsitePage(models.Model):
         'xml' not in tools.config['dev_mode'],
         tools.ormcache('self._get_cache_key(request)', cache='templates.cached_values'),
     )
-    def _get_response_cached(self, request) -> tuple[http.Response, int, str]:
+    def _get_response_cached(self, request) -> tuple[Response, int, str]:
         """ Returns the response corresponding to the request.
         If the response exists and `_allow_cache_insertio` return True, this
         response is cached.
@@ -423,7 +422,7 @@ class WebsitePage(models.Model):
 
         return result
 
-    def _get_response_raw(self, request) -> http.Response | None:
+    def _get_response_raw(self, request) -> Response | None:
         """ Returns the raw response associated with the current request.
         This method is called by `_get_response_cached`, which handles caching
         the result. It is also called directly by `_get_response` if

@@ -2,9 +2,10 @@
 
 from odoo import Command
 from odoo.addons.stock.tests.common import TestStockCommon
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestReturnPicking(TestStockCommon):
 
     def test_stock_return_picking_line_creation(self):
@@ -18,7 +19,7 @@ class TestReturnPicking(TestStockCommon):
         move_1 = self.MoveObj.create({
             'product_id': self.productA.id,
             'product_uom_qty': 2,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'picking_id': picking_out.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -26,7 +27,7 @@ class TestReturnPicking(TestStockCommon):
         move_2 = self.MoveObj.create({
             'product_id': self.productA.id,
             'product_uom_qty': 1,
-            'product_uom': self.uom_dozen.id,
+            'uom_id': self.uom_dozen.id,
             'picking_id': picking_out.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -43,13 +44,13 @@ class TestReturnPicking(TestStockCommon):
         # Check return line of uom_unit move
         return_line = ReturnPickingLineObj.search([('move_id', '=', move_1.id), ('wizard_id.picking_id', '=', picking_out.id)], limit=1)
         self.assertEqual(return_line.product_id.id, self.productA.id, 'Return line should have exact same product as outgoing move')
-        self.assertEqual(return_line.uom_id.id, move_1.product_uom.id, 'Return line should have exact same uom as move uom')
+        self.assertEqual(return_line.uom_id.id, move_1.uom_id.id, 'Return line should have exact same uom as move uom')
         self.assertEqual(return_line.quantity, 0, 'Return line should have 0 quantity')
         return_line.quantity = 2
         # Check return line of uom_dozen move
         return_line = ReturnPickingLineObj.search([('move_id', '=', move_2.id), ('wizard_id.picking_id', '=', picking_out.id)], limit=1)
         self.assertEqual(return_line.product_id.id, self.productA.id, 'Return line should have exact same product as outgoing move')
-        self.assertEqual(return_line.uom_id.id, move_2.product_uom.id, 'Return line should have exact same uom as move uom')
+        self.assertEqual(return_line.uom_id.id, move_2.uom_id.id, 'Return line should have exact same uom as move uom')
         self.assertEqual(return_line.quantity, 0, 'Return line should have 0 quantity')
         return_line.quantity = 1
 
@@ -76,7 +77,7 @@ class TestReturnPicking(TestStockCommon):
         self.MoveObj.create({
             'product_id': product_serial.id,
             'product_uom_qty': 1,
-            'product_uom': self.uom_unit.id,
+            'uom_id': self.uom_unit.id,
             'picking_id': picking.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
@@ -148,7 +149,7 @@ class TestReturnPicking(TestStockCommon):
             'move_ids': [Command.create({
                 'product_id': self.productA.id,
                 'product_uom_qty': 1,
-                'product_uom': self.uom_unit.id,
+                'uom_id': self.uom_unit.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
             })],
@@ -164,6 +165,8 @@ class TestReturnPicking(TestStockCommon):
         return_picking = self.env['stock.picking'].browse(stock_return_picking_action['res_id'])
         return_picking.button_validate()
         self.assertEqual(return_picking.move_ids[0].partner_id.id, receipt.partner_id.id)
+        self.assertEqual(return_picking.move_ids.reference, return_picking.name)
+        self.assertEqual(return_picking.move_line_ids.reference, return_picking.name)
 
     def test_stock_return_for_exchange(self):
         '''
@@ -186,7 +189,7 @@ class TestReturnPicking(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 10,
-                'product_uom': self.uom_unit.id,
+                'uom_id': self.uom_unit.id,
             })],
         })
         original_picking.action_confirm()
@@ -259,7 +262,7 @@ class TestReturnPicking(TestStockCommon):
             'move_ids': [Command.create({
                 'product_id': self.kgB.id,
                 'product_uom_qty': 1000,
-                'product_uom': self.uom_gram.id,
+                'uom_id': self.uom_gram.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
             })],
@@ -275,7 +278,7 @@ class TestReturnPicking(TestStockCommon):
         stock_return_picking.product_return_moves.quantity = 1000.0
         stock_return_picking_action = stock_return_picking.action_create_returns()
         return_picking = self.env['stock.picking'].browse(stock_return_picking_action['res_id'])
-        self.assertEqual(return_picking.move_ids.product_uom.id, self.uom_gram.id)
+        self.assertEqual(return_picking.move_ids.uom_id.id, self.uom_gram.id)
         self.assertEqual(return_picking.move_ids.product_uom_qty, 1000.0)
         return_picking.button_validate()
         self.assertEqual(return_picking.state, 'done')
@@ -292,7 +295,7 @@ class TestReturnPicking(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 10,
-                'product_uom': self.uom_unit.id,
+                'uom_id': self.uom_unit.id,
             })],
         })
         original_picking.button_validate()

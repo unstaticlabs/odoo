@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-import base64
 
 from datetime import datetime, timedelta
 from freezegun import freeze_time
@@ -18,7 +15,7 @@ from odoo.addons.test_mail.tests.common import TestRecipients
 from odoo.service.model import call_kw
 from odoo.exceptions import AccessError
 from odoo.tests import tagged
-from odoo.tools import mute_logger, formataddr
+from odoo.tools import email_normalize, formataddr, mute_logger
 from odoo.tests.common import users
 
 
@@ -82,6 +79,7 @@ class TestMessagePostCommon(MailCommon, TestRecipients):
 
 
 @tagged('mail_post', 'mail_notify')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailNotifyAPI(TestMessagePostCommon):
 
     @classmethod
@@ -406,6 +404,7 @@ class TestMailNotifyAPI(TestMessagePostCommon):
 
 
 @tagged('mail_post', 'mail_notify')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMessageNotify(TestMessagePostCommon):
 
     @users('employee')
@@ -574,7 +573,7 @@ class TestMessageNotify(TestMessagePostCommon):
             {'notification_ids': []},
             {'notified_partner_ids': []},
             {'reaction_ids': []},
-            {'starred_partner_ids': []},
+            {'bookmarked_partner_ids': []},
         ]:
             with self.subTest(parameters=parameters), \
                  self.mock_mail_gateway(), \
@@ -631,6 +630,7 @@ class TestMessageNotify(TestMessagePostCommon):
 
 
 @tagged('mail_post')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMessageLog(TestMessagePostCommon):
 
     @classmethod
@@ -1105,6 +1105,149 @@ class TestMessagePost(TestMessagePostCommon, CronMixinCase):
                         partner_ids=[self.partner_employee_2.id],
                     )
 
+    @users('employee')
+    def test_message_post_recipients_deduplicate(self):
+        """Test notifications of followers with the same email address."""
+        test_record = self.test_record.with_user(self.env.user)
+        user_inbox_notified = mail_new_test_user(
+            self.env(su=True), login='alice_inbox', name='Alice Inbox User', email='alice@test.lan', notification_type='inbox',
+        )
+        user_mail_notified = mail_new_test_user(
+            self.env(su=True), login='alice_mail', name='Alice Mail User', email='alice@test.lan', notification_type='email',
+        )
+        user_mail_notified_dup = mail_new_test_user(
+            self.env(su=True), login='alice_mail_dup', name='Alice Mail User (dup)', email='alice@test.lan', notification_type='email',
+        )
+        duplicate_email_partners = self.env['res.partner'].create([
+            {'name': 'Alice', 'email': 'alice@test.lan'},
+            {'name': 'Alice Liddell', 'email': 'alice@test.lan'},
+            {'name': 'Alice Adder', 'email': 'alice@test.lan'},
+        ])
+
+        inbox_notified_partners = user_inbox_notified.partner_id
+        internal_partners = (user_inbox_notified + user_mail_notified + user_mail_notified_dup).partner_id
+
+        cases = [
+            (
+                (user_inbox_notified + user_mail_notified + user_mail_notified_dup).partner_id,
+                duplicate_email_partners[:2],
+                duplicate_email_partners[2],
+                ['<Alice Mailonly> alice@test.lan', '<Alice Melonly> alice@test.lan'],
+                duplicate_email_partners[0] + (user_inbox_notified + user_mail_notified).partner_id,
+                {'alice@test.lan': 0},
+                'All-rounder',
+            ),
+            (
+                (user_inbox_notified + user_mail_notified).partner_id,
+                self.env['res.partner'], self.env['res.partner'],
+                [],
+                (user_inbox_notified + user_mail_notified).partner_id,
+                {},
+                'Inbox does not count as duplicate',
+            ),
+            (
+                self.env['res.partner'], self.env['res.partner'], self.env['res.partner'],
+                ['<Alice Mailonly> alice@test.lan', '<Alice Melonly> alice@test.lan'],
+                self.env['res.partner'],
+                {'alice@test.lan': 1},
+                'Email-only, no partner',
+            ),
+        ]
+        for (
+            internal_followers, external_followers, additional_partners, additional_emails,
+            notified_partners, notified_emails,
+            case_name
+        ) in cases:
+            with self.subTest(case_name=case_name):
+                test_record.message_partner_ids = False
+                test_record.message_subscribe((internal_followers + external_followers).ids)
+
+                with self.mock_mail_app(), self.mock_mail_gateway():
+                    message = test_record.message_post(
+                        body='Good evening Wonderland', message_type='comment', subtype_xmlid='mail.mt_comment',
+                        outgoing_email_to=', '.join(additional_emails),
+                        partner_ids=additional_partners.ids,
+                    )
+
+                self.assertEqual(
+                    len(message.notification_ids),
+                    (
+                        len((internal_followers | external_followers | additional_partners) - self.env.user.partner_id)
+                        + len(additional_emails)
+                    )
+                )
+
+                notifications_with_partner = message.notification_ids.filtered('res_partner_id')
+                notifications_without_partner = message.notification_ids - notifications_with_partner
+                for notification in message.notification_ids.filtered('res_partner_id'):
+                    if notification.res_partner_id in notified_partners:
+                        self.assertEqual(notification.notification_status, 'sent')
+                    else:
+                        self.assertEqual(notification.notification_status, 'canceled')
+                        self.assertEqual(notification.failure_type, 'mail_dup')
+                # assert 1 email per "notification group" (i.e. internal and customer), plus check no email for others
+                mail_notified_partners = notified_partners - inbox_notified_partners
+                if notified_internal_partners := (notified_partners & internal_partners) & mail_notified_partners:
+                    self.assertMailMail(notified_internal_partners, 'sent', author=self.env.user.partner_id, mail_message=message)
+                if notified_customer_partners := (notified_partners - internal_partners) & mail_notified_partners:
+                    self.assertMailMail(notified_customer_partners, 'sent', author=self.env.user.partner_id, mail_message=message)
+                if not_notified_partners := (internal_followers | external_followers | additional_partners) - mail_notified_partners:
+                    self.assertNoMail(not_notified_partners)
+
+                for email_address, notifications in notifications_without_partner.grouped('mail_email_address').items():
+                    self.assertIn(email_address, notified_emails)
+                    sent_notification = notifications.filtered(lambda notification: notification.notification_status == 'sent')
+                    self.assertEqual(len(sent_notification), notified_emails[email_address])
+                    for canceled_notification in notifications - sent_notification:
+                        self.assertEqual(canceled_notification.notification_status, 'canceled')
+                        self.assertEqual(canceled_notification.failure_type, 'mail_dup')
+
+                if email_to_all := [addr for addr, count in notified_emails.items() if count]:
+                    self.assertMailMail(
+                        self.env['res.partner'], 'sent', email_to_all=email_to_all,
+                        author=self.env.user.partner_id, mail_message=message,
+                    )
+
+    @users('employee')
+    def test_message_post_recipients_deduplicate_small_batch_size(self):
+        """Test notifications of duplicate followers with small batch sizes.
+
+        Notably this ensures we handle the case where all recipients in a notification batch are duplicate.
+        """
+        test_record = self.test_record.with_user(self.env.user)
+        duplicate_email_partners = self.env['res.partner'].create([
+            {'name': 'Alice', 'email': 'alice@test.lan'},
+            {'name': 'Alice Liddell', 'email': 'alice@test.lan'},
+            {'name': 'Alice Adder', 'email': 'alice@test.lan'},
+        ])
+        email_addresses = [
+            '<Alice Mailonly> alice@test.lan', '<Alice Melonly> alice@test.lan',
+            '<Rabbit White> rabbit@test.lan', '<Rabbit Late> Rabbit@test.lan',
+        ]
+        # i.e. each notification that is not canceled shoud have its own email record
+        self.env['ir.config_parameter'].sudo().set_int('mail.batch_size', 1)
+        with self.mock_mail_app(), self.mock_mail_gateway(mail_unlink_sent=False):
+            message = test_record.message_post(
+                body='Good evening Wonderland', message_type='comment', subtype_xmlid='mail.mt_comment',
+                outgoing_email_to=', '.join(email_addresses),
+                partner_ids=duplicate_email_partners.ids,
+            )
+        self.assertEqual(len(message.sudo().mail_ids), 2, "Should create 1 email per batch that contains at least 1 non-duplicate partner.")
+        self.assertEqual(len(message.notification_ids), 7, "Every recipient should have a notification.")
+        self.assertMailMail(
+            duplicate_email_partners[0], 'sent', email_to_all=[],
+            author=self.env.user.partner_id, mail_message=message,
+        )
+        self.assertMailMail(
+            self.env['res.partner'], 'sent', email_to_all=['rabbit@test.lan'],
+            author=self.env.user.partner_id, mail_message=message,
+        )
+        self.assertNotified(message, [
+            {'partner': recipient, 'is_read': True, 'type': 'email'} for recipient in duplicate_email_partners
+        ] + [
+            {'email': email_normalize(email_address), 'is_read': True, 'type': 'email'} for email_address in email_addresses
+        ])
+
     @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.tests')
     def test_message_post_recipients_email_field(self):
         """ Test various combinations of corner case / not standard filling of
@@ -1445,7 +1588,7 @@ class TestMessagePost(TestMessagePostCommon, CronMixinCase):
         self.assertEqual(len(msg.attachment_ids), 5)
         self.assertEqual(set(msg.attachment_ids.mapped('res_model')), {test_record._name})
         self.assertEqual(set(msg.attachment_ids.mapped('res_id')), {test_record.id})
-        self.assertEqual(set(base64.b64decode(x) for x in msg.attachment_ids.mapped('datas')),
+        self.assertEqual(set(msg.attachment_ids.mapped('raw')),
                          set([b'AttContent_00', b'AttContent_01', b'AttContent_02', _attachments[0][1], _attachments[1][1]]))
         self.assertTrue(set(_attachment_records.ids).issubset(msg.attachment_ids.ids),
                         'message_post: mail.message attachments duplicated')
@@ -1761,6 +1904,7 @@ class TestMessagePost(TestMessagePostCommon, CronMixinCase):
 
 
 @tagged('mail_post')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMessagePostHelpers(TestMessagePostCommon):
 
     @classmethod
@@ -2085,6 +2229,7 @@ class TestMessagePostGlobal(TestMessagePostCommon):
 
 
 @tagged('mail_post', 'multi_lang')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMessagePostLang(MailCommon, TestRecipients):
 
     @classmethod
@@ -2151,7 +2296,10 @@ class TestMessagePostLang(MailCommon, TestRecipients):
                     'customer_id': partner.id,
                 })
                 with self.mock_mail_gateway():
-                    test_record.message_post_with_source(
+                    test_record.with_context({
+                        'email_notification_subtitles': self.subtitles,
+                        'email_notification_subtitles_highlight_index': 1,
+                    }).message_post_with_source(
                         test_template,
                         email_layout_xmlid='mail.test_layout',
                         message_type='comment',
@@ -2199,6 +2347,11 @@ class TestMessagePostLang(MailCommon, TestRecipients):
                                      '"View document" translation failed')
                     self.assertIn(f'View {test_record._description}', body,
                                   '"View document" translation failed')
+                    # Check subtitles
+                    self.assertIn('<span>Subtitle test_model</span>', body, 'Subtitles translation failed')
+                    self.assertIn('<b>Subtitle2 test_model2</b>', body, 'Subtitles translation failed')
+                    self.assertNotIn('<span>Subtitular test_model</span>', body, 'Subtitles translation failed')
+                    self.assertNotIn('<b>Subtitular2 test_model2</b>', body, 'Subtitles translation failed')
                 else:
                     self.assertNotIn('English Layout for', body, 'Layout translation failed')
                     self.assertIn('Spanish Layout para Spanish Model Description', body,
@@ -2209,6 +2362,11 @@ class TestMessagePostLang(MailCommon, TestRecipients):
                                   '"View document" translation failed')
                     self.assertNotIn(f'View {test_record._description}', body,
                                     '"View document" translation failed')
+                    # Check subtitles
+                    self.assertIn('<span>Subtitular test_model</span>', body, 'Subtitles translation failed')
+                    self.assertIn('<b>Subtitular2 test_model2</b>', body, 'Subtitles translation failed')
+                    self.assertNotIn('<span>Subtitle test_model</span>', body, 'Subtitles translation failed')
+                    self.assertNotIn('<b>Subtitle2 test_model2</b>', body, 'Subtitles translation failed')
 
     @users('employee')
     @mute_logger('odoo.addons.mail.models.mail_mail')

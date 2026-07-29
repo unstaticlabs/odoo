@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 19:14+0000\n"
-"PO-Revision-Date: 2026-04-10 19:14+0000\n"
+"POT-Creation-Date: 2026-04-10 19:04+0000\n"
+"PO-Revision-Date: 2026-04-10 19:04+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -127,11 +127,6 @@ msgid "<br/><strong>Source:</strong>"
 msgstr ""
 
 #. module: l10n_ar
-#: model_terms:ir.ui.view,arch_db:l10n_ar.address_form_fields
-msgid "<option value=\"\">ARCA Responsibility...</option>"
-msgstr ""
-
-#. module: l10n_ar
 #: model_terms:ir.ui.view,arch_db:l10n_ar.report_invoice_document
 msgid "<span>Amount</span>"
 msgstr ""
@@ -194,6 +189,12 @@ msgid "ARCA"
 msgstr ""
 
 #. module: l10n_ar
+#: model:ir.model,name:l10n_ar.model_l10n_ar_arca_activity
+#: model_terms:ir.ui.view,arch_db:l10n_ar.res_config_settings_view_form
+msgid "ARCA Activity"
+msgstr ""
+
+#. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_latam_identification_type__l10n_ar_afip_code
 #: model:ir.model.fields,field_description:l10n_ar.field_res_country__l10n_ar_afip_code
 #: model:ir.model.fields,field_description:l10n_ar.field_res_currency__l10n_ar_afip_code
@@ -247,6 +248,11 @@ msgid "ARCA Responsibility Types"
 msgstr ""
 
 #. module: l10n_ar
+#: model_terms:ir.ui.view,arch_db:l10n_ar.address_form_fields
+msgid "ARCA Responsibility..."
+msgstr ""
+
+#. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_account_bank_statement_line__l10n_ar_afip_service_end
 #: model:ir.model.fields,field_description:l10n_ar.field_account_move__l10n_ar_afip_service_end
 msgid "ARCA Service End Date"
@@ -259,6 +265,7 @@ msgid "ARCA Service Start Date"
 msgstr ""
 
 #. module: l10n_ar
+#: model:ir.model,name:l10n_ar.model_account_account
 #: model_terms:ir.ui.view,arch_db:l10n_ar.view_account_invoice_report_search_inherit
 msgid "Account"
 msgstr ""
@@ -290,8 +297,35 @@ msgid "Active"
 msgstr ""
 
 #. module: l10n_ar
+#: model:ir.actions.act_window,name:l10n_ar.act_arca_activity
+#: model:ir.ui.menu,name:l10n_ar.menu_action_arca_activity
+#: model_terms:ir.ui.view,arch_db:l10n_ar.view_arca_activity_list
+msgid "Activities"
+msgstr ""
+
+#. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_res_company__l10n_ar_afip_start_date
 msgid "Activities Start"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,help:l10n_ar.field_l10n_ar_arca_activity__code
+msgid "Activity Code"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,help:l10n_ar.field_l10n_ar_arca_activity__name
+msgid "Activity Description"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.constraint,message:l10n_ar.constraint_l10n_ar_arca_activity_code_unique
+msgid "Activity code must be unique"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.constraint,message:l10n_ar.constraint_l10n_ar_arca_activity_code_length
+msgid "Activity codes must be at most 6 characters long"
 msgstr ""
 
 #. module: l10n_ar
@@ -311,6 +345,14 @@ msgstr ""
 #. module: l10n_ar
 #: model:ir.model.fields,help:l10n_ar.field_uom_uom__l10n_ar_afip_code
 msgid "Argentina: This code will be used on electronic invoice."
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,help:l10n_ar.field_account_account__l10n_ar_arca_activity_id
+msgid ""
+"Argentina: This field is to associate a specific activity to use with this "
+"account. If not set, the company's default activity will be used.The "
+"activity will be used to when generating ARCA VAT reports."
 msgstr ""
 
 #. module: l10n_ar
@@ -347,6 +389,11 @@ msgid "Argentinean Statements"
 msgstr ""
 
 #. module: l10n_ar
+#: model:ir.model.fields,field_description:l10n_ar.field_account_account__l10n_ar_arca_activity_id
+msgid "Associated ARCA Activity"
+msgstr ""
+
+#. module: l10n_ar
 #. odoo-python
 #: code:addons/l10n_ar/models/account_journal.py:0
 msgid "BFERCEL"
@@ -354,7 +401,15 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model,name:l10n_ar.model_res_partner_bank
-msgid "Bank Accounts"
+msgid "Bank Account"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,help:l10n_ar.field_account_setup_bank_manual_config__account_type
+#: model:ir.model.fields,help:l10n_ar.field_res_partner_bank__account_type
+msgid ""
+"Bank account type: Normal, IBAN, CLABE, or other from localization. Inferred"
+" from the bank account number."
 msgstr ""
 
 #. module: l10n_ar
@@ -363,8 +418,7 @@ msgid "Book \"Development in Odoo\" (VAT Exempt)"
 msgstr ""
 
 #. module: l10n_ar
-#. odoo-python
-#: code:addons/l10n_ar/models/res_partner_bank.py:0
+#: model:ir.model.fields.selection,name:l10n_ar.selection__res_partner_bank__account_type__cbu
 msgid "CBU"
 msgstr ""
 
@@ -395,6 +449,12 @@ msgid ""
 msgstr ""
 
 #. module: l10n_ar
+#. odoo-python
+#: code:addons/l10n_ar/models/template_ar_base.py:0
+msgid "Cash count differences recognized as loss."
+msgstr ""
+
+#. module: l10n_ar
 #: model_terms:ir.ui.view,arch_db:l10n_ar.address_form_fields
 msgid ""
 "Changing ARCA Responsibility type is not allowed once document(s) have"
@@ -404,6 +464,7 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__code
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__code
 #: model:ir.model.fields,field_description:l10n_ar.field_uom_uom__l10n_ar_afip_code
 msgid "Code"
 msgstr ""
@@ -415,7 +476,7 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model,name:l10n_ar.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_ar
@@ -437,6 +498,11 @@ msgstr ""
 msgid ""
 "Computed field that will convert the given VAT number to the format "
 "{person_category:2}-{number:10}-{validation_number:1}"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model,name:l10n_ar.model_res_config_settings
+msgid "Config Settings"
 msgstr ""
 
 #. module: l10n_ar
@@ -464,11 +530,13 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__create_uid
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__create_uid
 msgid "Created by"
 msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__create_date
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__create_date
 msgid "Created on"
 msgstr ""
 
@@ -500,6 +568,13 @@ msgid "Delivery Province"
 msgstr ""
 
 #. module: l10n_ar
+#. odoo-python
+#: code:addons/l10n_ar/models/template_ar_base.py:0
+msgid "Discounts granted for early payment recognized as loss."
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,field_description:l10n_ar.field_account_account__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_account_chart_template__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_account_fiscal_position__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_account_invoice_report__display_name
@@ -508,9 +583,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_ar.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_account_tax_group__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__display_name
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_latam_document_type__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_latam_identification_type__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_res_company__display_name
+#: model:ir.model.fields,field_description:l10n_ar.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_res_country__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_res_currency__display_name
 #: model:ir.model.fields,field_description:l10n_ar.field_res_partner__display_name
@@ -668,6 +745,7 @@ msgid "Guard Service"
 msgstr ""
 
 #. module: l10n_ar
+#: model:ir.model.fields,field_description:l10n_ar.field_account_account__id
 #: model:ir.model.fields,field_description:l10n_ar.field_account_chart_template__id
 #: model:ir.model.fields,field_description:l10n_ar.field_account_fiscal_position__id
 #: model:ir.model.fields,field_description:l10n_ar.field_account_invoice_report__id
@@ -676,9 +754,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_ar.field_account_move_line__id
 #: model:ir.model.fields,field_description:l10n_ar.field_account_tax_group__id
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__id
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__id
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_latam_document_type__id
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_latam_identification_type__id
 #: model:ir.model.fields,field_description:l10n_ar.field_res_company__id
+#: model:ir.model.fields,field_description:l10n_ar.field_res_config_settings__id
 #: model:ir.model.fields,field_description:l10n_ar.field_res_country__id
 #: model:ir.model.fields,field_description:l10n_ar.field_res_currency__id
 #: model:ir.model.fields,field_description:l10n_ar.field_res_partner__id
@@ -747,11 +827,13 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__write_uid
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__write_uid
 msgid "Last Updated by"
 msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__write_date
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__write_date
 msgid "Last Updated on"
 msgstr ""
 
@@ -808,6 +890,7 @@ msgstr ""
 
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_afip_responsibility_type__name
+#: model:ir.model.fields,field_description:l10n_ar.field_l10n_ar_arca_activity__name
 msgid "Name"
 msgstr ""
 
@@ -921,6 +1004,22 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_ar/models/account_journal.py:0
 msgid "Pre-printed Invoice"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,field_description:l10n_ar.field_res_company__l10n_ar_arca_activity_id
+#: model:ir.model.fields,field_description:l10n_ar.field_res_config_settings__l10n_ar_arca_activity_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar.res_config_settings_view_form
+msgid "Principal Activity"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,help:l10n_ar.field_res_company__l10n_ar_arca_activity_id
+#: model:ir.model.fields,help:l10n_ar.field_res_config_settings__l10n_ar_arca_activity_id
+#: model_terms:ir.ui.view,arch_db:l10n_ar.res_config_settings_view_form
+msgid ""
+"Principal registered activity of the company. This is used to generate the "
+"IVA Simple CSV Tax Reports."
 msgstr ""
 
 #. module: l10n_ar
@@ -1079,6 +1178,12 @@ msgstr ""
 #. module: l10n_ar
 #: model:ir.model.fields,field_description:l10n_ar.field_account_tax_group__l10n_ar_tribute_afip_code
 msgid "Tribute ARCA Code"
+msgstr ""
+
+#. module: l10n_ar
+#: model:ir.model.fields,field_description:l10n_ar.field_account_setup_bank_manual_config__account_type
+#: model:ir.model.fields,field_description:l10n_ar.field_res_partner_bank__account_type
+msgid "Type"
 msgstr ""
 
 #. module: l10n_ar

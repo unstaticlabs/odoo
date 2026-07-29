@@ -38,7 +38,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'deferred_revenue_account_id': 'jo_account_200401',
                 'expense_account_id': 'jo_account_500101',
                 'income_account_id': 'jo_account_400101',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'jo_account_100502',
             },
         }

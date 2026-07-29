@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * google_gmail
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Saara Hakanen <sahak@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Saara Hakanen <sahak@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 20:41+0000\n"
+"POT-Creation-Date: 2025-11-07 18:36+0000\n"
+"PO-Revision-Date: 2025-12-20 09:53+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "google_gmail/fi/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: google_gmail
 #: model_terms:ir.ui.view,arch_db:google_gmail.fetchmail_server_view_form
@@ -217,7 +217,7 @@ msgstr "Vain järjestelmänvalvoja voi linkittää Gmail-palvelimen."
 #. odoo-python
 #: code:addons/google_gmail/models/google_gmail_mixin.py:0
 msgid "Oops, we could not authenticate you. Please try again later."
-msgstr "Oho, emme pystyneet tunnistamaan sinua. Yritä uudestaan myöhemmin."
+msgstr ""
 
 #. module: google_gmail
 #. odoo-python
@@ -226,14 +226,11 @@ msgid ""
 "Oops, you're creating an authorization to send from %(email_login)s but your "
 "address is %(email_server)s. Make sure your addresses match!"
 msgstr ""
-"Oho, olet luomassa valtuutusta lähettää viestejä osoitteesta %(email_login)"
-"s, mutta osoitteesi on %(email_server)s. Varmista, että osoitteesi ovat "
-"samat!"
 
 #. module: google_gmail
 #: model:ir.model.fields,field_description:google_gmail.field_res_users__outgoing_mail_server_type
 msgid "Outgoing Mail Server Type"
-msgstr "Lähtevän postin palvelintyyppi"
+msgstr ""
 
 #. module: google_gmail
 #. odoo-python
@@ -306,7 +303,7 @@ msgstr "Palvelimen tyyppi"
 #. odoo-python
 #: code:addons/google_gmail/tools.py:0
 msgid "Something went wrong. Try again later"
-msgstr "Jotain meni vikaan. Yritä myöhemmin uudelleen"
+msgstr ""
 
 #. module: google_gmail
 #: model:ir.model.fields,help:google_gmail.field_fetchmail_server__google_gmail_uri
@@ -331,17 +328,4 @@ msgstr "Käyttäjä"
 #. odoo-python
 #: code:addons/google_gmail/tools.py:0
 msgid "You don't have an active subscription"
-msgstr "Sinulla ei ole aktiivista tilausta"
-
-#~ msgid "An error occur during the authentication process."
-#~ msgstr "Todentamisprosessin aikana tapahtui virhe."
-
-#~ msgid "Authorization Code"
-#~ msgstr "Valtuutusavain"
-
-#~ msgid ""
-#~ "Setup your Gmail API credentials in the general settings to link a Gmail "
-#~ "account."
-#~ msgstr ""
-#~ "Määritä Gmailin API-tunnukset yleisissä asetuksissa Gmail-tilin "
-#~ "yhdistämiseksi."
+msgstr ""

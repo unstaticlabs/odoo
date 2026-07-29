@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Events Organization',
     'version': '1.9',
@@ -17,10 +16,11 @@ Key Features
 * Manage your Events and Registrations
 * Use emails to automatically confirm and send acknowledgments for any event registration
 """,
-    'depends': ['barcodes', 'base_setup', 'mail', 'phone_validation', 'portal', 'utm'],
+    'depends': ['barcodes', 'base_setup', 'digest', 'mail', 'phone_validation', 'portal', 'utm'],
     'data': [
         'security/event_security.xml',
         'security/ir.model.access.csv',
+        'views/digest_views.xml',
         'views/event_menu_views.xml',
         'views/event_ticket_views.xml',
         'views/event_mail_views.xml',
@@ -32,6 +32,7 @@ Key Features
         'report/event_event_templates.xml',
         'report/event_event_reports.xml',
         'report/event_registration_report.xml',
+        'data/digest_data.xml',
         'data/ir_cron_data.xml',
         'data/mail_template_data.xml',
         'data/event_data.xml',
@@ -51,7 +52,6 @@ Key Features
         'data/event_demo.xml',
         'data/event_registration_demo.xml',
     ],
-    'installable': True,
     'assets': {
         'web.assets_backend': [
             'event/static/src/client_action/**/*',

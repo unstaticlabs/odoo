@@ -167,7 +167,7 @@ class SnailmailLetter(models.Model):
             prev = self.company_id.external_report_layout_id
             if prev in {
                 self.env.ref(f'web.external_layout_{layout}')
-                for layout in ('bubble', 'wave', 'folder')
+                for layout in ('bubble', 'wave', 'folder', 'center', 'dual', 'lines')
             }:
                 self.company_id.sudo().external_report_layout_id = self.env.ref('web.external_layout_standard')
             filename, pdf_bin = self._generate_report_pdf(report)
@@ -178,7 +178,7 @@ class SnailmailLetter(models.Model):
                 pdf_bin = self._append_cover_page(pdf_bin)
             attachment = self.env['ir.attachment'].create({
                 'name': filename,
-                'datas': base64.b64encode(pdf_bin),
+                'raw': pdf_bin,
                 'res_model': 'snailmail.letter',
                 'res_id': self.id,
                 'type': 'binary',  # override default_type from context, possibly meant for another model!
@@ -235,7 +235,7 @@ class SnailmailLetter(models.Model):
         }
         """
         account_token = self.env['iap.account'].sudo().get('snailmail').account_token
-        dbuuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        dbuuid = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
         documents = []
 
         for letter in self:
@@ -386,8 +386,8 @@ class SnailmailLetter(models.Model):
             }
         }
         """
-        endpoint = self.env['ir.config_parameter'].sudo().get_param('snailmail.endpoint', DEFAULT_ENDPOINT)
-        timeout = int(self.env['ir.config_parameter'].sudo().get_param('snailmail.timeout', DEFAULT_TIMEOUT))
+        endpoint = self.env['ir.config_parameter'].sudo().get_str('snailmail.endpoint') or DEFAULT_ENDPOINT
+        timeout = self.env['ir.config_parameter'].sudo().get_int('snailmail.timeout') or DEFAULT_TIMEOUT
         params = self._snailmail_create('print')
         try:
             response = iap_tools.iap_jsonrpc(endpoint + PRINT_ENDPOINT, params=params, timeout=timeout)

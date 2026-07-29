@@ -44,12 +44,8 @@
                         </tr>
                     </table>
                 </div>
-                <t t-set="layout_background_url"
-                   t-value="'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else
-                        '/base/static/img/demo_logo_report.png' if company.layout_background == 'Demo logo' else ''" />
-                
-                <div t-attf-class="din_page invoice_note article o_company_#{company.id}_layout {{'o_report_layout_background' if company.layout_background in ['Geometric', 'Custom']  else  ''}} #{'din_page_pdf' if report_type == 'pdf' and is_din_paperformat else ''}"
-                     t-attf-style="{{ 'background-image: url(%s);' % layout_background_url if layout_background_url else '' }}"
+
+                <div t-attf-class="din_page invoice_note article o_company_#{company.id}_layout #{'din_page_pdf' if report_type == 'pdf' and is_din_paperformat else ''}"
                      t-att-data-oe-model="o and o._name"
                      t-att-data-oe-id="o and o.id">
                     <table class="din_company_info table-borderless">
@@ -139,9 +135,9 @@
                                 <td colspan="3" t-if="company.partner_id.bank_ids">
                                     <ul class="list-inline">
                                         <t t-foreach="company.partner_id.bank_ids[:2]" t-as="bank">
-                                            <li><span t-field="bank.bank_id.name"/></li>
-                                            <li class="text-nowrap">IBAN: <span t-field="bank.acc_number"/></li>
-                                            <li>BIC: <span t-field="bank.bank_id.bic"/></li>
+                                            <li><span t-field="bank.bank_name"/></li>
+                                            <li class="text-nowrap">IBAN: <span t-field="bank.account_number"/></li>
+                                            <li>BIC: <span t-field="bank.bank_bic"/></li>
                                         </t>
                                     </ul>
                                 </td>
@@ -188,7 +184,7 @@
         </template>
 
         <template id="report_invoice_document" inherit_id="account.report_invoice_document">
-            <xpath expr="//t[@t-set='forced_vat']" position="after">
+            <t t-call="web.external_layout" position="before">
                 <t t-set="din5008_document_information">
                     <div class="information_block" t-if="o and o._name=='account.move'">
                         <table>
@@ -245,13 +241,13 @@
                             <t t-if="delivery_partner and delivery_partner != commercial_partner">
                                 <td class="shipping_address">
                                     <span class="fw-bold">Shipping Address:</span>
-                                    <address t-esc="o.partner_shipping_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+                                    <address t-out="o.partner_shipping_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
                                 </td>
                             </t>
                             <t t-if="invoice_partner and invoice_partner != commercial_partner">
                                 <td class="shipping_address">
                                     <span class="fw-bold">Beneficiary:</span>
-                                    <address class="mb-0" t-esc="o.commercial_partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+                                    <address class="mb-0" t-out="o.commercial_partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
                                     <div t-if="o.commercial_partner_id.vat">
                                         <t t-if="o.commercial_partner_id.company_id.account_fiscal_country_id.vat_label" t-out="o.commercial_partner_id.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
                                         <t t-else="">Tax ID</t>: <span t-field="o.commercial_partner_id.vat"/>
@@ -274,7 +270,12 @@
                         <t t-if="o.move_type == 'in_invoice'">Vendor Bill</t>
                     </span>
                 </t>
-            </xpath>
+            </t>
+            <t t-call="web.external_layout" position="attributes">
+                <attribute name="din5008_document_information">din5008_document_information</attribute>
+                <attribute name="din5008_address_block">din5008_address_block</attribute>
+                <attribute name="din5008_document_title">din5008_document_title</attribute>
+            </t>
             <!-- Insert Position Column as the First Column in the Table Header -->
             <xpath expr="//table[@name='invoice_line_table']/thead/tr/th[1]" position="before">
                 <t t-if="o.company_id.has_position_column">
@@ -299,7 +300,7 @@
             </xpath>
             <xpath expr="//table[@name='invoice_line_table']/tbody//tr[1]//td[1]" position="before">
                 <t t-if="o.company_id.has_position_column">
-                    <td class="text-start" t-esc="line_number"/>
+                    <td class="text-start" t-out="line_number"/>
                     <t t-set="line_number" t-value="line_number+1"/>
                  </t>
             </xpath>

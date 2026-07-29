@@ -1,11 +1,10 @@
 from odoo import api, fields, models, Command
 import json
-import base64
 
 
 class Web_TourTour(models.Model):
     _name = 'web_tour.tour'
-    _description = "Tours"
+    _description = "Tour"
     _order = "sequence, name, id"
 
     name = fields.Char(required=True)
@@ -67,7 +66,7 @@ registry.category("web_tour.tours").add("{self.name}", {{
 }})"""
 
         attachment_id = self.env["ir.attachment"].create({
-            "datas": base64.b64encode(bytes(js_content, 'utf-8')),
+            "raw": bytes(js_content, 'utf-8'),
             "name": f"{self.name}.js",
             "mimetype": "application/javascript",
             "res_model": "web_tour.tour",

@@ -5,23 +5,23 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-30 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 17:10+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-04-04 12:50+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "link_tracker/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_tree
@@ -84,15 +84,15 @@ msgstr "コード"
 #. odoo-python
 #: code:addons/link_tracker/models/link_tracker.py:0
 msgid ""
-"Combinations of Link Tracker values (URL, campaign, medium, source, and "
-"label) must be unique.\n"
+"Combinations of Link Tracker values (URL, campaign, medium, source, "
+"reference, and label) must be unique.\n"
 "The following combinations are already used: \n"
 "- %(error_lines)s"
 msgstr ""
-"リンクトラッカーの値(URL、キャンペーン、媒体、流入元、ラベル)の組み合わせは一"
-"意でなければなりません。\n"
-"以下の組み合わせはすでに使用済です:\n"
-"- %(error_lines)s"
+"リンクトラッカーの値(URL、キャンペーン、メディア、ソース、参照、ラベル)の組み"
+"合わせは一意である必要があります。\n"
+"次の組み合わせは既に使用されています:\n"
+"-%(error_lines)s"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_click__country_id
@@ -139,6 +139,11 @@ msgstr "URLなしでリンクトラッカーを作成するのは不可能です
 #: model:ir.model.fields,field_description:link_tracker.field_utm_campaign__display_name
 msgid "Display Name"
 msgstr "表示名"
+
+#. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "Download QR Code"
+msgstr "QRコードをダウンロード"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__short_url_host
@@ -235,6 +240,11 @@ msgid "Medium"
 msgstr "中"
 
 #. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "New Link Tracker"
+msgstr "新規リンクトラッカー"
+
+#. module: link_tracker
 #: model_terms:ir.actions.act_window,help:link_tracker.link_tracker_click_action_statistics
 msgid "No data yet!"
 msgstr "まだデータはありません！"
@@ -258,12 +268,17 @@ msgstr "ページタイトル"
 #. odoo-python
 #: code:addons/link_tracker/models/link_tracker.py:0
 msgid "Please enter valid short URL code."
-msgstr ""
+msgstr "有効な短縮URLコードを入力してください。"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__redirected_url
 msgid "Redirected URL"
 msgstr "リダイレクトされたURL"
+
+#. module: link_tracker
+#: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
+msgid "Reference"
+msgstr "参照"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker_code__code
@@ -317,8 +332,8 @@ msgid ""
 "This is the source of the link, e.g. Search Engine, another domain, or name "
 "of email list"
 msgstr ""
-"これはリンクの流入元です。たとえば、検索エンジン、別のドメイン、または"
-"メーリングリストの名前です。"
+"これはリンクの流入元です。たとえば、検索エンジン、別のドメイン、またはメーリ"
+"ングリストの名前です。"
 
 #. module: link_tracker
 #: model:ir.model.fields,field_description:link_tracker.field_link_tracker__short_url
@@ -347,6 +362,11 @@ msgid "UTM Campaign"
 msgstr "UTMキャンペーン"
 
 #. module: link_tracker
+#: model:ir.model.fields,field_description:link_tracker.field_link_tracker__utm_reference
+msgid "UTM Reference"
+msgstr "UTM参照"
+
+#. module: link_tracker
 #: model_terms:ir.ui.view,arch_db:link_tracker.link_tracker_view_form
 msgid "Visit Page"
 msgstr "ページ訪問"
@@ -369,9 +389,3 @@ msgid "“%s” is not a valid link, links cannot redirect to the current page."
 msgstr ""
 "“%s”は有効なリンクではありません。リンクは現在のページにリダイレクトできませ"
 "ん。"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
-
-#~ msgid "URL"
-#~ msgstr "URL"

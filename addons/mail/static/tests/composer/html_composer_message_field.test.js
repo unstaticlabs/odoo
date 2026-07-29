@@ -233,7 +233,7 @@ describe("Remove attachments", () => {
         });
         await start();
         await openFormView("res.partner", serverState.partnerId);
-        await click("button", { text: "Log note" });
+        await click("button:text('Log note')");
         await click("button[title='Open Full Composer']");
         await waitFor(".odoo-editor-editable");
         const anchorNode = queryOne(".odoo-editor-editable div.o-paragraph");
@@ -278,7 +278,7 @@ describe("Remove attachments", () => {
 
         await start();
         await openFormView("res.partner", serverState.partnerId);
-        await click("button", { text: "Log note" });
+        await click("button:text('Log note')");
         await click("button[title='Open Full Composer']");
         await waitFor(".odoo-editor-editable");
         const anchorNode = queryOne(".odoo-editor-editable div.o-paragraph");

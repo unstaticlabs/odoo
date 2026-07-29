@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * spreadsheet_account
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-08 09:20+0000\n"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2026-07-08 10:32+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "spreadsheet_account/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -35,8 +35,8 @@ msgid ""
 "'%s' is not a valid period. Supported formats are \"21/12/2022\", "
 "\"Q1/2022\", \"12/2022\", and \"2022\"."
 msgstr ""
-"'%s' nie jest poprawnym okresem. Wspierane formaty to \"21/12/2022\", \"Q1/"
-"2022\", \"12/2022\", and \"2022\"."
+"'%s' nie jest poprawnym okresem. Wspierane formaty to \"21/12/2022\", "
+"\"Q1/2022\", \"12/2022\", and \"2022\"."
 
 #. module: spreadsheet_account
 #: model:ir.model,name:spreadsheet_account.model_account_account
@@ -57,8 +57,8 @@ msgstr "Kontrola komórek"
 
 #. module: spreadsheet_account
 #: model:ir.model,name:spreadsheet_account.model_res_company
-msgid "Companies"
-msgstr "Firmy"
+msgid "Company"
+msgstr "Firma"
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -77,6 +77,12 @@ msgstr "Karta kredytowa"
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Current Assets"
 msgstr "Bieżące aktywa"
+
+#. module: spreadsheet_account
+#. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Current Fiscal Year"
+msgstr "Bieżący rok podatkowy"
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -116,6 +122,12 @@ msgstr "Wydatki"
 
 #. module: spreadsheet_account
 #. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Fiscal Year"
+msgstr "Rok podatkowy"
+
+#. module: spreadsheet_account
+#. odoo-javascript
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Fixed Assets"
 msgstr "Środki trwałe"
@@ -130,7 +142,8 @@ msgstr "Uzyskanie całkowitego salda dla określonego konta (kont) i okresu."
 #. odoo-javascript
 #: code:addons/spreadsheet_account/static/src/accounting_functions.js:0
 msgid "Get the total credit for the specified account(s) and period."
-msgstr "Pobierz całkowity kredyt dla określonego rachunku (rachunków) i okresu."
+msgstr ""
+"Pobierz całkowity kredyt dla określonego rachunku (rachunków) i okresu."
 
 #. module: spreadsheet_account
 #. odoo-javascript

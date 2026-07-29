@@ -101,10 +101,10 @@
                                         ('company_id', 'in', allowed_company_ids),
                                     ]"
                                     groups="hr_attendance.group_hr_attendance_user"/>
-                                <field name="check_in" options="{'rounding': 0}" readonly="not is_manager"/>
-                                <field name="check_out" options="{'rounding': 0}" placeholder="Currently Working" readonly="not is_manager"/>
+                                <field name="check_in" options="{'rounding': 0}" readonly="not can_edit"/>
+                                <field name="check_out" options="{'rounding': 0}" placeholder="Currently Working" readonly="not can_edit"/>
                             </group>
-                            <group col="2">
+                            <group col="2" name="group_worked_hours">
                                 <field name="worked_hours" string="Worked Time" widget="float_time"/>
                                 <field name="overtime_hours" widget="float_time" invisible="overtime_hours == validated_overtime_hours"/>
                                 <label for="validated_overtime_hours"/>
@@ -199,7 +199,8 @@
                             </group>
                         </group>
                     </group>
-                    <notebook invisible="not overtime_status">
+                    <notebook invisible="not overtime_status"
+                        groups="hr_attendance.group_hr_attendance_officer,hr.group_hr_manager,hr_attendance.group_hr_attendance_own">
                         <page string="Overtime Details">
                             <field name="linked_overtime_ids" readonly="1">
                                 <list editable="bottom">
@@ -293,7 +294,7 @@
                 <filter string="Last 3 Months" invisible="1" name="last_three_months" domain="[('check_in','&gt;=', '-3m')]"/>
                 <group>
                     <filter string="Employee" name="employee" context="{'group_by': 'employee_id'}"/>
-                    <filter string="Department" name="departement" context="{'group_by': 'department_id'}"/>
+                    <filter string="Department" name="department" context="{'group_by': 'department_id'}"/>
                     <filter string="Manager" name="manager" context="{'group_by': 'manager_id'}"/>
                     <filter string="Method" name="groupby_mode_in" context="{'group_by': 'in_mode'}"/>
                     <filter string="Date" name="groupby_name" context="{'group_by': 'check_in:month'}"/>
@@ -322,7 +323,7 @@
         <field name="name">Attendances</field>
         <field name="path">attendances</field>
         <field name="res_model">hr.attendance</field>
-        <field name="group_ids" eval="[(4, ref('hr_attendance.group_hr_attendance_officer'))]"/>
+        <field name="group_ids" eval="[(4, ref('hr_attendance.group_hr_attendance_own')), (4, ref('hr_attendance.group_hr_attendance_officer'))]"/>
         <field name="view_mode">list,form</field>
         <field name="context">
             {
@@ -465,7 +466,7 @@
 
     <!-- Menus -->
 
-    <menuitem id="menu_hr_attendance_root" name="Attendances" sequence="205" groups="hr_attendance.group_hr_attendance_officer" web_icon="hr_attendance,static/description/icon.png"/>
+    <menuitem id="menu_hr_attendance_root" name="Attendances" sequence="205" groups="hr_attendance.group_hr_attendance_own,hr_attendance.group_hr_attendance_officer" web_icon="hr_attendance,static/description/icon.png"/>
 
     <menuitem id="menu_action_open_form" name="Kiosk Mode" action="open_kiosk_url" parent="menu_hr_attendance_root" sequence="10" groups="hr_attendance.group_hr_attendance_user"/>
 
@@ -483,7 +484,7 @@
         parent="menu_hr_attendance_reporting"
         sequence="10"/>
 
-    <menuitem id="menu_hr_attendance_overview" name="Overview" parent="menu_hr_attendance_root" sequence="5" groups="hr_attendance.group_hr_attendance_officer"/>
+    <menuitem id="menu_hr_attendance_overview" name="Overview" parent="menu_hr_attendance_root" sequence="5" groups="hr_attendance.group_hr_attendance_own,hr_attendance.group_hr_attendance_officer"/>
 
     <menuitem id="menu_hr_attendance_view_dashboard" name="Dashboard" action="hr_attendance_action" parent="menu_hr_attendance_overview" sequence="1"/>
 

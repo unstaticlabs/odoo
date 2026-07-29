@@ -3,13 +3,13 @@ import { ProductTemplateAttributeLine } from "@point_of_sale/../tests/unit/data/
 ProductTemplateAttributeLine._records = [
     ...ProductTemplateAttributeLine._records,
     {
-        id: 1,
+        id: 101,
         attribute_id: 7,
-        product_template_value_ids: [1, 2],
+        product_template_value_ids: [101, 102],
     },
     {
-        id: 2,
-        attribute_id: 9,
-        product_template_value_ids: [3, 4],
+        id: 102,
+        attribute_id: 101,
+        product_template_value_ids: [103, 104],
     },
 ];

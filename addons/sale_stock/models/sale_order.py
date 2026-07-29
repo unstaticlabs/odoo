@@ -14,31 +14,16 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    incoterm = fields.Many2one(
-        'account.incoterms', 'Incoterm',
-        help="International Commercial Terms are a series of predefined commercial terms used in international transactions.")
-    incoterm_location = fields.Char(string='Incoterm Location')
     picking_policy = fields.Selection([
-        ('direct', 'As soon as possible'),
-        ('one', 'When all products are ready')],
-        string='Shipping Policy', required=True, default='direct',
-        help="If you deliver all products at once, the delivery order will be scheduled based on the greatest "
-        "product lead time. Otherwise, it will be based on the shortest.")
+        ('direct', 'As soon as possible, with back orders'), ('one', 'When all products are ready')],
+        string='Shipping Policy', required=True, default=lambda self: self.env.company.picking_policy,
+        help="It specifies goods to be deliver partially or all at once")
     warehouse_id = fields.Many2one(
         'stock.warehouse', string='Warehouse',
         compute='_compute_warehouse_id', store=True, readonly=False, precompute=True,
         check_company=True)
     picking_ids = fields.One2many('stock.picking', 'sale_id', string='Transfers')
     delivery_count = fields.Integer(string='Delivery Orders', compute='_compute_picking_ids')
-    delivery_status = fields.Selection([
-        ('pending', 'Not Delivered'),
-        ('started', 'Started'),
-        ('partial', 'Partially Delivered'),
-        ('full', 'Fully Delivered'),
-    ], string='Delivery Status', compute='_compute_delivery_status', store=True,
-       help="Blue: Not Delivered/Started\n\
-            Orange: Partially Delivered\n\
-            Green: Fully Delivered")
     late_availability = fields.Boolean(
         string="Late Availability",
         compute='_compute_late_availability',
@@ -112,6 +97,12 @@ class SaleOrder(models.Model):
             order.late_availability = any(
                 picking.products_availability_state == 'late' for picking in order.picking_ids
             )
+
+    @api.depends('effective_date')
+    def _compute_delivery_date(self):
+        super()._compute_delivery_date()
+        for order in self:
+            order.delivery_date = order.effective_date or order.delivery_date
 
     def _search_late_availability(self, operator, value):
         if operator not in ('=', '!=') or not isinstance(value, bool):
@@ -188,7 +179,7 @@ class SaleOrder(models.Model):
                 for order_line in order.order_line:
                     if order_line.display_type or order_line.is_downpayment:
                         continue
-                    if float_compare(order_line.product_uom_qty, pre_order_line_qty.get(order_line, 0.0), precision_rounding=order_line.product_uom_id.rounding) < 0:
+                    if order_line.product_uom_id.compare(order_line.product_uom_qty, pre_order_line_qty.get(order_line, 0.0)) < 0:
                         to_log[order_line] = (order_line.product_uom_qty, pre_order_line_qty.get(order_line, 0.0))
                 if to_log:
                     documents = self.env['stock.picking'].sudo()._log_activity_get_documents(to_log, 'move_ids', 'UP')
@@ -209,6 +200,10 @@ class SaleOrder(models.Model):
                 ]
             })
             order.show_json_popover = bool(late_stock_picking)
+
+    @api.depends('order_line.qty_delivered')
+    def _compute_show_deliver_button(self):
+        self.show_deliver_button = False  # Revert to Delivery smart button for stock module
 
     def _action_confirm(self):
         self.order_line._action_launch_stock_rule()
@@ -297,7 +292,6 @@ class SaleOrder(models.Model):
 
     def _prepare_invoice(self):
         invoice_vals = super(SaleOrder, self)._prepare_invoice()
-        invoice_vals['invoice_incoterm_id'] = self.incoterm.id
         invoice_vals['delivery_date'] = self.effective_date and fields.Datetime.context_timestamp(self, self.effective_date)
         return invoice_vals
 
@@ -323,14 +317,12 @@ class SaleOrder(models.Model):
     def _is_display_stock_in_catalog(self):
         return True
 
-    # TODO: rename the parameter from reference to references in master for improved readability
-    def _add_reference(self, reference):
+    def _add_reference(self, references):
         """ link the given references to the list of references. """
         self.ensure_one()
-        self.stock_reference_ids = [Command.link(stock_reference.id) for stock_reference in reference]
+        self.stock_reference_ids = [Command.link(reference.id) for reference in references]
 
-    # TODO: rename the parameter from reference to references in master for improved readability
-    def _remove_reference(self, reference):
+    def _remove_reference(self, references):
         """ remove the given references from the list of references. """
         self.ensure_one()
-        self.stock_reference_ids = [Command.unlink(stock_reference.id) for stock_reference in reference]
+        self.stock_reference_ids = [Command.unlink(reference.id) for reference in references]

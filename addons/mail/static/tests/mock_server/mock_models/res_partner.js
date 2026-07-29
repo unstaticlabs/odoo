@@ -19,6 +19,7 @@ export class ResPartner extends webModels.ResPartner {
         string: "Main attachment",
     });
     is_in_call = fields.Boolean({ compute: "_compute_is_in_call" });
+    tz = fields.Char();
 
     _views = {
         form: /* xml */ `
@@ -51,6 +52,8 @@ export class ResPartner extends webModels.ResPartner {
 
         /** @type {import("mock_models").ResUsers} */
         const ResUsers = this.env["res.users"];
+        /** @type {import("mock_models").ResRole} */
+        const ResRole = this.env["res.role"];
 
         search = search.toLowerCase();
         /**
@@ -102,11 +105,11 @@ export class ResPartner extends webModels.ResPartner {
         const store = new mailDataHelpers.Store(
             this.browse(mainMatchingPartnerIds.concat(extraMatchingPartnerIds))
         );
-        const roleIds = this.env["res.role"].search(
+        const roleIds = ResRole.search(
             [["name", "ilike", search || ""]],
             makeKwArgs({ limit: limit || 8 })
         );
-        store.add("res.role", this.env["res.role"]._read_format(roleIds, ["name"], false));
+        store.add(ResRole.browse(roleIds), makeKwArgs({ fields: ["name", "user_ids_count"] }));
 
         return store.get_result();
     }
@@ -126,6 +129,8 @@ export class ResPartner extends webModels.ResPartner {
         const DiscussChannelMember = this.env["discuss.channel.member"];
         /** @type {import("mock_models").ResUsers} */
         const ResUsers = this.env["res.users"];
+        /** @type {import("mock_models").ResRole} */
+        const ResRole = this.env["res.role"];
         /** @type {import("mock_models").DiscussChannel} */
         const channel = this.env["discuss.channel"].browse(channel_id)[0];
         const searchLower = search.toLowerCase();
@@ -176,11 +181,11 @@ export class ResPartner extends webModels.ResPartner {
             };
             store.add(this.browse(partnerId), data);
         }
-        const roleIds = this.env["res.role"].search(
+        const roleIds = ResRole.search(
             [["name", "ilike", searchLower || ""]],
             makeKwArgs({ limit: limit || 8 })
         );
-        store.add("res.role", this.env["res.role"]._read_format(roleIds, ["name"], false));
+        store.add(ResRole.browse(roleIds), makeKwArgs({ fields: ["name", "user_ids_count"] }));
         return store.get_result();
     }
 
@@ -192,7 +197,7 @@ export class ResPartner extends webModels.ResPartner {
             return "bot";
         }
         if (!partner.user_ids.length) {
-            return "im_status";
+            return "im_partner";
         }
         return "offline";
     }
@@ -284,10 +289,6 @@ export class ResPartner extends webModels.ResPartner {
             if (fields.includes("display_name")) {
                 data.displayName = partner.display_name || partner.name;
             }
-            if (fields.includes("im_status")) {
-                data.im_status = this.compute_im_status(partner);
-                data.im_status_access_token = partner.id;
-            }
             if (fields.includes("user")) {
                 data.main_user_id = partner.main_user_id;
                 if (partner.main_user_id) {
@@ -327,9 +328,10 @@ export class ResPartner extends webModels.ResPartner {
             "name",
             "email",
             "active",
-            "im_status",
             "is_company",
-            mailDataHelpers.Store.one("main_user_id", ["share"]),
+            "tz",
+            mailDataHelpers.Store.one("main_user_id", ["active", "partner_id", "share"]),
+            ...this._get_store_im_status_fields(),
         ];
     }
 
@@ -448,6 +450,20 @@ export class ResPartner extends webModels.ResPartner {
     }
 
     _get_store_avatar_card_fields() {
-        return ["email", "partner_share", "name", "phone"];
+        return [
+            "email",
+            "partner_share",
+            "name",
+            "phone",
+            "tz",
+            ...this._get_store_im_status_fields(),
+        ];
+    }
+
+    _get_store_im_status_fields() {
+        return [
+            mailDataHelpers.Store.attr("im_status", (p) => this.compute_im_status(p)),
+            mailDataHelpers.Store.attr("im_status_access_token", (p) => p.id),
+        ];
     }
 }

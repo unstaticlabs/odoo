@@ -1,29 +1,17 @@
-import {
-    Component,
-    onMounted,
-    onPatched,
-    onWillDestroy,
-    onWillUpdateProps,
-    useRef,
-} from "@odoo/owl";
+import { useForwardRefsToParent } from "@mail/utils/common/hooks";
+import { Component, htmlEscape, useRef } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
-import { escape } from "@web/core/utils/strings";
 
 export class NotificationMessage extends Component {
     static template = "mail.NotificationMessage";
-    static props = ["message", "thread", "registerMessageRef?"];
+    static props = ["message", "messageRefs?", "thread"];
 
     setup() {
         super.setup();
         this.root = useRef("root");
-        onWillUpdateProps((nextProps) => {
-            this.props.registerMessageRef?.(this.props.message, null);
-        });
-        onMounted(() => this.props.registerMessageRef?.(this.props.message, this.root));
-        onPatched(() => this.props.registerMessageRef?.(this.props.message, this.root));
-        onWillDestroy(() => this.props.registerMessageRef?.(this.props.message, null));
-        this.escape = escape;
+        useForwardRefsToParent("messageRefs", (props) => props.message.id, this.root);
+        this.htmlEscape = htmlEscape;
         this.store = useService("mail.store");
     }
 
@@ -31,7 +19,7 @@ export class NotificationMessage extends Component {
      * @param {MouseEvent} ev
      */
     async onClickNotificationMessage(ev) {
-        this.store.handleClickOnLink(ev, this.props.thread);
+        this._handleClickOnLink(ev);
         const { oeType, oeId } = ev.target.dataset;
         if (oeType === "highlight") {
             await this.env.messageHighlight?.highlightMessage(
@@ -44,6 +32,10 @@ export class NotificationMessage extends Component {
                 this.props.thread
             );
         }
+    }
+
+    _handleClickOnLink(ev) {
+        this.store.handleClickOnLink(ev, this.props.thread);
     }
 
     get message() {

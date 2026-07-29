@@ -1,8 +1,7 @@
 import { registry } from '@web/core/registry';
 
-import { ExpenseDashboard } from '../components/expense_dashboard';
-import { ExpenseMobileQRCode } from '../mixins/qrcode';
-import { ExpenseDocumentUpload, ExpenseDocumentDropZone } from '../mixins/document_upload';
+import { ExpenseDashboard } from "@hr_expense/components/expense_dashboard";
+import { ExpenseDocumentUpload, ExpenseDocumentDropZone } from "@hr_expense/mixins/document_upload";
 
 import { kanbanView } from '@web/views/kanban/kanban_view';
 import { KanbanController } from '@web/views/kanban/kanban_controller';
@@ -12,9 +11,7 @@ export class ExpenseKanbanController extends ExpenseDocumentUpload(KanbanControl
     static template = "hr_expense.KanbanView";
 }
 
-export class ExpenseKanbanRenderer extends ExpenseDocumentDropZone(
-    ExpenseMobileQRCode(KanbanRenderer)
-) {
+export class ExpenseKanbanRenderer extends ExpenseDocumentDropZone(KanbanRenderer) {
     static template = "hr_expense.KanbanRenderer";
 }
 
@@ -27,10 +24,12 @@ registry.category('views').add('hr_expense_kanban', {
     ...kanbanView,
     Controller: ExpenseKanbanController,
     Renderer: ExpenseKanbanRenderer,
+    buttonTemplate: "hr_expense.KanbanView.Buttons"
 });
 
 registry.category('views').add('hr_expense_dashboard_kanban', {
     ...kanbanView,
     Controller: ExpenseKanbanController,
     Renderer: ExpenseDashboardKanbanRenderer,
+    buttonTemplate: "hr_expense.KanbanView.Buttons"
 });

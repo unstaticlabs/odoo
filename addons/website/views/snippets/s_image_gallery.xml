@@ -2,9 +2,9 @@
 <odoo>
 
 <template id="s_image_gallery" name="Image Gallery">
-    <section class="s_image_gallery o_slideshow pt24 pb24 s_image_gallery_controllers_outside s_image_gallery_controllers_outside_arrows_right s_image_gallery_indicators_dots s_image_gallery_arrows_default" data-vcss="002" data-columns="3">
+    <section class="s_image_gallery o_slideshow pt24 pb24 s_image_gallery_controllers_outside s_image_gallery_controllers_outside_arrows_right s_image_gallery_indicators_dots s_image_gallery_arrows_default o_image_popup" data-vcss="002" data-vjs="001" data-columns="3">
         <div class="o_container_small overflow-hidden">
-            <div id="slideshow_sample" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="0">
+            <div id="slideshow_sample" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="0" style="margin: 0 12px;">
                 <div class="carousel-inner">
                     <div class="carousel-item active">
                         <img class="img img-fluid d-block mh-100 mw-100 mx-auto rounded object-fit-cover" src="/web/image/website.library_image_08" data-name="Image" data-index="0" alt=""/>
@@ -37,7 +37,7 @@
 </template>
 
 <template id="s_images_wall" name="Images Wall">
-    <section class="s_image_gallery o_spc-small o_masonry pt24 pb24" data-vcss="002" data-columns="3" style="overflow: hidden;">
+    <section class="s_image_gallery o_spc-small o_masonry pt24 pb24 o_image_popup" data-vcss="002" data-columns="3" style="overflow: hidden;">
         <div class="container">
             <div class="row s_nb_column_fixed">
                 <div class="o_masonry_col o_snippet_not_selectable col-lg-4">
@@ -70,16 +70,6 @@
 <asset id="website.s_image_gallery_002_scss" name="Image gallery 002 SCSS">
     <bundle>web.assets_frontend</bundle>
     <path>website/static/src/snippets/s_image_gallery/002.scss</path>
-</asset>
-
-<asset id="website.s_image_gallery_000_xml" name="Image gallery 000 XML" active="False">
-    <bundle>web.assets_frontend</bundle>
-    <path>website/static/src/snippets/s_image_gallery/000.xml</path>
-</asset>
-
-<asset id="website.s_image_gallery_001_xml" name="Image gallery 001 XML">
-    <bundle>web.assets_frontend</bundle>
-    <path>website/static/src/snippets/s_image_gallery/001.xml</path>
 </asset>
 
 </odoo>

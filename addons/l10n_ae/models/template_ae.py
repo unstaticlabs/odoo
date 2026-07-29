@@ -41,7 +41,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'expense_account_id': 'uae_account_400001',
                 'income_account_id': 'uae_account_500001',
                 'tax_calculation_rounding_method': 'round_per_line',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'uae_account_131100',
             },
         }
@@ -55,14 +54,14 @@ class AccountChartTemplate(models.AbstractModel):
                 "code": "TA",
                 "type": "general",
                 "show_on_dashboard": True,
-                "sequence": 1,
+                "sequence": 10,
             },
             "ifrs16": {
                 "name": "IFRS 16",
                 "code": "IFRS",
                 "type": "general",
                 "show_on_dashboard": True,
-                "sequence": 10,
+                "sequence": 11,
             }
         }
 
@@ -86,6 +85,14 @@ class AccountChartTemplate(models.AbstractModel):
     @template('ae', 'account.account')
     def _get_ae_account_account(self):
         return {
+            'uae_account_106002': {'asset_depreciation_account_id': 'uae_account_106002', 'asset_expense_account_id': 'uae_account_400064'},
+            'uae_account_106003': {'asset_depreciation_account_id': 'uae_account_106003', 'asset_expense_account_id': 'uae_account_400065'},
+            'uae_account_106004': {'asset_depreciation_account_id': 'uae_account_106004', 'asset_expense_account_id': 'uae_account_400066'},
+            'uae_account_106013': {'asset_depreciation_account_id': 'uae_account_106013', 'asset_expense_account_id': 'uae_account_400092'},
+            'uae_account_106014': {'asset_depreciation_account_id': 'uae_account_106014', 'asset_expense_account_id': 'uae_account_400093'},
+            'uae_account_106015': {'asset_depreciation_account_id': 'uae_account_106015', 'asset_expense_account_id': 'uae_account_400094'},
+            'uae_account_106016': {'asset_depreciation_account_id': 'uae_account_106016', 'asset_expense_account_id': 'uae_account_400095'},
+            'uae_account_106017': {'asset_depreciation_account_id': 'uae_account_106017', 'asset_expense_account_id': 'uae_account_400096'},
             'uae_account_131100': {
                 'account_stock_variation_id': 'uae_account_400001',
             },

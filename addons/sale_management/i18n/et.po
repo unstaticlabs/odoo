@@ -15,13 +15,13 @@
 # Piia Paurson <piia@avalah.ee>, 2022
 # Triine Aavik <triine@avalah.ee>, 2022
 # Leaanika Randmets, 2022
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-29 20:54+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-10-21 05:30+0000\n"
 "Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "sale_management/et/>\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -79,11 +79,17 @@ msgid "Archived"
 msgstr "Arhiveeritud"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Ettevõtted"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -160,12 +166,6 @@ msgid "Display Type"
 msgstr "Kuvamise tüüp"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Puudub ligipääs. Jäta need andmed kasutaja kokkuvõtte kirjast välja"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -176,6 +176,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "Annab müügipakkumiste ridade loendi kuvamisel järjestuse."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -269,7 +281,7 @@ msgstr "Valikuline rida"
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -340,6 +352,12 @@ msgstr "Pakkumise põhjad"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
 msgstr "Hinnapakkumise kehtivusaeg"
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
@@ -422,6 +440,8 @@ msgstr ""
 "mahutavus jne. Muutke müügitellimuste kodeerimine lihtsamaks ja veakindlaks."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr "Alajaotis"
@@ -518,8 +538,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -529,8 +549,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -553,134 +573,3 @@ msgstr "päeva pärast"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "nt. Standardne nõustamispakett"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Teie mall ei tohi sisaldada mitme ettevõtte tooteid."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Teie mall sisaldab ettevõtte %(product_company)s tooteid, samas kui mall "
-#~ "kuulub ettevõttele %(template_company)s.\n"
-#~ " Muutke oma malli ettevõtet või eemaldage tooted teistelt ettevõtetelt."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "4 Person Desk"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Valikud</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Makse</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>Allkiri</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Lisa ostukorvi"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Lisa tellimuse ridadele"
-
-#~ msgid "Category"
-#~ msgstr "Kategooria"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Ühikute vaheline konversioon on võimalik ainult siis, kui ühikud kuuluvad "
-#~ "samasse kategooriasse. Konverteerimist tehakse määrade järgi."
-
-#~ msgid "Disc.%"
-#~ msgstr "Allah. %"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Allahindlus (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr "Annab valikulistele toodetele järjekorra."
-
-#~ msgid "Group By"
-#~ msgstr "Grupeeri"
-
-#~ msgid "Line"
-#~ msgstr "Rida"
-
-#~ msgid "Office Chair"
-#~ msgstr "Kontoritool"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Kinnitamine veebis"
-
-#~ msgid "Optional Products"
-#~ msgstr "Valikulised tooted"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Valikulised tooteread"
-
-#~ msgid "Options"
-#~ msgstr "Seaded"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Pakkumisel olemas"
-
-#~ msgid "Quantity:"
-#~ msgstr "Kogus:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Pakkumise koostaja"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Pakkumise põhja valik"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Pakkumine aegub"
-
-#~ msgid "Remove"
-#~ msgstr "Eemalda"
-
-#~ msgid "Sale Options"
-#~ msgstr "Müügi valikud"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Müügitellimuse viide"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Müügipakkumise põhja read"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Seda välja kontrollitakse, kui valikurea toode on pakkumises juba olemas."
-
-#~ msgid "Unit Price"
-#~ msgstr "Ühiku hind"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Ühikuhind:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mõõtühik"
-
-#~ msgid "UoM"
-#~ msgstr "Mõõtühikud"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Kinnitatud tellimusele ei saa valikuid lisada."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Teie pakkumine sisaldab tooteid ettevõttelt %(product_company)s "
-#~ "arvestades, et teie pakkumine kuulub ettevõttele %(quote_company)s. \n"
-#~ " Palun muutke oma pakkumisel ettevõte või eemaldage teiste ettevõtete "
-#~ "tooted (%(bad_products)s)."

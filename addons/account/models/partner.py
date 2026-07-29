@@ -19,6 +19,20 @@ _logger = logging.getLogger(__name__)
 _ref_company_registry = {
     'jp': '7000012050002',
     'dk': '58403288',
+    # Using the same placeholder value for France and all its overseas territories/collectivities
+    'fr': '33417522101010',
+    'pf': '33417522101010',
+    'mf': '33417522101010',
+    'mq': '33417522101010',
+    'nc': '33417522101010',
+    're': '33417522101010',
+    'gf': '33417522101010',
+    'gp': '33417522101010',
+    'tf': '33417522101010',
+    'bl': '33417522101010',
+    'pm': '33417522101010',
+    'yt': '33417522101010',
+    'wf': '33417522101010',
     'fi': '8763054-9',
 }
 
@@ -39,7 +53,7 @@ class AccountFiscalPosition(models.Model):
         string='Company', required=True, readonly=True, index=True,
         default=lambda self: self.env.company)
     account_ids = fields.One2many('account.fiscal.position.account', 'position_id', string='Account Mapping', copy=True)
-    account_map = fields.Binary(compute='_compute_account_map')
+    account_map = fields.Json(compute='_compute_account_map')
     tax_ids = fields.Many2many(
         comodel_name='account.tax',
         relation='account_fiscal_position_account_tax_rel',
@@ -47,10 +61,10 @@ class AccountFiscalPosition(models.Model):
         column2='account_tax_id',
         string='Taxes',
     )
-    tax_map = fields.Binary(compute='_compute_tax_map')
+    tax_map = fields.Json(compute='_compute_tax_map')
     note = fields.Html('Notes', translate=True, help="Legal mentions that have to be printed on the invoices.")
-    auto_apply = fields.Boolean(string='Detect Automatically', help="Apply tax & account mappings on invoices automatically if the matching criterias (VAT/Country) are met.")
-    vat_required = fields.Boolean(string='VAT required', help="Apply only if partner has a VAT number.")
+    auto_apply = fields.Boolean(string='Detect Automatically', help="Apply tax & account mappings on invoices automatically if the matching criterias (Tax ID/Country) are met.")
+    vat_required = fields.Boolean(string='Tax ID required', help="Apply only if partner has a Tax ID.")
     company_country_id = fields.Many2one(string="Company Country", related='company_id.account_fiscal_country_id')
     fiscal_country_codes = fields.Char(string="Company Fiscal Country Code", related='company_country_id.code')
     country_id = fields.Many2one('res.country', string='Country', inverse='_inverse_foreign_vat',
@@ -93,7 +107,7 @@ class AccountFiscalPosition(models.Model):
                 template_code = self.env['account.chart.template']._guess_chart_template(fiscal_position.country_id)
                 template = self.env['account.chart.template']._get_chart_template_mapping()[template_code]
                 # 'no_template' kept for compatibility in stable. To remove in master
-                fiscal_position.foreign_vat_header_mode = 'templates_found' if template['installed'] else 'no_template'
+                fiscal_position.foreign_vat_header_mode = 'templates_found' if template['module'] in self.env['ir.module.module']._installed() else 'no_template'
 
     @api.depends('tax_ids')
     def _compute_tax_map(self):
@@ -120,11 +134,11 @@ class AccountFiscalPosition(models.Model):
         for record in self:
             if record.foreign_vat:
                 if not record.country_id:
-                    raise ValidationError(_("The country of the foreign VAT number could not be detected. Please assign a country to the fiscal position."))
+                    raise ValidationError(_("The country of the foreign Tax ID could not be detected. Please assign a country to the fiscal position."))
                 if record.country_id == record.company_id.account_fiscal_country_id:
                     if not record.state_ids:
                         if record.company_id.account_fiscal_country_id.state_ids:
-                            raise ValidationError(_("You cannot create a fiscal position with a foreign VAT within your fiscal country without assigning it a state."))
+                            raise ValidationError(_("You cannot create a fiscal position with a foreign Tax ID within your fiscal country without assigning it a state."))
                 if record.country_group_id and record.country_id:
                     if record.country_id not in record.country_group_id.country_ids:
                         raise ValidationError(_("You cannot create a fiscal position with a country outside of the selected country group."))
@@ -136,7 +150,7 @@ class AccountFiscalPosition(models.Model):
                     ('country_id', '=', record.country_id.id),
                 ])
                 if similar_fpos_count:
-                    raise ValidationError(_("A fiscal position with a foreign VAT already exists in this country."))
+                    raise ValidationError(_("A fiscal position with a foreign Tax ID already exists in this country."))
 
     @api.onchange('country_id', 'foreign_vat')
     def _onchange_foreign_vat(self):
@@ -154,16 +168,21 @@ class AccountFiscalPosition(models.Model):
     def map_tax(self, taxes):
         if not self:
             return taxes
-        if not self.tax_ids:
-            return taxes.filtered(lambda tax: not tax.fiscal_position_ids)
+        self.ensure_one()
+        tax_map = self.tax_map or {}
         return self.env['account.tax'].browse(unique(
             tax_id
             for tax in taxes
-            for tax_id in (self.tax_map or {}).get(tax.id, [tax.id])
+            for tax_id in tax_map.get(
+                str(tax.id),
+                # If not in tax_map, a tax is mapped to itself if it has 'self' as fiscal position
+                # or it has no fiscal position. Else it's removed.
+                [tax.id] if self in tax.fiscal_position_ids or not tax.fiscal_position_ids else [],
+            )
         ))
 
     def map_account(self, account):
-        return self.env['account.account'].browse((self.account_map or {}).get(account.id, account.id))
+        return self.env['account.account'].browse((self.account_map or {}).get(str(account.id), account.id))
 
     @api.onchange('country_id')
     def _onchange_country_id(self):
@@ -299,7 +318,7 @@ class AccountFiscalPosition(models.Model):
         self.ensure_one()
         template_code = self.env['account.chart.template']._guess_chart_template(self.country_id)
         template = self.env['account.chart.template']._get_chart_template_mapping()[template_code]
-        if not template['installed']:
+        if template['module'] not in self.env['ir.module.module']._installed():
             localization_module = self.env['ir.module.module'].search([('name', '=', template['module'])])
             localization_module.sudo().button_immediate_install()
         created_records = self.env["account.chart.template"]._instantiate_foreign_taxes(self.country_id, self.company_id)
@@ -335,8 +354,9 @@ class ResPartner(models.Model):
     fiscal_country_codes = fields.Char(compute='_compute_fiscal_country_codes')
     fiscal_country_group_codes = fields.Json(compute='_compute_fiscal_country_group_codes')
     partner_vat_placeholder = fields.Char(compute='_compute_partner_vat_placeholder')
-    partner_company_registry_placeholder = fields.Char(compute='_compute_partner_company_registry_placeholder')
-    duplicate_bank_partner_ids = fields.Many2many(related="bank_ids.duplicate_bank_partner_ids")
+    duplicate_bank_partner_ids = fields.Many2many('res.partner', compute='_compute_duplicate_bank_partner_ids')
+
+    global_location_number = fields.Char(string="GLN", help="Global Location Number")
 
     @api.depends('company_id', 'country_code')
     @api.depends_context('allowed_company_ids')
@@ -693,7 +713,7 @@ class ResPartner(models.Model):
         if not self.env.user.has_group('account.group_account_invoice'):
             return data_list
         for partner in self.filtered(lambda p: p._get_account_statistics_count()):
-            stat_info = {'iconClass': 'fa-pencil-square-o', 'value': partner._get_account_statistics_count(), 'label': _('Invoices/Bills/Mandates'), 'tagClass': 'o_tag_color_9'}
+            stat_info = {'iconClass': 'fa-pencil-square-o', 'value': partner._get_account_statistics_count(), 'label': _('Invoices/Bills/Mandates')}
             data_list[partner.id].append(stat_info)
         return data_list
 
@@ -963,18 +983,28 @@ class ResPartner(models.Model):
     @api.model
     def _import_retrieve_customer_from_bank_account_number(self, customer_values):
         account_numbers = customer_values.get('account_numbers')
-        if not account_numbers:
+        company = customer_values.get('company')
+        if not account_numbers or not company:
             return
+
+        company_domain = Domain.OR([
+            [*self._check_company_domain(company), ('company_id', '!=', False)],
+            [('company_id', '=', False)],
+        ])
+
+        bank_account_ids = self.env['res.partner.bank']._search([
+            Domain.AND([
+                company_domain,
+                [
+                    ('account_number', 'in', account_numbers),
+                    ('allow_out_payment', '=', True),
+                ]
+            ])
+        ])
 
         return {
             'criteria': [{
-                'domain': [
-                    ('bank_ids', 'any', [
-                        '&',
-                        ('acc_number', 'in', account_numbers),
-                        ('allow_out_payment', '=', True),
-                    ]),
-                ],
+                'domain': [('bank_ids', 'in', bank_account_ids)],
             }]
         }
 
@@ -1139,14 +1169,19 @@ class ResPartner(models.Model):
 
             partner.partner_vat_placeholder = self.env._(expected_vat or '')  # pylint: disable=E8502
 
+    @api.depends('bank_ids.duplicate_bank_partner_ids')
+    def _compute_duplicate_bank_partner_ids(self):
+        for partner in self:
+            partner.duplicate_bank_partner_ids = partner.bank_ids.duplicate_bank_partner_ids
+
     @api.depends('country_id')
-    def _compute_partner_company_registry_placeholder(self):
+    def _compute_company_registry_placeholder(self):
         """ Provides a dynamic placeholder on the company registry field for countries that may need it.
         Add your country and the value you want in the _ref_company_registry map.
         """
         for partner in self:
             country_code = partner.country_id.code or ''
-            partner.partner_company_registry_placeholder = _ref_company_registry.get(country_code.lower(), '')
+            partner.company_registry_placeholder = _ref_company_registry.get(country_code.lower(), '')
 
     def _compute_account_move_count(self):
         # retrieve all children partners and prefetch 'parent_id' on them

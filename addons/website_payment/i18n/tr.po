@@ -16,17 +16,17 @@
 # Ediz Duman <neps1192@gmail.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
 # Halil, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 06:06+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-21 14:46+0000\n"
+"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "website_payment/tr/>\n"
 "Language: tr\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
@@ -82,11 +82,6 @@ msgstr "<b>Ödeme ID:</b>"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Payment Method:</b>"
 msgstr "<b>Ödeme şekli:</b>"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">Ülke...</option>"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_input
@@ -141,6 +136,27 @@ msgid "<span class=\"s_donation_currency pe-1\">$</span>50"
 msgstr "<span class=\"s_donation_currency pe-1\">$</span>50"
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Country</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span>Enable a payment provider to accept online payments.</span>"
 msgstr ""
@@ -153,7 +169,7 @@ msgid "<span>or</span>"
 msgstr "<span>veya</span>"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "<strong>Warning</strong> The currency is missing or incorrect."
 msgstr "<strong>Uyarı</strong> Para birimi eksik veya hatalı."
 
@@ -167,16 +183,6 @@ msgstr "Web sitenize bağış yapıldı"
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "A year of cultural awakening."
 msgstr "Kültürel uyanış yılı."
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate"
-msgstr "Etkinleştir"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate Stripe"
-msgstr "Stripe'ı etkinleştir"
 
 #. module: website_payment
 #. odoo-javascript
@@ -240,19 +246,20 @@ msgid "Configure Payment Methods"
 msgstr "Ödeme Yöntemlerini Yapılandır"
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect Stripe"
+msgstr ""
+
+#. module: website_payment
 #. odoo-javascript
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Country"
 msgstr "Ülke"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Country\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"Ülke\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -310,9 +317,8 @@ msgid "Donate Now"
 msgstr "Şimdi Bağış yap"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation"
 msgstr "Bağış"
@@ -321,6 +327,11 @@ msgstr "Bağış"
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation Button"
 msgstr "Bağış Butonu"
+
+#. module: website_payment
+#: model:ir.model.fields,field_description:website_payment.field_payment_transaction__donation_log_message
+msgid "Donation Log Message"
+msgstr ""
 
 #. module: website_payment
 #. odoo-python
@@ -350,15 +361,6 @@ msgstr "bağış bildirimi"
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Email"
 msgstr "E-Posta"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Email\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"E-posta\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -441,15 +443,6 @@ msgid "Name"
 msgstr "Adı"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Name\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"İsim\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-
-#. module: website_payment
 #. odoo-python
 #: code:addons/website_payment/controllers/portal.py:0
 msgid "Name is required."
@@ -478,6 +471,11 @@ msgid "One year in high school."
 msgstr "Lisede bir yıl."
 
 #. module: website_payment
+#: model:ir.model,name:website_payment.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 msgid "Payment Details"
 msgstr "Ödeme detayları"
@@ -493,31 +491,19 @@ msgid "Payment Transaction"
 msgstr "Ödeme İşlemi"
 
 #. module: website_payment
-#. odoo-python
-#: code:addons/website_payment/models/payment_transaction.py:0
-msgid "Payment received from donation with following details:"
-msgstr "Aşağıdaki ayrıntılarla birlikte bağıştan alınan ödeme:"
-
-#. module: website_payment
-#: model:ir.model,name:website_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Payments"
 msgstr "Ödemeler"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please enter a valid email address."
 msgstr "Lütfen geçerli bir e-posta adresi girin."
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please provide a name."
 msgstr "Lütfen bir isim veriniz."
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "Please select a country."
-msgstr "Lütfen bir ülke seçin."
 
 #. module: website_payment
 #. odoo-javascript
@@ -585,7 +571,7 @@ msgid "The minimum donation amount is %(amount)s"
 msgstr "Minimum bağış miktarı %(amount)s"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "There is nothing to pay."
 msgstr "Ödeyecek bir şey yok."
 
@@ -598,10 +584,9 @@ msgstr "Sağlayıcıları görüntüle"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid ""
-"Visa, Mastercard, Maestro, Google Pay, Apple Pay, etc. as well as recurring "
-"charges."
+"Visa, Mastercard, Maestro, UPI, Netbanking, PayNow, Klarna, etc., as well as "
+"recurring charges."
 msgstr ""
-"Visa, Mastercard, Maestro, Google Pay, Apple Pay, vb. ve yinelenen ücretler."
 
 #. module: website_payment
 #: model:ir.model.fields,field_description:website_payment.field_payment_provider__website_id
@@ -622,99 +607,3 @@ msgstr "Senin yorumun"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "made on"
 msgstr "üzerinde yapılan"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Uygun bir ödeme seçeneği bulunamadı.</strong><br/>Bunun bir hata "
-#~ "olduğunu düşünüyorsanız, lütfen web sitesi yöneticisine başvurun."
-
-#~ msgid "Activate Payments"
-#~ msgstr "Ödemeleri Etkinleştir"
-
-#~ msgid "Add new pre-filled option"
-#~ msgstr "Yeni önceden doldurulmuş seçenek ekle"
-
-#~ msgid "Configure %s"
-#~ msgstr "%s'yi yapılandırın"
-
-#~ msgid "Connect to Stripe"
-#~ msgstr "Connect to Stripe"
-
-#~ msgid ""
-#~ "Country\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "Ülke\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid ""
-#~ "Email\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "Eposta\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid "Email is invalid"
-#~ msgstr "e-posta geçersiz"
-
-#~ msgid "Field '%s' is mandatory"
-#~ msgstr "'%s' alanı zorunludur"
-
-#~ msgid "First Provider Label"
-#~ msgstr "İlk Sağlayıcı Etiketi"
-
-#~ msgid "Is Stripe Supported Country"
-#~ msgstr "Stripe Desteklenen Ülke mi"
-
-#~ msgid ""
-#~ "Name\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "İsim\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid "Other than Paypal"
-#~ msgstr "Paypal'dan başka"
-
-#~ msgid "Paypal Only"
-#~ msgstr "Yalnızca Paypal"
-
-#~ msgid "Providers State"
-#~ msgstr "Sağlayıcı Ülkesi"
-
-#~ msgid "Server Error"
-#~ msgstr "Sunucu Hatası"
-
-#~ msgid "Shop - Payment"
-#~ msgstr "Mağaza - Ödeme"
-
-#~ msgid "Some information is missing to process your payment."
-#~ msgstr "Ödemenizi işleme koymak için bazı bilgiler eksik."
-
-#~ msgid ""
-#~ "Support most payment methods; Visa, Mastercard, Maestro, Google Pay, "
-#~ "Apple Pay, etc. as well as recurring charges."
-#~ msgstr ""
-#~ "Çoğu ödeme yöntemini destekleyin; Visa, Mastercard, Maestro, Google Pay, "
-#~ "Apple Pay vb. yanı sıra yinelenen ücretler."
-
-#~ msgid "The minimum donation amount is %s%s%s"
-#~ msgstr "Minimum bağış miktarı %s%s%s"
-
-#~ msgid "Validation Error"
-#~ msgstr "Doğrulama hatası"
-
-#~ msgid "View Alternatives"
-#~ msgstr "Alternatifleri Görüntüle"
-
-#~ msgid "View other providers"
-#~ msgstr "Diğer sağlayıcıları görüntüleyin"
-
-#~ msgid "We could not obtain payment fees."
-#~ msgstr "Ödeme ücretlerini alamadık."
-
-#~ msgid "Website: Donation"
-#~ msgstr "Web sitesi: Bağış"

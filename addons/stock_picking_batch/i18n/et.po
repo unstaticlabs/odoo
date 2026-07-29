@@ -18,14 +18,14 @@
 # Leaanika Randmets, 2022
 # Anna, 2023
 # JanaAvalah, 2023
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 17:39+0000\n"
-"PO-Revision-Date: 2026-06-30 22:57+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-19 13:24+0000\n"
+"Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "stock_picking_batch/et/>\n"
 "Language: et\n"
@@ -33,13 +33,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "%s was removed from the batch, no quantity processed"
 msgstr "%s on partiist eemaldatud, ühtegi kogust ei töödeldud"
+
+#. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-calendar text-primary me-2\" title=\"Calendar\"/>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
@@ -145,6 +150,11 @@ msgstr "Tegevused"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Tegevuse erandlik kohendus"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_state
@@ -293,8 +303,8 @@ msgstr "Koondsiire"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking_to_batch
-msgid "Batch Transfer Lines"
-msgstr "Koondsiirde read"
+msgid "Batch Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_picking_batch_action
@@ -354,9 +364,7 @@ msgid "Calendar View"
 msgstr "Kalendrivaade"
 
 #. module: stock_picking_batch
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_add_to_wave_form
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_to_batch_form
 msgid "Cancel"
 msgstr "Tühista"
 
@@ -753,6 +761,11 @@ msgid "Next Activity Type"
 msgstr "Järgmise tegevuse tüüp"
 
 #. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__0
+msgid "Normal"
+msgstr ""
+
+#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__message_needaction_counter
 msgid "Number of Actions"
 msgstr "Toimingute arv"
@@ -771,6 +784,17 @@ msgstr "Tegevust nõudvate sõnumite arv"
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "Kohaletoimetamise veateatega sõnumite arv"
+
+#. module: stock_picking_batch
+#. odoo-python
+#: code:addons/stock_picking_batch/models/stock_move.py:0
+msgid "Open: Stock Move"
+msgstr ""
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
+msgid "Operation Category"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_id
@@ -843,6 +867,11 @@ msgstr "Prindi"
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
 msgid "Print Labels"
 msgstr "Prindi sildid"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__priority
+msgid "Priority"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_type__wave_group_by_product
@@ -1142,14 +1171,6 @@ msgid "The selected transfers should belong to the same operation type"
 msgstr "Valitud siirded peaksid kuuluma samasse operatsioonitüüpi"
 
 #. module: stock_picking_batch
-#. odoo-python
-#: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
-msgid ""
-"The sequence '%(sequence)s' is misconfigured. Its prefix should end with a "
-"'/' separator."
-msgstr ""
-
-#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__is_wave
 msgid "This batch is a wave"
 msgstr "See partii on laine siire"
@@ -1167,6 +1188,7 @@ msgstr "Tänased tegevused"
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfer"
 msgstr "Siirded"
 
@@ -1181,6 +1203,11 @@ msgid "Transfer Name"
 msgstr "Siirde nimi"
 
 #. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.view_stock_move_operations
+msgid "Transfer:"
+msgstr ""
+
+#. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "Transferred by"
@@ -1189,13 +1216,9 @@ msgstr "Siirdatud"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_ids
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfers"
 msgstr "Siirded"
-
-#. module: stock_picking_batch
-#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
-msgid "Type of Operation"
-msgstr "Operatsiooni tüüp"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
@@ -1212,6 +1235,11 @@ msgstr "Määramata vastutaja %s"
 #: model:ir.actions.server,name:stock_picking_batch.action_unreserve_batch_picking
 msgid "Unreserve"
 msgstr "Vabasta reserveeringust"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__1
+msgid "Urgent"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -1241,8 +1269,8 @@ msgstr "Laine siire"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_add_to_wave
-msgid "Wave Transfer Lines"
-msgstr "Laine siirde read"
+msgid "Wave Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.action_picking_tree_wave
@@ -1321,104 +1349,3 @@ msgstr "shipping_weight"
 
 #~ msgid "2023-08-20"
 #~ msgstr "2023-08-20"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">Group by</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">grupeeri</span>"
-
-#~ msgid "Clear quantities"
-#~ msgstr "Tühjenda kogus"
-
-#~ msgid "Create a new batch transfer"
-#~ msgstr "Loo uus koondsaateleht"
-
-#~ msgid "Create a new wave transfer"
-#~ msgstr "Create a new wave transfer"
-
-#~ msgid "Group By"
-#~ msgstr "Rühmitamine"
-
-#~ msgid "Maximum lines per batch"
-#~ msgstr "Koondsaatelehe maksimaalne ridade arv"
-
-#~ msgid "Maximum transfers per batch"
-#~ msgstr "Koondsaatelehe maksimaalne siirete arv"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Tegutsemist nõudvate sõnumite arv"
-
-#~ msgid ""
-#~ "Please add 'Done' quantities to the batch picking to create a new pack."
-#~ msgstr ""
-#~ "Palun lisage \"Tehtud\" kogused grupeeritud laokorjesse uue paki loomiseks"
-
-#~ msgid "Set quantities"
-#~ msgstr "Määra kogused"
-
-#~ msgid "Show Clear Qty Button"
-#~ msgstr "Näita Kustuta kogused nuppu"
-
-#~ msgid "Show Set Qty Button"
-#~ msgstr "Näita Määra kogused nuppu"
-
-#~ msgid "Show Validate Button"
-#~ msgstr "Näita Kinnitamise nuppu"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Näita kõiki andmeid, mille järgmise tegevuse kuupäev on ennem tänast "
-#~ "kuupäeva"
-
-#~ msgid "Stock Package Destination"
-#~ msgstr "Lao pakendi sihtkoht"
-
-#~ msgid ""
-#~ "The following transfers cannot be added to batch transfer %s. Please "
-#~ "check their states and operation types, if they aren't immediate "
-#~ "transfers.\n"
-#~ "\n"
-#~ "Incompatibilities: %s"
-#~ msgstr ""
-#~ "Järgnevaid siirdeid ei saa lisada koondsiirdesse %s. Palun kontrollige "
-#~ "nende staatuseid ja operatsiooni tüüpe, ega need ei ole kohesed siirded "
-#~ "või mõne teise komplekti siirded.\n"
-#~ "\n"
-#~ "Sobimatud: %s"
-
-#~ msgid ""
-#~ "The goal of the batch transfer is to group operations that may\n"
-#~ "            (needs to) be done together in order to increase their "
-#~ "efficiency.\n"
-#~ "            It may also be useful to assign jobs (one person = one batch) "
-#~ "or\n"
-#~ "            help the timing management of operations (tasks to be done at "
-#~ "1pm)."
-#~ msgstr ""
-#~ "Koondiirde eesmärgiks on koondada operatsioonid, mis\n"
-#~ "            (peaks) olema tehtud koos tõstmaks nende efektiivsust. \n"
-#~ "            Samuti võib olla kasulik määrata töösid (üks inimene= üks "
-#~ "kogumik) või\n"
-#~ "aidata toimingute ajastamist (ülesanded teha valmis kella 1ks)"
-
-#~ msgid ""
-#~ "The goal of the wave transfer is to group operations from different "
-#~ "transfer\n"
-#~ "                    together in order to increase their efficiency.\n"
-#~ "                    It may also be useful to assign jobs (one person = "
-#~ "one batch) or\n"
-#~ "                    help the timing management of operations (tasks to be "
-#~ "done at 1pm)."
-#~ msgstr ""
-#~ "The goal of the wave transfer is to group operations from different "
-#~ "transfer\n"
-#~ "                    together in order to increase their efficiency.\n"
-#~ "                    It may also be useful to assign jobs (one person = "
-#~ "one batch) or\n"
-#~ "                    help the timing management of operations (tasks to be "
-#~ "done at 1pm)."
-
-#~ msgid "Waves"
-#~ msgstr "Waves"

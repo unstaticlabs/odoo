@@ -15,6 +15,7 @@ from odoo.tools import mute_logger
 from odoo.tests.common import users
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestEventRegisterUTM(HttpCase, TestEventOnlineCommon):
     def test_event_registration_utm_values(self):
         self.event_0.registration_ids.unlink()
@@ -44,7 +45,7 @@ class TestEventRegisterUTM(HttpCase, TestEventOnlineCommon):
             f'1-name-{name_question.id}': 'Bob',
             f'1-email-{email_question.id}': 'bob@test.lan',
             '1-event_ticket_id': self.event_0.event_ticket_ids[0].id,
-            'csrf_token': http.Request.csrf_token(self),
+            'csrf_token': self.csrf_token(),
         })
         new_registration = self.event_0.registration_ids
         self.assertEqual(len(new_registration), 1)
@@ -211,15 +212,12 @@ class TestUi(HttpCaseWithUserDemo, HttpCaseWithUserPortal):
             event.cover_properties = """{"background-image": "url('/1.jpg')"}"""
             meta = event.get_website_meta()
             self.assertEqual(meta['opengraph_meta']['og:image'], 'http://example.com/1.jpg')
-            self.assertEqual(meta['twitter_meta']['twitter:image'], 'http://example.com/1.jpg')
             event.cover_properties = """{"background-image": "url(\\"/2.jpg\\")"}"""
             meta = event.get_website_meta()
             self.assertEqual(meta['opengraph_meta']['og:image'], 'http://example.com/2.jpg')
-            self.assertEqual(meta['twitter_meta']['twitter:image'], 'http://example.com/2.jpg')
             event.cover_properties = """{"background-image": "url(/3.jpg)"}"""
             meta = event.get_website_meta()
             self.assertEqual(meta['opengraph_meta']['og:image'], 'http://example.com/3.jpg')
-            self.assertEqual(meta['twitter_meta']['twitter:image'], 'http://example.com/3.jpg')
 
 
 @tagged('post_install', '-at_install')

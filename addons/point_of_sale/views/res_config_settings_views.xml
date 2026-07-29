@@ -8,12 +8,11 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <t groups="point_of_sale.group_pos_manager">
-                    <field name="is_kiosk_mode" invisible="1"/>
+                    <field name="use_kiosk_mode" invisible="1"/>
                     <field name="pos_selectable_categ_ids" invisible="1"/>
                     <field name="pos_has_active_session" invisible="1"/>
                     <field name="pos_allowed_pricelist_ids" invisible="1"/>
                     <field name="pos_cash_control" invisible="1"/>
-                    <field name="pos_iface_print_via_proxy" invisible="1"/>
                     <field name="pos_company_has_template" invisible="1"/>
                     <field name="group_cash_rounding" invisible="1"/>
                 </t>
@@ -57,7 +56,7 @@
                                     <div class="content-group" invisible="not pos_use_presets">
                                         <div class="row">
                                             <label for="pos_available_preset_ids" class="col-lg-3" string="Available"/>
-                                            <field name="pos_available_preset_ids" widget="many2many_tags" options="{'no_quick_create': True, 'color_field': 'color'}" />
+                                            <field name="pos_available_preset_ids" widget="many2many_tags" options="{'no_quick_create': True, 'color_field': 'color', 'on_tag_click': 'edit_color'}" />
                                         </div>
                                         <div class="row">
                                             <label for="pos_default_preset_id" class="col-lg-3" string="Default"/>
@@ -88,7 +87,7 @@
                                 <setting string="Automatically validate order" help="Automatically validates orders paid with a payment terminal.">
                                     <field name="pos_auto_validate_terminal_payment"/>
                                 </setting>
-                                <setting string="Cash Rounding" invisible="is_kiosk_mode" documentation="/applications/sales/point_of_sale/pricing/cash_rounding.html" help="Define the smallest coinage of the currency used to pay by cash">
+                                <setting string="Total Rounding" invisible="use_kiosk_mode" documentation="/applications/sales/point_of_sale/pricing/cash_rounding.html" help="Define the smallest coinage of the currency used to pay by cash">
                                     <field name="pos_cash_rounding" readonly="pos_has_active_session"/>
                                     <div class="content-group mt16" invisible="not pos_cash_rounding">
                                         <div class="row mt16">
@@ -98,17 +97,17 @@
                                         <div class="row mt16">
                                             <div class="col">
                                                 <field name="pos_only_round_cash_method" readonly="pos_has_active_session"/>
-                                                <label string="Only on cash methods" for="pos_only_round_cash_method" class="o_light_label" />
+                                                <label string="Apply only on cash methods" for="pos_only_round_cash_method" class="o_light_label" />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mt8">
                                         <button name="%(account.rounding_list_action)d" icon="oi-arrow-right"
-                                                type="action" string="Cash Roundings" class="btn-link"
+                                                type="action" string="Roundings" class="btn-link"
                                                 invisible="not group_cash_rounding"/>
                                     </div>
                                 </setting>
-                                <setting title="Online payment, delivery payment, terminal payment, and methods that require customer identification are not supported for fast payment validation." help="Shortcut to skip payment screen" invisible="is_kiosk_mode">
+                                <setting title="Online payment, delivery payment, terminal payment, and methods that require customer identification are not supported for fast payment validation." help="Shortcut to skip payment screen" invisible="use_kiosk_mode">
                                     <field name="pos_use_fast_payment" string="One-click Payment" />
                                     <div class="content-group mt16" invisible="not pos_use_fast_payment">
                                         <label for="pos_fast_payment_method_ids" class="fw-bold me-2"/>
@@ -130,6 +129,10 @@
                                             <label string="Tip Product" for="pos_tip_product_id" class="col-lg-3 o_light_label "/>
                                             <field name="pos_tip_product_id"/>
                                         </div>
+                                        <div invisible="not pos_iface_tipproduct">
+                                            <field name="pos_set_tip_after_payment" class="oe_inline"/>
+                                            <label class="fw-normal" for="pos_set_tip_after_payment" string="Add tip after payment"/>
+                                        </div>
                                     </div>
                                 </setting>
                             </block>
@@ -142,10 +145,10 @@
                                         </div>
                                     </div>
                                 </setting>
-                                <setting invisible="is_kiosk_mode" help="Improve navigation for imprecise industrial touchscreens">
+                                <setting invisible="use_kiosk_mode" help="Improve navigation for imprecise industrial touchscreens">
                                     <field name="pos_iface_big_scrollbars"/>
                                 </setting>
-                                <setting string="Share Open Orders" help="Allow to access each other's active orders" id="is_order_shared" invisible="pos_module_pos_restaurant or is_kiosk_mode">
+                                <setting string="Share Open Orders" help="Allow to access each other's active orders" id="is_order_shared" invisible="pos_module_pos_restaurant or use_kiosk_mode">
                                     <div class="content-group">
                                         <div class="row mt16">
                                             <label string="Trusted POS" for="pos_trusted_config_ids" class="col-lg-3 o_light_label" />
@@ -168,7 +171,7 @@
                                         </div>
                                     </div>
                                 </setting>
-                                <setting help="Online reservation for Point of Sale"  invisible="is_kiosk_mode">
+                                <setting help="Online reservation for Point of Sale"  invisible="use_kiosk_mode">
                                     <field name="pos_module_pos_appointment" string="Booking" widget="upgrade_boolean" />
                                     <div class="content-group" id="pos_appointment_booking" invisible="not pos_module_pos_appointment">
                                         <div class="text-warning mt16 mb4">
@@ -176,7 +179,7 @@
                                         </div>
                                     </div>
                                 </setting>
-                                <setting invisible="is_kiosk_mode" help="Display products grouped by categories.">
+                                <setting invisible="use_kiosk_mode" help="Display products grouped by categories.">
                                     <field name="pos_iface_group_by_categ"/>
                                 </setting>
                             </block>
@@ -250,7 +253,7 @@
                                     </div>
                                 </setting>
                                 <setting string="Closing Entry by product" id="pos_closeing_entry_by_product" help="Display the breakdown of sales lines by product in the automatically generated closing entry.">
-                                    <field name="pos_is_closing_entry_by_product"/>
+                                    <field name="pos_use_closing_entry_by_product"/>
                                 </setting>
                                 <setting id="pos-avatax" help="Use automatic taxes mapping with Avatax">
                                     <field name="pos_module_pos_avatax" />
@@ -304,8 +307,8 @@
 
                             <block title="Bills &amp; Receipts" id="pos_bills_and_receipts_section">
                                 <setting help="Add a custom message to header and footer" documentation="/applications/sales/point_of_sale/receipts_invoices.html">
-                                    <field name="pos_is_header_or_footer"/>
-                                    <div class="content-group mt16" invisible="not pos_is_header_or_footer">
+                                    <field name="pos_use_header_or_footer"/>
+                                    <div class="content-group mt16" invisible="not pos_use_header_or_footer">
                                         <div>
                                             <label string="Header" for="pos_receipt_header" class="col-lg-2 o_light_label"/>
                                             <field name="pos_receipt_header" placeholder="e.g. Company Address, Website"/>
@@ -318,7 +321,7 @@
                                 </setting>
                                 <setting id="auto_printing" help="Print receipts automatically once the payment is registered" documentation="/applications/sales/point_of_sale/receipts_invoices.html">
                                     <field name="pos_iface_print_auto"/>
-                                    <div class="content-group mt16" invisible="not pos_iface_print_auto or not pos_is_posbox and not pos_other_devices">
+                                    <div class="content-group mt16" invisible="not pos_iface_print_auto and not pos_other_devices">
                                         <div>
                                             <field name="pos_iface_print_skip_screen" class="oe_inline"/><span class="oe_inline"><b>Skip Preview Screen</b></span>
                                         </div>
@@ -347,6 +350,36 @@
                                 </setting>
                                 <setting id="basic_receipt" help="Print basic ticket without prices. Can be used for gifts.">
                                     <field name="pos_basic_receipt"/>
+                                </setting>
+                                <setting string="Early Receipt Printing" help="Allow to print receipt before payment" id="iface_printbill">
+                                    <field name="pos_iface_printbill"/>
+                                </setting>
+                                <setting id="pos_contact_info" help="Fill in if your shop has different info from your company">
+                                    <field name="pos_use_custom_receipt_info" />
+                                    <field name="custom_phone_placeholder" invisible="1"/>
+                                    <field name="custom_email_placeholder" invisible="1"/>
+                                    <field name="custom_website_placeholder" invisible="1"/>
+                                    <field name="custom_address_placeholder" invisible="1"/>
+                                    <div class="content-group row">
+                                        <label for="pos_custom_phone" class="col-lg-3 o_light_label" string="Phone" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                        <field name="pos_custom_phone" options="{'placeholder_field': 'custom_phone_placeholder'}" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                    </div>
+                                    <div class="content-group row">
+                                        <label for="pos_custom_email" class="col-lg-3 o_light_label" string="Email" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                        <field name="pos_custom_email" options="{'placeholder_field': 'custom_email_placeholder'}" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                    </div>
+                                    <div class="content-group row">
+                                        <label for="pos_custom_website" class="col-lg-3 o_light_label" string="Website" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                        <field name="pos_custom_website" options="{'placeholder_field': 'custom_website_placeholder'}" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                    </div>
+                                    <div class="content-group row">
+                                        <label for="pos_custom_receipt_address" class="col-lg-3 o_light_label" string="Address" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                        <field name="pos_custom_receipt_address" options="{'placeholder_field': 'custom_address_placeholder'}" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                    </div>
+                                    <div class="content-group row">
+                                        <label for="pos_custom_logo" class="col-lg-3 o_light_label" string="Logo" invisible="pos_use_custom_receipt_info in [False,'']"/>
+                                        <field name="pos_custom_logo" invisible="pos_use_custom_receipt_info in [False,'']" filename="pos_custom_logo_name" options="{'accepted_file_extensions': '.jpg,.jpeg,.png,.webp,.svg,.ico,.bmp,.svf,.tif,.tiff'}"/>
+                                    </div>
                                 </setting>
                             </block>
 
@@ -387,81 +420,37 @@
                                     <button name="open_payment_method_form" icon="oi-arrow-right" type="object" string="Payment method" class="btn-link"
                                         context="{'selection': 'qfpay', 'config_ids': [pos_config_id], 'provider_name': 'QFPay'}" invisible="not module_pos_qfpay" />
                                 </setting>
+                                <setting title="The transactions are processed by DPO Pay on the terminal." string="DPO Pay" help="Accept payments with a DPO Pay payment terminal" documentation="/applications/sales/point_of_sale/payment_methods/terminals/dpo.html">
+                                    <field name="module_pos_dpopay"/>
+                                    <button name="open_payment_method_form" icon="oi-arrow-right" type="object" string="Payment method" class="btn-link"
+                                        context="{'selection': 'dpopay', 'config_ids': [pos_config_id], 'provider_name': 'DPO Pay'}" invisible="not module_pos_dpopay" />
+                                </setting>
                             </block>
 
                             <block title="Connected Devices" id="pos_connected_devices_section">
-                                <setting id="pos_other_devices" string="ePos Printer" help="Connect device to your PoS without an IoT Box" documentation="/applications/sales/point_of_sale/configuration/epos_ssc.html">
-                                    <field name="pos_other_devices"/>
-                                    <div class="row" invisible="not pos_other_devices">
-                                        <div class="col-lg-6">
-                                            <field name="pos_epson_printer_ip" placeholder="Epson Receipt Printer IP Address" class="w-100 pt-1" />
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <widget name="point_of_sale_test_epos" />
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <div class="row" invisible="pos_epson_printer_ip in [False, '']">
-                                                <label string="Link Cashdrawer" for="pos_iface_cashdrawer" class="col-lg-4 o_light_label"/>
-                                                <field name="pos_iface_cashdrawer" class="col" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div role="alert" class="alert alert-warning" invisible="not pos_iface_print_via_proxy or not pos_other_devices or pos_epson_printer_ip in [False, '']">
-                                        The Epson receipt printer will be used instead of the receipt printer connected to the IoT Box.
-                                    </div>
-                                </setting>
                                 <setting id="customer_display" string="Customer Display" help="Set the background image of your customer display" documentation="/applications/sales/point_of_sale/shop/customer_display.html" >
                                     <label for="pos_customer_display_bg_img" />
                                     <field name="pos_customer_display_bg_img" class="w-100" filename="pos_customer_display_bg_img_name"/>
                                 </setting>
-                                <setting string="IoT Box" help="Connect devices using an IoT Box">
-                                    <field name="pos_is_posbox"/>
-                                    <div class="content-group pos_iot_config" invisible="not pos_is_posbox">
-                                        <div class="row">
-                                            <label string="IoT Box IP Address" for="pos_proxy_ip" class="col-lg-4 o_light_label"/>
-                                            <field name="pos_proxy_ip"/>
+                                <setting string="Receipt Printers" help="Connect printers to your PoS" id="pos_other_devices">
+                                    <field name="pos_other_devices"/>
+                                    <div class="content-group" invisible="not pos_other_devices">
+                                        <div class="mt16 mb-1">
+                                            <label string="Printers" for="pos_receipt_printer_ids" class="o_light_label me-2"/>
+                                            <field name="pos_receipt_printer_ids" widget="many2many_tags" context="{'default_use_type': 'receipt'}" options="{'no_quick_create': True}"/>
                                         </div>
-                                        <div class="row iot_barcode_scanner">
-                                            <label string="Barcode Scanner/Card Reader" for="pos_iface_scan_via_proxy" class="col-lg-4 o_light_label"/>
-                                            <field name="pos_iface_scan_via_proxy"/>
+                                        <div class="mt16 mb-1">
+                                            <label string="Default" for="pos_default_receipt_printer_id" class="o_light_label me-2"/>
+                                            <field name="pos_default_receipt_printer_id" domain="[('id', 'in', pos_receipt_printer_ids)]" required="pos_other_devices" options="{'no_quick_create': True}"/>
                                         </div>
-                                        <div class="row">
-                                            <label string="Electronic Scale" for="pos_iface_electronic_scale" class="col-lg-4 o_light_label"/>
-                                            <field name="pos_iface_electronic_scale"/>
-                                        </div>
-                                        <div class="row">
-                                            <label string="Receipt Printer" for="pos_iface_print_via_proxy" class="col-lg-4 o_light_label"/>
-                                            <field name="pos_iface_print_via_proxy"/>
-                                        </div>
-                                        <div class="row" invisible="not pos_iface_print_via_proxy">
-                                            <label string="Cashdrawer" for="pos_iface_cashdrawer" class="col-lg-4 o_light_label"/>
+                                        <div class="mt16 mb-1">
+                                            <label string="Link Cashdrawer" for="pos_iface_cashdrawer" class="o_light_label me-2"/>
                                             <field name="pos_iface_cashdrawer"/>
                                         </div>
                                     </div>
                                 </setting>
                             </block>
-
                             <block title="Preparation" id="pos_preparation_section">
-                                <setting string="Preparation Printers" help="Print orders at the kitchen, at the bar, etc." id="is_order_printer">
-                                    <field name="pos_is_order_printer"/>
-                                    <div class="content-group" invisible="not pos_is_order_printer">
-                                        <div class="mt16 mb-1">
-                                            <label string="Printers" for="pos_printer_ids" class="o_light_label me-2"/>
-                                            <field name="pos_printer_ids" widget="many2many_tags"/>
-                                        </div>
-                                        <div>
-                                            <button name="action_pos_printer_dialog"
-                                                context="{'default_pos_config_ids': [pos_config_id]}"
-                                                icon="oi-arrow-right"
-                                                type="object"
-                                                string="Add Printer"
-                                                class="btn-link"/>
-                                        </div>
-                                        <div>
-                                            <button name="%(point_of_sale.action_pos_printer_form)d" icon="oi-arrow-right" type="action" string="Manage Printers" class="btn-link"/>
-                                        </div>
-                                    </div>
-                                </setting>
                                 <setting string="Internal Notes" help="Add internal notes on order lines for the kitchen" id="iface_orderline_notes">
                                     <div class="content-group">
                                         <div class="mt16">
@@ -470,6 +459,34 @@
                                         </div>
                                         <div>
                                             <button name="%(point_of_sale.action_pos_note_model)d" icon="oi-arrow-right" type="action" string="Notes" class="btn-link"/>
+                                        </div>
+                                    </div>
+                                </setting>
+                                <setting string="Preparation Printers" help="Connect preparation printers to your PoS">
+                                    <field name="pos_preparation_devices"/>
+                                    <div class="content-group" invisible="not pos_preparation_devices">
+                                        <div class="row mb-2">
+                                            <div class="col-lg-2 o_light_label">
+                                                <label string="Available" for="pos_preparation_printer_ids"/>
+                                            </div>
+                                            <div class="col-lg-5">
+                                                <field name="pos_preparation_printer_ids"
+                                                    class="w-100 pt-1"
+                                                    widget="many2many_tags"
+                                                    context="{'default_use_type': 'preparation'}"
+                                                    options="{'no_quick_create': True}"/>
+                                            </div>
+                                            <div>
+                                                <button name="action_pos_printer_dialog"
+                                                    context="{'default_pos_config_ids': [pos_config_id]}"
+                                                    icon="oi-arrow-right"
+                                                    type="object"
+                                                    string="Add Printer"
+                                                    class="btn-link"/>
+                                            </div>
+                                            <div>
+                                                <button name="%(point_of_sale.action_pos_printer_form)d" icon="oi-arrow-right" type="action" string="Manage Printers" class="btn-link"/>
+                                            </div>
                                         </div>
                                     </div>
                                 </setting>

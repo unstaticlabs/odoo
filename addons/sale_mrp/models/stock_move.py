@@ -11,7 +11,7 @@ class StockMove(models.Model):
         super()._compute_packaging_uom_id()
         for move in self:
             if move.bom_line_id and move.bom_line_id.bom_id.type == 'phantom':
-                move.packaging_uom_id = move.product_uom
+                move.packaging_uom_id = move.uom_id
 
     def _get_price_unit(self):
         order_line = self.sale_line_id

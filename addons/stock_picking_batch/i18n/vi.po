@@ -6,14 +6,14 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 17:39+0000\n"
-"PO-Revision-Date: 2026-06-30 01:46+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 02:34+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "stock_picking_batch/vi/>\n"
 "Language: vi\n"
@@ -21,12 +21,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "%s was removed from the batch, no quantity processed"
+msgstr ""
+
+#. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-calendar text-primary me-2\" title=\"Calendar\"/>"
 msgstr ""
 
 #. module: stock_picking_batch
@@ -133,6 +138,11 @@ msgstr "Hoạt động"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Hoạt động ngoại lệ"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_state
@@ -280,8 +290,8 @@ msgstr "Lệnh chuyển hàng theo lô"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking_to_batch
-msgid "Batch Transfer Lines"
-msgstr "Chi tiết lệnh chuyển hàng theo lô"
+msgid "Batch Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_picking_batch_action
@@ -341,9 +351,7 @@ msgid "Calendar View"
 msgstr "Chế độ xem lịch"
 
 #. module: stock_picking_batch
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_add_to_wave_form
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_to_batch_form
 msgid "Cancel"
 msgstr "Hủy"
 
@@ -739,6 +747,11 @@ msgid "Next Activity Type"
 msgstr "Loại hoạt động tiếp theo"
 
 #. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__0
+msgid "Normal"
+msgstr ""
+
+#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__message_needaction_counter
 msgid "Number of Actions"
 msgstr "Số lượng tác vụ"
@@ -757,6 +770,17 @@ msgstr "Số tin nhắn cần xử lý"
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "Số tin nhắn bị gửi lỗi"
+
+#. module: stock_picking_batch
+#. odoo-python
+#: code:addons/stock_picking_batch/models/stock_move.py:0
+msgid "Open: Stock Move"
+msgstr ""
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
+msgid "Operation Category"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_id
@@ -829,6 +853,11 @@ msgstr "In"
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
 msgid "Print Labels"
 msgstr "In nhãn"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__priority
+msgid "Priority"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_type__wave_group_by_product
@@ -1128,14 +1157,6 @@ msgid "The selected transfers should belong to the same operation type"
 msgstr "Các lệnh chuyển hàng được chọn phải thuộc về cùng một loại hoạt động."
 
 #. module: stock_picking_batch
-#. odoo-python
-#: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
-msgid ""
-"The sequence '%(sequence)s' is misconfigured. Its prefix should end with a "
-"'/' separator."
-msgstr ""
-
-#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__is_wave
 msgid "This batch is a wave"
 msgstr "Lô này là một đợt"
@@ -1153,6 +1174,7 @@ msgstr "Hoạt động hôm nay"
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfer"
 msgstr "Lệnh chuyển hàng"
 
@@ -1167,6 +1189,11 @@ msgid "Transfer Name"
 msgstr "Tên lệnh chuyển hàng"
 
 #. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.view_stock_move_operations
+msgid "Transfer:"
+msgstr ""
+
+#. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "Transferred by"
@@ -1175,13 +1202,9 @@ msgstr "Lệnh chuyển hàng bởi"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_ids
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfers"
 msgstr "Lệnh chuyển hàng"
-
-#. module: stock_picking_batch
-#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
-msgid "Type of Operation"
-msgstr "Loại hoạt động"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
@@ -1198,6 +1221,11 @@ msgstr "Huỷ phân công người phụ trách khỏi %s"
 #: model:ir.actions.server,name:stock_picking_batch.action_unreserve_batch_picking
 msgid "Unreserve"
 msgstr "Hủy dự trữ"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__1
+msgid "Urgent"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -1227,8 +1255,8 @@ msgstr "Lệnh chuyển hàng theo đợt"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_add_to_wave
-msgid "Wave Transfer Lines"
-msgstr "Chi tiết lệnh chuyển hàng theo đợt"
+msgid "Wave Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.action_picking_tree_wave
@@ -1307,107 +1335,3 @@ msgstr "shipping_weight"
 
 #~ msgid "2023-08-20"
 #~ msgstr "2023-08-20"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">Group by</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">Nhóm theo</span>"
-
-#~ msgid "Clear quantities"
-#~ msgstr "Xoá số lượng"
-
-#~ msgid "Create a new batch transfer"
-#~ msgstr "Tạo một điều chuyển hàng loạt mới"
-
-#~ msgid "Create a new wave transfer"
-#~ msgstr "Tạo một điều chuyển theo đợt mới"
-
-#~ msgid "Group By"
-#~ msgstr "Nhóm theo"
-
-#~ msgid "Maximum lines per batch"
-#~ msgstr "Số mục tối đa cho mỗi loạt"
-
-#~ msgid "Maximum transfers per batch"
-#~ msgstr "Số điều chuyển tối đa cho mỗi loạt"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Số tin nhắn cần xử lý"
-
-#~ msgid ""
-#~ "Please add 'Done' quantities to the batch picking to create a new pack."
-#~ msgstr ""
-#~ "Hãy thêm số lượng 'Hoàn tất' vào phiếu lấy hàng hàng loạt này để tạo một "
-#~ "kiện hàng mới."
-
-#~ msgid "Set quantities"
-#~ msgstr "Thiết lập số lượng"
-
-#~ msgid "Show Clear Qty Button"
-#~ msgstr "Hiển thị nút xoá SL"
-
-#~ msgid "Show Set Qty Button"
-#~ msgstr "Hiển thị nút thiết lập SL"
-
-#~ msgid "Show Validate Button"
-#~ msgstr "Hiển thị nút xác nhận"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Hiển thị tất cả dữ liệu có ngày xử lý tiếp theo trước ngày hôm nay"
-
-#~ msgid "Stock Package Destination"
-#~ msgstr "Điểm đến của kiện hàng"
-
-#~ msgid ""
-#~ "The following transfers cannot be added to batch transfer %s. Please "
-#~ "check their states and operation types, if they aren't immediate "
-#~ "transfers.\n"
-#~ "\n"
-#~ "Incompatibilities: %s"
-#~ msgstr ""
-#~ "Không thể thêm các điều chuyển sau vào điều chuyển hàng loạt %s. Vui lòng "
-#~ "kiểm tra trạng thái và loại hoạt động của chúng, nếu chúng không phải là "
-#~ "điều chuyển ngay tức thì.\n"
-#~ "\n"
-#~ "Điều chuyển không tương thích: %s"
-
-#~ msgid ""
-#~ "The goal of the batch transfer is to group operations that may\n"
-#~ "            (needs to) be done together in order to increase their "
-#~ "efficiency.\n"
-#~ "            It may also be useful to assign jobs (one person = one batch) "
-#~ "or\n"
-#~ "            help the timing management of operations (tasks to be done at "
-#~ "1pm)."
-#~ msgstr ""
-#~ "Mục tiêu của điều chuyển hàng loạt là nhóm các hoạt động có thể (cần) "
-#~ "được\n"
-#~ "             thực hiện vào với nhau để cải thiện hiệu quả. Điều này cũng "
-#~ "có thể hữu ích\n"
-#~ "             khi phân công công việc (một người = một loạt) hoặc giúp "
-#~ "quản lý thời gian\n"
-#~ "             của các hoạt động (nhiệm vụ sẽ được thực hiện lúc 1 giờ "
-#~ "chiều)."
-
-#~ msgid ""
-#~ "The goal of the wave transfer is to group operations from different "
-#~ "transfer\n"
-#~ "                    together in order to increase their efficiency.\n"
-#~ "                    It may also be useful to assign jobs (one person = "
-#~ "one batch) or\n"
-#~ "                    help the timing management of operations (tasks to be "
-#~ "done at 1pm)."
-#~ msgstr ""
-#~ "Mục tiêu của điều chuyển theo đợt là nhóm các hoạt động từ điều chuyển "
-#~ "khác nhau\n"
-#~ "             vào với nhau để cải thiện hiệu quả. Điều này cũng có thể hữu "
-#~ "ích\n"
-#~ "             khi phân công công việc (một người = một loạt) hoặc giúp "
-#~ "quản lý thời gian\n"
-#~ "             của các hoạt động (nhiệm vụ sẽ được thực hiện lúc 1 giờ "
-#~ "chiều)."
-
-#~ msgid "Waves"
-#~ msgstr "Đợt"

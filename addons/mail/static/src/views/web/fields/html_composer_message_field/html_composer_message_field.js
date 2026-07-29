@@ -1,13 +1,14 @@
-import { DYNAMIC_PLACEHOLDER_PLUGINS } from "@html_editor/backend/plugin_sets";
+import { DYNAMIC_FIELD_PLUGINS } from "@html_editor/backend/dynamic_field/dynamic_field_plugin";
 import { isEmpty } from "@html_editor/utils/dom_info";
 import { registry } from "@web/core/registry";
 import { useBus } from "@web/core/utils/hooks";
 import { HtmlMailField, htmlMailField } from "../html_mail_field/html_mail_field";
-import { MentionPlugin } from "./mention_plugin";
+import { MailFullComposerSuggestionPlugin } from "./mail_full_composer_suggestion_plugin";
 import { ContentExpandablePlugin } from "./content_expandable_plugin";
 import { DisableBannerCommandsPlugin } from "./disable_banner_commands_plugin";
 import { fillEmpty } from "@html_editor/utils/dom";
 import { markup } from "@odoo/owl";
+import { SIGNATURE_CLASS } from "@html_editor/main/user_signature_plugin";
 
 export class HtmlComposerMessageField extends HtmlMailField {
     setup() {
@@ -19,7 +20,7 @@ export class HtmlComposerMessageField extends HtmlMailField {
             });
             useBus(this.env.fullComposerBus, "SAVE_CONTENT", (ev) => {
                 const emailAddSignature = Boolean(
-                    this.editor.editable.querySelector(".o-signature-container")
+                    this.editor.editable.querySelector(`.${SIGNATURE_CLASS}`)
                 );
                 const composerHtml = markup(this.getNoSignatureElContent().innerHTML);
                 ev.detail.onSaveContent({ composerHtml, emailAddSignature });
@@ -40,16 +41,17 @@ export class HtmlComposerMessageField extends HtmlMailField {
 
     getConfig() {
         const config = super.getConfig(...arguments);
-        config.Plugins = config.Plugins.filter((plugin) => !["video"].includes(plugin.id)).concat([
+        config.Plugins = [
+            ...config.Plugins.filter((plugin) => !["video"].includes(plugin.id)),
             DisableBannerCommandsPlugin,
-            MentionPlugin,
-        ]);
+            MailFullComposerSuggestionPlugin,
+        ];
         if (this.props.record.data.composition_comment_option === "reply_all") {
             config.Plugins.push(ContentExpandablePlugin);
         }
         if (!this.props.record.data.composition_batch) {
             config.Plugins = config.Plugins.filter(
-                (plugin) => !DYNAMIC_PLACEHOLDER_PLUGINS.includes(plugin)
+                (plugin) => !DYNAMIC_FIELD_PLUGINS.includes(plugin)
             );
         }
         config.onAttachmentChange = (attachment) => {
@@ -64,7 +66,7 @@ export class HtmlComposerMessageField extends HtmlMailField {
             }
             this.props.record.data.attachment_ids.linkTo(attachment.id, attachment);
         };
-        config.thread = this.env.services["mail.store"]?.Thread.get({
+        config.thread = this.env.services["mail.store"]?.["mail.thread"].get({
             model: this.props.record.data.model,
             id: JSON.parse(this.props.record.data.res_ids || "[]")[0],
         });
@@ -73,9 +75,7 @@ export class HtmlComposerMessageField extends HtmlMailField {
 
     getNoSignatureElContent() {
         const elContent = this.editor.getElContent();
-        for (const el of elContent.querySelectorAll(".o-signature-container")) {
-            el.remove();
-        }
+        this.editor.shared.userSignature.cleanSignatures({ rootClone: elContent });
         return elContent;
     }
 }

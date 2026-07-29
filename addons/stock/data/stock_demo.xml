@@ -97,7 +97,7 @@
         </record>
         <record id="stock_inventory_11" model="stock.quant">
             <field name="product_id" ref="product.product_product_12"/>
-            <field name="inventory_quantity">10.0</field>
+            <field name="inventory_quantity">40.0</field>
             <field name="location_id" model="stock.location" eval="obj().env.ref('stock.warehouse0').lot_stock_id.id"/>
         </record>
         <record id="stock_inventory_12" model="stock.quant">
@@ -146,7 +146,6 @@
         <!--        Child Company 1-->
         <record id="res_partner_company_1" model="res.partner">
             <field name="name">My Company, Chicago</field>
-            <field name="is_company">1</field>
             <field eval="1" name="active"/>
             <field name="street">90 Streets Avenue</field>
             <field model="res.country" name="country_id" search="[('code','ilike','us')]"/>

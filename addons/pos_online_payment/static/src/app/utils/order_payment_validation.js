@@ -54,7 +54,7 @@ patch(OrderPaymentValidation.prototype, {
             return true;
         }
 
-        if (this.order.finalized) {
+        if (this.order.state === "done") {
             this.afterOrderValidation(false);
             return false;
         }
@@ -65,7 +65,7 @@ patch(OrderPaymentValidation.prototype, {
                 this.cancelOnlinePayment(this.order);
                 this.pos.dialog.add(AlertDialog, {
                     title: _t("Online payment unavailable"),
-                    body: _t("The QR Code for paying could not be generated."),
+                    body: _t("The QR code payment could not be generated."),
                 });
                 return false;
             }
@@ -181,10 +181,6 @@ patch(OrderPaymentValidation.prototype, {
                     confirmLabel: _t("Yes"),
                 });
             }
-            if (orderServerOPData.isPaid) {
-                await this.afterPaidOrderSavedOnServer(orderServerOPData.paid_order);
-                return false; // Cancel normal flow because the current order is already saved on the server.
-            }
             if (orderServerOPData.modified_payment_lines) {
                 this.pos.dialog.add(AlertDialog, {
                     title: _t("Updated online payments"),
@@ -234,7 +230,7 @@ patch(OrderPaymentValidation.prototype, {
             (this.order.isPaidWithCash() || this.order.change) &&
             this.pos.config.iface_cashdrawer
         ) {
-            this.pos.hardwareProxy.openCashbox();
+            this.pos.openCashbox();
         }
 
         if (isInvoiceRequested) {

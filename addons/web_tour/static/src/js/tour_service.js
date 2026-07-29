@@ -4,14 +4,14 @@ import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
 import { session } from "@web/session";
 import { loadBundle } from "@web/core/assets";
-import { createPointerState } from "@web_tour/js/tour_pointer/tour_pointer_state";
+import { pointerState } from "@web_tour/js/tour_pointer/tour_pointer";
 import { tourState } from "@web_tour/js/tour_state";
-import { callWithUnloadCheck } from "@web_tour/js/utils/tour_utils";
 import {
     tourRecorderState,
     TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY,
 } from "@web_tour/js/tour_recorder/tour_recorder_state";
 import { redirect } from "@web/core/utils/urls";
+import { _t } from "@web/core/l10n/translation";
 
 class OnboardingItem extends Component {
     static components = { DropdownItem };
@@ -23,7 +23,7 @@ class OnboardingItem extends Component {
     setup() {}
 }
 
-const StepSchema = {
+const stepSchema = {
     id: { type: [String], optional: true },
     content: { type: [String, Object], optional: true }, //allow object(_t && markup)
     debugHelp: { type: String, optional: true },
@@ -43,40 +43,83 @@ const StepSchema = {
     },
     trigger: { type: String },
     expectUnloadPage: { type: Boolean, optional: true },
-    //ONLY IN DEBUG MODE
-    pause: { type: Boolean, optional: true },
-    break: { type: Boolean, optional: true },
 };
 
-const TourSchema = {
+const stepSchemaDebug = {
+    ...stepSchema,
+    pause: { type: Boolean, optional: true },
+    break: { type: Boolean, optional: true },
+    observe: { type: Boolean, optional: true },
+};
+
+const tourSchema = {
     name: { type: String, optional: true },
     steps: Function,
     url: { type: String, optional: true },
     wait_for: { type: [Function, Object], optional: true },
+    undeterministicTour_doNotCopy: { type: Boolean, optional: true },
 };
 
-registry.category("web_tour.tours").addValidation(TourSchema);
-const debugMenuRegistry = registry.category("debug").category("default");
+const tourRegistry = registry.category("web_tour.tours");
+tourRegistry.addValidation(tourSchema);
 
-export const tourService = {
-    // localization dependency to make sure translations used by tours are loaded
-    dependencies: ["orm", "effect", "overlay", "localization"],
-    start: async (env, { orm, effect, overlay }) => {
-        await whenReady();
-        let toursEnabled = session?.tour_enabled;
-        const tourRegistry = registry.category("web_tour.tours");
-        const pointer = createPointerState();
-        pointer.stop = () => {};
+export class TourService {
+    /**
+     * @param {import("@web/env").OdooEnv} env
+     * @param {import("services").ServiceFactories} services
+     */
+    constructor(env, services) {
+        this.env = env;
+        this.orm = services["orm"];
+        this.effect = services["effect"];
+        this.overlay = services["overlay"];
+        this.toursEnabled = session?.tour_enabled;
+        this.removePointer = () => {};
+        this.removeTourRecorder = () => {};
+        this.addOnboardingItemInDebugMenu();
 
+        if (window.frameElement) {
+            return;
+        }
+
+        const paramsTourName = new URLSearchParams(browser.location.search).get("tour");
+        if (paramsTourName) {
+            this.startTour(paramsTourName, { mode: "manual", fromDB: true });
+        }
+
+        if (tourState.getCurrentTour()) {
+            if (tourState.getCurrentConfig().mode === "auto" || this.toursEnabled) {
+                this.resumeTour();
+            } else {
+                tourState.clear();
+            }
+        } else if (session.current_tour) {
+            this.startTour(session.current_tour.name, {
+                mode: "manual",
+                redirect: false,
+                rainbowManMessage: session.current_tour.rainbowManMessage,
+            });
+        }
+
+        if (
+            browser.localStorage.getItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY) &&
+            !session.is_public
+        ) {
+            this.addTourRecorderToOverlay();
+        }
+    }
+
+    addOnboardingItemInDebugMenu() {
+        const debugMenuRegistry = registry.category("debug").category("default");
         debugMenuRegistry.add("onboardingItem", () => ({
             type: "component",
             Component: OnboardingItem,
             props: {
-                toursEnabled: toursEnabled || false,
+                toursEnabled: this.toursEnabled || false,
                 toggleItem: async () => {
                     tourState.clear();
-                    toursEnabled = await orm.call("res.users", "switch_tour_enabled", [
-                        !toursEnabled,
+                    this.toursEnabled = await this.orm.call("res.users", "switch_tour_enabled", [
+                        !this.toursEnabled,
                     ]);
                     browser.location.reload();
                 },
@@ -84,212 +127,261 @@ export const tourService = {
             sequence: 500,
             section: "testing",
         }));
+    }
 
-        function getTourFromRegistry(tourName) {
-            if (!tourRegistry.contains(tourName)) {
-                return;
-            }
-            const tour = tourRegistry.get(tourName);
-            return {
-                ...tour,
-                steps: tour.steps(),
-                name: tourName,
-                wait_for: tour.wait_for || Promise.resolve(),
-            };
+    /**
+     * Add tour recorder component in overlay container.
+     */
+    async addTourRecorderToOverlay() {
+        if (!odoo.loader.modules.get("@web_tour/js/tour_recorder/tour_recorder")) {
+            await loadBundle("web_tour.recorder");
         }
+        const { TourRecorder } = odoo.loader.modules.get(
+            "@web_tour/js/tour_recorder/tour_recorder"
+        );
+        const remove = this.overlay.add(
+            TourRecorder,
+            {
+                onClose: () => {
+                    remove();
+                    browser.localStorage.removeItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY);
+                    tourRecorderState.clear();
+                },
+            },
+            { sequence: 99999 }
+        );
 
-        async function getTourFromDB(tourName) {
-            const tour = await orm.call("web_tour.tour", "get_tour_json_by_name", [tourName]);
+        this.removeTourRecorder = () => {
+            remove();
+            browser.localStorage.removeItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY);
+            tourRecorderState.clear();
+        };
+    }
+
+    /**
+     * @param {string} name The name of the tour
+     */
+    async getTour(name, options) {
+        if (options.mode !== "manual") {
+            await this.waitUntilTourRegistered(name);
+        }
+        let tour = tourRegistry.get(name, null);
+        if (options.mode === "manual" && options.fromDB) {
+            tour = await this.orm.call("web_tour.tour", "get_tour_json_by_name", [name]);
             if (!tour) {
-                throw new Error(`Tour '${tourName}' is not found in the database.`);
+                throw new Error(`Tour '${name}' is not found in the database.`);
             }
 
             if (!tour.steps.length && tourRegistry.contains(tour.name)) {
-                tour.steps = tourRegistry.get(tour.name).steps();
-            }
-
-            return tour;
-        }
-
-        function validateStep(step) {
-            try {
-                validate(step, StepSchema);
-            } catch (error) {
-                console.error(
-                    `Error in schema for TourStep ${JSON.stringify(step, null, 4)}\n${
-                        error.message
-                    }`
-                );
+                tour.steps = tourRegistry.get(tour.name).steps;
             }
         }
+        if (!tour) {
+            return undefined;
+        }
+        const url = options.fromDB ? options.url : tour.url;
+        return {
+            ...tour,
+            name,
+            url,
+            steps:
+                typeof tour.steps === "function"
+                    ? tour.steps()
+                    : Array.isArray(tour.steps)
+                    ? tour.steps
+                    : [],
+            waitFor: tour.wait_for || Promise.resolve(),
+        };
+    }
 
-        async function startTour(tourName, options = {}) {
-            pointer.stop();
-            const tourFromRegistry = getTourFromRegistry(tourName);
+    /**
+     * Waits up to 5 seconds for a tour to be registered in the client-side
+     * tour registry.
+     *
+     * This is required because after a browser refresh, the tour definition
+     * may not yet be loaded when execution starts. Without this guard,
+     * the tour could abort if it is triggered before being registered.
+     *
+     * @param {string} name - The tour name.
+     * @returns {Promise<boolean>} Resolves to `true` if the tour is found
+     *   within the timeout, otherwise `false`.
+     */
+    async waitUntilTourRegistered(name) {
+        const start = Date.now();
+        while (!tourRegistry.contains(name) && Date.now() - start <= 5000) {
+            await new Promise((r) => setTimeout(r, 50));
+        }
+        return tourRegistry.contains(name);
+    }
 
-            if (!tourFromRegistry && !options.fromDB) {
-                // Sometime tours are not loaded depending on the modules.
-                // For example, point_of_sale do not load all tours assets.
-                return;
+    /**
+     * Check that the registry contains the tour (only for automatic tour)
+     * @param {string} name The name of the tour
+     */
+    isTourReady(name) {
+        return tourRegistry.contains(name);
+    }
+
+    async resumeTour() {
+        const tourName = tourState.getCurrentTour();
+        const tourConfig = tourState.getCurrentConfig();
+        const tour = await this.getTour(tourName, tourConfig);
+        if (!tour || !tour.steps.length) {
+            return;
+        }
+
+        tour.steps.forEach((step) => this.validateStep(step));
+
+        if (tourConfig.mode === "auto") {
+            if (!odoo.loader.modules.get("@web_tour/js/tour_automatic/tour_automatic")) {
+                await loadBundle("web_tour.automatic", { css: false });
             }
+            const { TourAutomatic } = odoo.loader.modules.get(
+                "@web_tour/js/tour_automatic/tour_automatic"
+            );
+            new TourAutomatic(tour).start();
+        } else {
+            await loadBundle("web_tour.interactive");
+            const { TourPointer } = odoo.loader.modules.get(
+                "@web_tour/js/tour_pointer/tour_pointer"
+            );
+            this.removePointer = this.overlay.add(
+                TourPointer,
+                {
+                    pointerState,
+                    bounce: !(tourConfig.mode === "auto" && tourConfig.keepWatchBrowser),
+                },
+                {
+                    sequence: 1100, // sequence based on bootstrap z-index values.
+                }
+            );
+            const { TourInteractive } = odoo.loader.modules.get(
+                "@web_tour/js/tour_interactive/tour_interactive"
+            );
+            new TourInteractive(tour).start(this.env, async () => {
+                this.removePointer();
+                tourState.clear();
+                browser.console.log("tour succeeded");
+                let message = tourConfig.rainbowManMessage || tour.rainbowManMessage;
+                if (message) {
+                    message = window.DOMPurify.sanitize(tourConfig.rainbowManMessage);
+                    this.effect.add({
+                        type: "rainbow_man",
+                        message: markup(message),
+                    });
+                }
 
-            const tour = options.fromDB ? { name: tourName, url: options.url } : tourFromRegistry;
-            if (!session.is_public && !toursEnabled && options.mode === "manual") {
-                toursEnabled = await orm.call("res.users", "switch_tour_enabled", [!toursEnabled]);
-            }
-
-            let tourConfig = {
-                delayToCheckUndeterminisms: 0,
-                stepDelay: 0,
-                keepWatchBrowser: false,
-                mode: "auto",
-                showPointerDuration: 0,
-                debug: false,
-                redirect: true,
-            };
-
-            tourConfig = Object.assign(tourConfig, options);
-            tourState.setCurrentConfig(tourConfig);
-            tourState.setCurrentTour(tour.name);
-            tourState.setCurrentIndex(0);
-
-            const willUnload = callWithUnloadCheck(() => {
-                if (tour.url && tourConfig.startUrl != tour.url && tourConfig.redirect) {
-                    redirect(tour.url);
+                const nextTour = await this.orm.call("web_tour.tour", "consume", [tour.name]);
+                if (nextTour) {
+                    this.startTour(nextTour.name, {
+                        mode: "manual",
+                        redirect: false,
+                        rainbowManMessage: nextTour.rainbowManMessage,
+                    });
                 }
             });
-            if (!willUnload) {
-                await resumeTour();
-            }
+        }
+    }
+
+    /**
+     * Starts manual or automatic tour.
+     * This retrieves a tour from the internal registry or from the database
+     * if `options.fromDB` is set.
+     *
+     * @param {string} name - The name of the tour to start.
+     * @param {Object} [options={}] - Options to customize the tour start.
+     * @param {boolean} [options.fromDB=false] - Whether the tour should be loaded from the database.
+     * @param {string} [options.url] - URL to start the tour.
+     * @param {"auto"|"manual"} [options.mode="auto"] - Tour start mode ("auto" or "manual").
+     * @param {number} [options.observeDelay=3000] - Delay to check for indeterminisms in steps.
+     * @param {number} [options.stepDelay=0] - Delay between each tour step.
+     * @param {boolean} [options.keepWatchBrowser=false] - Whether to keep watching the browser continuously.
+     * @param {number} [options.showPointerDuration=0] - Duration to show the pointer on each step.
+     * @param {boolean} [options.debug=false] - Enables debug mode for the tour.
+     * @param {boolean} [options.redirect=true] - Whether to redirect to `tour.url` if necessary.
+     */
+    async startTour(name, options = {}) {
+        this.removePointer();
+        this.removeTourRecorder();
+        const tour = await this.getTour(name, options);
+        if (!tour) {
+            return;
+        }
+        if (!session.is_public && !this.toursEnabled && options.mode === "manual") {
+            this.toursEnabled = await this.orm.call("res.users", "switch_tour_enabled", [
+                !this.toursEnabled,
+            ]);
         }
 
-        async function resumeTour() {
-            const tourName = tourState.getCurrentTour();
-            const tourConfig = tourState.getCurrentConfig();
-
-            let tour = getTourFromRegistry(tourName);
-            if (tourConfig.fromDB) {
-                tour = await getTourFromDB(tourName);
-            }
-            // if (!tour) {
-            if (!tour || !tour.steps.length) {
-                return;
-            }
-
-            tour.steps.forEach((step) => validateStep(step));
-
-            if (tourConfig.mode === "auto") {
-                if (!odoo.loader.modules.get("@web_tour/js/tour_automatic/tour_automatic")) {
-                    await loadBundle("web_tour.automatic", { css: false });
-                }
-                const { TourAutomatic } = odoo.loader.modules.get(
-                    "@web_tour/js/tour_automatic/tour_automatic"
-                );
-                new TourAutomatic(tour).start();
-            } else {
-                await loadBundle("web_tour.interactive");
-                const { TourPointer } = odoo.loader.modules.get(
-                    "@web_tour/js/tour_pointer/tour_pointer"
-                );
-                pointer.stop = overlay.add(
-                    TourPointer,
-                    {
-                        pointerState: pointer.state,
-                        bounce: !(tourConfig.mode === "auto" && tourConfig.keepWatchBrowser),
-                    },
-                    {
-                        sequence: 1100, // sequence based on bootstrap z-index values.
-                    }
-                );
-                const { TourInteractive } = odoo.loader.modules.get(
-                    "@web_tour/js/tour_interactive/tour_interactive"
-                );
-                new TourInteractive(tour).start(env, pointer, async () => {
-                    pointer.stop();
-                    tourState.clear();
-                    browser.console.log("tour succeeded");
-                    let message = tourConfig.rainbowManMessage || tour.rainbowManMessage;
-                    if (message) {
-                        message = window.DOMPurify.sanitize(tourConfig.rainbowManMessage);
-                        effect.add({
-                            type: "rainbow_man",
-                            message: markup(message),
-                        });
-                    }
-
-                    const nextTour = await orm.call("web_tour.tour", "consume", [tour.name]);
-                    if (nextTour) {
-                        startTour(nextTour.name, {
-                            mode: "manual",
-                            redirect: false,
-                            rainbowManMessage: nextTour.rainbowManMessage,
-                        });
-                    }
-                });
-            }
-        }
-
-        async function tourRecorder() {
-            await loadBundle("web_tour.recorder");
-            const { TourRecorder } = odoo.loader.modules.get(
-                "@web_tour/js/tour_recorder/tour_recorder"
-            );
-            const remove = overlay.add(
-                TourRecorder,
-                {
-                    onClose: () => {
-                        remove();
-                        browser.localStorage.removeItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY);
-                        tourRecorderState.clear();
-                    },
-                },
-                { sequence: 99999 }
-            );
-        }
-
-        async function startTourRecorder() {
-            if (!browser.localStorage.getItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY)) {
-                await tourRecorder();
-            }
-            browser.localStorage.setItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY, "1");
-        }
-
-        if (!window.frameElement) {
-            const paramsTourName = new URLSearchParams(browser.location.search).get("tour");
-            if (paramsTourName) {
-                startTour(paramsTourName, { mode: "manual", fromDB: true });
-            }
-
-            if (tourState.getCurrentTour()) {
-                if (tourState.getCurrentConfig().mode === "auto" || toursEnabled) {
-                    resumeTour();
-                } else {
-                    tourState.clear();
-                }
-            } else if (session.current_tour) {
-                startTour(session.current_tour.name, {
-                    mode: "manual",
-                    redirect: false,
-                    rainbowManMessage: session.current_tour.rainbowManMessage,
-                });
-            }
-
-            if (
-                browser.localStorage.getItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY) &&
-                !session.is_public
-            ) {
-                await tourRecorder();
-            }
-        }
-
-        odoo.startTour = startTour;
-        odoo.isTourReady = (tourName) => getTourFromRegistry(tourName).wait_for.then(() => true);
-
-        return {
-            startTour,
-            startTourRecorder,
+        const tourConfig = {
+            stepDelay: 0,
+            keepWatchBrowser: false,
+            mode: "auto",
+            showPointerDuration: 0,
+            debug: false,
+            redirect: true,
+            observeDelay: 3000,
+            allowDelayToRemove: tour.undeterministicTour_doNotCopy,
+            ...options,
         };
-    },
-};
 
-registry.category("services").add("tour_service", tourService);
+        tourState.setCurrentConfig(tourConfig);
+        tourState.setCurrentTour(name);
+        tourState.setCurrentIndex(0);
+
+        if (tour.url && tourConfig.startUrl != tour.url && tourConfig.redirect) {
+            redirect(tour.url);
+        } else {
+            await this.resumeTour();
+        }
+    }
+
+    async startTourRecorder() {
+        if (!browser.localStorage.getItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY)) {
+            await this.addTourRecorderToOverlay();
+        }
+        browser.localStorage.setItem(TOUR_RECORDER_ACTIVE_LOCAL_STORAGE_KEY, "1");
+    }
+
+    /**
+     * Validate a step according to {@link stepSchema}.
+     * @param {Object} step - The step object to validate.
+     */
+    validateStep(step) {
+        const tourConfig = tourState.getCurrentConfig();
+        try {
+            validate(step, tourConfig.debug ? stepSchemaDebug : stepSchema);
+        } catch (error) {
+            console.error(
+                `Error in schema for TourStep ${JSON.stringify(step, null, 4)}\n${error.message}`
+            );
+        }
+    }
+}
+
+registry.category("services").add("tour_service", {
+    // localization dependency to make sure translations used by tours are loaded
+    dependencies: ["orm", "effect", "overlay", "localization"],
+    async start(env, services) {
+        await whenReady();
+        const service = new TourService(env, services);
+        odoo.startTour = service.startTour.bind(service);
+        odoo.isTourReady = service.isTourReady.bind(service);
+        return service;
+    },
+});
+
+registry.category("command_provider").add("tour_recorder", {
+    provide: (env, options) => {
+        const result = [];
+        if (options.searchValue.toLowerCase() === "record") {
+            result.push({
+                action() {
+                    env.services["tour_service"].startTourRecorder();
+                },
+                name: _t("Enable the tour recorder"),
+            });
+        }
+        return result;
+    },
+});

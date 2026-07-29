@@ -9,16 +9,17 @@ from odoo import fields, Command
 from odoo.addons.survey.tests import common
 from odoo.addons.mail.tests.common import MailCase
 from odoo.exceptions import AccessError, UserError
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 from odoo.tests.common import users
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSurveyInvite(common.TestSurveyCommon, MailCase):
 
     def setUp(self):
         res = super(TestSurveyInvite, self).setUp()
         # by default signup not allowed
-        self.env["ir.config_parameter"].set_param('auth_signup.invitation_scope', 'b2b')
+        self.env["ir.config_parameter"].set_str('auth_signup.invitation_scope', 'b2b')
         view = self.env.ref('survey.survey_invite_view_form').sudo()
         tree = etree.fromstring(view.arch)
         # Remove the invisible on `emails` to be able to test the onchange `_onchange_emails`
@@ -171,7 +172,7 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCase):
 
     @users('survey_manager')
     def test_survey_invite_authentication_signup(self):
-        self.env["ir.config_parameter"].sudo().set_param('auth_signup.invitation_scope', 'b2c')
+        self.env["ir.config_parameter"].sudo().set_str('auth_signup.invitation_scope', 'b2c')
         self.env.invalidate_all()
         Answer = self.env['survey.user_input']
 
@@ -199,7 +200,7 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCase):
     def test_survey_invite_email_from(self):
         # Verifies whether changing the value of the "email_from" field reflects on the receiving end.
         # by default avoid rendering restriction complexity
-        self.env['ir.config_parameter'].sudo().set_param('mail.restrict.template.rendering', False)
+        self.env['ir.config_parameter'].sudo().set_bool('mail.restrict.template.rendering', False)
 
         action = self.survey.action_send_survey()
         action['context']['default_send_email'] = True
@@ -315,13 +316,13 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCase):
             email template
         """
         # avoid rendering restriction complexity (survey_user is not a template editor by default)
-        self.env['ir.config_parameter'].sudo().set_param('mail.restrict.template.rendering', False)
+        self.env['ir.config_parameter'].sudo().set_bool('mail.restrict.template.rendering', False)
         mail_template = self.env['mail.template'].create({
             'name': 'test mail template',
             'attachment_ids': [Command.create({
                 'name': 'some_attachment.pdf',
                 'res_model': 'mail.template',
-                'datas': 'test',
+                'raw': b'test',
                 'type': 'binary',
             })],
         })
@@ -418,7 +419,7 @@ class TestSurveyInvite(common.TestSurveyCommon, MailCase):
         but can send one whose lang matches the template's (trusted as validated data). """
         # MailCommon grants template_editor to all internal users by default; undo that
         # so survey_manager is subject to the rendering restriction.
-        self.env['ir.config_parameter'].set_param('mail.restrict.template.rendering', True)
+        self.env['ir.config_parameter'].set_bool('mail.restrict.template.rendering', True)
 
         partner = self.env['res.partner'].create({
             'name': 'Partner Security Test',

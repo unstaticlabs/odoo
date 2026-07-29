@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rebuild_account_reconcile_model_list" model="ir.ui.view">
+        <field name="name">account.reconcile.model.list.smart</field>
+        <field name="model">account.reconcile.model</field>
+        <field name="inherit_id" ref="account.view_account_reconcile_model_tree"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list
+                    string="Bank Matching Rules"
+                    decoration-muted="rebuild_health_state in ('redundant', 'archived')"
+                    decoration-warning="rebuild_health_state == 'needs_review'"
+                >
+                    <header>
+                        <button
+                            name="action_rebuild_analyze_rule_opportunities"
+                            type="object"
+                            string="Find"
+                            icon="fa-magic"
+                            display="always"
+                            groups="account.group_account_manager"
+                            title="Find repeated, consistently categorized bank transactions and create review-only rule suggestions. This never changes accounting or activates a rule."
+                        />
+                    </header>
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field
+                        name="rebuild_health_state"
+                        widget="badge"
+                        decoration-success="rebuild_health_state == 'proven'"
+                        decoration-info="rebuild_health_state in ('ready', 'suggested')"
+                        decoration-warning="rebuild_health_state == 'needs_review'"
+                        decoration-muted="rebuild_health_state in ('redundant', 'archived')"
+                    />
+                    <field name="rebuild_scope_summary" optional="hide"/>
+                    <field name="rebuild_effect_summary"/>
+                    <field
+                        name="rebuild_activity_badge"
+                        string="Activity"
+                        widget="badge"
+                        class="o_usl_rule_activity_badge"
+                        decoration-success="rebuild_activity_state == 'used'"
+                        decoration-info="rebuild_activity_state in ('open', 'used_open')"
+                        decoration-muted="rebuild_activity_state == 'none'"
+                    />
+                    <field
+                        name="rebuild_activity_state"
+                        column_invisible="True"
+                    />
+                    <field
+                        name="trigger"
+                        widget="badge"
+                        class="o_usl_rule_trigger_badge"
+                        decoration-warning="trigger == 'auto_reconcile'"
+                        decoration-muted="trigger == 'manual'"
+                    />
+                    <field name="rebuild_origin" widget="badge" optional="hide"/>
+                    <field name="match_journal_ids" optional="hide" widget="many2many_tags"/>
+                    <field name="active" column_invisible="True"/>
+                </list>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_reconcile_model_form" model="ir.ui.view">
+        <field name="name">account.reconcile.model.form.smart</field>
+        <field name="model">account.reconcile.model</field>
+        <field name="inherit_id" ref="account.view_account_reconcile_model_form"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="replace">
+                <form string="Bank Matching Rule">
+                    <header>
+                        <button
+                            name="action_rebuild_approve_proposal"
+                            type="object"
+                            string="Approve Rule"
+                            class="oe_highlight"
+                            groups="account.group_account_manager"
+                            invisible="not rebuild_is_proposal"
+                            title="Activate the reviewed rule with its proposed behavior. Future matching transactions may then use it."
+                        />
+                        <button
+                            name="action_rebuild_dismiss_proposal"
+                            type="object"
+                            string="Dismiss"
+                            groups="account.group_account_manager"
+                            invisible="not rebuild_is_proposal"
+                            confirm="Archive this suggestion without activating it?"
+                            title="Keep the evidence for audit while removing this suggestion from the active rule list."
+                        />
+                        <button
+                            name="action_rebuild_archive_rule"
+                            type="object"
+                            string="Archive Redundant Rule"
+                            groups="account.group_account_manager"
+                            invisible="rebuild_health_state != 'redundant'"
+                            confirm="Archive this partner-only rule? Smart partner inference remains available and the rule history is retained."
+                            title="Remove this rule from Bank Matching while retaining it for audit history."
+                        />
+                        <button
+                            name="action_set_manual"
+                            type="object"
+                            string="Require Review"
+                            groups="account.group_account_manager"
+                            invisible="trigger == 'manual' or rebuild_is_proposal or rebuild_health_state == 'redundant'"
+                            title="Stop automatic reconciliation. Matching users will still see this rule as a proposal when its conditions match."
+                        />
+                        <button
+                            name="action_set_auto_reconcile"
+                            type="object"
+                            string="Automate"
+                            class="oe_highlight"
+                            groups="account.group_account_manager"
+                            invisible="trigger == 'auto_reconcile' or rebuild_is_proposal"
+                            confirm="Automatically reconcile future bank transactions that satisfy this rule?"
+                            title="Apply and reconcile this rule automatically when every configured condition matches. Use only for stable, unambiguous patterns."
+                        />
+                        <field
+                            name="trigger"
+                            widget="statusbar"
+                            invisible="rebuild_is_proposal or rebuild_health_state == 'redundant'"
+                        />
+                        <field
+                            name="rebuild_proposed_trigger"
+                            widget="statusbar"
+                            invisible="not rebuild_is_proposal"
+                        />
+                        <span
+                            class="badge text-bg-light border align-self-center"
+                            invisible="rebuild_health_state != 'redundant'"
+                        >
+                            Legacy partner mapping — not executable
+                        </span>
+                    </header>
+                    <field name="active" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="rebuild_is_proposal" invisible="1"/>
+                    <field name="rebuild_has_actionable_guidance" invisible="1"/>
+                    <sheet class="o_usl_reconcile_rule_form">
+                        <div class="oe_button_box" name="button_box">
+                            <button
+                                type="object"
+                                name="action_reconcile_stat"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                invisible="rebuild_current_use_count == 0"
+                                title="Open journal entries whose counterpart lines record this rule as their origin."
+                            >
+                                <field
+                                    name="rebuild_current_use_count"
+                                    widget="statinfo"
+                                    string="Current uses"
+                                />
+                            </button>
+                            <button
+                                type="object"
+                                name="action_rebuild_open_matches"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                invisible="rebuild_open_match_count == 0"
+                                title="Open unmatched bank transactions that currently satisfy this rule."
+                            >
+                                <field
+                                    name="rebuild_open_match_count"
+                                    widget="statinfo"
+                                    string="Open matches"
+                                />
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <label for="name" string="Rule"/>
+                            <h1>
+                                <field name="name" placeholder="e.g. Monthly bank service fee"/>
+                            </h1>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <field
+                                    name="rebuild_health_state"
+                                    widget="badge"
+                                    decoration-success="rebuild_health_state == 'proven'"
+                                    decoration-info="rebuild_health_state in ('ready', 'suggested')"
+                                    decoration-warning="rebuild_health_state == 'needs_review'"
+                                    decoration-muted="rebuild_health_state in ('redundant', 'archived')"
+                                />
+                                <field name="rebuild_origin" widget="badge"/>
+                            </div>
+                        </div>
+
+                        <div
+                            class="alert alert-warning o_usl_rule_recommendation"
+                            role="status"
+                            invisible="not rebuild_has_actionable_guidance"
+                        >
+                            <i class="fa fa-lightbulb-o" aria-hidden="true"/>
+                            <field
+                                name="rebuild_guidance"
+                                nolabel="1"
+                                readonly="1"
+                            />
+                        </div>
+
+                        <div class="row g-3 o_usl_rule_configuration">
+                            <section class="col-12 col-xl-7">
+                                <div class="o_usl_rule_card">
+                                    <div class="o_usl_rule_card_header">
+                                        <h3>Match when</h3>
+                                        <span>All filled conditions must match.</span>
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_journal_ids" string="Bank journals"/>
+                                        <field
+                                            name="match_journal_ids"
+                                            placeholder="All bank journals"
+                                            widget="many2many_tags"
+                                            options="{'no_create': True}"
+                                        />
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_partner_ids"/>
+                                        <field
+                                            name="match_partner_ids"
+                                            widget="many2many_tags"
+                                            options="{'no_quick_create': True}"
+                                            placeholder="Any partner"
+                                        />
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_label" string="Bank label"/>
+                                        <div class="o_usl_rule_condition">
+                                            <field name="match_label" placeholder="Any label"/>
+                                            <field
+                                                name="match_label_param"
+                                                invisible="not match_label"
+                                                required="match_label"
+                                                placeholder="Text or regular expression"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_amount"/>
+                                        <div class="o_usl_rule_condition">
+                                            <field name="match_amount" placeholder="Any amount"/>
+                                            <field
+                                                name="match_amount_min"
+                                                invisible="match_amount in (False, 'lower')"
+                                                required="match_amount"
+                                            />
+                                            <span
+                                                class="o_form_label"
+                                                invisible="match_amount != 'between'"
+                                            >and</span>
+                                            <field
+                                                name="match_amount_max"
+                                                invisible="match_amount in (False, 'greater')"
+                                                required="match_amount == 'between'"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="col-12 col-xl-5">
+                                <div class="o_usl_rule_card o_usl_rule_result_card">
+                                    <div class="o_usl_rule_card_header">
+                                        <h3>Then</h3>
+                                        <span>Result proposed or applied to the transaction.</span>
+                                    </div>
+                                    <div class="o_usl_rule_result">
+                                        <span>Accounting result</span>
+                                        <field
+                                            name="rebuild_effect_summary"
+                                            nolabel="1"
+                                            readonly="1"
+                                        />
+                                    </div>
+                                    <div class="o_usl_rule_behavior">
+                                        <span invisible="trigger != 'manual' or rebuild_is_proposal">
+                                            <strong>Review required.</strong>
+                                            A user chooses whether to apply this result.
+                                        </span>
+                                        <span invisible="trigger != 'auto_reconcile' or rebuild_is_proposal">
+                                            <strong>Automated.</strong>
+                                            Matching transactions are posted and reconciled automatically.
+                                        </span>
+                                        <span invisible="not rebuild_is_proposal">
+                                            <strong>Suggestion only.</strong>
+                                            It cannot run until approved.
+                                        </span>
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="next_activity_type_id"/>
+                                        <field
+                                            name="next_activity_type_id"
+                                            placeholder="No follow-up activity"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <section class="o_usl_rule_card o_usl_rule_counterparts">
+                            <div class="o_usl_rule_card_header">
+                                <h3>Counterpart entries</h3>
+                                <span>
+                                    Entries created for the unmatched amount.
+                                    Leave partner mapping to smart inference unless it changes the accounting result.
+                                </span>
+                            </div>
+                            <field
+                                name="line_ids"
+                                default="{'default_model_id': self, 'default_company_id': self.company_id}"
+                                nolabel="1"
+                            >
+                                <list editable="bottom">
+                                    <field name="company_id" column_invisible="True"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="account_id" required="not partner_id"/>
+                                    <field
+                                        name="partner_id"
+                                        optional="show"
+                                    />
+                                    <field name="amount_type" string="Allocation"/>
+                                    <field name="amount_string" string="Value"/>
+                                    <field
+                                        name="tax_ids"
+                                        widget="many2many_tax_tags"
+                                        optional="hide"
+                                    />
+                                    <field
+                                        name="analytic_distribution"
+                                        widget="analytic_distribution"
+                                        string="Analytic"
+                                        groups="analytic.group_analytic_accounting"
+                                        options="{'account_field': 'account_id', 'business_domain': 'general'}"
+                                        optional="hide"
+                                    />
+                                    <field name="label" optional="show"/>
+                                </list>
+                            </field>
+                        </section>
+
+                        <details class="o_usl_rule_details">
+                            <summary>Notes and evidence</summary>
+                            <div class="o_usl_rule_details_body">
+                                <div class="o_usl_rule_field o_usl_rule_purpose">
+                                    <label for="rebuild_business_purpose" string="Business note"/>
+                                    <field
+                                        name="rebuild_business_purpose"
+                                        placeholder="Optional: why this treatment is correct or when an exception needs review."
+                                    />
+                                </div>
+                                <div class="o_usl_rule_metrics">
+                                    <div>
+                                        <span>Imported uses</span>
+                                        <field name="rebuild_historical_use_count" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div>
+                                        <span>Current uses</span>
+                                        <field name="rebuild_current_use_count" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div>
+                                        <span>Last used</span>
+                                        <field name="rebuild_last_used_on" nolabel="1" readonly="1"/>
+                                    </div>
+                                </div>
+                                <div
+                                    class="o_usl_rule_proposal_evidence"
+                                    invisible="not rebuild_is_proposal"
+                                >
+                                    <h4>Suggestion evidence</h4>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-4">
+                                            <label for="rebuild_proposal_source"/>
+                                            <field name="rebuild_proposal_source"/>
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            <label for="rebuild_proposal_confidence"/>
+                                            <field
+                                                name="rebuild_proposal_confidence"
+                                                widget="progressbar"
+                                            />
+                                        </div>
+                                    </div>
+                                    <field
+                                        name="rebuild_proposal_evidence"
+                                        nolabel="1"
+                                    />
+                                    <field
+                                        name="rebuild_evidence_statement_line_ids"
+                                        widget="many2many_tags"
+                                        nolabel="1"
+                                    />
+                                </div>
+                            </div>
+                        </details>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_reconcile_model_search" model="ir.ui.view">
+        <field name="name">account.reconcile.model.search.smart</field>
+        <field name="model">account.reconcile.model</field>
+        <field name="inherit_id" ref="account.view_account_reconcile_model_search"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="replace">
+                <search string="Bank Matching Rules">
+                    <field name="name"/>
+                    <field name="search_journal_id"/>
+                    <field name="rebuild_health_state"/>
+                    <field name="rebuild_origin"/>
+                    <separator/>
+                    <filter
+                        string="Used"
+                        name="used_rules"
+                        domain="[('rebuild_health_state', '=', 'proven')]"
+                    />
+                    <filter
+                        string="Ready"
+                        name="ready_rules"
+                        domain="[('rebuild_health_state', '=', 'ready')]"
+                    />
+                    <filter
+                        string="Needs review"
+                        name="rules_needing_review"
+                        domain="[('rebuild_health_state', '=', 'needs_review')]"
+                    />
+                    <filter
+                        string="Redundant"
+                        name="redundant_rules"
+                        domain="[('rebuild_health_state', '=', 'redundant')]"
+                    />
+                    <filter
+                        string="Suggestions"
+                        name="rule_suggestions"
+                        domain="[('rebuild_is_proposal', '=', True)]"
+                    />
+                    <filter
+                        string="Automated"
+                        name="automated_rules"
+                        domain="[('trigger', '=', 'auto_reconcile')]"
+                    />
+                    <separator/>
+                    <filter
+                        name="inactive"
+                        string="Archived"
+                        domain="[('active', '=', False)]"
+                    />
+                    <group>
+                        <filter
+                            string="Behavior"
+                            name="group_by_trigger"
+                            context="{'group_by': 'trigger'}"
+                        />
+                    </group>
+                </search>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account.action_account_reconcile_model" model="ir.actions.act_window">
+        <field name="name">Bank Matching Rules</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a focused matching rule</p>
+            <p>
+                Rules classify predictable bank transactions. Smart partner inference
+                works separately, so partner-only rules are normally unnecessary.
+            </p>
+        </field>
+    </record>
+
+    <record id="account_reconcile_oca.menu_account_reconcile_model" model="ir.ui.menu">
+        <field name="name">Bank Matching Rules</field>
+    </record>
+</odoo>

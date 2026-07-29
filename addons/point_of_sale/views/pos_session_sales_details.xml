@@ -9,9 +9,8 @@
                             <br/>
                             <br/>
                             <div class="text-start" style="font-size:0.85rem;">
-                                <span t-esc="company.name"/>
+                                <span t-out="company.name"/>
                                 <address class="mb-0 text-muted" t-field="env.company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": True}'/>
-                                <span t-if="company.vat" class="company-vat">VAT: <t t-esc="company.vat"/></span>
                             </div>
                         </div>
                         <div class="col-6 text-center">
@@ -29,7 +28,7 @@
                     <div class="col-12 text-end mt-2">
                         <span class="badge bg-light text-dark border border-dark p-2">
                             <t t-set="date_format" t-value="env['res.lang']._get_data(code=env.user.lang).date_format"/>
-                            <strong>    As of <span t-esc="datetime.datetime.now()" t-options="{'widget': 'datetime'}"/>
+                            <strong>    As of <span t-out="context_timestamp(datetime.datetime.now()).strftime(date_format)"/>
                             </strong>
                         </span>
                     </div>
@@ -353,7 +352,7 @@
                     <h6 class="bg-secondary p-1 fw-bold">Invoices</h6>
                     <table  class="table table-sm table-borderless" >
                         <tbody>
-                        <t t-foreach="invoiceList" t-as="invoiceSession" class="border-bottom border-secondary">
+                        <t t-foreach="invoiceList" t-as="invoiceSession">
                             <t t-if="invoiceSession['invoices']">
                                 <tr t-foreach='invoiceSession["invoices"]' t-as='invoice'>
                                     <td class="ps-2 fw-bold"><span t-out="invoice['name']">Invoice Name</span></td>

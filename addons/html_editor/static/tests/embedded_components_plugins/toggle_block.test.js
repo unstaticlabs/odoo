@@ -6,6 +6,7 @@ import {
     addStep,
     deleteBackward,
     deleteForward,
+    insertText,
     keydownShiftTab,
     keydownTab,
     splitBlock,
@@ -17,7 +18,7 @@ import {
     toggleBlockEmbedding,
 } from "@html_editor/others/embedded_components/core/toggle_block/toggle_block";
 import { onMounted } from "@odoo/owl";
-import { animationFrame, press, queryOne, tick } from "@odoo/hoot-dom";
+import { animationFrame, press, queryOne, tick, waitFor } from "@odoo/hoot-dom";
 import { Deferred } from "@odoo/hoot-mock";
 import { browser } from "@web/core/browser/browser";
 import { MAIN_PLUGINS } from "@html_editor/plugin_sets";
@@ -1412,6 +1413,30 @@ describe("Toggle block: Switch Direction", () => {
                 <p data-selection-placeholder=""><br></p>
             `
             )
+        );
+    });
+});
+
+describe("create with powerbox", () => {
+    test("current line text should be used when creating new toggle block", async () => {
+        const { editor } = await setupEditor(`<p>ab[]c</p>`, {
+            config: getConfig([toggleBlockEmbedding]),
+        });
+        await insertText(editor, "/toggle");
+        await press("Enter");
+        expect(
+            "[data-embedded='toggleBlock'] [data-embedded-editable='title']:contains('abc')"
+        ).toHaveCount(1);
+    });
+    test("title element should be same as current block if current block is heading", async () => {
+        const { editor } = await setupEditor(`<h1><font style="color: #ff0000">abc[]</font></h1>`, {
+            config: getConfig([toggleBlockEmbedding]),
+        });
+        await insertText(editor, "/toggle");
+        await waitFor(".o-we-powerbox");
+        await press("Enter");
+        expect("[data-embedded='toggleBlock'] [data-embedded-editable='title']").toHaveInnerHTML(
+            `<h1><font style="color: #ff0000">abc</font></h1>`
         );
     });
 });

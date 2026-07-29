@@ -10,7 +10,7 @@ import {
 } from "@odoo/hoot-dom";
 import { Deferred, animationFrame, mockTimeZone, runAllTimers } from "@odoo/hoot-mock";
 
-import { onWillDestroy, onWillStart, reactive, useState } from "@odoo/owl";
+import { Component, onWillDestroy, onWillStart, reactive, useState, xml } from "@odoo/owl";
 import { getPickerCell } from "@web/../tests/core/datetime/datetime_test_helpers";
 import {
     clickFieldDropdown,
@@ -360,7 +360,7 @@ test("one2many in a list x2many editable use the right context", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list .o_field_x2many_list_row_add button").click();
     await contains("[name='trululu'] input").edit("new partner", { confirm: false });
     await selectFieldDropdownItem("trululu", 'Create "new partner"');
 
@@ -390,7 +390,7 @@ test("one2many in a list x2many non-editable use the right context", async () =>
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list .o_field_x2many_list_row_add button").click();
     await contains("[name='trululu'] input").edit("new partner", { confirm: false });
     await selectFieldDropdownItem("trululu", 'Create "new partner"');
 
@@ -416,7 +416,7 @@ test("O2M field without relation_field", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list .o_field_x2many_list_row_add button").click();
     expect(".o_dialog").toHaveCount(1);
 });
 
@@ -463,7 +463,7 @@ test("O2M List with pager, decoration and default_order: add and cancel adding",
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list .o_field_x2many_list_row_add button").click();
 
     expect(".o_field_x2many_list .o_data_row").toHaveCount(2);
 
@@ -512,7 +512,7 @@ test("O2M with parented m2o and domain on parent.m2o", async () => {
                 </field>
             </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await clickFieldDropdown("parent_id");
     // Only one web_name_search since empty search returns no result
     expect.verifySteps(["web_name_search"]);
@@ -542,17 +542,17 @@ test('O2M with buttons with attr "special" in dialog close the dialog', async ()
                         <form>
                             <field name="bar"/>
                             <footer>
-                                <button special="cancel" data-hotkey="x" string="Cancel" class="btn-secondary"/>
+                                <button special="cancel" data-hotkey="x" class="btn-secondary"/>
                             </footer>
                         </form>
                     </field>
                 </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_dialog").toHaveCount(1);
 
-    expect(".modal .btn").toHaveText("Cancel");
+    expect(".modal .btn").toHaveText("Discard");
 
     await contains(".modal .btn").click();
     expect(".o_dialog").toHaveCount(0);
@@ -592,7 +592,7 @@ test("O2M modal buttons are disabled on click", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     await clickFieldDropdown("parent_id");
     await contains(".o_field_widget[name=parent_id] input").edit("ABC", { confirm: false });
@@ -734,7 +734,7 @@ test("one2many list editable with cell readonly modifier", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_selected_row [name=foo] input").toBeFocused({
         message: "The first input of the line should have the focus",
@@ -974,12 +974,12 @@ test("delete all records then repopulate", async () => {
     expect(".o_data_row").toHaveCount(1);
     await contains(".o_list_record_remove").click();
     expect(".o_data_row").toHaveCount(0);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_one2many .o_list_renderer tbody input").edit("value 1", {
         confirm: "blur",
     });
     expect(".o_data_row").toHaveCount(1);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_one2many .o_list_renderer tbody input").edit("value 2", {
         confirm: "blur",
     });
@@ -1604,7 +1604,7 @@ test("onchange followed by edition on the second page", async () => {
         message: "should display '#39' at the first line",
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(40, {
         message: "should display 39 records and the create line",
@@ -1623,7 +1623,7 @@ test("onchange followed by edition on the second page", async () => {
     expect(".o_data_row:eq(0)").toHaveClass(["o_data_row", "o_row_draggable"]);
     expect(".o_field_one2many .o_list_renderer .o_data_cell.o_list_char:eq(1)").toHaveText("#39");
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(40, {
         message: "should display 39 records and the create line",
@@ -1697,7 +1697,7 @@ test("onchange followed by edition on the second page (part 2)", async () => {
         { message: "should display '#77' at the last line" }
     );
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(41, {
         message: "should display 41 records and the create line",
@@ -1714,7 +1714,7 @@ test("onchange followed by edition on the second page (part 2)", async () => {
         "value 3",
         { confirm: "blur" }
     );
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(42, {
         message: "should display 42 records and the create line",
@@ -1915,7 +1915,7 @@ test("onchange on one2many containing x2many in form view", async () => {
     expect(".modal .o_data_row").toHaveCount(0);
 
     // add a many2many subrecord
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
 
     expect(".modal").toHaveCount(2, { message: "should have opened a second dialog" });
 
@@ -1941,7 +1941,7 @@ test("onchange on one2many containing x2many in form view", async () => {
     expect(".modal .o_data_row").toHaveCount(1);
 
     // add another m2m subrecord
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
 
     expect(".modal").toHaveCount(2, { message: "should have opened a second dialog" });
 
@@ -2023,7 +2023,7 @@ test("onchange on one2many with x2many in list (no widget) and form view (list)"
     expect(".modal .o_data_row").toHaveText("hello");
 
     // add a one2many subrecord and check if the default value is correctly applied
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
 
     expect(".modal .o_data_row").toHaveCount(2);
     expect(".modal .o_data_row .o_field_widget[name=turtle_foo] input").toHaveValue(
@@ -2224,7 +2224,7 @@ test("onchange on one2many with x2many in list (many2many_tags) and form view (l
     expect(".modal .o_data_row").toHaveText("hello");
 
     // add a one2many subrecord and check if the default value is correctly applied
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
 
     expect(".modal .o_data_row").toHaveCount(2);
     expect(".modal .o_data_row .o_field_widget[name=turtle_foo] input").toHaveValue(
@@ -2418,6 +2418,33 @@ test("one2many kanban order with handle widget", async () => {
         resId: 1,
     });
     expect.verifySteps(["web_read"]);
+});
+
+test("press Enter in a form with a one2many kanban", async () => {
+    Partner._records[0].p = [2, 4];
+
+    await mountView({
+        type: "form",
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="p">
+                    <kanban>
+                        <templates>
+                            <t t-name="card">
+                                <field name="foo"/>
+                            </t>
+                        </templates>
+                    </kanban>
+                </field>
+            </form>`,
+        resId: 1,
+    });
+
+    await press("Enter");
+
+    expect(".o_kanban_renderer").toHaveCount(1);
+    expect(".o_kanban_record:not(.o_kanban_ghost):not(.o-kanban-button-new)").toHaveCount(2);
 });
 
 test("one2many field when using the pager", async () => {
@@ -3059,7 +3086,7 @@ test("add record in a one2many non editable list with context", async () => {
     });
 
     await contains(".o_field_widget[name=int_field] input").edit("2");
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test.tags("desktop");
@@ -3091,7 +3118,7 @@ test("edition of one2many field, with onchange and not inline sub view", async (
                 </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="turtle_int"] input').edit("5");
     await contains(".modal-footer button.btn-primary").click();
     let firstCellOfSecondRow = ".o_data_cell.o_list_char:eq(1)";
@@ -3373,7 +3400,7 @@ test("one2many list: cannot open record in editable=bottom and edit=false list",
     expect(".modal-dialog").toHaveCount(0);
 });
 
-test("one2many list: conditional create/delete actions", async () => {
+test("one2many list: conditional create/delete attrs", async () => {
     Partner._records[0].p = [2, 4];
     await mountView({
         type: "form",
@@ -3381,7 +3408,7 @@ test("one2many list: conditional create/delete actions", async () => {
         arch: `
             <form>
                 <field name="bar"/>
-                <field name="p" options="{'create': [('bar', '=', True)], 'delete': [('bar', '=', True)]}">
+                <field name="p" create="bar == True" delete="bar == True">
                     <list>
                         <field name="name"/>
                     </list>
@@ -3575,9 +3602,10 @@ test("one2many kanban: edition", async () => {
     // create two new subrecords
     await contains(".o-kanban-button-new:eq(0)").click();
     await contains(".modal .o_form_view .o_field_widget:eq(0) input").edit("new subrecord 2");
-    await contains(".modal .modal-footer .btn-primary:eq(1)").click();
+    await contains(".modal .modal-footer .btn-primary").click();
+    await contains(".o-kanban-button-new:eq(0)").click();
     await contains(".modal .o_form_view .o_field_widget:eq(0) input").edit("new subrecord 3");
-    await contains(".modal .modal-footer .btn-primary:eq(0)").click();
+    await contains(".modal .modal-footer .btn-primary").click();
     expect(".o_kanban_record:not(.o_kanban_ghost):not(.o-kanban-button-new)").toHaveCount(4);
 
     // delete subrecords
@@ -3650,7 +3678,7 @@ test("one2many kanban: create action disabled", async () => {
     expect(".o_field_x2many_kanban .delete_icon").toHaveCount(1);
 });
 
-test("one2many kanban: conditional create/delete actions", async () => {
+test("one2many kanban: conditional create/delete attrs", async () => {
     Partner._records[0].p = [2, 4];
 
     await mountView({
@@ -3659,7 +3687,7 @@ test("one2many kanban: conditional create/delete actions", async () => {
         arch: `
             <form>
                 <field name="bar"/>
-                <field name="p" options="{'create': [('bar', '=', True)], 'delete': [('bar', '=', True)]}">
+                <field name="p" create="bar == True" delete="bar == True">
                     <kanban>
                         <templates>
                             <t t-name="card">
@@ -3705,7 +3733,7 @@ test("one2many kanban: conditional write action", async () => {
         arch: `
             <form>
                 <field name="bar"/>
-                <field name="p" options="{'write': [('bar', '=', True)]}">
+                <field name="p" write="bar == True">
                     <kanban>
                         <templates>
                             <t t-name="card">
@@ -3766,7 +3794,7 @@ test("editable one2many list, pager is updated on desktop", async () => {
     });
 
     // add a record, add value to turtle_foo then click in form view to confirm it
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     await contains('div[name="turtle_foo"] input').edit("nora");
 
@@ -3860,12 +3888,12 @@ test("one2many list (editable): edition, part 2", async () => {
         resId: 1,
     });
     // edit mode, then click on Add an item and enter a value
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_selected_row > td input").edit("kartoffel", { confirm: "false" });
     expect("td .o_field_char input").toHaveValue("kartoffel");
 
     // click again on Add an item
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row:eq(0)").toHaveClass("o_selected_row");
     expect(".o_data_cell:eq(1)").toHaveText("kartoffel");
     expect(".o_selected_row > td input").toHaveCount(1);
@@ -3897,9 +3925,9 @@ test("one2many list (editable): edition, part 3", async () => {
 
     // edit mode, then click on Add an item, enter value in turtle_foo and Add an item again
     expect("tr.o_data_row").toHaveCount(1);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="turtle_foo"] input').edit("nora", { confirm: "false" });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(3);
 
     // cancel the edition
@@ -3940,7 +3968,7 @@ test("one2many list (editable): edition, part 4", async () => {
 
     // edit mode, then click on Add an item
     expect("tr.o_data_row").toHaveCount(0);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row textarea").toHaveValue("");
 
     // add a value in the turtle_trululu field to trigger an onchange
@@ -3970,7 +3998,7 @@ test("one2many list (editable): edition, part 5", async () => {
     // edit mode, then click on Add an item, enter value in turtle_foo and Add an item again
     expect("tr.o_data_row").toHaveCount(1);
     expect(".o_data_cell").toHaveText("blip");
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=turtle_foo] input").edit("aaa", { confirm: "false" });
     expect("tr.o_data_row").toHaveCount(2);
     await contains(".o_list_record_remove:eq(1)").click();
@@ -4003,12 +4031,12 @@ test("one2many list (editable): discarding required empty data", async () => {
 
     // edit mode, then click on Add an item, then click elsewhere
     expect("tr.o_data_row").toHaveCount(0);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(getFixture()).click();
     expect("tr.o_data_row").toHaveCount(0);
 
     // click on Add an item again, then click on save
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await clickSave();
     expect("tr.o_data_row").toHaveCount(0);
 
@@ -4066,7 +4094,7 @@ test("editable one2many list, adding line when only one page", async () => {
     });
 
     // add a record, to reach the page size limit
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     // the record currently being added should not count in the pager
     expect(".o_field_widget[name=turtles] .o_pager").toHaveCount(0);
 
@@ -4098,7 +4126,7 @@ test("editable one2many list, adding line when only one page on desktop", async 
     });
 
     // add a record, to reach the page size limit
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     // enter value in turtle_foo field and click outside to unselect the row
     await contains('.o_field_widget[name="turtle_foo"] input').edit("nora");
@@ -4126,7 +4154,7 @@ test("editable one2many list, adding line, then discarding", async () => {
     });
 
     // add a record, then discard
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     await contains(".o_form_button_cancel").click();
     expect(".modal").toHaveCount(0);
@@ -4154,7 +4182,7 @@ test("editable one2many list, adding line, then discarding on desktop", async ()
     });
 
     // add a record, then discard
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_form_button_cancel").click();
     expect(".o_field_widget[name=turtles] .o_pager").toHaveText("1-3 / 4");
 });
@@ -4179,7 +4207,7 @@ test("editable one2many list, required field and pager", async () => {
     });
 
     // add a (empty) record
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     // go on next page. The new record is not valid and should be discarded
     await contains(".o_field_widget[name=turtles] .o_pager_next").click();
@@ -4208,7 +4236,7 @@ test("editable one2many list, required field, pager and confirm discard on deskt
     });
 
     // add a record with a dirty state, but not valid
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_field_widget[name="turtle_int"] input').edit(4321);
 
     // try to go to next page. The new record is not valid, but dirty so we should
@@ -4269,13 +4297,13 @@ test("editable one2many list, adding, discarding, and pager", async () => {
     });
 
     // add 4 records (to have more records than the limit)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_field_widget[name="turtle_foo"] input').edit("nora", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_field_widget[name="turtle_foo"] input').edit("nora", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_field_widget[name="turtle_foo"] input').edit("nora", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect("tr.o_data_row").toHaveCount(5);
     expect(".o_field_widget[name=turtles] .o_pager").toHaveCount(0);
@@ -4308,7 +4336,7 @@ test("unselecting a line with missing required data", async () => {
 
     // edit mode, then click on Add an item, then click elsewhere
     expect("tr.o_data_row").toHaveCount(0);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(1);
 
     // adding a value in the non required field, so it is dirty, but with
@@ -4326,6 +4354,35 @@ test("unselecting a line with missing required data", async () => {
     await contains(".o_form_button_cancel").click();
     expect(".modal").toHaveCount(0);
     expect("tr.o_data_row").toHaveCount(0);
+});
+
+test("keep focus when click must be ignored", async () => {
+    await mountView({
+        type: "form",
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="turtles">
+                    <list editable="top">
+                        <field name="turtle_int"/>
+                    </list>
+                </field>
+                <div data-list-ignore-click="">
+                    Click me
+                </div>
+            </form>`,
+        resId: 1,
+    });
+
+    // edit the first row
+    await contains(".o_data_cell").click();
+    expect(".o_data_row").toHaveClass("o_selected_row");
+
+    // click on the element on which clicks should be ignored
+    await contains("div[data-list-ignore-click]").click();
+
+    // the line should still be selected
+    expect("tr.o_data_row.o_selected_row").toHaveCount(1);
 });
 
 test("pressing enter in a o2m with a required empty field", async () => {
@@ -4348,7 +4405,7 @@ test("pressing enter in a o2m with a required empty field", async () => {
     });
 
     // edit mode, then click on Add an item, then press enter
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await press("Enter");
     await animationFrame();
     expect('div[name="turtle_foo"]').toHaveClass("o_field_invalid");
@@ -4370,7 +4427,7 @@ test("pressing enter several times in a one2many", async () => {
         resId: 2,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row").toHaveCount(1);
     expect(".o_data_row:eq(0)").toHaveClass("o_selected_row");
 
@@ -4409,7 +4466,7 @@ test("creating a new line in an o2m with an handle field does not focus the hand
         resId: 2,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("[name='turtle_foo'] input").toBeFocused();
 
     await press("Enter");
@@ -4448,7 +4505,7 @@ test("editing a o2m, with required field and onchange", async () => {
 
     // edit mode, then click on Add an item
     expect("tr.o_data_row").toHaveCount(0);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     // input some text in required turtle_foo field
     await contains('.o_field_widget[name="turtle_foo"] input').edit("aubergine", {
@@ -4483,7 +4540,7 @@ test("editable o2m, pressing ESC discard current changes", async () => {
         resId: 2,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(1);
 
     await press("Escape");
@@ -4511,7 +4568,7 @@ test("editable o2m with required field, pressing ESC discard current changes", a
         resId: 2,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(1);
 
     await press("Escape");
@@ -4546,8 +4603,8 @@ test("pressing escape in editable o2m list in dialog", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
 
     expect(".modal .o_data_row.o_selected_row").toHaveCount(1);
 
@@ -4877,7 +4934,7 @@ test("one2many with CREATE _onChanges correctly refreshed", async () => {
     });
     expect(".o_data_row").toHaveCount(0);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     // trigger the first onchange
     _onChangestep = 1;
     await contains('[name="turtle_int"] input').edit("10", { confirm: "blur" });
@@ -4916,7 +4973,7 @@ test("editable one2many with sub widgets are rendered in readonly", async () => 
     expect(".o_form_view .o_field_x2many_list_row_add ").toHaveCount(1);
     expect(".o_form_view input").toHaveCount(0);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_form_view .o_field_x2many_list_row_add ").toHaveCount(1);
     expect(".o_form_view input").toHaveCount(2);
 });
@@ -5029,7 +5086,7 @@ test("pager of one2many field in new record", async () => {
     });
 
     // click to create a subrecord
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(1);
     expect(".o_x2m_control_panel .o_pager").toHaveCount(0, {
         message: "o2m pager should be hidden",
@@ -5068,7 +5125,7 @@ test("one2many list with a many2one", async () => {
     expect(".o_data_cell[data-tooltip='xphone']").toHaveCount(1);
     expect(".o_data_cell[data-tooltip='xpad']").toHaveCount(0);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     checkOnchange = true;
     await clickFieldDropdown("product_id");
@@ -5117,7 +5174,7 @@ test("one2many list with inline form view", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     // write in the many2one field, value = 37 (xphone)
     await clickFieldDropdown("product_id");
@@ -5361,7 +5418,7 @@ test("one2many list, editable, with a date in the context", async () => {
         resId: 2,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("one2many field with context", async () => {
@@ -5387,9 +5444,9 @@ test("one2many field with context", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('[name="turtle_foo"] input').edit("hammer", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("one2many list edition, some basic functionality", async () => {
@@ -5408,7 +5465,7 @@ test("one2many list edition, some basic functionality", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("td .o_field_widget input").toHaveCount(1);
 
     await contains("td .o_field_widget input").edit("a", { confirm: false });
@@ -5443,7 +5500,7 @@ test("one2many list, the context is properly evaluated and sent", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("one2many list not editable, the context is properly evaluated and sent", async () => {
@@ -5475,7 +5532,7 @@ test("one2many list not editable, the context is properly evaluated and sent", a
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(1);
     expect(".o_readonly_modifier").toHaveCount(1);
     expect(".o_readonly_modifier").toHaveText("5");
@@ -5538,7 +5595,7 @@ test("one2many with many2many widget: create", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".modal .o_data_row").toHaveCount(2);
 
@@ -5548,7 +5605,7 @@ test("one2many with many2many widget: create", async () => {
     expectedCommand = [[4, 1]];
     await clickSave();
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal .o_data_row").toHaveCount(1);
 
     await contains(".modal-footer button:eq(1)").click();
@@ -5650,7 +5707,7 @@ test("one2many with many2many widget: edition", async () => {
     await contains(".modal .o_form_button_save").click();
 
     // add a one2many record
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal .o_data_row:first .o_list_record_selector input:eq(0)").click();
     await animationFrame(); // wait for re-rendering because of the change of selection
     await contains(".modal .o_select_button:eq(0)").click();
@@ -5692,7 +5749,7 @@ test("new record, the context is properly evaluated and sent", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("parent data is properly sent on an onchange rpc", async () => {
@@ -5721,7 +5778,7 @@ test("parent data is properly sent on an onchange rpc", async () => {
     });
 
     await contains("[name=foo] input").edit("hello", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("parent data is properly sent on an onchange rpc (existing x2many record)", async () => {
@@ -5807,7 +5864,7 @@ test("parent data is properly sent on an onchange rpc, new record", async () => 
                 </field>
             </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect.verifySteps(["get_views", "onchange", "onchange"]);
 });
 
@@ -5858,7 +5915,7 @@ test("id field in one2many in a new record", async () => {
                 </field>
             </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('td [name="turtle_foo"] input').edit("cat", { confirm: false });
     await clickSave();
 });
@@ -5883,7 +5940,7 @@ test("sub form view with a required field", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal-footer button.btn-primary").click();
 
     expect(".modal").toHaveCount(1);
@@ -6176,7 +6233,7 @@ test("onchange many2many in one2many list editable", async () => {
     });
 
     // add new line (first, xpad)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="name"] input').edit("first", { confirm: false });
     await clickFieldDropdown("product_id");
     await contains('div[name="product_id"] .o_input_dropdown li:eq(1)').click(); // xpad
@@ -6216,7 +6273,7 @@ test("onchange many2many in one2many list editable", async () => {
     // enable the many2many onchange
     enableOnchange = true;
     // add new line (first, xenomorphe)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="name"] input').edit("first", { confirm: false });
     await clickFieldDropdown("product_id");
     await contains('div[name="product_id"] .o_input_dropdown li:eq(2)').click(); // xenomorphe
@@ -6475,7 +6532,7 @@ test("many2many list in a one2many opened by a many2one", async () => {
     await contains(".o_external_button").click();
 
     // click on add, to add a new partner in the m2m
-    await contains(".modal:eq(1) .o_field_x2many_list_row_add a").click();
+    await contains(".modal:eq(1) .o_field_x2many_list_row_add button").click();
 
     // select the PartnerType 'gold' (this closes the 3rd modal)
     await contains(".o_dialog:not(.o_inactive_modal) td.o_data_cell").click(); // select gold
@@ -6941,7 +6998,7 @@ test("one2many list editable = top", async () => {
     });
     expect(".o_data_row").toHaveCount(1);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(2);
     expect("tr.o_data_row input").toHaveValue("default foo turtle", {
@@ -6977,7 +7034,7 @@ test("one2many list editable = bottom", async () => {
 
     expect(".o_data_row").toHaveCount(1);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_data_row").toHaveCount(2);
     expect("tr.o_data_row input").toHaveValue("default foo turtle", {
@@ -7058,7 +7115,7 @@ test('one2many list edition, no "Remove" button in modal', async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(1);
     expect(".modal .modal-footer .o_btn_remove").toHaveCount(0);
 
@@ -7126,7 +7183,7 @@ test("one2many list editable, onchange and required field", async () => {
     expect('.o_field_widget[name="int_field"] input').toHaveValue("0");
 
     intFieldVal = 1;
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.o_field_widget[name="int_field"] input').toHaveValue("0");
     expect.verifySteps(["get_views", "web_read", "onchange"]);
 
@@ -7185,7 +7242,7 @@ test("one2many list editable: trigger onchange when row is valid", async () => {
 
     intFieldVal = 1;
     // add a new row (which is invalid at first)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.o_field_widget[name="int_field"] input').toHaveValue("0", {
         message: "int_field should still be 0 (no onchange should have been done yet)",
     });
@@ -7235,7 +7292,7 @@ test("one2many list editable: 'required' modifiers is properly working", async (
     });
     expect('.o_field_widget[name="int_field"] input').toHaveValue("10");
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.o_field_widget[name="int_field"] input').toHaveValue("10");
 
     // fill turtle_foo field
@@ -7270,7 +7327,7 @@ test("one2many list editable: 'required' modifiers is properly working, part 2",
     });
     expect('.o_field_widget[name="int_field"] input').toHaveValue("10");
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.o_field_widget[name="int_field"] input').toHaveValue("10");
 
     // fill turtle_int field
@@ -7304,7 +7361,7 @@ test("one2many list editable: add new line before onchange returns", async () =>
     });
 
     // add a first line but hold the onchange back
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     def = new Deferred();
     expect(".o_data_row").toHaveCount(1);
     await clickFieldDropdown("turtle_trululu");
@@ -7313,7 +7370,7 @@ test("one2many list editable: add new line before onchange returns", async () =>
 
     // try to add a second line and check that it is correctly waiting
     // for the onchange to return
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(0);
     expect(".o_field_invalid").toHaveCount(0);
     expect(".o_data_row").toHaveCount(1);
@@ -7347,8 +7404,8 @@ test("editable list: multiple clicks on Add an item do not create invalid rows",
     });
     def = new Deferred();
     // click twice to add a new line
-    await contains(".o_field_x2many_list_row_add a").click();
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row").toHaveCount(0);
 
     // resolve the onchange promise
@@ -7394,7 +7451,7 @@ test("editable list: value reset by an onchange", async () => {
     });
 
     // trigger the two _onChanges
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_data_row .o_field_widget input").edit("a name", { confirm: false });
     def = new Deferred();
     await contains(".o_field_datetime .o_input").edit("04/27/2022 14:08:52", { confirm: "blur" });
@@ -7445,11 +7502,11 @@ test("editable list: onchange that returns a warning", async () => {
     });
 
     // add a line (this should trigger an onchange and a warning)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     // check if 'Add an item' still works (this should trigger an onchange
     // and a warning again)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect.verifySteps(["onchange", "warning", "onchange", "warning"]);
 });
@@ -7567,7 +7624,7 @@ test("contexts of nested x2manys are correctly sent (add line)", async () => {
         context: { active_field: 2 },
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("nested x2manys with context referencing parent record", async () => {
@@ -7606,9 +7663,9 @@ test("nested x2manys with context referencing parent record", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_dialog").toHaveCount(1);
-    await contains(".o_dialog .o_field_x2many_list_row_add a").click();
+    await contains(".o_dialog .o_field_x2many_list_row_add button").click();
 });
 
 test("resetting invisible one2manys", async () => {
@@ -7770,7 +7827,7 @@ test("onchange and required fields with override in arch", async () => {
         resId: 1,
     });
     // triggers an onchange on partner, because the new record is valid
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect.verifySteps(["get_views", "web_read", "onchange", "onchange"]);
 });
@@ -7824,8 +7881,8 @@ test("onchange on a one2many containing a one2many", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
     await contains(".modal .o_data_cell input").edit("new record", { confirm: "blur" });
     checkOnchange = true;
     await contains(".modal .modal-footer .btn-primary").click();
@@ -7864,7 +7921,7 @@ test("editing tabbed one2many (editable=bottom)", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(41);
     expect("tr.o_data_row:last").toHaveClass("o_selected_row");
 
@@ -7899,7 +7956,7 @@ test("editing tabbed one2many (editable=bottom), again...", async () => {
         resId: 1,
     });
     // add a new record page 1 (this increases the limit to 4)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_data_row [name="turtle_foo"] input').edit("rainbow dash", {
         confirm: false,
     });
@@ -7943,7 +8000,7 @@ test("editing tabbed one2many (editable=top)", async () => {
     await contains(".o_field_widget[name=turtles] .o_pager_next").click();
     expect("tr.o_data_row").toHaveCount(2);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("tr.o_data_row").toHaveCount(3);
     expect("tr.o_data_row:eq(0)").toHaveClass("o_selected_row");
     expect("tr.o_data_row input").toHaveValue("default foo");
@@ -7978,7 +8035,7 @@ test("one2many field: change value before pending onchange returns", async () =>
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     def = new Deferred();
     await contains(".o_field_widget[name=int_field] input").edit("44", { confirm: false });
 
@@ -8019,7 +8076,7 @@ test("focus is correctly reset after an onchange in an x2many", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     def = new Deferred();
 
@@ -8056,7 +8113,7 @@ test("checkbox in an x2many that triggers an onchange", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_field_widget[name=bar] input").toBeChecked();
 
     await contains(".o_field_widget[name=bar] input").click();
@@ -8132,8 +8189,7 @@ test("default value for nested one2manys (coming from onchange)", async () => {
 
     Partner._onChanges.p = function (obj) {
         obj.p = [
-            [5],
-            [0, 0, { turtles: [[5], [4, 1, false]] }], // link record 1 by default
+            [0, 0, { turtles: [[4, 1]] }], // link record 1 by default
         ];
     };
     onRpc("web_save", (args) => {
@@ -8257,7 +8313,7 @@ test("propagate context to sub views without default_* keys", async () => {
             default_flutter: "why",
         },
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('[name="turtle_foo"] input').edit("pinky pie", { confirm: false });
     await clickSave();
 });
@@ -8456,7 +8512,7 @@ test("one2many with sequence field, override default_get, bottom when inline", a
     // save the record
     // check line is at the correct place
     const inputText = "ninja";
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('[name="turtle_foo"] input').edit(inputText, { confirm: false });
     await clickSave();
 
@@ -8489,7 +8545,7 @@ test("one2many with sequence field, override default_get, top when inline", asyn
     // save the record
     // check line is at the correct place
     const inputText = "ninja";
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('[name="turtle_foo"] input').edit(inputText, { confirm: false });
     await clickSave();
 
@@ -8526,7 +8582,7 @@ test("one2many with sequence field, override default_get, bottom when popup", as
     // save the record
     // check line is at the correct place
     const inputText = "ninja";
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.modal [name="turtle_foo"] input').edit(inputText, { confirm: false });
     await contains(".modal .o_form_button_save").click();
 
@@ -8560,7 +8616,7 @@ test("one2many with sequence field, override default_get, not last page", async 
     });
     // click add a new line
     // check turtle_int for new is the current max of the page
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.modal [name="turtle_int"] input').toHaveValue("9");
 });
 
@@ -8586,7 +8642,7 @@ test("one2many with sequence field, override default_get, last page", async () =
     });
     // click add a new line
     // check turtle_int for new is the current max of the page +1
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect('.modal [name="turtle_int"] input').toHaveValue("22");
 });
 
@@ -8623,11 +8679,11 @@ test("one2many with sequence field and text field", async () => {
 
     const inputText1 = "relax";
     const inputText2 = "max";
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="turtle_foo"] input').edit(inputText1, { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('div[name="turtle_foo"] input').edit(inputText2, { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(queryAllTexts(".o_data_cell.o_list_char")).toEqual([inputText1, inputText2, ""]);
 
@@ -8786,7 +8842,7 @@ test("add a new line after limit is reached should behave nicely", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row").toHaveCount(4);
 
     await contains('div[name="turtle_foo"] .o_input').edit("a", { confirm: false });
@@ -8861,7 +8917,7 @@ test("onchange in a one2many with non inline view on a new record", async () => 
     });
 
     // add a row and trigger the onchange
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains('.o_data_row div[name="name"] input').edit("a name", { confirm: "blur" });
 
     expect(".o_field_cell[name=turtle_int]").toHaveText("44");
@@ -8895,7 +8951,7 @@ test('add a line, edit it and "Save & New"', async () => {
 
     expect(".o_data_row").toHaveCount(0);
     // add a new record
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal .o_field_widget input").edit("new record", { confirm: false });
 
     await contains(".modal .o_form_button_save").click();
@@ -8944,7 +9000,7 @@ test('add a line with a context depending on the parent record, created a second
     expect(queryAllTexts("[name='p'] .o_data_row")).toEqual([]);
     await contains("[name='name'] input").edit("Jack", { confirm: "blur" });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal [name='name'] input").toHaveValue("Jack");
 
     await contains(".modal .o_form_button_save_new").click();
@@ -8981,7 +9037,7 @@ test("o2m add a line custom control create editable", async () => {
 
     // new controls correctly added
     expect(".o_field_x2many_list_row_add").toHaveCount(1);
-    expect(queryAllTexts(".o_field_x2many_list_row_add a")).toEqual([
+    expect(queryAllTexts(".o_field_x2many_list_row_add button")).toEqual([
         "Add food",
         "Add pizza",
         "Add pasta",
@@ -8989,13 +9045,13 @@ test("o2m add a line custom control create editable", async () => {
 
     // click add food
     // check it's empty
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(queryAllTexts(".o_data_cell")).toEqual([""]);
 
     // click add pizza
     // press enter to save the record
     // check it's pizza
-    await contains(".o_field_x2many_list_row_add a:eq(1)").click();
+    await contains(".o_field_x2many_list_row_add button:eq(1)").click();
 
     expect(
         '.o_field_widget[name="p"] .o_selected_row .o_field_widget[name="name"] input'
@@ -9006,7 +9062,7 @@ test("o2m add a line custom control create editable", async () => {
     expect(queryAllTexts(".o_data_cell")).toEqual(["", "pizza", ""]);
 
     // click add pasta
-    await contains(".o_field_x2many_list_row_add a:eq(2)").click();
+    await contains(".o_field_x2many_list_row_add button:eq(2)").click();
     await clickSave();
     expect(queryAllTexts(".o_data_cell")).toEqual(["", "pizza", "", "pasta"]);
 });
@@ -9037,7 +9093,7 @@ test("o2m add a line custom control create non-editable", async () => {
 
     // new controls correctly added
     expect(".o_field_x2many_list_row_add").toHaveCount(1);
-    expect(queryAllTexts(".o_field_x2many_list_row_add a")).toEqual([
+    expect(queryAllTexts(".o_field_x2many_list_row_add button")).toEqual([
         "Add food",
         "Add pizza",
         "Add pasta",
@@ -9045,21 +9101,21 @@ test("o2m add a line custom control create non-editable", async () => {
 
     // click add food
     // check it's empty
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal .o_form_button_save").click();
     expect(queryAllTexts(".o_data_cell")).toEqual([""]);
 
     // click add pizza
     // save the modal
     // check it's pizza
-    await contains(".o_field_x2many_list_row_add a:eq(1)").click();
+    await contains(".o_field_x2many_list_row_add button:eq(1)").click();
     await contains(".modal .o_form_button_save").click();
     expect(queryAllTexts(".o_data_cell")).toEqual(["", "pizza"]);
 
     // click add pasta
     // save the whole record
     // check it's pizzapasta
-    await contains(".o_field_x2many_list_row_add a:eq(2)").click();
+    await contains(".o_field_x2many_list_row_add button:eq(2)").click();
     await contains(".modal .o_form_button_save").click();
     expect(queryAllTexts(".o_data_cell")).toEqual(["", "pizza", "pasta"]);
 });
@@ -9080,7 +9136,7 @@ test("o2m add an action button control", async () => {
                     <list>
                         <control>
                             <create string="Create" context="{}" />
-                            <button string="Action Button" name="do_something" class="btn-link" type="object" context="{'parent_id': parent.id}"/>
+                            <button string="Action Button" name="do_something" class="btn-link my_btn" type="object" context="{'parent_id': parent.id}"/>
                         </control>
                         <field name="name"/>
                     </list>
@@ -9090,7 +9146,7 @@ test("o2m add an action button control", async () => {
 
     expect(".o_field_x2many_list_row_add").toHaveText("CreateAction Button");
 
-    await contains(".o_field_x2many_list_row_add button").click();
+    await contains(".o_field_x2many_list_row_add button.my_btn").click();
     expect.verifySteps(["do_something"]);
 });
 
@@ -9116,8 +9172,8 @@ test("one2many list with custom control with invisible modifier", async () => {
             </form>`,
     });
 
-    expect(".o_field_x2many_list_row_add a:contains(A)").toHaveCount(0);
-    expect(".o_field_x2many_list_row_add a:contains(B)").toHaveCount(1);
+    expect(".o_field_x2many_list_row_add button:contains(A)").toHaveCount(0);
+    expect(".o_field_x2many_list_row_add button:contains(B)").toHaveCount(1);
     expect(".o_field_x2many_list_row_add button:contains(C)").toHaveCount(0);
     expect(".o_field_x2many_list_row_add button:contains(D)").toHaveCount(1);
 });
@@ -9145,8 +9201,8 @@ test("one2many list with custom control with invisible modifier using context", 
         context: { someKey: true },
     });
 
-    expect(".o_field_x2many_list_row_add a:contains(A)").toHaveCount(0);
-    expect(".o_field_x2many_list_row_add a:contains(B)").toHaveCount(1);
+    expect(".o_field_x2many_list_row_add button:contains(A)").toHaveCount(0);
+    expect(".o_field_x2many_list_row_add button:contains(B)").toHaveCount(1);
     expect(".o_field_x2many_list_row_add button:contains(C)").toHaveCount(0);
     expect(".o_field_x2many_list_row_add button:contains(D)").toHaveCount(1);
 });
@@ -9437,7 +9493,7 @@ test("onchange affecting inline unopened list view", async () => {
 
     // add a turtle on second partner
     await contains(".o_data_row:eq(1) .o_data_cell").click();
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
     await contains(".modal .o_field_widget[name=name] input").edit("michelangelo", {
         confirm: false,
     });
@@ -9519,7 +9575,7 @@ test("create and edit on m2o in o2m, and press ESCAPE", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_selected_row").toHaveCount(1);
 
@@ -9565,7 +9621,7 @@ test("one2many add a line should not crash if orderedResIDs is not set on deskto
     });
 
     await contains('button[name="post"]').click();
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row.o_selected_row").toHaveCount(1);
 });
 
@@ -9597,7 +9653,7 @@ test("one2many add a line should not crash if orderedResIDs is not set on mobile
 
     await contains(`.o_cp_action_menus button:has(.fa-cog)`).click();
     await contains('button[name="post"]').click();
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row.o_selected_row").toHaveCount(1);
 });
 
@@ -9618,7 +9674,7 @@ test("one2many shortcut tab should not crash when there is no input widget", asy
     });
 
     // add a row, fill it, then trigger the tab shortcut
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     // This is not how it should happen but non trusted event listeners are called sooner than
     // trusted ones so the update is called after the list's tab listener in which case the field is
     // not dirty when we press tab, therefore we need to set it dirty through onChange before pressing tab
@@ -9700,7 +9756,7 @@ test("one2many with onchange, required field, shortcut enter", async () => {
     expect.verifySteps(["get_views", "onchange"]);
 
     // add a new line
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect.verifySteps(["onchange"]);
 
@@ -9754,7 +9810,7 @@ test("edit a field with a slow onchange in one2many", async () => {
     expect.verifySteps(["get_views", "onchange"]);
 
     // add a new line
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect.verifySteps(["onchange"]);
 
@@ -9801,14 +9857,14 @@ test("no deadlock when leaving a one2many line with uncommitted changes", async 
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     await contains(".o_field_widget[name=turtles] input").edit("some foo value", {
         confirm: false,
     });
 
     // click to add a second row to unselect the current one, then save
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await clickSave();
 
     expect(".o_form_editable").toHaveCount(1);
@@ -9846,7 +9902,7 @@ test("one2many with extra field from server not in form", async () => {
     });
 
     // Add a record in the list
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal div[name=name] input").edit("michelangelo", { confirm: false });
 
     // Save the record in the modal (though it is still virtual)
@@ -10087,7 +10143,7 @@ test("one2many editable list: edit and click on add a line", async () => {
         confirm: false,
     });
     expect.verifySteps([]);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect.verifySteps(["onchange", "onchange"]);
 
     expect(".o_data_row").toHaveCount(2);
@@ -10179,7 +10235,7 @@ test("two one2many fields with same relation and _onChanges", async () => {
     });
 
     // trigger first onchange by adding a line in turtles field (should add a line in turtles2)
-    await contains('.o_field_widget[name="turtles"] .o_field_x2many_list_row_add a').click();
+    await contains('.o_field_widget[name="turtles"] .o_field_x2many_list_row_add button').click();
     await contains('.o_field_widget[name="turtles"] .o_field_widget[name="name"] input').edit(
         "ABC",
         { confirm: "blur" }
@@ -10193,7 +10249,7 @@ test("two one2many fields with same relation and _onChanges", async () => {
     });
 
     // add a line in turtles2
-    await contains('.o_field_widget[name="turtles2"] .o_field_x2many_list_row_add a').click();
+    await contains('.o_field_widget[name="turtles2"] .o_field_x2many_list_row_add button').click();
     await contains('.o_field_widget[name="turtles2"] .o_field_widget[name="name"] input').edit(
         "DEF",
         { confirm: false }
@@ -10241,7 +10297,7 @@ test("one2many reset by onchange (of another field) while being edited", async (
     await clickFieldDropdownItem("trululu", `Create "new value"`);
 
     // add a row in p
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row").toHaveCount(0);
 
     // resolve the name_create to trigger the onchange, and the reset of p
@@ -10332,7 +10388,7 @@ test("one2many with many2many_tags in list and list in form, and onchange", asyn
     expect(".modal .o_field_widget[name=turtles] .o_data_row").toHaveCount(1);
     expect(queryAllTexts(".modal .o_data_cell")).toEqual(["new turtle"]);
 
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
     expect(".modal .o_field_widget[name=turtles] .o_data_row").toHaveCount(2);
     expect(queryAllTexts(".modal .o_data_cell")).toEqual(["new turtle", ""]);
     expect(".modal .o_field_widget[name=turtles] .o_data_row:eq(1)").toHaveClass("o_selected_row");
@@ -10393,7 +10449,7 @@ test("one2many with many2many_tags in list and list in form, and onchange (2)", 
 
     expect(".modal .o_form_view").toHaveCount(1);
 
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
     expect(".modal .o_field_widget[name=turtles] .o_data_row").toHaveCount(2);
 
     await contains(".modal .o_selected_row input").edit("another one", { confirm: false });
@@ -10507,7 +10563,7 @@ test("nested one2many, onchange, no command value", async () => {
     });
 
     step = 2;
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     step = 3;
     await contains(".o_data_row .o_field_boolean input").click();
 });
@@ -10635,7 +10691,7 @@ test("combine contexts on o2m field and create tags", async () => {
             </form>`,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 });
 
 test("do not call read if name already known", async () => {
@@ -10822,7 +10878,7 @@ test("delete a record while adding another one in a multipage", async () => {
     });
 
     // add a line (virtual record)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=turtle_foo] input").edit("pi", { confirm: false });
     // delete the line above it
     await contains(".o_list_record_remove").click();
@@ -10835,9 +10891,7 @@ test("delete a record while adding another one in a multipage", async () => {
 
 test("one2many, onchange, edition and multipage...", async () => {
     Partner._onChanges = {
-        turtles: function (obj) {
-            obj.turtles = [[5]].concat(obj.turtles);
-        },
+        turtles: function () {},
     };
 
     Partner._records[0].turtles = [1, 2, 3];
@@ -10857,10 +10911,9 @@ test("one2many, onchange, edition and multipage...", async () => {
             </form>`,
         resId: 1,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=turtle_foo] input").edit("nora", { confirm: false });
-    await contains(".o_field_x2many_list_row_add a").click();
-
+    await contains(".o_field_x2many_list_row_add button").click();
     expect.verifySteps([
         "get_views partner",
         "web_read partner",
@@ -11049,7 +11102,7 @@ test("onchange on unloaded record clearing posterious change", async () => {
     await contains(".modal .btn-primary").click();
 
     await contains(".o_data_row:eq(1) .o_data_cell").click();
-    await contains(".modal .o_field_x2many_list_row_add a").click();
+    await contains(".modal .o_field_x2many_list_row_add button").click();
     await contains(".modal .o_field_widget[name=name] input").edit("Michelangelo", {
         confirm: false,
     });
@@ -11147,7 +11200,7 @@ test("one2many column visiblity depends on onchange of parent field", async () =
     expect(".o_list_renderer .o_data_row").toHaveCount(1);
 
     // add a new o2m record
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     triggerOnchange = true;
     await contains(".o_field_one2many input").edit("New line", { confirm: false });
     await contains(".o_form_view").click();
@@ -11246,7 +11299,7 @@ test("one2many field in edit mode with optional fields and trash icon", async ()
         message: "dropdown is still open",
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o-dropdown--menu").toHaveCount(0, { message: "dropdown is closed" });
     expect(".o_field_one2many tr.o_selected_row").toHaveCount(1);
 
@@ -11326,7 +11379,7 @@ test("one2many with extra field from server not in (inline) form", async () => {
     });
 
     // Add a record in the list
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=name] input").edit("michelangelo", { confirm: false });
 
     // Save the record in the modal (though it is still virtual)
@@ -11354,11 +11407,12 @@ test("one2many with extra X2many field from server not in inline form", async ()
     });
 
     // Add a first record in the list
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal .o_field_widget[name=name] input").edit("first", { confirm: false });
 
     // Save & New
-    await contains(".modal .btn-primary:eq(1)").click();
+    await contains(".modal .btn-primary").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".modal .o_field_widget[name=name] input").edit("second", { confirm: false });
 
     // Save & Close
@@ -11399,7 +11453,7 @@ test("when Navigating to a one2many with tabs, the button add a line receives th
     // go inside one2many
     await press("Tab");
     await animationFrame();
-    expect(".o_field_x2many_list_row_add a").toBeFocused();
+    expect(".o_field_x2many_list_row_add button").toBeFocused();
 });
 
 test("Navigate to a one2many with tab then tab again focus the next field", async () => {
@@ -11440,7 +11494,7 @@ test("Navigate to a one2many with tab then tab again focus the next field", asyn
     await press("Tab");
     await animationFrame();
 
-    expect(".o_field_x2many_list_row_add a").toBeFocused();
+    expect(".o_field_x2many_list_row_add button").toBeFocused();
     expect("[name=turtles] .o_selected_row").toHaveCount(0);
     // trigger Tab event and check that the default behavior can happen.
     expect(getNextFocusableElement()).toBe(queryOne("[name=foo] input"));
@@ -11486,10 +11540,10 @@ test("when Navigating to a one2many with tabs, not filling any field and hitting
     await press("Tab");
     await animationFrame();
 
-    expect(".o_field_x2many_list_row_add a").toBeFocused();
+    expect(".o_field_x2many_list_row_add button").toBeFocused();
     expect("[name=turtles] .o_selected_row").toHaveCount(0);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect("[name=turtle_foo] input").toBeFocused();
 
     await press("Tab"); // go to turtle_description field
@@ -11544,16 +11598,16 @@ test("when Navigating to a one2many with tabs, editing in a popup, the popup sho
     // go inside one2many
     await press("Tab");
     await animationFrame();
-    expect(".o_field_x2many_list_row_add a").toBeFocused();
+    expect(".o_field_x2many_list_row_add button").toBeFocused();
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal [name=turtle_foo] input").toBeFocused();
 
     await press("Escape");
     await animationFrame();
 
     expect(".modal").toHaveCount(0);
-    expect(".o_field_x2many_list_row_add a").toBeFocused();
+    expect(".o_field_x2many_list_row_add button").toBeFocused();
 });
 
 test.tags("desktop");
@@ -11582,7 +11636,7 @@ test("when creating a new many2one on a x2many then discarding it immediately wi
     });
 
     // add a new line
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
 
     expect(".o_selected_row").toHaveCount(1);
 
@@ -11631,25 +11685,25 @@ test("navigating through an editable list with custom controls", async () => {
     expect("[name=p] .o_selected_row").toHaveCount(0);
 
     // press tab to navigate to the list
-    expect(getNextFocusableElement()).toBe(queryFirst(".o_field_x2many_list_row_add a"));
+    expect(getNextFocusableElement()).toBe(queryFirst(".o_field_x2many_list_row_add button"));
     await press("Tab");
 
-    expect(".o_field_x2many_list_row_add a:eq(0)").toBeFocused();
+    expect(".o_field_x2many_list_row_add button:eq(0)").toBeFocused();
 
     // press right to focus the second control
     await press("ArrowRight");
     await animationFrame();
 
-    expect(".o_field_x2many_list_row_add a:eq(1)").toBeFocused();
+    expect(".o_field_x2many_list_row_add button:eq(1)").toBeFocused();
 
     // press left to come back to first control
     await press("ArrowLeft");
     await animationFrame();
 
-    expect(".o_field_x2many_list_row_add a:eq(0)").toBeFocused();
-    expect(getNextFocusableElement()).toBe(queryOne(".o_field_x2many_list_row_add a:eq(1)"));
+    expect(".o_field_x2many_list_row_add button:eq(0)").toBeFocused();
+    expect(getNextFocusableElement()).toBe(queryOne(".o_field_x2many_list_row_add button:eq(1)"));
     await press("Tab");
-    expect(".o_field_x2many_list_row_add a:eq(1)").toBeFocused();
+    expect(".o_field_x2many_list_row_add button:eq(1)").toBeFocused();
 
     expect(getNextFocusableElement()).toBe(queryOne("[name=int_field] input"));
     await press("Tab");
@@ -11958,7 +12012,7 @@ test("if there are less than 4 lines in a one2many, empty lines must be displaye
     expect(".o_list_renderer tbody tr td:eq(0)").toHaveClass("o_field_x2many_list_row_add");
     expect(".o_list_renderer tbody tr").toHaveCount(4);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     // Should only contain a new row, the "Add a line" line and 2 blank lines
     expect(".o_list_renderer tbody tr.o_data_row").toHaveCount(1);
     expect(".o_list_renderer tbody tr:eq(0)").toHaveClass("o_data_row");
@@ -12230,7 +12284,7 @@ test("save a record after creating and editing a new invalid record in a one2man
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=int_field] input").edit("3", { confirm: false });
     await clickSave();
     expect(".o_data_row.o_selected_row").toHaveCount(1, {
@@ -12387,70 +12441,6 @@ test("new record, receive more create commands than limit", async () => {
         "Record 4",
     ]);
     expect(".o_x2m_control_panel .o_pager").toHaveCount(0);
-});
-
-test("existing record: receive more create commands than limit", async () => {
-    Partner._records = [
-        { id: 1, name: "Initial Record 1", p: [1, 2, 3, 4] },
-        { id: 2, name: "Initial Record 2" },
-        { id: 3, name: "Initial Record 3" },
-        { id: 4, name: "Initial Record 4" },
-    ];
-    Partner._onChanges = {
-        int_field: function (obj) {
-            if (obj.int_field === 16) {
-                obj.p = [
-                    [0, 0, { display_name: "Record 1" }],
-                    [0, 0, { display_name: "Record 2" }],
-                    [0, 0, { display_name: "Record 3" }],
-                    [0, 0, { display_name: "Record 4" }],
-                ];
-            }
-        },
-    };
-    await mountView({
-        type: "form",
-        resModel: "partner",
-        resId: 1,
-        arch: `
-            <form>
-                <field name="int_field"/>
-                <group>
-                    <field name="p">
-                        <list limit="2">
-                            <field name="display_name"/>
-                        </list>
-                    </field>
-                </group>
-            </form>`,
-    });
-
-    expect(queryAllTexts(".o_data_cell.o_list_char")).toEqual([
-        "Initial Record 1",
-        "Initial Record 2",
-    ]);
-
-    await contains("[name=int_field] input").edit("16", { confirm: "blur" });
-
-    expect(queryAllTexts(".o_data_cell.o_list_char")).toEqual([
-        "Initial Record 1",
-        "Initial Record 2",
-        "Record 1",
-        "Record 2",
-        "Record 3",
-        "Record 4",
-    ]);
-
-    await contains(".o_data_row :text('Record 3') ~ .o_list_record_remove").click();
-
-    expect(queryAllTexts(".o_data_cell.o_list_char")).toEqual([
-        "Initial Record 1",
-        "Initial Record 2",
-        "Record 1",
-        "Record 2",
-        "Record 4",
-        "Initial Record 3",
-    ]);
 });
 
 test("active actions are passed to o2m field", async () => {
@@ -12756,6 +12746,7 @@ test("one2many, form view dialog with added custom footer (replace='0')", async 
     expect(".modal-footer button").toHaveCount(3);
 });
 
+test.tags("desktop");
 test('Add a line, click on "Save & New" with an invalid form', async () => {
     mockService("notification", {
         add: (message, params) => {
@@ -12781,7 +12772,7 @@ test('Add a line, click on "Save & New" with an invalid form', async () => {
 
     expect(".o_data_row").toHaveCount(0);
     // Add a new record
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_dialog .o_form_view").toHaveCount(1);
 
     // Click on "Save & New" with an invalid form
@@ -12827,7 +12818,7 @@ test("field in list but not in fetched form", async () => {
     });
 
     expect.verifySteps(["get_views: partner", "onchange: partner"]);
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect.verifySteps(["get_views: partner.type", "onchange: partner.type"]);
     await contains(".modal .o_field_widget[name='name'] input").edit("changed", {
         confirm: "blur",
@@ -12867,7 +12858,7 @@ test("pressing tab before an onchange is resolved", async () => {
         resId: 1,
     });
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     // This is not how it should happen but non trusted event listeners are called sooner than
     // trusted ones so the update is called after the list's tab listener in which case the field is
     // not dirty when we press tab, therefore we need to set it dirty through onChange before pressing tab
@@ -12933,7 +12924,7 @@ test("add a row to an x2many and ask canBeRemoved twice", async () => {
     expect(".o_form_view").toHaveCount(1);
 
     // add a row in the x2many
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains(".o_field_widget[name=name] input").edit("a name", { confirm: false });
     expect(".o_data_row").toHaveCount(1);
 
@@ -12980,7 +12971,7 @@ test("one2many: save a record before the onchange is complete in a form dialog",
                 </field>
             </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(1);
 
     await contains(".o_field_widget[name=name] input").edit("new name", { confirm: false });
@@ -13184,7 +13175,7 @@ test("modifiers based on x2many", async () => {
     expect("[name='name'].o_readonly_modifier").toHaveCount(0);
     expect("[name='int_field'].o_required_modifier").toHaveCount(0);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await contains("[name='foo'] input").edit("Test", { confirm: false });
     expect("button.my_button").toHaveCount(1);
     expect("[name='name'].o_readonly_modifier").toHaveCount(1);
@@ -13542,7 +13533,7 @@ test("onchange on x2many add and delete x2m record, returning to initial state",
     expect(".o_field_widget[name=turtles] .o_data_row").toHaveCount(1);
     expect(".o_data_cell").toHaveText("donatello");
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_field_widget[name=turtles] .o_data_row").toHaveCount(2);
     await contains(".o_list_record_remove:eq(1)").click();
     expect(".o_field_widget[name=turtles] .o_data_row").toHaveCount(1);
@@ -13577,7 +13568,7 @@ test("expand record in dialog", async () => {
     expect(".o_dialog .o_form_view").toHaveCount(1);
     expect(".o_dialog .modal-header .o_expand_button").toHaveCount(1);
     await contains(".o_dialog .modal-header .btn-close").click();
-    await contains(".o_field_widget[name=turtles] .o_field_x2many_list_row_add a").click();
+    await contains(".o_field_widget[name=turtles] .o_field_x2many_list_row_add button").click();
     expect(".o_dialog .o_form_view").toHaveCount(1);
     expect(".o_dialog .modal-header .o_expand_button").toHaveCount(0);
     await contains("[name='name'] input").edit("new turtle");
@@ -13739,10 +13730,25 @@ test("one2many list with monetary aggregates and different currencies", async ()
             ],
         });
         inverse_rate = fields.Float();
+        rate_date = fields.Date();
 
         _records = [
-            { id: 1, name: "USD", symbol: "$", position: "before", inverse_rate: 1 },
-            { id: 2, name: "EUR", symbol: "€", position: "after", inverse_rate: 0.5 },
+            {
+                id: 1,
+                name: "USD",
+                symbol: "$",
+                position: "before",
+                inverse_rate: 1,
+                rate_date: "2019-06-13",
+            },
+            {
+                id: 2,
+                name: "EUR",
+                symbol: "€",
+                position: "after",
+                inverse_rate: 0.5,
+                rate_date: "2019-06-13",
+            },
         ];
     }
     defineModels([Currency]);
@@ -13775,5 +13781,79 @@ test("one2many list with monetary aggregates and different currencies", async ()
     expect(`tfoot`).toHaveText("$ 250.00?");
     await contains("tfoot span sup").hover();
     expect(".o_multi_currency_popover").toHaveCount(1);
-    expect(".o_multi_currency_popover").toHaveText("500.00 € at $ 0.50");
+    expect(".o_multi_currency_popover").toHaveText("500.00 € at $ 0.50 on Jun 13");
+});
+
+test.tags("desktop");
+test("one2many custom which can clear the relation", async () => {
+    class ClearWidget extends Component {
+        static props = ["*"];
+        static template = xml`
+            <div>
+                <span t-esc="this.props.record.data[this.props.name].count"/>
+                <button t-on-click="clear">Clear</button>
+            </div>`;
+
+        clear() {
+            return this.props.record.data[this.props.name].clear();
+        }
+    }
+    registry.category("fields").add("clear", { component: ClearWidget });
+
+    onRpc("web_save", ({ args }) => {
+        expect.step("web_save");
+        expect(args[1].partner_ids).toEqual([[5]]);
+    });
+
+    await mountView({
+        type: "form",
+        resModel: "turtle",
+        arch: `<form><field name="partner_ids" widget="clear"/></form>`,
+        resId: 2,
+    });
+
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("2");
+    await contains(".o_field_widget[name=partner_ids] button").click();
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("0");
+    await contains(".o_form_button_save").click();
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("0");
+
+    expect.verifySteps(["web_save"]);
+});
+
+test.tags("desktop");
+test("one2many custom which can set the relation", async () => {
+    class SetWidget extends Component {
+        static props = ["*"];
+        static template = xml`
+            <div>
+                <span t-esc="this.props.record.data[this.props.name].count"/>
+                <button t-on-click="set">Set</button>
+            </div>`;
+
+        set() {
+            return this.props.record.data[this.props.name].set([2, 4]);
+        }
+    }
+    registry.category("fields").add("set", { component: SetWidget });
+
+    onRpc("web_save", ({ args }) => {
+        expect.step("web_save");
+        expect(args[1].partner_ids).toEqual([[6, false, [2, 4]]]);
+    });
+
+    await mountView({
+        type: "form",
+        resModel: "turtle",
+        arch: `<form><field name="partner_ids" widget="set"/></form>`,
+        resId: 1,
+    });
+
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("0");
+    await contains(".o_field_widget[name=partner_ids] button").click();
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("2");
+    await contains(".o_form_button_save").click();
+    expect(".o_field_widget[name=partner_ids] span").toHaveText("2");
+
+    expect.verifySteps(["web_save"]);
 });

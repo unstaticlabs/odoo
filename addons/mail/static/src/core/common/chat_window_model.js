@@ -1,13 +1,13 @@
-import { fields, Record } from "@mail/core/common/record";
+import { fields, Record } from "@mail/model/export";
 
 /** @typedef {{ thread?: import("models").Thread }} ChatWindowData */
 
 export class ChatWindow extends Record {
-    static id = "thread";
+    static id = "channel";
 
     actionsDisabled = false;
     bypassCompact = false;
-    thread = fields.One("Thread", { inverse: "chat_window" });
+    channel = fields.One("discuss.channel", { inverse: "chatWindow" });
     autofocus = 0;
     jumpToNewMessage = 0;
     hidden = false;
@@ -34,10 +34,6 @@ export class ChatWindow extends Record {
         },
     });
 
-    get displayName() {
-        return this.thread?.displayName;
-    }
-
     get isOpen() {
         return Boolean(this.hubAsOpened);
     }
@@ -55,8 +51,63 @@ export class ChatWindow extends Record {
         return !this.store.discuss?.isActive;
     }
 
-    async close(options = {}) {
+    /**
+     * Determine whether this chat window can be closed. May involve
+     * user interaction, such as showing a confirmation dialog. This
+     * method is only called as a part of {@link requestClose}.
+     */
+    async _canClose() {
+        return true;
+    }
+
+    /**
+     * Optional tasks to run right before the chat window is closed,
+     * and confirm the windw can be closed after those tasks.
+     * This method is only called as a part of {@link requestClose}.
+     */
+    async _onBeforeClose() {
+        return true;
+    }
+
+    /**
+     * Attempt to close this chat window:
+     * - First, asks if the window is allowed to close ({@link _canClose}).
+     * - Then runs any pre-close tasks ({@link _onBeforeClose}).
+     * - Finally, performs the technical close.
+     *
+     * @param {object} [options={}] Forwarded to {@link ChatWindow.close}
+     */
+    async requestClose(options) {
         await this.store.chatHub.initPromise;
+        this.actionsDisabled = true;
+        let canClose = await this._canClose();
+        if (!this.exists()) {
+            return;
+        }
+        if (!canClose) {
+            this.autofocus++;
+            this.actionsDisabled = false;
+            return;
+        }
+        canClose = await this._onBeforeClose();
+        if (this.exists() && canClose) {
+            this.close(options);
+        }
+    }
+
+    /**
+     * Perform the technical close of the chat window. This method
+     * should __never__ be overridden. To execute code before the chat
+     * window is closed, override `_onBeforeClose`. To determine if
+     * the chat window should be closed, override `_canClose`.
+     *
+     * @param {object} [options={}]
+     * @param {boolean} [options.notifyState=true] Whether to save the
+     * chat hub state after closing.
+     * @param {boolean} [options.escape=false] Whether the close was
+     * triggered by an escape action.
+     */
+    close(options = {}) {
         const { escape = false } = options;
         options.notifyState ??= true;
         const chatHub = this.store.chatHub;
@@ -110,7 +161,7 @@ export class ChatWindow extends Record {
         }
     }
 
-    _onClose() {}
+    _onClose(options) {}
 }
 
 ChatWindow.register();

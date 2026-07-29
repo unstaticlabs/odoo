@@ -7,13 +7,13 @@
 # Jorunn D. Newth, 2022
 # Martin Trigaux, 2022
 # Marius Stedjan <marius@stedjan.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:09+0000\n"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2025-09-16 18:31+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.odoo.com/projects/odoo-19/"
 "event_sale/nb_NO/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
@@ -55,6 +55,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
 msgid "Add"
 msgstr "Legg til"
+
+#. module: event_sale
+#: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__additional_product_ids
+msgid "Additional Products"
+msgstr ""
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
@@ -560,6 +565,13 @@ msgid "Select an Event"
 msgstr ""
 
 #. module: event_sale
+#: model:ir.model.fields,help:event_sale.field_event_event_configurator__additional_product_ids
+msgid ""
+"Select products to include with each registration. They will also show up "
+"separately on Sale Orders."
+msgstr ""
+
+#. module: event_sale
 #. odoo-python
 #: code:addons/event_sale/models/event_registration.py:0
 #: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__event_slot_id
@@ -664,77 +676,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
 msgid "to"
 msgstr "til"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "En lagervare er et produkt som du sporer lagerstatus på. Lager-appen må "
-#~ "være innstallert.\n"
-#~ "En forbruksvare er et produkt som du ikke sporer.\n"
-#~ "En tjeneste er et ikke-fysisk produkt som du tilbyr."
-
-#~ msgid "Cancel"
-#~ msgstr "Kanseller"
-
-#~ msgid "Currency"
-#~ msgstr "Valuta"
-
-#~ msgid "Description"
-#~ msgstr "Beskrivelse"
-
-#~ msgid "Event Tickets"
-#~ msgstr "Billetter til arrangement"
-
-#~ msgid "Group By"
-#~ msgstr "Grupper etter"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Bilag"
-
-#~ msgid "Locked"
-#~ msgstr "Låst"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobil"
-
-#~ msgid "Not Paid"
-#~ msgstr "Ikke betalt"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Order Ref"
-#~ msgstr "Ordreref."
-
-#~ msgid "Paid"
-#~ msgstr "Betalt"
-
-#~ msgid "Price"
-#~ msgstr "Pris"
-
-#~ msgid "Price Reduce"
-#~ msgstr "Reduser pris"
-
-#~ msgid "Price Reduce Tax inc"
-#~ msgstr "Reduser pris inkl. mva"
-
-#~ msgid "Product Type"
-#~ msgstr "Produkttype"
-
-#~ msgid "Product Variant"
-#~ msgstr "Produktvariant"
-
-#~ msgid "Quotation Template Line"
-#~ msgstr "Tilbudsmal-linje"
-
-#~ msgid "Sales End"
-#~ msgstr "Salg avsluttes"
-
-#~ msgid "Skip"
-#~ msgstr "Hopp over"
-
-#~ msgid "Transaction"
-#~ msgstr "Transaksjon"

@@ -51,10 +51,10 @@ class ProductTemplate(models.Model):
             domain_company = Domain(['|', ('categ_id.property_valuation', '=', False), ('categ_id', '=', False), '|', ('company_id.inventory_valuation', operator, value), ('company_id', '=', False)])
         return domain_company | domain_categ
 
-    @api.depends('tracking')
+    @api.depends('tracking', 'is_storable')
     def _compute_lot_valuated(self):
         for product in self:
-            if product.tracking == 'none':
+            if product.tracking not in ['lot', 'serial']:
                 product.lot_valuated = False
 
     @api.depends_context('company')
@@ -65,8 +65,8 @@ class ProductTemplate(models.Model):
             if not company or self.env.company.filtered_domain([('id', 'child_of', company.id)]):
                 company = self.env.company
             product_template.cost_method = (
-                product_template.categ_id.with_company(company).property_cost_method
-                or company.cost_method
+                product_template.categ_id.with_company(company).sudo().property_cost_method
+                or company.sudo().cost_method
             )
 
     @api.depends_context('company')
@@ -204,6 +204,7 @@ class ProductProduct(models.Model):
 
             products = self.with_company(company.id).with_context(allowed_company_ids=company.ids)
             products = products._with_valuation_context()
+
             if at_date:
                 products = products.with_context(at_date=at_date, to_date=at_date)
 
@@ -402,8 +403,8 @@ class ProductProduct(models.Model):
         return std_price_by_product_id, value_by_product_id
 
     def _run_average_batch(self, at_date=None, lot=None, force_recompute=False):
-        std_price_by_product_id = {}
-        value_by_product_id = {}
+        std_price_by_product_id = defaultdict(float)
+        value_by_product_id = defaultdict(float)
         quantity_by_product_id = {}
         date_by_product_id = {}
 
@@ -439,7 +440,7 @@ class ProductProduct(models.Model):
         for manual_value in last_manual_value_by_product.values():
             product = manual_value.product_id
             if lot:
-                quantity = lot.with_context(to_date=manual_value.date, skip_in_progress=True).product_qty
+                quantity = lot.with_context(to_date=manual_value.date).product_qty
             else:
                 quantity = product.with_prefetch(product_ids_by_manual_value_date[manual_value.date]).with_context(to_date=manual_value.date).qty_available
 
@@ -679,10 +680,8 @@ class ProductProduct(models.Model):
                             and product.uom_id.compare(product.qty_available, 0) > 0
                     ):
                         new_avg_cost = (previous_qty * product.standard_price + added_value) / product.qty_available
-                    elif not product.uom_id.is_zero(added_qty):
-                        new_avg_cost = added_value / added_qty
                     else:
-                        continue
+                        new_avg_cost = added_value / added_qty
                     product.with_context(disable_auto_revaluation=True).sudo().standard_price = new_avg_cost
                 products = products - products_with_incremental_recompute
 
@@ -728,7 +727,7 @@ class ProductProduct(models.Model):
     def _run_avco(self, at_date=None, lot=None, method="realtime"):
         self.ensure_one()
         price_unit, value = self._run_average_batch(at_date=at_date, lot=lot, force_recompute=True)
-        return price_unit.get(self.id, 0), value.get(self.id, 0)
+        return price_unit[self.id], value[self.id]
 
     def _get_value_from_lots(self):
         return 0

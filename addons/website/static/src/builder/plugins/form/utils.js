@@ -1,7 +1,6 @@
 import { _t } from "@web/core/l10n/translation";
-import { escape } from "@web/core/utils/strings";
 import { renderToElement } from "@web/core/utils/render";
-import { generateHTMLId } from "@html_builder/utils/utils_css";
+import { generateHTMLId } from "@web/core/utils/strings";
 import { isSmallInteger } from "@html_builder/utils/utils";
 
 export const VISIBILITY_DATASET = [
@@ -10,33 +9,6 @@ export const VISIBILITY_DATASET = [
     "visibilityComparator",
     "visibilityBetween",
 ];
-
-/**
- * Returns the parsed data coming from the data-for element for the given form.
- * TODO Note that we should rely on the same util as the website form interaction.
- * Maybe this will need to be deleted.
- *
- * @param {string} formId
- * @param {HTMLElement} parentEl
- * @returns {Object|undefined} the parsed data
- */
-export function getParsedDataFor(formId, parentEl) {
-    const dataForEl = parentEl.querySelector(`[data-for='${formId}']`);
-    if (!dataForEl) {
-        return;
-    }
-    return JSON.parse(
-        dataForEl.dataset.values
-            // replaces `True` by `true` if they are after `,` or `:` or `[`
-            .replace(/([,:[]\s*)True/g, "$1true")
-            // replaces `False` and `None` by `""` if they are after `,` or `:` or `[`
-            .replace(/([,:[]\s*)(False|None)/g, '$1""')
-            // replaces the `'` by `"` if they are before `,` or `:` or `]` or `}`
-            .replace(/'(\s*[,:\]}])/g, '"$1')
-            // replaces the `'` by `"` if they are after `{` or `[` or `,` or `:`
-            .replace(/([{[:,]\s*)'/g, '$1"')
-    );
-}
 
 /**
  * Returns a field object
@@ -123,7 +95,19 @@ export function renderField(field, resetId = false) {
     if (!field.id) {
         field.id = generateHTMLId();
     }
-    const params = { field: { ...field }, defaultName: escape(field.string || _t("Field")) };
+    if (field.records && field.type === "many2one") {
+        const hasDefault =
+            field.records[0]?.["display_name"] === "" ||
+            field.records.some((value) => value.selected);
+        if (!hasDefault) {
+            field.records.unshift({
+                id: "",
+                display_name: "",
+                selected: true,
+            });
+        }
+    }
+    const params = { field: { ...field }, defaultName: field.string || _t("Field") };
     if (["url", "email", "tel"].includes(field.type)) {
         params.field.inputType = field.type;
     }
@@ -156,12 +140,6 @@ export function renderField(field, resetId = false) {
     });
     template.content.querySelectorAll("[data-name]").forEach((el) => {
         el.dataset.name = getQuotesEncodedName(el.dataset.name);
-    });
-    // TODO remove this part in master and add offset classes in xml
-    template.content.querySelectorAll(".s_website_form_field").forEach((el) => {
-        if (field.formatInfo.offset) {
-            el.classList.add(field.formatInfo.offset);
-        }
     });
     return template.content.firstElementChild;
 }
@@ -291,6 +269,11 @@ export function setActiveProperties(fieldEl, field) {
     field.modelRequired = classList.contains("s_website_form_model_required");
     field.hidden = classList.contains("s_website_form_field_hidden");
     field.formatInfo = getFieldFormat(fieldEl);
+    // this is needed to link states to the country
+    if (field.name === "state_id") {
+        field.linkStateToCountry =
+            fieldEl.querySelector(".s_website_form_input").dataset.linkStateToCountry !== "false";
+    }
 }
 
 /**
@@ -312,6 +295,16 @@ export function replaceFieldElement(oldFieldEl, fieldEl) {
     [...fieldEl.childNodes].forEach((node) => oldFieldEl.appendChild(node));
     [...fieldEl.attributes].forEach((el) => oldFieldEl.removeAttribute(el.nodeName));
     [...fieldEl.attributes].forEach((el) => oldFieldEl.setAttribute(el.nodeName, el.nodeValue));
+    if (!["selection", "many2one"].includes(oldFieldEl.dataset.type)) {
+        const dataAttributesToRemove = [
+            "otherOptionAllowed",
+            "otherOptionLabel",
+            "otherOptionPlaceholder",
+        ];
+        for (const dataAttribute of dataAttributesToRemove) {
+            delete oldFieldEl.dataset[dataAttribute];
+        }
+    }
     if (hasConditionalVisibility) {
         oldFieldEl.classList.add("s_website_form_field_hidden_if", "d-none");
     }
@@ -508,22 +501,48 @@ export function getModelName(formEl) {
     return formEl.dataset.model_name || "mail.mail";
 }
 
+export function getFormCacheKey(formEl) {
+    // Combine model and fields into cache key.
+    const model = getModelName(formEl);
+    const propertyOrigins = {};
+    const parts = [model];
+    for (const hiddenInputEl of [...formEl.querySelectorAll("input[type=hidden]")].sort(
+        (firstEl, secondEl) => firstEl.name.localeCompare(secondEl.name)
+    )) {
+        // Pushing using the name order to avoid being impacted by the
+        // order of hidden fields within the DOM.
+        parts.push(hiddenInputEl.name);
+        parts.push(hiddenInputEl.value);
+        propertyOrigins[hiddenInputEl.name] = hiddenInputEl.value;
+    }
+    const cacheKey = parts.join("/");
+    return { cacheKey, model, propertyOrigins };
+}
+
 export function getListItems(fieldEl) {
     const selectEl = getSelect(fieldEl);
     const multipleInputsEl = getMultipleInputs(fieldEl);
     let options = [];
     if (selectEl) {
-        options = [...selectEl.querySelectorAll("option")];
+        options = [...selectEl.querySelectorAll("option:not([value='_other'])")];
     } else if (multipleInputsEl) {
-        options = [...multipleInputsEl.querySelectorAll(".checkbox input, .radio input")];
+        options = [
+            ...multipleInputsEl.querySelectorAll(
+                ".checkbox input, .radio input:not([value='_other'])"
+            ),
+        ];
     }
     return options.map((opt) => {
         const name = selectEl ? opt : opt.nextElementSibling;
-        return {
+        const res = {
             id: isSmallInteger(opt.value) ? parseInt(opt.value) : opt.value,
             display_name: name.textContent.trim(),
             selected: selectEl ? opt.selected : opt.checked,
         };
+        if (opt.dataset.countryId) {
+            res.country_id = [parseInt(opt.dataset.countryId), ""];
+        }
+        return res;
     });
 }
 

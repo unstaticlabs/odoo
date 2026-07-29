@@ -2,7 +2,12 @@ import { expect, test } from "@odoo/hoot";
 import { setupEditor, testEditor } from "../_helpers/editor";
 import { unformat } from "../_helpers/format";
 import { setSelection, setContent, getContent } from "../_helpers/selection";
-import { deleteBackward, insertText, undo } from "../_helpers/user_actions";
+import {
+    deleteBackward,
+    ensureDistinctHistoryStep,
+    insertText,
+    undo,
+} from "../_helpers/user_actions";
 import { parseHTML } from "@html_editor/utils/html";
 import { Plugin } from "@html_editor/plugin";
 import { MAIN_PLUGINS } from "@html_editor/plugin_sets";
@@ -16,7 +21,10 @@ test("should ignore protected elements children mutations (true)", async () => {
                 <div data-oe-protected="true"><p>a</p></div>
                 `),
         stepFunction: async (editor) => {
-            await insertText(editor, "bc");
+            await insertText(editor, "b");
+            await ensureDistinctHistoryStep();
+            await insertText(editor, "c");
+            await ensureDistinctHistoryStep();
             const protectedParagraph = editor.editable.querySelector(
                 '[data-oe-protected="true"] > p'
             );
@@ -41,12 +49,18 @@ test("should not ignore unprotected elements children mutations (false)", async 
                 <div data-oe-protected="true"><div data-oe-protected="false"><p>a</p></div></div>
                 `),
         stepFunction: async (editor) => {
-            await insertText(editor, "bc");
+            await insertText(editor, "b");
+            await ensureDistinctHistoryStep();
+            await insertText(editor, "c");
+            await ensureDistinctHistoryStep();
             const unProtectedParagraph = editor.editable.querySelector(
                 '[data-oe-protected="false"] > p'
             );
             setSelection({ anchorNode: unProtectedParagraph, anchorOffset: 1 });
-            await insertText(editor, "bc");
+            await insertText(editor, "b");
+            await ensureDistinctHistoryStep();
+            await insertText(editor, "c");
+            await ensureDistinctHistoryStep();
             execCommand(editor, "historyUndo");
         },
         contentAfterEdit: unformat(`
@@ -301,7 +315,7 @@ test("should protect disconnected nodes", async () => {
     expect(lastStep.mutations[0].type).toBe("remove");
     expect(
         plugins.get("history").unserializeNode(lastStep.mutations[0].serializedNode).outerHTML
-    ).toBe(`<div contenteditable="false" data-oe-protected="true"></div>`);
+    ).toBe(`<div data-oe-protected="true" contenteditable="false"></div>`);
 });
 
 test("should not crash when changing attributes and removing a protecting anchor", async () => {
@@ -320,7 +334,7 @@ test("should not crash when changing attributes and removing a protecting anchor
     expect(
         plugins.get("history").unserializeNode(lastStep.mutations[1].serializedNode).outerHTML
     ).toBe(
-        `<div contenteditable="false" data-attr="other" data-oe-protected="true"><p>a</p></div>`
+        `<div data-oe-protected="true" data-attr="other" contenteditable="false"><p>a</p></div>`
     );
 });
 
@@ -607,6 +621,7 @@ test("don't protect a node under data-oe-protected='false' through delete and un
             <p>[]a</p>
         `)
     );
+    await ensureDistinctHistoryStep();
     deleteBackward(editor);
     undo(editor);
     expect(getContent(el)).toBe(

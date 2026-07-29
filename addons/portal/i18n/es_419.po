@@ -2,18 +2,18 @@
 # This file contains the translation of the following modules:
 # * portal
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025, 2026.
-# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-16 17:46+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-07-16 19:08+0000\n"
 "Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
-"odoo-19/portal/es_419/>\n"
+"odoo-s19-2/portal/es_419/>\n"
 "Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,6 +31,11 @@ msgstr "\" para validar tu acción."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s días de retraso"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr "\"Icono para %s\" % entry.name"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -58,11 +63,9 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Cerrar "
-"sesión"
+"<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/>Cerrar sesión"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
@@ -114,16 +117,6 @@ msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 msgstr ""
 "<i title=\"Documentación\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">País...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">Estado o provincia...</option>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -273,7 +266,7 @@ msgid "Add extra content to display in the email"
 msgstr "Agrega contenido adicional para que aparezca en el correo electrónico"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "Agrega, elimina o modifica tus direcciones"
 
@@ -288,8 +281,8 @@ msgid "Address Management"
 msgstr "Gestión de direcciones"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "Direcciones"
 
@@ -326,10 +319,9 @@ msgid "Billing address"
 msgstr "Dirección de facturación"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "Cancelar"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr "Categoría"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -389,12 +381,17 @@ msgid "Company Name"
 msgstr "Nombre de la empresa"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr "Tarjeta de configuración"
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "Ajustes de configuración"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "Configure sus parámetros de conexión"
 
@@ -411,7 +408,11 @@ msgid "Confirm Password"
 msgstr "Confirmar contraseña"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr "Conexión y seguridad"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "Conexión y seguridad"
@@ -447,11 +448,17 @@ msgid "Country"
 msgstr "País"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr "País..."
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "Crear un cliente"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -459,6 +466,7 @@ msgid "Created by"
 msgstr "Creado por"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -513,6 +521,11 @@ msgid "Description"
 msgstr "Descripción"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr "Descripción de la tarjeta"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "Detalles"
@@ -541,11 +554,17 @@ msgstr ""
 "                                        </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr "Descartar"
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -660,6 +679,7 @@ msgstr "Inicio"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -686,6 +706,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "Si quieres hacer una modificación, actualiza"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr "Imagen"
 
 #. module: portal
 #. odoo-javascript
@@ -752,6 +777,7 @@ msgstr ""
 "                y esté completa"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -759,6 +785,7 @@ msgid "Last Updated by"
 msgstr "Última actualización por"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -800,8 +827,8 @@ msgstr "Mensaje"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
 "El modelo %(model_name)s no es compatible con la firma de token, no tiene el "
 "campo %(field_name)s."
@@ -894,6 +921,11 @@ msgid "Phone"
 msgstr "Teléfono"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr "Cantidad de marcadores de posición"
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -910,6 +942,11 @@ msgstr "Administración del acceso al portal"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "URL de acceso al portal"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr "Entrada del portal"
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -1066,6 +1103,11 @@ msgid "Show As Optional Inherit"
 msgstr "Mostrar como herencia opcional"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr "Mostrar en el portal"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "Inicia sesión"
@@ -1097,6 +1139,11 @@ msgid "State / Province"
 msgstr "Estado/Provincia"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr "Estado / Provincia..."
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "Estado"
@@ -1105,6 +1152,11 @@ msgstr "Estado"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "Calle y número"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr "URL de destino"
 
 #. module: portal
 #. odoo-javascript
@@ -1252,6 +1304,11 @@ msgstr ""
 "del portal."
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr "Título de la tarjeta"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
 msgstr "Alternar filtros"
@@ -1318,9 +1375,9 @@ msgstr "Vista"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1356,9 +1413,9 @@ msgstr "Mensajes del sitio web"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1393,7 +1450,7 @@ msgstr "Escriba un mensaje..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "Escribe un mensaje…"
 
@@ -1436,6 +1493,12 @@ msgstr "Debería ingresar \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "Primero debería proporcionarle acceso al portal al contacto \"%s\"."
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr "Tu cuenta"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1485,9 +1548,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "contraseña"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr "secuencia"
 
 #. module: portal
 #. odoo-javascript
@@ -1506,351 +1569,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "los detalles de tu cuenta"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-primary\"/> My Account"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-primary\"/> Mi cuenta"
-
-#~ msgid "<i class=\"fa fa-fw fa-sign-out me-1 small text-primary\"/> Logout"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-sign-out me-1 small text-primary\"/> Cerrar sesión"
-
-#~ msgid "<i class=\"fa fa-fw fa-th me-1 small text-primary\"/> Apps"
-#~ msgstr "<i class=\"fa fa-fw fa-th me-1 small text-primary\"/> Aplicaciones"
-
-#~ msgid "<option value=\"\">select...</option>"
-#~ msgstr "<option value=\"\">Selecciona...</option>"
-
-#~ msgid ""
-#~ "<small class=\"form-text text-muted\">\n"
-#~ "                Company name, VAT Number and country can not be changed "
-#~ "once document(s) have been issued for your account.\n"
-#~ "                <br/>Please contact us directly for that operation.\n"
-#~ "            </small>"
-#~ msgstr ""
-#~ "<small class=\"form-text text-muted\">\n"
-#~ "                No puedes cambiar el nombre de la empresa, el número de "
-#~ "identificación fiscal o el país luego de emitir documentos para tu "
-#~ "cuenta.\n"
-#~ "                <br/>Contáctanos para realizar esta operación.\n"
-#~ "            </small>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-chevron-left\" role=\"img\" aria-label=\"Previous\" "
-#~ "title=\"Previous\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-chevron-left\" role=\"img\" aria-label=\"Anterior\" "
-#~ "title=\"Anterior\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-chevron-right\" role=\"img\" aria-label=\"Next\" "
-#~ "title=\"Next\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-chevron-right\" role=\"img\" aria-label=\"Siguiente\" "
-#~ "title=\"Siguiente\"/>"
-
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
-#~ "top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-"
-#~ "serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-#~ "align=\"center\">\n"
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"padding: 16px; background-color: white; color: #454748; border-"
-#~ "collapse:separate;\">\n"
-#~ "<tbody>\n"
-#~ "    <!-- HEADER -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-#~ "0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"middle\">\n"
-#~ "                    <span style=\"font-size: 10px;\">Your Account</"
-#~ "span><br>\n"
-#~ "                    <span style=\"font-size: 20px; font-weight: bold;\" t-"
-#~ "out=\"object.user_id.name or ''\">Marc Demo</span>\n"
-#~ "                </td><td valign=\"middle\" align=\"right\" t-if=\"not "
-#~ "object.user_id.company_id.uses_default_logo\">\n"
-#~ "                    <img t-attf-src=\"/logo.png?"
-#~ "company={{ object.user_id.company_id.id }}\" style=\"padding: 0px; "
-#~ "margin: 0px; height: auto; width: 80px;\" t-att-"
-#~ "alt=\"object.user_id.company_id.name\">\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-#~ "                  <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- CONTENT -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-#~ "0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-#~ "                    <div>\n"
-#~ "                        Dear <t t-out=\"object.user_id.name or ''\">Marc "
-#~ "Demo</t>,<br> <br>\n"
-#~ "                        Welcome to <t t-"
-#~ "out=\"object.user_id.company_id.name\">YourCompany</t>'s Portal!<br><br>\n"
-#~ "                        An account has been created for you with the "
-#~ "following login: <t t-out=\"object.user_id.login\">demo</t><br><br>\n"
-#~ "                        Click on the button below to pick a password and "
-#~ "activate your account.\n"
-#~ "                        <div style=\"margin: 16px 0px 16px 0px; text-"
-#~ "align: center;\">\n"
-#~ "                            <a t-att-"
-#~ "href=\"object.user_id.partner_id._get_signup_url()\" style=\"display: "
-#~ "inline-block; padding: 10px; text-decoration: none; font-size: 12px; "
-#~ "background-color: #875A7B; color: #fff; border-radius: 5px;\">\n"
-#~ "                                <strong>Activate Account</strong>\n"
-#~ "                            </a>\n"
-#~ "                        </div>\n"
-#~ "                        <t t-out=\"object.wizard_id.welcome_message or "
-#~ "''\">Welcome to our company's portal.</t>\n"
-#~ "                    </div>\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td style=\"text-align:center;\">\n"
-#~ "                  <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- FOOTER -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; font-"
-#~ "size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"middle\" align=\"left\">\n"
-#~ "                    <t t-out=\"object.user_id.company_id.name or "
-#~ "''\">YourCompany</t>\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
-#~ "0.7;\">\n"
-#~ "                    <t t-out=\"object.user_id.company_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    <t t-if=\"object.user_id.company_id.email\">\n"
-#~ "                        | <a t-attf-href=\"'mailto:%s' % "
-#~ "{{ object.user_id.company_id.email }}\" style=\"text-decoration:none; "
-#~ "color: #454748;\" t-out=\"object.user_id.company_id.email or "
-#~ "''\">info@yourcompany.com</a>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-if=\"object.user_id.company_id.website\">\n"
-#~ "                        | <a t-attf-href=\"'%s' % "
-#~ "{{ object.user_id.company_id.website }}\" style=\"text-decoration:none; "
-#~ "color: #454748;\" t-out=\"object.user_id.company_id.website or "
-#~ "''\">http://www.example.com</a>\n"
-#~ "                    </t>\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</tbody>\n"
-#~ "</table>\n"
-#~ "</td></tr>\n"
-#~ "<!-- POWERED BY -->\n"
-#~ "<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
-#~ "padding: 8px; border-collapse:separate;\">\n"
-#~ "      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-#~ "        Powered by <a target=\"_blank\" href=\"https://www.odoo.com?"
-#~ "utm_source=db&amp;utm_medium=portalinvite\" style=\"color: #875A7B;"
-#~ "\">Odoo</a>\n"
-#~ "      </td></tr>\n"
-#~ "    </table>\n"
-#~ "</td></tr>\n"
-#~ "</table>\n"
-#~ "            "
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
-#~ "top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-"
-#~ "serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-#~ "align=\"center\">\n"
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"padding: 16px; background-color: white; color: #454748; border-"
-#~ "collapse:separate;\">\n"
-#~ "<tbody>\n"
-#~ "    <!-- ENCABEZADO -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-#~ "0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"middle\">\n"
-#~ "                    <span style=\"font-size: 10px;\">Tu cuenta</"
-#~ "span><br>\n"
-#~ "                    <span style=\"font-size: 20px; font-weight: bold;\" t-"
-#~ "out=\"object.user_id.name or ''\">Marc Demo</span>\n"
-#~ "                </td><td valign=\"middle\" align=\"right\" t-if=\"not "
-#~ "object.user_id.company_id.uses_default_logo\">\n"
-#~ "                    <img t-attf-src=\"/logo.png?"
-#~ "company={{ object.user_id.company_id.id }}\" style=\"padding: 0px; "
-#~ "margin: 0px; height: auto; width: 80px;\" t-att-"
-#~ "alt=\"object.user_id.company_id.name\">\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-#~ "                  <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- CONTENIDO -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-#~ "0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
-#~ "                    <div>\n"
-#~ "                        Apreciable <t t-out=\"object.user_id.name or "
-#~ "''\">Marc Demo</t>,<br> <br>\n"
-#~ "                        ¡Te damos la bienvenida al portal de <t t-"
-#~ "out=\"object.user_id.company_id.name\">TuEmpresa</t>!<br><br>\n"
-#~ "                        Creamos una cuenta para ti, inicia sesión con el "
-#~ "siguiente usuario: <t t-out=\"object.user_id.login\">demo</t><br><br>\n"
-#~ "                        Haz clic en el botón de abajo para elegir una "
-#~ "contraseña y activar tu cuenta.\n"
-#~ "                        <div style=\"margin: 16px 0px 16px 0px; text-"
-#~ "align: center;\">\n"
-#~ "                            <a t-att-"
-#~ "href=\"object.user_id.partner_id._get_signup_url()\" style=\"display: "
-#~ "inline-block; padding: 10px; text-decoration: none; font-size: 12px; "
-#~ "background-color: #875A7B; color: #fff; border-radius: 5px;\">\n"
-#~ "                                <strong>Activa tu cuenta</strong>\n"
-#~ "                            </a>\n"
-#~ "                        </div>\n"
-#~ "                        <t t-out=\"object.wizard_id.welcome_message or "
-#~ "''\">Te damos la bienvenida al portal de nuestra empresa.</t>\n"
-#~ "                    </div>\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td style=\"text-align:center;\">\n"
-#~ "                  <hr width=\"100%\" style=\"background-"
-#~ "color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-#~ "size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "    <!-- PIE DE PÁGINA -->\n"
-#~ "    <tr>\n"
-#~ "        <td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-#~ "width=\"590\" style=\"min-width: 590px; background-color: white; font-"
-#~ "size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-#~ "                <tr><td valign=\"middle\" align=\"left\">\n"
-#~ "                    <t t-out=\"object.user_id.company_id.name or "
-#~ "''\">TuEmpresa</t>\n"
-#~ "                </td></tr>\n"
-#~ "                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
-#~ "0.7;\">\n"
-#~ "                    <t t-out=\"object.user_id.company_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    <t t-if=\"object.user_id.company_id.email\">\n"
-#~ "                        | <a t-attf-href=\"'mailto:%s' % "
-#~ "{{ object.user_id.company_id.email }}\" style=\"text-decoration:none; "
-#~ "color: #454748;\" t-out=\"object.user_id.company_id.email or "
-#~ "''\">info@tuempresa.com</a>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-if=\"object.user_id.company_id.website\">\n"
-#~ "                        | <a t-attf-href=\"'%s' % "
-#~ "{{ object.user_id.company_id.website }}\" style=\"text-decoration:none; "
-#~ "color: #454748;\" t-out=\"object.user_id.company_id.website or "
-#~ "''\">http://www.ejemplo.com</a>\n"
-#~ "                    </t>\n"
-#~ "                </td></tr>\n"
-#~ "            </table>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</tbody>\n"
-#~ "</table>\n"
-#~ "</td></tr>\n"
-#~ "<!-- CON LA TECNOLOGÍA DE -->\n"
-#~ "<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-#~ "    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
-#~ "padding: 8px; border-collapse:separate;\">\n"
-#~ "      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-#~ "        Con la tecnología de <a target=\"_blank\" href=\"https://"
-#~ "www.odoo.com?utm_source=db&amp;utm_medium=portalinvite\" style=\"color: "
-#~ "#875A7B;\">Odoo</a>\n"
-#~ "      </td></tr>\n"
-#~ "    </table>\n"
-#~ "</td></tr>\n"
-#~ "</table>\n"
-#~ "            "
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "No puedes cambiar el nombre de la empresa una vez que emitiste documentos "
-#~ "para tu cuenta. Contáctanos para realizar esta operación."
-
-#~ msgid ""
-#~ "Changing the country is not allowed once document(s) have been issued for "
-#~ "your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "No puedes cambiar el país si ya hay documentos para tu cuenta. "
-#~ "Contáctanos para realizar esta operación."
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "No se pudo guardar el archivo <strong>%s</strong>"
-
-#~ msgid "Discard"
-#~ msgstr "Descartar"
-
-#~ msgid "Invitation email to contacts to create a user account"
-#~ msgstr "Correo de invitación a contactos para crear una cuenta de usuario"
-
-#~ msgid "Key Description"
-#~ msgstr "Descripción clave"
-
-#~ msgid "Log out from all devices?"
-#~ msgstr "¿Cerrar sesión en todos los dispositivos?"
-
-#~ msgid "Name"
-#~ msgstr "Nombre"
-
-#~ msgid "Portal: User Invite"
-#~ msgstr "Portal: invitación de usuario"
-
-#~ msgid "Save"
-#~ msgstr "Guardar"
-
-#~ msgid "Street"
-#~ msgstr "Calle"
-
-#~ msgid "Street 2"
-#~ msgstr "Calle 2"
-
-#~ msgid "Type in your password to confirm :"
-#~ msgstr "Escribe tu contraseña para confirmar la acción:"
-
-#~ msgid "VAT Number"
-#~ msgstr "Número de identificación fiscal"
-
-#~ msgid ""
-#~ "You are about to log out from all devices that currently have access to "
-#~ "this user's account."
-#~ msgstr ""
-#~ "Estás por cerrar sesión en todos los dispositivos que actualmente tienen "
-#~ "acceso a la cuenta de este usuario."
-
-#~ msgid "Your account at {{ object.user_id.company_id.name }}"
-#~ msgstr "Tu cuenta en {{ object.user_id.company_id.name }}"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "Código postal"
-
-#~ msgid "revoke"
-#~ msgstr "revocar"

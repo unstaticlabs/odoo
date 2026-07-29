@@ -320,7 +320,7 @@ class AccountMove(models.Model):
                     'InstallmentAmount': payment_term.amount_residual_currency,
                     'PaymentMeans': self.l10n_es_payment_means or '04',
                     'AccountToBeCredited': {
-                        'IBAN': self.partner_bank_id.sanitized_acc_number,
+                        'IBAN': self.partner_bank_id.sanitized_account_number,
                         'BIC': self.partner_bank_id.bank_bic,
                     },
                 })
@@ -442,7 +442,7 @@ class AccountMove(models.Model):
             'invoice_record': self,
             'invoice_currency': inv_curr,
             'InvoiceDocumentType': 'FA' if self.l10n_es_is_simplified else 'FC',
-            'InvoiceClass': 'OR' if self.move_type in ['out_refund', 'in_refund'] else 'OO',
+            'InvoiceClass': 'OR' if self.is_refund() else 'OO',
             'Corrective': self._l10n_es_edi_facturae_get_corrective_data(),
             'InvoiceIssueData': {
                 'OperationDate': operation_date,
@@ -520,7 +520,7 @@ class AccountMove(models.Model):
             - invoice_values['TotalGeneralDiscounts']
             + invoice_values['TotalGeneralSurcharges']
         )
-        refund_multiplier = -1 if self.move_type in ('out_refund', 'in_refund') else 1
+        refund_multiplier = -1 if self.is_refund() else 1
 
         template_values = {
             'self_party': company.partner_id,
@@ -900,11 +900,11 @@ class AccountMove(models.Model):
         self.ensure_one()
         if filetype == 'facturae':
             if facturae_attachment := self.l10n_es_edi_facturae_xml_id:
-                return {
+                return [{
                     'filename': facturae_attachment.name,
                     'filetype': 'xml',
                     'content': facturae_attachment.raw,
-                }
+                }]
         return super()._get_invoice_legal_documents(filetype, allow_fallback=allow_fallback)
 
     def get_extra_print_items(self):

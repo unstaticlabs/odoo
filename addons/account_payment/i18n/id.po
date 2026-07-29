@@ -7,16 +7,17 @@
 # Ryanto The <ry.the77@gmail.com>, 2022
 # Muftiara Syuhada <muftiara.syuhada@gmail.com>, 2023
 # Abe Manyo, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 06:18+0000\n"
-"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:45+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -131,7 +132,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
 msgid "A discount will be applied if the customer pays before %s included."
-msgstr "Diskon akan diterapkan bila pelanggan membayar sebelum dan termasuk %s."
+msgstr ""
+"Diskon akan diterapkan bila pelanggan membayar sebelum dan termasuk %s."
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
@@ -155,6 +157,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "Token dibutuhkan untuk membuat transaksi pembayaran baru."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -169,6 +176,11 @@ msgstr "Jumlah yang Tersedia Untuk Refund"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Jumlah Belum Dibayar"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -193,8 +205,9 @@ msgstr "Transaksi Diotorisasi"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Baris Rekening Koran"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -362,7 +375,7 @@ msgid "Invoices Count"
 msgstr "Jumlah Faktur"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "Faktur untuk dibayar"
 
@@ -421,6 +434,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "Opsi pembayaran online tidak diaktifkan di Konfigurasi."
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -476,6 +496,7 @@ msgid "Pay overdue"
 msgstr "Bayar yang terlambat"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -493,7 +514,15 @@ msgstr "Jurnal Pembayaran"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+msgid "Payment Method"
+msgstr "Metode Pembayaran"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+msgid "Payment Method Line"
+msgstr "Baris Metode Pembayaran"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Metode-Metode Pembayaran"
@@ -525,7 +554,7 @@ msgstr "Token Pembayaran"
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__transaction_id
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
 msgid "Payment Transaction"
-msgstr "Transaksi Tagihan"
+msgstr "Transaksi Pembayaran"
 
 #. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_transaction_menu
@@ -533,15 +562,16 @@ msgid "Payment Transactions"
 msgstr "Transaksi Tagihan"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Pembayaran"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "Silakan login untuk membayar faktur Anda yang terlambat"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Daftar Harga"
 
 #. module: account_payment
 #. odoo-python
@@ -626,7 +656,8 @@ msgstr "Token akses tidak valid."
 #: code:addons/account_payment/wizards/payment_refund_wizard.py:0
 msgid ""
 "The amount to be refunded must be positive and cannot be superior to %s."
-msgstr "Jumlah yang akan di-refund harus positif dan tidak boleh lebih dari %s."
+msgstr ""
+"Jumlah yang akan di-refund harus positif dan tidak boleh lebih dari %s."
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_payment_provider__journal_id
@@ -790,44 +821,17 @@ msgid "has been applied."
 msgstr "telah diterapkan."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "terlambat"
 
-#~ msgid "Code"
-#~ msgstr "Kode"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Tidak ada pilihan pembayaran yang sesuai yang dapat ditemukan.</"
-#~ "strong><br/>\n"
-#~ "                                Jika Anda merasa ini merupakan error, "
-#~ "silakan hubungi administrator website."
-
-#~ msgid "Pay with"
-#~ msgstr "Bayar dengan"
-
-#~ msgid "Register Payment"
-#~ msgstr "Buat Pembayaran"
-
-#~ msgid ""
-#~ "The payment related to the transaction with reference %(ref)s has been "
-#~ "posted: %(link)s"
-#~ msgstr ""
-#~ "Pembayaran terkait transaksi dengan referensi %(ref)s telah diposting: %"
-#~ "(link)s"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Tipe Refund yang Didukung"
-
-#~ msgid ""
-#~ "You can't delete a payment method that is linked to a provider in the "
-#~ "enabled or test state.\n"
-#~ "Linked provider(s): %s"
-#~ msgstr ""
-#~ "Anda tidak dapat menghapus metode pembayaran yang terkait provider dalam "
-#~ "status enabled atau testing.\n"
-#~ "Provider yang terhubung: %s"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

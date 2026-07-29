@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -17,7 +16,6 @@ German accounting chart and localization.
 By default, the audit trail is enabled for GoBD compliance.
     """,
     'depends': [
-        'base_iban',
         'base_vat',
         'l10n_din5008',
         'account',

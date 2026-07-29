@@ -32,7 +32,7 @@ export class MailComposerFormRenderer extends formView.Renderer {
                 if (
                     el &&
                     isInEdition &&
-                    this.props.record.data.composition_comment_option === "reply_all"
+                    this.props.record.data.composition_comment_option !== "forward"
                 ) {
                     const element = el.querySelector(".note-editable[contenteditable]");
                     if (element) {
@@ -55,7 +55,7 @@ export class MailComposerFormRenderer extends formView.Renderer {
                     : this.props.record.context.active_ids;
             }
             return resIds.map((resId) => {
-                const thread = this.mailStore.Thread.insert({
+                const thread = this.mailStore["mail.thread"].insert({
                     model: this.props.record.data.model,
                     id: resId,
                 });
@@ -104,7 +104,7 @@ export class MailComposerFormRenderer extends formView.Renderer {
             const selectedPartners = await this.orm.searchRead(
                 "res.partner",
                 [["id", "in", selectedPartnerIds]],
-                ["email", "id", "lang", "name"]
+                ["email", "id", "lang", "name", "display_name"]
             );
 
             /**

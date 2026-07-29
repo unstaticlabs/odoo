@@ -5,24 +5,24 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Maitê Dietze (madi)" <madi@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Maitê Dietze (madi)" <madi@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 18:19+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/odoo-"
-"19/hr_gamification/pt_BR/>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-27 09:02+0000\n"
+"Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/"
+"odoo-19/hr_gamification/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -121,12 +121,6 @@ msgstr "Descrição"
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "Medalha direta"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr "Cancelar"
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -293,36 +287,3 @@ msgstr "Você não pode enviar uma medalha para si mesmo."
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr "em"
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "Medalhas são frutos de um bom trabalho. Dê-lhes a pessoas que acredita "
-#~ "merecer."
-
-#~ msgid "Basic Employee"
-#~ msgstr "Empregado Básico"
-
-#~ msgid "Cancel"
-#~ msgstr "Cancelar"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "Conceda a este funcionário seu primeiro distintivo"
-
-#~ msgid "Received Badges"
-#~ msgstr "Medalhas recebidas"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "Usuário relacionado para o gerente controlar seus acessos."
-
-#~ msgid "Reward Employee"
-#~ msgstr "Recompensar funcionário"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr ""
-#~ "Você pode enviar medalhas somente para os funcionários vinculados a um "
-#~ "usuário."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "Recompensar este funcionário por uma atividade bem executada"

@@ -446,13 +446,6 @@ class TestUi(TestPointOfSaleHttpCommon, OnlinePaymentCommon):
         self.assertEqual(current_session.state, 'closed', 'Session was not properly closed')
         self.assertEqual(order.state, 'done')
 
-    def test_online_payment_amount_updated_after_order_modification(self):
-        self.pos_config.with_user(self.pos_admin).open_ui()
-        self.start_pos_tour('test_online_payment_amount_updated_after_order_modification', login="pos_admin")
-        order = self.pos_config.current_session_id.order_ids.sorted(lambda o: o.id, reverse=True)[0]
-        self.assertEqual(order.state, "draft", "The order should still be in draft state, awaiting the online payment.")
-        self.assertEqual(order.amount_total, 96.0, "The increased order total should be synced to the server.")
-
     @classmethod
     def tearDownClass(cls):
         # Restore company values after the tests

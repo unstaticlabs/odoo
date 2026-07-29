@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 19:15+0000\n"
-"PO-Revision-Date: 2026-02-20 19:05+0000\n"
+"POT-Creation-Date: 2026-04-03 19:24+0000\n"
+"PO-Revision-Date: 2026-02-27 19:24+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
@@ -34,7 +34,7 @@ msgstr ""
 
 #. module: l10n_jo_edi_pos
 #: model:ir.model,name:l10n_jo_edi_pos.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_jo_edi_pos
@@ -59,6 +59,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_account_move__display_name
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_edi_xml_ubl_21_jo__display_name
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_order__display_name
+#: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_res_company__display_name
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_res_config_settings__display_name
@@ -90,6 +91,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_account_move__id
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_edi_xml_ubl_21_jo__id
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_order__id
+#: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_res_company__id
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_res_config_settings__id
@@ -115,14 +117,13 @@ msgstr ""
 
 #. module: l10n_jo_edi_pos
 #. odoo-javascript
-#: code:addons/l10n_jo_edi_pos/static/src/overrides/models/receipt_screen.js:0
+#: code:addons/l10n_jo_edi_pos/static/src/overrides/models/feedback_screen.js:0
 #: model:ir.model.fields,field_description:l10n_jo_edi_pos.field_pos_order__l10n_jo_edi_pos_error
 msgid "JoFotara Error"
 msgstr ""
 
 #. module: l10n_jo_edi_pos
-#. odoo-javascript
-#: code:addons/l10n_jo_edi_pos/static/src/overrides/components/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_jo_edi_pos.pos_order_receipt_footer
 msgid "JoFotara QR code"
 msgstr ""
 
@@ -241,12 +242,17 @@ msgstr ""
 
 #. module: l10n_jo_edi_pos
 #: model:ir.model,name:l10n_jo_edi_pos.model_pos_order
-msgid "Point of Sale Orders"
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: l10n_jo_edi_pos
+#: model:ir.model,name:l10n_jo_edi_pos.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
 msgstr ""
 
 #. module: l10n_jo_edi_pos
 #: model:ir.model,name:l10n_jo_edi_pos.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
+msgid "Point of Sale Payment Method"
 msgstr ""
 
 #. module: l10n_jo_edi_pos
@@ -255,8 +261,7 @@ msgid "QR"
 msgstr ""
 
 #. module: l10n_jo_edi_pos
-#. odoo-javascript
-#: code:addons/l10n_jo_edi_pos/static/src/overrides/components/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:l10n_jo_edi_pos.pos_order_receipt_header
 msgid "RECEIPT WITHOUT FISCAL VALUE"
 msgstr ""
 
@@ -325,7 +330,7 @@ msgstr ""
 
 #. module: l10n_jo_edi_pos
 #. odoo-javascript
-#: code:addons/l10n_jo_edi_pos/static/src/overrides/models/receipt_screen.js:0
+#: code:addons/l10n_jo_edi_pos/static/src/overrides/models/feedback_screen.js:0
 msgid ""
 "The receipt is stuck due to an Error.\\nTo send it, go to Orders > Select "
 "the Order > Details > JoFotara or Backend > Orders > Select the Order > "

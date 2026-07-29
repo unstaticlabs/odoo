@@ -6,30 +6,34 @@
 # Martin Trigaux, 2018
 # Yoshi Tashiro <tashiro@roomsfor.hk>, 2018
 # Manami Hashi <manami@roomsfor.hk>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-12 07:50+0000\n"
-"PO-Revision-Date: 2026-07-01 06:18+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-15 09:57+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-1/"
 "auth_ldap/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_filter
 msgid ""
-"    Filter used to look up user accounts in the LDAP database. It is an    arbitrary LDAP filter in string representation. Any `%s` placeholder    will be replaced by the login (identifier) provided by the user, the filter    should contain at least one such placeholder.\n"
+"    Filter used to look up user accounts in the LDAP database. It is an    "
+"arbitrary LDAP filter in string representation. Any `%s` placeholder    will "
+"be replaced by the login (identifier) provided by the user, the filter    "
+"should contain at least one such placeholder.\n"
 "\n"
-"    The filter must result in exactly one (1) result, otherwise the login will    be considered invalid.\n"
+"    The filter must result in exactly one (1) result, otherwise the login "
+"will    be considered invalid.\n"
 "\n"
 "    Example (actual attributes depend on LDAP server and setup):\n"
 "\n"
@@ -41,9 +45,9 @@ msgid ""
 "    "
 msgstr ""
 "    LDAPデータベース内のユーザアカウントを検索するために使用されるフィルタ。"
-"これは    文字列表現の任意のLDAPフィルタです。任意の `%s` プレースホルダは"
-"    ユーザによって提供されたログイン (識別子) に置き換えられます。フィルタ"
-"    には、少なくとも 1 つのプレースホルダーを含める必要があります。\n"
+"これは    文字列表現の任意のLDAPフィルタです。任意の `%s` プレースホルダ"
+"は    ユーザによって提供されたログイン (識別子) に置き換えられます。フィル"
+"タ    には、少なくとも 1 つのプレースホルダーを含める必要があります。\n"
 "\n"
 "    このフィルターの検索結果は、必ず 1 件のみでなければなりません。1 件以外の"
 "結果が返された場合、    ログインは無効と見なされます。\n"
@@ -58,18 +62,28 @@ msgstr ""
 "    "
 
 #. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "An error occurred: %(error)s"
+msgstr "エラーが発生しました: %(error)s"
+
+#. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__create_user
-msgid "Automatically create local user accounts for new users authenticating via LDAP"
+msgid ""
+"Automatically create local user accounts for new users authenticating via "
+"LDAP"
 msgstr ""
 "LDAPを使用して新しいユーザを認証するためのローカルユーザアカウントを自動的に"
 "作成します。"
 
 #. module: auth_ldap
-#: model:ir.model,name:auth_ldap.model_res_company
-msgid "Companies"
-msgstr "会社"
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Cannot contact LDAP server at %(server)s:%(port)d"
+msgstr "LDAPサーバに接続できません %(server)s:%(port)d"
 
 #. module: auth_ldap
+#: model:ir.model,name:auth_ldap.model_res_company
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__company
 msgid "Company"
 msgstr "会社"
@@ -83,6 +97,24 @@ msgstr "会社LDAP設定"
 #: model:ir.model,name:auth_ldap.model_res_config_settings
 msgid "Config Settings"
 msgstr "構成設定"
+
+#. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Connection Test Failed!"
+msgstr "接続テストに失敗しました!"
+
+#. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Connection Test Successful!"
+msgstr "接続テストに成功しました!"
+
+#. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Connection to LDAP server at %(server)s:%(port)d timed out"
+msgstr "%(server)s:%(port)d のLDAPサーバーへの接続がタイムアウトしました"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__create_user
@@ -101,18 +133,33 @@ msgstr "作成日"
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_base
-msgid "DN of the user search scope: all descendants of this base will be searched for users."
-msgstr "ユーザ検索スコープのDN：このベースのすべての子孫がユーザ用に検索されます。"
+msgid ""
+"DN of the user search scope: all descendants of this base will be searched "
+"for users."
+msgstr ""
+"ユーザ検索スコープのDN：このベースのすべての子孫がユーザ用に検索されます。"
 
 #. module: auth_ldap
+#: model:ir.model.fields,field_description:auth_ldap.field_res_company__display_name
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__display_name
+#: model:ir.model.fields,field_description:auth_ldap.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:auth_ldap.field_res_users__display_name
 msgid "Display Name"
 msgstr "表示名"
 
 #. module: auth_ldap
+#: model:ir.model.fields,field_description:auth_ldap.field_res_company__id
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__id
+#: model:ir.model.fields,field_description:auth_ldap.field_res_config_settings__id
+#: model:ir.model.fields,field_description:auth_ldap.field_res_users__id
 msgid "ID"
 msgstr "ID"
+
+#. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Invalid credentials for bind DN %(binddn)s"
+msgstr "バインドDN %(binddn)sの認証情報が無効です"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.res_company_ldap_view_tree
@@ -162,11 +209,6 @@ msgid "LDAP password"
 msgstr "LDAPパスワード"
 
 #. module: auth_ldap
-#: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap____last_update
-msgid "Last Modified on"
-msgstr "最終更新日"
-
-#. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__write_uid
 msgid "Last Updated by"
 msgstr "最終更新者"
@@ -182,11 +224,12 @@ msgid "Login Information"
 msgstr "ログイン情報"
 
 #. module: auth_ldap
+#. odoo-python
 #: code:addons/auth_ldap/models/res_company_ldap.py:0
 msgid "No local user found for LDAP login and not configured to create one"
 msgstr ""
-"LDAPログイン用のローカルユーザが見つからず、作成するように設定されていません"
-"。"
+"LDAPログイン用のローカルユーザが見つからず、作成するように設定されていませ"
+"ん。"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
@@ -195,7 +238,10 @@ msgstr "処理パラメータ"
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_tls
-msgid "Request secure TLS/SSL encryption when connecting to the LDAP server. This option requires a server with STARTTLS enabled, otherwise all authentication attempts will fail."
+msgid ""
+"Request secure TLS/SSL encryption when connecting to the LDAP server. This "
+"option requires a server with STARTTLS enabled, otherwise all authentication "
+"attempts will fail."
 msgstr ""
 "LDAPサーバへの接続時に安全なTLS/SSL暗号化を要求します。このオプションはサーバ"
 "がSTARTTLSが使用可能であることを要求します。そうでない場合はすべての認証要求"
@@ -217,28 +263,48 @@ msgid "Setup your LDAP Server"
 msgstr "LDAPサーバの設定"
 
 #. module: auth_ldap
+#. odoo-python
+#: code:addons/auth_ldap/models/res_company_ldap.py:0
+msgid "Successfully connected to LDAP server at %(server)s:%(port)d"
+msgstr "LDAPサーバ%(server)s: %(port)d への接続に成功しました"
+
+#. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__user
 msgid "Template User"
 msgstr "テンプレートユーザ"
 
 #. module: auth_ldap
+#: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
+msgid "Test Connection"
+msgstr "接続テスト"
+
+#. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_password
-msgid "The password of the user account on the LDAP server that is used to query the directory."
+msgid ""
+"The password of the user account on the LDAP server that is used to query "
+"the directory."
 msgstr ""
 "LDAPサーバのユーザアカウントのパスワードはディレクトリへのクエリー使用されま"
 "す。"
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_binddn
-msgid "The user account on the LDAP server that is used to query the directory. Leave empty to connect anonymously."
+msgid ""
+"The user account on the LDAP server that is used to query the directory. "
+"Leave empty to connect anonymously."
 msgstr ""
-"LDAPサーバ上のユーザアカウントはディレクトリへのクエリーのために使用されます"
-"。匿名接続する場合は空のままにして下さい。"
+"LDAPサーバ上のユーザアカウントはディレクトリへのクエリーのために使用されま"
+"す。匿名接続する場合は空のままにして下さい。"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_tls
 msgid "Use TLS"
 msgstr "TLS を使用"
+
+#. module: auth_ldap
+#: model:ir.model,name:auth_ldap.model_res_users
+msgid "User"
+msgstr "ユーザ"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
@@ -249,8 +315,3 @@ msgstr "ユーザ情報"
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__user
 msgid "User to copy when creating new users"
 msgstr "新規ユーザ作成時にユーザにコピーされます。"
-
-#. module: auth_ldap
-#: model:ir.model,name:auth_ldap.model_res_users
-msgid "Users"
-msgstr "ユーザ"

@@ -35,7 +35,7 @@ test("Search highlight", async () => {
         },
         {
             input: '<a href="https://www.odoo.com">https://www.odoo.com</a>',
-            output: `&lt;a href="https://www.<span class="${HIGHLIGHT_CLASS}">odoo</span>.com"&gt;https://www.<span class="${HIGHLIGHT_CLASS}">odoo</span>.com&lt;/a&gt;`,
+            output: `&lt;a href=&quot;https://www.<span class="${HIGHLIGHT_CLASS}">odoo</span>.com&quot;&gt;https://www.<span class="${HIGHLIGHT_CLASS}">odoo</span>.com&lt;/a&gt;`,
             searchTerm: "odoo",
         },
         {
@@ -118,18 +118,24 @@ test("Search highlight", async () => {
 test("Display highlighted search in chatter", async () => {
     patchUiSize({ size: SIZES.XXL });
     const pyEnv = await startServer();
-    const partnerId = pyEnv["res.partner"].create({ name: "John Doe" });
+    const partnerId = pyEnv["res.partner"].create({ name: "Groot" });
     pyEnv["mail.message"].create({
-        body: "not empty",
+        author_id: partnerId,
+        body: "I am Groot",
         model: "res.partner",
         res_id: partnerId,
     });
     await start();
     await openFormView("res.partner", partnerId);
     await click("[title='Search Messages']");
-    await insertText(".o_searchview_input", "empty");
+    await insertText(".o_searchview_input", "Groot");
     triggerHotkey("Enter");
-    await contains(`.o-mail-SearchMessageResult .o-mail-Message span.${HIGHLIGHT_CLASS}`);
+    await contains(
+        `.o-mail-SearchMessageResult .o-mail-Message-author .${HIGHLIGHT_CLASS}:text('Groot')`
+    );
+    await contains(
+        `.o-mail-SearchMessageResult .o-mail-Message-body .${HIGHLIGHT_CLASS}:text('Groot')`
+    );
 });
 
 test("Display multiple highlighted search in chatter", async () => {
@@ -210,5 +216,5 @@ test("Display highlighted with escaped character must ignore them", async () => 
     await contains(`.o-mail-SearchMessageResult .o-mail-Message span.${HIGHLIGHT_CLASS}`, {
         count: 2,
     });
-    await contains(`.o-mail-Message-body`, { text: "<strong>test</strong> hello" });
+    await contains(`.o-mail-Message-body:has(:text("<strong>test</strong> hello"))`);
 });

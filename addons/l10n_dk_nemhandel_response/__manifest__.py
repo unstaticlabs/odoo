@@ -8,9 +8,8 @@ see if your document has been accepted or rejected.
 When receiving a document, you will be able to send a rejection or approval of the received document.
     """,
     'category': 'Accounting/Localizations/EDI',
-    'version': '1.0',
     'depends': [
-        'l10n_dk_nemhandel',
+        'l10n_dk',
     ],
     'data': [
         'security/ir.model.access.csv',

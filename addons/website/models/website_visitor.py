@@ -1,22 +1,21 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime, timedelta
-
 import hashlib
-import pytz
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.exceptions import UserError
 from odoo.fields import Domain
 from odoo.tools import _, SQL
+from odoo.tools.date_utils import all_timezones
 from odoo.tools.misc import _format_time_ago
 from odoo.http import request
 
 
 class WebsiteTrack(models.Model):
     _name = 'website.track'
-    _description = 'Visited Pages'
+    _description = 'Visited Page'
     _order = 'visit_datetime DESC'
     _log_access = False
 
@@ -208,7 +207,7 @@ class WebsiteVisitor(models.Model):
             'lang_id': request.lang.id,
             # Note that it's possible for the GEOIP database to return a country
             # code which is unknown in Odoo
-            'country_code': request.geoip.get('country_code'),
+            'country_code': request.geoip.country_code,
             'website_id': request.website.id,
             'timezone': self._get_visitor_timezone() or None,
             'write_uid': self.env.uid,
@@ -355,7 +354,7 @@ class WebsiteVisitor(models.Model):
         This method is meant to be overridden by sub-modules to further refine
         inactivity conditions. """
 
-        delay_days = int(self.env['ir.config_parameter'].sudo().get_param('website.visitor.live.days', 60))
+        delay_days = self.env['ir.config_parameter'].sudo().get_int('website.visitor.live.days') or 60
         deadline = datetime.now() - timedelta(days=delay_days)
         return Domain('last_connection_datetime', '<', deadline) & Domain('partner_id', '=', False)
 
@@ -387,7 +386,7 @@ class WebsiteVisitor(models.Model):
 
     def _get_visitor_timezone(self):
         tz = request.cookies.get('tz') if request else None
-        if tz in pytz.all_timezones:
+        if tz in all_timezones:
             return tz
         elif not self.env.user._is_public():
             return self.env.user.tz

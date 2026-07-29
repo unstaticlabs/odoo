@@ -1,9 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from pytz import UTC, timezone
-from datetime import datetime
 from collections import defaultdict
+from datetime import UTC, datetime, time
 from functools import reduce
+from zoneinfo import ZoneInfo
 
 from odoo import api, models
 from odoo.fields import Domain
@@ -40,12 +40,11 @@ class ResPartner(models.Model):
         if not employees_by_partner:
             return {}
         interval_by_calendar = defaultdict()
-        calendar_periods_by_employee = defaultdict(list)
         resources_by_calendar = defaultdict(lambda: self.env['resource.resource'])
 
         # Compute employee's calendars's period and order employee by his involved calendars
         employees = sum(employees_by_partner.values(), start=self.env['hr.employee'])
-        calendar_periods_by_employee = employees._get_calendar_periods(start_period, stop_period)
+        calendar_periods_by_employee = employees._get_calendar_periods(start_period.date(), stop_period.date())
         for employee, calendar_periods in calendar_periods_by_employee.items():
             for _start, _stop, calendar in calendar_periods:
                 calendar = calendar or self.env.company.resource_calendar_id
@@ -53,7 +52,8 @@ class ResPartner(models.Model):
 
         # Compute all work intervals per calendar
         for calendar, resources in resources_by_calendar.items():
-            work_intervals = calendar._work_intervals_batch(start_period, stop_period, resources=resources, tz=timezone(calendar.tz))
+            resources_per_tz = resources._get_resources_per_tz()
+            work_intervals = calendar._work_intervals_batch(start_period, stop_period, resources_per_tz=resources_per_tz)
             del work_intervals[False]
             # Merge all employees intervals to avoid to compute it multiples times
             if merge:
@@ -67,7 +67,11 @@ class ResPartner(models.Model):
             employee_interval = Intervals([])
             for (start, stop, calendar) in calendar_periods:
                 calendar = calendar or self.env.company.resource_calendar_id # No calendar if fully flexible
-                interval = Intervals([(start, stop, self.env['resource.calendar'])])
+                tz = ZoneInfo(employee._get_tz(start))
+                interval = Intervals([(
+                    datetime.combine(start, time.min, tz),
+                    datetime.combine(stop, time.max, tz),
+                    self.env['resource.calendar'])])
                 if merge:
                     calendar_interval = interval_by_calendar[calendar]
                 else:
@@ -100,8 +104,8 @@ class ResPartner(models.Model):
         # This is the format expected by the fullcalendar library to do the overlay
         return [{
             "daysOfWeek": [(interval[0].weekday() + 1) % 7],
-            "startTime":  interval[0].astimezone(timezone(self.env.user.tz or 'UTC')).strftime("%H:%M"),
-            "endTime": interval[1].astimezone(timezone(self.env.user.tz or 'UTC')).strftime("%H:%M"),
+            "startTime":  interval[0].astimezone(ZoneInfo(self.env.user.tz or 'UTC')).strftime("%H:%M"),
+            "endTime": interval[1].astimezone(ZoneInfo(self.env.user.tz or 'UTC')).strftime("%H:%M"),
         } for interval in working_intervals] if working_intervals else [{
             # 7 is used a dummy value to gray the full week
             # Returning an empty list would leave the week uncolored
@@ -109,3 +113,9 @@ class ResPartner(models.Model):
             "startTime":  datetime.today().strftime("00:00"),
             "endTime": datetime.today().strftime("00:00"),
         }]
+
+    def get_worklocation(self, start_date, end_date):
+        employee_id = self.env['hr.employee'].search([
+            ('work_contact_id.id', 'in', self.ids),
+            ('company_id.id', '=', self.env.company.id)])
+        return employee_id._get_worklocation(start_date, end_date)

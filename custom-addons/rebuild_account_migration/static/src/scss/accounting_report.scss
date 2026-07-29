@@ -1,0 +1,634 @@
+html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
+    overflow: auto;
+}
+
+.o_usl_accounting_report {
+    --usl-report-primary: #111111;
+    --usl-report-section-bg: #e9ecef;
+    --usl-report-section-text: #111111;
+    --usl-report-ink: var(--usl-report-primary);
+    --usl-report-muted: #667085;
+    --usl-report-rule: #dfe5ea;
+    position: relative;
+    overflow: auto;
+    background: #f6f7f8;
+
+    .o_usl_report_workspace {
+        // The Odoo action is a flex container. Keep the paper at its natural
+        // document height so the action itself owns vertical scrolling.
+        flex: 0 0 auto;
+        width: calc(100% - 2rem);
+        margin: 1rem auto 2rem;
+        overflow: hidden;
+        border: 1px solid #dfe3e6;
+        border-radius: 0.2rem;
+        background: #fff;
+        box-shadow: 0 0.35rem 1.25rem rgba(#101828, 0.07);
+    }
+
+    .o_usl_report_workspace_portrait {
+        max-width: 1040px;
+    }
+
+    .o_usl_report_workspace_landscape {
+        max-width: 1320px;
+    }
+
+    .o_usl_report_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 1.25rem 0.5rem;
+        background: #fff;
+
+        h1 {
+            margin: 0.05rem 0 0.2rem;
+            color: var(--usl-report-ink);
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+        }
+    }
+
+    .o_usl_report_company {
+        color: #617283;
+        font-size: 0.68rem;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .o_usl_report_period {
+        display: flex;
+        align-items: baseline;
+        gap: 0.55rem;
+        color: #34495e;
+        font-size: 0.82rem;
+
+        strong {
+            font-variant-numeric: tabular-nums;
+        }
+
+        span {
+            color: var(--usl-report-muted);
+        }
+    }
+
+    .o_usl_report_subtitle {
+        margin-top: 0.15rem;
+        color: #8794a1;
+        font-size: 0.7rem;
+    }
+
+    .o_usl_report_exports {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .o_usl_report_filters {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        padding: 0.5rem 1.25rem;
+        border-block: 1px solid var(--usl-report-rule);
+        background: #fff;
+
+        label {
+            flex: 0 1 145px;
+            min-width: 0;
+            margin: 0;
+        }
+
+        label > span {
+            display: block;
+            margin-bottom: 0.12rem;
+            color: #475467;
+            font-size: 0.67rem;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 1.95rem;
+            padding: 0.25rem 0.45rem;
+            border: 1px solid #d0d5dd;
+            border-radius: 0.3rem;
+            background: #fff;
+            font-size: 0.78rem;
+        }
+    }
+
+    .o_usl_report_filter_period {
+        flex-basis: 155px !important;
+    }
+
+    .o_usl_report_filter_unit {
+        flex-basis: 112px !important;
+    }
+
+    .o_usl_report_filter_toggle {
+        flex: 0 0 auto !important;
+
+        .o_usl_report_checkbox {
+            display: flex;
+            align-items: center;
+            min-height: 1.95rem;
+            margin: 0;
+            padding: 0.25rem 0.55rem;
+            border: 1px solid #d0d5dd;
+            border-radius: 0.3rem;
+            background: #fff;
+            color: #344054;
+            font-size: 0.76rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        input {
+            width: 0.9rem;
+            min-height: auto;
+            margin: 0 0.4rem 0 0;
+            padding: 0;
+        }
+
+        .o_usl_report_checkbox > span {
+            display: inline;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+        }
+    }
+
+    .o_usl_report_search {
+        flex: 1 1 205px !important;
+        min-width: 190px;
+
+        > label {
+            width: 100%;
+        }
+
+        .input-group {
+            flex-wrap: nowrap;
+        }
+
+        input {
+            flex: 1 1 auto;
+            width: 1%;
+            min-width: 0;
+        }
+    }
+
+    .o_usl_report_more_filters {
+        align-self: end;
+        min-height: 1.95rem;
+        white-space: nowrap;
+    }
+
+    .o_usl_report_clear_filters {
+        align-self: end;
+        min-height: 1.95rem;
+        padding-inline: 0.35rem;
+        color: #667085;
+        font-size: 0.76rem;
+    }
+
+    .o_usl_report_advanced {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.55rem;
+        padding: 0.55rem 1.25rem;
+        border-bottom: 1px solid rgba(#1f2937, 0.1);
+        background: #fff;
+    }
+
+    .o_usl_report_filter_group {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid #e4e7ec;
+        border-radius: 0.35rem;
+        background: #f9fafb;
+    }
+
+    .o_usl_report_filter_group_title {
+        padding: 0.38rem 0.55rem;
+        border-bottom: 1px solid #e4e7ec;
+        color: #344054;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .o_usl_report_filter_choices {
+        max-height: 10rem;
+        overflow: auto;
+        background: #fff;
+    }
+
+    .o_usl_report_filter_choice {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.45rem;
+        margin: 0;
+        padding: 0.32rem 0.55rem;
+        color: #344054;
+        cursor: pointer;
+        font-size: 0.76rem;
+
+        &:hover {
+            background: #f2f4f7;
+        }
+
+        input {
+            margin-top: 0.15rem;
+        }
+    }
+
+    .o_usl_report_pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.32rem;
+        padding: 0.42rem 1.25rem;
+        border-bottom: 1px solid var(--usl-report-rule);
+        background: #fbfcfd;
+
+        .o_usl_report_scope_label {
+            align-self: center;
+            margin-right: 0.15rem;
+            color: #7d8995;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: 1px solid #d0d5dd;
+            color: #344054 !important;
+            font-size: 0.69rem;
+            font-weight: 500;
+        }
+
+        button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #667085;
+            line-height: 1;
+        }
+    }
+
+    .o_usl_report_summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        padding: 0.25rem 1.25rem 0.7rem;
+        background: #fff;
+    }
+
+    .o_usl_report_summary_card {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex: 1 1 180px;
+        gap: 0.8rem;
+        min-width: 170px;
+        padding: 0.5rem 0.7rem;
+        border: 0;
+        border-left: 3px solid #b5c4cf;
+        border-radius: 0.2rem;
+        background: #f7f9fa;
+
+        span {
+            color: #667085;
+            font-size: 0.7rem;
+            font-weight: 600;
+
+            small {
+                color: #475467;
+                font-size: inherit;
+                font-weight: 650;
+                white-space: nowrap;
+            }
+        }
+
+        strong {
+            color: #101828;
+            font-size: 0.94rem;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    .o_usl_report_summary_success {
+        border-color: #55a876;
+        background: #f2fbf5;
+    }
+
+    .o_usl_report_summary_warning {
+        border-color: #d8a334;
+        background: #fffaeb;
+    }
+
+    .o_usl_report_summary_danger {
+        border-color: #cc5965;
+        background: #fff5f6;
+    }
+
+    .o_usl_report_table_wrap {
+        overflow-x: auto;
+        padding: 0 1.25rem 2rem;
+        background: #fff;
+    }
+
+    > .alert {
+        margin: 0.4rem 1.25rem !important;
+        padding: 0.52rem 0.75rem;
+        font-size: 0.77rem;
+    }
+
+    .o_usl_report_table {
+        margin: 0;
+        color: #273b4d;
+        font-size: 0.79rem;
+        font-variant-numeric: tabular-nums;
+
+        thead {
+            position: sticky;
+            z-index: 2;
+            top: 0;
+            background: #fff;
+        }
+
+        th {
+            padding: 0.42rem 0.5rem;
+            border-bottom: 1.5px solid #7e909f;
+            color: #526474;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 0.3rem 0.5rem;
+            border-bottom: 1px solid #edf0f2;
+            vertical-align: middle;
+        }
+
+        .o_usl_report_label {
+            min-width: clamp(260px, 34vw, 520px);
+            overflow-wrap: anywhere;
+        }
+
+        .o_usl_report_action {
+            width: 3rem;
+        }
+
+        td.text-end,
+        th.text-end {
+            white-space: nowrap;
+        }
+
+        th small {
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+    }
+
+    .o_usl_report_group {
+        font-weight: 650;
+    }
+
+    .o_usl_report_role_detail:hover {
+        background: #f8fafb;
+    }
+
+    .o_usl_report_role_section {
+        background: var(--usl-report-section-bg);
+        color: var(--usl-report-section-text);
+        font-weight: 700;
+
+        td {
+            border-block: 1px solid #b8c0c7;
+        }
+
+        .btn-link,
+        .o_usl_report_code {
+            color: var(--usl-report-section-text);
+        }
+
+        .o_usl_report_negative {
+            color: #7d2935;
+        }
+
+        .o_usl_report_zero {
+            color: #737b82;
+        }
+
+        &:hover {
+            background: color-mix(
+                in srgb,
+                var(--usl-report-section-bg) 88%,
+                var(--usl-report-primary)
+            );
+            color: var(--usl-report-section-text);
+
+            .btn-link,
+            .o_usl_report_code {
+                color: var(--usl-report-section-text);
+            }
+        }
+    }
+
+    .o_usl_report_role_group {
+        background: #eaf0f4;
+        color: var(--usl-report-ink);
+        font-weight: 700;
+
+        td {
+            border-block: 1px solid #c8d3dc;
+        }
+
+        &:hover {
+            background: #dfe8ee;
+            color: var(--usl-report-ink);
+        }
+    }
+
+    .o_usl_report_role_subtotal {
+        color: var(--usl-report-ink);
+        font-weight: 700;
+
+        td {
+            border-top: 1px solid #8497a6;
+        }
+    }
+
+    .o_usl_report_role_total {
+        color: #102a43;
+        font-weight: 750;
+
+        td {
+            border-top: 1.5px solid #17324d;
+            border-bottom: 3px double #17324d;
+        }
+    }
+
+    .o_usl_report_role_control {
+        background: #f1f7fa;
+        color: var(--usl-report-ink);
+        font-weight: 700;
+
+        td {
+            border-block: 1px solid #7ca0b6;
+        }
+    }
+
+    .o_usl_report_role_detail {
+        .o_usl_report_action .btn {
+            opacity: 0.25;
+            transition: opacity 120ms ease;
+        }
+
+        &:hover .o_usl_report_action .btn,
+        .o_usl_report_action .btn:focus-visible {
+            opacity: 1;
+        }
+    }
+
+    .o_usl_report_zero {
+        color: #a6afb7;
+        font-weight: 400 !important;
+    }
+
+    .o_usl_report_negative {
+        color: #7d3b46;
+    }
+
+    .o_usl_report_code {
+        display: inline-block;
+        min-width: 5.5rem;
+        margin-right: 0.5rem;
+        color: #475467;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.76rem;
+    }
+
+    .o_usl_report_fold {
+        width: 1.45rem;
+        padding: 0;
+    }
+
+    .o_usl_matching_chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.48rem;
+        border: 0;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 650;
+        line-height: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+
+        &:hover {
+            filter: brightness(0.96);
+        }
+
+        &:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
+    }
+
+    $matching-colors: (
+        #e8f1ff #2457a6,
+        #eaf7ef #217a45,
+        #fff4dc #8a5a00,
+        #f4ecff #6f3ba7,
+        #ffecef #a2374d,
+        #e5f8f6 #18736d,
+        #f1f3f5 #4b5563,
+        #fff0e5 #9a4b13,
+        #e9f0ff #4057a9,
+        #f7ebf5 #8a3d75
+    );
+
+    @for $index from 1 through length($matching-colors) {
+        $pair: nth($matching-colors, $index);
+
+        .o_usl_matching_color_#{$index - 1} {
+            background: nth($pair, 1);
+            color: nth($pair, 2);
+        }
+    }
+
+    .o_usl_report_loading {
+        position: absolute;
+        z-index: 5;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        background: rgba(#fff, 0.72);
+        color: #475467;
+        font-weight: 600;
+    }
+
+    @media (max-width: 1200px) {
+        .o_usl_report_filters {
+            label {
+                flex-basis: 132px;
+            }
+        }
+
+        .o_usl_report_filter_period {
+            flex-basis: 140px !important;
+        }
+
+        .o_usl_report_search {
+            min-width: 175px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .o_usl_report_workspace {
+            width: 100%;
+            margin: 0;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .o_usl_report_header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .o_usl_report_exports {
+            width: 100%;
+
+            .btn {
+                flex: 1;
+            }
+        }
+
+        .o_usl_report_table_wrap {
+            padding-inline: 0.35rem;
+        }
+
+        .o_usl_report_filters,
+        .o_usl_report_pills,
+        .o_usl_report_summary,
+        .o_usl_report_header {
+            padding-inline: 0.65rem;
+        }
+    }
+}

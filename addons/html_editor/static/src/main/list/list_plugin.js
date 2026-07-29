@@ -1,6 +1,7 @@
 import { Plugin } from "@html_editor/plugin";
 import { closestBlock, isBlock } from "@html_editor/utils/blocks";
 import {
+    fillEmpty,
     removeClass,
     removeEmptyTextNodes,
     removeStyle,
@@ -9,6 +10,7 @@ import {
     wrapInlinesInBlocks,
 } from "@html_editor/utils/dom";
 import {
+    getDeepestEditablePosition,
     getDeepestPosition,
     isElement,
     isEmptyBlock,
@@ -53,16 +55,19 @@ const listSelectorItems = [
         id: "bulleted_list",
         commandId: "toggleListUL",
         mode: "UL",
+        description: _t("Bulleted list (Ctrl + Shift + 8)"),
     },
     {
         id: "numbered_list",
         commandId: "toggleListOL",
         mode: "OL",
+        description: _t("Numbered list (Ctrl + Shift + 7)"),
     },
     {
         id: "checklist",
         commandId: "toggleListCL",
         mode: "CL",
+        description: _t("Checklist (Ctrl + Shift + 9)"),
     },
 ];
 
@@ -119,25 +124,25 @@ export class ListPlugin extends Plugin {
         ],
         shorthands: [
             {
-                pattern: /^1[.)]$/,
+                literals: ["1.", "1)"],
                 commandId: "toggleListOL",
             },
             {
-                pattern: /^a[.)]$/,
+                literals: ["a.", "a)"],
                 commandId: "toggleListOL",
                 commandParams: { listStyle: "lower-alpha" },
             },
             {
-                pattern: /^A[.)]$/,
+                literals: ["A.", "A)"],
                 commandId: "toggleListOL",
                 commandParams: { listStyle: "upper-alpha" },
             },
             {
-                pattern: /^[-*]$/,
+                literals: ["*", "-"],
                 commandId: "toggleListUL",
             },
             {
-                pattern: /^\[\]$/,
+                literals: ["[]"],
                 commandId: "toggleListCL",
             },
         ],
@@ -181,6 +186,7 @@ export class ListPlugin extends Plugin {
         normalize_handlers: this.normalize.bind(this),
         step_added_handlers: this.updateToolbarButtons.bind(this),
         delete_handlers: this.adjustListPaddingOnDelete.bind(this),
+        before_insert_separator_handlers: this.exitList.bind(this),
 
         /** Overrides */
         delete_backward_overrides: this.handleDeleteBackward.bind(this),
@@ -270,6 +276,8 @@ export class ListPlugin extends Plugin {
             throw new Error(`listStyle is not compatible with "CL" list type`);
         }
 
+        this.dependencies.split.splitBlockSegments();
+
         // @todo @phoenix: original implementation removed whitespace-only text nodes from targetedNodes.
         // Check if this is necessary.
 
@@ -316,6 +324,9 @@ export class ListPlugin extends Plugin {
             root = closestNestedLI.parentElement;
         }
         for (let element of selectElements(root, "ul, ol, li")) {
+            if (element.nodeName === "LI" && !element.hasChildNodes()) {
+                fillEmpty(element);
+            }
             if (isProtected(element) || isProtecting(element)) {
                 continue;
             }
@@ -510,7 +521,7 @@ export class ListPlugin extends Plugin {
     mergeSimilarLists(element) {
         if (
             !element.matches("ul, ol, li.oe-nested") ||
-            (element.matches("li.oe-nested") && !element.querySelector("ul, ol"))
+            (element.matches("li.oe-nested") && ![...element.childNodes].every(isListElement))
         ) {
             return;
         }
@@ -853,6 +864,14 @@ export class ListPlugin extends Plugin {
     }
 
     handleTab() {
+        if (
+            !this.dependencies.selection
+                .getTargetedNodes()
+                .some((node) => closestElement(node, "LI"))
+        ) {
+            return;
+        }
+        this.dependencies.split.splitBlockSegments();
         const selection = this.dependencies.selection.getEditableSelection();
         const closestLI = closestElement(selection.anchorNode, "LI");
         if (closestLI) {
@@ -916,7 +935,7 @@ export class ListPlugin extends Plugin {
         if (!closestLI || isBlockUnsplittable) {
             return;
         }
-        if (isEmptyBlock(closestLI)) {
+        if (isEmptyBlock(closestBlock(params.targetNode))) {
             this.outdentLI(closestLI);
             return true;
         }
@@ -1292,6 +1311,33 @@ export class ListPlugin extends Plugin {
         }
     }
 
+    /**
+     * Exit the list from given list item by splitting
+     * the list.
+     *
+     * @param {HTMLElement} blockEl
+     */
+    exitList(blockEl) {
+        let li;
+        if (isListItem(blockEl)) {
+            li = blockEl;
+        } else if (isListItem(blockEl.parentElement)) {
+            li = blockEl.parentElement;
+        }
+        if (li) {
+            // Helper li to split the list
+            const [, after] = this.dependencies.split.splitElementBlock({
+                targetNode: blockEl,
+                targetOffset: nodeSize(blockEl),
+                blockToSplit: li,
+            });
+            const [anchorNode, anchorOffset] = getDeepestEditablePosition(after, 0);
+            this.dependencies.selection.setSelection({ anchorNode, anchorOffset });
+            // Fully outdent li to exit the list
+            this.liToBlocks(after);
+        }
+    }
+
     // --------------------------------------------------------------------------
     // Toolbar buttons
     // --------------------------------------------------------------------------
@@ -1311,7 +1357,7 @@ export class ListPlugin extends Plugin {
                 return {
                     ...pick(button, "id", "icon", "run", "mode"),
                     // We want short descriptions for these buttons.
-                    description: command.title,
+                    description: item.description,
                 };
             });
     }

@@ -16,25 +16,23 @@
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
 # Robin Calvin, 2022
 # Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# symbiotech <symbiotech3@gmail.com>, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 04:33+0000\n"
-"Last-Translator: symbiotech <symbiotech3@gmail.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/sms/sv/>"
-"\n"
+"PO-Revision-Date: 2025-11-11 17:16+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/sms/sv/"
+">\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -196,6 +194,12 @@ msgstr ""
 "sms-kompositör med den här mallen"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -268,10 +272,7 @@ msgid "Buy credits."
 msgstr "Köp krediter."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Avbryt"
@@ -306,8 +307,8 @@ msgstr "Välj ditt avsändarnamn"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Företag"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -398,12 +399,6 @@ msgid "Delivered"
 msgstr "Levererade"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Avbryt"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -426,8 +421,8 @@ msgstr "Visningsnamn"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Dokumentföljare"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -556,9 +551,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -572,7 +567,7 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_res_partner__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_res_users__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Om ikryssad, så finns det meddelanden med leveransfel."
+msgstr "Om markerad, en del meddelanden har leveransfel."
 
 #. module: sms
 #: model:ir.model.fields.selection,name:sms.selection__sms_sms__state__outgoing
@@ -615,7 +610,7 @@ msgid ""
 msgstr ""
 "Ogiltigt telefonnummer. Se till att du följer det internationella formatet, "
 "dvs. ett plustecken (+), sedan landskod, stadskod och lokalt telefonnummer. "
-"Till exempel:  +1 555-555-555"
+"Till exempel: +1 +1 555-555-555"
 
 #. module: sms
 #. odoo-python
@@ -690,6 +685,12 @@ msgid "Marked for deletion"
 msgstr "Markerad för radering"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -698,8 +699,8 @@ msgstr "Meddelande"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Meddelanden om meddelanden"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -711,8 +712,8 @@ msgstr "Saknat nummer"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Modeller"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -1002,9 +1003,9 @@ msgstr "Guiden för verifieringskod för SMS-konto"
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1018,7 +1019,7 @@ msgstr "Guiden för verifieringskod för SMS-konto"
 #: model:ir.model.fields,field_description:sms.field_res_partner__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_res_users__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr "Leveransfel för SMS"
+msgstr "SMS leveransfel"
 
 #. module: sms
 #. odoo-javascript
@@ -1143,7 +1144,7 @@ msgstr "Skicka"
 #. odoo-python
 #: code:addons/sms/models/ir_actions_server.py:0
 msgid "Send %(template_name)s"
-msgstr "Skicka %(template_name)s"
+msgstr ""
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
@@ -1233,7 +1234,7 @@ msgstr "Skickat"
 #. module: sms
 #: model:ir.model,name:sms.model_ir_actions_server
 msgid "Server Action"
-msgstr "Serveråtgärd"
+msgstr "Serveraktivitet"
 
 #. module: sms
 #. odoo-javascript
@@ -1276,6 +1277,12 @@ msgstr "Hoppa över för tillfället"
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "Mall för sms"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1672,126 +1679,3 @@ msgstr "post:"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid "Action Needed"
-#~ msgstr "Åtgärd krävs"
-
-#~ msgid "Action To Do"
-#~ msgstr "Åtgärd att utföra"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Antal bilagor"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Svartlistad telefon är mobil"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "Svartlistad telefon är telefon"
-
-#~ msgid "Buy credits"
-#~ msgstr "Köp krediter"
-
-#~ msgid "Canceled"
-#~ msgstr "Avbruten"
-
-#~ msgid "Close"
-#~ msgstr "Stäng"
-
-#~ msgid "Error Message"
-#~ msgstr "Felmeddelande"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "Fält används för att lagra sanerade telefonnummer. Hjälper till att öka "
-#~ "hastigheten på sökningar."
-
-#~ msgid "Followers"
-#~ msgstr "Följare"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Följare (partners)"
-
-#~ msgid "Has Message"
-#~ msgstr "Har meddelande"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "Om markerad så finns det meddelanden som kräver din uppmärksamhet."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "Om sanerade telefonnummer är på svartlistan kommer kontakten inte få mass-"
-#~ "SMS alls, från någon lista"
-
-#~ msgid "Is Follower"
-#~ msgstr "Är följare"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Fel vid leverans av meddelande"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Meddelandetyp: e-post för e-postmeddelande, avisering för "
-#~ "systemmeddelande, kommentar är andra meddelanden som till exempel "
-#~ "användarsvar"
-
-#~ msgid "Messages"
-#~ msgstr "Meddelanden"
-
-#~ msgid "Notification"
-#~ msgstr "Avisering"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Antal åtgärder"
-
-#~ msgid "Number of errors"
-#~ msgstr "Antal fel"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Antal meddelanden som kräver en åtgärd"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Antal meddelanden med leveransfel"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Valfritt översättningsspråk (ISO-kod) som ska väljas när du skickar ett e-"
-#~ "postmeddelande. Om inget anges används den engelska versionen. Detta bör "
-#~ "vanligtvis vara ett platshållaruttryck som anger lämpligt språk, t.ex. "
-#~ "{{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Telefon svartlistad"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefon/mobil"
-
-#~ msgid "Reason"
-#~ msgstr "Anledning"
-
-#~ msgid "Recipient"
-#~ msgstr "Mottagare"
-
-#~ msgid "Recipients"
-#~ msgstr "Mottagare"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Skicka SMS"
-
-#~ msgid "Website Messages"
-#~ msgstr "Webbplatsmeddelanden"
-
-#~ msgid "Website communication history"
-#~ msgstr "Webbplatsens kommunikationshistorik"

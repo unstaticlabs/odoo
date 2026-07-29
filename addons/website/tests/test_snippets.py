@@ -38,8 +38,10 @@ class TestSnippets(HttpCase):
             's_instagram_page',  # avoid call to instagram.com
             's_image',  # Avoid specific case where the media dialog opens on drop
             's_video',  # Avoid specific case where the media dialog opens on drop
+            's_icon',  # Avoid specific case where the media dialog opens on drop
             's_snippet_group',  # Snippet groups are not snippets
             's_inline_text',
+            's_drag_image_preview_test',
         ]
         snippets_names = ','.join({
             f"{el.attrib['data-oe-snippet-key']}:{el.attrib.get('data-o-group', '')}"
@@ -103,8 +105,8 @@ class TestSnippets(HttpCase):
         admin = self.env.ref('base.user_admin')
         admin.write({
             'parent_id': self.env['res.partner'].create({
-                'is_company': True,
                 'name': 'yourcompany',
+                'vat': 'BE0477472701',
             }).id
         })
         self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_popup_display_on_click', login='admin')
@@ -160,6 +162,19 @@ class TestSnippets(HttpCase):
         website.google_analytics_key = 'G-XXXXXXXXXXX'
         website.cookies_bar = True
         self.start_tour(website.get_client_action_url('/'), 'cookie_bar_updates_gtag_consent')
+
+    def test_shape_image_snippet(self):
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_shape_image', login='admin')
+
+    def test_snippet_pill_shape(self):
+        res = self.url_open('/html_editor/image_shape/website.s_intro_pill_default_image/html_builder/geometric_round/geo_round_pill.svg')
+        svg = html.fromstring(res.text)
+        self.assertEqual(float(svg.attrib['width']), 439, "SVG should have the width of the original image")
+        self.assertEqual(float(svg.attrib['height']), 878, "SVG height should be double the width because the pill shape has a default aspect ratio of 1/2")
+        image_elem = svg.find('.//image')
+        self.assertEqual(image_elem.attrib['width'], '100%')
+        self.assertEqual(image_elem.attrib['height'], '100%')
+        self.assertEqual(image_elem.attrib['preserveaspectratio'], 'xMidYMid slice')
 
     def test_shape_color_sync_with_theme_color(self):
         self.start_tour('/', 'shape_color_sync_with_theme_color', login='admin')

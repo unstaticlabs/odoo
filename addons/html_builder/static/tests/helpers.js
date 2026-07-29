@@ -1,16 +1,16 @@
 import { Builder } from "@html_builder/builder";
 import { CORE_PLUGINS } from "@html_builder/core/core_plugins";
-import { Img } from "@html_builder/core/img";
+import { Image } from "@html_builder/core/img";
 import { SetupEditorPlugin } from "@html_builder/core/setup_editor_plugin";
 import { revertPreview } from "@html_builder/core/utils";
+import { BackgroundShapeOptionPlugin } from "@html_builder/plugins/background_option/background_shape_option_plugin";
 import { unformat } from "@html_editor/../tests/_helpers/format";
 import { setContent } from "@html_editor/../tests/_helpers/selection";
 import { insertText } from "@html_editor/../tests/_helpers/user_actions";
 import { LocalOverlayContainer } from "@html_editor/local_overlay_container";
 import { Plugin } from "@html_editor/plugin";
-import { withSequence } from "@html_editor/utils/resource";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
-import { after, queryFirst } from "@odoo/hoot";
+import { after, click, queryAll, queryFirst } from "@odoo/hoot";
 import { animationFrame, waitForNone, queryOne, waitFor, advanceTime, tick } from "@odoo/hoot-dom";
 import { Component, onMounted, useRef, useState, useSubEnv, xml } from "@odoo/owl";
 import {
@@ -31,10 +31,10 @@ import { delay } from "@web/core/utils/concurrency";
 export function patchWithCleanupImg() {
     const defaultImg =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z9DwHwAGBQKA3H7sNwAAAABJRU5ErkJggg==";
-    patchWithCleanup(Img, {
+    patchWithCleanup(Image, {
         template: xml`<img t-att-data-src="props.src" t-att-alt="props.alt" t-att-class="props.class" t-att-style="props.style" t-att="props.attrs" src="${defaultImg}"/>`,
     });
-    patchWithCleanup(Img.prototype, {
+    patchWithCleanup(Image.prototype, {
         loadImage: () => {},
         getSvg: function () {
             this.isSvg = () => false;
@@ -76,6 +76,7 @@ export function getInnerContent({
  * @param {string} options.name - The display name of the snippet
  * @param {string} options.content - The HTML content of the snippet
  * @param {string[]} [options.keywords=[]] - Search keywords for the snippet
+ * @param {string} options.label - Search label for the snippet (tag)
  * @param {string} options.groupName - The snippet group (category) name
  * @param {string} [options.imagePreview=""] - URL to preview image
  * @param {string|number} [options.moduleId=""] - Module ID if snippet belongs to a module
@@ -86,13 +87,14 @@ export function getSnippetStructure({
     name,
     content,
     keywords = [],
+    label = "",
     groupName,
     imagePreview = "",
     moduleId = "",
     moduleDisplayName = "",
 }) {
     keywords = keywords.join(", ");
-    return `<div name="${name}" data-oe-snippet-id="123" data-o-image-preview="${imagePreview}" data-oe-keywords="${keywords}" data-o-group="${groupName}" data-module-id="${moduleId}" data-module-display-name="${moduleDisplayName}">${content}</div>`;
+    return `<div name="${name}" data-oe-snippet-id="123" data-o-image-preview="${imagePreview}" data-oe-keywords="${keywords}" data-o-label="${label}" data-o-group="${groupName}" data-module-id="${moduleId}" data-module-display-name="${moduleDisplayName}">${content}</div>`;
 }
 
 class BuilderContainer extends Component {
@@ -287,9 +289,26 @@ export async function setupHTMLBuilder(
         setup() {
             super.setup();
             _resolve();
-            editableContent = this.getEditableElements(
-                '.oe_structure.oe_empty, [data-oe-type="html"]'
-            )[0];
+            editableContent = this.editable.querySelector(
+                '.o_savable.oe_structure.oe_empty, .o_savable[data-oe-type="html"]'
+            );
+        },
+    });
+
+    // Remove as soon as the background shape are not always instantiated when
+    // entering in edit mode.
+    patchWithCleanup(BackgroundShapeOptionPlugin.prototype, {
+        getShapeStylePosition(shapeId, flip) {
+            if (!this.shapeStyles[this.convertShapeIdForStyleSearch(shapeId)]) {
+                return [50, 50];
+            }
+            return super.getShapeStylePosition(shapeId, flip);
+        },
+        getShapeStyleUrl(shapeId) {
+            if (!this.shapeStyles[this.convertShapeIdForStyleSearch(shapeId)]) {
+                return "";
+            }
+            return super.getShapeStyleUrl(shapeId);
         },
     });
 
@@ -343,46 +362,6 @@ export function addBuilderOption(Option) {
         },
     }[pluginId];
 
-    addBuilderPlugin(P);
-}
-
-export function addLegacyBuilderOption({
-    selector,
-    exclude,
-    applyTo,
-    template,
-    Component,
-    sequence,
-    cleanForSave,
-    props,
-    editableOnly,
-    title,
-    reloadTarget,
-}) {
-    const pluginId = uniqueId("test-option");
-    const option = {
-        pluginId,
-        OptionComponent: Component,
-        template,
-        selector,
-        exclude,
-        applyTo,
-        sequence,
-        cleanForSave,
-        props,
-        editableOnly,
-        title,
-        reloadTarget,
-    };
-
-    const P = {
-        [pluginId]: class extends Plugin {
-            static id = pluginId;
-            resources = {
-                builder_options: sequence ? withSequence(sequence, option) : option,
-            };
-        },
-    }[pluginId];
     addBuilderPlugin(P);
 }
 
@@ -492,6 +471,7 @@ export function createTestSnippets({ snippets: snippetConfigs = [], withName = f
             content,
             innerHTML,
             keywords = [],
+            label = "",
             imagePreview = "",
             moduleId,
             moduleDisplayName,
@@ -512,6 +492,7 @@ export function createTestSnippets({ snippets: snippetConfigs = [], withName = f
             groupName,
             content: finalContent,
             keywords,
+            label,
             imagePreview,
             moduleId,
             moduleDisplayName,
@@ -575,6 +556,14 @@ export async function editBuilderRangeValue(selector, newValue) {
     input.dispatchEvent(new Event("change"));
     await delay();
 }
+
+export async function unfoldAllOptionsGroups() {
+    for (const i of queryAll(".options-container-header i.fa-caret-right")) {
+        await click(i);
+    }
+    await animationFrame();
+}
+
 export const dummyCORSSrc = "/web/image/0-redirect/foo.jpg";
 
 export function setupCORSProtectedImg() {

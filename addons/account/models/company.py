@@ -10,7 +10,6 @@ from odoo.tools.misc import format_date
 
 from odoo.addons.account.models.account_move import MAX_HASH_VERSION
 from odoo.addons.account.models.product import ACCOUNT_DOMAIN
-from odoo.addons.account.models.partner import _ref_company_registry
 from odoo.addons.base_vat.models.res_partner import _ref_vat
 from odoo.fields import Domain
 
@@ -146,7 +145,7 @@ class ResCompany(models.Model):
     incoterm_id = fields.Many2one('account.incoterms', string='Default incoterm',
         help='International Commercial Terms are a series of predefined commercial terms used in international transactions.')
 
-    qr_code = fields.Boolean(string='Display QR-code on invoices')
+    qr_code = fields.Boolean(string='Display QR-code on invoices', compute='_compute_qr_code', store=True, readonly=False)
     link_qr_code = fields.Boolean(string='Display Link QR-code')
 
     display_invoice_amount_total_words = fields.Boolean(string='Total amount of invoice in letters')
@@ -236,8 +235,8 @@ class ResCompany(models.Model):
     # Multivat
     fiscal_position_ids = fields.One2many(comodel_name="account.fiscal.position", inverse_name="company_id")
     multi_vat_foreign_country_ids = fields.Many2many(
-        string="Foreign VAT countries",
-        help="Countries for which the company has a VAT number",
+        string="Foreign Tax ID countries",
+        help="Countries for which the company has a Tax ID",
         comodel_name='res.country',
         compute='_compute_multi_vat_foreign_country',
     )
@@ -277,7 +276,6 @@ class ResCompany(models.Model):
         help="Default on whether the sales price used on the product and invoices with this Company includes its taxes."
     )
     company_vat_placeholder = fields.Char(compute='_compute_company_vat_placeholder')
-    company_registry_placeholder = fields.Char(compute='_compute_company_registry_placeholder')
 
     income_account_id = fields.Many2one(
         comodel_name='account.account',
@@ -298,6 +296,11 @@ class ResCompany(models.Model):
         string="Price Difference Account",
         domain=ACCOUNT_DOMAIN,
         help="During perpetual valuation, this account will hold the price difference between the standard price and the bill price.",
+    )
+
+    # If company has Ledgers
+    has_ledger = fields.Boolean(
+        compute='_compute_has_ledger',
     )
 
     def get_next_batch_payment_communication(self):
@@ -456,6 +459,15 @@ class ResCompany(models.Model):
     def _compute_display_account_storno(self):
         for company in self:
             company.display_account_storno = company.account_fiscal_country_id.code in STORNO_MANDATORY_COUNTRIES | STORNO_OPTIONAL_COUNTRIES
+
+    def _compute_qr_code(self):
+        pass
+
+    def _compute_has_ledger(self):
+        self.has_ledger = bool(self.env['account.journal.group'].search_count(
+            domain=[],
+            limit=1,
+        ))
 
     def _initiate_account_onboardings(self):
         account_onboarding_routes = [
@@ -1131,15 +1143,6 @@ class ResCompany(models.Model):
                 )
 
             company.company_vat_placeholder = self.env._(expected_vat or '')  # pylint: disable=E8502
-
-    @api.depends('country_id', 'account_fiscal_country_id')
-    def _compute_company_registry_placeholder(self):
-        """ Provides a dynamic placeholder on the company registry field for countries that may need it.
-        Add your country and the value you want in the _ref_company_registry map in the partner.py file.
-        """
-        for company in self:
-            country_code = (company.account_fiscal_country_id or company.country_id).code or ''
-            company.company_registry_placeholder = _ref_company_registry.get(country_code.lower(), '')
 
     def _set_category_defaults(self):
         for company in self:

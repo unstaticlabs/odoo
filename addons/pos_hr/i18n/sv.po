@@ -2,15 +2,14 @@
 # This file contains the translation of the following modules:
 # * pos_hr
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 00:30+0000\n"
+"POT-Creation-Date: 2026-07-10 17:37+0000\n"
+"PO-Revision-Date: 2025-11-08 19:07+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/pos_hr/"
 "sv/>\n"
@@ -19,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_hr
 #: model_terms:ir.ui.view,arch_db:pos_hr.single_employee_sales_report
@@ -52,7 +51,7 @@ msgstr "Alla anställda"
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_account_bank_statement_line
 msgid "Bank Statement Line"
-msgstr "Rad på kontoutdrag"
+msgstr "Kontoutdragslinje"
 
 #. module: pos_hr
 #: model_terms:ir.ui.view,arch_db:pos_hr.pos_config_form_view_inherit
@@ -119,7 +118,7 @@ msgstr "Skillnad"
 #. odoo-javascript
 #: code:addons/pos_hr/static/src/app/screens/login_screen/login_screen.js:0
 msgid "Discard"
-msgstr "Avbryt"
+msgstr "Kassera"
 
 #. module: pos_hr
 #: model:ir.model.fields,field_description:pos_hr.field_account_bank_statement_line__display_name
@@ -127,6 +126,7 @@ msgstr "Avbryt"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__display_name
@@ -199,6 +199,7 @@ msgstr "Ange din PIN-kod"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__id
@@ -227,6 +228,12 @@ msgstr "Lås"
 #: model_terms:ir.ui.view,arch_db:pos_hr.pos_config_form_view_inherit
 #: model_terms:ir.ui.view,arch_db:pos_hr.res_config_settings_view_form
 msgid "Minimal rights"
+msgstr ""
+
+#. module: pos_hr
+#. odoo-javascript
+#: code:addons/pos_hr/static/src/app/components/popups/cashier_selection_popup/cashier_selection_popup.xml:0
+msgid "More..."
 msgstr ""
 
 #. module: pos_hr
@@ -297,8 +304,13 @@ msgstr "Daglig rapport från försäljningsstället"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassaorder"
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: pos_hr
+#: model:ir.model,name:pos_hr.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_order
@@ -307,8 +319,8 @@ msgstr "Kassa Order Raport"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Betalningar vid försäljningsstället"
+msgid "Point of Sale Payment"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_session
@@ -331,6 +343,12 @@ msgstr "Välj kassör"
 #: model_terms:ir.ui.view,arch_db:pos_hr.res_config_settings_view_form
 msgid "Select Employee(s)"
 msgstr "Välj anställd(a)"
+
+#. module: pos_hr
+#. odoo-javascript
+#: code:addons/pos_hr/static/src/app/screens/order_details_dialog.js:0
+msgid "Served By"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_hr_single_employee_sales_report
@@ -386,13 +404,3 @@ msgid ""
 msgstr ""
 "Du kan inte radera en användare som kan använda en aktiv kassa session, "
 "stäng sessionen först \n"
-
-#~ msgid "If left empty, only Odoo users have extended rights in PoS"
-#~ msgstr ""
-#~ "Om den lämnas tom har endast Odoo-användare utökade rättigheter i PoS"
-
-#~ msgid "Change Cashier"
-#~ msgstr "Byt Kassör"
-
-#~ msgid "Payments in %(paymentMethod)s"
-#~ msgstr "Betalningar i %(paymentMethod)s"

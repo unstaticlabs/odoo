@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
 # Andy Yiu, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:12+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-06 13:28+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_landed_costs/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -69,6 +69,11 @@ msgid "Activity Exception Decoration"
 msgstr "例外の活動を示す装飾"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr "活動計画"
+
+#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
 msgid "Activity State"
 msgstr "活動ステータス"
@@ -95,7 +100,7 @@ msgid ""
 "Additional landed costs:\n"
 "%(landed_cost)s"
 msgstr ""
-"追加の仕入諸掛：\n"
+"追加の仕入諸掛:\n"
 "%(landed_cost)s"
 
 #. module: stock_landed_costs
@@ -144,10 +149,6 @@ msgstr "キャンセル済"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "会社"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "会社"
@@ -572,6 +573,11 @@ msgid "Picking"
 msgstr "ピッキング"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr "ピッキング数"
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -654,9 +660,9 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "活動に基づくステータス\n"
-"期限超過：期限日がすでに過ぎています\n"
+"遅延: 期限が既に過ぎています\n"
 "今日: 活動日は今日です\n"
-"予定: 将来の活動。"
+"予定: 今後の活動です"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_landed_cost
@@ -685,15 +691,18 @@ msgid "Total"
 msgstr "合計"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "転送"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,help:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "レコード上の例外の活動タイプ。"
+msgstr "記録上の例外活動の種類。"
 
 #. module: stock_landed_costs
 #: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
@@ -712,8 +721,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "評価調整明細"
+msgid "Valuation Adjustment Line"
+msgstr "評価調整明細行"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -761,34 +770,7 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"そのプロダクトが会計仕訳明細で使用されているため、プロダクトタイプを変更した"
-"り、仕入諸掛オプションを無効にしたりすることはできません。"
-
-#~ msgid " already out"
-#~ msgstr " すでに出荷"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "在庫可能品は在庫管理対象のプロダクトです。在庫アプリのインストールが必要で"
-#~ "す。\n"
-#~ "消耗品は移動処理の対象ではあるものの、厳密な在庫管理対象ではないプロダクト"
-#~ "です。\n"
-#~ "サービス品は物理的なモノが存在しない無形のプロダクトです。"
-
-#~ msgid "Company related to this journal"
-#~ msgstr "この仕訳帳と関係する会社"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "アクションを必要とするメッセージの数"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "次のアクションの日付が今日より前のすべてのレコードを表示する"
+"このプロダクトは仕訳明細で使用されているため、プロダクトタイプを変更したり、"
+"仕入諸掛オプションを無効にしたりすることはできません。"

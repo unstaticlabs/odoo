@@ -184,7 +184,7 @@ class AccountMove(models.Model):
             })
 
             if supplier_bank_account_number := supplier_info.findtext('{*}supplierBankAccountNumber'):
-                partner.with_context(default_journal_id=None).bank_ids = [Command.create({'acc_number': supplier_bank_account_number})]
+                partner.with_context(default_journal_id=None).bank_ids = [Command.create({'account_number': supplier_bank_account_number})]
 
         currency = self.env.ref(f'base.{invoice_detail.findtext("{*}currencyCode")}', raise_if_not_found=False)
         move_vals = {
@@ -221,12 +221,12 @@ class AccountMove(models.Model):
         if account_number:
             partner_bank = self.env['res.partner.bank'].search([
                 *self.env['res.partner.bank']._check_company_domain(company),
-                ('acc_number', '=', account_number),
+                ('account_number', '=', account_number),
                 ('partner_id', '=', bank_partner.id),
             ], limit=1)
             if not partner_bank:
                 partner_bank = self.env['res.partner.bank'].with_context(default_journal_id=None).create({
-                    'acc_number': account_number,
+                    'account_number': account_number,
                     'partner_id': bank_partner.id,
                 })
             move_vals['partner_bank_id'] = partner_bank.id

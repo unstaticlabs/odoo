@@ -1,24 +1,20 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * event_crm
+# 	* event_crm
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 14:19+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Latvian <https://translate.odoo.com/projects/odoo-19/"
-"event_crm/lv/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-10-08 18:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
-"19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_count
@@ -28,33 +24,24 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_crm_lead__registration_count
-#, fuzzy
 msgid "# Registrations"
-msgstr "# Reģistrācijas"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python
 #: code:addons/event_crm/models/event_registration.py:0
-#, fuzzy
 msgid "(updated)"
-msgstr "(atjaunināts)"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.crm_lead_view_form
-#, fuzzy
 msgid "<span class=\"o_stat_text\"> Attendees</span>"
-msgstr "<span class=\"o_stat_text\"> Daīlbnieki</span>"
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
-msgid "<span class=\"o_stat_text\"> Leads</span>"
 msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__active
-#, fuzzy
 msgid "Active"
-msgstr "Aktīvs"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_question_view_form
@@ -74,9 +61,8 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
-#, fuzzy
 msgid "Archived"
-msgstr "Arhivēts"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_trigger__create
@@ -85,15 +71,13 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_trigger__confirm
-#, fuzzy
 msgid "Attendees are registered"
-msgstr "Dalībnieki ir reģistrēti"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_trigger__done
-#, fuzzy
 msgid "Attendees attended"
-msgstr "Apmeklētāji"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_event_lead_rule__lead_tag_ids
@@ -118,9 +102,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__company_id
-#, fuzzy
 msgid "Company"
-msgstr "Uzņēmums"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_crm_lead__registration_count
@@ -129,9 +112,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_creation_basis
-#, fuzzy
 msgid "Create"
-msgstr "Izveidot"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_lead_rule_action
@@ -140,9 +122,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model,website_form_label:event_crm.model_crm_lead
-#, fuzzy
 msgid "Create an Opportunity"
-msgstr "Izveidot iespēju"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_ids
@@ -151,15 +132,13 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__create_uid
-#, fuzzy
 msgid "Created by"
-msgstr "Izveidoja"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__create_date
-#, fuzzy
 msgid "Created on"
-msgstr "Izveidots"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
@@ -186,17 +165,15 @@ msgstr ""
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__display_name
 #: model:ir.model.fields,field_description:event_crm.field_event_question_answer__display_name
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__display_name
-#, fuzzy
 msgid "Display Name"
-msgstr "Attēlotais nosaukums"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model,name:event_crm.model_event_event
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_request__event_id
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__event_id
-#, fuzzy
 msgid "Event"
-msgstr "Notikums"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.actions.server,name:event_crm.ir_cron_generate_leads_ir_actions_server
@@ -220,9 +197,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model,name:event_crm.model_event_registration
-#, fuzzy
 msgid "Event Registration"
-msgstr "Pasākuma reģistrācija"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__event_type_ids
@@ -247,11 +223,6 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.crm_lead_merge_summary_inherit_event_crm
 msgid "Event:"
-msgstr ""
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
-msgid "Execute Rule"
 msgstr ""
 
 #. module: event_crm
@@ -301,9 +272,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__id
 #: model:ir.model.fields,field_description:event_crm.field_event_question_answer__id
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__id
-#, fuzzy
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
@@ -312,22 +282,19 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__write_uid
-#, fuzzy
 msgid "Last Updated by"
-msgstr "Pēdējoreiz atjaunināja"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__write_date
-#, fuzzy
 msgid "Last Updated on"
-msgstr "Pēdējoreiz atjaunināts"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model,name:event_crm.model_crm_lead
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_type__lead
-#, fuzzy
 msgid "Lead"
-msgstr "Pavediens"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_tree
@@ -366,14 +333,12 @@ msgid "Lead Type"
 msgstr ""
 
 #. module: event_crm
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_event
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_registration
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_ids
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__lead_ids
+#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
 #: model_terms:ir.ui.view,arch_db:event_crm.event_view_form
-#, fuzzy
 msgid "Leads"
-msgstr "Pavedieni"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_event_event__lead_ids
@@ -382,28 +347,19 @@ msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
-#, fuzzy
 msgid "Name"
-msgstr "Nosaukums"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python
 #: code:addons/event_crm/models/event_lead_rule.py:0
-#, fuzzy
 msgid "New registrations"
-msgstr "Jaunās reģistrācijas"
-
-#. module: event_crm
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_event
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_registration
-msgid "No leads found"
 msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_registration_action_from_lead
-#, fuzzy
 msgid "No registration found"
-msgstr "Reģistrācijas nav atrastas"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python
@@ -413,16 +369,14 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_type__opportunity
-#, fuzzy
 msgid "Opportunity"
-msgstr "Potenciālais darījums"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python
 #: code:addons/event_crm/models/event_registration.py:0
-#, fuzzy
 msgid "Participants"
-msgstr "Dalībnieki"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_basis__attendee
@@ -443,27 +397,23 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_request__processed_registration_id
-#, fuzzy
 msgid "Processed Registration"
-msgstr "Apstrādāta reģistrācija"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_crm_lead__event_lead_rule_id
-#, fuzzy
 msgid "Registration Rule"
-msgstr "Reģistrācijas noteikums"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.crm_lead_merge_summary_inherit_event_crm
-#, fuzzy
 msgid "Registration Rule:"
-msgstr "Reģistrācijas noteikums:"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__event_registration_filter
-#, fuzzy
 msgid "Registrations Domain"
-msgstr "Reģistrāciju domēns"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_crm_lead__registration_ids
@@ -480,9 +430,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__name
-#, fuzzy
 msgid "Rule Name"
-msgstr "Noteikuma nosaukums"
+msgstr ""
 
 #. module: event_crm
 #: model:event.lead.rule,name:event_crm.event_lead_rule_0
@@ -495,16 +444,19 @@ msgid "Rule that created this lead"
 msgstr ""
 
 #. module: event_crm
+#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
+msgid "Run Rule"
+msgstr ""
+
+#. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_sales_team_id
-#, fuzzy
 msgid "Sales Team"
-msgstr "Pārdevēju komanda"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_user_id
-#, fuzzy
 msgid "Salesperson"
-msgstr "Pārdevējs"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
@@ -513,21 +465,18 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_crm_lead__event_id
-#, fuzzy
 msgid "Source Event"
-msgstr "Avota pasākums"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_crm_lead__registration_ids
-#, fuzzy
 msgid "Source Registrations"
-msgstr "Avota reģistrācijas"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_tag_ids
-#, fuzzy
 msgid "Tags"
-msgstr "Birkas"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_event_lead_request__processed_registration_id
@@ -549,9 +498,8 @@ msgstr ""
 #. module: event_crm
 #. odoo-python
 #: code:addons/event_crm/models/event_registration.py:0
-#, fuzzy
 msgid "Updated registrations"
-msgstr "Atjaunināta reģistrācija"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
@@ -560,9 +508,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_creation_trigger
-#, fuzzy
 msgid "When"
-msgstr "Kad"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python

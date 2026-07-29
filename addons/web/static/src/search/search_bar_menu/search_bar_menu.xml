@@ -8,7 +8,7 @@
                   t-if="this.env.searchModel.searchMenuTypes.size"
                   bottomSheet="false">
             <button
-                class="o_searchview_dropdown_toggler d-print-none btn btn-outline-secondary o-dropdown-caret rounded-start-0"
+                class="o_searchview_dropdown_toggler abcdddd d-print-none btn btn-outline-secondary o-dropdown-caret rounded-start-0"
                 data-hotkey="shift+q"
                 title="Toggle Search Panel"
             >
@@ -161,7 +161,7 @@
                     t-att-class="item.isInvalid ? 'text-muted' : ''"
                     t-att-data-tooltip="item.isInvalid and invalidTooltip"
                 />
-                <i class="ms-1 fa fa-pencil d-none"
+                <i class="ms-1 fa fa-pencil"
                     title="Edit favorite"
                     t-on-click.stop="() => this.editFavorite(item.id)"
                 />

@@ -11,13 +11,14 @@ import werkzeug
 
 from odoo import fields, http, tools, _
 from odoo.addons.base.models.ir_qweb import keep_query
-from odoo.addons.portal.controllers.portal_thread import PortalChatter
+from odoo.addons.portal.controllers.thread import PortalWebClientController
 from odoo.addons.website.controllers.main import QueryURL
 from odoo.addons.website.models.ir_http import sitemap_qs2dom
 from odoo.addons.website_profile.controllers.main import WebsiteProfile
 from odoo.exceptions import AccessError, ValidationError, UserError, MissingError
 from odoo.fields import Domain
 from odoo.http import request, Response
+from odoo.http.session import touch
 from odoo.tools import consteq, email_normalize_all
 from odoo.tools.translate import LazyTranslate
 
@@ -87,7 +88,7 @@ class WebsiteSlides(WebsiteProfile):
             if slide_id not in viewed_slides:
                 if tools.sql.increment_fields_skiplock(slide, 'public_views', 'total_views'):
                     viewed_slides[slide_id] = 1
-                    request.session.touch()
+                    touch(request.session)
         else:
             slide.action_set_viewed(quiz_attempts_inc=quiz_attempts_inc)
         return True
@@ -137,7 +138,7 @@ class WebsiteSlides(WebsiteProfile):
             'category_data': category_data,
             # rating and comments
             'comments': request.env["mail.message"].search(
-                PortalChatter._get_portal_message_fetch_domain(slide)
+                PortalWebClientController._get_portal_message_fetch_domain(slide)
             ),
         })
 
@@ -402,9 +403,13 @@ class WebsiteSlides(WebsiteProfile):
     def _has_slide_channel_search(self, my=None, slug_tags=None, slide_category=None, **post):
         return my or post.get('search') or slug_tags or post.get('tag') or slide_category
 
+    def sitemap_slides_channel(env, rule, qs):
+        if not qs or qs.lower() in '/slides':
+            yield {"loc": "/slides"}
+
     @http.route(['/slides', '/slides/page/<int:page>',
                  '/slides/tag/<string:slug_tags>', '/slides/tag/<string:slug_tags>/page/<int:page>'],
-                type='http', auth="public", website=True, sitemap=True, readonly=True,
+                type='http', auth="public", website=True, sitemap=sitemap_slides_channel, readonly=True,
                 list_as_website_content=_lt("eLearning"))
     def slides_channel(self, slide_category=None, slug_tags=None, my=0, page=1, **post):
         my = 1 if str(my) == '1' else 0  # if in the URL parameters, it will be a string instead of a number
@@ -970,8 +975,19 @@ class WebsiteSlides(WebsiteProfile):
     # SLIDE.SLIDE MAIN / SEARCH
     # --------------------------------------------------
 
+    def sitemap_slide_view(env, rule, qs):
+        slides = env['slide.slide'].search([('website_published', '=', True), ('active', '=', True)])
+        for slide in slides:
+            if slide.is_category:
+                loc = slide.channel_id.website_url
+            else:
+                loc = slide.website_url
+
+            if not qs or qs.lower() in loc.lower():
+                yield {'loc': loc}
+
     @http.route('/slides/slide/<model("slide.slide"):slide>', type='http', auth="public",
-                website=True, sitemap=True, handle_params_access_error=handle_wslide_error)
+                website=True, sitemap=sitemap_slide_view, handle_params_access_error=handle_wslide_error)
     def slide_view(self, slide, **kwargs):
         if not slide.channel_id.can_access_from_current_website() or not slide.active:
             raise werkzeug.exceptions.NotFound()

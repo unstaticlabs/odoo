@@ -278,3 +278,4 @@ class SetDirectionAction extends BaseNavtabsStyleOption {
 }
 
 registry.category("website-plugins").add(NavTabsStyleOptionPlugin.id, NavTabsStyleOptionPlugin);
+registry.category("translation-plugins").add(NavTabsTranslationPlugin.id, NavTabsTranslationPlugin);

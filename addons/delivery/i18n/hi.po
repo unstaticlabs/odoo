@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * delivery
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 03:17+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-16 15:13+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/delivery/"
 "hi/>\n"
 "Language: hi\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: delivery
 #. odoo-python
@@ -90,8 +90,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>शिपिंग की जानकारी</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -122,8 +122,8 @@ msgstr "जोड़ना"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
-msgstr "शिपिंग का कोई तरीका जोड़ें"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -138,8 +138,7 @@ msgstr "अतिरिक्त मार्जिन"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__allow_cash_on_delivery
 msgid "Allow customers to choose Cash on Delivery as their payment method."
-msgstr ""
-"ग्राहकों को कैश ऑन डिलीवरी को उनके भुगतान के तरीके के रूप में चुनने की अनुमति दें।"
+msgstr "ग्राहकों को कैश ऑन डिलीवरी को उनके भुगतान के तरीके के रूप में चुनने की अनुमति दें।"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__amount
@@ -191,24 +190,8 @@ msgstr "रिटर्न जनरेट किया जा सकता ह�
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "कैरियर"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-"वाहक %s में 'ज़रूरी टैग' और 'शामिल न किए जाने वाले टैग', दोनों में एक ही टैग नहीं हो सकता।"
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "कैरियर की जानकारी"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -321,14 +304,9 @@ msgid "Define a new delivery method"
 msgstr "एक नया डिलीवरी तरीका तय करें"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "डिलीवरी कैरियर"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "डिलीवरी कैरियर चुनने के लिए विज़ॉर्ड"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -342,18 +320,28 @@ msgid "Delivery Message"
 msgstr "डिलीवरी मैसेज"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "डिलीवरी का तरीका"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "डिलीवरी का तरीका"
 
@@ -389,15 +377,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "डिलीवरी की कीमत को फिर से तय करना होगा"
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"डिलीवरी ज़िप प्रीफ़िक्स, डिलीवरी करने वाले वाहकों को दिए जाते हैं, \n"
-"            ताकि उन पर यह पाबंदी लगाई जा सके कि वे किन ज़िप कोड में सेवा दे सकते हैं।"
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "विवरण"
@@ -411,11 +413,6 @@ msgstr "डेस्टिनेशन"
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
 msgstr "दिखाने का क्रम तय करें"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "खारिज करें"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -492,11 +489,9 @@ msgstr ""
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"इस फ़ॉर्म को भरने से आपको यह सुविधा मिलेगी कि आप ऑर्डर के सामान या उसके पते के आधार पर "
-"शिपिंग का तरीका चुन सकें।"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -572,8 +567,7 @@ msgstr ""
 msgid ""
 "If the total weight of the order is over this weight, the method won't be "
 "available."
-msgstr ""
-"अगर ऑर्डर का कुल वज़न इस वज़न से ज़्यादा है, तो यह तरीका उपलब्ध नहीं होगा।"
+msgstr "अगर ऑर्डर का कुल वज़न इस वज़न से ज़्यादा है, तो यह तरीका उपलब्ध नहीं होगा।"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -791,15 +785,11 @@ msgstr "प्रीफ़िक्स पहले से ही मौजू�
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"ज़िप कोड के प्रीफ़िक्स जिन पर यह कैरियर लागू होता है. ध्यान दें कि अलग-अलग लंबाई के ज़िप "
-"कोड वाले देशों में रेगुलर एक्सप्रेशन का इस्तेमाल किया जा सकता है. जैसे, '100$' को सिर्फ़ "
-"'100' के ज़िप कोड के साथ मैच करने के लिए प्रीफ़िक्स के आखिर में '$' का इस्तेमाल किया जा "
-"सकता है. यह '1000' से मैच नहीं करेगा"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -891,19 +881,7 @@ msgstr "सर्विस प्रॉडक्ट"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__prod_environment
 msgid "Set to True if your credentials are certified for production."
-msgstr ""
-"अगर आपके क्रेडेंशियल प्रॉडक्शन के लिए प्रमाणित हैं, तो 'सही' पर सेट करें।"
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "शिपिंग का तरीका"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "शिपिंग के तरीके"
+msgstr "अगर आपके क्रेडेंशियल प्रॉडक्शन के लिए प्रमाणित हैं, तो 'सही' पर सेट करें।"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
@@ -918,15 +896,6 @@ msgid ""
 msgstr ""
 "शिपिंग इंश्योरेंस एक ऐसी सुविधा है, जिसके तहत अगर आपका भेजा हुआ पार्सल रास्ते में खो जाता "
 "है, चोरी हो जाता है या टूट-फूट जाता है, तो आपको उसका मुआवज़ा मिल सकता है।"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"आप अपने सेल्स ऑर्डर और कन्फ़र्मेशन ईमेल में नीचे की ओर शिपिंग के तरीके के बारे में जानकारी दे "
-"सकते हैं. उदाहरण के लिए, ग्राहकों के लिए निर्देश।"
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1126,11 +1095,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"आप डिलीवरी प्रॉडक्ट कैटगरी को हटा नहीं सकते हैं, क्योंकि इसका इस्तेमाल डिलीवरी वाहक "
-"प्रॉडक्ट्स में किया जाता है।"
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1177,4 +1144,5 @@ msgstr "जैसे, UPS Express"
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-msgstr "यानी, https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
+msgstr ""
+"यानी, https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"

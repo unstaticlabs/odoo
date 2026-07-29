@@ -123,7 +123,6 @@ class TestSelfOrderAttribute(SelfOrderCommonTest):
     def test_self_order_product_info(self):
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             })],

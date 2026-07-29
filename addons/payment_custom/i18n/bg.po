@@ -4,22 +4,20 @@
 #
 # Translators:
 # Iliana Ilieva <i.ilieva@sunservice-bg.com>, 2015
-# Ivaylo Malinov <iv.malinov@gmail.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 19:59+0000\n"
-"Last-Translator: Ivaylo Malinov <iv.malinov@gmail.com>\n"
-"Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-19/"
-"payment_custom/bg/>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2015-11-26 13:28+0000\n"
+"Last-Translator: Iliana Ilieva <i.ilieva@sunservice-bg.com>\n"
+"Language-Team: Bulgarian (http://www.transifex.com/odoo/odoo-9/language/"
+"bg/)\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -27,8 +25,6 @@ msgid ""
 "<small class=\"text-center text-wrap lh-sm\">Scan me in your banking app</"
 "small>"
 msgstr ""
-"<small class=\"text-center text-wrap lh-sm\">Сканирай ме в банковото си "
-"приложение</small>"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -136,43 +132,3 @@ msgstr ""
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Банков превод"
-
-#~ msgid "; no order found"
-#~ msgstr "Не е открита заявка"
-
-#~ msgid "<span><i>Cancel,</i> Your payment has been cancelled.</span>"
-#~ msgstr "<span><i>Отказ,</i> Вашето плащане е отказано.</span>"
-
-#~ msgid ""
-#~ "<span><i>Done,</i> Your online payment has been successfully processed. "
-#~ "Thank you for your order.</span>"
-#~ msgstr ""
-#~ "<span><i>Готово,</i> Вашето онлайн плащане е успешно. Благодарим Ви, за "
-#~ "поръчката!.</span>"
-
-#~ msgid ""
-#~ "<span><i>Error,</i> Please be aware that an error occurred during the "
-#~ "transaction. The order has been confirmed but won't be paid. Don't "
-#~ "hesitate to contact us if you have any questions on the status of your "
-#~ "order.</span>"
-#~ msgstr ""
-#~ "<span><i>Грешка,</i> Моля, имайте предвид, че възникна грешка по време на "
-#~ "транзакцията. Поръчката е потвърдена, но не е платена. Не се колебайте да "
-#~ "се свържете с нас ако имате въпроси относно статуса на Вашата поръчка.</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span><i>Pending,</i> Your online payment has been successfully "
-#~ "processed. But your order is not validated yet.</span>"
-#~ msgstr ""
-#~ "<span><i>Задържано,</i>  Вашето онлайн плащане е успешно, но поръчката Ви "
-#~ "още не е потвърдена.</span>"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Обработчик на плащането"
-
-#~ msgid ""
-#~ "Transfer information will be provided after choosing the payment mode."
-#~ msgstr ""
-#~ "Информация за транзакцита ще бъде предоставена след избор на метод на "
-#~ "плащане."

@@ -31,7 +31,26 @@
     .o_link_popover_container {
         min-width: 300px;
     }
+
+    .o_we_link_preview {
+        width: 300px;
+
+        .btn {
+            white-space: nowrap;
+        }
+    }
 }
+
+/* rtl:begin:ignore */
+.o_rtl {
+    .o-we-linkpopover {
+        .o_we_href_input_link {
+            direction: ltr;
+            text-align: right;
+        }
+    }
+}
+/* rtl:end:ignore */
 
 .o_seo_option_child {
     padding-left: 20px;

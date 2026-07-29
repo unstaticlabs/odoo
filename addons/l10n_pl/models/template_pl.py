@@ -32,7 +32,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'default_cash_difference_expense_account_id': 'chart75010500',
                 'expense_account_id': 'chart70010100',
                 'income_account_id': 'chart73000100',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'chart33000400',
             },
         }

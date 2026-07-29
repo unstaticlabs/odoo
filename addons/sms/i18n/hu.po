@@ -12,23 +12,23 @@
 # Ákos Nagy <akos.nagy@oregional.hu>, 2022
 # gezza <geza.nagy@oregional.hu>, 2023
 # Tamás Németh <ntomasz81@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:17+0000\n"
+"PO-Revision-Date: 2025-11-11 17:16+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/sms/"
-"hu/>\n"
+"Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/sms/hu/"
+">\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -171,6 +171,12 @@ msgid ""
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -238,10 +244,7 @@ msgid "Buy credits."
 msgstr ""
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Visszavonás"
@@ -276,8 +279,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Vállalatok"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -368,12 +371,6 @@ msgid "Delivered"
 msgstr "Kiszállítva"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Elvetés"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -396,8 +393,8 @@ msgstr "Megjelenített név"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Követők dokumentuma"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -525,9 +522,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -656,6 +653,12 @@ msgid "Marked for deletion"
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -664,8 +667,8 @@ msgstr "Üzenet"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Üzenet értesítések"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -677,8 +680,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Modellek"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -701,9 +704,8 @@ msgstr "Nem engedélyezett"
 #. odoo-javascript
 #: code:addons/sms/static/src/core/notification_model_patch.js:0
 #: model:ir.model.fields.selection,name:sms.selection__mail_notification__failure_type__sms_not_delivered
-#, fuzzy
 msgid "Not Delivered"
-msgstr "Nem kiszállított"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields.selection,name:sms.selection__ir_actions_server__sms_method__note
@@ -959,9 +961,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1231,6 +1233,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "SMS sablon"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1584,117 +1592,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
 msgid "record:"
 msgstr "bejegyzés:"
-
-#~ msgid "Action Needed"
-#~ msgstr "Művelet szükséges"
-
-#~ msgid "Action To Do"
-#~ msgstr "Elvégzendő művelet"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Mellékletek száma"
-
-#~ msgid "Buy credits"
-#~ msgstr "Kreditek vásárlása"
-
-#~ msgid "Can Cancel"
-#~ msgstr "Törölhet"
-
-#~ msgid "Can Resend"
-#~ msgstr "Újraküldheti"
-
-#~ msgid "Canceled"
-#~ msgstr "Visszavonva"
-
-#~ msgid "Close"
-#~ msgstr "Bezárás"
-
-#~ msgid "Edit Partners"
-#~ msgstr "Partnerek szerkesztése"
-
-#~ msgid "Error Message"
-#~ msgstr "Hibaüzenet"
-
-#~ msgid "Followers"
-#~ msgstr "Követők"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Követők (Partnerek)"
-
-#~ msgid "Has Message"
-#~ msgstr "Van üzenet"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "Ha be van jelölve, akkor az új üzenetek figyelmet igényelnek."
-
-#~ msgid "Is Follower"
-#~ msgstr "Követő"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Üzenetkézbesítési hiba"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Üzenet típus: email az email üzenetre, figyelmeztetés egy rendszer "
-#~ "üzenetre, hozzászólás egy másik üzenetre mint felhasználói válaszok"
-
-#~ msgid "Messages"
-#~ msgstr "Üzenetek"
-
-#~ msgid "Notification"
-#~ msgstr "Értesítés"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Műveletek száma"
-
-#~ msgid "Number of errors"
-#~ msgstr "Hibák száma"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Üzenetek száma, melyek műveletet igényelnek"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Kézbesítési hibával rendelkező üzenetek száma"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Opcionális fordítási nyelv (ISO kód), mely e-mail küldése során "
-#~ "választható ki. Ha nincs beállítva, akkor az angol nyelv kerül "
-#~ "felhasználásra. Ez általában csak egy kitöltő kifejezés, mely megadja a "
-#~ "megfelelő nyelvet, pld: {{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefon/Mobil"
-
-#~ msgid "Reason"
-#~ msgstr "Ok"
-
-#~ msgid "Recipient"
-#~ msgstr "Címzett"
-
-#~ msgid "Recipients"
-#~ msgstr "Címzettek"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "SMS küldése"
-
-#~ msgid "Send as"
-#~ msgstr "Küldés mint"
-
-#~ msgid "Try Again"
-#~ msgstr "Próbálja újra"
-
-#~ msgid "Website Messages"
-#~ msgstr "Honlap üzenetek"
-
-#~ msgid "Website communication history"
-#~ msgstr "Weboldali kommunikációs előzmények"

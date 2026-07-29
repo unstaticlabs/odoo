@@ -5,11 +5,9 @@ from psycopg2.errors import UniqueViolation
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.exceptions import AccessError, UserError
-from odoo.tests.common import tagged
 from odoo.tools import mute_logger
 
 
-@tagged("post_install", "-at_install")
 class TestDiscussChannelAccess(MailCommon):
     @classmethod
     def setUpClass(cls):
@@ -565,8 +563,8 @@ class TestDiscussChannelAccess(MailCommon):
             self.assertEqual(len(member), 1, "should find the target member")
             if operation == "read":
                 self.assertEqual(len(ChannelMemberAsUser.search(domain)), 1 if result else 0)
-                member.read(["custom_channel_name"])
+                member.read(["custom_notifications"])
             elif operation == "write":
-                member.write({"custom_channel_name": "new name"})
+                member.write({"custom_notifications": "mentions"})
             elif operation == "unlink":
                 member.unlink()

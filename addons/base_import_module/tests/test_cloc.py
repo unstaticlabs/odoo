@@ -5,6 +5,8 @@ from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from odoo.tools import cloc
+from odoo.tests import tagged
+
 from odoo.addons.base.tests import test_cloc
 
 VALID_XML = """
@@ -12,7 +14,7 @@ VALID_XML = """
     <t t-name="stock_barcode.LineComponent">
         <div t-if="line.picking_id and line.picking_id.origin" name="origin">
             <i class="fa fa-fw fa-file" />
-            <span t-esc="line.picking_id.origin" />
+            <span t-out="line.picking_id.origin" />
         </div>
     </t>
 </templates>
@@ -23,7 +25,7 @@ VALID_XML_2 = """<?xml version="1.0" encoding="UTF-8"?>
         <t t-name="stock_barcode.LineComponent">
             <div t-if="line.picking_id and line.picking_id.origin" name="origin">
                 <i class="fa fa-fw fa-file" />
-                <span t-esc="line.picking_id.origin" />
+                <span t-out="line.picking_id.origin" />
             </div>
         </t>
     </template>
@@ -33,6 +35,8 @@ VALID_XML_2 = """<?xml version="1.0" encoding="UTF-8"?>
 </odoo>
 """
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestClocFields(test_cloc.TestClocCustomization):
 
     def create_studio_module(self):

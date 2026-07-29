@@ -1,7 +1,7 @@
 import { partnerCompareRegistry } from "@mail/core/common/partner_compare";
 import { cleanTerm } from "@mail/utils/common/format";
 import { toRaw } from "@odoo/owl";
-import { loadEmoji } from "@web/core/emoji_picker/emoji_picker";
+import { emojiLoader } from "@web/core/emoji_picker/emoji_loader";
 
 import { registry } from "@web/core/registry";
 import { fuzzyLookup } from "@web/core/utils/search";
@@ -16,7 +16,6 @@ export class SuggestionService {
         this.orm = services.orm;
         this.store = services["mail.store"];
         this.composer = services["mail.composer"];
-        this.emojis;
     }
 
     /**
@@ -30,7 +29,12 @@ export class SuggestionService {
      * @returns {Array<[string, number, number]>}
      */
     getSupportedDelimiters(thread, env) {
-        return [["@"], ["#"], ["::"], [":", undefined, 2]];
+        const delimiters = [["@"], ["#"], ["::"]];
+        // the emoji plugin handles the emoji suggestions already
+        if (!this.composer.htmlEnabled) {
+            delimiters.push([":", undefined, 2]);
+        }
+        return delimiters;
     }
 
     async fetchSuggestions({ delimiter, term }, { thread, abortSignal } = {}) {
@@ -46,8 +50,7 @@ export class SuggestionService {
                 await this.store.cannedReponses.fetch();
                 break;
             case ":": {
-                const { emojis } = await loadEmoji();
-                this.emojis = emojis;
+                await emojiLoader.load();
                 break;
             }
         }
@@ -86,14 +89,12 @@ export class SuggestionService {
      */
     async fetchPartnersRoles(term, thread, { abortSignal } = {}) {
         const kwargs = { search: term };
-        if (thread?.model === "discuss.channel") {
+        if (thread?.channel) {
             kwargs.channel_id = thread.id;
         }
         const data = await this.makeOrmCall(
             "res.partner",
-            thread?.model === "discuss.channel"
-                ? "get_mention_suggestions_from_channel"
-                : "get_mention_suggestions",
+            thread?.channel ? "get_mention_suggestions_from_channel" : "get_mention_suggestions",
             [],
             kwargs,
             { abortSignal }
@@ -150,8 +151,12 @@ export class SuggestionService {
 
     searchEmojisSuggestions(cleanedSearchTerm) {
         let emojis = [];
-        if (this.emojis && cleanedSearchTerm) {
-            emojis = fuzzyLookup(cleanedSearchTerm, this.emojis, (emoji) => emoji.shortcodes);
+        if (emojiLoader.loaded && cleanedSearchTerm) {
+            emojis = fuzzyLookup(
+                cleanedSearchTerm,
+                emojiLoader.emojis,
+                (emoji) => emoji.shortcodes
+            );
         }
         return {
             type: "emoji",
@@ -229,7 +234,7 @@ export class SuggestionService {
 
     isSuggestionValid(partner, thread) {
         return (
-            (this.store.self_partner?.main_user_id?.share === false || partner.mention_token) &&
+            (this.store.self_user?.share === false || partner.mention_token) &&
             partner.notEq(this.store.odoobot)
         );
     }
@@ -258,7 +263,7 @@ export class SuggestionService {
             ...this.store.specialMentions.filter(
                 (special) =>
                     thread &&
-                    special.channel_types.includes(thread.channel_type) &&
+                    special.channel_types.includes(thread.channel?.channel_type) &&
                     cleanedSearchTerm.length >= Math.min(4, special.label.length) &&
                     (special.label.startsWith(cleanedSearchTerm) ||
                         cleanTerm(special.description.toString()).includes(cleanedSearchTerm))
@@ -289,6 +294,7 @@ export class SuggestionService {
             for (const fn of compareFunctions) {
                 const result = fn(p1, p2, {
                     env: this.env,
+                    store: this.store,
                     searchTerm: cleanedSearchTerm,
                     thread,
                     context,
@@ -300,16 +306,23 @@ export class SuggestionService {
         });
     }
 
-    sortPartnerSuggestionsContext() {
-        return {};
+    /** @param {import("models").Thread} thread The thread from which the suggestions are triggered. */
+    sortPartnerSuggestionsContext(thread) {
+        const latestMessageIdByAuthorId = new Map();
+        for (const { author_id, id } of thread?.messages || []) {
+            if (author_id && !latestMessageIdByAuthorId.has(author_id.id)) {
+                latestMessageIdByAuthorId.set(author_id.id, id);
+            }
+        }
+        return { latestMessageIdByAuthorId };
     }
 
     searchChannelSuggestions(cleanedSearchTerm) {
-        const suggestionList = Object.values(this.store.Thread.records).filter(
-            (thread) =>
-                thread.channel_type === "channel" &&
-                thread.displayName &&
-                cleanTerm(thread.displayName).includes(cleanedSearchTerm)
+        const suggestionList = Object.values(this.store["discuss.channel"].records).filter(
+            (channel) =>
+                channel.channel_type === "channel" &&
+                channel.displayName &&
+                cleanTerm(channel.displayName).includes(cleanedSearchTerm)
         );
         const sortFunc = (c1, c2) => {
             const isPublicChannel1 = c1.channel_type === "channel" && !c2.group_public_id;
@@ -320,10 +333,10 @@ export class SuggestionService {
             if (!isPublicChannel1 && isPublicChannel2) {
                 return 1;
             }
-            if (c1.hasSelfAsMember && !c2.hasSelfAsMember) {
+            if (c1.self_member_id && !c2.self_member_id) {
                 return -1;
             }
-            if (!c1.hasSelfAsMember && c2.hasSelfAsMember) {
+            if (!c1.self_member_id && c2.self_member_id) {
                 return 1;
             }
             const cleanedDisplayName1 = cleanTerm(c1.displayName);
@@ -349,7 +362,7 @@ export class SuggestionService {
             return c1.id - c2.id;
         };
         return {
-            type: "Thread",
+            type: "discuss.channel",
             suggestions: suggestionList.sort(sortFunc),
         };
     }

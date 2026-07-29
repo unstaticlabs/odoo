@@ -9,17 +9,17 @@
 # Martin Trigaux, 2022
 # Cécile Collart <cco@odoo.com>, 2022
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 22:37+0000\n"
+"POT-Creation-Date: 2026-07-03 17:35+0000\n"
+"PO-Revision-Date: 2026-06-06 13:42+0000\n"
 "Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_slides/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -123,7 +123,6 @@ msgstr "% Contenus terminés"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_my
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
 msgid "&amp;nbsp;"
 msgstr "&amp;nbsp;"
 
@@ -159,7 +158,6 @@ msgstr "(par ex. https://youtube/ABC)."
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/slide_archive.js:0
-#: code:addons/website_slides/static/src/js/slides_course_slides_list.js:0
 msgid "(empty)"
 msgstr "(vide)"
 
@@ -243,15 +241,39 @@ msgid ""
 "out=\"object.channel_id.name or ''\">Basics of Gardening</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Click here to start the course </t> <t t-"
+"else=\"\"> Click here to get started </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Enjoy this exclusive content!\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "        Bonjour<br/><br/>\n"
-"        Vous êtes inscrit à un nouveau cours : <t t-"
+"        Vous avez été inscrit(e) à un nouveau cours : <t t-"
 "out=\"object.channel_id.name or ''\">Les bases du jardinage</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Cliquez ici pour commencer le cours </t> <t "
+"t-else=\"\"> Cliquez ici pour démarrer </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Profitez de ce contenu exclusif !\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 
 #. module: website_slides
@@ -264,15 +286,39 @@ msgid ""
 "out=\"object.channel_id.name or ''\">Basics of Gardening</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Click here to start the course </t> <t t-"
+"else=\"\"> Click here to get started </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Enjoy this exclusive content!\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "        Bonjour<br/><br/>\n"
-"        Vous êtes invité(e) à découvrir ce cours :  <t t-"
+"        Vous avez été invité(e) à découvrir ce cours : <t t-"
 "out=\"object.channel_id.name or ''\">Les bases du jardinage</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Cliquez ici pour commencer le cours </t> <t "
+"t-else=\"\"> Cliquez ici pour démarrer </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Profitez de ce contenu exclusif !\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 
 #. module: website_slides
@@ -299,44 +345,43 @@ msgid ""
 "                            </a>\n"
 "                        </div>\n"
 "                        Enjoy this exclusive content!\n"
-"                        <t t-if=\"object.channel_id.user_id.signature\" data-"
-"o-mail-quote-container=\"1\">\n"
+"                        <t t-if=\"object.channel_id.user_id.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\" data-o-"
-"mail-quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\">Mitchell "
+"Admin</t></div>\n"
 "                        </t>\n"
 "                    </div>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <div style=\"margin: 0px; padding: 0px; font-size: "
-"13px;\">\n"
+"                    <div style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        <p style=\"margin: 0px;\">Bonjour <t t-"
 "out=\"object.partner_id.name or ''\">Brandon Freeman</t>,</p><br/>\n"
 "                        <p><b>Félicitations !</b></p>\n"
 "                        <p>Vous avez terminé le cours <b t-"
 "out=\"object.channel_id.name or ''\">Les bases du jardinage</b></p>\n"
-"                        <p>Parcourez les autres cours disponibles.</p><br/>\n"
+"                        <p>N’hésitez pas à découvrir les autres cours "
+"disponibles.</p><br/>\n"
 "\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
 "                            <a href=\"/slides\" t-attf-style=\"background-"
 "color: {{object.channel_id.user_id.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{object.channel_id.user_id.company_id.email_primary_color or '#FFFFFF'}}; "
+"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
+"{{object.channel_id.user_id.company_id.email_primary_color or '#FFFFFF'}}; "
 "border-radius: 5px;\">\n"
-"                                Parcourir les cours\n"
+"                                Découvrir les cours\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        Profitez de ce contenu exclusif !\n"
-"                        <t t-if=\"object.channel_id.user_id.signature\" data-"
-"o-mail-quote-container=\"1\">\n"
+"                        <t t-if=\"object.channel_id.user_id.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\" data-o-"
-"mail-quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\">Mitchell "
+"Admin</t></div>\n"
 "                        </t>\n"
 "                    </div>\n"
 "                </div>\n"
@@ -369,30 +414,28 @@ msgid ""
 "                                View <strong t-out=\"object.name or "
 "''\">Document</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        Bonjour<br/><br/>\n"
 "                        <t t-out=\"user.name or ''\">Mitchell Admin</t> a "
-"partagé <strong t-out=\"object.name or ''\">le document suivant</strong> "
-"avec vous !\n"
+"partagé le <strong t-out=\"object.name or ''\">document</strong> avec "
+"vous !\n"
 "                        </p><div style=\"margin: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
 "                            <a t-att-href=\"object.website_absolute_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.channel/{{ object.id }}/image_256\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.channel/{{ object.id }}/"
+"image_256\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
@@ -402,15 +445,13 @@ msgstr ""
 "'#875A7B'}}; padding: 8px 16px 8px 16px;                                 "
 "text-decoration: none; color: {{user.company_id.email_primary_color or "
 "'#FFFFFF'}}; border-radius: 5px;\">\n"
-"                                Voir <strong t-out=\"object.name or ''\">le "
-"document</strong></a>\n"
+"                                Voir le <strong t-out=\"object.name or "
+"''\">Document</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-quote=\"1\">"
-"Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -444,48 +485,44 @@ msgid ""
 "{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;"
 "\">View <strong t-out=\"object.name or ''\">Trees</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        Bonjour<br/><br/>\n"
 "                        <t t-out=\"user.name or ''\">Mitchell Admin</t> a "
 "partagé le <t t-out=\"object.slide_category or ''\">document</t> <strong t-"
 "out=\"object.name or ''\">Arbres</strong> avec vous !\n"
 "                        </p><div style=\"margin: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
-"                            <a t-att-href=\"(object.website_share_url + "
-"'?fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                            <a t-att-href=\"(object.website_share_url + '?"
+"fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\">\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/"
+"image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
-"                            <a t-att-href=\"(object.website_share_url + "
-"'?fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\" t-"
+"                            <a t-att-href=\"(object.website_share_url + '?"
+"fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\" t-"
 "attf-style=\"background-color: {{user.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;\">"
-"Voir le document <strong t-out=\"object.name or ''\">Arbres</strong></a>\n"
+"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
+"{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;"
+"\">Voir <strong t-out=\"object.name or ''\">Arbres</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-quote=\"1\">"
-"Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -523,52 +560,48 @@ msgid ""
 "radius: 5px;\">View content</a>\n"
 "                        </div>\n"
 "                        Enjoy this exclusive content!\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
-"                        Bonjour,<br/><br/>\n"
-"                        Il y a du nouveau dans le cours <strong t-"
-"out=\"object.channel_id.name or ''\">Arbres, bois et jardins</strong> que "
-"vous suivez :<br/><br/>\n"
-"                        </p><center><strong t-out=\"object.name or ''\">"
-"Arbres</strong></center>\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Bonjour<br/><br/>\n"
+"                        Un nouveau contenu est disponible dans le cours "
+"<strong t-out=\"object.channel_id.name or ''\">Arbres, bois et jardins</"
+"strong> que vous suivez :<br/><br/>\n"
+"                        </p><center><strong t-out=\"object.name or "
+"''\">Arbres</strong></center>\n"
 "                        <t t-if=\"object.image_1024\">\n"
 "                            <div style=\"padding: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
 "                                <a t-att-href=\"object.website_share_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/"
+"image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        </t>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
 "                            <a t-att-href=\"object.website_share_url\" t-"
-"attf-style=\"background-color: {"
-"{object.user_id.company_id.email_secondary_color or '#875A7B'}}; padding: "
-"8px 16px 8px 16px; text-decoration: none; color: {"
-"{object.user_id.company_id.email_primary_color or '#FFFFFF'}}; border-"
+"attf-style=\"background-color: "
+"{{object.user_id.company_id.email_secondary_color or '#875A7B'}}; padding: "
+"8px 16px 8px 16px; text-decoration: none; color: "
+"{{object.user_id.company_id.email_primary_color or '#FFFFFF'}}; border-"
 "radius: 5px;\">Voir le contenu</a>\n"
 "                        </div>\n"
 "                        Profitez de ce contenu exclusif !\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-quote=\"1\">"
-"Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -590,8 +623,8 @@ msgid ""
 "<i class=\"fa fa-bars\"/><span class=\"d-none d-md-inline-block "
 "ms-1\">Lessons</span>"
 msgstr ""
-"<i class=\"fa fa-bars\"/><span class=\"d-none d-md-inline-block ms-1\">"
-"Leçons</span>"
+"<i class=\"fa fa-bars\"/><span class=\"d-none d-md-inline-block "
+"ms-1\">Leçons</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_card
@@ -678,8 +711,8 @@ msgid ""
 "<i class=\"fa fa-eye me-2\" aria-label=\"Views\" role=\"img\" "
 "title=\"Views\"/>"
 msgstr ""
-"<i class=\"fa fa-eye me-2\" aria-label=\"Views\" role=\"img\" "
-"title=\"Vues\"/>"
+"<i class=\"fa fa-eye me-2\" aria-label=\"Views\" role=\"img\" title=\"Vues\"/"
+">"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_slide_view_kanban
@@ -723,8 +756,8 @@ msgid ""
 "<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" title=\"Quiz\"/"
 ">"
 msgstr ""
-"<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" "
-"title=\"Quiz\"/>"
+"<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" title=\"Quiz\"/"
+">"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_aside_training_category
@@ -767,8 +800,8 @@ msgid ""
 "<i class=\"fa fa-home\"/><span class=\"d-none d-md-inline-block ms-1\">Back "
 "to course</span>"
 msgstr ""
-"<i class=\"fa fa-home\"/><span class=\"d-none d-md-inline-block ms-1\">"
-"Retour au cours</span>"
+"<i class=\"fa fa-home\"/><span class=\"d-none d-md-inline-block "
+"ms-1\">Retour au cours</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
@@ -785,8 +818,8 @@ msgid ""
 "<i class=\"fa fa-plus me-1\"/> <span class=\"d-none d-md-inline-block\">Add "
 "Content</span>"
 msgstr ""
-"<i class=\"fa fa-plus me-1\"/> <span class=\"d-none d-md-inline-block\">"
-"Ajouter du contenu</span>"
+"<i class=\"fa fa-plus me-1\"/> <span class=\"d-none d-md-inline-"
+"block\">Ajouter du contenu</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list
@@ -846,8 +879,8 @@ msgid ""
 "span>"
 msgstr ""
 "<i class=\"fa fa-share-alt\"/>\n"
-"                        <span class=\"d-none d-md-inline-block ms-2\">"
-"Partager</span>"
+"                        <span class=\"d-none d-md-inline-block "
+"ms-2\">Partager</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_sidebar
@@ -860,8 +893,8 @@ msgid ""
 "<i class=\"fa fa-sign-out\"/><span class=\"d-none d-md-inline-block "
 "ms-1\">Exit Fullscreen</span>"
 msgstr ""
-"<i class=\"fa fa-sign-out\"/><span class=\"d-none d-md-inline-block ms-1\">"
-"Quitter le plein écran</span>"
+"<i class=\"fa fa-sign-out\"/><span class=\"d-none d-md-inline-block "
+"ms-1\">Quitter le plein écran</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_search_tags
@@ -963,8 +996,8 @@ msgid ""
 "<span class=\"d-none d-md-inline me-2 me-md-0\">Start now</span><i "
 "class=\"oi oi-arrow-right d-md-none\" aria-hidden=\"true\"/>"
 msgstr ""
-"<span class=\"d-none d-md-inline me-2 me-md-0\">Commencer maintenant</span>"
-"<i class=\"oi oi-arrow-right d-md-none\" aria-hidden=\"true\"/>"
+"<span class=\"d-none d-md-inline me-2 me-md-0\">Commencer maintenant</"
+"span><i class=\"oi oi-arrow-right d-md-none\" aria-hidden=\"true\"/>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -1117,17 +1150,17 @@ msgid ""
 "class=\"fa fa-step-forward\"/></span>"
 msgstr ""
 "<span id=\"first\" class=\"me-1 me-sm-2\" title=\"Première diapositive\" "
-"aria-label=\"First slide\" role=\"button\"><i class=\"fa fa-step-backward\"/>"
-"</span>\n"
+"aria-label=\"First slide\" role=\"button\"><i class=\"fa fa-step-backward\"/"
+"></span>\n"
 "                                        <span id=\"previous\" class=\"mx-1 "
 "mx-sm-2\" title=\"Diapositive précédente\" aria-label=\"Previous slide\" "
 "role=\"button\"><i class=\"fa fa-arrow-circle-left\"/></span>\n"
-"                                        <span id=\"next\" class=\"mx-1 mx-sm-"
-"2\" title=\"Diapositive suivante\" aria-label=\"Next slide\" role=\"button\">"
-"<i class=\"fa fa-arrow-circle-right\"/></span>\n"
-"                                        <span id=\"last\" class=\"mx-1 mx-sm-"
-"2\" title=\"Dernière diapositive\" aria-label=\"Last slide\" role=\"button\">"
-"<i class=\"fa fa-step-forward\"/></span>"
+"                                        <span id=\"next\" class=\"mx-1 mx-"
+"sm-2\" title=\"Diapositive suivante\" aria-label=\"Next slide\" "
+"role=\"button\"><i class=\"fa fa-arrow-circle-right\"/></span>\n"
+"                                        <span id=\"last\" class=\"mx-1 mx-"
+"sm-2\" title=\"Dernière diapositive\" aria-label=\"Last slide\" "
+"role=\"button\"><i class=\"fa fa-step-forward\"/></span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.embed_slide
@@ -1158,13 +1191,13 @@ msgid ""
 msgstr ""
 "<span id=\"zoomout\" class=\"d-inline ms-2 me-2\" title=\"Zoom out\" aria-"
 "label=\"Zoom out\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-minus\"/>"
-"\n"
+"                                            <i class=\"fa fa-search-minus\"/"
+">\n"
 "                                        </span>\n"
 "                                        <span id=\"zoomin\" class=\"d-"
 "inline\" title=\"Zoumer\" aria-label=\"Zoumer\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-plus\"/>"
-"\n"
+"                                            <i class=\"fa fa-search-plus\"/"
+">\n"
 "                                        </span>"
 
 #. module: website_slides
@@ -1173,8 +1206,8 @@ msgid ""
 "<span name=\"done_members_count_label\" class=\"text-muted text-truncate "
 "mw-100\" title=\"Finished\">Finished</span>"
 msgstr ""
-"<span name=\"done_members_count_label\" class=\"text-muted text-truncate mw-"
-"100\" title=\"Finished\">Complété</span>"
+"<span name=\"done_members_count_label\" class=\"text-muted text-truncate "
+"mw-100\" title=\"Finished\">Complété</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -1266,6 +1299,11 @@ msgid "<strong>No Attendees Yet!</strong>"
 msgstr "<strong>Aucun participant pour le moment !</strong>"
 
 #. module: website_slides
+#: model_terms:ir.actions.act_window,help:website_slides.slide_channel_partner_action_report_certified
+msgid "<strong>No Certified Attendees Yet!</strong>"
+msgstr "<strong>Aucun participant certifié pour le moment !</strong>"
+
+#. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "<strong>Sharing is caring!</strong> Your email(s) will arrive shortly."
 msgstr ""
@@ -1288,8 +1326,8 @@ msgstr "Un fruit"
 msgid ""
 "A good course has a structure. Pick a name for your first <b>Section</b>."
 msgstr ""
-"Un bon cours est structuré. Choisissez un nom pour votre première <b>"
-"Section</b>."
+"Un bon cours est structuré. Choisissez un nom pour votre première "
+"<b>Section</b>."
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_slide_demo_1_4
@@ -1465,6 +1503,11 @@ msgid "Activity Exception Decoration"
 msgstr "Indicateur d’exception d’activité"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
+
+#. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__activity_state
 msgid "Activity State"
 msgstr "Statut de l'activité"
@@ -1532,13 +1575,13 @@ msgstr "Ajouter une étiquette"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Add an answer below this one"
 msgstr "Ajouter une réponse en-dessous de celle-ci"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Add comment on this answer"
 msgstr "Ajouter un commentaire à cette réponse"
 
@@ -1602,7 +1645,7 @@ msgstr "Tous les progrès seront perdus jusqu'à ce que vous repreniez ce cours.
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "All questions must be answered!"
 msgstr "Il faut une réponse à toutes les questions !"
 
@@ -1774,7 +1817,7 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette catégorie ?"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 msgid "Are you sure you want to delete this question \"%(title)s\"?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette question \"%(title)s\" ?"
 
@@ -1818,6 +1861,11 @@ msgid "Attendee"
 msgstr "Participant"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_new_attendees
+msgid "Attendee Registrations"
+msgstr "Inscription des participants"
+
+#. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__member_status
 msgid "Attendee Status"
 msgstr "Statut du participant"
@@ -1848,6 +1896,20 @@ msgstr "Participants de %s"
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__enroll_group_ids
 msgid "Auto Enroll Groups"
 msgstr "Groupes à inscription automatique"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__publish_on
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_tag_group__publish_on
+#: model:ir.model.fields,field_description:website_slides.field_slide_slide__publish_on
+msgid "Auto publish on"
+msgstr "Publication automatique le"
+
+#. module: website_slides
+#: model:ir.model.fields,help:website_slides.field_slide_channel__publish_on
+#: model:ir.model.fields,help:website_slides.field_slide_channel_tag_group__publish_on
+#: model:ir.model.fields,help:website_slides.field_slide_slide__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Publier automatiquement la page à la date et à l’heure choisies."
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__rating_avg
@@ -1971,12 +2033,7 @@ msgstr "Ne peut pas être marquée comme inachevée"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/interactions/category_add.js:0
-#: code:addons/website_slides/static/src/interactions/category_delete.js:0
-#: code:addons/website_slides/static/src/interactions/enroll_email.js:0
-#: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
-#: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_invite_view_form
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2009,10 +2066,20 @@ msgid "Certifications"
 msgstr "Certifications"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_certified_attendees
+msgid "Certified Attendees"
+msgstr "Participants certifiés"
+
+#. module: website_slides
 #: model:gamification.badge,name:website_slides.badge_data_certification
 #: model:gamification.goal.definition,name:website_slides.badge_data_certification_goal
 msgid "Certified Knowledge"
 msgstr "Connaissances certifiées"
+
+#. module: website_slides
+#: model:ir.actions.act_window,name:website_slides.slide_channel_partner_action_report_certified
+msgid "Certified attendees"
+msgstr "Participants certifiés"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_partner__channel_id
@@ -2046,8 +2113,8 @@ msgstr "Type de canal"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag_group
-msgid "Channel/Course Groups"
-msgstr "Groupes de canaux/cours"
+msgid "Channel/Course Group"
+msgstr "Groupe canaux/cours"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag
@@ -2123,17 +2190,6 @@ msgid "Click <b>Save</b> to create it."
 msgstr "Cliquez sur <em>Enregistrer</em> pour finaliser la création."
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Click here to get started"
-msgstr "Cliquez ici pour démarrer"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Click here to start the course"
-msgstr "Cliquez ici pour démarrer le cours"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.courses_home
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_search_results
 msgid "Click on \"New\" in the top-right corner to write your first course."
 msgstr ""
@@ -2305,6 +2361,12 @@ msgid "Completion Time"
 msgstr "Temps d'achèvement"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__completion_date
+#: model:ir.model.fields,help:website_slides.field_slide_channel_partner__completion_date
+msgid "Completion date"
+msgstr "Date de finalisation"
+
+#. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_invite_view_form
 msgid "Compose Email"
 msgstr "Rédiger un e-mail"
@@ -2433,8 +2495,8 @@ msgid ""
 "documents, videos, ...)."
 msgstr ""
 "Les contenus sont les leçons qui composent un cours\n"
-"<br> et peuvent être de différents types (présentations, documents, vidéos, "
-"...)."
+"<br> et peuvent être de différents types (présentations, documents, "
+"vidéos, ...)."
 
 #. module: website_slides
 #: model:ir.actions.act_window,name:website_slides.slide_slide_action
@@ -2879,7 +2941,7 @@ msgstr "Supprimer la catégorie"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 msgid "Delete Question"
 msgstr "Supprimer la question"
 
@@ -2904,8 +2966,14 @@ msgid "Did you read the whole article?"
 msgstr "Avez-vous lu l'intégralité de l'article ?"
 
 #. module: website_slides
+#: model:ir.model,name:website_slides.model_digest_digest
+msgid "Digest"
+msgstr "Digest"
+
+#. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_unsubscribe_dialog/slide_unsubscribe_dialog.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
 msgid "Discard"
 msgstr "Ignorer"
 
@@ -2930,6 +2998,7 @@ msgstr "Affichage"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_base_partner_merge_automatic_wizard__display_name
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:website_slides.field_gamification_challenge__display_name
 #: model:ir.model.fields,field_description:website_slides.field_gamification_karma_tracking__display_name
 #: model:ir.model.fields,field_description:website_slides.field_mail_activity__display_name
@@ -3184,11 +3253,6 @@ msgstr "Terminer le cours"
 #: model:slide.slide,name:website_slides.slide_slide_demo_1_2
 msgid "Energy Efficiency Facts"
 msgstr "Faits sur l'efficacité énergétique"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Enjoy this exclusive content!"
-msgstr "Profitez de ce contenu exclusif !"
 
 #. module: website_slides
 #. odoo-python
@@ -3531,7 +3595,7 @@ msgstr "Google Drive :"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/activity/activity_patch.xml:0
+#: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
 msgid "Grant Access"
 msgstr "Donner l'accès"
 
@@ -3674,6 +3738,7 @@ msgstr "Comment faire"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_base_partner_merge_automatic_wizard__id
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__id
 #: model:ir.model.fields,field_description:website_slides.field_gamification_challenge__id
 #: model:ir.model.fields,field_description:website_slides.field_gamification_karma_tracking__id
 #: model:ir.model.fields,field_description:website_slides.field_mail_activity__id
@@ -4029,7 +4094,7 @@ msgstr ""
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "Join & Submit"
 msgstr "Rejoindre & soumettre"
 
@@ -4046,8 +4111,6 @@ msgid "Join the course to take the quiz and verify your answers!"
 msgstr "Rejoignez le cours pour répondre au quiz et vérifier vos réponses !"
 
 #. module: website_slides
-#. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 #: model_terms:ir.ui.view,arch_db:website_slides.join_course_link
 msgid "Join this Course"
@@ -4121,6 +4184,16 @@ msgid ""
 msgstr ""
 "Connaître les caractéristiques du bois est une exigence pour savoir quel "
 "type de bois utiliser dans une situation donnée."
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_certified_attendees_value
+msgid "Kpi Nbr Of Certified Attendees Value"
+msgstr "Valeur KPI du nombre de participants certifiés"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_new_attendees_value
+msgid "Kpi Nbr Of New Attendees Value"
+msgstr "Valeur KPI du nombre de nouveaux participants"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__lang
@@ -4343,7 +4416,7 @@ msgstr "Marquer comme terminé"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_non_fullscreen.js:0
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
 msgid "Mark To Do"
 msgstr "Marquer comme à faire"
@@ -4395,7 +4468,7 @@ msgstr "Entrée de menu"
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_base_partner_merge_automatic_wizard
 msgid "Merge Partner Wizard"
-msgstr "Assistant de fusion des partenaires"
+msgstr "Assistant de fusion partenaire"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_mail_message
@@ -4585,7 +4658,7 @@ msgstr "Leçon suivante"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_0_1
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_1_1
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_2_0_question_0_1
@@ -4607,7 +4680,6 @@ msgid "No Attendees Yet!"
 msgstr "Aucun participant pour le moment !"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.courses_home
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_search_results
 msgid "No Course created yet."
 msgstr "Aucun cours n'a encore été créé."
@@ -4771,11 +4843,6 @@ msgid "Numbers of Questions"
 msgstr "Nombre de questions"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Odoo"
-msgstr "Odoo"
-
-#. module: website_slides
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_1_4
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_2_1
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_4_0
@@ -4883,8 +4950,8 @@ msgstr "Tableau croisé dynamique"
 
 #. module: website_slides
 #. odoo-javascript
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
@@ -4898,8 +4965,8 @@ msgid ""
 "Please %(a_login_open)slogin%(a_login_close)s or %(a_signup_open)screate an "
 "account%(a_signup_close)s to vote for this lesson"
 msgstr ""
-"Veuillez %(a_login_open)svous connecter%(a_login_close)s ou %(a_signup_open)"
-"scréer un compte%(a_signup_close)s pour voter pour cette leçon"
+"Veuillez %(a_login_open)svous connecter%(a_login_close)s ou %"
+"(a_signup_open)scréer un compte%(a_signup_close)s pour voter pour cette leçon"
 
 #. module: website_slides
 #. odoo-javascript
@@ -4930,7 +4997,7 @@ msgstr "Veuillez saisir une ou plusieurs adresse(s) e-mail valide(s)"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz_question_form.js:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.js:0
 msgid "Please fill in the question"
 msgstr "Veuillez compléter la question"
 
@@ -4950,11 +5017,6 @@ msgstr "Points de récompense"
 #: model:gamification.goal.definition,name:website_slides.badge_data_course_goal
 msgid "Power User"
 msgstr "L'expérimenté"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Powered by"
-msgstr "Généré par"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__prerequisite_of_channel_ids
@@ -5045,11 +5107,6 @@ msgid "Publication Date"
 msgstr "Date de publication"
 
 #. module: website_slides
-#: model:ir.model.fields,field_description:website_slides.field_slide_slide__date_published
-msgid "Publish Date"
-msgstr "Date de publication"
-
-#. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_kanban
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_search
@@ -5067,6 +5124,13 @@ msgstr "Contenus publiés"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_slide_form
 msgid "Published Date"
+msgstr "Date de publication"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__published_date
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_tag_group__published_date
+#: model:ir.model.fields,field_description:website_slides.field_slide_slide__published_date
+msgid "Published date"
 msgstr "Date de publication"
 
 #. module: website_slides
@@ -5208,7 +5272,7 @@ msgstr "Destinataires"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/activity/activity_patch.xml:0
+#: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
 msgid "Refuse Access"
 msgstr "Refuser l'accès"
 
@@ -5225,13 +5289,13 @@ msgstr "Relatif"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Remove the answer comment"
 msgstr "Retirer le commentaire à la réponse"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Remove this answer"
 msgstr "Retirer cette réponse"
 
@@ -5331,7 +5395,7 @@ msgstr "Réessayer"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.profile_access_denied
 msgid "Return to the course."
-msgstr "Revenir au cours"
+msgstr "Revenir au cours."
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -5422,7 +5486,7 @@ msgstr "Échantillon"
 #: code:addons/website_slides/static/src/interactions/category_add.js:0
 #: code:addons/website_slides/static/src/js/public/components/slide_unsubscribe_dialog/slide_unsubscribe_dialog.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_category.xml:0
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -5538,7 +5602,7 @@ msgstr "Sélectionner ou créer des étiquettes"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Select the correct answer below:"
 msgstr "Sélectionnez la bonne réponse ci-dessous :"
 
@@ -5771,6 +5835,7 @@ msgid "Signed In"
 msgstr "Personnes connectées"
 
 #. module: website_slides
+#: model:ir.model,name:website_slides.model_slide_slide
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_resource__slide_id
 msgid "Slide"
 msgstr "Diapositive"
@@ -5824,7 +5889,6 @@ msgstr ""
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/website_slides_fullscreen.xml:0
-#: model:ir.model,name:website_slides.model_slide_slide
 #: model_terms:ir.ui.view,arch_db:website_slides.res_config_settings_view_form
 msgid "Slides"
 msgstr "Diapositives"
@@ -5898,9 +5962,9 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "Statut basé sur les activités\n"
-"En retard : la date d'échéance est déjà dépassée\n"
+"En retard : l'échéance est déjà dépassée\n"
 "Aujourd'hui : la date d'activité est aujourd'hui\n"
-"Planifiée : activités futures"
+"Planifié : activités futures."
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__subject
@@ -6180,7 +6244,7 @@ msgstr ""
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "There was an error validating this quiz."
 msgstr "Une erreur s'est produite lors de la validation de ce quiz."
 
@@ -6247,13 +6311,13 @@ msgstr "Ce lien d'invitation n'est pas destiné à ce contact."
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "This is the correct answer"
 msgstr "Ceci est la bonne réponse"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "This is the correct answer, congratulations"
 msgstr "C'est la bonne réponse, félicitations"
 
@@ -6268,7 +6332,7 @@ msgstr ""
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "This quiz is already done. Retaking it is not possible."
 msgstr "Ce quiz est fini. Il n'est pas possible de le refaire."
 
@@ -6430,7 +6494,7 @@ msgstr "Site web inconnu"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/slide_like.js:0
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_join.js:0
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
@@ -6456,7 +6520,7 @@ msgstr "Non publié"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Update"
 msgstr "Mettre à jour"
 
@@ -6858,8 +6922,8 @@ msgid ""
 "Write one or two paragraphs describing your product or services. <br>To be "
 "successful your content needs to be useful to your readers."
 msgstr ""
-"Écrivez un ou deux paragraphes décrivant votre produit ou vos services. <br>"
-"Pour réussir, votre contenu doit être utile à vos lecteurs."
+"Écrivez un ou deux paragraphes décrivant votre produit ou vos services. "
+"<br>Pour réussir, votre contenu doit être utile à vos lecteurs."
 
 #. module: website_slides
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_1_4
@@ -6885,7 +6949,7 @@ msgstr "XP"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/enroll_email.js:0
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_0_0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_1_0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_2_0_question_0_0
@@ -7035,7 +7099,7 @@ msgstr "Vous avez obtenu"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_join.js:0
 msgid "You have already joined this channel"
 msgstr "Vous avez déjà rejoint ce canal"
 
@@ -7067,7 +7131,7 @@ msgstr "Vous pouvez maintenant participer à notre eLearning."
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "You must be logged to submit the quiz."
 msgstr "Vous devez être connecté pour soumettre le quiz."
 
@@ -7111,9 +7175,16 @@ msgid "YouTube:"
 msgstr "YouTube :"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Your"
-msgstr "Votre"
+#. odoo-python
+#: code:addons/website_slides/wizard/slide_channel_invite.py:0
+msgid "Your %s"
+msgstr "Votre %s"
+
+#. module: website_slides
+#. odoo-python
+#: code:addons/website_slides/wizard/slide_channel_invite.py:0
+msgid "Your document"
+msgstr "Votre document"
 
 #. module: website_slides
 #: model_terms:ir.actions.act_window,help:website_slides.slide_channel_action_overview
@@ -7232,7 +7303,7 @@ msgstr "cours"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 msgid "create an account"
 msgstr "créer un compte"
 
@@ -7283,7 +7354,7 @@ msgstr "par ex. \"Introduction\""
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "e.g. \"Which animal cannot fly?\""
 msgstr "par ex. \"Quel animal ne peut pas voler ?\""
 
@@ -7322,6 +7393,7 @@ msgstr "par ex. Votre niveau"
 #: code:addons/website_slides/controllers/main.py:0
 #: model:ir.ui.menu,name:website_slides.website_slides_menu_root
 #: model:res.groups.privilege,name:website_slides.res_groups_privilege_elearning
+#: model_terms:ir.ui.view,arch_db:website_slides.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:website_slides.res_config_settings_view_form
 msgid "eLearning"
 msgstr "eLearning"
@@ -7361,15 +7433,15 @@ msgstr "rejoindre"
 
 #. module: website_slides
 #. odoo-javascript
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "login"
 msgstr "s'inscrire"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 msgid "or"
 msgstr "ou"
@@ -7436,7 +7508,7 @@ msgstr "pour s'inscrire."
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 msgid "to join this course"
 msgstr "pour rejoindre ce cours"
 
@@ -7483,439 +7555,3 @@ msgstr "{{ user.name }} a partagé {{ object.slide_category }} avec vous !"
 #: model_terms:ir.ui.view,arch_db:website_slides.course_nav
 msgid "└<span class=\"ms-1\">Uncategorized</span>"
 msgstr "└<span class=\"ms-1\">Sans catégorie</span>"
-
-#~ msgid ""
-#~ "<a t-attf-href=\"/slides/course-#{request.params.get('channel_id')}\" "
-#~ "class=\"o_translate_inline\">Return to the course.</a>"
-#~ msgstr ""
-#~ "<a t-attf-href=\"/slides/course-#{request.params.get('channel_id')}\" "
-#~ "class=\"o_translate_inline\">Retourner au cours.</a>"
-
-#~ msgid ""
-#~ "Please <a t-attf-href=\"/odoo?redirect=#{request.httprequest.url}\" "
-#~ "class=\"fw-bold o_translate_inline\"> login </a> to share this"
-#~ msgstr ""
-#~ "Veuillez vous <a t-attf-href=\"/odoo?redirect=#{request.httprequest.url}"
-#~ "\" class=\"fw-bold o_translate_inline\">connecter</a> pour partager ceci"
-
-#~ msgid "<i class=\"fa fa-comments\"/> Comments ("
-#~ msgstr "<i class=\"fa fa-comments\"/> Commentaires ("
-
-#~ msgid ". This way, they will be secured."
-#~ msgstr ". De cette façon, ils seront sécurisés."
-
-#~ msgid ""
-#~ "<i class=\"fa fa-desktop me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Fullscreen</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-desktop me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Plein écran</"
-#~ "span>"
-
-#~ msgid "<i class=\"fa fa-eraser\"/> Clear filters"
-#~ msgstr "<i class=\"fa fa-eraser\"/> Enlever les filtres"
-
-#~ msgid "<i class=\"fa fa-flag-checkered text-warning me-2\"/>Quiz"
-#~ msgstr "<i class=\"fa fa-flag-checkered text-warning me-2\"/>Quiz"
-
-#~ msgid "<i class=\"fa fa-graduation-cap me-1\"/>All courses"
-#~ msgstr "<i class=\"fa fa-graduation-cap me-1\"/>Tous les cours"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Share</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Partager</span>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-tag me-2 text-muted\"/>\n"
-#~ "                      My Courses"
-#~ msgstr ""
-#~ "<i class=\"fa fa-tag me-2 text-muted\"/>\n"
-#~ "                      Mes cours"
-
-#~ msgid ""
-#~ "<small><span class=\"badge rounded-pill text-bg-success fw-normal\"><i "
-#~ "class=\"fa fa-check\"/> Completed</span></small>"
-#~ msgstr ""
-#~ "<small><span class=\"badge rounded-pill text-bg-success fw-normal\"><i "
-#~ "class=\"fa fa-check\"/> Achevé</span></small>"
-
-#~ msgid ""
-#~ "<span class=\"badge fw-bold px-2 py-1 m-1 text-bg-warning\">\n"
-#~ "                            <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
-#~ "                        </span>"
-#~ msgstr ""
-#~ "<span class=\"badge fw-bold px-2 py-1 m-1 text-bg-warning\">\n"
-#~ "                            <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
-#~ "                        </span>"
-
-#~ msgid ""
-#~ "<span class=\"badge rounded-pill text-bg-success pull-right py-1 "
-#~ "px-2\"><i class=\"fa fa-check\"/> Completed</span>"
-#~ msgstr ""
-#~ "<span class=\"badge rounded-pill text-bg-success pull-right py-1 "
-#~ "px-2\"><i class=\"fa fa-check\"/> Achevé</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-info badge-arrow-right fw-normal px-2 py-1 "
-#~ "m-1\">New</span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-info badge-arrow-right fw-normal px-2 py-1 "
-#~ "m-1\">Nouveau</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-light badge-hide border fw-normal px-2 py-1 "
-#~ "m-1\">Add Quiz</span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-light badge-hide border fw-normal px-2 py-1 "
-#~ "m-1\">Ajouter un quiz</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 "
-#~ "m-1\"><span>Preview</span></span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 "
-#~ "m-1\"><span>Aperçu</span></span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 m-1\">Preview</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 m-1\">Aperçu</"
-#~ "span>"
-
-#~ msgid "<span class=\"fw-bold text-muted me-2\">Current rank:</span>"
-#~ msgstr "<span class=\"fw-bold text-muted me-2\">Rang actuel :</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\">Slides</span>\n"
-#~ "                    <span class=\"fa fa-lg fa-globe\" title=\"Values set "
-#~ "here are website-specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\">Diapositives</span>\n"
-#~ "                    <span class=\"fa fa-lg fa-globe\" title=\"Les valeurs "
-#~ "définies ici sont spécifiques à l'entreprise.\" "
-#~ "groups=\"website.group_multi_website\"/>"
-
-#~ msgid "<span class=\"o_wslides_arrow\">New Content</span>"
-#~ msgstr "<span class=\"o_wslides_arrow\">Nouveau contenu</span>"
-
-#~ msgid ""
-#~ "<span class=\"oi oi-arrow-right\"/>\n"
-#~ "                                Create a Google Project and Get a Key"
-#~ msgstr ""
-#~ "<span class=\"oi oi-arrow-right\"/>\n"
-#~ "                                Créer un projet Google et obtenir une clé"
-
-#~ msgid "<span class=\"text-500 mx-2\">•</span>"
-#~ msgstr "<span class=\"text-500 mx-2\">•</span>"
-
-#~ msgid ""
-#~ "<span id=\"zoomout\" class=\"d-none d-sm-inline ms-2 me-2\" title=\"Zoom "
-#~ "out\" aria-label=\"Zoom out\" role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "minus\"/>\n"
-#~ "                                        </span>\n"
-#~ "                                        <span id=\"zoomin\" class=\"d-"
-#~ "none d-sm-inline\" title=\"Zoom in\" aria-label=\"Zoom in\" "
-#~ "role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "plus\"/>\n"
-#~ "                                        </span>"
-#~ msgstr ""
-#~ "<span id=\"zoomout\" class=\"d-none d-sm-inline ms-2 me-2\" title=\"Zoom "
-#~ "avant\" aria-label=\"Zoom out\" role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "minus\"/>\n"
-#~ "                                        </span>\n"
-#~ "                                        <span id=\"zoomin\" class=\"d-"
-#~ "none d-sm-inline\" title=\"Zoom arrière\" aria-label=\"Zoom in\" "
-#~ "role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "plus\"/>\n"
-#~ "                                        </span>"
-
-#~ msgid ""
-#~ "<span name=\"done_members_count_label\" class=\"text-muted\">Finished</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"done_members_count_label\" class=\"text-muted\">Terminé</"
-#~ "span>"
-
-#~ msgid "<strong>Sharing is caring!</strong> Email(s) sent."
-#~ msgstr "<strong>Aimer, c'est partager !</strong> Email(s) envoyé(s)."
-
-#~ msgid ""
-#~ "A good course has a structure. Pick a name for your first section and "
-#~ "click <b>Save</b> to create it."
-#~ msgstr ""
-#~ "Un bon cours a une structure. Choisissez un nom pour votre première "
-#~ "section et cliquez sur <b>Enregistrer</b> pour la créer."
-
-#~ msgid "Already installing \"%s\"."
-#~ msgstr "Installation de \"%s\" en cours."
-
-#~ msgid "Certification"
-#~ msgstr "Certification"
-
-#~ msgid "Change video privacy settings"
-#~ msgstr "Modifier les paramètres de confidentialité de la vidéo"
-
-#~ msgid "Clear filters"
-#~ msgstr "Effacer les filtres"
-
-#~ msgid "Click on the <b>Create</b> button to create your first course."
-#~ msgstr "Cliquez sur le bouton <b>Créer</b> pour créer votre premier cours."
-
-#~ msgid "Contact us"
-#~ msgstr "Contactez-nous"
-
-#~ msgid "Create new %s '%s'"
-#~ msgstr "Créer un nouveau %s '%s'"
-
-#~ msgid "Creation Date"
-#~ msgstr "Date de création"
-
-#~ msgid "Discover more"
-#~ msgstr "Découvrir"
-
-#~ msgid "Do you want to install the \"%s\" app?"
-#~ msgstr "Voulez-vous installer l'application \"%s\" ?"
-
-#~ msgid "Email(s) sent."
-#~ msgstr "Email(s) envoyé(s)."
-
-#~ msgid "Failed to install \"%s\"."
-#~ msgstr "Échec de l'installation de \"%s\"."
-
-#~ msgid "First, upload the file on your Google Drive account."
-#~ msgstr "Tout d'abord, téléchargez le fichier sur votre compte Google Drive."
-
-#~ msgid "First, upload your videos on Vimeo and mark them as"
-#~ msgstr "Tout d'abord, téléchargez vos vidéos sur Vimeo et marquez-les comme"
-
-#~ msgid "First, upload your videos on YouTube and mark them as"
-#~ msgstr ""
-#~ "Tout d'abord, téléchargez vos vidéos sur YouTube et marquez-les comme"
-
-#~ msgid "Group By"
-#~ msgstr "Regrouper par"
-
-#~ msgid "How to plant a potted tree"
-#~ msgstr "Comment planter un arbre en pot"
-
-#~ msgid "How to upload your PowerPoint Presentations or Word Documents?"
-#~ msgstr ""
-#~ "Comment télécharger vos présentations PowerPoint ou vos documents Word ?"
-
-#~ msgid "How to use Google Drive?"
-#~ msgstr "Comment utiliser Google Drive ?"
-
-#~ msgid ""
-#~ "If you want to use other types of files, you may want to use an external "
-#~ "source (Google Drive) instead."
-#~ msgstr ""
-#~ "Si vous souhaitez utiliser d'autres types de fichiers, vous pouvez "
-#~ "utiliser une source externe (Google Drive) à la place."
-
-#~ msgid "Installing \"%s\"."
-#~ msgstr "Installation de \"%s\"."
-
-#~ msgid "Interesting Tree Facts"
-#~ msgstr "Faits intéressants sur les arbres"
-
-#~ msgid "Most popular courses"
-#~ msgstr "Cours les plus populaires"
-
-#~ msgid "My Courses"
-#~ msgstr "Mes cours"
-
-#~ msgid "New Certification"
-#~ msgstr "Nouvelle certification"
-
-#~ msgid "New Content Ribbon"
-#~ msgstr "Ruban Nouveau contenu"
-
-#~ msgid "Newest courses"
-#~ msgstr "Nouveaux cours"
-
-#~ msgid "Next rank:"
-#~ msgstr "Prochain rang :"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Nombre de messages exigeant une action"
-
-#~ msgid "On Google Drive"
-#~ msgstr "Sur Google Drive"
-
-#~ msgid "On Vimeo"
-#~ msgstr "Sur Vimeo"
-
-#~ msgid "On YouTube"
-#~ msgstr "Sur YouTube"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Langue de traduction facultative (code ISO) à sélectionner lors de "
-#~ "l'envoi d'un e-mail. Si aucune langue n'est définie, la version anglaise "
-#~ "sera utilisée. Il doit généralement s'agir d'un placeholder qui fournit "
-#~ "le langage approprié, par ex. {{ object.partner_id.lang }}."
-
-#~ msgid ""
-#~ "Please <a href=\"/web/login?redirect=%s\">login</a> or <a href=\"/web/"
-#~ "signup?redirect=%s\">create an account</a> to vote for this lesson"
-#~ msgstr ""
-#~ "Veuillez vous <a href=\"/web/login?redirect=%s\">connecter</a> ou <a "
-#~ "href=\"/web/signup?redirect=%s\">créer un compte</a> pour voter pour "
-#~ "cette leçon"
-
-#~ msgid ""
-#~ "Please <a href=\"/web/login?redirect=%s\">login</a> to vote for this "
-#~ "lesson"
-#~ msgstr ""
-#~ "Veuillez vous <a href=\"/web/login?redirect=%s\">connecter</a> pour voter "
-#~ "pour cette leçon"
-
-#~ msgid "Question \"%s\" must have 1 correct answer"
-#~ msgstr "La question \"%s\" doit avoir 1 bonne réponse"
-
-#~ msgid ""
-#~ "Question \"%s\" must have 1 correct answer and at least 1 incorrect answer"
-#~ msgstr ""
-#~ "La question \"%s\" doit avoir 1 bonne réponse et au moins 1 mauvaise "
-#~ "réponse"
-
-#~ msgid "Reach new heights"
-#~ msgstr "Atteignez de nouveaux sommets"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Limiter la publication sur ce site web."
-
-#~ msgid "Save & Publish"
-#~ msgstr "Sauvegarder & Publier"
-
-#~ msgid "Save your presentations or documents as PDF files and upload them."
-#~ msgstr ""
-#~ "Enregistrez vos présentations ou documents sous forme de fichiers PDF et "
-#~ "téléchargez-les."
-
-#~ msgid "Share This Course"
-#~ msgstr "Partager ce cours"
-
-#~ msgid "Share on Twitter"
-#~ msgstr "Partager sur Twitter"
-
-#~ msgid ""
-#~ "Skill up and have an impact! Your business career starts here.<br/>Time "
-#~ "to start a course."
-#~ msgstr ""
-#~ "Montez en compétences et ayez un impact ! Votre carrière commence ici. "
-#~ "<br/>Il est temps de rejoindre un cours."
-
-#~ msgid "Start your online course today!"
-#~ msgstr "Commencez votre cours en ligne dès aujourd'hui !"
-
-#~ msgid "Tag Group (required for new tags)"
-#~ msgstr "Groupe d'étiquettes (requis pour les nouvelles étiquettes)"
-
-#~ msgid ""
-#~ "The Google Drive link to use here can be obtained by clicking the "
-#~ "\"Share\" button in the Google interface."
-#~ msgstr ""
-#~ "Le lien Google Drive à utiliser ici peut être obtenu en cliquant sur le "
-#~ "bouton \"Partager\" dans l'interface Google."
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "L'URL complète pour accéder au document à travers le site web."
-
-#~ msgid ""
-#~ "The video link to input here can be obtained by using the 'share' button "
-#~ "in the Vimeo interface."
-#~ msgstr ""
-#~ "Le lien vidéo à saisir ici peut être obtenu en utilisant le bouton "
-#~ "\"Partager\" dans l'interface Vimeo."
-
-#~ msgid ""
-#~ "Then, go into the file permissions and set it as \"Anyone with the link\"."
-#~ msgstr ""
-#~ "Ensuite, allez dans les autorisations du fichier et définissez-le comme "
-#~ "\"Toute personne disposant du lien\"."
-
-#~ msgid ""
-#~ "Through Google Drive, we support most common types of documents.\n"
-#~ "                                        Including regular documents "
-#~ "(Google Doc, .docx), Sheets (Google Sheet, .xlsx), PowerPoints, ..."
-#~ msgstr ""
-#~ "Grâce à Google Drive, nous prenons en charge les types de documents les "
-#~ "plus courants.\n"
-#~ "Y compris les documents habituels (Google Doc, .docx), les feuilles de "
-#~ "calcul (Google Sheet, .xlsx), les PowerPoints, ..."
-
-#~ msgid "Tree Infographic"
-#~ msgstr "Infographie de l'arbre"
-
-#~ msgid "Tree planting in hanging bottles on wall"
-#~ msgstr "Plantation d'arbres dans des bouteilles suspendues au mur"
-
-#~ msgid "What does"
-#~ msgstr "Que fait"
-
-#~ msgid "What types of documents do we support?"
-#~ msgstr "Quels types de documents prenons-nous en charge ?"
-
-#~ msgid "When using local files, we only support PDF files."
-#~ msgstr ""
-#~ "Lorsque vous utilisez des fichiers locaux, nous ne prenons en charge que "
-#~ "les fichiers PDF."
-
-#~ msgid "Your Level"
-#~ msgstr "Votre niveau"
-
-#~ msgid "Your Role"
-#~ msgstr "Votre rôle"
-
-#~ msgid "achieved"
-#~ msgstr "a atteint"
-
-#~ msgid "for 'Private' videos and similar to"
-#~ msgstr "pour les vidéos \"Privées\" et similaires à"
-
-#~ msgid "for public ones."
-#~ msgstr "pour les publiques."
-
-#~ msgid "https://vimeo.com/558907333/30da9ff3d8"
-#~ msgstr "https://vimeo.com/558907333/30da9ff3d8"
-
-#~ msgid "https://vimeo.com/558907555"
-#~ msgstr "https://vimeo.com/558907555"
-
-#~ msgid ""
-#~ "mean? The Vimeo \"Private\" privacy setting means it is a video which can "
-#~ "be viewed only by the users with the link to it.\n"
-#~ "                                    Your video will never come up in the "
-#~ "search results nor on your channel."
-#~ msgstr ""
-#~ "signifie ? Le paramètre de confidentialité \"Privé\" de Vimeo signifie "
-#~ "qu'il s'agit d'une vidéo qui ne peut être visionnée que par les "
-#~ "utilisateurs disposant du lien vers celle-ci.\n"
-#~ "Votre vidéo n'apparaîtra jamais dans les résultats de recherche ni sur "
-#~ "votre chaîne."
-
-#~ msgid ""
-#~ "means? The YouTube \"unlisted\" means it is a video which can be viewed "
-#~ "only by the users with the link to it. Your video will never come up in "
-#~ "the search results nor on your channel."
-#~ msgstr ""
-#~ "signifie ? YouTube \"non répertorié\" signifie qu'il s'agit d'une vidéo "
-#~ "qui ne peut être visionnée que par les utilisateurs disposant du lien "
-#~ "vers celle-ci. Votre vidéo n'apparaîtra jamais dans les résultats de "
-#~ "recherche ni sur votre chaîne."
-
-#~ msgid "unlisted"
-#~ msgstr "non repertorié"

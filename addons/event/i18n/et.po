@@ -18,15 +18,14 @@
 # Leaanika Randmets, 2023
 # Anna, 2023
 # JanaAvalah, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Eelma <karin.eelma@impactic.ee>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 10:33+0000\n"
-"Last-Translator: Eelma <karin.eelma@impactic.ee>\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2025-11-08 17:47+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/event/"
 "et/>\n"
 "Language: et\n"
@@ -34,7 +33,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_question__event_count
@@ -139,8 +138,8 @@ msgid ""
 "'Full Page Ticket - %s - %s' % ((object.event_id.name or "
 "'Event').replace('/',''), (object.name or '').replace('/',''))"
 msgstr ""
-"'Full Page Ticket - %s - %s' % ((object.event_id.name or 'Event').replace('/"
-"',''), (object.name or '').replace('/',''))"
+"'Full Page Ticket - %s - %s' % ((object.event_id.name or "
+"'Event').replace('/',''), (object.name or '').replace('/',''))"
 
 #. module: event
 #: model:ir.actions.report,print_report_name:event.action_report_event_event_full_page_ticket
@@ -1575,8 +1574,9 @@ msgstr "Pileti kirjeldus, mille soovite oma klientidele edastada."
 msgid ""
 "A slot cannot be scheduled outside of its event time range.\n"
 "\n"
-"Event:\t\t%(event_start)s - %(event_end)s\n"
-"Slot:\t\t%(slot_name)s"
+"Event:\t%(event_start_date)s, %(event_start_time)s - %(event_end_date)s, %"
+"(event_end_time)s\n"
+"Slot:\t%(slot_name)s"
 msgstr ""
 
 #. module: event
@@ -1639,6 +1639,12 @@ msgid "Activity Exception Decoration"
 msgstr "Tegevuse erandlik kohendus"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_event_event__activity_plans_ids
+#: model:ir.model.fields,field_description:event.field_event_registration__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__activity_state
 #: model:ir.model.fields,field_description:event.field_event_registration__activity_state
 msgid "Activity State"
@@ -1679,6 +1685,17 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event.view_event_type_form
 msgid "Add some internal notes (to do lists, contact info, ...)"
 msgstr "Lisa ettevõttesiseseid märkmeid (tegevuste nimekiri, kontakt jms)"
+
+#. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid ""
+"Adding these slots will automatically adjust the event's time range to "
+"include them.\n"
+"\n"
+"From:\t%(start)s - %(end)s\n"
+"To:\t\t%(new_start)s - %(new_end)s\n"
+msgstr ""
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__address_search
@@ -2205,6 +2222,12 @@ msgid "Confirm attendance?"
 msgstr "Kinnitad osalemise?"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Confirmation"
+msgstr ""
+
+#. module: event
 #: model:ir.model,name:event.model_res_partner
 msgid "Contact"
 msgstr "Kontakt"
@@ -2348,6 +2371,11 @@ msgid "Design Fair Los Angeles"
 msgstr "Disainilaat Los Angeles"
 
 #. module: event
+#: model:ir.model,name:event.model_digest_digest
+msgid "Digest"
+msgstr ""
+
+#. module: event
 #: model:event.event,subtitle:event.event_4
 msgid "Discover how to grow a sustainable business with our experts."
 msgstr "Avastage, kuidas koos meie ekspertidega jätkusuutlikku äri kasvatada."
@@ -2358,6 +2386,7 @@ msgid "Discover more"
 msgstr "Avasta rohkem"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:event.field_event_event__display_name
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__display_name
 #: model:ir.model.fields,field_description:event.field_event_mail__display_name
@@ -2430,8 +2459,8 @@ msgstr "E-post"
 
 #. module: event
 #: model:ir.model,name:event.model_mail_template
-msgid "Email Templates"
-msgstr "E-kirjade mallid"
+msgid "Email Template"
+msgstr ""
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
@@ -2489,6 +2518,7 @@ msgstr "Viga"
 #: model:ir.model.fields,field_description:event.field_event_registration__event_id
 #: model:ir.model.fields,field_description:event.field_event_registration_answer__event_id
 #: model:ir.model.fields,field_description:event.field_event_slot__event_id
+#: model_terms:ir.ui.view,arch_db:event.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:event.event_event_view_activity
 #: model_terms:ir.ui.view,arch_db:event.event_question_view_search
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
@@ -3074,6 +3104,7 @@ msgid "How to Fold (4)"
 msgstr "Kuidas voltida (4)"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__id
 #: model:ir.model.fields,field_description:event.field_event_event__id
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__id
 #: model:ir.model.fields,field_description:event.field_event_mail__id
@@ -3328,6 +3359,11 @@ msgstr "Kanbani seisund"
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
 msgid "Key"
 msgstr "Võti"
+
+#. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations_value
+msgid "Kpi Nbr Of Registrations Value"
+msgstr ""
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__lang
@@ -3620,13 +3656,16 @@ msgid "Name"
 msgstr "Nimi"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.xml:0
 #: model:event.stage,name:event.event_stage_new
 msgid "New"
 msgstr "Uus"
 
 #. module: event
 #. odoo-javascript
-#: code:addons/event/static/src/views/event_slot_calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/list/event_slot_list_controller.js:0
 msgid "New Slot"
 msgstr ""
 
@@ -4083,6 +4122,7 @@ msgid "Registration statistics"
 msgstr "Registreerimise statistika"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__registration_ids
 msgid "Registrations"
 msgstr "Registreerimised"
@@ -4220,6 +4260,12 @@ msgid "Select Attendee"
 msgstr "Vali osaleja"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_multi_selection_buttons.xml:0
+msgid "Select days to add slots"
+msgstr ""
+
+#. module: event
 #: model_terms:ir.ui.view,arch_db:event.event_registration_answer_view_tree
 msgid "Selected answer"
 msgstr "Valitud vastus"
@@ -4348,6 +4394,7 @@ msgstr ""
 #: code:addons/event/models/event_event.py:0
 #: model:ir.actions.act_window,name:event.event_slot_action_from_event
 #: model:ir.model.fields,field_description:event.field_event_event__event_slot_ids
+#: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_calendar
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_tree
 msgid "Slots"
@@ -4534,7 +4581,8 @@ msgstr "Great Reno Balloon Race on maailma suurim tasuta kuumaõhupalliüritus."
 msgid ""
 "The best Hockey teams of the country will compete for the national Hockey "
 "trophy."
-msgstr "Rahvusliku hokikarika nimel võistlevad riigi parimad jäähokimeeskonnad."
+msgstr ""
+"Rahvusliku hokikarika nimel võistlevad riigi parimad jäähokimeeskonnad."
 
 #. module: event
 #: model_terms:event.event,description:event.event_1
@@ -4840,7 +4888,7 @@ msgstr "Tiitel"
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_tree
 msgid "To"
-msgstr "Kuni"
+msgstr "Saaja"
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
@@ -4973,6 +5021,12 @@ msgstr "Tulevased sündmused tänasest"
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
 msgid "Upcoming/Running"
 msgstr "Tulemas/jooksev"
+
+#. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Update Event"
+msgstr ""
 
 #. module: event
 #. odoo-python
@@ -5305,373 +5359,3 @@ msgstr "{{ object.event_id.name }}: {{ object.event_date_range }}"
 
 #~ msgid "5-10"
 #~ msgstr "5-10"
-
-#~ msgid ""
-#~ "'Foldable Badge - %s - %s' % ((object.event_id.name or "
-#~ "'Event').replace('/',''), (object.name or '').replace('/',''))"
-#~ msgstr ""
-#~ "'Foldable Badge - %s - %s' % ((object.event_id.name or "
-#~ "'Event').replace('/',''), (object.name or '').replace('/',''))"
-
-#~ msgid "'Foldable Badge - %s' % (object.name or 'Event').replace('/','')"
-#~ msgstr "'Foldable Badge - %s' % (object.name or 'Event').replace('/','')"
-
-#~ msgid "- \"%(event_name)s\": Missing %(nb_too_many)i seats."
-#~ msgstr "- \"%(event_name)s\": Puudu on %(nb_too_many)i kohta."
-
-#~ msgid ""
-#~ "- the ticket \"%(ticket_name)s\" (%(event_name)s): Missing %"
-#~ "(nb_too_many)i seats."
-#~ msgstr ""
-#~ "- pilet \"%(ticket_name)s\" (%(event_name)s): Puudu on %(nb_too_many)i "
-#~ "kohta."
-
-#~ msgid ""
-#~ "<em>If you wish to make a presentation, please send your topic proposal "
-#~ "as soon as possible for approval to Mr. Famke Jenssens at ngh (a) "
-#~ "yourcompany (dot) com. The presentations should be, for example, a "
-#~ "presentation of a community module, a case study, methodology feedback, "
-#~ "technical, etc. Each presentation must be in English.</em>"
-#~ msgstr ""
-#~ "<em>Kui soovite esitlust teha, saatke oma teemapakkumine võimalikult "
-#~ "kiiresti kinnitamiseks hr Famke Jenssensile aadressil ngh (a) yourcompany "
-#~ "(dot) com. Ettekanded peaksid olema näiteks ühiskonna mooduli esitlus, "
-#~ "juhtumiuuring, metoodika tagasiside, tehniline jne Iga esitlus peab olema "
-#~ "inglise keeles.</em>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-#~ msgstr "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-
-#~ msgid "<i class=\"fa fa-map-marker mt-1 me-1\" title=\"Location\"/>"
-#~ msgstr "<i class=\"fa fa-map-marker mt-1 me-1\" title=\"Location\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" states=\"done\">Attended</span>\n"
-#~ "                                    <span class=\"text-muted\" "
-#~ "states=\"cancel\">Canceled</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" states=\"done\">Osaletud</span>\n"
-#~ "                                    <span class=\"text-muted\" "
-#~ "states=\"cancel\">Tühistatud</span>"
-
-#~ msgid "After the event"
-#~ msgstr "Peale sündmust"
-
-#~ msgid "Apply change."
-#~ msgstr "Rakenda muudatus."
-
-#~ msgid ""
-#~ "Autoconfirm Registrations. Registrations will automatically be confirmed "
-#~ "upon creation."
-#~ msgstr "Registreerimised kinnitatakse automaatselt."
-
-#~ msgid "Autoconfirmation"
-#~ msgstr "Automaatne kinnitus"
-
-#~ msgid "Automatically Confirm Registrations"
-#~ msgstr "Kinnita registreerimised automaatselt"
-
-#~ msgid "Before the event"
-#~ msgstr "Enne sündmust"
-
-#~ msgid "Booked By"
-#~ msgstr "Broneeritud"
-
-#~ msgid "Community Chat Rooms"
-#~ msgstr "Kogukonna jututoad"
-
-#~ msgid "Confirm"
-#~ msgstr "Kinnita"
-
-#~ msgid "Confirm Attendance"
-#~ msgstr "Kinnita osalemine"
-
-#~ msgid "Confirm Registration"
-#~ msgstr "Kinnita registreerimine"
-
-#~ msgid "Confirmed"
-#~ msgstr "Kinnitatud"
-
-#~ msgid "Confirmed Attendees"
-#~ msgstr "kinnitatud osalejat."
-
-#~ msgid "Customer"
-#~ msgstr "Klient"
-
-#~ msgid "Customer Email"
-#~ msgstr "Kliendi e-post"
-
-#~ msgid "Discussion Rooms"
-#~ msgstr "Vestluse ruumid"
-
-#~ msgid "Done"
-#~ msgstr "Tehtud"
-
-#~ msgid "End Date Located"
-#~ msgstr "Lõpukuupäev asub"
-
-#~ msgid ""
-#~ "Event Scheduler for:\n"
-#~ "  - Event: %(event_name)s (%(event_id)s)\n"
-#~ "  - Scheduled: %(date)s\n"
-#~ "  - Template: %(template_name)s (%(template_id)s)\n"
-#~ "\n"
-#~ "Failed with error:\n"
-#~ "  - %(error)s\n"
-#~ "\n"
-#~ "You receive this email because you are:\n"
-#~ "  - the organizer of the event,\n"
-#~ "  - or the responsible of the event,\n"
-#~ "  - or the last writer of the template.\n"
-#~ msgstr ""
-#~ "Sündmuse ajakava:\n"
-#~ "   - Sündmus: %(event_name)s (%(event_id)s)\n"
-#~ "   - Plaanitud: %(date)s\n"
-#~ "   - Mall: %(template_name)s (%(template_id)s)\n"
-#~ "\n"
-#~ "Viga ebaõnnestus:\n"
-#~ "   - %(error)s\n"
-#~ "\n"
-#~ "Saite selle meili, kuna olete:\n"
-#~ "   - ürituse korraldaja,\n"
-#~ "   - või sündmuse eest vastutav,\n"
-#~ "   - või malli viimane kirjutaja.\n"
-
-#~ msgid "Event Ticket For"
-#~ msgstr "Ürituse pilet"
-
-#~ msgid ""
-#~ "Events and registrations will automatically be confirmed upon creation, "
-#~ "easing the flow for simple events."
-#~ msgstr ""
-#~ "Sündmused ja registreerimised kinnitatakse loomisel automaatselt, "
-#~ "hõlbustades lihtsate sündmuste voogu."
-
-#~ msgid "Expected"
-#~ msgstr "Eeldatav"
-
-#~ msgid "Expected Attendees"
-#~ msgstr "Eeldatavad osalejad"
-
-#~ msgid "Expected attendees"
-#~ msgstr "Eeldatavad osalejad"
-
-#~ msgid "Foldable Badge"
-#~ msgstr "Volditav märk"
-
-#~ msgid "Foldable Badge Example"
-#~ msgstr "Volditava märgi näidis"
-
-#~ msgid "For any additional information, please contact us at"
-#~ msgstr "Lisateabe saamiseks võtke meiega ühendust"
-
-#~ msgid ""
-#~ "For each event you can define a maximum registration of seats(number of "
-#~ "attendees), above this numbers the registrations are not accepted."
-#~ msgstr ""
-#~ "Igale üritusele saate määrata maksimaalse kohtade registreerimise "
-#~ "(osalejate arvu), üle selle numbri registreerida ei saa."
-
-#~ msgid ""
-#~ "Foster interactions between attendees by creating virtual conference rooms"
-#~ msgstr "Edendada osalejate vahelist suhtlust, luues virtuaalsed nõupidamisi"
-
-#~ msgid "Fully ended"
-#~ msgstr "Täielikult lõppenud"
-
-#~ msgid "Green Kanban Label"
-#~ msgstr "Roheline Kanbani silt"
-
-#~ msgid "Grey Kanban Label"
-#~ msgstr "Hall Kanbani silt"
-
-#~ msgid "Group By"
-#~ msgstr "Rühmitamine"
-
-#~ msgid "Kanban Blocked Explanation"
-#~ msgstr "Blokeeritud kanbani selgitus"
-
-#~ msgid "Kanban Ongoing Explanation"
-#~ msgstr "Kanbani jooksev selgitus"
-
-#~ msgid "Kanban State Label"
-#~ msgstr "Kanban´i oleku silt"
-
-#~ msgid "Kanban Valid Explanation"
-#~ msgstr "Kanban´i kehtiv seletus"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobiil"
-
-#~ msgid "None"
-#~ msgstr "Pole"
-
-#~ msgid "Number of Expected Attendees"
-#~ msgstr "Eeldatav osavõtjate arv"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Tegutsemist nõudvate sõnumite arv"
-
-#~ msgid "Open date range picker. Pick a Start date for your event"
-#~ msgstr "Valige oma sündmuse alguskuupäev."
-
-#~ msgid ""
-#~ "OpenWood brings honesty and seriousness to wood industry while helping "
-#~ "customers deal with trees, flowers and fungi."
-#~ msgstr ""
-#~ "OpenWood toob puidutööstusesse aususe ja tõsiduse, aidates samal ajal "
-#~ "klientidel tegeleda puude, lillede ja seentega."
-
-#~ msgid "Operation not supported."
-#~ msgstr "Toimingut ei toetata."
-
-#~ msgid ""
-#~ "Override the default value displayed for the blocked state for kanban "
-#~ "selection."
-#~ msgstr ""
-#~ "Vaikimisi tekst, mida kuvatakse \"Blokeeritud\" nimetuse asemel kanban'i "
-#~ "olekus"
-
-#~ msgid ""
-#~ "Override the default value displayed for the done state for kanban "
-#~ "selection."
-#~ msgstr ""
-#~ "Vaikimisi tekst, mida kuvatakse \"Järgmise etapi jaoks valmis\" nimetuse "
-#~ "asemel kanban'i olekus"
-
-#~ msgid ""
-#~ "Override the default value displayed for the normal state for kanban "
-#~ "selection."
-#~ msgstr ""
-#~ "Vaikimisi tekst, mida kuvatakse \"Töös\" nimetuse asemel kanban'i olekus"
-
-#~ msgid "Red Kanban Label"
-#~ msgstr "Punane Kanban´i silt"
-
-#~ msgid ""
-#~ "Registrations are open if:\n"
-#~ "- the event is not ended\n"
-#~ "- there are seats available on event\n"
-#~ "- the tickets are sellable (if ticketing is used)"
-#~ msgstr ""
-#~ "Registreerimine on avatud, kui:\n"
-#~ "- üritus ei ole lõppenud\n"
-#~ "- üritusel on vabu kohti\n"
-#~ "- piletid on müüdavad (kui kasutatakse piletit)"
-
-#~ msgid "Scan badges to confirm attendances"
-#~ msgstr "Osalemise kinnitamiseks skanneerige märke"
-
-#~ msgid "Set To Unconfirmed"
-#~ msgstr "Määra \"Kinnitamata\""
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Näita kõiki andmeid, mille järgmise tegevuse kuupäev on enne tänast "
-#~ "kuupäeva"
-
-#~ msgid "Stage Description and Tooltips"
-#~ msgstr "Etappide kirjeldused ja õpetused"
-
-#~ msgid "Start Date Located"
-#~ msgstr "Alguskuupäev asub"
-
-#~ msgid "Task in progress. Click to block or set as done."
-#~ msgstr ""
-#~ "Töös ülesanded. Klõpsa peale, et neid blokeerida või märkida tehtuks."
-
-#~ msgid "Task is blocked. Click to unblock or set as done."
-#~ msgstr ""
-#~ "Ülesanne on blokeeritud. Kliki, et blokeering tühistada või märkida "
-#~ "\"Tehtud\"."
-
-#~ msgid "Template Model"
-#~ msgstr "Malli mudel"
-
-#~ msgid "The event has been cancelled"
-#~ msgstr "Üritus on tühistatud."
-
-#~ msgid "The place has been reserved"
-#~ msgstr "Koht on broneeritud"
-
-#~ msgid "There are not enough seats available for:"
-#~ msgstr "Istekohti ei ole piisavalt:"
-
-#~ msgid "This operator is not supported"
-#~ msgstr "Seda operaatorit ei toetata"
-
-#~ msgid "This step is done. Click to block or set in progress."
-#~ msgstr ""
-#~ "See etapp on tehtud. Klõpsa peale, et blokeerida või töösse määrata."
-
-#~ msgid "Unconfirmed Registrations"
-#~ msgstr "Kinnitamata registreerimised"
-
-#~ msgid "Unconfirmed Seats"
-#~ msgstr "Kinnitamata kohad"
-
-#~ msgid "Value should be True or False (not %s)"
-#~ msgstr "Väide peab olema tõene või väär (mitte %s)"
-
-#~ msgid "WARNING: Event Scheduler Error for event: %s"
-#~ msgstr "HOIATUS: Sündmuste ajakava Error sündmusele: %s"
-
-#~ msgid ""
-#~ "You can also add a description to help your coworkers understand the "
-#~ "meaning and purpose of the stage."
-#~ msgstr ""
-#~ "Siia saad lisada kirjelduse teistele töötajatele, et nad saaksid aru "
-#~ "selle etapi mõttest ja eesmärgist."
-
-#~ msgid ""
-#~ "You can define here labels that will be displayed for the state instead\n"
-#~ "                            of the default labels in the kanban view."
-#~ msgstr ""
-#~ "Siin saate määratleda sildid, mida kuvatakse\n"
-#~ "                            vaikesiltide asemel kanbani olekus"
-
-#~ msgid "events@odoo.com"
-#~ msgstr "events@odoo.com"
-
-#~ msgid "events@penwood.example.com"
-#~ msgstr "events@penwood.example.com"
-
-#~ msgid "events@yourcompany.com"
-#~ msgstr "events@yourcompany.com"
-
-#~ msgid "reserved +"
-#~ msgstr "reserveeritud +"
-
-#~ msgid "unconfirmed"
-#~ msgstr "kinnitamata"
-
-#~ msgid "{{ object.event_id.name }}: {{ object.get_date_range_str() }}"
-#~ msgstr "{{ object.event_id.name }}: {{ object.get_date_range_str() }}"

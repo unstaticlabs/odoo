@@ -12,14 +12,14 @@
 # Martin Trigaux, 2022
 # krnkris, 2022
 # gezza <geza.nagy@oregional.hu>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 23:22+0000\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2025-11-15 14:15+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/repair/"
 "hu/>\n"
@@ -28,18 +28,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "%(name)s Sequence repair"
-msgstr ""
-
-#. module: repair
-#. odoo-python
-#: code:addons/repair/models/repair.py:0
-msgid "%(product)s: Insufficient Quantity To Repair"
 msgstr ""
 
 #. module: repair
@@ -66,11 +60,6 @@ msgid ""
 "* The 'Under Repair' status is used when the repair is ongoing.\n"
 "* The 'Repaired' status is set when repairing is completed.\n"
 "* The 'Cancelled' status is used when user cancel repair order."
-msgstr ""
-
-#. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "<br/>You can still confirm the repair of"
 msgstr ""
 
 #. module: repair
@@ -149,13 +138,6 @@ msgid "<strong>Status:</strong>"
 msgstr "<strong>Állapot:</strong>"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid ""
-"? , but get ready to have fun taking inventory to fix the negative stock "
-"quantity!"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_needaction
 msgid "Action Needed"
 msgstr "Akció szükséges"
@@ -169,6 +151,11 @@ msgstr "Tevékenységek"
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Tevékenység kivétel dekoráció"
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_state
@@ -285,6 +272,11 @@ msgid "BoM Components"
 msgstr "Komponensek anyagjegyzéke"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__can_create_sale_or_invoice
+msgid "Can Create Sale Or Invoice"
+msgstr ""
+
+#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "Can't find any production location."
@@ -292,8 +284,8 @@ msgstr "Nem található termelési hely."
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Cancel Repair"
-msgstr "Javítás visszavonása"
+msgid "Cancel"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields.selection,name:repair.selection__repair_order__state__cancel
@@ -365,11 +357,6 @@ msgid "Confirmed"
 msgstr "Megerősített"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Create Quotation"
-msgstr ""
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 #: model:ir.actions.server,name:repair.action_create_repair_order
@@ -390,14 +377,12 @@ msgstr "Létrehozás rendeléskor"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_uid
 msgid "Created by"
 msgstr "Létrehozta"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_date
 msgid "Created on"
 msgstr "Létrehozva"
 
@@ -434,6 +419,7 @@ msgid "Details"
 msgstr "Részletek"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__display_name
 #: model:ir.model.fields,field_description:repair.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:repair.field_product_product__display_name
 #: model:ir.model.fields,field_description:repair.field_product_template__display_name
@@ -449,7 +435,6 @@ msgstr "Részletek"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__display_name
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__display_name
 msgid "Display Name"
 msgstr "Megjelenített név"
 
@@ -490,13 +475,6 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Font awesome ikon pld: fa-tasks"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid ""
-"For some of the parts, there is a difference between the initial demand and "
-"the actual quantity that was used. Are you sure you want to confirm ?"
-msgstr ""
-
-#. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Future Activities"
 msgstr "Jövőbeni tevékenységek"
@@ -512,6 +490,7 @@ msgid "Has Uncomplete Moves"
 msgstr ""
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__id
 #: model:ir.model.fields,field_description:repair.field_account_move_line__id
 #: model:ir.model.fields,field_description:repair.field_product_product__id
 #: model:ir.model.fields,field_description:repair.field_product_template__id
@@ -527,7 +506,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__id
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__id
 msgid "ID"
 msgstr "ID"
 
@@ -599,6 +577,22 @@ msgid "Inventory Moves"
 msgstr "Leltár mozgások"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_ids
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoice"
+msgstr ""
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_count
+msgid "Invoice Count"
+msgstr ""
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoices"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_is_follower
 msgid "Is Follower"
 msgstr "Követő"
@@ -614,9 +608,14 @@ msgid "John Doe"
 msgstr ""
 
 #. module: repair
+#: model:ir.model,name:repair.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: repair
 #: model:ir.model,name:repair.model_account_move_line
 msgid "Journal Item"
-msgstr "Könyvelési tételsor"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -631,14 +630,12 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_uid
 msgid "Last Updated by"
 msgstr "Frissítette"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_date
 msgid "Last Updated on"
 msgstr "Frissítve"
 
@@ -659,11 +656,6 @@ msgid ""
 "Latest parts availability status for this RO. If green, then the RO's "
 "readiness status is ready."
 msgstr ""
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__location_id
-msgid "Location"
-msgstr "Lokáció"
 
 #. module: repair
 #: model:ir.model,name:repair.model_stock_lot
@@ -800,6 +792,11 @@ msgid "Open"
 msgstr "Megnyitás"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_type_id
 msgid "Operation Type"
 msgstr "Művelet típus"
@@ -832,11 +829,6 @@ msgid "Pending"
 msgstr "Függő"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Picked"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_ids
 msgid "Picking Product"
 msgstr ""
@@ -865,7 +857,6 @@ msgstr "Prioritás"
 #. module: repair
 #: model:ir.model,name:repair.model_product_template
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_id
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Product"
 msgstr "Termék"
@@ -949,17 +940,15 @@ msgid "Properties"
 msgstr "Tulajdonságok"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quant_ids
-msgid "Quant"
-msgstr "Kvant"
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quantity
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_tree
 msgid "Quantity"
 msgstr "Mennyiség"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Quote"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -1015,7 +1004,6 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_stock_move__repair_id
 #: model:ir.model.fields,field_description:repair.field_stock_picking__repair_ids
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__repair_id
 #: model:ir.model.fields.selection,name:repair.selection__stock_picking_type__code__repair_operation
 msgid "Repair"
 msgstr "Javítás"
@@ -1039,8 +1027,11 @@ msgstr ""
 #. module: repair
 #: model:ir.actions.report,name:repair.action_report_repair_order
 #: model:ir.model,name:repair.model_repair_order
+#: model:ir.model.fields,field_description:repair.field_account_bank_statement_line__repair_order_id
+#: model:ir.model.fields,field_description:repair.field_account_move__repair_order_id
 #: model:ir.model.fields,field_description:repair.field_sale_order__repair_order_ids
 #: model:ir.model.fields.selection,name:repair.selection__product_template__service_tracking__repair
+#: model_terms:ir.ui.view,arch_db:repair.view_account_move_form_inherit_repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Repair Order"
@@ -1099,8 +1090,8 @@ msgstr ""
 
 #. module: repair
 #: model:ir.model,name:repair.model_repair_tags
-msgid "Repair Tags"
-msgstr "Javítás címkék"
+msgid "Repair Tag"
+msgstr ""
 
 #. module: repair
 #. odoo-python
@@ -1157,6 +1148,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:repair.stock_repair_type_kanban
 msgid "Reporting"
 msgstr "Kimutatás"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Reserved"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__user_id
@@ -1408,11 +1404,6 @@ msgid "Type"
 msgstr "Típus"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "Művelet típusa"
-
-#. module: repair
 #: model:ir.model.fields,help:repair.field_repair_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Kivétel tevékenység típusa a rekordon."
@@ -1429,8 +1420,7 @@ msgid "Under Warranty"
 msgstr ""
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_repair_order__product_uom
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_uom_name
+#: model:ir.model.fields,field_description:repair.field_repair_order__uom_id
 msgid "Unit"
 msgstr "Egység"
 
@@ -1440,7 +1430,7 @@ msgid "Units"
 msgstr "Egység"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+#: model:ir.actions.server,name:repair.action_unreserve
 msgid "Unreserve"
 msgstr "Foglalás feloldása"
 
@@ -1453,11 +1443,6 @@ msgstr "Sürgős"
 #: model:ir.model,name:repair.model_stock_warehouse
 msgid "Warehouse"
 msgstr "Raktár"
-
-#. module: repair
-#: model:ir.model,name:repair.model_stock_warn_insufficient_qty_repair
-msgid "Warn Insufficient Repair Quantity"
-msgstr ""
 
 #. module: repair
 #. odoo-python
@@ -1498,6 +1483,12 @@ msgstr "Nem lehet negatív mennyiséget megadni."
 
 #. module: repair
 #. odoo-python
+#: code:addons/repair/models/account_move.py:0
+msgid "You can only have one invoice linked to a repair order."
+msgstr ""
+
+#. module: repair
+#. odoo-python
 #: code:addons/repair/models/repair.py:0
 msgid "You cannot cancel a Repair Order that's already been completed"
 msgstr ""
@@ -1523,11 +1514,6 @@ msgid ""
 msgstr ""
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "from location"
-msgstr ""
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 msgid "id"
@@ -1538,263 +1524,3 @@ msgstr ""
 #: code:addons/repair/models/sale_order.py:0
 msgid "sale_order_id"
 msgstr ""
-
-#~ msgid "(update)"
-#~ msgstr "(frissítés)"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\">1</span>\n"
-#~ "                                <span class=\"o_stat_text\">Invoices</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\">1</span>\n"
-#~ "                                 <span class=\"o_stat_text\">Számlák</"
-#~ "span>"
-
-#~ msgid "<strong>Lot/Serial Number:</strong>"
-#~ msgstr "<strong>Sorszám/Szériaszám:</strong>"
-
-#~ msgid "<strong>Operations</strong>"
-#~ msgstr "<strong>Műveletek</strong>"
-
-#~ msgid "<strong>Parts</strong>"
-#~ msgstr "<strong>Részek</strong>"
-
-#~ msgid "<strong>Printing Date:</strong>"
-#~ msgstr "<strong>Nyomtatási dátum:</strong>"
-
-#~ msgid "<strong>Product to Repair:</strong>"
-#~ msgstr "<strong>Javítandó termék:</strong>"
-
-#~ msgid "<strong>Total Without Taxes</strong>"
-#~ msgstr "<strong>Összesen adók nélkül</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Összesen</strong>"
-
-#~ msgid "<strong>Warranty:</strong>"
-#~ msgstr "<strong>Garancia:</strong>"
-
-#~ msgid "After Repair"
-#~ msgstr "Javítás után"
-
-#~ msgid "Before Repair"
-#~ msgstr "Javítás előtt"
-
-#~ msgid "Cancel"
-#~ msgstr "Mégse"
-
-#~ msgid "Category"
-#~ msgstr "Kategória"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "A mértékegységek közötti átváltás csak akkor valósul meg, ha ugyanabba a "
-#~ "kategóriába tartoznak. Az átváltás az arányszámok alapján történik."
-
-#~ msgid "Create Invoice"
-#~ msgstr "Számla készítése"
-
-#~ msgid "Create invoices"
-#~ msgstr "Számlák létrehozása"
-
-#~ msgid "Currency"
-#~ msgstr "Pénznem"
-
-#~ msgid "Default Address"
-#~ msgstr "Alapértelmezett cím"
-
-#~ msgid "Delivery Address"
-#~ msgstr "Szállítási cím"
-
-#~ msgid "Dest. Location"
-#~ msgstr "Célállomás helye"
-
-#~ msgid "Do you really want to create the invoice(s)?"
-#~ msgstr "Biztosan létre akarja hozni a számlá(ka)t?"
-
-#~ msgid "Done"
-#~ msgstr "Kész"
-
-#~ msgid "Draft"
-#~ msgstr "Piszkozat"
-
-#~ msgid "Extra Info"
-#~ msgstr "Extra információ"
-
-#~ msgid "Fees"
-#~ msgstr "Díjak"
-
-#~ msgid "Group By"
-#~ msgstr "Csoportosítás"
-
-#~ msgid "Group by partner invoice address"
-#~ msgstr "Az ügyfél számla címiek csoportjai"
-
-#~ msgid "History"
-#~ msgstr "Előzmények"
-
-#~ msgid "Invoice"
-#~ msgstr "Számla"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Számla sor"
-
-#~ msgid "Invoice Method"
-#~ msgstr "Számlázási módszer"
-
-#~ msgid "Invoice State"
-#~ msgstr "Számla állapota"
-
-#~ msgid "Invoice address:"
-#~ msgstr "Számlázási cím:"
-
-#~ msgid "Invoice and shipping address:"
-#~ msgstr "Számlázási és szállítási cím:"
-
-#~ msgid "Invoice created"
-#~ msgstr "Számla létrehozva ekkor"
-
-#~ msgid "Invoiced"
-#~ msgstr "Számlázva"
-
-#~ msgid "Invoicing Address"
-#~ msgstr "Számlázási cím"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Könyvelési tétel"
-
-#~ msgid "No Invoice"
-#~ msgstr "Nincs számla"
-
-#~ msgid "No account defined for product \"%s\"."
-#~ msgstr "Nincs számla definiálva \"%s\" termékhez."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Üzenetek száma, melyek műveletet igényelnek"
-
-#~ msgid "Price"
-#~ msgstr "Ár"
-
-#~ msgid "Pricelist"
-#~ msgstr "Árlista"
-
-#~ msgid "Pricelist of the selected partner."
-#~ msgstr "A kiválasztott ügyfélhez tartozó árlista."
-
-#~ msgid "Product Unit of Measure"
-#~ msgstr "Termék mértékegység"
-
-#~ msgid "Quotation"
-#~ msgstr "Árajánlat"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "Árajánlat / Rendelés"
-
-#~ msgid "Quotation Notes"
-#~ msgstr "Árajánlat megjegyzések"
-
-#~ msgid "Quotations"
-#~ msgstr "Árajánlatok"
-
-#~ msgid "Ready To Repair"
-#~ msgstr "Javításra előkészítve"
-
-#~ msgid "Ready to Repair"
-#~ msgstr "Javításra kész"
-
-#~ msgid "Repair Fee"
-#~ msgstr "Javítási díj"
-
-#~ msgid "Repair Fees"
-#~ msgstr "Javítási díj"
-
-#~ msgid "Repair Line"
-#~ msgstr "Javítási sor"
-
-#~ msgid "Repair Order #:"
-#~ msgstr "Javítási rendelés #"
-
-#~ msgid "Repair Order Reference"
-#~ msgstr "Javítási rendelés hivatkozás"
-
-#~ msgid "Repair Quotation #:"
-#~ msgstr "Javítási árajánlat #:"
-
-#~ msgid "Repair must be canceled in order to reset it to draft."
-#~ msgstr "Javításoknak érvénytelenítettnek kell lennie vázlattá alakításhoz."
-
-#~ msgid "Repair must be confirmed before starting reparation."
-#~ msgstr "Javításoknak jóváhagyottaknak kell lennie a javítás megkezdéséhez."
-
-#~ msgid "Repair must be repaired in order to make the product moves."
-#~ msgstr "Javításoknak elvégzettnek kell lennie termék egyeztetéshez."
-
-#~ msgid "Return"
-#~ msgstr "Visszaküldés"
-
-#~ msgid ""
-#~ "Selecting 'Before Repair' or 'After Repair' will allow you to generate "
-#~ "invoice before or after the repair is done respectively. 'No invoice' "
-#~ "means you don't want to generate invoice for this repair order."
-#~ msgstr ""
-#~ "A 'Javítás előtt' vagy 'Javítás után' kiválasztásával leetősége van "
-#~ "számlát készíteni javítás előtt vagy után annak megfelelően. 'Nincs "
-#~ "számla' azt jelenti, hogy ehhez a javításhoz nem szeretne számlát "
-#~ "készíteni."
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Az összes olyan rekord megjelenítése, melynél a következő művelet dátuma "
-#~ "a mai nap előtti"
-
-#~ msgid "Source Location"
-#~ msgstr "Forrás tárhely"
-
-#~ msgid "Subtotal"
-#~ msgstr "Részösszeg"
-
-#~ msgid "Tax"
-#~ msgstr "Adó"
-
-#~ msgid "Taxes"
-#~ msgstr "Adók"
-
-#~ msgid "The name of the Repair Order must be unique!"
-#~ msgstr "A javítás megrendelés nevének egyedinek kell lennie!"
-
-#~ msgid ""
-#~ "The status of a repair line is set automatically to the one of the linked "
-#~ "repair order."
-#~ msgstr ""
-#~ "Egy javítási tétel sor állapota automatikusan áll be a hozzárendelt egyik "
-#~ "javítási megbízás alapján."
-
-#~ msgid "To be Invoiced"
-#~ msgstr "Még számlázandó"
-
-#~ msgid "Total"
-#~ msgstr "Összesen"
-
-#~ msgid "Total amount"
-#~ msgstr "Teljes összeg"
-
-#~ msgid "Unit Price"
-#~ msgstr "Egységár"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mértékegység"
-
-#~ msgid "Untaxed Amount"
-#~ msgstr "Nettó összeg"
-
-#~ msgid "Untaxed amount"
-#~ msgstr "Nettó érték"
-
-#~ msgid "UoM"
-#~ msgstr "Mértékegység"
-
-#~ msgid "Warranty Expiration"
-#~ msgstr "Garancia lejárta"

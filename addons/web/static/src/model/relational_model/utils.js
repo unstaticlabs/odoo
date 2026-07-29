@@ -9,7 +9,6 @@ import {
 } from "@web/core/l10n/dates";
 import { x2ManyCommands } from "@web/core/orm_service";
 import { evaluateExpr } from "@web/core/py_js/py";
-import { Deferred } from "@web/core/utils/concurrency";
 import { omit } from "@web/core/utils/objects";
 import { effect } from "@web/core/utils/reactive";
 import { batched } from "@web/core/utils/timing";
@@ -62,9 +61,17 @@ export function makeActiveField({
 export const AGGREGATABLE_FIELD_TYPES = ["float", "integer", "monetary"]; // types that can be aggregated in grouped views
 
 export function addFieldDependencies(activeFields, fields, fieldDependencies = []) {
-    for (const field of fieldDependencies) {
+    for (let field of fieldDependencies) {
+        field = { ...field };
         if (!("readonly" in field)) {
             field.readonly = true;
+        }
+        if (!("required" in field)) {
+            if (field.name in activeFields) {
+                field.required = activeFields[field.name].required; // field already in the view
+            } else if (field.name in fields) {
+                field.required = fields[field.name].required; // check in field definition (model)
+            }
         }
         if (field.name in activeFields) {
             patchActiveFields(activeFields[field.name], makeActiveField(field));
@@ -92,6 +99,7 @@ export function addFieldDependencies(activeFields, fields, fieldDependencies = [
 
 function completeActiveField(activeField, extra) {
     if (extra.related) {
+        activeField.related = activeField.related || { activeFields: {}, fields: {} };
         for (const fieldName in extra.related.activeFields) {
             if (fieldName in activeField.related.activeFields) {
                 completeActiveField(
@@ -179,6 +187,7 @@ export function patchActiveFields(activeField, patch) {
     activeField.isHandle = activeField.isHandle || patch.isHandle;
     // x2manys
     if (patch.related) {
+        activeField.related = activeField.related || { activeFields: {}, fields: {} };
         const related = activeField.related;
         for (const fieldName in patch.related.activeFields) {
             if (fieldName in related.activeFields) {
@@ -282,7 +291,9 @@ export function extractFieldsFromArchInfo({ fieldNodes, widgetNodes }, fields) {
         } else {
             activeFields[fieldName] = activeField;
         }
+    }
 
+    for (const fieldNode of Object.values(fieldNodes)) {
         if (fieldNode.field) {
             let fieldDependencies = fieldNode.field.fieldDependencies;
             if (typeof fieldDependencies === "function") {
@@ -767,16 +778,14 @@ export function useRecordObserver(callback) {
         if (!props.record) {
             return;
         }
-        const def = new Deferred();
+        const { promise, resolve, reject } = Promise.withResolvers();
         const effectId = currentId;
         let firstCall = true;
         effect(
             (record) => {
                 if (firstCall) {
                     firstCall = false;
-                    return Promise.resolve(callback(record, props))
-                        .then(def.resolve)
-                        .catch(def.reject);
+                    return Promise.resolve(callback(record, props)).then(resolve).catch(reject);
                 } else {
                     return batched(
                         (record) => {
@@ -786,16 +795,16 @@ export function useRecordObserver(callback) {
                                 return;
                             }
                             return Promise.resolve(callback(record, props))
-                                .then(def.resolve)
-                                .catch(def.reject);
+                                .then(resolve)
+                                .catch(reject);
                         },
-                        () => new Promise((resolve) => window.requestAnimationFrame(resolve))
+                        () => new Promise((res) => window.requestAnimationFrame(res))
                     )(record);
                 }
             },
             [props.record]
         );
-        return def;
+        return promise;
     };
     onWillDestroy(() => {
         currentId = uniqueId();

@@ -11,14 +11,13 @@
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
 # NoaFarkash, 2022
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Yoram Lavi <yoram@digitale.co.il>, 2026.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 17:35+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-09-29 19:46+0000\n"
 "Last-Translator: or balmas <or@laylinetech.com>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "sale_management/he/>\n"
@@ -28,12 +27,12 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "<span invisible=\"not require_payment\">of</span>"
-msgstr "<span invisible=\"not require_payment\">של</span>"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__active
@@ -77,11 +76,17 @@ msgid "Archived"
 msgstr "בארכיון"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "חברות"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -158,12 +163,6 @@ msgid "Display Type"
 msgstr "סוג תצוגה"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "אין לך גישה, דלג על נתונים אלה עבור תקציר דוא\"ל של המשתמשים"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -172,6 +171,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "נותן את סדר הרצף בעת הצגת רשימה של שורות הצעת מחיר למכירה."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -261,7 +272,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -331,6 +342,12 @@ msgstr "תבניות הצעת מחיר"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -413,6 +430,8 @@ msgstr ""
 "יותר ואטומה בפני שגיאות."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -505,8 +524,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -516,8 +535,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -540,120 +559,3 @@ msgstr "ימים"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr ""
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "התבנית שלך לא יכולה להכיל מוצרים מחברות מרובות."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "שולחן ל 4 אנשים"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>אפשרויות</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>תשלום</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "הוסף לעגלה"
-
-#~ msgid "Add to order lines"
-#~ msgstr "הוסף לשורות הזמנה"
-
-#~ msgid "Category"
-#~ msgstr "קטגוריה"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Disc.%"
-#~ msgstr "הנחה %"
-
-#~ msgid "Discount (%)"
-#~ msgstr "הנחה (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr "נותן את סדר הרצף בעת הצגת רשימת מוצרים אופציונלים."
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "Line"
-#~ msgstr "שורה"
-
-#~ msgid "Office Chair"
-#~ msgstr "כיסא משרדי"
-
-#~ msgid "Online confirmation"
-#~ msgstr "אישור מקוון"
-
-#~ msgid "Optional Products"
-#~ msgstr "מוצרים אופציונליים"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "שורות מוצרים אופציונליים"
-
-#~ msgid "Options"
-#~ msgstr "אפשרויות"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "הצג בהצעת מחיר"
-
-#~ msgid "Quantity:"
-#~ msgstr "כמות:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "בונה הצעות מחיר"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "אפשרות תבנית הצעת מחיר"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "הצעת המחיר תפוג לאחר"
-
-#~ msgid "Remove"
-#~ msgstr "הסר"
-
-#~ msgid "Sale Options"
-#~ msgstr "אפשרויות מכירה"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "מזהה הזמנת לקוח"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "שורות תבנית הצעת מחיר"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr "שדה זה ייבדק אם שורת מוצר אופציונלי כבר מופיעה בהצעת המחיר."
-
-#~ msgid "Unit Price"
-#~ msgstr "מחיר יחידה"
-
-#~ msgid "Unit Price:"
-#~ msgstr "מחיר יחידה:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "UoM"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "אינך יכול להוסיף אפשרויות להזמנה מאושרת."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "הצעת המחיר מכילה מוצרים של חברת  %(product_company)s ואילו הצעת המחיר "
-#~ "שייכת לחברה %(quote_company)s. \n"
-#~ "אנא שנה את החברה בהצעת המחיר או הסר את המוצרים מחברות אחרות  (%"
-#~ "(bad_products)s)."

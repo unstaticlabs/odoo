@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * stock_delivery
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 06:20+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-12-20 09:54+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/stock_delivery/zh_Hans/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -56,11 +56,6 @@ msgstr "<strong>载体：</strong>"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Carrier</strong>"
 msgstr "<strong>承运商</strong>"
-
-#. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr "<strong>运输方式：</strong>"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
@@ -110,8 +105,8 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
-msgstr "可应用于运输方式"
+msgid "Applicable on Delivery Methods"
+msgstr ""
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
@@ -155,12 +150,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr "成本：%(price).2f %(currency)s"
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "承运商选择向导"
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr "交货方式"
 
@@ -221,11 +222,6 @@ msgid "Exception:"
 msgstr "例外："
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr "美国联邦快递"
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -257,8 +253,8 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
-msgstr "库存路线"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_delivery_carrier__invoice_policy
@@ -386,8 +382,8 @@ msgstr "发至物流商"
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr "货件已运输给承运商%(carrier_name)s以进行装运，跟踪编号%(ref)s"
 
 #. module: stock_delivery
@@ -399,12 +395,6 @@ msgstr "显示的客户运费"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
 msgstr "发货信息"
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
-msgstr "送货方式"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__shipping_weight
@@ -619,36 +609,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.normal_zpl_label
 msgid "^FS"
 msgstr "^FS"
-
-#~ msgid "Company"
-#~ msgstr "公司"
-
-#~ msgid "Created by"
-#~ msgstr "创建人"
-
-#~ msgid "Created on"
-#~ msgstr "创建日期"
-
-#~ msgid "Delivery Package Selection Wizard"
-#~ msgstr "邮包选择向导"
-
-#~ msgid "Delivery Package Type"
-#~ msgstr "快递包裹类型"
-
-#~ msgid "Discard"
-#~ msgstr "丢弃"
-
-#~ msgid "Last Updated by"
-#~ msgstr "上一更新人"
-
-#~ msgid "Last Updated on"
-#~ msgstr "上一更新日期"
-
-#~ msgid "Package Details"
-#~ msgstr "包裹明细"
-
-#~ msgid "Packages"
-#~ msgstr "包裹"
-
-#~ msgid "Save"
-#~ msgstr "保存"

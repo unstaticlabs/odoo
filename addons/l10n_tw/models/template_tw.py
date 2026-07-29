@@ -42,7 +42,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_production_wip_account_id': 'l10n_tw_account_1314',
                 'account_production_wip_overhead_account_id': 'l10n_tw_account_5601',
                 'tax_calculation_rounding_method': 'round_globally',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_tw_account_1315',
             },
         }

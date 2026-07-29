@@ -13,18 +13,18 @@
 # Umur Akın <umura@projetgrup.com>, 2022
 # Murat Kaplan <muratk@projetgrup.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 08:16+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-28 12:47+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "base_setup/tr/>\n"
 "Language: tr\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -175,11 +175,6 @@ msgstr "Dil Ekle"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Add fun feedback and motivate your employees"
 msgstr "Eğlenceli geri bildirimler ekleyin ve çalışanlarınızı motive edin"
-
-#. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
-msgstr "Posta eklentileriyle bütünleşmeye izin ver"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_calendar
@@ -409,11 +404,6 @@ msgstr "İçe Aktarım / Dışa Aktarım"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
-msgstr "Posta istemcisi eklentileriyle bütünleştirin"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Integrations"
 msgstr "Entegrasyonlar"
 
@@ -447,11 +437,6 @@ msgstr "Diller"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
 msgstr "Düzen"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
-msgstr "Posta Eklentisi"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -667,52 +652,3 @@ msgstr "Bu özelliği kullanmak için Sohbet uygulamasını yüklemeniz gerekiyo
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_recaptcha
 msgid "reCAPTCHA"
 msgstr "reCAPTCHA"
-
-#~ msgid "Asterisk (VoIP)"
-#~ msgstr "Asterisk (VoIP)"
-
-#~ msgid ""
-#~ "Automatically generate counterpart documents for orders/invoices between "
-#~ "companies"
-#~ msgstr ""
-#~ "Şirketler arasındaki siparişler / faturalar için otomatik olarak karşı "
-#~ "belgeler oluşturun"
-
-#~ msgid ""
-#~ "By default, new users get highest access rights for all installed apps."
-#~ msgstr ""
-#~ "Varsayılan olarak, yeni kullanıcılar, yüklü tüm uygulamalar için en "
-#~ "yüksek erişim haklarına sahip olurlar."
-
-#~ msgid "Default User Template not found."
-#~ msgstr "Varsayılan Kullanıcı Şablonu bulunamadı."
-
-#~ msgid "Documentation"
-#~ msgstr "Belgeleme"
-
-#~ msgid "Geo Localization"
-#~ msgstr "Coğrafi Yerelleştirme"
-
-#~ msgid "GeoLocalize your partners"
-#~ msgstr "İş Ortağı Konumu"
-
-#~ msgid "Get product pictures using barcode"
-#~ msgstr "Barkod kullanarak ürün resimlerini alın"
-
-#~ msgid "Google Calendar"
-#~ msgstr "Google Takvim"
-
-#~ msgid "On Apple Store"
-#~ msgstr "Apple Store'da"
-
-#~ msgid "On Google Play"
-#~ msgstr "Google Play'de"
-
-#~ msgid "Outlook Calendar"
-#~ msgstr "Outlook Takvim"
-
-#~ msgid "Synchronize your calendar with Google Calendar"
-#~ msgstr "Kullanıcıların takvimlerini Google Takvimle eşlemesine izin ver"
-
-#~ msgid "Synchronize your calendar with Outlook"
-#~ msgstr "Takviminizi Outlook ile senkronize edin"

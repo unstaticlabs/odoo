@@ -6,6 +6,7 @@ from markupsafe import Markup
 
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessDenied, AccessError, UserError
+from odoo.fields import Domain
 
 
 class CrmLead(models.Model):
@@ -128,8 +129,8 @@ class CrmLead(models.Model):
                     })
         return True
 
-    def _prepare_customer_values(self, partner_name, is_company=False, parent_id=False):
-        res = super()._prepare_customer_values(partner_name, is_company=is_company, parent_id=parent_id)
+    def _prepare_customer_values(self, partner_name, parent_id=False):
+        res = super()._prepare_customer_values(partner_name, parent_id=parent_id)
         res.update({
             'partner_latitude': self.partner_latitude,
             'partner_longitude': self.partner_longitude,
@@ -352,9 +353,10 @@ class CrmLead(models.Model):
         # Allow readonly posting for assigned users, to avoid ACLs issue in frontend
         # as they do not have write access anymore on the lead itself, just specific
         # controllers and UI
-        assigned = self.filtered_domain([
-            ('partner_assigned_id', 'child_of', self.env.user.commercial_partner_id.id),
-        ]) if message_operation == "create" else self.browse()
-        result = super()._mail_get_operation_for_mail_message_operation(message_operation)
-        result.update(dict.fromkeys(assigned, 'read'))
-        return result
+        operations = super()._mail_get_operation_for_mail_message_operation(message_operation)
+        if message_operation == 'create':
+            return (
+                (Domain('partner_assigned_id', 'child_of', self.env.user.commercial_partner_id.id), 'read'),
+                *operations,
+            )
+        return operations

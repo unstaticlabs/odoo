@@ -15,10 +15,10 @@
                             <h2 style="text-align: center;">Discover our latest collection</h2>
                             <p style="text-align: center;">
                                 Simple forms. Natural textures. Timeless design. Explore our new furniture collection—crafted to bring calm and clarity to your space.
-                                <br/><br/>
                             </p>
+                            <p style="text-align: center;"><br/></p>
                             <p style="text-align: center;">
-                                <a href="#"
+                                <a t-att-href="shop_btn_href"
                                     role="button"
                                     class="btn btn-lg btn-secondary o_translate_inline">
                                     Buy now

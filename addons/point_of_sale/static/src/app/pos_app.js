@@ -1,16 +1,15 @@
 import { Transition } from "@web/core/transition";
 import { MainComponentsContainer } from "@web/core/main_components_container";
 import { Navbar } from "@point_of_sale/app/components/navbar/navbar";
-import { usePos } from "@point_of_sale/app/hooks/pos_hook";
-import { Component, onMounted, onWillStart } from "@odoo/owl";
-import { effect } from "@web/core/utils/reactive";
-import { batched } from "@web/core/utils/timing";
+import { usePos, usePosRouter } from "@point_of_sale/app/hooks/pos_hook";
+import { Component, onMounted } from "@odoo/owl";
 import { useOwnDebugContext } from "@web/core/debug/debug_context";
 import { CustomerDisplayPosAdapter } from "@point_of_sale/app/customer_display/customer_display_adapter";
 import { useIdleTimer } from "./utils/use_idle_timer";
 import useTours from "./hooks/use_tours";
 import { init as initDebugFormatters } from "./utils/debug-formatter";
-
+import { effect } from "@web/core/utils/reactive";
+import { debounce } from "@web/core/utils/timing";
 /**
  * Chrome is the root component of the PoS App.
  */
@@ -20,6 +19,7 @@ export class Chrome extends Component {
     static props = { disableLoader: Function };
     setup() {
         this.pos = usePos();
+        this.router = usePosRouter();
         useIdleTimer(this.pos.idleTimeout, (ev) => {
             const stopEventPropagation = ["mousedown", "click", "keypress"];
             if (stopEventPropagation.includes(ev.type)) {
@@ -47,33 +47,28 @@ export class Chrome extends Component {
             body.classList.add("big-scrollbars");
         }
 
-        onWillStart(this.pos._loadFonts);
         onMounted(this.props.disableLoader);
         effect(
-            batched(({ selectedOrder, scale }) => {
-                if (selectedOrder) {
-                    const scaleData = scale.product
-                        ? {
-                              product: { ...scale.product },
-                              unitPrice: scale.unitPriceString,
-                              totalPrice: scale.totalPriceString,
-                              netWeight: scale.netWeightString,
-                              grossWeight: scale.grossWeightString,
-                              tare: scale.tareWeightString,
-                          }
-                        : null;
-                    this.sendOrderToCustomerDisplay(selectedOrder, scaleData);
-                }
+            debounce((pos, routerState) => {
+                this.sendOrderToCustomerDisplay(pos, routerState);
             }),
-            [this.pos]
+            [this.pos, this.router.state]
         );
     }
 
-    sendOrderToCustomerDisplay(selectedOrder, scaleData) {
+    sendOrderToCustomerDisplay({ selectedOrder }, routerState) {
         const adapter = new CustomerDisplayPosAdapter();
-        adapter.formatOrderData(selectedOrder);
-        adapter.data.scaleData = scaleData;
+        if (routerState.current === "SaverScreen" || routerState.current === "LoginScreen") {
+            adapter.displayScreenSaver();
+        } else if (selectedOrder) {
+            adapter.formatOrderData(selectedOrder);
+        }
+        adapter.setExtraData(this.getCustomerDisplayExtraData(...arguments));
         adapter.dispatch(this.pos);
+    }
+
+    getCustomerDisplayExtraData(pos, routerState) {
+        return {};
     }
 
     // GETTERS //

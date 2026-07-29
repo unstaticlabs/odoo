@@ -11,7 +11,9 @@ export class StockValuationReportController {
         this.dialog = useService("dialog");
         this.orm = useService("orm");
         this.state = reactive({
-            date: DateTime.now(),
+            date: this.action.params?.date_to
+                ? DateTime.fromISO(this.action.params.date_to)
+                : DateTime.now()
         });
     }
 
@@ -73,8 +75,8 @@ export class StockValuationReportController {
     // Actions -----------------------------------------------------------------
     async actionGenerateEntry() {
         const args = [[this.companyId]];
-        const date = serializeDate(this.state.date);
-        if (date != serializeDate(DateTime.now())) {
+        const date = this.state.date.toISODate() || false;
+        if (date != DateTime.now().toISODate()) {
             args.push(date);
         }
         const action = await this.orm.call("res.company", "action_close_stock_valuation", args);

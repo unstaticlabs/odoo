@@ -52,36 +52,30 @@ class MrpProductionSerials(models.TransientModel):
 
     def action_split_and_assign_serials(self):
         self.ensure_one()
-        lots = self._parse_serial_numbers()
+        lots, new_lots = self._parse_serial_numbers()
 
         split_amounts = {self.production_id: [1] * len(lots)}
         mos = self.production_id._split_productions(amounts=split_amounts)
         for mo, serial in zip(mos, lots):
             mo.lot_producing_ids = [Command.link(serial.id)]
-        return self._closing_action(mos)
+        if new_lots and self.production_id.picking_type_id.auto_print_generated_mrp_lot:
+            print_action = self.production_id._autoprint_generated_lots(new_lots)
+            print_action['close_on_report_download'] = True
+            return print_action
+        return True
 
     def action_apply(self):
         self.ensure_one()
-        lots = self._parse_serial_numbers()
+        lots, new_lots = self._parse_serial_numbers()
         self.production_id.lot_producing_ids = lots
         if self.production_id.qty_producing != len(self.production_id.lot_producing_ids):
             self.production_id.qty_producing = len(self.production_id.lot_producing_ids)
         (self.workorder_id or self.production_id).set_qty_producing()
-        return self._closing_action()
-
-    def _closing_action(self, mos=False):
-        mos = mos or self.production_id
-        print_actions = mos._autoprint_mass_generated_lots()
-        if print_actions:
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'do_multi_print',
-                'context': {},
-                'params': {
-                    'reports': print_actions,
-                }
-            }
-        return {'type': 'ir.actions.act_window_close'}
+        if new_lots and self.production_id.picking_type_id.auto_print_generated_mrp_lot:
+            print_action = self.production_id._autoprint_generated_lots(new_lots)
+            print_action['close_on_report_download'] = True
+            return print_action
+        return True
 
     def _parse_serial_numbers(self):
         self.ensure_one()
@@ -108,4 +102,4 @@ class MrpProductionSerials(models.TransientModel):
                 'product_id': self.production_id.product_id.id,
             })
         new_lots = self.env['stock.lot'].create(new_lots_vals)
-        return existing_lots + new_lots
+        return existing_lots + new_lots, new_lots

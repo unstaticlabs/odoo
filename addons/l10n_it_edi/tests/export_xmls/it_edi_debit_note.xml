@@ -87,6 +87,8 @@
         <ModalitaPagamento>MP05</ModalitaPagamento>
         <DataScadenzaPagamento>2022-03-25</DataScadenzaPagamento>
         <ImportoPagamento>122.00</ImportoPagamento>
+        <IstitutoFinanziario>BIG BANK</IstitutoFinanziario>
+        <BIC>BIGGBANQ</BIC>
         <CodicePagamento>DN/2022/00001</CodicePagamento>
       </DettaglioPagamento>
     </DatiPagamento>

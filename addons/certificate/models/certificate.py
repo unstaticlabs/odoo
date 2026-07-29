@@ -1,14 +1,12 @@
 import base64
 from importlib import metadata
-import re
 from contextlib import suppress
 
 from cryptography import x509
-from cryptography.x509.oid import ExtensionOID, SignatureAlgorithmOID
+from cryptography.x509.oid import ExtensionOID
 from cryptography.x509.extensions import DuplicateExtension, ExtensionNotFound
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.primitives import constant_time, serialization
-from cryptography.hazmat.primitives.asymmetric import dsa, ec, ed448, ed25519, padding, rsa
 from cryptography.hazmat.primitives.serialization import Encoding, pkcs12, PublicFormat
 
 from odoo import _, api, fields, models
@@ -115,6 +113,12 @@ class CertificateCertificate(models.Model):
                 ))
             return False
 
+        def is_issued_by(x509_certificate, x509_issuer_certificate):
+            with suppress(ValueError, TypeError, InvalidSignature, UnsupportedAlgorithm):
+                x509_certificate.verify_directly_issued_by(x509_issuer_certificate)
+                return True
+            return False
+
         # By default, put no issuer
         self.issuer_cert_id = False
 
@@ -150,7 +154,7 @@ class CertificateCertificate(models.Model):
                 # A candidate whose key cryptographically signed this certificate.
                 issuer = candidates.filtered(
                     lambda candidate: (x509_candidate := load_certificate(candidate))
-                    and self._is_issued_by(data['loaded'], x509_candidate)
+                    and is_issued_by(data['loaded'], x509_candidate)
                 )[:1]
 
                 # No mathematical proof: fall back to a
@@ -335,61 +339,6 @@ class CertificateCertificate(models.Model):
         return None
 
     @api.model
-    def _is_issued_by(self, x509_certificate, x509_issuer_certificate):
-        """ Cryptographically check that ``certificate`` was directly issued by
-        ``issuer_certificate``: the issuer distinguished name must match and the
-        signature must verify against the issuer's public key.
-
-        :return: ``True`` if the issuance is cryptographically proven, ``False`` if it
-            is disproven, and ``None`` if it could not be checked (unsupported scheme or
-            parameters).
-        :rtype: bool | None
-        """
-        with suppress(ValueError):
-            if x509_certificate.issuer != x509_issuer_certificate.subject:
-                return False
-
-        public_key = x509_issuer_certificate.public_key()
-        signature = x509_certificate.signature
-        signed_bytes = x509_certificate.tbs_certificate_bytes
-        try:
-            hash_alg = x509_certificate.signature_hash_algorithm
-        except UnsupportedAlgorithm:
-            return None
-
-        # Each branch builds the argument tuples to try with ``public_key.verify`` and the
-        # result when none succeed (False = disproven, None = could not be checked).
-        match public_key:
-            case ed25519.Ed25519PublicKey() | ed448.Ed448PublicKey():
-                attempts, on_failure = [(signature, signed_bytes)], False
-            case _ if hash_alg is None:
-                # A hash-less signature (Ed25519/Ed448) cannot have been produced by this key.
-                attempts, on_failure = [], False
-            case ec.EllipticCurvePublicKey():
-                attempts, on_failure = [(signature, signed_bytes, ec.ECDSA(hash_alg))], False
-            case dsa.DSAPublicKey():
-                attempts, on_failure = [(signature, signed_bytes, hash_alg)], False
-            case rsa.RSAPublicKey() if x509_certificate.signature_algorithm_oid != SignatureAlgorithmOID.RSASSA_PSS:
-                attempts, on_failure = [(signature, signed_bytes, padding.PKCS1v15(), hash_alg)], False
-            case rsa.RSAPublicKey():
-                # RSA-PSS: we assume MGF1 with the signature hash and try the two conventional
-                # salt lengths (DIGEST_LENGTH then MAX_LENGTH). A non-standard MGF hash or an
-                # arbitrary salt length is not covered, so failing both is inconclusive (None).
-                attempts = [
-                    (signature, signed_bytes, padding.PSS(mgf=padding.MGF1(hash_alg), salt_length=salt_length), hash_alg)
-                    for salt_length in (hash_alg.digest_size, padding.PSS.MAX_LENGTH)
-                ]
-                on_failure = None
-            case _:
-                attempts, on_failure = [], None  # unsupported key type
-
-        for verify_args in attempts:
-            with suppress(InvalidSignature, TypeError, ValueError, UnsupportedAlgorithm):
-                public_key.verify(*verify_args)
-                return True
-        return on_failure
-
-    @api.model
     def _parse_pem_certificate_bundle(self, decoded_content, password=None):
         """
         Parses a PEM-encoded bundle to extract individual certificate blocks and
@@ -405,22 +354,20 @@ class CertificateCertificate(models.Model):
         def subject(obj):
             return obj.public_key().public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo)
 
-        cert_blocks = re.findall(rb'(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)', decoded_content, flags=re.DOTALL)
-        # A corrupted block must fail the whole parse here
-        certs = [x509.load_pem_x509_certificate(block) for block in cert_blocks]
+        certs = x509.load_pem_x509_certificates(decoded_content)
 
         try:
             # Catch errors because the bundle might only contain public certificates
             # (like a CA bundle) and lack a private key, or the password could be missing/incorrect.
             private_key = serialization.load_pem_private_key(decoded_content, password=password)
         except (ValueError, TypeError, UnsupportedAlgorithm):
-            return cert_blocks
+            return [cert.public_bytes(Encoding.PEM) for cert in certs]
 
         target_pub_bytes = subject(private_key)
         chain_blocks = []
-        for block, cert in zip(cert_blocks, certs):
-            curr_pub_bytes = subject(cert)
-            if curr_pub_bytes == target_pub_bytes:
+        for cert in certs:
+            block = cert.public_bytes(Encoding.PEM)
+            if subject(cert) == target_pub_bytes:
                 chain_blocks.insert(0, block)
             else:
                 chain_blocks.append(block)

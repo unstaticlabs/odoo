@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Sergio Zanchetta <primes2h@gmail.com>, 2023
 # Marianna Ciofani, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:14+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-03-14 12:59+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-2/"
 "mass_mailing_sms/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: mass_mailing_sms
 #. odoo-javascript
@@ -54,13 +54,18 @@ msgstr "Statistiche 24H di %(mailing_type)s\"%(mailing_name)s\""
 msgid ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Contacts\n"
+"                        <i class=\"fa fa-mobile fa-lg\"/> Contacts\n"
 "                    </span>"
 msgstr ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Contatti\n"
+"                        <i class=\"fa fa-mobile fa-lg\"/> Contatti\n"
 "                    </span>"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_kanban
+msgid "<i class=\"fa fa-phone text-primary me-2\" title=\"Phone\"/>"
+msgstr "<i class=\"fa fa-phone text-primary me-2\" title=\"Telefono\"/>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -77,8 +82,8 @@ msgid ""
 "<span name=\"failed_text_sms\" invisible=\"mailing_type != 'sms'\">SMS Text "
 "Messages could not be delivered.</span>"
 msgstr ""
-"<span name=\"failed_text_sms\" invisible=\"mailing_type != 'sms'\">"
-"Impossibile inviare il messaggio SMS.</span>"
+"<span name=\"failed_text_sms\" invisible=\"mailing_type != "
+"'sms'\">Impossibile inviare il messaggio SMS.</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -86,8 +91,8 @@ msgid ""
 "<span name=\"next_departure_text\" invisible=\"mailing_type != 'sms'\">This "
 "SMS marketing is scheduled for </span>"
 msgstr ""
-"<span name=\"next_departure_text\" invisible=\"mailing_type != 'sms'\">"
-"L'invio degli SMS è programmato per </span>"
+"<span name=\"next_departure_text\" invisible=\"mailing_type != "
+"'sms'\">L'invio degli SMS è programmato per </span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -343,11 +348,6 @@ msgid "Date"
 msgstr "Data"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_sms_test_view_form
-msgid "Discard"
-msgstr "Abbandona"
-
-#. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_list__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_mailing__display_name
@@ -358,7 +358,7 @@ msgstr "Abbandona"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__display_name
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__display_name
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__display_name
 msgid "Display Name"
 msgstr "Nome visualizzato"
 
@@ -452,7 +452,7 @@ msgstr "Tasso di clic più alto"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__id
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__id
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__id
 msgid "ID"
 msgstr "ID"
 
@@ -656,6 +656,12 @@ msgid "My SMS Marketing"
 msgstr "I miei invii SMS"
 
 #. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_kanban
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
+msgid "New SMS"
+msgstr "Nuovo SMS"
+
+#. module: mass_mailing_sms
 #: model_terms:ir.actions.act_window,help:mass_mailing_sms.mailing_trace_report_action_sms
 msgid "No data yet!"
 msgstr "Ancora nessun dato"
@@ -758,6 +764,11 @@ msgstr "Opzioni"
 #: model:ir.model,name:mass_mailing_sms.model_sms_sms
 msgid "Outgoing SMS"
 msgstr "SMS in uscita"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_form
+msgid "Phone"
+msgstr "Telefono"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__phone_sanitized_blacklisted
@@ -927,12 +938,6 @@ msgid "Send Now"
 msgstr "Invia ora"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_form
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
-msgid "Send SMS"
-msgstr "Invia SMS"
-
-#. module: mass_mailing_sms
 #: model:ir.model,name:mass_mailing_sms.model_sms_composer
 msgid "Send SMS Wizard"
 msgstr "Procedura invio SMS"
@@ -950,7 +955,8 @@ msgstr "Invia un SMS campione"
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_sms_test_view_form
 msgid "Send a sample SMS for testing purpose to the numbers below."
-msgstr "Invia un SMS di prova ai numeri sottoindicati per effettuare una prova."
+msgstr ""
+"Invia un SMS di prova ai numeri sottoindicati per effettuare una prova."
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -1016,16 +1022,6 @@ msgid "Test SMS successfully sent to %s"
 msgstr "Test SMS inviato con successo a %s"
 
 #. module: mass_mailing_sms
-#. odoo-python
-#: code:addons/mass_mailing_sms/models/utm.py:0
-msgid ""
-"The UTM medium '%s' cannot be deleted as it is used in some main functional "
-"flows, such as the SMS Marketing."
-msgstr ""
-"Il mezzo UTM \"%s\" non può essere eliminato perché utilizzato in alcuni "
-"flussi funzionali come il marketing via SMS."
-
-#. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.blacklist_main
 msgid "There was an error when trying to unsubscribe"
 msgstr "Errore durante il tentativo di annullare l'iscrizione"
@@ -1063,9 +1059,9 @@ msgid "UTM Campaign"
 msgstr "Campagna UTM"
 
 #. module: mass_mailing_sms
-#: model:ir.model,name:mass_mailing_sms.model_utm_medium
-msgid "UTM Medium"
-msgstr "Mezzo UTM"
+#: model:ir.model,name:mass_mailing_sms.model_utm_mixin
+msgid "UTM Mixin"
+msgstr "Mixin UTM"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_acc
@@ -1151,117 +1147,14 @@ msgstr "aggiunti con successo alla lista nera"
 msgid "has been successfully removed from"
 msgstr "rimossi con successo dalla lista nera"
 
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_tree
+msgid "📵 Blacklisted"
+msgstr "📵 Nella lista nera"
+
 #~ msgid ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
 #~ msgstr ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
-
-#~ msgid ""
-#~ "<span name=\"canceled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message have been canceled and will not be sent."
-#~ "</span>"
-#~ msgstr ""
-#~ "<span name=\"canceled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">I messaggi SMS sono stati annullati e non saranno "
-#~ "inviati.</span>"
-
-#~ msgid ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">SMS Text Message could not be sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">Impossibile inviare il messaggio SMS.</span>"
-
-#~ msgid ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">This SMS marketing is scheduled for </"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">L'invio degli SMS è programmato per </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message are in queue and will be sent soon.</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">Il messaggio SMS è in coda e verrà inviato a breve.</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">SMS Text Message have been sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">Il messaggio SMS è stato inviato.</span>"
-
-#~ msgid "<span>Valid SMS Recipients</span>"
-#~ msgstr "<span>Destinatari SMS validi</span>"
-
-#~ msgid "Bioutifoul SMS"
-#~ msgstr "SMS Bioutifoul"
-
-#~ msgid ""
-#~ "Blacklist through SMS Marketing unsubscribe (mailing ID: %s - model: %s)"
-#~ msgstr ""
-#~ "Lista nera tramite annullamento iscrizione per invio SMS (ID invio: %s - "
-#~ "modello: %s)"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Telefono in lista nera è un cellulare"
-
-#~ msgid "Cancel"
-#~ msgstr "Annulla"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Indica se un numero di telefono pulito in lista nera è un cellulare. "
-#~ "Aiuta a distinguere qual'è il numero in lista nera             quando in "
-#~ "un modello sono presenti sia il campo cellulare che telefono."
-
-#~ msgid ""
-#~ "No need to import mailing lists, you can send SMS Text Messages to "
-#~ "contacts saved in other Odoo apps."
-#~ msgstr ""
-#~ "Non c'è bisogno di importare mailing list, è possibile inviare SMS ai "
-#~ "contatti salvati in altre applicazioni Odoo."
-
-#~ msgid "Number %s not found"
-#~ msgstr "Numero %s non trovato"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Numero di messaggi che richiedono un'azione"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefono/Cellulare"
-
-#~ msgid "Please enter your phone number"
-#~ msgstr "Inserire il numero di telefono"
-
-#~ msgid "SMS ID (tech)"
-#~ msgstr "ID SMS (tecnico)"
-
-#~ msgid "Test SMS Marketing"
-#~ msgstr "Prova invio SMS"
-
-#~ msgid "Test SMS could not be sent to %s:<br>%s"
-#~ msgstr "Non è stato possibile inviare un test SMS a %s:<br>%s"
-
-#~ msgid "Test SMS marketing"
-#~ msgstr "Prova invio SMS"
-
-#~ msgid "The following numbers are not correctly encoded: %s"
-#~ msgstr "I seguenti numeri non sono codificati correttamente: %s"
-
-#~ msgid "Unsubscribe me"
-#~ msgstr "Annulla iscrizione"
-
-#~ msgid "XMas Promo"
-#~ msgstr "Promozione natalizia"

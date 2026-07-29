@@ -3,27 +3,7 @@
 /* global idbKeyval */
 importScripts("/mail/static/lib/idb-keyval/idb-keyval.js");
 
-/**
- * Encode an ArrayBuffer as a base64url string without padding.
- * Mirrors _arrayBufferToBase64() in webclient.js, but uses the global btoa()
- * instead of window.btoa() since window is not available in service workers.
- *
- * @param {ArrayBuffer} buffer
- * @returns {string}
- */
-function arrayBufferToBase64Url(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-}
-
-const MESSAGE_TYPE = {
-    UNEXPECTED_CALL_TERMINATION: "UNEXPECTED_CALL_TERMINATION", // deprecated
-    POST_RTC_LOGS: "POST_RTC_LOGS",
-};
+const MESSAGE_TYPE = { POST_RTC_LOGS: "POST_RTC_LOGS" };
 const PUSH_NOTIFICATION_TYPE = {
     CALL: "CALL",
     CANCEL: "CANCEL",
@@ -136,6 +116,23 @@ async function storeLogs(logs, { download = false } = {}) {
         tx.oncomplete = () => resolve(output);
         tx.onerror = (event) => reject(event.target.error);
     });
+}
+
+/**
+ * Encode an ArrayBuffer as a base64url string without padding.
+ * Mirrors _arrayBufferToBase64() in webclient.js, but uses the global btoa()
+ * instead of window.btoa() since window is not available in service workers.
+ *
+ * @param {ArrayBuffer} buffer
+ * @returns {string}
+ */
+function arrayBufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 /**
@@ -335,10 +332,6 @@ self.addEventListener("pushsubscriptionchange", async (event) => {
 });
 self.addEventListener("message", async ({ data, source }) => {
     switch (data.name) {
-        case MESSAGE_TYPE.UNEXPECTED_CALL_TERMINATION:
-            // deprecated
-            openDiscussChannel(data.channelId, { joinCall: true, source });
-            break;
         case MESSAGE_TYPE.POST_RTC_LOGS: {
             const { logs, download } = data;
             try {

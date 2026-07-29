@@ -1,26 +1,33 @@
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
 import { getContent, setSelection } from "./_helpers/selection";
 import { animationFrame, click, press, queryOne, waitFor } from "@odoo/hoot-dom";
-import { insertText, splitBlock } from "./_helpers/user_actions";
+import {
+    ensureDistinctHistoryStep,
+    insertText,
+    insertSpace,
+    splitBlock,
+} from "./_helpers/user_actions";
 import {
     compareHighlightedContent,
     highlightedPre,
     patchPrism,
     testTextareaRange,
 } from "./_helpers/syntax_highlighting";
-import { patchWithCleanup } from "@web/../tests/web_test_helpers";
+import { contains, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { browser } from "@web/core/browser/browser";
 import { setupEditor, testEditor } from "./_helpers/editor";
 import { EMBEDDED_COMPONENT_PLUGINS, MAIN_PLUGINS } from "@html_editor/plugin_sets";
 import { MAIN_EMBEDDINGS } from "@html_editor/others/embedded_components/embedding_sets";
 import { unformat } from "./_helpers/format";
 import { parseHTML } from "@html_editor/utils/html";
+import { expectElementCount } from "./_helpers/ui_expectations";
 import { oeTab } from "./_helpers/tabs";
 
 // Press a key combination, then wait for useEffect to kick in.
 const pressAndWait = async (...args) => {
     await press(...args);
     await animationFrame(); // wait for effect
+    await ensureDistinctHistoryStep();
 };
 
 const insertPre = async (editor) => {
@@ -555,6 +562,7 @@ test("can switch between code blocks without issues", async () => {
     editor.shared.selection.setCursorEnd(p1);
     // Action 3: insert "c" in first paragraph.
     await insertText(editor, "c");
+    await ensureDistinctHistoryStep();
     await compareHighlightedContent(
         getContent(editor.editable),
         unformat(
@@ -839,7 +847,10 @@ test("multiple ctrl+z in a highlighted code block undo changes in the block and 
 
     // Write in the P.
     actions.push("type: insert 'o' into the paragraph", "type: insert '!' into the paragraph");
-    await insertText(editor, "o!"); // <wrapper><pre>some code</pre></wrapper><p>hello![]</p>
+    await insertText(editor, "o"); // <wrapper><pre>some code</pre></wrapper><p>hello[]</p>
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "!"); // <wrapper><pre>some code</pre></wrapper><p>hello![]</p>
+    await ensureDistinctHistoryStep();
     await compareHighlightedContent(
         getContent(editor.editable),
         unformat(`
@@ -906,7 +917,10 @@ test("multiple ctrl+z in a highlighted code block undo changes in the block and 
     const p = queryOne("p:not([data-selection-placeholder])");
     await click(p);
     editor.shared.selection.setCursorEnd(p);
-    await insertText(editor, "ok"); // <wrapper><highlight><pre>some codeyes</pre></highlight></wrapper><p>hello!ok[]</p>
+    await insertText(editor, "o"); // <wrapper><highlight><pre>some codeyes</pre></highlight></wrapper><p>hello!o[]</p>
+    await ensureDistinctHistoryStep();
+    await insertText(editor, "k"); // <wrapper><highlight><pre>some codeyes</pre></highlight></wrapper><p>hello!ok[]</p>
+    await ensureDistinctHistoryStep();
     await compareHighlightedContent(
         getContent(editor.editable),
         unformat(`
@@ -1302,7 +1316,8 @@ test("should focus textarea when creating new code block inside a new list", asy
         config: configWithEmbeddings,
     });
     // Create list
-    await insertText(editor, "1. ");
+    await insertText(editor, "1.");
+    await insertSpace(editor);
     expect(getContent(editor.editable)).toBe(
         `<ol><li o-we-hint-text="List" class="o-we-hint">[]<br></li></ol>`
     );
@@ -1345,6 +1360,95 @@ test("should not open the odoo global command bar when pressing ctrl+k inside a 
     await press(["ctrl", "k"]);
     await animationFrame();
     expect('.o_command span[title="Create link"]').toHaveCount(0);
+});
+
+test("should convert selected text to heading", async () => {
+    const { editor } = await setupEditor(`<p>[a</p><pre>b</pre><p>c]</p>`, {
+        config: configWithEmbeddings,
+    });
+    await compareHighlightedContent(
+        getContent(editor.editable),
+        unformat(`<p>[a</p>` + highlightedPre({ value: "b" }) + `<p>c]</p>`),
+        "Initial code block is highlighted",
+        editor
+    );
+    await expectElementCount(".o-we-toolbar", 1);
+    await contains(".o-we-toolbar [name='font'] .dropdown-toggle").click();
+    await contains(".o_font_selector_menu .dropdown-item:contains('Header 2')").click();
+    await animationFrame();
+    expect(getContent(editor.editable)).toBe(`<h2>[a</h2><h2>b</h2><h2>c]</h2>`);
+});
+
+test("should convert selected text to syntax highlighting", async () => {
+    const { editor } = await setupEditor(`<p>[a</p><pre>b</pre><p>c]</p>`, {
+        config: configWithEmbeddings,
+    });
+    await compareHighlightedContent(
+        getContent(editor.editable),
+        unformat("<p>[a</p>" + highlightedPre({ value: "b" }) + "<p>c]</p>"),
+        "Initial code block is highlighted",
+        editor
+    );
+    await expectElementCount(".o-we-toolbar", 1);
+    await contains(".o-we-toolbar [name='font'] .dropdown-toggle").click();
+    await contains(".o_font_selector_menu .dropdown-item:contains('Code')").click();
+    await animationFrame();
+    await compareHighlightedContent(
+        getContent(editor.editable),
+        '<p data-selection-placeholder=""><br></p>' +
+            highlightedPre({
+                value: "a\nb\nc",
+                textareaRange: 5,
+            }) +
+            '<p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>',
+        "Selected content converted to syntax highlighting",
+        editor
+    );
+});
+
+test("should convert selected text to quote", async () => {
+    const { editor } = await setupEditor(`<p>[a</p><pre>b</pre><p>c]</p>`, {
+        config: configWithEmbeddings,
+    });
+    await compareHighlightedContent(
+        getContent(editor.editable),
+        unformat("<p>[a</p>" + highlightedPre({ value: "b" }) + "<p>c]</p>"),
+        "Initial code block is highlighted",
+        editor
+    );
+    await expectElementCount(".o-we-toolbar", 1);
+    await contains(".o-we-toolbar [name='font'] .dropdown-toggle").click();
+    await contains(".o_font_selector_menu .dropdown-item:contains('Quote')").click();
+    await animationFrame();
+
+    expect(getContent(editor.editable)).toBe(`<blockquote>[a<br>b<br>c]</blockquote>`);
+});
+
+test("should convert complex selected text to quote", async () => {
+    const { editor } = await setupEditor(
+        `<p>[a</p><pre>b</pre><p>c</p><ul><li><p>d]</p></li></ul>`,
+        {
+            config: configWithEmbeddings,
+        }
+    );
+    await compareHighlightedContent(
+        getContent(editor.editable),
+        unformat(
+            "<p>[a</p>" +
+                highlightedPre({ value: "b" }) +
+                "<p>c</p>" +
+                "<ul><li><p>d]</p></li></ul>"
+        ),
+        "Initial code block is highlighted",
+        editor
+    );
+    await expectElementCount(".o-we-toolbar", 1);
+    await contains(".o-we-toolbar [name='font'] .dropdown-toggle").click();
+    await contains(".o_font_selector_menu .dropdown-item:contains('Quote')").click();
+    await animationFrame();
+    expect(getContent(editor.editable)).toBe(
+        `<blockquote>[a<br>b<br>c</blockquote><ul><li><blockquote>d]</blockquote></li></ul>`
+    );
 });
 
 describe("Arrow navigation (up/down) across syntax-highlighted code blocks", () => {

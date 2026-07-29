@@ -7,6 +7,7 @@ import {
     addPlugin,
     addActionOption,
     waitForSnippetDialog,
+    setupWebsiteBuilderWithSnippet,
 } from "@website/../tests/builder/website_helpers";
 import {
     dummyBase64Img,
@@ -15,7 +16,7 @@ import {
     getSnippetView,
 } from "@html_builder/../tests/helpers";
 import { contains, onRpc } from "@web/../tests/web_test_helpers";
-import { animationFrame, Deferred, queryText, tick, click } from "@odoo/hoot-dom";
+import { animationFrame, queryText, tick, click } from "@odoo/hoot-dom";
 import { undo } from "@html_editor/../tests/_helpers/user_actions";
 import { Plugin } from "@html_editor/plugin";
 import { BuilderAction } from "@html_builder/core/builder_action";
@@ -157,12 +158,10 @@ test("Use the sidebar 'save snippet' buttons", async () => {
 
     // Save the snippets.
     await contains(saveButtonSelector).click();
-    await contains(".o_dialog .btn:contains('Save')").click();
     expect(".o_notification_manager .o_notification_content").toHaveCount(1);
     await contains(".o_notification_manager .o_notification_close").click();
 
     await contains(saveSectionSelector).click();
-    await contains(".o_dialog .btn:contains('Save')").click();
     expect(".o_notification_manager .o_notification_content").toHaveCount(1);
 
     // Check that the custom sections appeared.
@@ -225,7 +224,6 @@ test("Saved custom snippets drop root unremovable and unmovable classes", async 
     await contains(":iframe section[data-snippet='s_dummy']").click();
     await animationFrame();
     await contains(".oe_snippet_save").click();
-    await contains(".o_dialog .btn:contains('Save')").click();
     expect.verifySteps(["save snippet"]);
 });
 
@@ -239,6 +237,22 @@ test("Use the sidebar 'create anchor' buttons", async () => {
         </section>
         <section class="third" data-name="Dummy Section" data-snippet="s_dummy">
             <p>test<p>
+        </section>
+        <section class="fourth">
+            <p>test<p>
+            <div class="row">
+                <div>column</div>
+            </div>
+        </section>
+        <section class="fifth carousel">
+            <p>test<p>
+            <div class="row">
+                <div>column</div>
+            </div>
+        </section>
+        <section class="sixth">
+            <p>test<p>
+            <div class="s_card" data-name="Card">card</div>
         </section>
     `;
     await setupWebsiteBuilder(websiteContent);
@@ -292,9 +306,38 @@ test("Use the sidebar 'create anchor' buttons", async () => {
     await contains(".o_dialog button:contains('Remove')").click();
     expect(":iframe section.third").not.toHaveAttribute("id");
     expect(":iframe section.third").not.toHaveAttribute("data-anchor");
+
+    // Column without title nor data-name should use the default name for column
+    await contains(":iframe section.fourth div.row div").click();
+    await animationFrame();
+    await contains(
+        ".o_customize_tab .options-container > div:contains('Column') button.oe_snippet_anchor"
+    ).click();
+    await animationFrame();
+    expect(queryText(notificationContentSelector)).toInclude("#Column");
+    await contains(notificationCloseSelector).click();
+    expect(":iframe section.fourth div.row div").toHaveAttribute("id", "Column");
+
+    // Column in carousel does not allow anchor
+    await contains(":iframe section.fifth div.row div").click();
+    await animationFrame();
+    expect(
+        ".o_customize_tab .options-container > div:contains('Column') button.oe_snippet_anchor"
+    ).toHaveCount(0);
+
+    // Card outside a column also support anchor
+    await contains(":iframe section.sixth div").click();
+    await animationFrame();
+    await contains(
+        ".o_customize_tab .options-container > div:contains('Card') button.oe_snippet_anchor"
+    ).click();
+    await animationFrame();
+    expect(queryText(notificationContentSelector)).toInclude("#Card");
+    await contains(notificationCloseSelector).click();
+    expect(":iframe section.sixth div").toHaveAttribute("id", "Card");
 });
 
-test("Clicking on the options container title selects the corresponding element", async () => {
+test("Clicking on the select element button in container's header selects the corresponding element", async () => {
     await setupWebsiteBuilder(dummySnippet);
 
     await contains(":iframe .col-lg-7").click();
@@ -302,7 +345,9 @@ test("Clicking on the options container title selects the corresponding element"
     expect(".o_customize_tab .options-container").toHaveCount(2);
     expect(".oe_overlay.oe_active").toHaveRect(":iframe .col-lg-7");
 
-    await contains(".o_customize_tab .options-container span:contains('Dummy Section')").click();
+    await contains(
+        ".o_customize_tab .options-container-header:has(span:contains('Dummy Section')) button[title='Select only this block']"
+    ).click();
     expect(".o_customize_tab .options-container").toHaveCount(1);
     expect(".oe_overlay.oe_active").toHaveRect(":iframe section");
 });
@@ -351,12 +396,12 @@ test("applying option container button should wait for actions in progress", asy
         }
     }
     addPlugin(TestPlugin);
-    const customActionDef = new Deferred();
+    const customActionDef = Promise.withResolvers();
     addActionOption({
         customAction: class extends BuilderAction {
             static id = "customAction";
             load() {
-                return customActionDef;
+                return customActionDef.promise;
             }
             apply({ editingElement }) {
                 editingElement.classList.add("customAction");
@@ -392,6 +437,16 @@ test("applying option container button should wait for actions in progress", asy
 
     undo(editor);
     expect(editable).toHaveInnerHTML(`<p class="test-options-target">plop</p>`);
+});
+
+test("Use the sidebar 'target' button", async () => {
+    await setupWebsiteBuilderWithSnippet("s_banner");
+    await contains(":iframe h1").click();
+    expect(".options-container").toHaveCount(2);
+    await contains(
+        ".o_customize_tab .options-container[data-container-title='Banner'] button[title='Select only this block']"
+    ).click();
+    expect(".options-container").toHaveCount(1);
 });
 
 test("Custom snippet appears in block and inner content on save and is removed on delete", async () => {
@@ -452,7 +507,6 @@ test("Custom snippet appears in block and inner content on save and is removed o
     // Save the snippet and check that it appears in the sidebar.
     await contains(":iframe section[data-snippet='s_map']").click();
     await contains(".oe_snippet_save").click();
-    await contains(".o_dialog .btn:contains('Save')").click();
     expect.verifySteps(["save snippet"]);
     await contains(".o-snippets-tabs button:contains(Blocks)").click();
     expect(
@@ -466,7 +520,7 @@ test("Custom snippet appears in block and inner content on save and is removed o
     await contains(
         ".o_add_snippet_dialog .o_add_snippet_iframe:iframe button:has(.fa-trash)"
     ).click();
-    await contains(".o_dialog .btn:contains('Yes')").click();
+    await contains(".o_dialog .btn:contains('Delete Block')").click();
     expect.verifySteps(["delete snippet"]);
     expect(
         ".o-snippets-menu div:contains('Custom Inner Content') div[name='Custom Map']"

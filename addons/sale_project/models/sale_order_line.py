@@ -38,7 +38,8 @@ class SaleOrderLine(models.Model):
                     del res['order_id']
 
             if 'order_id' in fields and not res.get('order_id'):
-                assert (partner_id := self.env.context.get('default_partner_id'))
+                if not (partner_id := self.env.context.get('default_partner_id')):
+                    pass
                 project_id = self.env.context.get('link_to_project')
                 sale_order = None
                 so_create_values = {
@@ -67,16 +68,6 @@ class SaleOrderLine(models.Model):
         for line in self:
             if line.product_id.type == 'service' and line.state == 'sale':
                 line.product_updatable = False
-
-    @api.depends('product_id')
-    def _compute_qty_delivered_method(self):
-        milestones_lines = self.filtered(lambda sol:
-            not sol.is_expense
-            and sol.product_id.type == 'service'
-            and sol.product_id.service_type == 'milestones'
-        )
-        milestones_lines.qty_delivered_method = 'milestones'
-        super(SaleOrderLine, self - milestones_lines)._compute_qty_delivered_method()
 
     @api.depends('product_uom_qty', 'reached_milestones_ids.quantity_percentage')
     def _compute_qty_delivered(self):
@@ -403,6 +394,7 @@ class SaleOrderLine(models.Model):
                     map_so_project_templates.get((so_line.order_id.id, so_line.product_id.project_template_id.id))
                     or map_so_project.get(so_line.order_id.id)
                 )
+                project = so_line.project_id
             if so_line.product_id.service_tracking == 'task_in_project':
                 if not project:
                     if so_line.product_id.project_template_id:
@@ -427,6 +419,7 @@ class SaleOrderLine(models.Model):
                     if so_line.product_id.task_template_id not in task_templates:
                         task_templates |= so_line.product_id.task_template_id
                         so_line._timesheet_create_task(project)
+                    so_line._handle_milestones(project)
 
                 elif not project:
                     raise UserError(_(
@@ -450,11 +443,11 @@ class SaleOrderLine(models.Model):
         else:
             milestone = self.env['project.milestone'].create({
                 'name': self.name,
-                'project_id': self.project_id.id or self.order_id.project_id.id,
+                'project_id': project.id or self.order_id.project_id.id,
                 'sale_line_id': self.id,
                 'quantity_percentage': 1,
             })
-            if self.product_id.service_tracking == 'task_in_project':
+            if self.task_id and not self.task_id.milestone_id:
                 self.task_id.milestone_id = milestone.id
 
     def _prepare_invoice_line(self, **optional_values):
@@ -479,13 +472,6 @@ class SaleOrderLine(models.Model):
                 if len(accounts) == 1:
                     values['analytic_distribution'] = {accounts.id: 100}
         return values
-
-    def _get_action_per_item(self):
-        """ Get action per Sales Order Item
-
-            :returns: Dict containing id of SOL as key and the action as value
-        """
-        return {}
 
     def _prepare_procurement_values(self):
         values = super()._prepare_procurement_values()

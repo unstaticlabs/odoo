@@ -4,11 +4,12 @@ import { patch } from "@web/core/utils/patch";
 
 patch(AttachmentUploadService.prototype, {
     async upload(thread, composer, file, options) {
-        if (thread.channel_type === "livechat" && thread.isTransient) {
-            thread = await this.env.services["im_livechat.livechat"].persist(thread);
-            if (!thread) {
+        if (thread.channel?.channel_type === "livechat" && thread.isTransient) {
+            const channel = await this.env.services["im_livechat.livechat"].persist(thread);
+            if (!channel) {
                 return;
             }
+            thread = channel.thread;
             thread.readyToSwapDeferred.resolve();
             composer = thread.composer;
         }

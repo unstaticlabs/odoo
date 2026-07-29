@@ -103,6 +103,13 @@ class AccountPayment(models.Model):
         for payment in self:
             payment.refunds_count = data.get(payment.id, 0)
 
+    @api.depends('payment_transaction_id')
+    def _compute_transaction_uuid(self):
+        super()._compute_transaction_uuid()
+        for payment in self:
+            if payment.payment_transaction_id:
+                payment.transaction_uuid = payment.payment_transaction_id.provider_reference
+
     #=== ONCHANGE METHODS ===#
 
     @api.onchange('partner_id', 'payment_method_line_id', 'journal_id')
@@ -200,12 +207,6 @@ class AccountPayment(models.Model):
 
     def _prepare_payment_transaction_vals(self, **extra_create_values):
         self.ensure_one()
-        if self.env.context.get('active_model', '') == 'account.move':
-            invoice_ids = self.env.context.get('active_ids', [])
-        elif self.env.context.get('active_model', '') == 'account.move.line':
-            invoice_ids = self.env['account.move.line'].browse(self.env.context.get('active_ids')).move_id.ids
-        else:
-            invoice_ids = []
         return {
             'provider_id': self.payment_token_id.provider_id.id,
             'payment_method_id': self.payment_token_id.payment_method_id.id,
@@ -218,7 +219,10 @@ class AccountPayment(models.Model):
             'token_id': self.payment_token_id.id,
             'operation': 'offline',
             'payment_id': self.id,
-            'invoice_ids': [Command.set(invoice_ids)],
+            **({'invoice_ids': [Command.set(self.env.context.get('active_ids', []))]}
+                if self.env.context.get('active_model') == 'account.move'
+                else {}),
+            **extra_create_values,
         }
 
     def _get_payment_refund_wizard_values(self):

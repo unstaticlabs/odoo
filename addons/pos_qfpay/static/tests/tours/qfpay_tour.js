@@ -1,6 +1,6 @@
 /* global posmodel */
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
@@ -48,6 +48,7 @@ patch(QFPay.prototype, {
 let paymentUuid = "";
 
 registry.category("web_tour.tours").add("qfpay_order_and_refund", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             // Refund have to be made on the same day before 23:00 HKT.
@@ -71,7 +72,7 @@ registry.category("web_tour.tours").add("qfpay_order_and_refund", {
                     mockQFPayWebhook(paymentUuid, paymentMethodId, paymentLine.amount, false);
                 },
             },
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
 
             // REFUND
             Chrome.clickOrders(),
@@ -90,7 +91,7 @@ registry.category("web_tour.tours").add("qfpay_order_and_refund", {
                     mockQFPayWebhook(paymentUuid, paymentMethodId, paymentLine.amount, true);
                 },
             },
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
 
             Chrome.endTour(),
         ].flat(),

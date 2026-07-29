@@ -519,7 +519,7 @@ class AccountDocumentImportMixin(models.AbstractModel):
             for filename, content in extract_pdf_embedded_files(file_data['name'], file_data['raw']):
                 embedded_file_data = {
                     'name': filename,
-                    'raw': content,
+                    'raw': content or b'',
                     'mimetype': guess_mimetype(content),
                     'attachment': None,
                     'origin_attachment': file_data['origin_attachment'],

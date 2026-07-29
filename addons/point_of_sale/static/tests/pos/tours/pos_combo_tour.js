@@ -1,10 +1,11 @@
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
 import * as combo from "@point_of_sale/../tests/pos/tours/utils/combo_popup_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
+import * as ProductConfiguratorPopup from "@point_of_sale/../tests/pos/tours/utils/product_configurator_util";
 import { scan_barcode } from "@point_of_sale/../tests/generic_helpers/utils";
 import { inLeftSide } from "@point_of_sale/../tests/pos/tours/utils/common";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
@@ -95,8 +96,8 @@ registry.category("web_tour.tours").add("ProductComboPriceTaxIncludedTour", {
             ...ProductScreen.clickPayButton(),
             ...PaymentScreen.clickPaymentMethod("Bank"),
             ...PaymentScreen.clickValidate(),
-            ...ReceiptScreen.isShown(),
-            ...ReceiptScreen.clickNextOrder(),
+            ...FeedbackScreen.isShown(),
+            ...FeedbackScreen.clickNextOrder(),
 
             // another order but won't be sent to the backend
             ...ProductScreen.clickDisplayedProduct("Office Combo"),
@@ -131,7 +132,7 @@ registry.category("web_tour.tours").add("ProductComboPriceCheckTour", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
         ].flat(),
 });
 
@@ -179,22 +180,23 @@ registry.category("web_tour.tours").add("test_combo_refund_different_qty", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
             // First refund order
             ProductScreen.clickRefund(),
             TicketScreen.selectOrder("001"),
             ProductScreen.clickNumpad("1"),
-            TicketScreen.toRefundLineContains("Office Combo", "To Refund: 1.00"),
-            TicketScreen.toRefundLineContains("Combo Product 4", "To Refund: 2.00"),
-            TicketScreen.toRefundLineContains("Combo Product 3", "To Refund: 1.00"),
-            TicketScreen.toRefundLineContains("Combo Product 6", "To Refund: 1.00"),
+            TicketScreen.toRefundTextContains("1", "Office Combo"),
+            TicketScreen.toRefundTextContains("2", "Combo Product 4"),
+            TicketScreen.toRefundTextContains("1", "Combo Product 3"),
+            TicketScreen.toRefundTextContains("1", "Combo Product 6"),
             TicketScreen.confirmRefund(),
             PaymentScreen.isShown(),
         ].flat(),
 });
 
 registry.category("web_tour.tours").add("ProductComboMaxFreeQtyTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -243,7 +245,7 @@ registry.category("web_tour.tours").add("ProductComboMaxFreeQtyTour", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
         ].flat(),
 });
 
@@ -288,6 +290,65 @@ registry.category("web_tour.tours").add("ProductComboDiscountTour", {
             inLeftSide([Numpad.click("%"), Numpad.click("2"), Numpad.click("0")]),
             ProductScreen.totalAmountIs("80.00"),
             ProductScreen.isShown(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_convert_orderlines_to_combo", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+
+            // Add products that can be part of a combo
+            ProductScreen.clickDisplayedProduct("Combo Product 2"),
+            ProductScreen.clickDisplayedProduct("Combo Product 4"),
+            ProductScreen.clickDisplayedProduct("Combo Product 6"),
+
+            // Convert to combo
+            ProductScreen.clickApplyCombo(),
+
+            // Check that orderline is now a combo
+            inLeftSide([
+                { ...ProductScreen.clickLine("Office Combo")[0], isActive: ["mobile"] },
+                ...Order.hasLine({
+                    productName: "Office Combo",
+                    quantity: "1",
+                    withClass: ".selected",
+                }),
+                ...ProductScreen.clickControlButtonMore(),
+                ...ProductScreen.clickBreakCombo(),
+                ...Order.hasLine({ productName: "Combo Product 2", quantity: "1" }),
+                ...Order.hasLine({ productName: "Combo Product 4", quantity: "1" }),
+                ...Order.hasLine({ productName: "Combo Product 6", quantity: "1" }),
+                ...Order.doesNotHaveLine({ productName: "Office Combo" }),
+            ]),
+
+            ProductScreen.clickDisplayedProduct("Second Product 2"),
+            ProductScreen.clickDisplayedProduct("Second Product 4"),
+            ProductScreen.clickDisplayedProduct("Second Product 9"),
+            // Select attributes
+            ProductConfiguratorPopup.pickColor("Blue"),
+            ProductConfiguratorPopup.selectedColor("Blue"),
+            Dialog.confirm(),
+
+            // Convert to combo
+            ProductScreen.clickApplyCombo(
+                true,
+                ["Second Combo Product", "Office Combo"],
+                "Second Combo Product",
+                true
+            ),
+
+            // Check that orderline is now a combo
+            inLeftSide([
+                ...Order.hasLine({ productName: "Second Combo Product", quantity: "1" }),
+                ...Order.hasLine({
+                    productName: "Second Product 9",
+                    quantity: "1",
+                    attributeLine: "Blue",
+                }),
+            ]),
         ].flat(),
 });
 
@@ -343,7 +404,7 @@ registry.category("web_tour.tours").add("test_combo_no_free_item", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
         ].flat(),
 });
 
@@ -363,7 +424,7 @@ registry.category("web_tour.tours").add("test_combo_price_unchanged_with_lot_tra
                 ...ProductScreen.enterLotNumber("1", "lot"),
                 ...ProductScreen.orderLineHas("Product A", "1.0"),
                 {
-                    trigger: ".info-list:contains('Lot Number 1')",
+                    trigger: ".info-list:contains('Lot 1')",
                 },
             ]),
             ProductScreen.totalAmountIs("8.05"),

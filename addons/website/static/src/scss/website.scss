@@ -46,7 +46,7 @@ $-seen-urls: ();
     // 3) The values in the $colors map are also printed by Bootstrap. However,
     // we have color variables which can contain a reference to a color
     // combination and that is the info we want in that case.
-    @each $key in ('menu', 'header-sales_one', 'header-sales_two', 'header-sales_three', 'header-sales_four', 'footer', 'copyright') {
+    @each $key in ('menu', 'header-sales_one', 'header-sales_two', 'header-sales_three', 'header-sales_four', 'footer', 'breadcrumb', 'copyright', 'portal-card') {
         $-value: map-get($o-color-palette, $key);
         @if type-of($-value) == 'number' {
             @include print-variable($key, $-value);
@@ -142,6 +142,22 @@ $-seen-urls: ();
     @include print-variable('btn-border-radius-sm', $btn-border-radius-sm);
     @include print-variable('btn-border-radius-lg', $btn-border-radius-lg);
 
+    @include print-variable('box-shadow-color', $box-shadow-color);
+    @include print-variable('box-shadow-offset-x', $box-shadow-offset-x);
+    @include print-variable('box-shadow-offset-y', $box-shadow-offset-y);
+    @include print-variable('box-shadow-blur-radius', $box-shadow-blur-radius);
+    @include print-variable('box-shadow-spread-radius', $box-shadow-spread-radius);
+    @include print-variable('box-shadow-sm-color', $box-shadow-sm-color);
+    @include print-variable('box-shadow-sm-offset-x', $box-shadow-sm-offset-x);
+    @include print-variable('box-shadow-sm-offset-y', $box-shadow-sm-offset-y);
+    @include print-variable('box-shadow-sm-blur-radius', $box-shadow-sm-blur-radius);
+    @include print-variable('box-shadow-sm-spread-radius', $box-shadow-sm-spread-radius);
+    @include print-variable('box-shadow-lg-color', $box-shadow-lg-color);
+    @include print-variable('box-shadow-lg-offset-x', $box-shadow-lg-offset-x);
+    @include print-variable('box-shadow-lg-offset-y', $box-shadow-lg-offset-y);
+    @include print-variable('box-shadow-lg-blur-radius', $box-shadow-lg-blur-radius);
+    @include print-variable('box-shadow-lg-spread-radius', $box-shadow-lg-spread-radius);
+
     @include print-variable('input-padding-y', $input-padding-y);
     @include print-variable('input-padding-x', $input-padding-x);
     @include print-variable('input-font-size', $input-font-size);
@@ -170,15 +186,29 @@ $-seen-urls: ();
 
 @mixin body-image-bg-style() {
     background-image: url("#{str-slice(o-website-value('body-image'), 1)}");
-    background-position: center;
     background-attachment: fixed;
     @if o-website-value('body-image-type') == 'pattern' {
-        background-size: auto;
+        $pattern-width: o-website-value('body-image-pattern-width');
+        $pattern-height: o-website-value('body-image-pattern-height');
+        $pattern-size: auto;
+
+        @if $pattern-width and $pattern-height {
+            $pattern-size: $pattern-width $pattern-height;
+        } @else if $pattern-width {
+            $pattern-size: $pattern-width;
+        } @else if $pattern-height {
+            $pattern-size: auto $pattern-height;
+        }
+
+        background-size: $pattern-size;
         background-repeat: repeat;
     } @else {
         background-size: cover;
         background-repeat: no-repeat;
     }
+
+    background-position: o-website-value('body-image-background-position') or center;
+
 };
 
 // Manage custom offcanvas such as the one used for mobile mega menu nav
@@ -216,9 +246,55 @@ body {
     }
 }
 
+// The position of this rule is important: it ensures that manually set
+// background gradients on elements take precedence over the color preset
+// gradients.
+@for $index from 1 through 5 {
+    .o_cc#{$index} {
+        @include o-add-gradient('o-cc#{$index}-bg-gradient')
+    }
+}
+
 #wrapwrap {
     @if o-website-value('body-image') {
         @include body-image-bg-style();
+    }
+
+    > main:not(.o_breadcrumb_overlay) {
+        div.o_page_breadcrumb {
+            nav {
+                @include o-apply-colors('breadcrumb');
+                @include o-apply-colors('breadcrumb-custom');
+                @include o-add-gradient('breadcrumb-gradient');
+            }
+            a, .breadcrumb-item, li::before {
+                color: inherit !important;
+            }
+        }
+    }
+
+    &.o_header_overlay div.o_page_breadcrumb {
+        @include o-position-absolute(auto, auto, auto, auto);
+        z-index: 1 !important;
+        width: 100%;
+    }
+
+    > main.o_breadcrumb_overlay {
+        div.o_page_breadcrumb {
+            @include o-position-absolute(auto, auto, auto, auto);
+            z-index: 1 !important;
+            width: 100%;
+            a, .breadcrumb-item, li::before {
+                color: inherit !important;
+            }
+            nav {
+                @include o-apply-colors(1);
+                background-color: transparent !important;
+                background-image: none !important;
+                border-color: transparent;
+                color: inherit;
+            }
+        }
     }
 
     @if o-website-value('layout') != 'full' {
@@ -314,10 +390,20 @@ body {
             }
         }
     }
+
+    #footer {
+        & + .o_cookie_policy_link_container {
+            margin-top: 1rem;
+        }
+
+        & ~ .o_cookie_policy_link_container:last-of-type {
+            margin-bottom: 1rem;
+        }
+    }
 }
 
 // We don't want the area to be visible in edit mode when we edit the popup that
-// is shared on all pages, otherwise the .o_editable area has a minimum height
+// is shared on all pages, otherwise the .o_savable area has a minimum height
 // when it is focused.
 #o_shared_blocks {
     min-height: 0px;
@@ -546,12 +632,6 @@ $-header-nav-link-height: $nav-link-height;
     }
 }
 
-@for $index from 1 through 5 {
-    .o_cc#{$index} {
-        @include o-add-gradient('o-cc#{$index}-bg-gradient')
-    }
-}
-
 h2 {
     color: map-get($colors, 'o-cc1-h2');
 }
@@ -652,13 +732,6 @@ p {
     margin-top: $paragraph-margin-top;
 }
 
-.o_line_clamp {
-    display: -webkit-box;
-    -webkit-line-clamp: var(--lines-clamp, 2);
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
 font[style*='background']:not(.text-gradient),
 font[class*='bg-'] {
     // Not adding any horizontal padding is important as it ensures that several
@@ -676,11 +749,16 @@ font[class*='bg-'] {
     padding: MAX($-base-padding, 1px) 0 MAX(($-bottom-factor * $-base-padding), ($-bottom-factor * 1px));
 }
 
+// Images as Icons
+.social_media_img {
+    object-fit: cover;
+}
 // Icons
 .fa {
-    $-size: map-get($spacers, 5);
-
     font-family: "FontAwesome" !important;
+}
+.fa, .social_media_img {
+    $-size: map-get($spacers, 5);
 
     &.rounded-circle,
     &.rounded,
@@ -751,9 +829,9 @@ font[class*='bg-'] {
 }
 
 .btn-close {
-    // Most components with an integrated .btn-close (o_notification, modals, offcanvas)
-    // use $body-bg by default, which is why we check it here.
-    @if (lightness($body-bg) < 50) {
+    // Most components with an integrated .btn-close (o_notification, modals,
+    // offcanvas, ...) use $body-bg by default, which is why we check it here.
+    @if lightness($body-bg) < 50 {
         @include btn-close-white();
     }
 }
@@ -1504,13 +1582,14 @@ $-o-carousel-controllers-size: var(--CarouselControllers-size, #{map-get($spacer
 
 // Multiple visible items configuration for carousels
 .carousel.o_carousel_multi_items {
-    --o-carousel-item-width-percentage: 25%;
+    --o-carousel-gap: #{map-get($spacers, 3)};
 
     @include media-breakpoint-up(md) {
         .carousel-inner {
             // Display the carousel items in a row
             display: flex;
             flex-wrap: nowrap;
+            gap: var(--o-carousel-gap);
 
             // Slide right animation
             .carousel-item.active,
@@ -1549,14 +1628,18 @@ $-o-carousel-controllers-size: var(--CarouselControllers-size, #{map-get($spacer
 }
 
 // Parallax
+// ".parallax > .s_parallax_bg" selector are kept for compatibility.
 .parallax {
-    // TODO this introduces a limitation: no dropdown will be able to
-    // overflow. Maybe there is a better way to find.
-    &:not(.s_parallax_no_overflow_hidden) {
+    // Kept for compatibility. Before "s_parallax_bg" was wrapped by an
+    // intermediate parent element to clip it ("s_parallax_bg_wrap"), its direct
+    // parent was the section with the "parallax" class, which had the CSS rule
+    // "overflow: hidden". That was not the right solution because it introduced
+    // a limitation: no dropdown could overflow, for example.
+    &:where(:not(.s_parallax_no_overflow_hidden):not(:has(> .s_parallax_bg_wrap))) {
         overflow: hidden;
     }
 
-    > .s_parallax_bg {
+    > .s_parallax_bg, > .s_parallax_bg_wrap > .s_parallax_bg, > .s_parallax_bg_wrap {
         @extend %o-we-background-layer;
     }
     @include media-breakpoint-up(xl) {
@@ -1564,8 +1647,10 @@ $-o-carousel-controllers-size: var(--CarouselControllers-size, #{map-get($spacer
         // which is not a big deal but, on some of them (iOS...), defining the
         // background as fixed breaks the background-size/position props.
         // So we enable this only for >= XL devices.
-        &.s_parallax_is_fixed > .s_parallax_bg {
-            background-attachment: fixed;
+        &.s_parallax_is_fixed {
+            > .s_parallax_bg, > .s_parallax_bg_wrap > .s_parallax_bg {
+                background-attachment: fixed;
+            }
         }
     }
 }
@@ -1736,7 +1821,17 @@ header {
             }
         }
         border-radius: o-website-value('menu-border-radius') !important;
-        box-shadow: o-website-value('menu-box-shadow') !important;
+        
+        @if o-website-value('menu-shadow-class') == 'shadow' {
+            box-shadow: var(--box-shadow) !important;
+        } @else if o-website-value('menu-shadow-class') == 'shadow-sm' {
+            box-shadow: var(--box-shadow-sm) !important;
+        } @else if o-website-value('menu-shadow-class') == 'shadow-lg' {
+            box-shadow: var(--box-shadow-lg) !important;
+        } @else if o-website-value('menu-shadow-class') == 'o-shadow-custom' {
+            box-shadow: o-website-value('menu-box-shadow-style') !important;
+        }
+        
 
         &.o_header_force_no_radius {
             border-radius: 0 !important;
@@ -2283,9 +2378,13 @@ span.list-inline-item.o_add_language:last-child {
 .o_scroll_button {
     @include o-position-absolute(auto, 0, 0, 0);
     display: flex;
-    width: 50px;
-    height: 50px;
-    animation: o-anim-heartbeat 2.6s ease-in-out 1s infinite;
+    // Need to update button size based on icon size.
+    @for $i from 1 through 5 {
+        &:has(i.fa-#{$i}x) {
+            width: #{$i}em;
+            height: #{$i}em;
+        }
+    }
 
     &, &:hover {
         text-decoration: none;
@@ -2293,19 +2392,26 @@ span.list-inline-item.o_add_language:last-child {
     &:focus {
         outline: none;
     }
+    
+}
+
+.anim-heartbeat {
+    animation: o-anim-heartbeat 2.6s ease-in-out 1s infinite;
+    opacity: 0.8;
+
     &:hover {
         animation-iteration-count: 1;
     }
-}
-
-// Attention keeper for the "scroll down" top-banner button
-@keyframes o-anim-heartbeat {
-    0%, 14%, 35% {
-        transform: scale(1);
-    }
-    7%, 21% {
-        transform: scale(1.3);
-        background-color: rgba(map-get($theme-colors, 'primary'), 0.8);
+    // Attention keeper for the "scroll down" top-banner button
+    @keyframes o-anim-heartbeat {
+        0%, 14%, 35% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        7%, 21% {
+            transform: scale(1.3);
+            opacity: 1;
+        }
     }
 }
 
@@ -2351,12 +2457,6 @@ $ribbon-padding: 100px;
     height: 0px;
 }
 
-.o_cookies_bar_toggle {
-    inset-inline-end: 1rem;
-    inset-block-end: var(--cookies-bar-toggle-inset-block-end, 1rem);
-    z-index: $zindex-modal + 1; // Over the modal backdrop.
-}
-
 // Search results
 .o_search_result_item_detail {
     flex: 1;
@@ -2400,20 +2500,11 @@ ul.o_checklist > li.o_checked::after {
 input[value*="data-oe-translation-source-sha"] {
     @extend .o_text_content_invisible;
 }
-[data-oe-translation-source-sha] {
-    > .o_translation_select {
-        border: $input-border-width solid $input-border-color;
-        @include border-radius($input-border-radius, 0);
 
-        // Hide translatable `<select/>`s since we use `.o_translation_select`
-        // elements to handle translations.
-        + select {
-            display: none !important;
-        }
-        > div:not(:last-child) {
-            border-bottom: inherit;
-        }
-    }
+.o_translation_select + select {
+    // Hide translatable `<select/>`s since we use `.o_translation_select`
+    // elements to handle translations.
+    display: none !important;
 }
 
 // Offcanvas menu for in page filters (e.g. product list)
@@ -3277,4 +3368,60 @@ input[value*="data-oe-translation-source-sha"] {
     div.media_iframe_video {
       width: 100%;
     }
+}
+
+.s_social_media, .s_share {
+    $-size: map-get($spacers, 5);
+    a {
+        text-decoration: none;
+        &:hover {
+            text-decoration: none;
+        }
+    }
+    &[data-icon-underline="hover"] a {
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    &[data-icon-underline="always"] a {
+        text-decoration: underline;
+    }
+    .small_social_icon {
+        width: $-size - 1rem;
+        height: $-size - 1rem;
+        font-size: 0.875em;
+    }
+    a {
+        .fa-stack{
+            /*
+            Ensures consistent size and padding around icons when the
+            layout is set to "none" and the size is "huge" or "large".
+            For "small", this is handled above, and for "medium",
+            it is handled in the respective SCSS files (@see
+            s_social_media/000.scss and s_share/000.scss).
+            */
+            @for $i from 2 through 3 {
+                &.fa-#{$i}x {
+                    width: $-size + $i;
+                    height: $-size + $i;
+                    line-height: $-size + $i;
+                }
+            }
+        }
+    }
+    /*
+    This rule makes social media icons inherit the text color of their parent
+    container when no explicit color is set.
+    */
+    &.no_icon_color {
+        a {
+            color: inherit !important;
+        }
+    }
+}
+
+// Cursor pointer for image's that open in lightbox popup
+img.o_image_popup {
+    cursor: pointer;
 }

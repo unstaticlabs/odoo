@@ -11,13 +11,13 @@
 # Audrius Palenskis <audrius.palenskis@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Linas Versada <linaskrisiukenas@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:04+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 18:27+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "account_check_printing/lt/>\n"
@@ -26,9 +26,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_check_printing
 #. odoo-python
@@ -71,11 +71,6 @@ msgstr "Suma žodžiais"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "Bills"
 msgstr "Sąskaitos"
-
-#. module: account_check_printing
-#: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
-msgid "Cancel"
-msgstr "Atšaukti"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__bank_check_printing_layout
@@ -159,8 +154,8 @@ msgstr "Kvitai spausdinimui"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
-msgid "Companies"
-msgstr "Įmonės"
+msgid "Company"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
@@ -288,19 +283,15 @@ msgid "None"
 msgstr "Nieko"
 
 #. module: account_check_printing
-#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
-msgid "Payment Method"
-msgstr "Mokėjimo būdas"
+#: model:ir.model,name:account_check_printing.model_account_payment
+msgid "Payment"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_account_payment_method
-msgid "Payment Methods"
-msgstr "Mokėjimo būdai"
-
-#. module: account_check_printing
-#: model:ir.model,name:account_check_printing.model_account_payment
-msgid "Payments"
-msgstr "Mokėjimai"
+#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
+msgid "Payment Method"
+msgstr "Mokėjimo būdas"
 
 #. module: account_check_printing
 #. odoo-python
@@ -400,8 +391,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_check_printing/models/account_journal.py:0
 msgid ""
-"The check number you entered (%(num)s) exceeds the maximum allowed value of %"
-"(max)d. Please enter a smaller number."
+"The check number you entered (%(num)s) exceeds the maximum allowed value of "
+"%(max)d. Please enter a smaller number."
 msgstr ""
 
 #. module: account_check_printing
@@ -492,12 +483,3 @@ msgstr ""
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "sep"
 msgstr ""
-
-#~ msgid "Contact"
-#~ msgstr "Kontaktas"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Žurnalo įrašas"
-
-#~ msgid "Register Payment"
-#~ msgstr "Užregistruoti mokėjimą"

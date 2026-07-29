@@ -59,6 +59,6 @@ registry.category("fields").add("kanban.rotting", {
     component: KanbanRottingField,
 });
 
-registry.category("fields").add("list.badge_rotting", {
+registry.category("fields").add("rotting", {
     ...buildM2OFieldDescription(Many2OneFieldRotting),
 });

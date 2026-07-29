@@ -1,5 +1,5 @@
 import logging
-import pytz
+import zoneinfo
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -81,7 +81,7 @@ class AccountMoveSend(models.AbstractModel):
                     move.l10n_hr_edi_addendum_id = self.env['l10n_hr_edi.addendum'].create({'move_id': move.id})
                 move.l10n_hr_edi_addendum_id.write({
                     'fiscalization_number': move._get_l10n_hr_fiscalization_number(move.name),
-                    'invoice_sending_time': fields.Datetime.now(pytz.timezone('Europe/Zagreb')),
+                    'invoice_sending_time': fields.Datetime.now(zoneinfo.ZoneInfo('Europe/Zagreb')),
                 })
         return super()._generate_and_send_invoices(moves, from_cron=from_cron, allow_raising=allow_raising, allow_fallback_pdf=allow_fallback_pdf, **custom_settings)
 

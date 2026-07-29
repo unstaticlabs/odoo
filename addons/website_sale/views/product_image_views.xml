@@ -7,7 +7,6 @@
         <field name="model">product.image</field>
         <field name="arch" type="xml">
             <form string="Product Images">
-                <field name="sequence" invisible="1"/>
                 <div class="row o_website_sale_image_modal">
                     <div class="col-md-6 col-xl-5">
                         <label for="name" string="Image Name"/>
@@ -41,6 +40,7 @@
         <field name="model">product.image</field>
         <field name="arch" type="xml">
             <kanban string="Product Images" default_order="sequence">
+                <!-- We need the hidden video_url to be able to create new `product.image` records with video_url. (see: x2many_media_viewer.js) -->
                 <field name="video_url" invisible="1"/>
                 <field name="sequence" widget="handle"/>
                 <templates>

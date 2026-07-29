@@ -40,7 +40,6 @@ class MailingMailing(models.Model):
     _inherit = ['mail.thread',
                 'mail.activity.mixin',
                 'mail.render.mixin',
-                'utm.source.mixin'
     ]
     _order = 'calendar_date DESC'
     _rec_name = "subject"
@@ -71,22 +70,15 @@ class MailingMailing(models.Model):
 
     @api.model
     def _get_default_mail_server_id(self):
-        server_id = self.env['ir.config_parameter'].sudo().get_param('mass_mailing.mail_server_id')
-        try:
-            server_id = literal_eval(server_id) if server_id else False
-            return self.env['ir.mail_server'].search([('id', '=', server_id)]).id
-        except ValueError:
-            return False
+        server_id = self.env['ir.config_parameter'].sudo().get_int('mass_mailing.mail_server_id')
+        return self.env['ir.mail_server'].browse(server_id).exists().id
 
     active = fields.Boolean(default=True, tracking=True)
     subject = fields.Char(
         'Subject', required=True, translate=False)
     preview = fields.Char(
         'Preview', translate=False,
-        render_engine='inline_template', render_options={'post_process': True},
-        help='Catchy preview sentence that encourages recipients to open this email.\n'
-             'In most inboxes, this is displayed next to the subject.\n'
-             'Keep it empty if you prefer the first characters of your email content to appear instead.')
+        render_engine='inline_template', render_options={'post_process': True})
     email_from = fields.Char(
         string='Send From',
         compute='_compute_email_from', readonly=False, store=True, precompute=True)
@@ -126,6 +118,11 @@ class MailingMailing(models.Model):
         compute='_compute_medium_id', readonly=False, store=True,
         ondelete='restrict',
         help="UTM Medium: delivery method (email, sms, ...)")
+    source_id = fields.Many2one(
+        'utm.source', string='Source',
+        compute='_compute_source_id', readonly=False, store=True,
+        ondelete='restrict',
+        help="UTM Source: source tracking (mass_mailing, newsletter, mass_sms, ...)")
     state = fields.Selection(
         [('draft', 'Draft'), ('in_queue', 'In Queue'),
          ('sending', 'Sending'), ('done', 'Sent')],
@@ -174,9 +171,10 @@ class MailingMailing(models.Model):
         index='btree_not_null',
         default=_get_default_mail_server_id,
         help="Use a specific mail server in priority. Otherwise Odoo relies on the first outgoing mail server available (based on their sequencing) as it does for normal mails.")
-    contact_list_ids = fields.Many2many('mailing.list', 'mail_mass_mailing_list_rel', string='Mailing Lists')
+    contact_list_ids = fields.Many2many('mailing.list', 'mail_mass_mailing_list_rel', string='Mailing Lists', context={'active_test': False})
     use_exclusion_list = fields.Boolean(
-        'Use Exclusion List', default=True, copy=False,
+        'Use Exclusion List', default=True, copy=False, store=True,
+        readonly=False, compute='_compute_use_exclusion_list',
         help='Prevent sending messages to blacklisted contacts. Disable only when absolutely necessary.')
     # Mailing Filter
     mailing_filter_id = fields.Many2one(
@@ -202,6 +200,7 @@ class MailingMailing(models.Model):
     ab_testing_schedule_datetime = fields.Datetime(
         related="campaign_id.ab_testing_schedule_datetime", readonly=False,
         default=lambda self: fields.Datetime.now() + relativedelta(days=1))
+    ab_testing_version_name = fields.Char('A/B Testing Version', copy=False)
     ab_testing_winner_selection = fields.Selection(
         related="campaign_id.ab_testing_winner_selection", readonly=False,
         default="opened_ratio",
@@ -335,13 +334,13 @@ class MailingMailing(models.Model):
                 'opened': line['open'] + line['reply'],
                 'replied': line['reply'],
                 'bounced': line['bounce'],
-                'failed': line['error'],
+                'failed': line['error'] + line['bounce'],
                 'clicked': line['links_click_datetime'],
                 'sent': line['sent_datetime'],
             }
             total = (values['expected'] - values['canceled']) or 1
-            total_no_error = (values['expected'] - values['canceled'] - values['bounced'] - values['failed']) or 1
-            total_sent = (values['expected'] - values['canceled'] - values['failed']) or 1
+            total_no_error = (values['expected'] - values['canceled'] - values['failed']) or 1
+            total_sent = (values['expected'] - values['canceled'] - values['failed'] + values['bounced']) or 1
             values['received_ratio'] = float_round(100.0 * values['delivered'] / total, precision_digits=2)
             values['opened_ratio'] = float_round(100.0 * values['opened'] / total_no_error, precision_digits=2)
             values['replied_ratio'] = float_round(100.0 * values['replied'] / total_no_error, precision_digits=2)
@@ -398,7 +397,13 @@ class MailingMailing(models.Model):
     def _compute_medium_id(self):
         for mailing in self:
             if mailing.mailing_type == 'mail' and not mailing.medium_id:
-                mailing.medium_id = self.env['utm.medium']._fetch_or_create_utm_medium('email').id
+                mailing.medium_id = self.env['utm.mixin']._utm_ref('utm.utm_medium_email').id
+
+    @api.depends('mailing_type')
+    def _compute_source_id(self):
+        for mailing in self:
+            if mailing.mailing_type == 'mail' and not mailing.source_id:
+                mailing.source_id = self.env['utm.mixin']._utm_ref('utm.utm_source_mailing').id
 
     @api.depends('mailing_model_id')
     def _compute_reply_to_mode(self):
@@ -451,6 +456,15 @@ class MailingMailing(models.Model):
             else:
                 mailing.mailing_domain = repr(mailing._get_default_mailing_domain() or [])
 
+    @api.depends('mailing_model_id')
+    def _compute_use_exclusion_list(self):
+        """Always reset to using exclusion list for mailing lists and contacts."""
+        mailing_list_model_id = self.env['ir.model']._get('mailing.list')
+        mailing_contact_model_id = self.env['ir.model']._get('mailing.contact')
+        self.filtered(
+            lambda m: m.mailing_model_id in (mailing_list_model_id, mailing_contact_model_id)
+        ).use_exclusion_list = True
+
     @api.depends('mailing_model_name')
     def _compute_mailing_filter_id(self):
         for mailing in self:
@@ -480,7 +494,7 @@ class MailingMailing(models.Model):
             mailing.is_body_empty = tools.is_html_empty(mailing.body_arch)
 
     def _compute_mail_server_available(self):
-        self.mail_server_available = self.env['ir.config_parameter'].sudo().get_param('mass_mailing.outgoing_mail_server')
+        self.mail_server_available = self.env['ir.config_parameter'].sudo().get_bool('mass_mailing.outgoing_mail_server')
 
     # Overrides of mail.render.mixin
     @api.depends('mailing_model_real')
@@ -584,42 +598,6 @@ class MailingMailing(models.Model):
     # ACTIONS
     # ------------------------------------------------------
 
-    def action_set_favorite(self):
-        """Add the current mailing in the favorites list."""
-        self.favorite = True
-
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _(
-                    'Design added to the %s Templates!',
-                    ', '.join(self.mapped('mailing_model_id.name')),
-                ),
-                'next': {'type': 'ir.actions.act_window_close'},
-                'sticky': False,
-                'type': 'info',
-            }
-        }
-
-    def action_remove_favorite(self):
-        """Remove the current mailing from the favorites list."""
-        self.favorite = False
-
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'message': _(
-                    'Design removed from the %s Templates!',
-                    ', '.join(self.mapped('mailing_model_id.name')),
-                ),
-                'next': {'type': 'ir.actions.act_window_close'},
-                'sticky': False,
-                'type': 'info',
-            }
-        }
-
     def action_duplicate(self):
         self.ensure_one()
         if mass_mailing_copy := self.copy():
@@ -632,11 +610,11 @@ class MailingMailing(models.Model):
             }
         return False
 
-    def action_test(self):
+    def action_preview(self):
         self.ensure_one()
-        ctx = dict(self.env.context, default_mass_mailing_id=self.id, dialog_size='medium')
+        ctx = dict(self.env.context, default_mass_mailing_id=self.id, dialog_size='extra-large')
         return {
-            'name': _('Test Mailing'),
+            'name': _('Preview & Test'),
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'mailing.mailing.test',
@@ -670,21 +648,21 @@ class MailingMailing(models.Model):
     def action_cancel(self):
         self.write({'state': 'draft', 'schedule_date': False, 'schedule_type': 'now', 'next_departure': False})
 
-    def action_retry_failed(self):
+    def action_retry_failed(self, extra_domain=None):
         """ Remove all failed emails and their traces, and try sending them again."""
         # Use batching to prevent cache overfill in unlink()
         batch_size = 1000
-        failed_emails = self.env['mail.mail'].sudo().with_context(prefetch_fields=False).search([
+        base_domain = [
             ('mailing_id', 'in', self.ids),
             ('state', '=', 'exception')
-        ], limit=batch_size)
+        ]
+        domain = Domain(base_domain) & Domain(extra_domain or Domain.TRUE)
+        failed_emails = self.env['mail.mail'].sudo().with_context(prefetch_fields=False).search(domain, limit=batch_size)
         while failed_emails:
             failed_emails.mapped('mailing_trace_ids').unlink()
             failed_emails.unlink()
-            failed_emails = failed_emails.search([
-                ('mailing_id', 'in', self.ids),
-                ('state', '=', 'exception')
-            ], limit=batch_size)
+            self.env.invalidate_all()
+            failed_emails = failed_emails.search(domain, limit=batch_size)
         self.action_put_in_queue()
 
     def action_view_link_trackers(self):
@@ -712,7 +690,9 @@ class MailingMailing(models.Model):
         return self._action_view_traces_filtered('canceled')
 
     def action_view_traces_failed(self):
-        return self._action_view_traces_filtered('failed')
+        action = self._action_view_traces_filtered('bounced')
+        action['context']['search_default_filter_error'] = True
+        return action
 
     def action_view_traces_process(self):
         return self._action_view_traces_filtered('process')
@@ -797,13 +777,14 @@ class MailingMailing(models.Model):
             ),
         return action
 
-    def action_view_mailing_contacts(self):
-        """Show the mailing contacts who are in a mailing list selected for this mailing."""
+    def action_import_mailing_contacts(self):
+        """Display the mailing contact import-by-paste wizard for this mailing's contact lists"""
         self.ensure_one()
-        action = self.env['ir.actions.actions']._for_xml_id('mass_mailing.action_view_mass_mailing_contacts')
+        action = self.env['ir.actions.actions']._for_xml_id('mass_mailing.mailing_contact_import_action')
+        action['context'] = {'no_redirect': True}
         if self.contact_list_ids:
-            action['context'] = {
-                'default_mailing_list_ids': self.contact_list_ids[0].ids,
+            action['context'] |= {
+                'default_mailing_list_ids': self.contact_list_ids.ids,
                 'default_subscription_ids': [(0, 0, {'list_id': self.contact_list_ids[0].id})],
             }
         action['domain'] = [('list_ids', 'in', self.contact_list_ids.ids)]
@@ -893,7 +874,6 @@ class MailingMailing(models.Model):
             raise ValueError(_("A/B test option has not been enabled"))
         final_mailing = self.copy({
             'ab_testing_pc': 100,
-            'name': _(" %(subject)s (final)", subject=self.name)  # Add suffix on name to show it's the final mailing
         })
         self.campaign_id.ab_testing_winner_mailing_id = final_mailing
         final_mailing.action_launch()
@@ -961,7 +941,10 @@ class MailingMailing(models.Model):
 
     def _get_link_tracker_values(self):
         self.ensure_one()
-        vals = {'mass_mailing_id': self.id}
+        vals = {
+            'mass_mailing_id': self.id,
+            'utm_reference': f'{self._name},{self.id}',
+        }
 
         if self.campaign_id:
             vals['campaign_id'] = self.campaign_id.id
@@ -1162,7 +1145,10 @@ class MailingMailing(models.Model):
         for mass_mailing in self:
             html = mass_mailing.body_html if mass_mailing.body_html else ''
 
-            vals = {'mass_mailing_id': mass_mailing.id}
+            vals = {
+                'mass_mailing_id': mass_mailing.id,
+                'utm_reference': f'{mass_mailing._name},{mass_mailing.id}',
+            }
 
             if mass_mailing.campaign_id:
                 vals['campaign_id'] = mass_mailing.campaign_id.id
@@ -1196,7 +1182,7 @@ class MailingMailing(models.Model):
                 })
             self.env['ir.cron']._commit_progress(processed=1)
 
-        if self.env['ir.config_parameter'].sudo().get_param('mass_mailing.mass_mailing_reports'):
+        if self.env['ir.config_parameter'].sudo().get_bool('mass_mailing.mass_mailing_reports'):
             mailings = self.env['mailing.mailing'].search([
                 ('kpi_mail_required', '=', True),
                 ('state', '=', 'done'),
@@ -1337,7 +1323,7 @@ class MailingMailing(models.Model):
                     'kpi_name': 'trace',
                 },
             ],
-            'tips': [random_tip] if random_tip else False,
+            'tips': [random_tip] if random_tip else [],
             'formatted_date': formatted_date,
         }
 
@@ -1437,7 +1423,8 @@ class MailingMailing(models.Model):
         checksums_set, checksum_original_id, new_attachment_by_checksum = set(), {}, {}
         next_img_id = len(existing_attachments)
         for (b64image, original_id) in b64images:
-            checksum = IrAttachment._compute_checksum(base64.b64decode(b64image))
+            image_raw = base64.b64decode(b64image)
+            checksum = IrAttachment._compute_checksum(image_raw)
             checksums.append(checksum)
             existing_attach = existing_attachments.get(checksum)
             # Existing_attach can be None, in which case it acts as placeholder
@@ -1448,7 +1435,7 @@ class MailingMailing(models.Model):
             if not existing_attach and not checksum in checksums_set:
                 # We create only one attachment per checksum
                 vals_for_attachs.append({
-                    'datas': b64image,
+                    'raw': image_raw,
                     'name': f"image_mailing_{self.id}_{next_img_id}",
                     'type': 'binary',
                     'res_id': self.id,
@@ -1542,6 +1529,6 @@ class MailingMailing(models.Model):
         """
         self.ensure_one()
         assert isinstance(email, str)
-        secret = self.env["ir.config_parameter"].sudo().get_param("database.secret")
+        secret = self.env["ir.config_parameter"].sudo().get_str("database.secret")
         token = (self.env.cr.dbname, self.id, int(document_id), email)
         return hmac.new(secret.encode('utf-8'), repr(token).encode('utf-8'), hashlib.sha512).hexdigest()

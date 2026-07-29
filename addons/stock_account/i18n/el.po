@@ -6,23 +6,24 @@
 # Martin Trigaux, 2018
 # Kostas Goutoudis <goutoudis@gmail.com>, 2018
 # George Tarasidis <george_tarasidis@yahoo.com>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 11:52+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:53+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Greek <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/el/>\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -159,8 +160,8 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Αναλυτικά Σχέδια"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -207,6 +208,12 @@ msgid "Bacon"
 msgstr ""
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -231,10 +238,6 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Εταιρίες"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -520,9 +523,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Αναφορά / Αιτιολογία Απογραφής"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Τοποθεσίες Αποθέματος"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -798,8 +807,8 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Quants"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1152,73 +1161,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "units"
 msgstr "μονάδες"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Λογαριασμός Ιδιοτήτων Αποθέματος"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Λογιστικές Εγγραφές"
-
-#~ msgid "Cancel"
-#~ msgstr "Ακύρωση"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Γραμμή Τιμολογίου"
-
-#~ msgid "Product Template"
-#~ msgstr "Πρότυπο Είδους "
-
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Υπολειπόμενη Ποσ."
-
-#~ msgid "Return Picking"
-#~ msgstr "Επιστροφή Συλλογής"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Λογαριασμός Εισερχομένων Αποθεμάτων"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Λογαριασμός Εξερχομένων"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Λογαριασμός Αποτιμήσης Αποθέματος (εισερχέμενο)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Λογαριασμός Αποτιμήσης Αποθέματος (εξερχόμενα)"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Μονάδα Μέτρησης"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Χρησιμοποιείται για την αποτίμηση των αποθεμάτων σε πραγματικό χρόνο. "
-#~ "Όταν ρυθμιστεί σε μια εικονική θέση (μη εσωτερικού τύπου), αυτός ο "
-#~ "λογαριασμός θα χρησιμοποιείται για να κρατήσει την αξία των ειδών που "
-#~ "μετακινούνται από μια εσωτερική θέση σε αυτήν τη θέση, αντί του γενικού "
-#~ "Λογαριασμού Εξερχόμενου Αποθέματος που  ρυθμίστηκε επί του είδους. Αυτό "
-#~ "δεν έχει καμία επίδραση για τις εσωτερικές θέσεις."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Χρησιμοποιείται για την αποτίμηση των αποθεμάτων σε πραγματικό χρόνο. "
-#~ "Όταν ρυθμιστεί σε μια εικονική θέση (μη εσωτερικού τύπου), αυτός ο "
-#~ "λογαριασμός θα χρησιμοποιείται για να κρατήσει την αξία των ειδών που "
-#~ "μετακινούνται από αυτή την θέση σε μια εσωτερική θέση, αντί του γενικού "
-#~ "Λογαριασμού Εξερχόμενου Αποθέματος που  ρυθμίστηκε επί του είδους. Αυτό "
-#~ "δεν έχει καμία επίδραση για τις εσωτερικές θέσεις."
-
-#~ msgid "Warning"
-#~ msgstr "Προσοχή"

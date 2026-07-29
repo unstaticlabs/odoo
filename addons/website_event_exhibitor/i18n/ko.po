@@ -2,15 +2,17 @@
 # This file contains the translation of the following modules:
 # * website_event_exhibitor
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:29+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 17:59+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_exhibitor/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -45,7 +47,8 @@ msgstr ""
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
 msgid ""
 "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">Discover more</a>"
-msgstr "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">더 알아보기</a>"
+msgstr ""
+"<a href=\"#\" class=\"btn btn-primary o_translate_inline\">더 알아보기</a>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -100,6 +103,11 @@ msgstr "활동"
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "활동 예외 장식"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+msgid "Activity Plans"
+msgstr "활동 계획"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
@@ -164,6 +172,17 @@ msgstr "첨부 파일 수"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "참석자는 다음과 같은 방법으로 참여할 수 있습니다"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Auto publish on"
+msgstr "자동 게시"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "선택한 날짜와 시간에 페이지가 자동 등록됩니다."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -658,6 +677,11 @@ msgid "Published"
 msgstr "게시 완료"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+msgid "Published date"
+msgstr "게시일"
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -950,6 +974,11 @@ msgid ""
 msgstr ""
 "종료.\n"
 "                <br/>"
+
+#. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr "스폰서"
 
 #. module: website_event_exhibitor
 #. odoo-javascript

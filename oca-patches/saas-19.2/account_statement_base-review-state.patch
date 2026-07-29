@@ -1,0 +1,15 @@
+diff --git a/account_statement_base/views/account_bank_statement_line.xml b/account_statement_base/views/account_bank_statement_line.xml
+index a19fdc7..45e36c6 100644
+--- a/account_statement_base/views/account_bank_statement_line.xml
++++ b/account_statement_base/views/account_bank_statement_line.xml
+@@ -151,8 +151,8 @@
+                 <separator />
+                 <filter
+                     name="to_check"
+-                    string="To check"
+-                    domain="[('checked', '=', False)]"
++                    string="To Review"
++                    domain="[('move_id.review_state', 'in', ('todo', 'anomaly'))]"
+                 />
+                 <separator />
+                 <filter name="date" string="Date" date="date" />

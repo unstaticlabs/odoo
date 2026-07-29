@@ -18,15 +18,14 @@
 # Simon S, 2022
 # Robin Calvin, 2022
 # Stephen Schmidt <stephen.schmidt@linserv.se>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 22:01+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 21:23+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "sale_management/sv/>\n"
 "Language: sv\n"
@@ -34,7 +33,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -83,11 +82,17 @@ msgid "Archived"
 msgstr "Arkiverad"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Företag"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -145,7 +150,7 @@ msgstr "Beskrivning"
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_digest_digest
 msgid "Digest"
-msgstr "Sammanfattning"
+msgstr "Sammanställning"
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__display_name
@@ -164,14 +169,6 @@ msgid "Display Type"
 msgstr "Visningstyp"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"Saknar åtkomsträttighet, hoppa över denna data för användarens sammanställda "
-"utskick"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr "Förbjuden produkt, kvantitet och enhet på icke-ansvarigt offertrad"
@@ -180,6 +177,18 @@ msgstr "Förbjuden produkt, kvantitet och enhet på icke-ansvarigt offertrad"
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "Ger sekvensordningen när en lista över offertrader visas."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -236,7 +245,7 @@ msgstr "Senast uppdaterad den"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__sale_order_template_line_ids
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Lines"
-msgstr "Rader"
+msgstr "Linjer"
 
 #. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_accountable_product_id_required
@@ -273,7 +282,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -344,6 +353,12 @@ msgstr "Offertmallar"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
 msgstr "Giltighet för offert"
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
@@ -429,9 +444,11 @@ msgstr ""
 "och felfri."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
-msgstr "Delavsnitt"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -523,8 +540,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -534,8 +551,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -558,87 +575,3 @@ msgstr "dagar"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "t.ex. Standardkonsultpaket"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Din mall kan inte innehålla produkter från flera företag."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Din mall innehåller produkter från företaget %(product_company)s medan "
-#~ "din mall tillhör företaget %(template_company)s. \n"
-#~ " Vänligen ändra företaget för din mall eller ta bort produkterna från "
-#~ "andra företag."
-
-#~ msgid "Add to cart"
-#~ msgstr "Lägg i varukorgen"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Lägg till orderrad"
-
-#~ msgid "Category"
-#~ msgstr "Kategori"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Omräkning av enheter kan endast ske om de tillhör samma kategori. "
-#~ "Omräkningen baseras på angiven ratio."
-
-#~ msgid "Disc.%"
-#~ msgstr "Rab.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Rabatt (%)"
-
-#~ msgid "Group By"
-#~ msgstr "Gruppera efter"
-
-#~ msgid "Line"
-#~ msgstr "Rad"
-
-#~ msgid "Office Chair"
-#~ msgstr "Kontorsstol"
-
-#~ msgid "Optional Products"
-#~ msgstr "Optioner"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Tilläggsproduktrader"
-
-#~ msgid "Options"
-#~ msgstr "Alternativ"
-
-#~ msgid "Quantity:"
-#~ msgstr "Antal"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Offertbyggare"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Offert upphör att gälla efter"
-
-#~ msgid "Remove"
-#~ msgstr "Ta bort"
-
-#~ msgid "Sale Options"
-#~ msgstr "Försäljningsalternativ"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Offertmallsrader"
-
-#~ msgid "Unit Price"
-#~ msgstr "Enhetspris"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Måttenhet"
-
-#~ msgid "UoM"
-#~ msgstr "Måttenhet"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Du kan inte utöka en bekräftad order."

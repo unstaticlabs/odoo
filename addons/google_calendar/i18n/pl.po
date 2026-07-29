@@ -17,16 +17,16 @@
 # Dariusz Żbikowski <darek@krokus.com.pl>, 2022
 # Piotr Szlązak <szlazakpiotr@gmail.com>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 01:43+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-02-14 12:09+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-1/"
 "google_calendar/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -35,7 +35,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: google_calendar
 #. odoo-python
@@ -115,11 +115,6 @@ msgid "Calendar ID"
 msgstr "ID kalendarza"
 
 #. module: google_calendar
-#: model_terms:ir.ui.view,arch_db:google_calendar.google_calendar_reset_account_view_form
-msgid "Cancel"
-msgstr "Anuluj"
-
-#. module: google_calendar
 #: model_terms:ir.ui.view,arch_db:google_calendar.res_config_settings_view_form
 msgid "Client ID"
 msgstr "ID klienta"
@@ -142,7 +137,7 @@ msgstr "Client_key"
 #. module: google_calendar
 #: model:ir.model,name:google_calendar.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfiguracja ustawień"
+msgstr "Ustawienia konfiguracji"
 
 #. module: google_calendar
 #. odoo-javascript
@@ -185,12 +180,6 @@ msgstr "Usuń z obu"
 #: model:ir.model.fields.selection,name:google_calendar.selection__google_calendar_account_reset__delete_policy__delete_google
 msgid "Delete from the current Google Calendar account"
 msgstr "Usuń z bieżącego konta Kalendarza Google"
-
-#. module: google_calendar
-#. odoo-javascript
-#: code:addons/google_calendar/static/src/views/google_calendar/google_calendar_controller.js:0
-msgid "Discard"
-msgstr "Odrzuć"
 
 #. module: google_calendar
 #: model:ir.model.fields,field_description:google_calendar.field_calendar_alarm_manager__display_name
@@ -482,39 +471,3 @@ msgid ""
 msgstr ""
 "wydaje się, że nie masz uprawnień do modyfikacji tego wydarzenia w "
 "Kalendarzu Google"
-
-#~ msgid ""
-#~ "An error occurred while generating the token. Your authorization code may "
-#~ "be invalid or has already expired [%s]. You should check your Client ID "
-#~ "and secret on the Google APIs plateform or try to stop and restart your "
-#~ "calendar synchronisation."
-#~ msgstr ""
-#~ "Podczas generowania tokena wystąpił błąd. Twój kod autoryzacji może być "
-#~ "nieprawidłowy lub już wygasł [%s]. Powinieneś sprawdzić swój "
-#~ "identyfikator i sekret klienta na platformie Google API lub spróbować "
-#~ "zatrzymać i ponownie uruchomić synchronizację kalendarza."
-
-#~ msgid "Google Calendar Account"
-#~ msgstr "Konto kalendarza Google"
-
-#~ msgid "Google Calendar Account Data"
-#~ msgstr "Dane konta kalendarza Google"
-
-#~ msgid "Success"
-#~ msgstr "Powodzenie"
-
-#~ msgid "The account for the Google Calendar service is not configured."
-#~ msgstr "Konto usługi Kalendarza Google nie jest skonfigurowane."
-
-#~ msgid "The synchronization with Google calendar was successfully stopped."
-#~ msgstr "Synchronizacja z Kalendarzem Google została pomyślnie zatrzymana."
-
-#~ msgid "The user has already a google account"
-#~ msgstr "Użytkownik ma już konto Google"
-
-#~ msgid ""
-#~ "You are about to stop the synchronization of your calendar with Google. "
-#~ "Are you sure you want to continue?"
-#~ msgstr ""
-#~ "Za chwilę zatrzymasz synchronizację swojego kalendarza z Google. Jesteś "
-#~ "pewien, że chcesz kontynuować?"

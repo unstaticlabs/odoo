@@ -4,7 +4,6 @@
     'name': "Coupons & Loyalty",
     'summary': "Use discounts, gift card, eWallets and loyalty programs in different sales channels",
     'category': 'Sales',
-    'version': '1.0',
     'depends': ['product', 'portal', 'account'],
     'data': [
         'security/ir.model.access.csv',
@@ -37,7 +36,7 @@
             # Don't include dark mode files in light mode
             ('remove', 'loyalty/static/src/scss/*.dark.scss'),
         ],
-        "web.assets_web_dark": [
+        'web.assets_web_dark': [
             'loyalty/static/src/scss/*.dark.scss',
         ],
         'web.assets_frontend': [
@@ -45,7 +44,6 @@
             'loyalty/static/src/interactions/*',
         ],
     },
-    'installable': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

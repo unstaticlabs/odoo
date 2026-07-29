@@ -6,23 +6,23 @@
 # Martin Trigaux, 2022
 # Andy Yiu, 2023
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 01:47+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-18 13:39+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_payment/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
@@ -69,11 +69,6 @@ msgstr "<b>支払ID：</b>"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Payment Method:</b>"
 msgstr "<b>支払方法：</b>"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">国...</option>"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_input
@@ -128,11 +123,38 @@ msgid "<span class=\"s_donation_currency pe-1\">$</span>50"
 msgstr "<span class=\"s_donation_currency pe-1\">$</span>50"
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Country</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+"<span class=\"s_website_form_label_content\">国</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+"<span class=\"s_website_form_label_content\">Eメール</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+"<span class=\"s_website_form_label_content\">名前</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span>Enable a payment provider to accept online payments.</span>"
 msgstr ""
-"<span>オンライン支払いを受け付けるには、決済プロバイダーを有効にしてください"
-"。</span>"
+"<span>オンライン支払いを受け付けるには、決済プロバイダーを有効にしてくださ"
+"い。</span>"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
@@ -140,7 +162,7 @@ msgid "<span>or</span>"
 msgstr "<span>または</span>"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "<strong>Warning</strong> The currency is missing or incorrect."
 msgstr "<strong>警告</strong>通貨がないか、間違っています。"
 
@@ -154,16 +176,6 @@ msgstr "ウェブサイトに寄付がされました。"
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "A year of cultural awakening."
 msgstr "文化的覚醒の1年。"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate"
-msgstr "有効化"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate Stripe"
-msgstr "Stripeを有効化"
 
 #. module: website_payment
 #. odoo-javascript
@@ -227,19 +239,20 @@ msgid "Configure Payment Methods"
 msgstr "支払方法を設定"
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect"
+msgstr "接続"
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect Stripe"
+msgstr "Stripeに接続"
+
+#. module: website_payment
 #. odoo-javascript
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Country"
 msgstr "国"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Country\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"国\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -297,9 +310,8 @@ msgid "Donate Now"
 msgstr "今すぐ寄付する"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation"
 msgstr "寄付"
@@ -308,6 +320,11 @@ msgstr "寄付"
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation Button"
 msgstr "寄付ボタン"
+
+#. module: website_payment
+#: model:ir.model.fields,field_description:website_payment.field_payment_transaction__donation_log_message
+msgid "Donation Log Message"
+msgstr "寄付ログメッセージ"
 
 #. module: website_payment
 #. odoo-python
@@ -337,15 +354,6 @@ msgstr "寄付通知"
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Email"
 msgstr "メール"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Email\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"Eメール\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -428,15 +436,6 @@ msgid "Name"
 msgstr "名称"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Name\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"名前\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-
-#. module: website_payment
 #. odoo-python
 #: code:addons/website_payment/controllers/portal.py:0
 msgid "Name is required."
@@ -465,6 +464,11 @@ msgid "One year in high school."
 msgstr "高校一年間。"
 
 #. module: website_payment
+#: model:ir.model,name:website_payment.model_account_payment
+msgid "Payment"
+msgstr "支払"
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 msgid "Payment Details"
 msgstr "支払詳細"
@@ -480,31 +484,19 @@ msgid "Payment Transaction"
 msgstr "支払取引"
 
 #. module: website_payment
-#. odoo-python
-#: code:addons/website_payment/models/payment_transaction.py:0
-msgid "Payment received from donation with following details:"
-msgstr "寄付を受け付けました。詳細："
-
-#. module: website_payment
-#: model:ir.model,name:website_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Payments"
 msgstr "支払"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please enter a valid email address."
 msgstr "有効なEメールアドレスを入力してください。"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please provide a name."
 msgstr "名前を入力してください。"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "Please select a country."
-msgstr "国を選択してください。"
 
 #. module: website_payment
 #. odoo-javascript
@@ -572,7 +564,7 @@ msgid "The minimum donation amount is %(amount)s"
 msgstr "最小寄付金額: %(amount)s"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "There is nothing to pay."
 msgstr "支払うものはありません。"
 
@@ -585,9 +577,11 @@ msgstr "プロバイダーを見る"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid ""
-"Visa, Mastercard, Maestro, Google Pay, Apple Pay, etc. as well as recurring "
-"charges."
-msgstr "Visa、Mastercard、Maestro、Google Pay、Apple Pay、その他、継続課金。"
+"Visa, Mastercard, Maestro, UPI, Netbanking, PayNow, Klarna, etc., as well as "
+"recurring charges."
+msgstr ""
+"Visa、Mastercard、Maestro、UPI、ネットバンキング、PayNow、Klarnaなどに加え、"
+"継続課金(定期支払い)にも対応しています。"
 
 #. module: website_payment
 #: model:ir.model.fields,field_description:website_payment.field_payment_provider__website_id
@@ -608,58 +602,3 @@ msgstr "あなたのコメント"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "made on"
 msgstr "以下で作成された"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>適用可能な決済オプションが見つかりませんでした</strong><br/>\n"
-#~ "                                エラーだと思われる場合は、サイトの管理者ま"
-#~ "でお問い合わせください。"
-
-#~ msgid "Activate Payments"
-#~ msgstr "決済を有効化"
-
-#~ msgid "Add new pre-filled option"
-#~ msgstr "新しい事前入力オプションを追加する"
-
-#~ msgid "Configure %s"
-#~ msgstr "設定%s"
-
-#~ msgid "First Provider Label"
-#~ msgstr "第1プロバイダーのラベル"
-
-#~ msgid "Is Stripe Supported Country"
-#~ msgstr "ストライプがサポートしている国か"
-
-#~ msgid "Other than Paypal"
-#~ msgstr "ペイパル以外"
-
-#~ msgid "Paypal Only"
-#~ msgstr "ペイパルのみ"
-
-#~ msgid "Providers State"
-#~ msgstr "プロバイダーステート"
-
-#~ msgid "Server Error"
-#~ msgstr "サーバーエラー"
-
-#~ msgid "Shop - Payment"
-#~ msgstr "ショップ - 決済"
-
-#~ msgid ""
-#~ "Support most payment methods; Visa, Mastercard, Maestro, Google Pay, "
-#~ "Apple Pay, etc. as well as recurring charges."
-#~ msgstr ""
-#~ "大体の決済方法に対応してます；Visa、Mastercard、Maestro、Google Pay、"
-#~ "Apple Payなどと共に定期的費用も対応されています。"
-
-#~ msgid "Validation Error"
-#~ msgstr "検証エラー"
-
-#~ msgid "View Alternatives"
-#~ msgstr "他の選択肢を確認"
-
-#~ msgid "View other providers"
-#~ msgstr "他のプロバイダーを確認"

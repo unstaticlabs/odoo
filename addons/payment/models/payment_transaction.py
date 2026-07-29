@@ -17,7 +17,6 @@ from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.const import CURRENCY_MINOR_UNITS, SENSITIVE_KEYS
 from odoo.addons.payment.logging import get_payment_logger
 
-
 _logger = get_payment_logger(__name__, sensitive_keys=SENSITIVE_KEYS)
 
 

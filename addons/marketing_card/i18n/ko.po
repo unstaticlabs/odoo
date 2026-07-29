@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * marketing_card
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 21:56+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2026-02-28 13:45+0000\n"
 "Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-2/"
 "marketing_card/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: marketing_card
 #. odoo-python
@@ -42,8 +42,8 @@ msgid ""
 "<i class=\"fa fa-fw fa-share\" aria-label=\"Shares\" role=\"img\" "
 "title=\"Shares\"/>"
 msgstr ""
-"<i class=\"fa fa-fw fa-share\" aria-label=\"공유\" role=\"img\" "
-"title=\"공유\"/>"
+"<i class=\"fa fa-fw fa-share\" aria-label=\"공유\" role=\"img\" title=\"공유"
+"\"/>"
 
 #. module: marketing_card
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_preview
@@ -125,6 +125,11 @@ msgstr "활동"
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "활동 예외 장식"
+
+#. module: marketing_card
+#: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_plans_ids
+msgid "Activity Plans"
+msgstr "활동 계획"
 
 #. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_state
@@ -618,6 +623,11 @@ msgid "Messages"
 msgstr "메시지"
 
 #. module: marketing_card
+#: model:ir.model,name:marketing_card.model_ir_model
+msgid "Model"
+msgstr "모델"
+
+#. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__res_model
 #: model:ir.model.fields,field_description:marketing_card.field_card_card__res_model
 msgid "Model Name"
@@ -629,11 +639,6 @@ msgstr "모델명"
 msgid ""
 "Model of campaign %(campaign)s may not be changed as it already has cards"
 msgstr "%(campaign)s 캠페인 모델에는 이미 카드가 있으므로 변경할 수 없습니다"
-
-#. module: marketing_card
-#: model:ir.model,name:marketing_card.model_ir_model
-msgid "Models"
-msgstr "모델"
 
 #. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__my_activity_date_deadline
@@ -715,10 +720,10 @@ msgid ""
 "usually be a placeholder expression that provides the appropriate language, "
 "e.g. {{ object.partner_id.lang }}."
 msgstr ""
-"이메일 전송 시 번역할 언어 (ISO 코드)를 선택할 수 있습니다. 선택하지 않을 "
-"경우, 기본 파트너의 사용 언어가 기본 언어로 적용됩니다. 알맞은 언어로 "
-"표시되는 자리표지자가 나타나며, 예를 들어 {{ object.partner_id.lang }} 와 "
-"같이 표시됩니다."
+"이메일 전송 시 번역할 언어 (ISO 코드)를 선택할 수 있습니다. 선택하지 않을 경"
+"우, 기본 파트너의 사용 언어가 기본 언어로 적용됩니다. 알맞은 언어로 표시되는 "
+"자리표지자가 나타나며, 예를 들어 {{ object.partner_id.lang }} 와 같이 표시됩"
+"니다."
 
 #. module: marketing_card
 #: model:card.template,name:marketing_card.card_template_organic
@@ -744,7 +749,8 @@ msgstr "Powered By"
 #: model_terms:ir.actions.act_window,help:marketing_card.card_campaign_action
 msgid ""
 "Prepare a design and some content and let your community spread the word!"
-msgstr "디자인과 콘텐츠를 준비하고 커뮤니티에서 널리 홍보할 수 있도록 도와주세요!"
+msgstr ""
+"디자인과 콘텐츠를 준비하고 커뮤니티에서 널리 홍보할 수 있도록 도와주세요!"
 
 #. module: marketing_card
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_view_form
@@ -1004,8 +1010,8 @@ msgid ""
 "The UTM source '%s' cannot be deleted as it is used to promote marketing "
 "cards campaigns."
 msgstr ""
-"UTM 소스 '%s'는 마케팅 카드 캠페인을 홍보하는 데 사용되므로 삭제할 수 "
-"없습니다."
+"UTM 소스 '%s'는 마케팅 카드 캠페인을 홍보하는 데 사용되므로 삭제할 수 없습니"
+"다."
 
 #. module: marketing_card
 #: model:ir.model.fields,help:marketing_card.field_card_campaign__activity_exception_decoration
@@ -1128,19 +1134,3 @@ msgstr "예: 예시용 토크"
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_view_form
 msgid "e.g. Why people should share on their network?"
 msgstr "예: 왜 네트워크를 통해 공유해야 하나요?"
-
-#~ msgid "Filter By"
-#~ msgstr "필터링 기준"
-
-#~ msgid "Group By"
-#~ msgstr "그룹별"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "이메일 전송 시 번역할 언어 (ISO code)를 선택할 수 있습니다. 설정하지 않을 "
-#~ "경우, 영어가 기본 언어로 사용됩니다. 적절한 언어를 선택할 수 있도록 다음"
-#~ "과 같은 예시용 메시지를 사용합니다. {{ object.partner_id.lang }}."

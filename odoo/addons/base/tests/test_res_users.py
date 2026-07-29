@@ -7,8 +7,17 @@ from unittest.mock import patch
 from odoo.api import SUPERUSER_ID
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Command
-from odoo.http import _request_stack
-from odoo.tests import Form, TransactionCase, new_test_user, tagged, HttpCase, users, warmup
+from odoo.http.requestlib import _request_stack
+from odoo.tests import (
+    Form,
+    HttpCase,
+    TransactionCase,
+    freeze_time,
+    new_test_user,
+    tagged,
+    users,
+    warmup,
+)
 from odoo.tools import mute_logger
 
 
@@ -47,6 +56,7 @@ class UsersCommonCase(TransactionCase):
         users.invalidate_recordset()
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUsers(UsersCommonCase):
 
     def test_name_search(self):
@@ -302,6 +312,7 @@ class TestUsers(UsersCommonCase):
         non_existing_user = User.browse(last_user_id.id + 1)
         self.assertFalse(non_existing_user._compute_session_token('session_id'))
 
+
 @tagged('post_install', '-at_install', 'groups')
 class TestUsers2(UsersCommonCase):
 
@@ -464,61 +475,56 @@ class TestUsers2(UsersCommonCase):
             self.user_portal_1.copy_data()
             self.assertFalse(mock.called)
 
-    @users('portal_1')
+    @users('user_internal', 'portal_1')
     @mute_logger('odoo.addons.base.models.ir_model')
-    def test_self_writeable_fields(self):
-        """Check that a portal user:
-            - can write on fields in SELF_WRITEABLE_FIELDS on himself,
-            - cannot write on fields not in SELF_WRITEABLE_FIELDS on himself,
-            - and none of the above on another user than himself.
+    def test_user_writeable_fields(self):
+        """ Check for writeable fields.
+
+        Check that a normal user: can write only on user_writeable fields.
+        Check that a portal user: cannot write on themselves.
         """
         self.assertIn(
             "post_install",
             self.test_tags,
             "This test **must** be `post_install` to ensure the expected behavior despite other modules",
         )
+        user_writeable_fields = [
+            name
+            for name, field in self.env["res.users"]._fields.items()
+            if getattr(field, 'user_writeable', False)
+        ]
         self.assertIn(
             "email",
-            self.env['res.users'].SELF_WRITEABLE_FIELDS,
-            "For this test to make sense, 'email' must be in the `SELF_WRITEABLE_FIELDS`",
+            user_writeable_fields,
+            "For this test to make sense, 'email' must be `user_writeable`",
         )
         self.assertNotIn(
             "login",
-            self.env['res.users'].SELF_WRITEABLE_FIELDS,
-            "For this test to make sense, 'login' must not be in the `SELF_WRITEABLE_FIELDS`",
+            user_writeable_fields,
+            "For this test to make sense, 'login' must not be `user_writeable`",
         )
 
-        me = self.env["res.users"].browse(self.env.user.id)
-        other = self.env["res.users"].browse(self.user_portal_2.id)
+        me = self.env.user.with_env(self.env)
+        other = self.user_portal_2.with_env(self.env)
 
-        # Allow to write a field in the SELF_WRITEABLE_FIELDS
-        me.email = "foo@bar.com"
-        self.assertEqual(me.email, "foo@bar.com")
-        # Disallow to write a field not in the SELF_WRITEABLE_FIELDS
+        # Allow to write a field in the user_writeable_fields for internal users
+        # only
+        if self.env.user._has_group('base.group_user'):
+            me.email = "foo@bar.com"
+            self.assertEqual(me.email, "foo@bar.com")
+        else:
+            with self.assertRaises(AccessError):
+                me.email = "foo@bar.com"
+        # Disallow to write a field not in the user_writeable_fields
         with self.assertRaises(AccessError):
             me.login = "foo"
 
-        # Disallow to write a field in the SELF_WRITEABLE_FIELDS on another user
+        # Disallow to write a field in the user_writeable_fields on another user
         with self.assertRaises(AccessError):
             other.email = "foo@bar.com"
-        # Disallow to write a field not in the SELF_WRITEABLE_FIELDS on another user
+        # Disallow to write a field not in the user_writeable_fields on another user
         with self.assertRaises(AccessError):
             other.login = "foo"
-
-    @users('user_internal')
-    def test_self_readable_writeable_fields_preferences_form(self):
-        """Test that a field protected by a `groups='...'` with a group the user doesn't belong to
-        but part of the `SELF_WRITEABLE_FIELDS` is shown in the user profile preferences form and is editable"""
-        my_user = self.env['res.users'].browse(self.env.user.id)
-        self.assertIn(
-            'name',
-            my_user.SELF_WRITEABLE_FIELDS,
-            "This test doesn't make sense if not tested on a field part of the SELF_WRITEABLE_FIELDS"
-        )
-        self.patch(self.env.registry['res.users']._fields['name'], 'groups', 'base.group_system')
-        with Form(my_user, view='base.view_users_form_simple_modif') as UserForm:
-            UserForm.name = "Raoulette Poiluchette"
-        self.assertEqual(my_user.name, "Raoulette Poiluchette")
 
     @warmup
     def test_write_group_ids_performance(self):
@@ -620,6 +626,7 @@ class TestUsers2(UsersCommonCase):
         })
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUsersTweaks(TransactionCase):
     def test_superuser(self):
         """ The superuser is inactive and must remain as such. """
@@ -631,6 +638,53 @@ class TestUsersTweaks(TransactionCase):
 
 @tagged('post_install', '-at_install')
 class TestUsersIdentitycheck(HttpCase):
+
+    def _rpc(self, model, method, *args, **kwargs):
+        return self.url_open(
+            "/web/dataset/call_kw", json={"params": {"model": model, "method": method, "args": args, "kwargs": kwargs}}
+        ).json()
+
+    def test_change_password(self):
+        """Test that the change of users' password is correctly done and allowed by an identity check."""
+        user_internal = self.env['res.users'].create({
+            'name': 'Internal',
+            'login': 'user_internal',
+            'password': 'oldpassword',
+            'group_ids': [self.env.ref('base.group_user').id],
+        })
+        user_admin = self.env.ref('base.user_admin')
+        self.authenticate(user_admin.login, user_admin.password)
+
+        with freeze_time('2025-10-14 00:00:00'):
+            # Check that an identity check is triggered when clicking the "Change Password" button in the user form of user_internal.
+            wizard_action_result = self._rpc('res.users', 'action_change_password_wizard', user_internal.id)['result']
+            self.assertEqual(wizard_action_result['res_model'], 'res.users.identitycheck')
+            identitycheck_result = self._rpc(
+                wizard_action_result['res_model'],
+                'run_check',
+                wizard_action_result['res_id'],
+                context={'password': user_admin.login}
+            )['result']
+
+        # Wait 10 minutes that the first identity check, triggered at the opening of the form, expire before the submission
+        # to ensure that an identity check protect the method changing the passwords.
+        with freeze_time('2025-10-14 00:10:00'):
+            wizard_id = self._rpc(identitycheck_result['res_model'], 'create', {}, context=identitycheck_result['context'])['result']
+            self.env['change.password.user'].search([('wizard_id', '=', wizard_id), ('user_id', '=', user_internal.id)]).write({'new_passwd': 'newpassword'})
+            change_password_result = self._rpc(identitycheck_result['res_model'], 'change_password_button', wizard_id)['result']
+            self.assertEqual(change_password_result['res_model'], 'res.users.identitycheck')
+            self._rpc(
+                change_password_result['res_model'],
+                'run_check',
+                change_password_result['res_id'],
+                context={'password': user_admin.login}
+            )['result']
+
+        # To check that the password of user_internal has been modified.
+        self.env['res.users'].with_user(user_internal)._check_credentials(
+            {'login': 'user_internal', 'password': 'newpassword', 'type': 'password'},
+            {'interactive': False}
+        )
 
     @users('admin')
     def test_revoke_all_devices(self):
@@ -678,14 +732,14 @@ class TestApiKeys(UsersCommonCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.env['ir.config_parameter'].set_param('base.enable_programmatic_api_keys', 1)
+        cls.env['ir.config_parameter'].set_bool('base.enable_programmatic_api_keys', True)
         UsersApiKeys = cls.env['res.users.apikeys'].with_user(cls.user_internal)
         cls.tomorrow = datetime.now() + timedelta(days=1)
         cls.unscoped_key = UsersApiKeys._generate(None, 'Key without a scope', cls.tomorrow)
         cls.scoped_key = UsersApiKeys._generate('scope', 'Key with a scope', cls.tomorrow)
 
     def test_programmatic_apikey_management_is_deactivated_by_default(self):
-        self.env['ir.config_parameter'].set_param('base.enable_programmatic_api_keys', None)
+        self.env['ir.config_parameter'].set_bool('base.enable_programmatic_api_keys', None)
 
         # Attempting to create a key raises an error
         with self.assertRaisesRegex(UserError, 'Programmatic API keys are not enabled'):
@@ -707,7 +761,7 @@ class TestApiKeys(UsersCommonCase):
                 self.unscoped_key, None, 'Another key without a scope', self.tomorrow)
 
         # This ICP can change the limit
-        self.env['ir.config_parameter'].set_param('base.programmatic_api_keys_limit', 11)
+        self.env['ir.config_parameter'].set_int('base.programmatic_api_keys_limit', 11)
         self.env['res.users.apikeys'].with_user(self.user_internal).generate(
             self.unscoped_key, None, 'Another key without a scope', self.tomorrow)
 

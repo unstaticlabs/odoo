@@ -6,35 +6,36 @@ from __future__ import annotations
 
 import functools
 import logging
-import pytz
 import typing
-import warnings
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Mapping
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
+from datetime import UTC
 from pprint import pformat
-from weakref import WeakSet
+from weakref import ref as weakref
+from zoneinfo import ZoneInfo
 
 from odoo.exceptions import AccessError, UserError, CacheMiss
 from odoo.sql_db import BaseCursor
-from odoo.tools import clean_context, frozendict, reset_cached_properties, OrderedSet, Query, SQL
+from odoo.tools import clean_context, frozendict, reset_cached_properties, OrderedSet, SQL
 from odoo.tools.translate import get_translation, get_translated_module, LazyGettext
 from odoo.tools.misc import StackMap, SENTINEL
 
 from .registry import Registry
+from .query import Query
 from .utils import SUPERUSER_ID
 
 if typing.TYPE_CHECKING:
     from collections.abc import Collection, Iterable, Iterator, MutableMapping
     from datetime import tzinfo
-    from .identifiers import IdType, NewId
+    from weakref import ReferenceType
+    from .identifiers import IdType
     from .types import BaseModel, Field
-
-    M = typing.TypeVar('M', bound=BaseModel)
 
 _logger = logging.getLogger('odoo.api')
 
 MAX_FIXPOINT_ITERATIONS = 10
+ENVS_SIZE = 20  # used as a reference size in a transaction's environments
 
 
 class Environment(Mapping[str, "BaseModel"]):
@@ -56,11 +57,6 @@ class Environment(Mapping[str, "BaseModel"]):
     su: bool
     transaction: Transaction
 
-    def reset(self) -> None:
-        """ Reset the transaction, see :meth:`Transaction.reset`. """
-        warnings.warn("Since 19.0, use directly `transaction.reset()`", DeprecationWarning)
-        self.transaction.reset()
-
     def __new__(cls, cr: BaseCursor, uid: int, context: dict, su: bool = False):
         assert isinstance(cr, BaseCursor)
         if uid == SUPERUSER_ID:
@@ -72,20 +68,16 @@ class Environment(Mapping[str, "BaseModel"]):
             transaction = cr.transaction = Transaction(Registry(cr.dbname))
 
         # if env already exists, return it
-        for env in transaction.envs:
-            if env.cr is cr and env.uid == uid and env.su == su and env.context == context:
-                return env
+        env = transaction.lookup_env(uid, context, su)
+        if env is not None:
+            return env
 
         # otherwise create environment, and add it in the set
         self = object.__new__(cls)
         self.cr, self.uid, self.su = cr, uid, su
         self.context = frozendict(context)
         self.transaction = transaction
-
-        transaction.envs.add(self)
-        # the default transaction's environment is the first one with a valid uid
-        if transaction.default_env is None and uid and isinstance(uid, int):
-            transaction.default_env = self
+        transaction.add_env(self)
         return self
 
     def __setattr__(self, name: str, value: typing.Any) -> None:
@@ -204,6 +196,26 @@ class Environment(Mapping[str, "BaseModel"]):
         """Return the cache object of the transaction."""
         return self.transaction.cache
 
+    @property
+    def _access_context(self):
+        """Return the context values used by the access caches."""
+        return (self.uid, *self['ir.rule']._compute_domain_context_values())
+
+    @functools.cached_property
+    def _access_cache(self):
+        """Get the cache for READ access (model -> ids -> bool).
+
+        Storing True means that we have access to the record.
+        We store False to avoid worst case complexity when re-checking all
+        records in the prefetch: see `Model.__check_access_fill_cache`.
+        """
+        return self.transaction.access_read[self._access_context]
+
+    def _add_to_access_cache(self, records: BaseModel) -> None:
+        """ Patch the read access cache so that the user has access to a record. """
+        cache = self._access_cache
+        cache[records._name].update(dict.fromkeys(records._ids, True))
+
     @functools.cached_property
     def user(self) -> BaseModel:
         """Return the current user (as an instance).
@@ -288,16 +300,16 @@ class Environment(Mapping[str, "BaseModel"]):
         timezone = self.context.get('tz') or self.user.tz
         if timezone:
             try:
-                return pytz.timezone(timezone)
+                return ZoneInfo(timezone)
             except Exception:  # noqa: BLE001
                 _logger.debug("Invalid timezone %r", timezone, exc_info=True)
-        return pytz.utc
+        return UTC
 
     @functools.cached_property
     def lang(self) -> str | None:
         """Return the current language code."""
         lang = self.context.get('lang')
-        if lang and lang != 'en_US' and not self['res.lang']._get_data(code=lang):
+        if lang and lang != 'en_US' and not self['res.lang']._lang_get(lang):
             # cannot translate here because we do not have a valid language
             raise UserError(f'Invalid language code: {lang}')  # pylint: disable=missing-gettext
         return lang or None
@@ -504,6 +516,11 @@ class Environment(Mapping[str, "BaseModel"]):
         return {}
 
     @functools.cached_property
+    def _field_access_memo(self) -> set[Field]:
+        """Memo for `model.has_field_access(field, 'read')`.  Do not use it."""
+        return set()
+
+    @functools.cached_property
     def _field_dirty(self):
         """ Map fields to set of dirty ids. """
         return self.transaction.field_dirty
@@ -512,25 +529,19 @@ class Environment(Mapping[str, "BaseModel"]):
     def _field_depends_context(self):
         return self.registry.field_depends_context
 
-    def flush_query(self, query: SQL) -> None:
-        """ Flush all the fields in the metadata of ``query``. """
-        fields_to_flush = tuple(query.to_flush)
-        if not fields_to_flush:
-            return
-
-        fnames_to_flush = defaultdict[str, OrderedSet[str]](OrderedSet)
-        for field in fields_to_flush:
-            fnames_to_flush[field.model_name].add(field.name)
-        for model_name, field_names in fnames_to_flush.items():
-            self[model_name].flush_model(field_names)
-
     def execute_query(self, query: SQL) -> list[tuple]:
-        """ Execute the given query, fetch its result and it as a list of tuples
-        (or an empty list if no result to fetch).  The method automatically
-        flushes all the fields in the metadata of the query.
+        """ Execute the given query, fetch its result and return it as a list of
+        tuples (or an empty list if no result to fetch). The method
+        automatically flushes all the fields in the metadata of the query.
         """
         assert isinstance(query, SQL)
-        self.flush_query(query)
+        _, _, fields_to_flush = query._sql_tuple
+        if fields_to_flush:
+            fnames_to_flush = defaultdict[str, OrderedSet[str]](OrderedSet)
+            for field in fields_to_flush:
+                fnames_to_flush[field.model_name].add(field.name)
+            for model_name, field_names in fnames_to_flush.items():
+                self[model_name].flush_model(field_names)
         self.cr.execute(query)
         return [] if self.cr.description is None else self.cr.fetchall()
 
@@ -552,16 +563,19 @@ class Environment(Mapping[str, "BaseModel"]):
 class Transaction:
     """ A object holding ORM data structures for a transaction. """
     __slots__ = (
-        '_Transaction__file_open_tmp_paths', 'cache',
-        'default_env', 'envs', 'field_data', 'field_data_patches', 'field_dirty',
+        '_Transaction__file_open_tmp_paths',
+        '_cache', '_recent_envs', '_weak_envs',
+        'access_read', 'default_env',
+        'field_data', 'field_data_patches', 'field_dirty',
         'protected', 'registry', 'tocompute',
     )
 
     def __init__(self, registry: Registry):
         self.registry = registry
-        # weak OrderedSet of environments
-        self.envs = WeakSet[Environment]()
-        self.envs.data = OrderedSet()  # type: ignore[attr-defined]
+        # recently used environments (maximum 2 * ENVS_SIZE)
+        self._recent_envs: deque[Environment] = deque()
+        # all environments in order of creation (weak)
+        self._weak_envs: list[ReferenceType[Environment]] = []
         # default environment (for flushing)
         self.default_env: Environment | None = None
 
@@ -581,10 +595,99 @@ class Transaction:
         # pending computations {field: ids}
         self.tocompute = defaultdict["Field", OrderedSet["IdType"]](OrderedSet)
         # backward-compatible view of the cache
-        self.cache = Cache(self)
+        self._cache = Cache(self)
 
+        # permission cache for record access by user
+        # {access_context: {model_name: {record_id: bool}}}
+        self.access_read = defaultdict[tuple, defaultdict[str, dict["IdType", bool]]](lambda: defaultdict(dict))
         # temporary directories (managed in odoo.tools.file_open_temporary_directory)
         self.__file_open_tmp_paths = []  # type: ignore # noqa: PLE0237
+
+    @property
+    def cache(self):
+        import warnings  # noqa: PLC0415
+        warnings.warn("Since 20.0 use fields method directly for cache manipulation", DeprecationWarning, stacklevel=2)
+        return self._cache
+
+    @property
+    def envs(self):
+        for ref in self._weak_envs:
+            if env := ref():
+                yield env
+
+    def lookup_env(self, uid: int, context: dict, su: bool) -> Environment | None:
+        """ Return the environment that matches the given parameters, or ``None`` if not found. """
+        recent_envs = self._recent_envs
+        # Look up in recently accessed environments first
+        for env_index, env in enumerate(recent_envs):
+            if env.uid == uid and env.su == su and env.context == context:
+                # move env first for faster access next time
+                if env_index > 0:
+                    del recent_envs[env_index]
+                    recent_envs.appendleft(env)
+                return env
+
+        if len(self._weak_envs) <= len(recent_envs):
+            return None
+
+        # Check only the oldest environments, as they were probably created by
+        # the original transaction, and we don't want to scan too many of them.
+        for env_index, ref in enumerate(self._weak_envs):
+            env = ref()
+            if env is None:
+                continue
+            if env.uid == uid and env.su == su and env.context == context:
+                # add to recent envs for faster access next time
+                recent_envs.appendleft(env)
+                if len(recent_envs) > ENVS_SIZE * 2:
+                    self.compactify_envs()
+                return env
+            if env_index > ENVS_SIZE:
+                break
+
+        return None
+
+    def add_env(self, env: Environment):
+        """ Add ``env`` to the environments known by the transaction. """
+        self._recent_envs.appendleft(env)
+        self._weak_envs.append(weakref(env))
+        # the default transaction's environment is the first one with a valid uid
+        if self.default_env is None and env.uid and isinstance(env.uid, int):
+            self.default_env = env
+        # avoid filling the system with environments
+        if len(self._recent_envs) > ENVS_SIZE * 2:
+            self.compactify_envs()
+
+    def compactify_envs(self) -> None:
+        """ Deallocate environments to which nobody has a reference. """
+        # Start by moving environments from the environment to a weak set.
+        # Here cpython will start freeing environments that are only weakly
+        # referenced because of reference counting.
+        while len(self._recent_envs) > ENVS_SIZE:
+            self._recent_envs.pop()
+
+        ref_list = self._weak_envs
+        if len(ref_list) <= ENVS_SIZE:
+            return
+
+        ref_list = [ref for ref in ref_list if ref() is not None]  # compactify
+
+        # The following are heuristics to reduce the number of environments.
+        # We call these only when the execution time can be bounded and give up
+        # if the code references too many environments.
+        if ENVS_SIZE * 3 <= len(ref_list) < ENVS_SIZE * 4:
+            # Force a small GC run to remove environments that are in a
+            # reference cycle. This includes, among others, the attributes
+            # env.company and env.companies (that refers to env) and env.user
+            # (that refers to env(su=True)).
+            import gc  # noqa: PLC0415
+            gc.collect(0)
+            ref_list = [ref for ref in ref_list if ref() is not None]  # compactify
+
+        if len(ref_list) > ENVS_SIZE * 10:
+            _logger.debug("Creating too many environments: %d", len(ref_list))
+        # Move back the environments to the queue
+        self._weak_envs = ref_list
 
     def flush(self) -> None:
         """ Flush pending computations and updates in the transaction. """
@@ -597,12 +700,23 @@ class Transaction:
                 Environment(env.cr, public_user.id, {}).flush_all()
                 break
 
+    def clear_access_cache(self, model_name: str = '') -> None:
+        """ Clear the access cache for record rule checks. """
+        # clear each context separately because it is cached in Environment
+        for context_dict in self.access_read.values():
+            if model_name:
+                context_dict.pop(model_name, None)
+            else:
+                context_dict.clear()
+
     def clear(self):
         """ Clear the caches and pending computations and updates in the transactions. """
+        self.clear_access_cache()
         self.invalidate_field_data()
         self.field_data_patches.clear()
         self.field_dirty.clear()
         self.tocompute.clear()
+        self.compactify_envs()
         for env in self.envs:
             env.cr.cache.clear()
             break  # all envs of the transaction share the same cursor
@@ -615,6 +729,9 @@ class Transaction:
         self.registry = Registry(self.registry.db_name)
         for env in self.envs:
             reset_cached_properties(env)
+        self.access_read.clear()
+        # make all environments weak
+        self._recent_envs.clear()
         self.clear()
 
     def invalidate_field_data(self) -> None:
@@ -627,8 +744,7 @@ class Transaction:
         self.field_data.clear()
         # reset Field._get_cache()
         for env in self.envs:
-            with suppress(AttributeError):
-                del env._field_cache_memo
+            env.__dict__.pop('_field_cache_memo', None)
 
 
 # sentinel value for optional parameters
@@ -682,7 +798,7 @@ class Cache:
 
     def _get_field_cache(self, model: BaseModel, field: Field) -> Mapping[IdType, typing.Any]:
         """ Return the field cache of the given field, but not for modifying it. """
-        return self._set_field_cache(model, field)
+        return field._get_cache(model.env)
 
     def _set_field_cache(self, model: BaseModel, field: Field) -> dict[IdType, typing.Any]:
         """ Return the field cache of the given field for modifying it. """
@@ -744,35 +860,6 @@ class Cache:
         for record, value in zip(records, values):
             field._update_cache(record, value, dirty=dirty)
 
-    def insert_missing(self, records: BaseModel, field: Field, values: Iterable) -> None:
-        """ Set the values of ``field`` for the records in ``records`` that
-        don't have a value yet.  In other words, this does not overwrite
-        existing values in cache.
-        """
-        warnings.warn("Since 19.0, use Field._insert_cache", DeprecationWarning)
-        field._insert_cache(records, values)
-
-    def patch(self, records: BaseModel, field: Field, new_id: NewId):
-        """ Apply a patch to an x2many field on new records. The patch consists
-        in adding new_id to its value in cache. If the value is not in cache
-        yet, it will be applied once the value is put in cache with method
-        :meth:`patch_and_set`.
-        """
-        warnings.warn("Since 19.0, this method is internal", DeprecationWarning)
-        from .fields_relational import _RelationalMulti  # noqa: PLC0415
-        assert isinstance(field, _RelationalMulti)
-        value = records.env[field.comodel_name].browse((new_id,))
-        field._update_inverse(records, value)
-
-    def patch_and_set(self, record: BaseModel, field: Field, value: typing.Any) -> typing.Any:
-        """ Set the value of ``field`` for ``record``, like :meth:`set`, but
-        apply pending patches to ``value`` and return the value actually put
-        in cache.
-        """
-        warnings.warn("Since 19.0, this method is internal", DeprecationWarning)
-        field._update_cache(record, value)
-        return self.get(record, field)
-
     def remove(self, record: BaseModel, field: Field) -> None:
         """ Remove the value of ``field`` for ``record``. """
         assert record.id not in self.transaction.field_dirty.get(field, ())
@@ -790,23 +877,6 @@ class Cache:
                 yield field_cache[record_id]
             except KeyError:
                 pass
-
-    def get_until_miss(self, records: BaseModel, field: Field) -> list[typing.Any]:
-        """ Return the cached values of ``field`` for ``records`` until a value is not found. """
-        warnings.warn("Since 19.0, this is managed directly by Field")
-        field_cache = self._get_field_cache(records, field)
-        vals = []
-        for record_id in records._ids:
-            try:
-                vals.append(field_cache[record_id])
-            except KeyError:
-                break
-        return vals
-
-    def get_records_different_from(self, records: M, field: Field, value: typing.Any) -> M:
-        """ Return the subset of ``records`` that has not ``value`` for ``field``. """
-        warnings.warn("Since 19.0, becomes internal function of fields", DeprecationWarning)
-        return field._filter_not_equal(records, value)
 
     def get_fields(self, record: BaseModel) -> Iterator[Field]:
         """ Return the fields with a value for ``record``. """
@@ -830,49 +900,6 @@ class Cache:
     def get_missing_ids(self, records: BaseModel, field: Field) -> Iterator[IdType]:
         """ Return the ids of ``records`` that have no value for ``field``. """
         return field._cache_missing_ids(records)
-
-    def get_dirty_fields(self) -> Collection[Field]:
-        """ Return the fields that have dirty records in cache. """
-        warnings.warn("Since 19.0, don't use Cache to manipulate dirty fields")
-        return self.transaction.field_dirty.keys()
-
-    def filtered_dirty_records(self, records: BaseModel, field: Field) -> BaseModel:
-        """ Filtered ``records`` where ``field`` is dirty. """
-        warnings.warn("Since 19.0, don't use Cache to manipulate dirty fields")
-        dirties = self.transaction.field_dirty.get(field, ())
-        return records.browse(id_ for id_ in records._ids if id_ in dirties)
-
-    def filtered_clean_records(self, records: BaseModel, field: Field) -> BaseModel:
-        """ Filtered ``records`` where ``field`` is not dirty. """
-        warnings.warn("Since 19.0, don't use Cache to manipulate dirty fields")
-        dirties = self.transaction.field_dirty.get(field, ())
-        return records.browse(id_ for id_ in records._ids if id_ not in dirties)
-
-    def has_dirty_fields(self, records: BaseModel, fields: Collection[Field] | None = None) -> bool:
-        """ Return whether any of the given records has dirty fields.
-
-        :param fields: a collection of fields or ``None``; the value ``None`` is
-            interpreted as any field on ``records``
-        """
-        warnings.warn("Since 19.0, don't use Cache to manipulate dirty fields")
-        if fields is None:
-            return any(
-                not ids.isdisjoint(records._ids)
-                for field, ids in self.transaction.field_dirty.items()
-                if field.model_name == records._name
-            )
-        else:
-            return any(
-                field in self.transaction.field_dirty and not self.transaction.field_dirty[field].isdisjoint(records._ids)
-                for field in fields
-            )
-
-    def clear_dirty_field(self, field: Field) -> Collection[IdType]:
-        """ Make the given field clean on all records, and return the ids of the
-        formerly dirty records for the field.
-        """
-        warnings.warn("Since 19.0, don't use Cache to manipulate dirty fields")
-        return self.transaction.field_dirty.pop(field, ())
 
     def invalidate(self, spec: Collection[tuple[Field, Collection[IdType] | None]] | None = None) -> None:
         """ Invalidate the cache, partially or totally depending on ``spec``.
@@ -914,9 +941,9 @@ class Cache:
                 return
 
             # select the column for the given ids
-            query = Query(env, model._table, model._table_sql)
-            sql_id = SQL.identifier(model._table, 'id')
-            sql_field = model._field_to_sql(model._table, field.name, query)
+            query = Query(model)
+            sql_id = query.table.id
+            sql_field = query.table[field.name]
             if field.type == 'binary' and (
                 model.env.context.get('bin_size') or model.env.context.get('bin_size_' + field.name)
             ):

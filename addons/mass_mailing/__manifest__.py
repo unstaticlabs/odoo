@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -27,6 +26,7 @@
         'data/ir_attachment_data.xml',
         'data/ir_config_parameter_data.xml',
         'data/ir_cron_data.xml',
+        'data/ir_actions_server_data.xml',
         'data/mailing_data_templates.xml',
         'data/mailing_list_contact.xml',
         'data/mailing_subscription_optout.xml',
@@ -35,7 +35,6 @@
         'wizard/mail_compose_message_views.xml',
         'wizard/mailing_contact_import_views.xml',
         'wizard/mailing_contact_to_list_views.xml',
-        'wizard/mailing_list_merge_views.xml',
         'wizard/mailing_mailing_test_views.xml',
         'wizard/mailing_mailing_schedule_date_views.xml',
         'report/mailing_trace_report_views.xml',
@@ -84,12 +83,10 @@
             ('include', 'html_builder.assets'),
             ('remove', 'web/static/fonts/fonts.scss'),
             'mass_mailing/static/src/builder/**/*',
+            ('remove', 'mass_mailing/static/src/builder/**/*.inside.scss'),
         ],
-        'mass_mailing.assets_iframe_style': [
-            # minimal style assets required to view the mail content
-            # convert_inline ONLY uses this and inline styles.
-
-            # useful scss from /web web.assets_frontend
+        'mass_mailing.assets_iframe_helpers': [
+            # minimal assets for mass_mailing isolated iframes from web.
             ('include', 'web._assets_helpers'),
             'web/static/src/scss/bootstrap_overridden.scss',
             ('include', 'web._assets_frontend_helpers'),
@@ -98,6 +95,21 @@
             'web/static/lib/bootstrap/scss/_maps.scss',
             'web/static/lib/bootstrap/scss/_alert.scss',
             ('include', 'web._assets_bootstrap_frontend'),
+            ('include', 'web.icons_fonts'),
+            'web/static/src/scss/animation.scss',
+            'web/static/src/scss/mimetypes.scss',
+            'web/static/src/scss/ui.scss',
+        ],
+        'mass_mailing.assets_iframe_theme_selector': [
+            # minimal assets for theme selector iframe
+            ('include', 'mass_mailing.assets_iframe_helpers'),
+            'mass_mailing/static/src/themes/iframe_assets/**/*',
+        ],
+        'mass_mailing.assets_iframe_style': [
+            # minimal style assets required to view the mail content
+            # convert_inline ONLY uses this and inline styles.
+
+            ('include', 'mass_mailing.assets_iframe_helpers'),
 
             # useful scss from /html_editor web.assets_frontend
             # TODO EGGMAIL: could improve load time by splitting scss from JS files
@@ -112,13 +124,6 @@
 
             'html_editor/static/src/scss/bootstrap_overridden.scss',
             'html_builder/static/src/scss/background.scss',
-
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/lib/odoo_ui_icons/*',
-            'web/static/src/scss/animation.scss',
-            'web/static/src/scss/mimetypes.scss',
-            'web/static/src/scss/ui.scss',
-            'web/static/src/scss/fontawesome_overridden.scss',
 
             ('include', 'mass_mailing.assets_mail_themes'),
             'mass_mailing/static/src/scss/mass_mailing_mail.scss',
@@ -138,6 +143,7 @@
             'mass_mailing/static/src/builder/**/*.inside.scss'
         ],
         'mass_mailing.iframe_add_dialog': [
+            ('include', 'html_builder.iframe_add_dialog'),
             'mass_mailing/static/src/builder/snippet_viewer/*.scss',
         ],
         'mass_mailing.mailing_assets': [
@@ -148,9 +154,12 @@
             'mass_mailing/static/src/xml/mailing_portal_subscription_form.xml',
         ],
         'web.assets_backend': [
+            'mass_mailing/static/src/components/**/*',
+            'mass_mailing/static/src/views/mailing_preview_form_view.js',
             'mass_mailing/static/src/editor/**/*',
             'mass_mailing/static/src/fields/**/*',
-            'mass_mailing/static/src/themes/**/*',
+            'mass_mailing/static/src/themes/*',
+            'mass_mailing/static/src/themes/theme_selector/**/*',
             'mass_mailing/static/src/iframe/**/*',
             'mass_mailing/static/src/scss/mailing_filter_widget.scss',
             'mass_mailing/static/src/scss/mass_mailing.scss',

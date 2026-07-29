@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * stock_delivery
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 20:22+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-04-18 13:41+0000\n"
 "Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_delivery/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -57,11 +57,6 @@ msgstr "<strong>Carrier:</strong>"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Carrier</strong>"
 msgstr "<strong>Carrier</strong>"
-
-#. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr "<strong>Metode Pengiriman:</strong>"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
@@ -107,11 +102,11 @@ msgstr "Action saat memvalidasi Order Pengiriman"
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_picking__allowed_carrier_ids
 msgid "Allowed Carrier"
-msgstr "Carrier yang Diizinkan"
+msgstr "Kurir yang Diinginkan"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
+msgid "Applicable on Delivery Methods"
 msgstr "Dapat Diterapkan pada Metode Pengiriman"
 
 #. module: stock_delivery
@@ -144,7 +139,7 @@ msgstr "Kode Carrier"
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__package_carrier_type
 msgid "Carrier Type"
-msgstr "Tipe Carrier"
+msgstr "Tipe Kurir"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.stock_move_line_view_search_delivery
@@ -158,12 +153,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr "Biaya: %(price).2f%(currency)s"
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr "Metode Pengiriman"
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Wizard Pemilihan Carrier Pengiriman"
+msgid "Delivery Method Selection Wizard"
+msgstr "Wizard Pemilihan Metode Pengiriman"
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr "Metode Pengiriman"
 
@@ -225,11 +226,6 @@ msgid "Exception:"
 msgstr "Pengecualian:"
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr "FedEx"
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -261,7 +257,7 @@ msgstr "Level Integrasi"
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
+msgid "Inventory Route"
 msgstr "Rute Inventaris"
 
 #. module: stock_delivery
@@ -392,8 +388,8 @@ msgstr "Kirim ke Pengirim"
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr ""
 "Barang dikirim ke carrier %(carrier_name)s untuk pengiriman dengan nomor "
 "tracking %(ref)s"
@@ -407,12 +403,6 @@ msgstr "Biaya Pengiriman"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
 msgstr "Informasi Pengiriman"
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
-msgstr "Metode Pengiriman"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__shipping_weight
@@ -589,7 +579,8 @@ msgstr ""
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.delivery_tracking_url_warning_form
 msgid "You have multiple tracker links, they are available in the chatter."
-msgstr "Anda memiliki lebih dari satu link pelacak, mereka tersedia di chatter."
+msgstr ""
+"Anda memiliki lebih dari satu link pelacak, mereka tersedia di chatter."
 
 #. module: stock_delivery
 #. odoo-python
@@ -637,36 +628,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.normal_zpl_label
 msgid "^FS"
 msgstr "^FS"
-
-#~ msgid "Company"
-#~ msgstr "Perusahaan"
-
-#~ msgid "Created by"
-#~ msgstr "Dibuat oleh"
-
-#~ msgid "Created on"
-#~ msgstr "Dibuat pada"
-
-#~ msgid "Delivery Package Selection Wizard"
-#~ msgstr "Wizard Pengiriman Paket Pengiriman"
-
-#~ msgid "Delivery Package Type"
-#~ msgstr "Tipe Paket Pengiriman"
-
-#~ msgid "Discard"
-#~ msgstr "Buang"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Terakhir Diperbarui oleh"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Terakhir Diperbarui pada"
-
-#~ msgid "Package Details"
-#~ msgstr "Detail Paket"
-
-#~ msgid "Packages"
-#~ msgstr "Kemasan"
-
-#~ msgid "Save"
-#~ msgstr "Simpan"

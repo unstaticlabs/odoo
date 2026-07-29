@@ -16,37 +16,31 @@
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
 # NoaFarkash, 2022
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:11+0000\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2025-12-20 09:38+0000\n"
 "Last-Translator: or balmas <or@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/repair/"
-"he/>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/repair/he/"
+">\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "%(name)s Sequence repair"
 msgstr "%(name)s סדר תיקון"
-
-#. module: repair
-#. odoo-python
-#: code:addons/repair/models/repair.py:0
-msgid "%(product)s: Insufficient Quantity To Repair"
-msgstr "%(product)s: כמות לא מספקת לתיקון"
 
 #. module: repair
 #: model:ir.actions.report,print_report_name:repair.action_report_repair_order
@@ -78,11 +72,6 @@ msgstr ""
 "*הסטטוס 'בתיקון' משמש כאשר התיקון נמצא בתהליך.\n"
 "*הסטטוס 'תוקן' נקבע כאשר התיקון הושלם.\n"
 "*הסטטוס 'בוטל' משמש כאשר המשתמש מבטל את הוראת התיקון."
-
-#. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "<br/>You can still confirm the repair of"
-msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -160,13 +149,6 @@ msgid "<strong>Status:</strong>"
 msgstr "<strong>סטטוס:</strong>"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid ""
-"? , but get ready to have fun taking inventory to fix the negative stock "
-"quantity!"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_needaction
 msgid "Action Needed"
 msgstr "נדרשת פעולה"
@@ -180,6 +162,11 @@ msgstr "פעילויות"
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_state
@@ -296,6 +283,11 @@ msgid "BoM Components"
 msgstr "רכיבי עץ המוצר"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__can_create_sale_or_invoice
+msgid "Can Create Sale Or Invoice"
+msgstr ""
+
+#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "Can't find any production location."
@@ -303,8 +295,8 @@ msgstr "לא ניתן למצוא מיקום ייצור כלשהו."
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Cancel Repair"
-msgstr "בטל תיקון"
+msgid "Cancel"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields.selection,name:repair.selection__repair_order__state__cancel
@@ -378,11 +370,6 @@ msgid "Confirmed"
 msgstr "מאושר"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Create Quotation"
-msgstr "צור הצעת מחיר"
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 #: model:ir.actions.server,name:repair.action_create_repair_order
@@ -403,14 +390,12 @@ msgstr "צור בהזמנה"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_uid
 msgid "Created by"
 msgstr "נוצר על-ידי"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_date
 msgid "Created on"
 msgstr "נוצר ב-"
 
@@ -447,6 +432,7 @@ msgid "Details"
 msgstr "פרטים"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__display_name
 #: model:ir.model.fields,field_description:repair.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:repair.field_product_product__display_name
 #: model:ir.model.fields,field_description:repair.field_product_template__display_name
@@ -462,7 +448,6 @@ msgstr "פרטים"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__display_name
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__display_name
 msgid "Display Name"
 msgstr "שם לתצוגה"
 
@@ -503,15 +488,6 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr "פונט מדהים למשל עבור משימות fa-tasks"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid ""
-"For some of the parts, there is a difference between the initial demand and "
-"the actual quantity that was used. Are you sure you want to confirm ?"
-msgstr ""
-"בחלק מהחלקים יש הבדל בין הביקוש ההתחלתי לכמות בפועל שהשתמשו בה. האם אתה בטוח "
-"שברצונך לאשר?"
-
-#. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Future Activities"
 msgstr "פעילויות עתידיות"
@@ -527,6 +503,7 @@ msgid "Has Uncomplete Moves"
 msgstr "ישנן תנועות לא הושלמו"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__id
 #: model:ir.model.fields,field_description:repair.field_account_move_line__id
 #: model:ir.model.fields,field_description:repair.field_product_product__id
 #: model:ir.model.fields,field_description:repair.field_product_template__id
@@ -542,7 +519,6 @@ msgstr "ישנן תנועות לא הושלמו"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__id
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__id
 msgid "ID"
 msgstr "מזהה"
 
@@ -612,6 +588,22 @@ msgid "Inventory Moves"
 msgstr "תנועות מלאי"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_ids
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoice"
+msgstr ""
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_count
+msgid "Invoice Count"
+msgstr ""
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoices"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_is_follower
 msgid "Is Follower"
 msgstr "עוקב"
@@ -627,9 +619,14 @@ msgid "John Doe"
 msgstr ""
 
 #. module: repair
+#: model:ir.model,name:repair.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: repair
 #: model:ir.model,name:repair.model_account_move_line
 msgid "Journal Item"
-msgstr "תנועת יומן"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -644,14 +641,12 @@ msgstr "מחשב נייד"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_uid
 msgid "Last Updated by"
 msgstr "עודכן לאחרונה על-ידי"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_date
 msgid "Last Updated on"
 msgstr "עדכון אחרון ב"
 
@@ -674,11 +669,6 @@ msgid ""
 msgstr ""
 "מצב זמינות החלקים האחרון עבור הוראת התיקון הזו. אם במצב ירוק, מצב המוכנות של "
 "הוראת התיקון הוא מוכן."
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__location_id
-msgid "Location"
-msgstr "מיקום"
 
 #. module: repair
 #: model:ir.model,name:repair.model_stock_lot
@@ -815,6 +805,11 @@ msgid "Open"
 msgstr "פתח"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_type_id
 msgid "Operation Type"
 msgstr "סוג פעולה"
@@ -847,11 +842,6 @@ msgid "Pending"
 msgstr "ממתין"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Picked"
-msgstr "נאסף"
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_ids
 msgid "Picking Product"
 msgstr "ליקוט מוצר"
@@ -880,7 +870,6 @@ msgstr "קְדִימוּת"
 #. module: repair
 #: model:ir.model,name:repair.model_product_template
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_id
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Product"
 msgstr "מוצר"
@@ -964,17 +953,15 @@ msgid "Properties"
 msgstr "מאפיינים"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quant_ids
-msgid "Quant"
-msgstr "מנה"
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quantity
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_tree
 msgid "Quantity"
 msgstr "כמות"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Quote"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -1030,7 +1017,6 @@ msgstr "מיקום יעדים של חלקים שהוסרו"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_stock_move__repair_id
 #: model:ir.model.fields,field_description:repair.field_stock_picking__repair_ids
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__repair_id
 #: model:ir.model.fields.selection,name:repair.selection__stock_picking_type__code__repair_operation
 msgid "Repair"
 msgstr "תיקון"
@@ -1054,8 +1040,11 @@ msgstr "סוג פעולת תיקון"
 #. module: repair
 #: model:ir.actions.report,name:repair.action_report_repair_order
 #: model:ir.model,name:repair.model_repair_order
+#: model:ir.model.fields,field_description:repair.field_account_bank_statement_line__repair_order_id
+#: model:ir.model.fields,field_description:repair.field_account_move__repair_order_id
 #: model:ir.model.fields,field_description:repair.field_sale_order__repair_order_ids
 #: model:ir.model.fields.selection,name:repair.selection__product_template__service_tracking__repair
+#: model_terms:ir.ui.view,arch_db:repair.view_account_move_form_inherit_repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Repair Order"
@@ -1114,8 +1103,8 @@ msgstr "שירותי תיקון"
 
 #. module: repair
 #: model:ir.model,name:repair.model_repair_tags
-msgid "Repair Tags"
-msgstr "תגיות תיקון"
+msgid "Repair Tag"
+msgstr ""
 
 #. module: repair
 #. odoo-python
@@ -1172,6 +1161,11 @@ msgstr "חדש מלאי בהזמנה (הכן להזמנה)"
 #: model_terms:ir.ui.view,arch_db:repair.stock_repair_type_kanban
 msgid "Reporting"
 msgstr "דו\"חות"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Reserved"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__user_id
@@ -1428,11 +1422,6 @@ msgid "Type"
 msgstr "סוג"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "סוג פעולה"
-
-#. module: repair
 #: model:ir.model.fields,help:repair.field_repair_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "סוג הפעילות החריגה ברשומה."
@@ -1449,8 +1438,7 @@ msgid "Under Warranty"
 msgstr "תחת אחריות"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_repair_order__product_uom
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_uom_name
+#: model:ir.model.fields,field_description:repair.field_repair_order__uom_id
 msgid "Unit"
 msgstr "יחידה"
 
@@ -1460,7 +1448,7 @@ msgid "Units"
 msgstr "יחידה"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+#: model:ir.actions.server,name:repair.action_unreserve
 msgid "Unreserve"
 msgstr "בטל שמירה"
 
@@ -1473,11 +1461,6 @@ msgstr "דחוף"
 #: model:ir.model,name:repair.model_stock_warehouse
 msgid "Warehouse"
 msgstr "מחסן"
-
-#. module: repair
-#: model:ir.model,name:repair.model_stock_warn_insufficient_qty_repair
-msgid "Warn Insufficient Repair Quantity"
-msgstr "הזהר כי כמות התיקון אינה מספיקה"
 
 #. module: repair
 #. odoo-python
@@ -1520,6 +1503,12 @@ msgstr "לא ניתן להזין כמויות שליליות."
 
 #. module: repair
 #. odoo-python
+#: code:addons/repair/models/account_move.py:0
+msgid "You can only have one invoice linked to a repair order."
+msgstr ""
+
+#. module: repair
+#. odoo-python
 #: code:addons/repair/models/repair.py:0
 msgid "You cannot cancel a Repair Order that's already been completed"
 msgstr "לא ניתן לבטל הזמנת תיקון שכבר בוצעה"
@@ -1551,11 +1540,6 @@ msgstr ""
 "%(ref_str)s"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "from location"
-msgstr "מהאיתור"
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 msgid "id"
@@ -1566,291 +1550,3 @@ msgstr "מספר זיהוי"
 #: code:addons/repair/models/sale_order.py:0
 msgid "sale_order_id"
 msgstr ""
-
-#~ msgid "(update)"
-#~ msgstr "(עדכן)"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\">1</span>\n"
-#~ "                                <span class=\"o_stat_text\">Invoices</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\">1</span>\n"
-#~ "                                <span class=\"o_stat_text\">חשבוניות</"
-#~ "span>"
-
-#~ msgid "<strong>Lot/Serial Number:</strong>"
-#~ msgstr "<strong>אצווה/ מספר סידורי:</strong>"
-
-#~ msgid "<strong>Operations</strong>"
-#~ msgstr "<strong>פעולות</strong>"
-
-#~ msgid "<strong>Parts</strong>"
-#~ msgstr "<strong>חלקים</strong>"
-
-#~ msgid "<strong>Printing Date:</strong>"
-#~ msgstr "<strong>תאריך הדפסה:</strong>"
-
-#~ msgid "<strong>Product to Repair:</strong>"
-#~ msgstr "<strong>מוצר לתיקון:</strong>"
-
-#~ msgid "<strong>Total Without Taxes</strong>"
-#~ msgstr "<strong>סה\"כ ללא מע\"מ</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>סה\"כ</strong>"
-
-#~ msgid "<strong>Warranty:</strong>"
-#~ msgstr "<strong>אחריות:</strong>"
-
-#~ msgid "? This may lead to inconsistencies in your inventory."
-#~ msgstr "? זה עלול להוביל לחוסר עקביות במלאי שלך."
-
-#~ msgid "Add quotation notes."
-#~ msgstr "הוסף הערות הצעת מחיר..."
-
-#~ msgid "After Repair"
-#~ msgstr "לאחר תיקון"
-
-#~ msgid "Before Repair"
-#~ msgstr "לפני תיקון"
-
-#~ msgid "Cancel"
-#~ msgstr "בטל"
-
-#~ msgid "Category"
-#~ msgstr "קטגוריה"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Create Invoice"
-#~ msgstr "צור חשבונית"
-
-#~ msgid "Create Mass Invoice (repair)"
-#~ msgstr "יצירת חשבוניות המונית (תיקון)"
-
-#~ msgid "Create invoices"
-#~ msgstr "צור חשבוניות"
-
-#~ msgid "Currency"
-#~ msgstr "מטבע"
-
-#~ msgid "Default Address"
-#~ msgstr "כתובת ברירת מחדל"
-
-#~ msgid "Delivery Address"
-#~ msgstr "כתובת לאספקה"
-
-#~ msgid "Dest. Location"
-#~ msgstr "איתור יעד"
-
-#~ msgid "Do you really want to create the invoice(s)?"
-#~ msgstr "בטוח שברצונך ליצור חשבוניות?"
-
-#~ msgid "Done"
-#~ msgstr "בוצע"
-
-#~ msgid "Draft"
-#~ msgstr "טיוטה"
-
-#~ msgid "Extra Info"
-#~ msgstr "מידע נוסף"
-
-#~ msgid "Fees"
-#~ msgstr "עמלות"
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "Group by partner invoice address"
-#~ msgstr "קבץ לפי כתובת חשבונית של לקוח/ספק"
-
-#~ msgid "History"
-#~ msgstr "היסטוריה"
-
-#~ msgid "Invoice"
-#~ msgstr "חשבונית מס"
-
-#~ msgid "Invoice Line"
-#~ msgstr "שורת חשבונית"
-
-#~ msgid "Invoice Method"
-#~ msgstr "שיטת חיוב"
-
-#~ msgid "Invoice State"
-#~ msgstr "מצב חשבונית"
-
-#~ msgid "Invoice address:"
-#~ msgstr "כתובת חשבונית:"
-
-#~ msgid "Invoice and shipping address:"
-#~ msgstr "כתובת חשבונית ואספקה:"
-
-#~ msgid "Invoice created"
-#~ msgstr "נוצרה חשבונית"
-
-#~ msgid "Invoiced"
-#~ msgstr "חויב"
-
-#~ msgid "Invoicing Address"
-#~ msgstr "כתובת חשבונית"
-
-#~ msgid "Journal Entry"
-#~ msgstr "פקודת יומן"
-
-#~ msgid "No Invoice"
-#~ msgstr "ללא חיוב"
-
-#~ msgid "No account defined for product \"%s\"."
-#~ msgstr "לא הוגדר חשבון עבור מוצר \"%s\"."
-
-#~ msgid "No product defined on fees."
-#~ msgstr "אין מוצר מוגדר בעמלות."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Only draft repairs can be confirmed."
-#~ msgstr "ניתן לאשר רק תיקוני טיוטה."
-
-#~ msgid "Price"
-#~ msgstr "מחיר"
-
-#~ msgid "Pricelist"
-#~ msgstr "מחירון"
-
-#~ msgid "Pricelist of the selected partner."
-#~ msgstr "מחירון הלקוח/ספק שנבחר."
-
-#~ msgid "Print Quotation"
-#~ msgstr "הדפס הצעת מחיר"
-
-#~ msgid "Product Unit of Measure"
-#~ msgstr "יחידת מידה של מוצר"
-
-#~ msgid "Quotation"
-#~ msgstr "הצעת מחיר"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "הצעת מחיר/הזמנה"
-
-#~ msgid "Quotation Notes"
-#~ msgstr "הערות הצעת מחיר"
-
-#~ msgid "Quotations"
-#~ msgstr "הצעות מחיר"
-
-#~ msgid "Ready To Repair"
-#~ msgstr "מוכן לתיקון"
-
-#~ msgid "Ready to Repair"
-#~ msgstr "מוכן לתיקון"
-
-#~ msgid "Repair Fee"
-#~ msgstr "עמלת תיקון"
-
-#~ msgid "Repair Fees"
-#~ msgstr "עמלות תיקון"
-
-#~ msgid "Repair Line"
-#~ msgstr "שורת תיקון"
-
-#~ msgid "Repair Line (parts)"
-#~ msgstr "שורת תיקון (חלקים)"
-
-#~ msgid "Repair Order #:"
-#~ msgstr "הזמנת תיקון מס':"
-
-#~ msgid "Repair Order Reference"
-#~ msgstr "מזהה הזמנת תיקון"
-
-#~ msgid "Repair Quotation #:"
-#~ msgstr "הצעת מחיר לתיקון מס':"
-
-#~ msgid "Repair must be canceled in order to reset it to draft."
-#~ msgstr "יש לבטל את התיקון כדי להחזיר אותו למצב טיוטה."
-
-#~ msgid "Repair must be confirmed before starting reparation."
-#~ msgstr "יש לאשר את התיקון לפני תחילתו."
-
-#~ msgid "Repair must be repaired in order to make the product moves."
-#~ msgstr "התיקון חייב להתבצע כדי לבצע את תנועות מוצר."
-
-#~ msgid "Return"
-#~ msgstr "החזר"
-
-#~ msgid ""
-#~ "Selecting 'Before Repair' or 'After Repair' will allow you to generate "
-#~ "invoice before or after the repair is done respectively. 'No invoice' "
-#~ "means you don't want to generate invoice for this repair order."
-#~ msgstr ""
-#~ "בחירה 'לפני תיקון' או 'לאחר תיקון' תאפשר לך ליצור חשבונית לפני או לאחר "
-#~ "ביצוע התיקון בהתאמה. 'אין חשבונית' פירושו שאינך רוצה להפיק חשבונית עבור "
-#~ "הזמנת תיקון זו."
-
-#~ msgid "Send Quotation"
-#~ msgstr "שלח הצעת מחיר"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "הצג את כל הרשומות שתאריך הפעולה הבא שלהן הוא עד היום"
-
-#~ msgid "Source Location"
-#~ msgstr "איתור מקור"
-
-#~ msgid "Subtotal"
-#~ msgstr "סיכום ביניים"
-
-#~ msgid "Tax"
-#~ msgstr "מס"
-
-#~ msgid "Taxes"
-#~ msgstr "מיסים"
-
-#~ msgid "The name of the Repair Order must be unique!"
-#~ msgstr "שם הזמנת התיקון חייב להיות ייחודי!"
-
-#~ msgid ""
-#~ "The product unit of measure you chose has a different category than the "
-#~ "product unit of measure."
-#~ msgstr ""
-#~ "יחידת המידה של המוצר שבחרת כוללת קטגוריה שונה מזו של יחידת המידה של המוצר."
-
-#~ msgid ""
-#~ "The status of a repair line is set automatically to the one of the linked "
-#~ "repair order."
-#~ msgstr "הסטטוס של שורת תיקון מוגדר אוטומטית להזמנת התיקון המקושרת."
-
-#~ msgid "To be Invoiced"
-#~ msgstr "לחיוב"
-
-#~ msgid "Total"
-#~ msgstr "סה\"כ"
-
-#~ msgid "Total amount"
-#~ msgstr "סה\"כ"
-
-#~ msgid "Unit Price"
-#~ msgstr "מחיר יחידה"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Untaxed Amount"
-#~ msgstr "סכום ללא מע\"מ"
-
-#~ msgid "Untaxed amount"
-#~ msgstr "סכום ללא מע\"מ"
-
-#~ msgid "UoM"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Warranty Expiration"
-#~ msgstr "תוקף אחריות"
-
-#~ msgid "You have to select an invoice address in the repair form."
-#~ msgstr "עליך לבחור כתובת חשבונית בטופס התיקון."

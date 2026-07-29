@@ -86,7 +86,6 @@ describe("range collapsed, remove by popover unlink button", () => {
             stepFunction: unlinkFromPopover,
             contentAfter: "<p>a[]bcde</p>",
         });
-        // With fontawesome at the start of the link.
     });
 
     test("should remove the link if collapsed range at the start of a link (2)", async () => {
@@ -127,7 +126,6 @@ describe("range collapsed, remove by popover unlink button", () => {
             contentAfter:
                 '<p><a href="http://test.test/">a</a>bc[]de<a href="http://test.test/">f</a></p>',
         });
-        // With fontawesome at the start of the link.
     });
 
     test("should remove only the current link if collapsed range in the middle of a link (2)", async () => {
@@ -208,8 +206,7 @@ describe("range not collapsed", () => {
         });
     });
     describe("remove by command", () => {
-        test("should remove the link in the selected range at the end of a link (1)", async () => {
-            // FORWARD
+        test("should remove the link in the selected range at the end of a link", async () => {
             await testEditor({
                 contentBefore: '<p>a<a href="exist">bc[d]</a>e</p>',
                 stepFunction: async (editor) => {
@@ -220,20 +217,7 @@ describe("range not collapsed", () => {
             });
         });
 
-        test("should remove the link in the selected range at the end of a link (2)", async () => {
-            // BACKWARD
-            await testEditor({
-                contentBefore: '<p>a<a href="exist">bc]d[</a>e</p>',
-                stepFunction: async (editor) => {
-                    await unlinkByCommand(editor);
-                },
-                contentAfterEdit: '<p>a\ufeff<a href="exist">\ufeffbc\ufeff</a>\ufeff]d[e</p>',
-                contentAfter: '<p>a<a href="exist">bc</a>]d[e</p>',
-            });
-        });
-
-        test("should remove the link in the selected range in the middle of a link (1)", async () => {
-            // FORWARD
+        test("should remove the link in the selected range in the middle of a link", async () => {
             await testEditor({
                 contentBefore: '<p>a<a href="exist">b[c]d</a>e</p>',
                 stepFunction: async (editor) => {
@@ -243,19 +227,7 @@ describe("range not collapsed", () => {
             });
         });
 
-        test("should remove the link in the selected range in the middle of a link (2)", async () => {
-            // BACKWARD
-            await testEditor({
-                contentBefore: '<p>a<a href="exist">b]c[d</a>e</p>',
-                stepFunction: async (editor) => {
-                    await unlinkByCommand(editor);
-                },
-                contentAfter: '<p>a<a href="exist">b</a>]c[<a href="exist">d</a>e</p>',
-            });
-        });
-
-        test("should remove the link in the selected range at the start of a link (1)", async () => {
-            // FORWARD
+        test("should remove the link in the selected range at the start of a link", async () => {
             await testEditor({
                 contentBefore: '<p>a<a href="exist">[b]cd</a>e</p>',
                 stepFunction: async (editor) => {
@@ -266,20 +238,7 @@ describe("range not collapsed", () => {
             });
         });
 
-        test("should remove the link in the selected range at the start of a link (2)", async () => {
-            // BACKWARD
-            await testEditor({
-                contentBefore: '<p>a<a href="exist">]b[cd</a>e</p>',
-                stepFunction: async (editor) => {
-                    await unlinkByCommand(editor);
-                },
-                contentAfterEdit: '<p>a]b[\ufeff<a href="exist">\ufeffcd\ufeff</a>\ufeffe</p>',
-                contentAfter: '<p>a]b[<a href="exist">cd</a>e</p>',
-            });
-        });
-
-        test("should remove the link in the selected range overlapping the end of a link (1)", async () => {
-            // FORWARD
+        test("should remove the link in the selected range overlapping the end of a link", async () => {
             await testEditor({
                 contentBefore: '<p>a<a href="exist">bc[d</a>e]f</p>',
                 stepFunction: async (editor) => {
@@ -289,36 +248,13 @@ describe("range not collapsed", () => {
             });
         });
 
-        test("should remove the link in the selected range overlapping the end of a link (2)", async () => {
-            // BACKWARD
-            await testEditor({
-                contentBefore: '<p>a<a href="exist">bc]d</a>e[f</p>',
-                stepFunction: async (editor) => {
-                    await unlinkByCommand(editor);
-                },
-                contentAfter: '<p>a<a href="exist">bc</a>]de[f</p>',
-            });
-        });
-
-        test("should remove the link in the selected range overlapping the start of a link (1)", async () => {
-            // FORWARD
+        test("should remove the link in the selected range overlapping the start of a link", async () => {
             await testEditor({
                 contentBefore: '<p>a[b<a href="exist">c]de</a>f</p>',
                 stepFunction: async (editor) => {
                     await unlinkByCommand(editor);
                 },
                 contentAfter: '<p>a[bc]<a href="exist">de</a>f</p>',
-            });
-        });
-
-        test("should remove the link in the selected range overlapping the start of a link (2)", async () => {
-            // BACKWARD
-            await testEditor({
-                contentBefore: '<p>a]b<a href="exist">c[de</a>f</p>',
-                stepFunction: async (editor) => {
-                    await unlinkByCommand(editor);
-                },
-                contentAfter: '<p>a]bc[<a href="exist">de</a>f</p>',
             });
         });
 
@@ -375,20 +311,42 @@ describe("range not collapsed", () => {
             await testEditor({
                 contentBefore:
                     '<p>a<a class="oe_unremovable" href="http://test.test">[b</a>c<a href="http://test.test">d</a>e<a class="oe_unremovable" href="http://test.test">f]</a></p>',
-                /** @param {import("@html_editor/plugin").Editor} editor */
                 stepFunction: (editor) => {
-                    const selection = editor.shared.selection.getEditableSelection();
+                    const { anchorNode, focusNode } =
+                        editor.shared.selection.getEditableSelection();
                     // extends selection to contain the feffs
-                    editor.shared.selection.setSelection({
-                        anchorNode: selection.anchorNode.previousSibling,
+                    setSelection({
+                        anchorNode: anchorNode.previousSibling,
                         anchorOffset: 0,
-                        focusNode: selection.focusNode.nextSibling,
+                        focusNode: focusNode.nextSibling,
                         focusOffset: 1,
                     });
                     unlinkByCommand(editor);
                 },
                 contentAfter:
                     '<p>a<a class="oe_unremovable" href="http://test.test">[b</a>cde<a class="oe_unremovable" href="http://test.test">f]</a></p>',
+                testInBothDirections: false,
+            });
+        });
+        test("should not remove unremovable links when fully selected (including feff) with other links (reversed selection)", async () => {
+            await testEditor({
+                contentBefore:
+                    '<p>a<a class="oe_unremovable" href="http://test.test">]b</a>c<a href="http://test.test">d</a>e<a class="oe_unremovable" href="http://test.test">f[</a></p>',
+                stepFunction: (editor) => {
+                    const { anchorNode, focusNode } =
+                        editor.shared.selection.getEditableSelection();
+                    // extends selection to contain the feffs
+                    setSelection({
+                        anchorNode: anchorNode.nextSibling,
+                        anchorOffset: 1,
+                        focusNode: focusNode.previousSibling,
+                        focusOffset: 0,
+                    });
+                    unlinkByCommand(editor);
+                },
+                contentAfter:
+                    '<p>a<a class="oe_unremovable" href="http://test.test">]b</a>cde<a class="oe_unremovable" href="http://test.test">f[</a></p>',
+                testInBothDirections: false,
             });
         });
     });

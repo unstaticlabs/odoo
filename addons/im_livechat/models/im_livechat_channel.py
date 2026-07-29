@@ -6,7 +6,7 @@ import random
 import re
 from urllib.parse import urlparse
 
-from odoo import api, Command, fields, models, _
+from odoo import api, Command, fields, models, release, _
 from odoo.exceptions import AccessError, ValidationError
 from odoo.fields import Domain
 from odoo.addons.bus.websocket import WebsocketConnectionHandler
@@ -65,6 +65,9 @@ class Im_LivechatChannel(models.Model):
     are_you_inside = fields.Boolean(string='Are you inside the matrix?',
         compute='_are_you_inside', store=False, readonly=True)
     available_operator_ids = fields.Many2many('res.users', compute='_compute_available_operator_ids')
+    available_operator_ids_count = fields.Integer(
+        "Agents Connected", compute="_compute_available_operator_ids"
+    )
     script_external = fields.Html('Script (external)', compute='_compute_script_external', store=False, readonly=True, sanitize=False)
     nbr_channel = fields.Integer('Number of conversation', compute='_compute_nbr_channel', store=False, readonly=True)
 
@@ -124,7 +127,6 @@ class Im_LivechatChannel(models.Model):
         "user_ids.channel_ids.last_interest_dt",
         "user_ids.channel_ids.livechat_end_dt",
         "user_ids.channel_ids.livechat_channel_id",
-        "user_ids.channel_ids.livechat_operator_id",
         "user_ids.channel_member_ids",
         "user_ids.im_status",
         "user_ids.is_in_call",
@@ -134,6 +136,7 @@ class Im_LivechatChannel(models.Model):
         operators_by_livechat_channel = self._get_available_operators_by_livechat_channel()
         for livechat_channel in self:
             livechat_channel.available_operator_ids = operators_by_livechat_channel[livechat_channel]
+            livechat_channel.available_operator_ids_count = len(operators_by_livechat_channel[livechat_channel])
 
     @api.constrains("review_link")
     def _check_review_link(self):
@@ -332,7 +335,6 @@ class Im_LivechatChannel(models.Model):
         return {
             'channel_member_ids': members_to_add,
             "last_interest_dt": last_interest_dt,
-            'livechat_operator_id': operator_partner.id,
             'livechat_channel_id': self.id,
             "livechat_failure": "no_answer" if is_agent else "no_failure",
             "livechat_status": "in_progress",
@@ -356,7 +358,7 @@ class Im_LivechatChannel(models.Model):
         else:
             member_names = [
                 visitor_user.display_name if visitor_user else guest.name,
-                agent.livechat_username or agent.name
+                agent.sudo().livechat_username or agent.name
             ]
             channel_name = " ".join(filter(None, member_names))
         return channel_name
@@ -575,13 +577,16 @@ class Im_LivechatChannel(models.Model):
 
     def get_livechat_info(self, username=None):
         self.ensure_one()
-
         if username is None:
             username = _('Visitor')
         info = {}
         info['available'] = self._is_livechat_available()
         info['server_url'] = self.get_base_url()
-        info["websocket_worker_version"] = WebsocketConnectionHandler._VERSION
+        info["session_info"] = {
+            "server_version": release.version,
+            "server_version_info": release.version_info,
+            "websocket_worker_version": WebsocketConnectionHandler._VERSION,
+        }
         if info['available']:
             info['options'] = self._get_channel_infos()
             info['options']["default_username"] = username
@@ -598,7 +603,7 @@ class Im_LivechatChannelRule(models.Model):
     """
 
     _name = 'im_livechat.channel.rule'
-    _description = 'Livechat Channel Rules'
+    _description = 'Livechat Channel Rule'
     _order = 'sequence asc'
 
     regex_url = fields.Char('URL Regex',
@@ -672,9 +677,6 @@ class Im_LivechatChannelRule(models.Model):
     def _is_bot_configured(self):
         return bool(self.chatbot_script_id)
 
-    def _to_store_defaults(self, target):
-        return [
-            "action",
-            "auto_popup_timer",
-            Store.One("chatbot_script_id"),
-        ]
+    def _store_channel_rule_fields(self, res: Store.FieldList):
+        res.extend(["action", "auto_popup_timer"])
+        res.one("chatbot_script_id", "_store_script_fields")

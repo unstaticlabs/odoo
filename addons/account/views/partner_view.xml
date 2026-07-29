@@ -164,12 +164,12 @@
                     <attribute name="placeholder"></attribute>
                 </field>
 
-                <field name="company_registry" position="before">
-                    <field name="partner_company_registry_placeholder" invisible="1"/> <!-- Needed for the placeholder widget -->
-                </field>
-                <field name="company_registry" position="attributes">
-                    <attribute name="options">{'placeholder_field': 'partner_company_registry_placeholder'}</attribute>
-                </field>
+                <xpath expr=".//page[@name='sales_purchases']//group[@name='misc']" position="inside">
+                    <field name="global_location_number" invisible="type != 'delivery'"/>
+                </xpath>
+                <xpath expr=".//page[@name='contact_addresses']/field[@name='child_ids']/form//field[@name='company_id']" position="after">
+                    <field name="global_location_number" invisible="type != 'delivery'"/>
+                </xpath>
             </field>
         </record>
 
@@ -194,7 +194,7 @@
             <field name="name">res.partner.property.form.inherit</field>
             <field name="model">res.partner</field>
             <field name="priority">2</field>
-            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="inherit_id" ref="product.view_partner_property_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='company_id']" position="after">
                     <field name="fiscal_country_codes" invisible="1"/>
@@ -202,7 +202,7 @@
                 <xpath expr="//sheet" position="before">
                     <div groups="account.group_account_invoice,account.group_account_readonly" class="alert alert-warning" role="alert"
                          invisible="not duplicate_bank_partner_ids">
-                        <span>One or more Bank Accounts set on this partner are also used by others:</span>
+                        <span class="me-1">One or more Bank Accounts set on this partner are also used by others:</span>
                         <field name="duplicate_bank_partner_ids" widget="x2many_buttons" string="Partners with same bank"/>
                     </div>
                 </xpath>
@@ -215,7 +215,8 @@
                                        context="{'default_partner_id': id}"
                                        domain="[('partner_id','=', id)]"
                                        widget="many2many_tags_banks"
-                                       options="{'color_field': 'color', 'allow_out_payment_field': 'allow_out_payment', 'edit_tags': True}"/>
+                                       readonly="not id"
+                                       options="{'color_field': 'color', 'allow_out_payment_field': 'allow_out_payment', 'on_tag_click': 'open_form'}"/>
                                 <field name="property_account_receivable_id" required="True" groups="account.group_account_user"/>
                                 <field name="property_account_payable_id" required="True" groups="account.group_account_user"/>
                                 <field name="autopost_bills" groups="account.group_account_user"/>

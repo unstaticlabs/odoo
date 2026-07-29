@@ -1,41 +1,42 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import base64
 import datetime
-import os
 import logging
+import os
 import re
-import requests
 import urllib.parse
-import werkzeug.urls
-import werkzeug.utils
-import werkzeug.wrappers
 import zipfile
-
 from hashlib import md5, sha256
 from io import BytesIO
 from itertools import islice
-from lxml import etree, html
-from markupsafe import escape as markup_escape
 from textwrap import shorten
-from werkzeug.exceptions import NotFound
 from xml.etree import ElementTree as ET
 
-import odoo
+import requests
+import werkzeug.urls
+import werkzeug.wrappers
+from lxml import etree, html
+from markupsafe import escape as markup_escape
+from werkzeug.exceptions import NotFound
 
-from odoo import http, models, fields, tools, _
+from odoo import _, fields, http, models, release, tools
 from odoo.exceptions import AccessError, UserError
 from odoo.fields import Domain
-from odoo.http import request, SessionExpiredException
-from odoo.tools import OrderedSet, escape_psql, html_escape as escape, py_to_js_locale
-from odoo.tools.translate import LazyTranslate
+from odoo.http import request
+from odoo.http.router import serve_ir_http
+from odoo.http.session import SessionExpiredException
+from odoo.http.stream import STATIC_CACHE_LONG
+from odoo.tools import OrderedSet, escape_psql, py_to_js_locale
+from odoo.tools import html_escape as escape
+from odoo.tools.json import scriptsafe as json
+from odoo.tools.translate import LazyTranslate, TRANSLATED_ELEMENTS
+
 from odoo.addons.base.models.ir_http import EXTENSION_TO_WEB_MIMETYPES
 from odoo.addons.portal.controllers.portal import pager as portal_pager
 from odoo.addons.portal.controllers.web import Home
 from odoo.addons.web.controllers.binary import Binary
 from odoo.addons.web.controllers.session import Session
 from odoo.addons.website.tools import get_base_domain
-from odoo.tools.json import scriptsafe as json
-from odoo.tools.translate import TRANSLATED_ELEMENTS
 
 _lt = LazyTranslate(__name__)
 logger = logging.getLogger(__name__)
@@ -86,7 +87,29 @@ class QueryURL:
 
 class Website(Home):
 
-    @http.route('/', auth="public", website=True, sitemap=True)
+    def sitemap_index(env, rule, qs):
+        Website = env['website'].get_current_website()
+        homepage_url = Website.homepage_url
+
+        def match(loc):
+            return not qs or qs.lower() in loc.lower()
+
+        website_page = env['website.page'].sudo().search([
+            ('url', '=', '/'),
+            ('is_published', '=', True),
+        ], limit=1)
+        if website_page and match('/'):
+            yield {'loc': '/'}
+            return
+
+        top_menu = Website.menu_id
+        reachable_menus = top_menu.child_id.filtered(Website.is_reachable)
+        if reachable_menus:
+            loc = reachable_menus[0].url
+            if match(loc):
+                yield {'loc': loc}
+
+    @http.route('/', auth="public", website=True, sitemap=sitemap_index)
     def index(self, **kw):
         """ The goal of this controller is to make sure we don't serve a 404 as
         the website homepage. As this is the website entry point, serving a 404
@@ -103,7 +126,7 @@ class Website(Home):
         Most DBs will just have a website.page with '/' as URL and keep the
         homepage_url setting empty.
         """
-        homepage_url = request.website._get_cached('homepage_url')
+        homepage_url = request.website.homepage_url
         if homepage_url and homepage_url != '/':
             request.reroute(homepage_url)
 
@@ -116,18 +139,13 @@ class Website(Home):
         if homepage_url and homepage_url != '/':
             try:
                 rule, args = request.env['ir.http']._match(homepage_url)
-                return request._serve_ir_http(rule, args)
+                return serve_ir_http(request, rule, args)
             except (AccessError, NotFound, SessionExpiredException):
                 pass
 
-        # Fallback on first accessible menu
-        def is_reachable(menu):
-            return menu.is_visible and menu.url not in ('/', '', '#') and not menu.url.startswith(('/?', '/#', ' '))
-
         # prefetch all menus (it will prefetch website.page too)
         top_menu = request.website.menu_id
-
-        reachable_menus = top_menu.child_id.filtered(is_reachable)
+        reachable_menus = top_menu.child_id.filtered(request.website.is_reachable)
         if reachable_menus:
             return request.redirect(reachable_menus[0].url)
 
@@ -283,7 +301,7 @@ class Website(Home):
             sitemaps.unlink()
 
             pages = 0
-            locs = request.website.with_user(request.website.user_id)._enumerate_pages()
+            locs = request.website.with_user(request.website.user_id)._enumerate_pages(ignore_custom_homepage=True)
             while True:
                 values = {
                     'locs': islice(locs, 0, LOC_PER_SITEMAP),
@@ -326,22 +344,10 @@ class Website(Home):
     def favicon(self, **kw):
         website = request.website
         response = request.redirect(website.image_url(website, 'favicon'), code=301)
-        response.headers['Cache-Control'] = 'public, max-age=%s' % http.STATIC_CACHE_LONG
+        response.headers['Cache-Control'] = f'public, max-age={STATIC_CACHE_LONG}'
         return response
 
-    def sitemap_website_info(env, rule, qs):
-        website = env['website'].get_current_website()
-        if not (
-            website.is_view_active('website.website_info')
-            and website.is_view_active('website.show_website_info')
-        ):
-            # avoid 404 or blank page in sitemap
-            return False
-
-        if not qs or qs.lower() in '/website/info':
-            yield {'loc': '/website/info'}
-
-    @http.route('/website/info', type='http', auth="public", website=True, sitemap=sitemap_website_info, readonly=True, list_as_website_content=_lt("Website Information"))
+    @http.route('/website/info', type='http', auth="public", website=True, sitemap=False, readonly=True, list_as_website_content=_lt("Website Information"))
     def website_info(self, **kwargs):
         Module = request.env['ir.module.module'].sudo()
         apps = Module.search([('state', '=', 'installed'), ('application', '=', True)])
@@ -349,7 +355,11 @@ class Website(Home):
         values = {
             'apps': apps,
             'l10n': l10n,
-            'version': odoo.service.common.exp_version()
+            'version': {
+                'server_version': release.version,
+                'server_version_info': release.version_info,
+                'server_serie': release.serie,
+            }
         }
         return request.render('website.website_info', values)
 
@@ -461,13 +471,11 @@ class Website(Home):
         templates = request.env['ir.ui.view'].sudo().search_read(domain, ['key', 'name', 'arch_db'])
 
         for t in templates:
-            children = etree.fromstring(t.pop('arch_db')).getchildren()
-            attribs = children and children[0].attrib or {}
-            t['numOfEl'] = attribs.get('data-number-of-elements')
-            t['numOfElSm'] = attribs.get('data-number-of-elements-sm')
-            t['numOfElFetch'] = attribs.get('data-number-of-elements-fetch')
+            attribs = etree.fromstring(t.pop('arch_db')).attrib or {}
+            t['numberOfElements'] = attribs.get('data-number-of-elements')
+            t['numberOfElementsSmallDevices'] = attribs.get('data-number-of-elements-sm')
+            t['numberOfRecords'] = attribs.get('data-number-of-elements-fetch')
             t['rowPerSlide'] = attribs.get('data-row-per-slide')
-            t['arrowPosition'] = attribs.get('data-arrow-position')
             t['extraClasses'] = attribs.get('data-extra-classes')
             t['extraSnippetClasses'] = attribs.get('data-extra-snippet-classes')
             t['containerClasses'] = attribs.get('data-container-classes')
@@ -484,9 +492,96 @@ class Website(Home):
             'position': request.website.company_id.currency_id.position,
         }
 
+    @http.route("/website/get_new_pages", type="jsonrpc", auth="user")
+    def get_new_page_records(self, page_ids):
+        if not request.env.user.has_group('website.group_website_restricted_editor'):
+            raise werkzeug.exceptions.Forbidden()
+        page_records = request.env["website.page"].sudo().search_read(
+            [("id", "in", page_ids)],
+            ["is_new_page_template"]
+        )
+        return page_records
+
     # --------------------------------------------------------------------------
     # Search Bar
     # --------------------------------------------------------------------------
+
+    def _shorten_around_match(self, text, keyword, width=80, placeholder="..."):
+        """
+        Return a shortened version of `text`, ensuring `keyword` stays visible
+        within the returned text. If truncation is necessary, the output is
+        centered around the match and uses `placeholder` to indicate omitted
+        content.
+
+        Handles multi-word keywords by finding the first token match.
+
+            >>> _shorten_around_match("aaa bbb ccc ddd", "ccc", 12)
+            "...bb ccc..."
+
+            >>> _shorten_around_match("aaa bbb ccc ddd eee fff", "ccc fff", 15)
+            "...bbb ccc d..."
+
+        :param text: Text to shorten
+        :param keyword: Substring or multi-word phrase that must remain visible
+        :param width: Maximum length of the returned text
+        :param placeholder: String used to indicate omitted content
+
+        :return: Shortened text ensuring `keyword` remains visible if possible
+        """
+        if not text or not keyword or len(text) <= width:
+            return text
+
+        lower_text = text.lower()
+        lower_keyword = keyword.lower()
+
+        # Try exact match first
+        match_pos = lower_text.find(lower_keyword)
+
+        # If no exact match, break keyword into tokens and find first match
+        if match_pos == -1:
+            tokens = lower_keyword.split()
+            for token in tokens:
+                match_pos = lower_text.find(token)
+                if match_pos != -1:
+                    keyword = text[match_pos:match_pos + len(token)]
+                    break
+
+        # Still no match found or match already within visible range, shorten
+        # normally
+        if match_pos == -1 or match_pos < (width // 2):
+            return shorten(text, width=width, placeholder=placeholder)
+
+        # Account for placeholder space when calculating text range
+        placeholder_len = len(placeholder)
+        available_chars = width - (2 * placeholder_len)
+
+        # Center the visible range around the matched keyword
+        half_range = available_chars // 2
+        match_end = match_pos + len(keyword)
+        start = max(match_pos - half_range, 0)
+        end = start + available_chars
+
+        # Move the range back if we went past the end of the text
+        if end >= len(text):
+            end = len(text)
+            # No trailing placeholder needed - extend range backward to use the
+            # extra space
+            start = max(end - available_chars - placeholder_len, 0)
+
+        # Extend range forward if it cuts off part of the match
+        elif end < match_end:
+            end = match_end
+            start = max(end - available_chars, 0)
+
+        truncated = text[start:end]
+
+        # Add placeholders where content was omitted
+        if start > 0:
+            truncated = placeholder + truncated
+        if end < len(text):
+            truncated += placeholder
+
+        return truncated
 
     def _get_search_order(self, order):
         # OrderBy will be parsed in orm and so no direct sql injection
@@ -532,7 +627,9 @@ class Website(Home):
         mappings = []
         results_data = []
         for search_result in search_results:
-            results_data += search_result['results_data']
+            for result in search_result['results_data']:
+                result['model'] = search_result['model']
+                results_data.append(result)
             mappings.append(search_result['mapping'])
         if search_type == 'all':
             # Only supported order for 'all' is on name
@@ -541,6 +638,7 @@ class Website(Home):
         result = []
         for record in results_data:
             mapping = record['_mapping']
+            model = request.env[record['model']]
             mapped = {
                 '_fa': record.get('_fa'),
             }
@@ -550,19 +648,13 @@ class Website(Home):
                     mapped[mapped_name] = ''
                     continue
                 field_type = field_meta.get('type')
-                if field_type == 'text':
-                    if value and field_meta.get('truncate', True):
-                        value = shorten(value, max_nb_chars, placeholder='...')
-                    if field_meta.get('match') and value and term:
-                        pattern = '|'.join(map(re.escape, term.split()))
-                        if pattern:
-                            parts = re.split(f'({pattern})', value, flags=re.IGNORECASE)
-                            if len(parts) > 1:
-                                value = request.env['ir.ui.view'].sudo()._render_template(
-                                    "website.search_text_with_highlight",
-                                    {'parts': parts}
-                                )
-                                field_type = 'html'
+                if field_type == 'text' and field_meta.get('truncate', True):
+                    value = self._shorten_around_match(value, term, max_nb_chars)
+
+                if field_meta.get('match'):
+                    skip_field, value, field_type = model._search_highlight_field(field_meta, value, term)
+                    if skip_field:
+                        continue
 
                 if field_type not in ('image', 'binary') and ('ir.qweb.field.%s' % field_type) in request.env:
                     opt = {}
@@ -780,9 +872,9 @@ class Website(Home):
 
     @http.route('/website/save_xml', type='jsonrpc', auth='user', website=True)
     def save_xml(self, view_id, arch):
-        disable_delay_translations = self.env['ir.config_parameter'].sudo().get_param(
+        disable_delay_translations = self.env['ir.config_parameter'].sudo().get_bool(
             'website.disable_delay_translations'
-        ) not in ('False', '0', '', False)
+        )
         request.env['ir.ui.view'].browse(view_id).with_context(
             lang=request.website.default_lang_id.code,
             delay_translations=not disable_delay_translations,
@@ -1397,6 +1489,10 @@ class WebsiteSession(Session):
     @http.route(auth="public")
     def logout(self, *args, **kw):
         return super().logout(*args, **kw)
+
+    @http.route(website=True)
+    def session_identity(self, redirect=None):
+        return super().session_identity(redirect)
 
 
 class WebsiteBinary(Binary):

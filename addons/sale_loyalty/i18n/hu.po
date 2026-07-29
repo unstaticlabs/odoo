@@ -2,13 +2,13 @@
 # This file contains the translation of the following modules:
 # * sale_loyalty
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 11:43+0000\n"
+"POT-Creation-Date: 2026-06-19 17:37+0000\n"
+"PO-Revision-Date: 2025-09-29 19:47+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/"
 "sale_loyalty/hu/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_loyalty
 #. odoo-python
@@ -108,12 +108,6 @@ msgstr "Létrehozta"
 #: model:ir.model.fields,field_description:sale_loyalty.field_sale_order_coupon_points__create_date
 msgid "Created on"
 msgstr "Létrehozva"
-
-#. module: sale_loyalty
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_coupon_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_reward_wizard_view_form
-msgid "Discard"
-msgstr "Elvetés"
 
 #. module: sale_loyalty
 #. odoo-python
@@ -518,8 +512,9 @@ msgid ""
 "This discount (%(discount)s) is not compatible with \"%(other_discount)s\". "
 "Please remove it in order to apply this one."
 msgstr ""
-"Ez a kedvezmény (%(discount)s) nem kompatibilis ezzel: \"%(other_discount)"
-"s\". Kérjük, távolítsa el hogy alkalmazhassa ezt a kedvezményt."
+"Ez a kedvezmény (%(discount)s) nem kompatibilis ezzel: \"%"
+"(other_discount)s\". Kérjük, távolítsa el hogy alkalmazhassa ezt a "
+"kedvezményt."
 
 #. module: sale_loyalty
 #. odoo-python
@@ -580,6 +575,14 @@ msgstr "Használva :"
 #. module: sale_loyalty
 #. odoo-python
 #: code:addons/sale_loyalty/models/sale_order.py:0
+msgid ""
+"You don't have enough coupon points to proceed. Please check your applied "
+"rewards and coupon balance. "
+msgstr ""
+
+#. module: sale_loyalty
+#. odoo-python
+#: code:addons/sale_loyalty/models/sale_order.py:0
 msgid "You don't have the required product quantities on your sales order."
 msgstr "A vevői rendelés szereplő termékmennyiség kevesebb a szükségesnél."
 
@@ -602,6 +605,3 @@ msgstr ""
 #~ "A minimum of %(amount)s %(currency)s should be purchased to get the reward"
 #~ msgstr ""
 #~ "Legalább %(amount)s %(currency)s rendelési összeg szükséges a jutalomért"
-
-#~ msgid "Free Product - %(product)s"
-#~ msgstr "Ingyenes termék - %(product)s"

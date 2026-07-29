@@ -6,6 +6,7 @@
     <t id="default_snippets">
         <t t-set="cta_btn_text" t-value="False"/>
         <t t-set="cta_btn_href">/contactus</t>
+        <t t-set="shop_btn_href">#</t>
 
         <!-- Snippet groups -->
         <snippets id="snippet_groups" string="Categories">
@@ -43,6 +44,9 @@
             <!-- Intro group -->
             <t t-snippet="website.s_banner" string="Banner" group="intro">
                 <keywords>hero, jumbotron, headline, header, branding, intro, home, showcase, spotlight, lead, welcome, announcement, splash, top, main</keywords>
+            </t>
+            <t t-snippet="website.s_splash_intro" string="Splash Intro" group="intro">
+                <keywords>hero, splash, fullscreen, image, background, headline, header, branding, intro, home, showcase, spotlight, main, landing, presentation, top, cover, immersive, visual, impactful</keywords>
             </t>
             <t t-snippet="website.s_cover" string="Cover" group="intro">
                 <keywords>hero, jumbotron, headline, header, branding, intro, home, showcase, spotlight, main, landing, presentation, top, splash, parallax</keywords>
@@ -173,7 +177,7 @@
                 <keywords>columns, containers, layouts, large, panels, modules</keywords>
             </t>
             <t t-snippet="website.s_popup" string="Popup" group="content" label="Popup"/>
-            <t t-snippet="website.s_countdown" string="Countdown" t-thumbnail="/website/static/src/img/snippets_thumbs/s_countdown.svg" group="content">
+            <t t-snippet="website.s_countdown" string="Countdown" group="content">
                 <keywords>celebration, launch</keywords>
             </t>
             <t t-snippet="website.s_numbers_charts" string="Numbers Charts" group="content">
@@ -248,7 +252,7 @@
 
             <!-- Keep `s_embed_code` snippet at the very end of the "Content" group -->
             <t t-snippet="website.s_embed_code" string="Embed Code" t-forbid-sanitize="true"
-                t-image-preview="/website/static/src/img/snippets_previews/s_embed_code_preview.png" t-thumbnail="/website/static/src/img/snippets_thumbs/s_embed_code.svg" group="content"/>
+                t-image-preview="/website/static/src/img/snippets_previews/s_embed_code_preview.png" group="content"/>
 
 
             <!-- Images group -->
@@ -362,7 +366,7 @@
             <t t-snippet="website.s_faq_list" string="FAQ List" group="text">
                 <keywords>questions, answers, common answers, common questions, faq, help, support, information, knowledge, guide, troubleshooting, assistance, columns, QA</keywords>
             </t>
-            <t t-snippet="website.s_table_of_content" string="Table of Content" group="text" label="Tab">
+            <t t-snippet="website.s_table_of_content" string="Table of Content" group="text" label="Table of Contents">
                 <keywords>navigation, index, outline, chapters, sections, overview, menu, tab</keywords>
             </t>
             <t t-snippet="website.s_faq_horizontal" string="Topics List" group="text">
@@ -379,21 +383,21 @@
             </t>
 
             <!-- Contact & Forms group -->
-            <t t-snippet="website.s_title_form" string="Title - Form" t-forbid-sanitize="form" t-thumbnail="/website/static/src/img/snippets_thumbs/s_website_form.svg" group="contact_and_forms">
+            <t t-snippet="website.s_title_form" string="Title - Form" t-forbid-sanitize="form" group="contact_and_forms" label="Form">
                 <keywords>contact, collect, submission, input, fields, questionnaire, survey, registration, request</keywords>
             </t>
             <t t-snippet="website.s_opening_hours" string="Opening Hours" group="contact_and_forms"/>
             <t t-snippet="website.s_contact_info" string="Contact Info" group="contact_and_forms"/>
-            <t t-snippet="website.s_website_form_overlay" string="Form Overlay" t-forbid-sanitize="form" group="contact_and_forms">
+            <t t-snippet="website.s_website_form_overlay" string="Form Overlay" t-forbid-sanitize="form" group="contact_and_forms" label="Form">
                 <keywords>contact, collect, submission, input, fields, questionnaire, survey, registration, request</keywords>
             </t>
-            <t t-snippet="website.s_website_form_info" string="Form Info" t-forbid-sanitize="form" group="contact_and_forms">
+            <t t-snippet="website.s_website_form_info" string="Form Info" t-forbid-sanitize="form" group="contact_and_forms" label="Form">
                 <keywords>contact, collect, submission, input, fields, questionnaire, survey, registration, request, image, picture, photo, illustration, media, visual, company, organization, address, phone, email, location, get-in-touch</keywords>
             </t>
-            <t t-snippet="website.s_website_form_cover" string="Form Cover" t-forbid-sanitize="form" group="contact_and_forms">
+            <t t-snippet="website.s_website_form_cover" string="Form Cover" t-forbid-sanitize="form" group="contact_and_forms" label="Form">
                 <keywords>contact, collect, submission, input, fields, questionnaire, survey, registration, request, image, picture, photo, illustration, media, visual</keywords>
             </t>
-            <t t-snippet="website.s_form_aside" string="Form Aside" t-forbid-sanitize="form" group="contact_and_forms">
+            <t t-snippet="website.s_form_aside" string="Form Aside" t-forbid-sanitize="form" group="contact_and_forms" label="Form">
                 <keywords>contact, collect, submission, input, fields, questionnaire, survey, registration, request, image, picture, photo, illustration, media, visual, get-in-touch</keywords>
             </t>
 
@@ -405,7 +409,7 @@
                 <keywords>services, icons, features, characteristic, specs, advantages, functionalities, exhibit, details, capabilities, attributes, promotion, overview, specifications</keywords>
             </t>
             <t t-snippet="website.s_bento_grid" string="Bento Grid" group="catalog">
-                <keywords>cards, shop, grid, column, cart, product, ecommerce, categories, hightlights, pictures, photos, illustration, media, visuals, intro, home, coupon, code, description, rounded, card, call to action, cta, marketing, showcase, mosaic, collage, arrangement, collection, visual-grid</keywords>
+                <keywords>cards, shop, grid, column, cart, product, ecommerce, categories, highlights, pictures, photos, illustration, media, visuals, intro, home, coupon, code, description, rounded, card, call to action, cta, marketing, showcase, mosaic, collage, arrangement, collection, visual-grid</keywords>
             </t>
             <t t-snippet="website.s_bento_banner" string="Bento Banner" group="catalog">
                 <keywords>hero, jumbotron, headline, header, introduction, banner, call to action, cta, button, highlight, showcase, spotlight, sober, trendy, design, picture, photo, illustration, visual, description, containers, layouts, product, buy</keywords>
@@ -425,8 +429,11 @@
             <t t-snippet="website.s_attributes_vertical" string="Vertical Attributes" group="catalog">
                 <keywords>services, icons, features, characteristic, specs, advantages, functionalities, exhibit, details, capabilities, attributes, promotion, overview, specifications</keywords>
             </t>
-            <t t-snippet="website.s_announcement_scroll" string="Announcement Scroll" group="catalog">
+            <t t-snippet="website.s_announcement_scroll" string="Announcement Scroll" group="catalog" label="Scroll">
                 <keywords>banner, announcement, scrolling text, trust indicators, info bar, site-wide banner, minimal design, trendy, bold, presentation</keywords>
+            </t>
+            <t t-snippet="website.s_bento_grid_avatars" string="Bento Avatars" group="catalog">
+                <keywords>cards, shop, grid, avatars, column, cart, product, ecommerce, categories, highlights, pictures, photos, illustration, media, visuals, intro, home, coupon, code, description, rounded, card, call to action, cta, marketing, showcase, mosaic, collage, arrangement, collection, visual-grid</keywords>
             </t>
             <t id="sale_products_hook"/>
 
@@ -447,20 +454,21 @@
             <t id="mass_mailing_newsletter_centered_hook"/>
             <t id="mass_mailing_newsletter_sms_notifications_hook"/>
             <t id="mass_mailing_newsletter_benefits_popup_hook"/>
+            <t id="mass_mailing_newsletter_aside_hook"/>
 
             <!-- Social group -->
-            <t t-snippet="website.s_instagram_page" string="Instagram Page" group="social"
+            <t t-snippet="website.s_instagram_page" string="Instagram Page" group="social" label="Instagram"
                 t-image-preview="/website/static/src/img/snippets_previews/s_instagram_preview.webp">
                 <keywords>social media, ig, feed</keywords>
             </t>
-            <!-- TODO: remove 'snippet_google_map_hook', it does not seem to be used -->
-            <t id="snippet_google_map_hook"/>
-            <t t-set="google_maps_api_key" t-value="request.env['website'].get_current_website().google_maps_api_key"/>
-            <t t-if="debug or not google_maps_api_key" t-snippet="website.s_map" string="Map"
-                t-thumbnail="/website/static/src/img/snippets_thumbs/s_map.svg" group="social"
+            <t t-snippet="website.s_facebook_page" string="Facebook Page" group="social" label="Facebook"
+                t-image-preview="/website/static/src/img/snippets_previews/s_facebook_preview.webp">
+                <keywords>social media, fb, feed</keywords>
+            </t>
+            <t t-set="google_maps_api_key" t-value="env['website'].get_current_website().google_maps_api_key"/>
+            <t t-if="debug or not google_maps_api_key" t-snippet="website.s_map" string="Map" group="social" label="Map"
                 t-image-preview="/website/static/src/img/snippets_previews/s_map_preview.png"/>
-            <t t-if="debug or google_maps_api_key" t-snippet="website.s_google_map" string="Google Map"
-                t-thumbnail="/website/static/src/img/snippets_thumbs/s_google_map.svg" group="social"
+            <t t-if="debug or google_maps_api_key" t-snippet="website.s_google_map" string="Google Map" group="social" label="Google Map"
                 t-image-preview="/website/static/src/img/snippets_previews/s_map_preview.png"/>
 
             <!-- Debug group -->
@@ -476,16 +484,20 @@
         <snippets id="snippet_content" string="Inner content">
             <t t-snippet="website.s_inline_text" string="Text" t-thumbnail="/website/static/src/img/snippets_thumbs/s_inline_text.svg" t-grid-column-span="4"/>
             <t t-snippet="website.s_button" string="Button" t-thumbnail="/website/static/src/img/snippets_thumbs/s_button.svg" t-grid-column-span="3"/>
+            <t t-snippet="website.s_hr" string="Separator" t-thumbnail="/website/static/src/img/snippets_thumbs/s_hr.svg"/>
             <t t-snippet="website.s_image" string="Image" t-thumbnail="/website/static/src/img/snippets_thumbs/s_image.svg"/>
             <t t-snippet="website.s_video" string="Video" t-thumbnail="/website/static/src/img/snippets_thumbs/s_video.svg"/>
-            <t t-snippet="website.s_hr" string="Separator" t-thumbnail="/website/static/src/img/snippets_thumbs/s_hr.svg"/>
+            <t t-snippet="website.s_icon" string="Icon" t-thumbnail="/website/static/src/img/snippets_thumbs/s_icon.svg"/>
             <t t-snippet="website.s_accordion" string="Accordion" t-thumbnail="/website/static/src/img/snippets_thumbs/s_accordion.svg"/>
             <t t-snippet="website.s_alert" string="Alert" t-thumbnail="/website/static/src/img/snippets_thumbs/s_alert.svg"/>
             <t t-snippet="website.s_rating" string="Rating" t-thumbnail="/website/static/src/img/snippets_thumbs/s_rating.svg" t-grid-column-span="3"/>
             <t t-snippet="website.s_card" string="Card" t-thumbnail="/website/static/src/img/snippets_thumbs/s_card.svg"/>
             <t t-snippet="website.s_share" string="Share" t-thumbnail="/website/static/src/img/snippets_thumbs/s_share.svg"/>
             <t t-snippet="website.s_social_media" string="Social Media" t-thumbnail="/website/static/src/img/snippets_thumbs/s_social_media.svg"/>
-            <t t-snippet="website.s_facebook_page" string="Facebook" t-thumbnail="/website/static/src/img/snippets_thumbs/s_facebook_page.svg"/>
+            <t t-snippet="website.s_facebook_page" string="Facebook" t-thumbnail="/website/static/src/img/snippets_thumbs/s_facebook_page.svg"
+                t-drag-image-preview="/website/static/src/img/snippets_previews/s_facebook_preview.webp"/>
+            <t t-snippet="website.s_instagram_page" string="Instagram" t-thumbnail="/website/static/src/img/snippets_thumbs/s_instagram_page.svg"
+                t-drag-image-preview="/website/static/src/img/snippets_previews/s_instagram_preview.webp"/>
             <t t-snippet="website.s_searchbar_input" string="Search" t-thumbnail="/website/static/src/img/snippets_thumbs/s_searchbar_inline.svg" t-forbid-sanitize="form" t-grid-column-span="5"/>
             <t id="mass_mailing_newsletter_hook"/>
             <t id="mail_group_hook"/>
@@ -494,6 +506,7 @@
             <t t-snippet="website.s_progress_bar" string="Progress Bar" t-thumbnail="/website/static/src/img/snippets_thumbs/s_progress_bar.svg" t-grid-column-span="4"/>
             <t t-snippet="website.s_badge" string="Badge" t-thumbnail="/website/static/src/img/snippets_thumbs/s_badge.svg" t-grid-column-span="2"/>
             <t t-snippet="website.s_cta_badge" string="CTA Badge" t-thumbnail="/website/static/src/img/snippets_thumbs/s_cta_badge.svg" t-grid-column-span="5"/>
+            <t t-snippet="website.s_avatars" string="Avatars" t-thumbnail="/website/static/src/img/snippets_thumbs/s_avatars.svg" t-grid-column-span="4"/>
             <t t-snippet="website.s_blockquote" string="Blockquote" t-thumbnail="/website/static/src/img/snippets_thumbs/s_blockquote.svg" t-grid-column-span="5"/>
             <!--
             Note: this inner snippet is still allowed to be dropped as a
@@ -507,7 +520,7 @@
             <t t-snippet="website.s_countdown" string="Countdown" t-thumbnail="/website/static/src/img/snippets_thumbs/s_countdown.svg"/>
             <t t-snippet="website.s_embed_code" string="Embed Code" t-thumbnail="/website/static/src/img/snippets_thumbs/s_embed_code.svg" t-forbid-sanitize="true"/>
             <t t-if="debug or not google_maps_api_key" t-snippet="website.s_map" string="Map" t-thumbnail="/website/static/src/img/snippets_thumbs/s_map.svg"/>
-            <t t-if="debug or google_maps_api_key" t-snippet="website.s_google_map" string="Map" t-thumbnail="/website/static/src/img/snippets_thumbs/s_google_map.svg"/>
+            <t t-if="debug or google_maps_api_key" t-snippet="website.s_google_map" string="Google Map" t-thumbnail="/website/static/src/img/snippets_thumbs/s_google_map.svg"/>
             <t id="event_speaker_bio_hook"/>
             <t id="snippet_donation_button_hook"/>
             <t id="snippet_add_to_cart_hook"/>
@@ -522,17 +535,19 @@
     <xpath expr="//snippets[@id='snippet_structure']" position="inside">
         <t t-install="mass_mailing" string="Newsletter Block" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_block_preview.png"/>
+        <t t-install="mass_mailing" string="Newsletter Aside" group="contact_and_forms"
+            t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_aside_preview.webp"/>
         <t t-install="mass_mailing" string="Newsletter Centered" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_centered_preview.jpg"/>
         <t t-install="mass_mailing" string="Newsletter Grid" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_grid_preview.jpg"/>
-        <t t-install="mass_mailing" string="Newsletter Popup" group="contact_and_forms" label="Popup"
+        <t t-install="mass_mailing" string="Newsletter Popup" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_subscribe_popup_preview.png"/>
         <t t-install="mass_mailing" string="Newsletter Box" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_box_preview.jpg"/>
         <t t-install="mass_mailing_sms" string="Newsletter SMS Notifications" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_sms_notifications_preview.png"/>
-        <t t-install="mass_mailing" string="Newsletter Benefits" group="contact_and_forms" label="Popup"
+        <t t-install="mass_mailing" string="Newsletter Benefits" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_newsletter_benefits_popup_preview.webp"/>
         <t t-install="website_payment" string="Donation" group="contact_and_forms"
             t-image-preview="/website/static/src/img/snippets_previews/s_donation_preview.png"/>

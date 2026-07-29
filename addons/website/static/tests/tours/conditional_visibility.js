@@ -6,6 +6,7 @@ import {
     insertSnippet,
     goBackToBlocks,
     registerWebsitePreviewTour,
+    unfoldOptionsGroup,
 } from "@website/js/tours/tour_utils";
 
 const snippets = [
@@ -203,6 +204,10 @@ registerWebsitePreviewTour(
         // Click on the "Banner" snippet.
         ...clickOnSnippet(snippets[1]),
         {
+            content: "Wait for the target to be the banner (by looking at its options)",
+            trigger: ".options-container[data-container-title=Banner]",
+        },
+        {
             content: "Drag the 'Banner' snippet to the end of the page",
             trigger: ".o_overlay_options button.o_move_handle",
             run: "drag_and_drop :iframe #wrapwrap footer",
@@ -218,6 +223,7 @@ registerWebsitePreviewTour(
 registerWebsitePreviewTour(
     "conditional_visibility_5",
     {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         edition: true,
         url: "/",
     },
@@ -238,6 +244,7 @@ registerWebsitePreviewTour(
             trigger: ":iframe .s_text_image[data-snippet=s_image_text] img",
             run: "click",
         },
+        ...unfoldOptionsGroup("Column"),
         {
             content: "Change visibility of the 'Image - Text' snippet",
             trigger:

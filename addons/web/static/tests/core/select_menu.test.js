@@ -1,6 +1,14 @@
-import { expect, test } from "@odoo/hoot";
-import { click, edit, press, queryAllTexts, queryOne, queryAll } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+import { animationFrame, expect, runAllTimers, test } from "@odoo/hoot";
+import {
+    click,
+    edit,
+    press,
+    queryAllTexts,
+    queryOne,
+    queryAll,
+    pointerDown,
+    manuallyDispatchProgrammaticEvent,
+} from "@odoo/hoot-dom";
 import { Component, useState, xml } from "@odoo/owl";
 import {
     contains,
@@ -679,8 +687,10 @@ test("When they are a lot of choices, not all are show at first and scrolling lo
     await open();
     expect(".o_select_menu_item, .o_select_menu_group").toHaveCount(scrollSettings.defaultCount);
 
-    queryOne(".o_select_menu_menu").scrollTo({
-        top: queryOne(".o_select_menu_menu").scrollHeight - scrollSettings.distanceBeforeReload,
+    queryOne(".o_select_menu_menu .o_select_menu-choices").scrollTo({
+        top:
+            queryOne(".o_select_menu_menu .o_select_menu-choices").scrollHeight -
+            scrollSettings.distanceBeforeReload,
     });
     await animationFrame();
 
@@ -916,7 +926,6 @@ test("Props onInput is executed when the search changes", async () => {
 
     await mountSingleApp(MyParent);
     expect(".o_select_menu_toggler").toHaveValue("Hello");
-
     await open();
     expect.verifySteps(["call with empty search"]);
     expect(queryAllTexts(".o_select_menu_item")).toEqual(["Hello"]);
@@ -1156,13 +1165,8 @@ test("Groups can be member of sections", async () => {
         "Option B.2",
     ]);
     await editInput("option 2");
-    expect(queryAllTexts(".o_select_menu_group")).toEqual([
-        "Group A",
-        "Subgroup 2",
-        "Group B",
-        "Subgroup 1B",
-    ]);
-    expect(queryAllTexts(".o_select_menu_item")).toEqual(["Option 2.I", "Option B.2"]);
+    expect(queryAllTexts(".o_select_menu_group")).toEqual(["Group A", "Subgroup 2"]);
+    expect(queryAllTexts(".o_select_menu_item")).toEqual(["Option 2.I"]);
 });
 
 test("Can add custom data to choices", async () => {
@@ -1372,4 +1376,75 @@ test("Ensure items are properly sorted", async () => {
     expect(elements[4]).toHaveText("item-group-z");
     expect(elements[5]).toHaveText("item-world");
     expect(elements[6]).toHaveText("item-z");
+});
+
+test.tags("desktop");
+test("Space bar key opens the dropdown", async () => {
+    await mountSingleApp(Parent);
+
+    expect(".o_select_menu_menu").toHaveCount(0);
+    await contains(".o_select_menu_input").focus();
+    await press("Space");
+    await animationFrame();
+    expect(".o_select_menu_menu").toHaveCount(1);
+    expect(".o_select_menu_input").toHaveValue("World");
+});
+
+test("Disabled choice", async () => {
+    class ParentWithDisabledChoice extends Parent {
+        setup() {
+            super.setup();
+            this.choices[0].enabled = false;
+        }
+    }
+
+    await mountSingleApp(ParentWithDisabledChoice);
+    await click(".o_select_menu_toggler");
+    await animationFrame();
+    expect(queryAllTexts(".o_select_menu_item")).toEqual(["Hello", "World"]);
+    expect(".o_select_menu_item:eq(0)").toHaveClass("text-muted");
+});
+
+test.tags("desktop");
+test("prevent glitch on open or focusout", async () => {
+    const slots = `
+        <t t-set-slot="default">
+            <button class="custom_button">Open</button>
+        </t>
+    `;
+    class Wrapper extends Component {
+        static components = { SelectMenu };
+        static props = ["*"];
+        static template = xml`
+            <SelectMenu t-props="props">${slots}</SelectMenu>`;
+    }
+    await mountSingleApp(Wrapper, {
+        choices: [
+            {
+                label: "C1",
+                value: "C1",
+            },
+        ],
+        placeholder: "placeholder",
+        searchPlaceholder: "searchPlaceholder",
+    });
+
+    await contains(".custom_button").click();
+    const searchInput = queryOne(".o_select_menu_searchbox input");
+    expect(searchInput.placeholder).toBe("searchPlaceholder");
+    expect(document.activeElement).toBe(searchInput);
+    await contains(".o_select_menu_searchbox input").click();
+
+    await pointerDown(searchInput);
+    await animationFrame();
+    manuallyDispatchProgrammaticEvent(searchInput, "focus");
+    await animationFrame();
+    expect(queryOne(".o_select_menu_searchbox input")).toBe(searchInput);
+    expect(searchInput.placeholder).toBe("searchPlaceholder");
+
+    pointerDown(".custom_button");
+    await animationFrame();
+
+    expect(queryOne(".o_select_menu_searchbox input")).toBe(searchInput);
+    expect(searchInput.placeholder).toBe("searchPlaceholder");
 });

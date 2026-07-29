@@ -10,17 +10,17 @@
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
 # Jiří Podhorecký, 2022
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 21:40+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-01-31 12:47+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-1/"
 "website_forum/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -135,7 +135,7 @@ msgstr "%d karma vyžadována k vytvoření nové otázky."
 #. odoo-python
 #: code:addons/website_forum/models/forum_post.py:0
 msgid "%d karma required to delete a comment."
-msgstr "%d  karma potřebná ke smazání komentáře."
+msgstr "%d karma potřebná ke smazání komentáře."
 
 #. module: website_forum
 #. odoo-python
@@ -1646,7 +1646,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_forum.field_res_users__display_name
 #: model:ir.model.fields,field_description:website_forum.field_website__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__karma_user_bio
@@ -2172,8 +2172,8 @@ msgid ""
 msgstr ""
 "Pokud zapadáte do některého z těchto příkladů nebo pokud máte motivaci k "
 "položení otázky „Chtěl bych se zúčastnit diskuse o ______“, neměli byste se "
-"ptát zde, ale na našich seznamech adresátů. Pokud je však vaše motivace „"
-"Chtěl bych, aby mi ostatní vysvětlili ______“, pak jste pravděpodobně v "
+"ptát zde, ale na našich seznamech adresátů. Pokud je však vaše motivace "
+"„Chtěl bych, aby mi ostatní vysvětlili ______“, pak jste pravděpodobně v "
 "pořádku."
 
 #. module: website_forum
@@ -2357,11 +2357,6 @@ msgstr "Rozvržení"
 #: model_terms:gamification.badge,description:website_forum.badge_25
 msgid "Left 10 answers with score of 10 or more"
 msgstr "Zbývajících 10 odpovědí se skóre 10 nebo více"
-
-#. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr ""
 
 #. module: website_forum
 #. odoo-javascript
@@ -3364,6 +3359,20 @@ msgid "The accepted answer is deleted"
 msgstr ""
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3752,6 +3761,13 @@ msgid "Website / Forum"
 msgstr "Webstránka / fórum"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3759,7 +3775,9 @@ msgid "Website Messages"
 msgstr "Webové zprávy"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "URL webové stránky"
 
@@ -4054,7 +4072,8 @@ msgstr "zde"
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "how to configure or customize Odoo to specific business needs,"
-msgstr "jak konfigurovat nebo přizpůsobit Odoo specifickým podnikovým potřebám,"
+msgstr ""
+"jak konfigurovat nebo přizpůsobit Odoo specifickým podnikovým potřebám,"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -4242,316 +4261,3 @@ msgstr "vás životopis může být vidět jako nápověda"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "váš e-mail..."
-
-#~ msgid "%d karma required to unlink a comment."
-#~ msgstr "%d karma vyžadována k odpojení komentáře. "
-
-#~ msgid "&amp;nbsp;and&amp;nbsp;"
-#~ msgstr "&amp;nbsp;a&amp;nbsp;"
-
-#~ msgid ", by"
-#~ msgstr ", od "
-
-#~ msgid "0 Answers"
-#~ msgstr "0 Odpovědí"
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Urážlivý]</b>"
-
-#~ msgid "<b>Tags</b> I Follow"
-#~ msgstr "<b>Značky</b>, které sleduji"
-
-#~ msgid ""
-#~ "<b>This forum is empty.</b><br/>\n"
-#~ "                    Be the first one asking a question"
-#~ msgstr ""
-#~ "<b>Toto fórum je prázdné.</b><br/>\n"
-#~ "Buďte první a položte otázku"
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>Čemu se mám ve svých odpovědích vyhnout?</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Odpověď]</b>"
-
-#~ msgid "<em class=\"d-block mb-2\">or</em>"
-#~ msgstr "<em class=\"d-block mb-2\">nebo</em>"
-
-#~ msgid "<i class=\"fa fa-bell fa-fw\"/> Followed Posts"
-#~ msgstr "<i class=\"fa fa-bell fa-fw\"/> Sledované příspěvky"
-
-#~ msgid "<i class=\"fa fa-bug\"/> Filter Tool"
-#~ msgstr "<i class=\"fa fa-bug\"/> Filtrovací nástroj"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>You've Completely Caught Up!</b><br/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>Zcela jste se chytil!</b><br/>"
-
-#~ msgid "<i class=\"fa fa-check-square-o fa-fw\"/> To Validate"
-#~ msgstr "<i class=\"fa fa-check-square-o fa-fw\"/> K ověření"
-
-#~ msgid "<i class=\"fa fa-flag fa-fw\"/> Flagged"
-#~ msgstr "<i class=\"fa fa-flag fa-fw\"/> označeno vlaječkou"
-
-#~ msgid "<i class=\"fa fa-question-circle-o fa-fw\"/> My Posts"
-#~ msgstr "<i class=\"fa fa-question-circle-o fa-fw\"/> Moje příspěvky"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Share"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Sdílet"
-
-#~ msgid "<i class=\"fa fa-star fa-fw\"/> Favourites"
-#~ msgstr "<i class=\"fa fa-star fa-fw\"/> Oblíbené"
-
-#~ msgid "<i class=\"fa fa-tags fa-fw\"/> Followed Tags"
-#~ msgstr "<i class=\"fa fa-tags fa-fw\"/>Sledované značky"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> Zpět"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Označeno\n"
-#~ "                </small>"
-
-#~ msgid "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-#~ msgstr "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-
-#~ msgid "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-#~ msgstr "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-
-#~ msgid "<span class=\"mx-1\">|</span>"
-#~ msgstr "<span class=\"mx-1\">|</span>"
-
-#~ msgid ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-#~ msgstr ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-
-#~ msgid "<span class=\"mx-3  mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-#~ msgstr "<span class=\"mx-3  mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>Od</span>"
-
-#~ msgid "About"
-#~ msgstr "O..."
-
-#~ msgid "All Tags"
-#~ msgstr "Všechny značky"
-
-#~ msgid "Allow Bump"
-#~ msgstr "Povolit Bump"
-
-#~ msgid "Answer"
-#~ msgstr "Odpovědět"
-
-#~ msgid "Back"
-#~ msgstr "Zpět"
-
-#~ msgid "Be less specific in your wording for a wider search result"
-#~ msgstr ""
-#~ "Pro širší výsledek vyhledávání buďte ve své formulaci méně konkrétní"
-
-#~ msgid "Browse All"
-#~ msgstr "Procházet vše"
-
-#~ msgid "Bumped on"
-#~ msgstr "Oživeno"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "Zaškrtněte toto políčko a zobrazí se vyskakovací okno pro příspěvky "
-#~ "starší než 10 dní bez jakékoliv zadané odpovědi. Vyskakovací okno nabídne "
-#~ "možnost sdílet je na sociálních sítích. Při sdílení se otázka posune na "
-#~ "vrchol fóra."
-
-#~ msgid "Check your spelling and try again"
-#~ msgstr "Zkontrolujte pravopis a zkuste to znovu"
-
-#~ msgid "Click to answer."
-#~ msgstr "Kliknutím odpovíte."
-
-#~ msgid "Close Post"
-#~ msgstr "Uzavřít příspěvek"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Komentujte tento příspěvek ..."
-
-#~ msgid "Comments"
-#~ msgstr "Komentáře"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Převeďte všechny odpovědi na komentáře a naopak"
-
-#~ msgid "Convert as a answer"
-#~ msgstr "Převést jako odpověď"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "Převést jako komentář"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Převést vlastní odpovědi na komentáře a naopak"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "Datum (od nejvyšší po nejnižší)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "Datum (od nejnižší po nejvyšší)"
-
-#~ msgid "Edit Forum in Backend"
-#~ msgstr "Upravit fórum v Backendu"
-
-#~ msgid ""
-#~ "Example\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-#~ msgstr ""
-#~ "Příklad\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-
-#~ msgid "Following"
-#~ msgstr "Odběr zpráv"
-
-#~ msgid "Group By"
-#~ msgstr "Seskupit podle"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Skrýt intro"
-
-#~ msgid "Karma"
-#~ msgstr "Karma"
-
-#~ msgid "Last activity date"
-#~ msgstr "Datum poslední aktivity"
-
-#~ msgid "Menu"
-#~ msgstr "Menu"
-
-#~ msgid "Moderation"
-#~ msgstr "Umírněnost"
-
-#~ msgid "More"
-#~ msgstr "Více"
-
-#~ msgid "Most answered"
-#~ msgstr "Nejvíce odpovědí"
-
-#~ msgid "Most voted"
-#~ msgstr "Nejvíce hlasovalo"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "Tuto otázku přesuňte na začátek seznamu tak, že ji budete sdílet na "
-#~ "sociálních sítích."
-
-#~ msgid "My <b>Posts</b>"
-#~ msgstr "Moje <b>Příspěvky</b>"
-
-#~ msgid "No activities yet!"
-#~ msgstr "Ještě žádné aktivity"
-
-#~ msgid "No vote given by you yet!"
-#~ msgstr "Zatím jste nehlasoval"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet zpráv, které vyžadují akci"
-
-#~ msgid "Order by"
-#~ msgstr "Seřadit podle"
-
-#~ msgid "Our forums"
-#~ msgstr "Naše fóra"
-
-#~ msgid "People"
-#~ msgstr "Lidé"
-
-#~ msgid "Post Comment"
-#~ msgstr "Odeslat komentář"
-
-#~ msgid "Posts:"
-#~ msgstr "Příspěvky:"
-
-#~ msgid "Register"
-#~ msgstr "Registrovat"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Omezit publikování na této webstránce."
-
-#~ msgid "Return to the forum."
-#~ msgstr "Zpět na fórum."
-
-#~ msgid "Return to the question list."
-#~ msgstr "Zpět k seznamu otázek"
-
-#~ msgid "Show"
-#~ msgstr "Šou"
-
-#~ msgid "Sign in"
-#~ msgstr "Přihlásit se"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "Je nám líto, k provedení této akce musíte být přihlášeni"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Je nám líto, ale musíte být přihlášeni k označení příspěvku"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "Musíte být přihlášeni, abyste mohli hlasovat"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr "Je nám líto, anonymní uživatelé si nemohou vybrat správnou odpověď."
-
-#~ msgid "Teaser"
-#~ msgstr "Upoutávka"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "Technické pole umožňující oživit otázku. Zapisování na toto pole spustí "
-#~ "zápis na data write_date, a tím příspěvek oživíte. Přímé psaní na "
-#~ "write_date není aktuálně podporováno a toto pole je řešením."
-
-#~ msgid ""
-#~ "This community is for professional and enthusiast users, partners and "
-#~ "programmers."
-#~ msgstr ""
-#~ "Tato komunita je pro profesionální a nadšené uživatele, partnery a "
-#~ "programátory."
-
-#~ msgid "Toggle favorite status"
-#~ msgstr "Přepnout oblíbený status"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "Odpojit všechny komentáře"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "Odpojit vlastní komentáře"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Čeká na ověření"
-
-#~ msgid "Waiting post"
-#~ msgstr "Čekající příspěvek"
-
-#~ msgid "You have no posts in this forum (yet)."
-#~ msgstr "Na tomto fóru (zatím) nemáte žádné příspěvky."

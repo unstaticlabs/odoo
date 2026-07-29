@@ -11,6 +11,7 @@ import { ConnectionLostError, rpc, RPCError } from "@web/core/network/rpc";
 import { _t } from "@web/core/l10n/translation";
 import DeviceIdentifierSequence from "../utils/devices_identifier_sequence";
 import { logPosMessage } from "../utils/pretty_console_log";
+import { registerPythonTemplate } from "../utils/convert_python_template";
 
 const { DateTime } = luxon;
 const CONSOLE_COLOR = "#28ffeb";
@@ -25,6 +26,7 @@ export class PosData {
         this.relations = [];
         this.custom = {};
         this.syncInProgress = false;
+        this.dataLoadedFromCache = false;
         this.mutex = markRaw(new Mutex());
         this.indexedDBMutex = markRaw(new Mutex());
         this.records = {};
@@ -46,7 +48,9 @@ export class PosData {
         // Used by the beforeunload guard to prevent data loss on accidental page close/reload.
         this.localUnsyncedPaidOrderUuids = new Set();
 
-        await this.checkConnectivity();
+        if (!navigator.onLine) {
+            await this.checkConnectivity();
+        }
 
         this.initializeWebsocket();
         await this.initializeDeviceIdentifier();
@@ -91,6 +95,13 @@ export class PosData {
                     );
                 }
             }
+        }
+    }
+
+    async fetchReceiptTemplate() {
+        const data = await this.orm.call("pos.order", "get_receipt_template_for_pos_frontend");
+        for (const [name, string] of data) {
+            registerPythonTemplate(name, "", string);
         }
     }
 
@@ -318,9 +329,11 @@ export class PosData {
         const serverProductIds = this.models["product.product"].map((p) => p.id);
         const databaseProductIds = missing["product.product"]?.map((p) => p.id) ?? [];
         const loadedProductIds = new Set([...databaseProductIds, ...serverProductIds]);
-        missing["pos.order.line"] = missing["pos.order.line"]?.filter((line) =>
-            loadedProductIds.has(line.product_id)
-        );
+        if (missing["pos.order.line"]) {
+            missing["pos.order.line"] = missing["pos.order.line"].filter((line) =>
+                loadedProductIds.has(line.product_id)
+            );
+        }
 
         const results = this.models.loadConnectedData(missing, []);
 
@@ -337,7 +350,9 @@ export class PosData {
 
     async loadInitialData() {
         let localData = await this.getCachedServerDataFromIndexedDB();
+        this.dataLoadedFromCache = true;
         const session = localData?.["pos.session"]?.[0];
+        await this.fetchReceiptTemplate();
 
         if (
             (!this.network.offline && session?.state !== "opened") ||
@@ -399,7 +414,7 @@ export class PosData {
                         localData[model] = local.concat(values);
                     }
                 }
-
+                this.dataLoadedFromCache = false;
                 this.synchronizeServerDataInIndexedDB(localData);
             } catch (error) {
                 let message = _t("An error occurred while loading the Point of Sale: \n");
@@ -595,10 +610,14 @@ export class PosData {
 
             switch (type) {
                 case "write":
-                    result = await this.orm.write(model, ids, values);
+                    result = await this.orm.write(model, ids, values, {
+                        context: { device_identifier: this.device.identifier },
+                    });
                     break;
                 case "delete":
-                    result = await this.orm.unlink(model, ids);
+                    result = await this.orm.unlink(model, ids, {
+                        context: { device_identifier: this.device.identifier },
+                    });
                     break;
                 case "call":
                     result = await this.orm.call(model, method, args, kwargs);
@@ -619,7 +638,9 @@ export class PosData {
             }
 
             if (type === "create") {
-                const response = await this.orm.create(model, values);
+                const response = await this.orm.create(model, values, {
+                    context: { device_identifier: this.device.identifier },
+                });
                 values[0].id = response[0];
                 result = values;
             }
@@ -803,16 +824,7 @@ export class PosData {
             try {
                 if (["product.product", "product.template"].includes(model)) {
                     const domain = model === "product.product" ? "product_variant_ids.id" : "id";
-                    await this.callRelated(
-                        "product.template",
-                        "load_product_from_pos",
-                        [odoo.pos_config_id, [[domain, "in", Array.from(ids)]], 0, 0],
-                        {
-                            context: {
-                                load_archived: true,
-                            },
-                        }
-                    );
+                    await this.loadProductFromPos([[domain, "in", Array.from(ids)]]);
                     continue;
                 }
 
@@ -830,6 +842,42 @@ export class PosData {
         } else {
             return acc;
         }
+    }
+
+    async loadProductFromPos(domain, offset = 0, limit = 0) {
+        const result = {};
+        const data = await this.call(
+            "product.template",
+            "load_product_from_pos",
+            [odoo.pos_config_id, domain, offset, limit],
+            {
+                context: {
+                    load_archived: true,
+                },
+            }
+        );
+
+        // In case of scan unknown barcode, the backend may return an empty list
+        this.synchronizeServerDataInIndexedDB(data);
+        if (!data["product.template"][0]) {
+            return this.models.loadConnectedData(data);
+        }
+
+        const categoryIds = data["product.template"][0].pos_categ_ids;
+        const loadedCategs = new Set(this.models["pos.category"].map((c) => c.id));
+        const notLoaded = categoryIds.filter((categId) => !loadedCategs.has(categId));
+        const config = this.models["pos.config"].get(odoo.pos_config_id);
+
+        if (notLoaded.length) {
+            result["pos.category"] = await this.read("pos.category", Array.from(notLoaded));
+        }
+
+        if (notLoaded.length && config.limit_categories) {
+            await this.read("pos.config", [config.id], ["iface_available_categ_ids"]);
+        }
+
+        const productData = this.models.loadConnectedData(data); // Need to be loaded after categories for indexes computations
+        return Object.assign(result, productData);
     }
 
     async syncData() {
@@ -893,6 +941,10 @@ export class PosData {
 
         for (const id of ids) {
             const record = this.models[model].get(id);
+            if (!record) {
+                continue;
+            }
+
             delete vals.id;
             record.update(vals, { omitUnknownField: true });
 
@@ -1025,6 +1077,10 @@ export class PosData {
         }
 
         return limitedLoading;
+    }
+
+    isDataLoadedFromCache() {
+        return this.dataLoadedFromCache;
     }
 }
 

@@ -21,6 +21,14 @@ $o-discuss-talkingColor: lighten($success, 10%);
     background-color: $body-bg !important;
 }
 
+.o-border-opacity-10 {
+    --border-opacity: 0.10;
+}
+
+.o-border-opacity-15 {
+    --border-opacity: 0.15;
+}
+
 .o-border-opacity-25 {
     --border-opacity: 0.25;
 }
@@ -46,6 +54,10 @@ $o-discuss-talkingColor: lighten($success, 10%);
     & .o-innerBadge {
         min-width: $o-badge-min-width; // same as .badge, without using .badge to keep semantics of a single .badge
     }
+}
+
+.o-discuss-warningBadge {
+    background-color: $warning !important;
 }
 
 @function o-rounded-bubble() {
@@ -82,6 +94,10 @@ $o-discuss-talkingColor: lighten($success, 10%);
         }
     }
 
+    &:not(.o-simulateDarkTheme) {
+        background-color: $o-view-background-color;
+    }
+
     .o_bottom_sheet_sheet:has(&) {
         background-color: $gray-100;
         box-shadow: unset !important;
@@ -109,8 +125,16 @@ $o-discuss-talkingColor: lighten($success, 10%);
     }
 }
 
+.o-dvh-100 {
+    height: 100dvh;
+}
+
 .o-fw-600 {
     font-weight: 600;
+}
+
+.o-min-dvh-100 {
+    min-height: 100dvh;
 }
 
 .o-min-height-0 {
@@ -381,13 +405,6 @@ a.o-discuss-mention {
     --border-color: #{$o-gray-300} !important; // cancel custom border color of dropdown
 }
 
-.o-mail-DiscussSystray-class {
-    margin-top: - $o-navbar-padding-v; // cancel navbar padding
-    margin-bottom: - $o-navbar-padding-v; // cancel navbar padding
-    display: flex;
-    align-items: center;
-}
-
 .o-mail-systrayFullscreenDropdownMenu {
     top: $o-navbar-height !important;
     height: calc(100% - #{$o-navbar-height}); // no bottom-0 otherwise performance issue
@@ -417,7 +434,7 @@ a.o-discuss-mention {
     }
 }
 
-.o-mail-starred {
+.o-mail-favorite {
     color: $o-main-favorite-color;
     filter: drop-shadow(1px 1px 0px #000000b0);
 }

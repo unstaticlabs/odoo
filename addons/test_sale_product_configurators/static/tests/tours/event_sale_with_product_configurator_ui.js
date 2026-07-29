@@ -1,9 +1,10 @@
 import { registry } from "@web/core/registry";
 import { stepUtils } from "@web_tour/tour_utils";
 import configuratorTourUtils from "@sale/js/tours/product_configurator_tour_utils";
-import tourUtils from "@sale/js/tours/tour_utils";
+import * as tourUtils from "@sale/js/tours/tour_utils";
 
 registry.category("web_tour.tours").add("event_sale_with_product_configurator_tour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     url: "/odoo",
     steps: () => [
         ...stepUtils.goToAppSteps("sale.sale_menu_root", "Go to the Sales App"),

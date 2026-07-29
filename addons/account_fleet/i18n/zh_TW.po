@@ -1,19 +1,20 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* account_fleet
+# * account_fleet
 #
 # Translators:
 # Wil Odoo, 2025
 #
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 16:31+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-13 13:43+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
-"projects/odoo-19/account_fleet/zh_Hant/>\n"
+"projects/odoo-s19-2/account_fleet/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -35,6 +36,20 @@ msgstr ""
 "                            <span class=\"o_stat_text text-warning\" "
 "invisible=\"account_move_state == 'posted'\" title=\"服務賬單\">服務賬單</"
 "span>"
+
+#. module: account_fleet
+#: model_terms:ir.ui.view,arch_db:account_fleet.fleet_vehicle_log_services_view_form
+msgid ""
+"<span class=\"o_stat_value\">New</span>\n"
+"                                <span class=\"o_stat_text\">Service's Bill</"
+"span>"
+msgstr ""
+
+#. module: account_fleet
+#: model:ir.model,name:account_fleet.model_account_account
+#, fuzzy
+msgid "Account"
+msgstr "帳戶"
 
 #. module: account_fleet
 #: model:ir.model.fields,field_description:account_fleet.field_fleet_vehicle__account_move_ids
@@ -63,6 +78,13 @@ msgid "Bills Count"
 msgstr "賬單數目"
 
 #. module: account_fleet
+#: model:ir.model.fields,help:account_fleet.field_account_account__is_vehicle_account
+msgid ""
+"Check this box if a vehicle has to be linked to the account, when creating a "
+"bill for an expense or when creating an asset."
+msgstr ""
+
+#. module: account_fleet
 #: model:ir.model.fields,field_description:account_fleet.field_fleet_vehicle_log_services__amount
 msgid "Cost"
 msgstr "成本"
@@ -78,6 +100,7 @@ msgid "Creation Date"
 msgstr "建立日期"
 
 #. module: account_fleet
+#: model:ir.model.fields,field_description:account_fleet.field_account_account__display_name
 #: model:ir.model.fields,field_description:account_fleet.field_account_automatic_entry_wizard__display_name
 #: model:ir.model.fields,field_description:account_fleet.field_account_move__display_name
 #: model:ir.model.fields,field_description:account_fleet.field_account_move_line__display_name
@@ -87,6 +110,7 @@ msgid "Display Name"
 msgstr "顯示名稱"
 
 #. module: account_fleet
+#: model:ir.model.fields,field_description:account_fleet.field_account_account__id
 #: model:ir.model.fields,field_description:account_fleet.field_account_automatic_entry_wizard__id
 #: model:ir.model.fields,field_description:account_fleet.field_account_move__id
 #: model:ir.model.fields,field_description:account_fleet.field_account_move_line__id
@@ -111,10 +135,25 @@ msgid "Need Vehicle"
 msgstr "需要車輛"
 
 #. module: account_fleet
+#: model:ir.model.fields,field_description:account_fleet.field_account_account__is_vehicle_account
+msgid "Requires vehicle"
+msgstr ""
+
+#. module: account_fleet
 #. odoo-python
 #: code:addons/account_fleet/models/account_move.py:0
 msgid "Service Vendor Bill: %s"
 msgstr "服務商賬單： %s"
+
+#. module: account_fleet
+#. odoo-python
+#: code:addons/account_fleet/models/account_move.py:0
+#: model:ir.model.fields,field_description:account_fleet.field_account_bank_statement_line__service_count
+#: model:ir.model.fields,field_description:account_fleet.field_account_move__service_count
+#: model_terms:ir.ui.view,arch_db:account_fleet.view_move_form
+#, fuzzy
+msgid "Services"
+msgstr "服務"
 
 #. module: account_fleet
 #: model:ir.model,name:account_fleet.model_fleet_vehicle_log_services
@@ -150,9 +189,15 @@ msgstr "你不可刪除日誌服務記錄，因為其中一項或多項記錄是
 #. odoo-python
 #: code:addons/account_fleet/models/fleet_vehicle_log_services.py:0
 msgid ""
-"You cannot modify amount of services linked to an account move line. Do it "
-"on the related accounting entry instead."
-msgstr "連結至賬戶移動資料行的服務數量，不可修改。請改為在相關會計記項上執行此操作。"
+"You cannot modify the amount of services linked to a journal item. Do it on "
+"the related accounting entry instead."
+msgstr ""
+
+#. module: account_fleet
+#. odoo-python
+#: code:addons/account_fleet/models/account_move.py:0
+msgid "account_move_line_id"
+msgstr ""
 
 #. module: account_fleet
 #: model_terms:ir.ui.view,arch_db:account_fleet.fleet_vehicle_view_form

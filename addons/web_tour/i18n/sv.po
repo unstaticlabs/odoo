@@ -10,16 +10,15 @@
 # Martin Trigaux, 2022
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
 # Kim Asplund <kim.asplund@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-01 03:49+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-11-16 22:41+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/web_tour/"
 "sv/>\n"
 "Language: sv\n"
@@ -27,7 +26,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "'%s' created"
+msgstr ""
 
 #. module: web_tour
 #. odoo-javascript
@@ -44,7 +49,24 @@ msgstr "(kör:"
 #. module: web_tour
 #: model:ir.model.constraint,message:web_tour.constraint_web_tour_tour_uniq_name
 msgid "A tour already exists with this name . Tour's name must be unique!"
-msgstr "Det finns redan en resa med detta namn . Turnéns namn måste vara unikt!"
+msgstr ""
+"Det finns redan en resa med detta namn . Turnéns namn måste vara unikt!"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid ""
+"Are you sure you want to clear all steps?\n"
+"All steps will be lost."
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid ""
+"Are you sure you want to close the tour recorder?\n"
+"All changes will be lost."
+msgstr ""
 
 #. module: web_tour
 #: model:ir.model.fields.selection,name:web_tour.selection__web_tour_tour_step__tooltip_position__bottom
@@ -53,9 +75,46 @@ msgstr "Undre"
 
 #. module: web_tour
 #. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Cancel"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
+msgid "Clear"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Clear all steps?"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
 #: code:addons/web_tour/static/src/tour_utils.js:0
 msgid "Click the top left corner to navigate across apps."
 msgstr "Klicka på det övre vänstra hörnet för att navigera mellan olika appar."
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
+msgid "Close"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Close recorder"
+msgstr ""
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "Close tour recorder?"
+msgstr ""
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__content
@@ -72,7 +131,7 @@ msgstr "Skapad av"
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__create_date
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__create_date
 msgid "Created on"
-msgstr "Skapad den"
+msgstr "Skapad på"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__custom
@@ -86,18 +145,18 @@ msgid "Custom tour '%s' couldn't be saved!"
 msgstr "Den anpassade turen '%s' kunde inte sparas!"
 
 #. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
-msgid "Custom tour '%s' has been added."
-msgstr "Den anpassade turen \"%s\" har lagts till."
-
-#. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_ir_http__display_name
 #: model:ir.model.fields,field_description:web_tour.field_res_users__display_name
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__display_name
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__display_name
 msgid "Display Name"
 msgstr "Visningsnamn"
+
+#. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_service.js:0
+msgid "Enable the tour recorder"
+msgstr ""
 
 #. module: web_tour
 #: model:ir.actions.server,name:web_tour.tour_export_js_action
@@ -135,15 +194,11 @@ msgid "Menu"
 msgstr "Meny"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__name
 msgid "Name"
 msgstr "Namn"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Name:"
-msgstr "Namn:"
 
 #. module: web_tour
 #. odoo-javascript
@@ -194,25 +249,25 @@ msgstr "Spara"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll down to reach the next step."
 msgstr "Scrolla ner för att komma till nästa steg."
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll left to reach the next step."
 msgstr ""
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll right to reach the next step."
 msgstr ""
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer_state.js:0
+#: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.js:0
 msgid "Scroll up to reach the next step."
 msgstr "Scrolla upp för att komma till nästa steg."
 
@@ -234,6 +289,8 @@ msgid "Start Tour"
 msgstr "Starta rundturen"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__url
 msgid "Starting URL"
 msgstr "URL för start"
@@ -252,15 +309,9 @@ msgstr "Steg"
 
 #. module: web_tour
 #. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Steps:"
-msgstr "Steg:"
-
-#. module: web_tour
-#. odoo-javascript
 #: code:addons/web_tour/static/src/js/tour_pointer/tour_pointer.xml:0
 msgid "Stop Tour"
-msgstr "Avsluta genomgång"
+msgstr ""
 
 #. module: web_tour
 #. odoo-javascript
@@ -290,6 +341,7 @@ msgid "Top"
 msgstr "Topp"
 
 #. module: web_tour
+#: model:ir.model,name:web_tour.model_web_tour_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__tour_id
 msgid "Tour"
 msgstr "Turné"
@@ -301,21 +353,16 @@ msgstr "Tour's steg"
 
 #. module: web_tour
 #: model:ir.actions.act_window,name:web_tour.tour_action
-#: model:ir.model,name:web_tour.model_web_tour_tour
 #: model:ir.ui.menu,name:web_tour.menu_tour_action
 msgid "Tours"
 msgstr "Rundturer"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour_step__trigger
 msgid "Trigger"
 msgstr "Utlösare"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "Url:"
-msgstr "Url:"
 
 #. module: web_tour
 #: model:ir.model,name:web_tour.model_res_users
@@ -328,6 +375,12 @@ msgid "User Consumed"
 msgstr "Användare Förbrukad"
 
 #. module: web_tour
+#. odoo-javascript
+#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.js:0
+msgid "View tour"
+msgstr ""
+
+#. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.tour_form
 msgid "e.g. My_Tour"
 msgstr "t.ex. Min_Tur"
@@ -336,63 +389,3 @@ msgstr "t.ex. Min_Tur"
 #: model:ir.model.fields.selection,name:web_tour.selection__web_tour_tour_step__tooltip_position__left
 msgid "left"
 msgstr "vänster"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "name_of_the_tour"
-msgstr "name_of_the_tour"
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "n°"
-msgstr ""
-
-#. module: web_tour
-#. odoo-javascript
-#: code:addons/web_tour/static/src/js/tour_recorder/tour_recorder.xml:0
-msgid "trigger"
-msgstr "avtryckare"
-
-#~ msgid ""
-#~ "<strong><b>Good job!</b> You went through all steps of this tour.</strong>"
-#~ msgstr ""
-#~ "<strong><b>Bra jobbat!</b> Du gick igenom alla steg på den här "
-#~ "genomgången.</strong>"
-
-#~ msgid "Click on the <i>Home icon</i> to navigate across apps."
-#~ msgstr "Klicka på <i>Hem ikonen</i> för att navigera mellan appar."
-
-#~ msgid "Consumed by"
-#~ msgstr "Förbrukad av"
-
-#~ msgid "Disable Tours"
-#~ msgstr "Avbryt rundturen"
-
-#~ msgid "Onboarding tours"
-#~ msgstr "Onboarding genomgångar"
-
-#~ msgid "Open bugger menu."
-#~ msgstr "Öppna bugger-menyn."
-
-#~ msgid "Path"
-#~ msgstr "Sökväg"
-
-#~ msgid "Start"
-#~ msgstr "Start"
-
-#~ msgid "Start tour"
-#~ msgstr "Starta genomgången"
-
-#~ msgid "Test"
-#~ msgstr "Testa"
-
-#~ msgid "Test tour"
-#~ msgstr "Test genomgång"
-
-#~ msgid "Testing tours"
-#~ msgstr "Test genomgångar"
-
-#~ msgid "Tour name"
-#~ msgstr "Genomgångsnamn"

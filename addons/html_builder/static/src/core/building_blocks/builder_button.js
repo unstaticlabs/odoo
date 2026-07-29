@@ -5,15 +5,16 @@ import {
     useSelectableItemComponent,
 } from "../utils";
 import { BuilderComponent } from "./builder_component";
-import { Img } from "../img";
+import { Image } from "../img";
 
 export class BuilderButton extends Component {
     static template = "html_builder.BuilderButton";
-    static components = { BuilderComponent, Img };
+    static components = { BuilderComponent, Image };
     static props = {
         ...clickableBuilderComponentProps,
 
         title: { type: String, optional: true },
+        titleActive: { type: String, optional: true },
         label: { type: String, optional: true },
         iconImg: { type: String, optional: true },
         iconImgAlt: { type: String, optional: true },
@@ -28,6 +29,7 @@ export class BuilderButton extends Component {
 
     static defaultProps = {
         type: "secondary",
+        titleActive: "",
     };
 
     setup() {

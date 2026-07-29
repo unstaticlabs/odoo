@@ -10,6 +10,7 @@ import {
 import { _t } from "@web/core/l10n/translation";
 import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { SelectPartnerButton } from "@point_of_sale/app/screens/product_screen/control_buttons/select_partner_button/select_partner_button";
+import { useAsyncLockedMethod } from "@point_of_sale/app/hooks/hooks";
 
 export class ControlButtons extends Component {
     static template = "point_of_sale.ControlButtons";
@@ -21,7 +22,6 @@ export class ControlButtons extends Component {
     static props = {
         showRemainingButtons: { type: Boolean, optional: true },
         onClickMore: { type: Function, optional: true },
-        close: { type: Function, optional: true },
     };
     static defaultProps = {
         showRemainingButtons: false,
@@ -31,6 +31,14 @@ export class ControlButtons extends Component {
         this.ui = useService("ui");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
+        this.clickPrintBill = useAsyncLockedMethod(this.clickPrintBill);
+    }
+    async clickPrintBill() {
+        // Need to await to have the result in case of automatic skip screen.
+        await this.pos.ticketPrinter.printOrderReceipt({
+            order: this.pos.getOrder(),
+            printBillActionTriggered: true,
+        });
     }
     get partner() {
         return this.pos.getOrder()?.getPartner();
@@ -115,19 +123,6 @@ export class ControlButtons extends Component {
         }
     }
 
-    clickRefund() {
-        const order = this.pos.getOrder();
-        const partner = order.getPartner();
-        const searchDetails = partner ? { fieldName: "PARTNER", searchTerm: partner.name } : {};
-        this.pos.navigate("TicketScreen", {
-            stateOverride: {
-                filter: "SYNCED",
-                search: searchDetails,
-                destinationOrder: order,
-            },
-        });
-    }
-
     get buttonClass() {
         return this.props.showRemainingButtons
             ? this.ui.isSmall
@@ -147,16 +142,13 @@ export class ControlButtons extends Component {
         );
     }
 
-    onCancelOrder() {
-        this.props.close();
-        this.pos.onDeleteOrder(this.currentOrder);
+    breakSelectedCombo() {
+        const selectedOrderline = this.currentOrder?.getSelectedOrderline();
+        return this.pos.isSelectedLineCombo && this.pos.breakCombo(selectedOrderline.parentLine);
     }
 }
 
 export class ControlButtonsPopup extends Component {
     static components = { Dialog, ControlButtons };
     static template = "point_of_sale.ControlButtonsPopup";
-    static props = {
-        close: Function,
-    };
 }

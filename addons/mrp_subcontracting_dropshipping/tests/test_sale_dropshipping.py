@@ -1,11 +1,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import Form
 from odoo.fields import Command
+from odoo.tests import tagged, Form
 
 from odoo.addons.mrp_subcontracting.tests.common import TestMrpSubcontractingCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSaleDropshippingFlows(TestMrpSubcontractingCommon):
 
     @classmethod
@@ -319,7 +320,6 @@ class TestSaleDropshippingFlows(TestMrpSubcontractingCommon):
             'product_id': final_product.id,
             'product_tmpl_id': final_product.product_tmpl_id.id,
             'product_qty': 1,
-            'consumption': 'flexible',
             'type': 'phantom',
             'bom_line_ids': [
                 (0, 0, {'product_id': product_a.id, 'product_qty': 1}),

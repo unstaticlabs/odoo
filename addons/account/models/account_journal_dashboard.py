@@ -2,7 +2,6 @@ import ast
 from babel.dates import format_datetime, format_date
 from collections import defaultdict
 from datetime import datetime, timedelta
-import base64
 import json
 import random
 
@@ -460,7 +459,7 @@ class AccountJournal(models.Model):
              WHERE st_line.journal_id IN %s
                AND st_line.company_id IN %s
                AND st_line.is_reconciled IS NOT TRUE
-               AND st_line_move.checked IS TRUE
+               AND (st_line_move.review_state IS NULL OR st_line_move.review_state NOT IN ('todo', 'anomaly'))
                AND st_line_move.state = 'posted'
           GROUP BY st_line.journal_id
         """, [tuple(bank_cash_journals.ids), tuple(self.env.companies.ids)])
@@ -480,7 +479,7 @@ class AccountJournal(models.Model):
         # Misc Entries (journal items in the default_account not linked to bank.statement.line)
         misc_domain = []
         for journal in bank_cash_journals:
-            date_limit = journal.last_statement_id.date or journal.company_id.fiscalyear_lock_date
+            date_limit = journal.last_statement_id.date or journal.company_id.sudo().fiscalyear_lock_date
             misc_domain.append(
                 [('account_id', '=', journal.default_account_id.id), ('date', '>', date_limit)]
                 if date_limit else
@@ -508,7 +507,7 @@ class AccountJournal(models.Model):
                 domain=[
                     ('journal_id', 'in', bank_cash_journals.ids),
                     ('move_id.company_id', 'in', self.env.companies.ids),
-                    ('move_id.checked', '=', False),
+                    ('move_id.review_state', 'in', ('todo', 'anomaly')),
                     ('move_id.state', '=', 'posted'),
                 ],
                 groupby=['journal_id'],
@@ -754,7 +753,7 @@ class AccountJournal(models.Model):
         query = self.env['account.move']._search([
             *self.env['account.move']._check_company_domain(self.env.companies),
             ('journal_id', 'in', self.ids),
-            ('checked', '=', False),
+            ('review_state', 'in', ('todo', 'anomaly')),
             ('state', '=', 'posted'),
         ], bypass_access=True)
         selects = [
@@ -945,7 +944,6 @@ class AccountJournal(models.Model):
             raise UserError(_('You may only use samples in demo mode, try uploading one of your invoices instead.'))
         context['default_move_type'] = 'in_invoice'
         invoice_date = fields.Date.today() - timedelta(days=12)
-        partner = self.env.ref('base.res_partner_2', raise_if_not_found=False)
         company = purchase_journal.company_id
         default_expense_account = company.expense_account_id
         ref = 'DE%s' % invoice_date.strftime('%Y%m')
@@ -996,7 +994,7 @@ class AccountJournal(models.Model):
                 'type': 'binary',
                 'name': 'INV-%s-0001.pdf' % invoice_date.strftime('%Y-%m'),
                 'res_model': 'mail.compose.message',
-                'datas': base64.encodebytes(content),
+                'raw': content,
             })
             bill.message_post(attachment_ids=attachment.ids)
         return {
@@ -1014,7 +1012,7 @@ class AccountJournal(models.Model):
         return self.env['account.bank.statement.line'].search([
             ('journal_id', '=', self.id),
             ('move_id.company_id', 'in', self.env.companies.ids),
-            ('move_id.checked', '=', False),
+            ('move_id.review_state', 'in', ('todo', 'anomaly')),
             ('move_id.state', '=', 'posted'),
         ])
 

@@ -4,8 +4,8 @@ import { registry } from "@web/core/registry";
 import { floatIsZero } from "@web/core/utils/numbers";
 import * as Utils from "@pos_self_order/../tests/tours/utils/common";
 import * as ProductPage from "@pos_self_order/../tests/tours/utils/product_page_util";
-import * as ConfirmationPage from "@pos_self_order/../tests/tours/utils/confirmation_page_util";
 import * as LandingPage from "@pos_self_order/../tests/tours/utils/landing_page_util";
+import * as CartPage from "@pos_self_order/../tests/tours/utils/cart_page_util";
 
 const comparePricesWithBackend = {
     trigger: "body",
@@ -51,11 +51,8 @@ const commonSteps = [
     ProductPage.clickProduct("Random Product 3"),
     Utils.clickBtn("Checkout"),
     comparePricesWithBackend,
-    Utils.clickBtn("Order"),
-    ConfirmationPage.orderNumberShown(),
-    Utils.clickBtn("Ok"),
-    Utils.checkBtn("My Order"),
     forceCancel,
+    CartPage.clickBack(),
 ];
 
 registry.category("web_tour.tours").add("test_combo_prices", {
@@ -75,7 +72,6 @@ registry.category("web_tour.tours").add("test_combo_prices", {
             { product: "Purple 2", attributes: [] },
         ]),
         ...commonSteps,
-        Utils.clickBtn("Order Now"),
         ProductPage.clickProduct("Big Combo"),
         ...ProductPage.setupCombo([
             { product: "Green 1", attributes: [] },
@@ -101,7 +97,6 @@ registry.category("web_tour.tours").add("test_combo_prices", {
             { product: "Purple 2", attributes: [] },
         ]),
         ...commonSteps,
-        Utils.clickBtn("Order Now"),
         ProductPage.clickProduct("Big Combo"),
         ...ProductPage.setupCombo([
             { product: "Green 1", attributes: [] },
@@ -145,7 +140,6 @@ registry.category("web_tour.tours").add("test_combo_prices", {
             { product: "Purple 3", attributes: [] },
         ]),
         ...commonSteps,
-        Utils.clickBtn("Order Now"),
         ProductPage.clickProduct("Small Combo"),
         ...ProductPage.setupCombo([{ product: "No Price 1", attributes: [] }], false), //Only one free and max so no need to click on add to cart
         ...ProductPage.setupCombo([
@@ -153,7 +147,6 @@ registry.category("web_tour.tours").add("test_combo_prices", {
             { product: "Purple 2", attributes: [] },
         ]),
         ...commonSteps,
-        Utils.clickBtn("Order Now"),
         ProductPage.clickProduct("No Free Combo"),
         ...ProductPage.setupCombo([
             { product: "First no Free 1", attributes: [] },

@@ -214,7 +214,7 @@ class TestSalePrices(SaleCommon):
         })
         with freeze_time('2022-08-19'):
             self.env['res.currency.rate'].create({
-                'name': fields.Date.today(),
+                'name': fields.Date.today() - timedelta(days=1),
                 'rate': 2.0,
                 'currency_id': other_currency.id,
                 'company_id': self.env.company.id,
@@ -300,7 +300,7 @@ class TestSalePrices(SaleCommon):
 
         currency_eur = self._enable_currency('EUR')
         self.env['res.currency.rate'].create({
-            'name': '2018-07-11',
+            'name': '2018-07-10',
             'rate': 2.0,
             'currency_id': currency_eur.id,
             'company_id': self.env.company.id,
@@ -435,7 +435,7 @@ class TestSalePrices(SaleCommon):
         with mute_logger('odoo.models.unlink'):
             self.env['res.currency.rate'].search([]).unlink()
         self.env['res.currency.rate'].create({
-            'name': '2010-01-01',
+            'name': '2009-12-31',
             'rate': 2.0,
             'currency_id': main_curr.id,
             'company_id': False,
@@ -1279,6 +1279,94 @@ class TestSalePrices(SaleCommon):
             msg="Pricelist discount should be applied to quotation",
         )
 
+    def test_combo_product_zero_base_price_distributes_evenly(self):
+        """When every combo's base price is 0, the combo product's price must be split evenly
+        across combos instead of dumped onto the last one.
+        """
+        order = self.empty_order
+
+        product_a = self._create_product(name="A", list_price=0.0)
+        product_b = self._create_product(name="B", list_price=0.0)
+        combos = self.env['product.combo'].create([{
+            'name': "G1",
+            'combo_item_ids': [Command.create({'product_id': product_a.id})],
+        }, {
+            'name': "G2",
+            'combo_item_ids': [Command.create({'product_id': product_b.id})],
+        }])
+        product_combo = self._create_product(
+            name="Meal Menu",
+            list_price=100.0,
+            type='combo',
+            combo_ids=[Command.set(combos.ids)],
+        )
+
+        combo_line = self.env['sale.order.line'].create({
+            'order_id': order.id,
+            'product_id': product_combo.id,
+        })
+        item_lines = self.env['sale.order.line'].create([{
+            'order_id': order.id,
+            'product_id': product.id,
+            'combo_item_id': combo.combo_item_ids.id,
+            'linked_line_id': combo_line.id,
+        } for product, combo in zip(product_a + product_b, combos)])
+
+        self.assertEqual(
+            item_lines.mapped('price_unit'), [50.0, 50.0],
+            "Combo price must be split evenly when all combos have zero base price",
+        )
+        self.assertEqual(order.amount_untaxed, 100.0)
+
+    def test_so_included_tax_mapping(self):
+        country_belgium = self.env['res.country'].search([
+            ('name', '=', 'Belgium'),
+        ], limit=1)
+
+        fiscal_pos = self.env['account.fiscal.position'].create({
+            'name': 'Test tax mapping 21% to 6%',
+            'auto_apply': True,
+            'country_id': country_belgium.id,
+        })
+        tax_a, tax_b = self.env['account.tax'].create([{
+            'name': 'Test tax 21% inc',
+            'type_tax_use': 'sale',
+            'price_include_override': 'tax_included',
+            'amount': 21.0,
+        }, {
+            'name': 'Test tax 6% inc',
+            'type_tax_use': 'sale',
+            'price_include_override': 'tax_included',
+            'amount': 6.0,
+            'fiscal_position_ids': fiscal_pos,
+        }])
+        tax_b.original_tax_ids = tax_a
+
+        self.partner.country_id = country_belgium
+
+        self.product.write({
+            'lst_price': 121,
+            'taxes_id': [Command.set(tax_a.ids)]
+        })
+
+        self.empty_order.write({
+            'order_line': [Command.create({
+                'product_id': self.product.id,
+            })],
+        })
+
+        self.empty_order.write({'fiscal_position_id': fiscal_pos.id})
+        self.empty_order._recompute_taxes()
+
+        self.assertEqual(
+            self.empty_order.order_line.price_unit, 106.0,
+            "Wrong unit price computed after tax mapping applied"
+        )
+        self.assertEqual(
+            self.empty_order.order_line.price_subtotal, 100.0,
+            "Wrong subtotal price computed after tax mapping applied"
+        )
+
     def test_combo_product_extra_price_currency(self):
         """Ensure that the extra price for combo products and their no_variant attribute is
         correctly converted according to the sale order pricelist's currency."""
@@ -1342,42 +1430,3 @@ class TestSalePrices(SaleCommon):
         order.pricelist_id = eur_pricelist
         order.action_update_prices()
         self.assertAlmostEqual(order.amount_total, (100 + 50 + 10) * eur_curr.rate, 2)
-
-    def test_combo_product_zero_base_price_distributes_evenly(self):
-        """When every combo's base price is 0, the combo product's price must be split evenly
-        across combos instead of dumped onto the last one.
-        """
-        order = self.empty_order
-
-        product_a = self._create_product(name="A", list_price=0.0)
-        product_b = self._create_product(name="B", list_price=0.0)
-        combos = self.env['product.combo'].create([{
-            'name': "G1",
-            'combo_item_ids': [Command.create({'product_id': product_a.id})],
-        }, {
-            'name': "G2",
-            'combo_item_ids': [Command.create({'product_id': product_b.id})],
-        }])
-        product_combo = self._create_product(
-            name="Meal Menu",
-            list_price=100.0,
-            type='combo',
-            combo_ids=[Command.set(combos.ids)],
-        )
-
-        combo_line = self.env['sale.order.line'].create({
-            'order_id': order.id,
-            'product_id': product_combo.id,
-        })
-        item_lines = self.env['sale.order.line'].create([{
-            'order_id': order.id,
-            'product_id': product.id,
-            'combo_item_id': combo.combo_item_ids.id,
-            'linked_line_id': combo_line.id,
-        } for product, combo in zip(product_a + product_b, combos)])
-
-        self.assertEqual(
-            item_lines.mapped('price_unit'), [50.0, 50.0],
-            "Combo price must be split evenly when all combos have zero base price",
-        )
-        self.assertEqual(order.amount_untaxed, 100.0)

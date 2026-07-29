@@ -178,7 +178,7 @@ class TestIntercoClearingSale(TestIntercoClearing):
     def test_interco_sale(self):
         self.ensure_installed('sale')
 
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', True)
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         self.sale_order_ke = self.env['sale.order'].with_company(self.company_ke).sudo().create({
             'company_id': self.company_ke.id,
             'partner_id': self.kenyian_partner.id,

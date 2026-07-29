@@ -1,7 +1,8 @@
 from odoo import http
 from odoo.fields import Domain
 from odoo.http import request
-from werkzeug.exceptions import NotFound, BadRequest, Unauthorized
+from odoo.service.model import call_kw
+from werkzeug.exceptions import Forbidden, NotFound, BadRequest, Unauthorized
 from odoo.exceptions import MissingError
 from odoo.tools import consteq
 
@@ -10,6 +11,8 @@ class PosSelfOrderController(http.Controller):
     @http.route("/pos-self-order/process-order/<device_type>/", auth="public", type="jsonrpc", website=True)
     def process_order(self, order, access_token, table_identifier, device_type):
         pos_config, table = self._verify_authorization(access_token, table_identifier, order)
+        if not pos_config.self_ordering_mode == device_type:
+            raise Unauthorized("Invalid device type")
 
         # Create a safe copy of the order with only the necessary fields for order creation to
         # avoid potential security issues and to reduce the payload size
@@ -20,14 +23,10 @@ class PosSelfOrderController(http.Controller):
         # Recompute all prices from newly created lines to ensure price correctness and
         # avoid potential manipulation from the frontend
         order_ids.recompute_prices()
-        amount_total, amount_untaxed = self._get_order_prices(order_ids.lines)
-        order_ids.write({
-            'state': 'paid' if amount_total == 0 else 'draft',
-            'amount_tax': amount_total - amount_untaxed,
-            'amount_total': amount_total,
-        })
+        amount_total = order_ids.amount_total
 
         if amount_total == 0:
+            order_ids.state = 'paid'
             order_ids._process_saved_order(False)
             order_ids._send_self_order_receipt()
 
@@ -40,13 +39,15 @@ class PosSelfOrderController(http.Controller):
             del o['email']
             del o['mobile']
 
-        return {
+        result = {
             'pos.order': orders,
             'pos.order.line': self.env['pos.order.line']._load_pos_self_data_read(order.lines, config),
             'pos.payment': self.env['pos.payment']._load_pos_self_data_read(order.payment_ids, config),
-            'pos.payment.method': self.env['pos.payment.method']._load_pos_self_data_read(order.payment_ids.payment_method_id, config),
             'product.attribute.custom.value': self.env['product.attribute.custom.value']._load_pos_self_data_read(order.lines.custom_attribute_value_ids, config),
         }
+        if config.self_ordering_mode == 'mobile':
+            result['pos.payment.method'] = self.env['pos.payment.method']._load_pos_self_data_read(order.payment_ids.payment_method_id, config)
+        return result
 
     def _verify_line_price(self, lines, pos_config, preset_id):
         lines.order_id.recompute_prices()
@@ -95,17 +96,7 @@ class PosSelfOrderController(http.Controller):
     @http.route('/pos-self-order/get-user-data', auth='public', type='jsonrpc', website=True)
     def get_orders_by_access_token(self, access_token, order_access_tokens, table_identifier=None):
         pos_config = self._verify_pos_config(access_token)
-        table = pos_config.env["restaurant.table"].search([('identifier', '=', table_identifier)], limit=1)
-        domain = False
-
-        if not table_identifier or pos_config.self_ordering_pay_after == 'each':
-            domain = [(False, '=', True)]
-        else:
-            domain = ['&', '&',
-                ('table_id', '=', table.id),
-                ('state', '=', 'draft'),
-                ('access_token', 'not in', [data.get('access_token') for data in order_access_tokens])
-            ]
+        domain = [(False, '=', True)]
 
         for data in order_access_tokens:
             domain = Domain.OR([domain, ['&',
@@ -115,7 +106,6 @@ class PosSelfOrderController(http.Controller):
                 ('state', '!=', data.get('state')),
             ]])
         orders = pos_config.env['pos.order'].search(domain)
-
         access_tokens = set({o.get('access_token') for o in order_access_tokens})
         # Do not use session.order_ids, it may fail if there is shared sessions
         existing_order_tokens = pos_config.env['pos.order'].search([('access_token', 'in', access_tokens)]).mapped('access_token')
@@ -123,6 +113,23 @@ class PosSelfOrderController(http.Controller):
             # Remove orders that no longer exist on the server but are still shown in the self-order UI
             pos_config._notify('REMOVE_ORDERS', {'deleted_order_tokens': deleted_order_tokens})
         return self._generate_return_values(orders, pos_config) if orders else {}
+
+    @http.route('/pos-self-order/update-last-changes', auth='public', type='jsonrpc', website=True)
+    def update_last_changes(self, access_token, order_id, order_access_token, last_order_preparation_change=None):
+        """
+        This route can be used to update the last_order_preparation_change
+        field of the order or to simply retrieve the current value
+        """
+        pos_config = self._verify_pos_config(access_token)
+        pos_order = pos_config.env['pos.order'].browse(order_id)
+
+        if not pos_order.exists() or not consteq(pos_order.access_token, order_access_token):
+            raise MissingError(self.env._("Your order does not exist or has been removed"))
+
+        if last_order_preparation_change:
+            pos_order.write({'last_order_preparation_change': last_order_preparation_change})
+
+        return {'last_order_preparation_change': pos_order.last_order_preparation_change}
 
     @http.route('/kiosk/payment/<int:pos_config_id>/<device_type>', auth='public', type='jsonrpc', website=True)
     def pos_self_order_kiosk_payment(self, pos_config_id, order, payment_method_id, access_token, device_type):
@@ -144,6 +151,22 @@ class PosSelfOrderController(http.Controller):
             raise BadRequest("Something went wrong")
 
         return {'order': self.env['pos.order']._load_pos_self_data_read(order_sudo, pos_config), 'payment_status': status}
+
+    @http.route("/kiosk/payment_method_action/<action>", auth="public", type="jsonrpc", website=True)
+    def pos_self_order_kiosk_payment_method_action(self, access_token, action, args, kwargs):
+        pos_config = self._verify_pos_config(access_token)
+        payment_method_env = pos_config.env["pos.payment.method"]
+        if pos_config.self_ordering_mode != "kiosk":
+            raise Forbidden("Method only allowed in kiosk mode")
+        if args and isinstance(args[0], list):
+            if len(args[0]) != 1:
+                raise BadRequest("Only one payment method ID should be provided")
+            if not payment_method_env.search_count([("id", "=", args[0]), ("config_ids", "in", pos_config.id)]):
+                raise NotFound("Payment method not found in config")
+        if action not in payment_method_env._allowed_actions_in_self_order():
+            raise Forbidden(f"Method '{action}' is forbidden in the self order kiosk")
+
+        return call_kw(payment_method_env, action, args, kwargs)
 
     @http.route('/pos_self_order/kiosk/increment_nb_print/', auth='public', type='jsonrpc', website=True)
     def pos_kiosk_increment_nb_print(self, access_token, order_id, order_access_token):

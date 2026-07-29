@@ -68,6 +68,10 @@ class SmsSms(models.Model):
         'Marked for deletion', default=False,
         help='Will automatically be deleted, while notifications will not be deleted in any case.'
     )
+    sms_type = fields.Selection([
+        ('marketing', 'Marketing'),
+        ('alert', 'Alert'),
+    ])
 
     _uuid_unique = models.Constraint(
         'unique(uuid)',
@@ -161,7 +165,7 @@ class SmsSms(models.Model):
         self.env['ir.cron']._commit_progress(len(records), remaining=self.search_count(domain) if len(records) == batch_size else 0)
 
     def _get_send_batch_size(self):
-        return int(self.env['ir.config_parameter'].sudo().get_param('sms.session.batch.size', 500))
+        return self.env['ir.config_parameter'].sudo().get_int('sms.session.batch.size') or 500
 
     def _get_sms_company(self):
         return self.mail_message_id.record_company_id or self.env.company
@@ -190,6 +194,7 @@ class SmsSms(models.Model):
         messages = [{
             'content': body,
             'numbers': [{'number': sms.number, 'uuid': sms.uuid} for sms in body_sms_records],
+            'sms_type': 'marketing' if 'marketing' in body_sms_records.mapped('sms_type') else 'alert',
         } for body, body_sms_records in self.grouped('body').items()]
 
         delivery_reports_url = url_join(self[0].get_base_url(), '/sms/status')

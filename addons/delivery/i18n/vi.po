@@ -7,25 +7,24 @@
 # Vo Thanh Thuy, 2022
 # Nancy Momoland <thanhnguyen.icsc@gmail.com>, 2023
 # Thi Huong Nguyen, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:00+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-02-14 12:07+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-1/"
 "delivery/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: delivery
 #. odoo-python
@@ -99,8 +98,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>Mô tả vận chuyển</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -132,8 +131,8 @@ msgstr "Thêm"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
-msgstr "Thêm phương thức vận chuyển"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -201,25 +200,8 @@ msgstr "Có thể tạo phiếu trả hàng"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "Đơn vị vận chuyển"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-"Đơn vị vận chuyển %s không thể có cùng một thẻ nằm trong cả Thẻ phải có và "
-"Thẻ bị loại trừ."
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "Mô tả đơn vị vận chuyển"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -332,14 +314,9 @@ msgid "Define a new delivery method"
 msgstr "Xác định phương thức giao hàng mới"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "Dịch vụ giao hàng"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Công cụ chọn đơn vị giao hàng"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -353,18 +330,28 @@ msgid "Delivery Message"
 msgstr "Tin nhắn vận chuyển"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "Phương thức giao hàng"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "Phương thức giao hàng"
 
@@ -400,15 +387,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "Phí giao hàng phải được tính toán lại"
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"Tiền tố zip giao hàng được chỉ định cho các đơn vị vận chuyển để giới hạn\n"
-"            cho những zip mà hãng này khả dụng."
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "Mô tả"
@@ -422,11 +423,6 @@ msgstr "Điểm đến"
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
 msgstr "Xác định thứ tự hiển thị"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "Huỷ bỏ"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -498,16 +494,15 @@ msgstr "Thẻ bị loại trừ"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_sale_order__carrier_id
 msgid "Fill this field if you plan to invoice the shipping based on picking."
-msgstr "Điền vào trường này nếu bạn muốn lập hoá đơn vận chuyển khi giao hàng."
+msgstr ""
+"Điền vào trường này nếu bạn muốn xuất hoá đơn vận chuyển khi giao hàng."
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"Việc điền vào biểu mẫu này cho phép bạn lựa chọn phương thức vận chuyển phù "
-"hợp với thành phần đơn hàng hoặc địa điểm nhận hàng."
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -804,15 +799,16 @@ msgstr "Tiền tố này đã tồn tại!"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"Tiền tố của mã zip mà nhà đơn vị vận chuyển này áp dụng. Lưu ý rằng biểu "
-"thức thông thường có thể được sử dụng để hỗ trợ các quốc gia có độ dài mã "
-"zip khác nhau, tức là có thể thêm '$' vào cuối tiền tố để khớp với mã zip "
-"chính xác (ví dụ: '100$' sẽ chỉ khớp với '100' chứ không phải '1000')"
+"Các tiền tố của mã bưu chính mà phương thức giao hàng này áp dụng. Lưu ý "
+"rằng có thể sử dụng biểu thức chính quy để hỗ trợ các quốc gia có độ dài mã "
+"bưu chính khác nhau, tức là có thể thêm ký tự '$' vào cuối tiền tố để khớp "
+"chính xác với mã bưu chính (ví dụ: '100$' chỉ khớp với '100' và không khớp "
+"với '1000')."
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -908,17 +904,6 @@ msgstr ""
 "Đặt thành Đúng nếu thông tin xác thực của bạn được chứng nhận để sản xuất."
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "Phương thức vận chuyển"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "Phương thức vận chuyển"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 msgid "Shipping Weight"
 msgstr "Khối lượng vận chuyển"
@@ -931,15 +916,6 @@ msgid ""
 msgstr ""
 "Bảo hiểm vận chuyển là một dịch vụ có thể bồi hoàn cho người gửi có bưu kiện "
 "bị mất, bị đánh cắp và/hoặc bị hư hỏng trong quá trình vận chuyển."
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"Chi tiết về phương thức vận chuyển sẽ được đưa vào cuối đơn bán hàng và "
-"email xác nhận đơn bán hàng đó. Ví dụ: Hướng dẫn dành cho khách hàng."
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1141,11 +1117,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"Bạn không thể xóa danh mục sản phẩm vận chuyển vì nó được sử dụng cho các "
-"sản phẩm của đơn vị vận chuyển."
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1193,25 +1167,3 @@ msgstr "VD: UPS Express"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
 msgstr "VD: https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-
-#~ msgid "Default delivery method used in sales orders."
-#~ msgstr "Default delivery method used in sales orders."
-
-#~ msgid "Delivery Rating Success"
-#~ msgstr "Tỉ lệ giao thành công"
-
-#~ msgid "Destination Availability"
-#~ msgstr "Đang có tại điểm đến"
-
-#~ msgid ""
-#~ "Filling this form allows you to filter delivery carriers according to the "
-#~ "delivery address of your customer."
-#~ msgstr ""
-#~ "Điền thông tin ở đây sẽ giúp lọc ra những đơn vị vận chuyển dựa theo địa "
-#~ "chỉ giao hàng của khách hàng của bạn."
-
-#~ msgid "Free Shipping"
-#~ msgstr "Miễn phí giao hàng"
-
-#~ msgid "Group By"
-#~ msgstr "Nhóm theo"

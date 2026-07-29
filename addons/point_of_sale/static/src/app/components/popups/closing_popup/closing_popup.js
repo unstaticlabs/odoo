@@ -32,26 +32,10 @@ export class ClosePosPopup extends Component {
     setup() {
         this.pos = usePos();
         this.report = useService("report");
-        this.hardwareProxy = useService("hardware_proxy");
         this.dialog = useService("dialog");
         this.ui = useService("ui");
         this.state = useState(this.getInitialState());
         this.confirm = useAsyncLockedMethod(this.confirm);
-    }
-    autoFillCashCount() {
-        const count = this.props.default_cash_details.amount;
-        this.state.payments[this.props.default_cash_details.id].counted =
-            this.env.utils.formatCurrency(count, false);
-        this.setManualCashInput(count);
-    }
-    autoFillPMCount(paymentId) {
-        const pm = this.props.non_cash_payment_methods.find((pm) => pm.id === paymentId);
-        if (pm) {
-            this.state.payments[paymentId].counted = this.env.utils.formatCurrency(
-                pm.amount,
-                false
-            );
-        }
     }
     get cashMoveData() {
         const { total, moves } = this.props.default_cash_details.moves.reduce(
@@ -82,16 +66,15 @@ export class ClosePosPopup extends Component {
     getInitialState() {
         const initialState = { notes: "", payments: {} };
         if (this.pos.config.cash_control) {
-            initialState.payments[this.props.default_cash_details.id] = {
-                counted: "0",
+            const defaultCash = this.props.default_cash_details;
+            initialState.payments[defaultCash.id] = {
+                counted: this.env.utils.formatCurrency(defaultCash.amount, false),
             };
         }
         this.props.non_cash_payment_methods.forEach((pm) => {
-            if (pm.type === "bank") {
-                initialState.payments[pm.id] = {
-                    counted: this.env.utils.formatCurrency(pm.amount, false),
-                };
-            }
+            initialState.payments[pm.id] = {
+                counted: this.env.utils.formatCurrency(pm.amount || 0, false),
+            };
         });
         return initialState;
     }
@@ -134,7 +117,7 @@ export class ClosePosPopup extends Component {
     }
     async openDetailsPopup() {
         const action = _t("Cash control - closing");
-        this.hardwareProxy.openCashbox(action);
+        this.pos.openCashbox(action);
         this.dialog.add(MoneyDetailsPopup, {
             moneyDetails: this.moneyDetails,
             action: action,
@@ -191,11 +174,6 @@ export class ClosePosPopup extends Component {
     canCancel() {
         return true;
     }
-    get bankPaymentMethodDiffPairs() {
-        return this.props.non_cash_payment_methods
-            .filter((pm) => pm.type == "bank")
-            .map((pm) => [pm.id, this.getDifference(pm.id)]);
-    }
     async closeSession() {
         this.pos._resetConnectedCashier();
         // If there are orders in the db left unsynced, we try to sync.
@@ -235,10 +213,13 @@ export class ClosePosPopup extends Component {
         }
 
         try {
+            const bankPaymentMethodDiffPairs = this.props.non_cash_payment_methods
+                .filter((pm) => pm.type == "bank")
+                .map((pm) => [pm.id, this.getDifference(pm.id)]);
             const response = await this.pos.data.call(
                 "pos.session",
                 "close_session_from_ui",
-                [this.pos.session.id, this.bankPaymentMethodDiffPairs],
+                [this.pos.session.id, bankPaymentMethodDiffPairs],
                 {
                     context: {
                         device_identifier: this.pos.device.identifier,
@@ -297,7 +278,7 @@ export class ClosePosPopup extends Component {
     }
     async handleClosingError(response) {
         this.dialog.add(ConfirmationDialog, {
-            title: response.title || _t("Error"),
+            title: response.title || _t("Oh snap !"),
             body: response.message,
             confirmLabel: _t("Review Orders"),
             cancelLabel: _t("Cancel Orders"),
@@ -327,5 +308,17 @@ export class ClosePosPopup extends Component {
     getMovesTotalAmount() {
         const amounts = this.props.default_cash_details.moves.map((move) => move.amount);
         return amounts.reduce((acc, x) => acc + x, 0);
+    }
+    get validPms() {
+        return this.props.non_cash_payment_methods.filter(
+            (pm) => pm.number !== 0 && (pm.type === "bank" || pm.type === "cash")
+        );
+    }
+    isTheLastPM(pm) {
+        return pm === this.validPms.at(-1) && this.validPms.length % 2 === 0;
+    }
+
+    isOnePmUsed() {
+        return this.validPms.length == 0;
     }
 }

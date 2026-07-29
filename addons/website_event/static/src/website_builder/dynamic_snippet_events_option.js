@@ -8,12 +8,13 @@ export class DynamicSnippetEventsOption extends BaseOptionComponent {
     setup() {
         super.setup();
         const { getModelNameFilter } = this.dependencies.dynamicSnippetEventsOption;
-        this.dynamicOptionParams = useDynamicSnippetOption(getModelNameFilter());
+        this.modelNameFilter = getModelNameFilter();
+        this.dynamicOptionParams = useDynamicSnippetOption(this.modelNameFilter);
         this.templateKeyState = useDomState((el) => ({
             templateKey: el.dataset.templateKey,
         }));
     }
-    showCoverImage() {
+    showCoverImageOption() {
         return (
             this.templateKeyState.templateKey ===
             "website_event.dynamic_filter_template_event_event_single_aside"

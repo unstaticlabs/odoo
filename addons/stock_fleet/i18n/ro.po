@@ -3,15 +3,15 @@
 # * stock_fleet
 #
 # Dorin Hongu <dhongu@gmail.com>, 2025.
-# Busoi Cristina <elena.busoi@capps.ai>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 10:23+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-13 18:23+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_fleet/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -24,23 +24,42 @@ msgstr ""
 #. module: stock_fleet
 #. odoo-python
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
+#, fuzzy
 msgid "%(display_name)s (%(load_capacity)s)"
 msgstr "%(display_name)s (%(load_capacity)s)"
 
 #. module: stock_fleet
 #. odoo-python
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
+#, fuzzy
 msgid "%(volume_capacity)s %(volume_uom)s"
 msgstr "%(volume_capacity)s %(volume_uom)s"
 
 #. module: stock_fleet
 #. odoo-python
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
+#, fuzzy
 msgid "%(weight_capacity)s %(weight_uom)s"
 msgstr "%(weight_capacity)s %(weight_uom)s"
 
 #. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-cubes text-primary me-2\" title=\"Location\"/>"
+msgstr ""
+
+#. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-long-arrow-right mx-2\" title=\"Arrow\"/>"
+msgstr ""
+
+#. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-truck text-primary me-2\" title=\"Vehicle\"/>"
+msgstr ""
+
+#. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.view_picking_type_form
+#, fuzzy
 msgid ""
 "<span class=\"fw-bold\" invisible=\"code !='outgoing'\">From</span>\n"
 "                        <span class=\"fw-bold\" invisible=\"code "
@@ -52,48 +71,57 @@ msgstr ""
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
+#, fuzzy
 msgid "<strong>Dock:</strong>"
 msgstr "<strong>Doc:</strong>"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
+#, fuzzy
 msgid "<strong>Vehicle Category:</strong>"
 msgstr "<strong>Categorie vehicul:</strong>"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
+#, fuzzy
 msgid "<strong>Vehicle:</strong>"
 msgstr "<strong>Vehicul:</strong>"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__allowed_dock_ids
+#, fuzzy
 msgid "Allowed Docks"
 msgstr "Docuri permise"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_pivot
+#, fuzzy
 msgid "Batch Transfer"
 msgstr "Transfer în lot"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Batches by Route"
 msgstr "Loturi pe rută"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Calendar"
 msgstr "Calendar"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_fleet_vehicle_model_category
+#, fuzzy
 msgid "Category of the model"
 msgstr "Categorie model"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__has_dispatch_management
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__dispatch_management
+#, fuzzy
 msgid "Dispatch Management"
 msgstr "Gestionarea expedierilor"
 
@@ -103,38 +131,45 @@ msgstr "Gestionarea expedierilor"
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__display_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_warehouse__display_name
+#, fuzzy
 msgid "Display Name"
 msgstr "Nume afișat"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__dock_id
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__dock_ids
+#, fuzzy
 msgid "Dock"
 msgstr "Doc"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Dock Dispatching"
 msgstr "Expediere doc"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Dock Location"
 msgstr "Locație doc"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.view_picking_type_form
+#, fuzzy
 msgid "Dock Locations"
 msgstr "Locații docuri"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__driver_id
+#, fuzzy
 msgid "Driver"
 msgstr "Șofer"
 
 #. module: stock_fleet
 #: model:ir.model.fields,help:stock_fleet.field_stock_picking_batch__has_dispatch_management
 #: model:ir.model.fields,help:stock_fleet.field_stock_picking_type__dispatch_management
+#, fuzzy
 msgid ""
 "Enable this option to display dispatch management related details in the "
 "batch/wave form view and operations kanban overview."
@@ -145,11 +180,13 @@ msgstr ""
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__end_date
+#, fuzzy
 msgid "End Date"
-msgstr "Data de încheiere"
+msgstr "Dată sfârșit"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_graph
+#, fuzzy
 msgid "Graph View"
 msgstr "Vedere grafică"
 
@@ -159,53 +196,63 @@ msgstr "Vedere grafică"
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__id
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_warehouse__id
+#, fuzzy
 msgid "ID"
 msgstr "ID"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Manage Batches"
 msgstr "Gestionează loturi"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__volume_capacity
+#, fuzzy
 msgid "Max Volume"
 msgstr "Volum maxim"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_volume_capacity
+#, fuzzy
 msgid "Max Volume (m³)"
 msgstr "Volum maxim (m³)"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity
+#, fuzzy
 msgid "Max Weight"
-msgstr "Greutate maximă"
+msgstr "Masă maximă"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Next 7 Days"
 msgstr "Următoarele 7 zile"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Operation Type"
-msgstr "Tip operațiune"
+msgstr "Tip operație"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Own Fleet"
 msgstr "Flotă proprie"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking_type
+#, fuzzy
 msgid "Picking Type"
-msgstr "Tip preluare"
+msgstr "Tip ridicare"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Scheduled Date"
-msgstr "Data programată"
+msgstr "Dată planificată"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.report_picking_batch_inherit
@@ -214,124 +261,148 @@ msgstr "Secvență"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
+#, fuzzy
 msgid "Shipping Volume"
 msgstr "Volum livrare"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
+#, fuzzy
 msgid "Shipping Weight"
-msgstr "Greutate de expediere"
+msgstr "Greutate livrare"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Statistics"
-msgstr "Statistici"
+msgstr "Statistica"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Third Party Carrier"
 msgstr "Transportator terț"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
+#, fuzzy
 msgid "Third Party Provider"
-msgstr "Furnizor terț"
+msgstr "Eroare furnizor terț API"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Today"
 msgstr "Astăzi"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Tomorrow"
 msgstr "Mâine"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
+#, fuzzy
 msgid "Total Shipping Volume"
 msgstr "Volum total livrare"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.vpicktree
+#, fuzzy
 msgid "Total Shipping Weight"
 msgstr "Greutate totală livrare"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking
+#, fuzzy
 msgid "Transfer"
 msgstr "Transfer"
 
 #. module: stock_fleet
 #: model:fleet.vehicle.tag,name:stock_fleet.vehicle_tag_transport
+#, fuzzy
 msgid "Transport"
 msgstr "Transport"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_type_kanban_inherit_stock_fleet
+#, fuzzy
 msgid "Transport Management"
 msgstr "Management transport"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_weight_capacity
+#, fuzzy
 msgid "Vehcilce Payload Capacity"
 msgstr "Capacitate de încărcare vehicul"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_id
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Vehicle"
 msgstr "Vehicul"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__vehicle_category_id
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
+#, fuzzy
 msgid "Vehicle Category"
 msgstr "Categorie vehicul"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
+#, fuzzy
 msgid "Volume"
 msgstr "Volum"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__used_volume_percentage
+#, fuzzy
 msgid "Volume %"
 msgstr "Volum %"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__volume_capacity_uom_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__volume_uom_name
+#, fuzzy
 msgid "Volume unit of measure label"
 msgstr "Etichetă unitate de măsură volum"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_warehouse
+#, fuzzy
 msgid "Warehouse"
 msgstr "Depozit"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
+#, fuzzy
 msgid "Weight"
-msgstr "Greutate"
+msgstr "Masă"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__used_weight_percentage
+#, fuzzy
 msgid "Weight %"
 msgstr "Greutate %"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity_uom_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__weight_uom_name
+#, fuzzy
 msgid "Weight unit of measure label"
 msgstr "Etichetă unitate de măsură a greutății"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking__zip
+#, fuzzy
 msgid "Zip"
-msgstr "Fermoar"
+msgstr "Cod postal"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
+#, fuzzy
 msgid "semi-truck"
 msgstr "autocamion"

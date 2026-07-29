@@ -50,11 +50,10 @@ def get_date(tree, xpath):
 
 def get_datetime(tree, xpath):
     """ Datetimes in FatturaPA are ISO 8601 date format, pattern '[-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]'
-        Python 3.7 -> 3.11 doesn't support 'Z'.
     """
     if datetime_str := get_text(tree, xpath):
         try:
-            return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(datetime_str)
         except (ValueError, TypeError):
             return False
     return False
@@ -132,6 +131,12 @@ class AccountMove(models.Model):
         store=True,
         readonly=False,
         copy=False,
+    )
+
+    l10n_it_convention_code = fields.Char(
+        string="Order/Convention Code",
+        size=100,
+        help=" Used to connect an individual invoice to a broader framework agreement, a specific project, or a long-term convention."
     )
 
     def _auto_init(self):
@@ -455,11 +460,11 @@ class AccountMove(models.Model):
         self.ensure_one()
         if filetype == 'fatturapa':
             if (fatturapa_attachment := self.l10n_it_edi_attachment_file) and self.l10n_it_edi_attachment_name:
-                return {
+                return [{
                     'filename': self.l10n_it_edi_attachment_name,
                     'filetype': 'xml',
                     'content': b64decode(fatturapa_attachment),
-                }
+                }]
         return super()._get_invoice_legal_documents(filetype, allow_fallback=allow_fallback)
 
     def get_extra_print_items(self):
@@ -965,6 +970,7 @@ class AccountMove(models.Model):
             'origin_document_date': self.l10n_it_origin_document_date,
             'cig': self.l10n_it_cig,
             'cup': self.l10n_it_cup,
+            'convention_code': self.l10n_it_convention_code,
             'currency': self.currency_id or self.company_currency_id if not convert_to_euros else self.env.ref('base.EUR'),
             'regime_fiscale': company.l10n_it_tax_system if not is_self_invoice else 'RF18',
             'is_self_invoice': is_self_invoice,
@@ -1247,8 +1253,7 @@ class AccountMove(models.Model):
         # Download invoices
         invoices_data = {}
         try:
-            invoices_data = proxy_user._make_request(f'{server_url}/api/l10n_it_edi/1/in/RicezioneInvoice',
-                params={'recipient_codice_fiscale': proxy_user.company_id.l10n_it_codice_fiscale})
+            invoices_data = proxy_user._make_request(f'{server_url}/api/l10n_it_edi/1/in/RicezioneInvoice')
         except AccountEdiProxyError as e:
             _logger.error('Error while receiving invoices from the SdI: %s', e)
             return False
@@ -1508,7 +1513,7 @@ class AccountMove(models.Model):
         for node in tree.xpath('//DatiPagamento/DettaglioPagamento'):
             amount = get_float(node, './ImportoPagamento')
             payment_info.append({
-                'acc_number': get_text(node, './IBAN') or False,
+                'account_number': get_text(node, './IBAN') or False,
                 'payment_mode': get_text(node, './ModalitaPagamento') or False,
                 'invoice_date_due': get_date(node, './DataScadenzaPagamento') or False,
                 'amount': amount,
@@ -1740,7 +1745,7 @@ class AccountMove(models.Model):
                 self.l10n_it_payment_method = False
                 for payment_info in payments_info['info']:
                     # Search / Create the bank account only on incoming docs
-                    if self.move_type not in ('out_invoice', 'in_refund') and (iban := payment_info.get('acc_number')):
+                    if self.move_type not in ('out_invoice', 'in_refund') and (iban := payment_info.get('account_number')):
                         self.env['account.edi.common'].with_company(company)._import_partner_bank(self, [iban])
                     # Set payment data on the bill
                     self.payment_reference = self.payment_reference or payment_info.get('payment_code', False)
@@ -1886,6 +1891,7 @@ class AccountMove(models.Model):
                     if get_float(riepilogo, './/AliquotaIVA') == percentage and (imponibile := get_float(riepilogo, './/ImponibileImporto')):
                         percentage = -float_round(23.0 * (imponibile / prezzo_totale), 1)
                         break
+
         elif amount := get_float(element, './/Importo'):
             percentage = get_float(element, './/Aliquota')
             if not percentage and (tax_amount := get_float(element, './/Imposta')):

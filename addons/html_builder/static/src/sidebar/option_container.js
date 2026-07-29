@@ -1,31 +1,34 @@
 import { BorderConfigurator } from "../plugins/border_configurator_option";
 import { ShadowOption } from "../plugins/shadow_option";
 import { getSnippetName, useOptionsSubEnv } from "@html_builder/utils/utils";
-import { onWillStart, onWillUpdateProps } from "@odoo/owl";
+import { onWillStart, onWillUpdateProps, useExternalListener, useRef } from "@odoo/owl";
 import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { useOperation } from "../core/operation_plugin";
 import {
     BaseOptionComponent,
     useApplyVisibility,
-    useDomState,
     useGetItemValue,
     useVisibilityObserver,
 } from "../core/utils";
-import { isRemovable } from "@html_builder/core/remove_plugin";
+import { uniqueId } from "@web/core/utils/functions";
+import { browser } from "@web/core/browser/browser";
 
 export class OptionsContainer extends BaseOptionComponent {
     static template = "html_builder.OptionsContainer";
-    static dependencies = ["builderOptions", "overlayButtons", "builderOverlay", "remove", "clone"];
+    static dependencies = ["builderOptions", "remove", "clone"];
     static components = {
         BorderConfigurator,
         ShadowOption,
     };
     static props = {
+        toggleOverlayPreview: { type: Function, optional: true },
         snippetModel: { type: Object },
         options: { type: Array },
         editingElement: true, // HTMLElement from iframe
         isRemovable: false,
+        toggleFold: { type: Function, optional: true },
+        folded: { type: Boolean, optional: true },
         removeDisabledReason: { type: String, optional: true },
         isClonable: false,
         cloneDisabledReason: { type: String, optional: true },
@@ -35,6 +38,7 @@ export class OptionsContainer extends BaseOptionComponent {
         headerMiddleButtons: { type: Array, optional: true },
     };
     static defaultProps = {
+        toggleOverlayPreview: () => {},
         containerTitle: {},
         headerMiddleButtons: [],
         optionTitleComponents: [],
@@ -43,31 +47,31 @@ export class OptionsContainer extends BaseOptionComponent {
     setup() {
         useOptionsSubEnv(() => [this.props.editingElement]);
         super.setup();
+        this.containerId = uniqueId("option-container-");
         this.notification = useService("notification");
         this.getItemValue = useGetItemValue();
         useVisibilityObserver("content", useApplyVisibility("root"));
 
+        this.rootRef = useRef("root");
+        this.titleRef = useRef("title");
+        useExternalListener(browser, "focusin", this.updateOverlayPreview);
+        useExternalListener(browser, "pointermove", this.updateOverlayPreview);
+        useExternalListener(this.document, "pointermove", this.updateOverlayPreview);
+        this.showingOverlayPreview = false;
+
         this.callOperation = useOperation();
 
-        this.domState = useDomState((editingElement) => ({
-            isRemovable: isRemovable(editingElement),
-            removeDisabledReason:
-                this.dependencies.builderOptions.getRemoveDisabledReason(editingElement),
-            isClonable: this.dependencies.builderOptions.isClonable(editingElement),
-            cloneDisabledReason:
-                this.dependencies.builderOptions.getCloneDisabledReason(editingElement),
-        }));
-
+        this.options = [];
         this.hasGroup = {};
         onWillStart(async () => {
-            await this.updateAccessGroup(this.props.options);
+            this.options = await this.filterAccessGroup(this.props.options);
         });
         onWillUpdateProps(async (nextProps) => {
-            await this.updateAccessGroup(nextProps.options);
+            this.options = await this.filterAccessGroup(nextProps.options);
         });
     }
 
-    async updateAccessGroup(options) {
+    async filterAccessGroup(options) {
         const proms = [];
         const groups = [...new Set(options.flatMap((o) => o.groups || []))];
         for (const group of groups) {
@@ -78,6 +82,7 @@ export class OptionsContainer extends BaseOptionComponent {
             );
         }
         await Promise.all(proms);
+        return options.filter((option) => this.hasAccess(option.groups));
     }
 
     hasAccess(groups) {
@@ -89,7 +94,7 @@ export class OptionsContainer extends BaseOptionComponent {
 
     get title() {
         let title;
-        for (const option of this.props.options) {
+        for (const option of this.options) {
             if (option.getSnippetTitle) {
                 title = option.getSnippetTitle.call(this);
                 continue;
@@ -103,26 +108,23 @@ export class OptionsContainer extends BaseOptionComponent {
         return (title || getSnippetName(this.env.getEditingElement())) + titleExtraInfo;
     }
 
-    selectElement() {
-        this.dependencies.builderOptions.updateContainers(this.props.editingElement);
-    }
-
-    toggleOverlayPreview(el, show) {
-        if (show) {
-            this.dependencies.overlayButtons.hideOverlayButtons();
-            this.dependencies.builderOverlay.showOverlayPreview(el);
-        } else {
-            this.dependencies.overlayButtons.showOverlayButtons();
-            this.dependencies.builderOverlay.hideOverlayPreview(el);
+    updateTitleTooltip(ev) {
+        if (!ev.currentTarget.dataset.tooltip) {
+            const titleEl = this.titleRef.el;
+            if (titleEl.offsetWidth < titleEl.scrollWidth) {
+                ev.currentTarget.dataset.tooltip = this.title;
+            }
         }
     }
 
-    onPointerEnter() {
-        this.toggleOverlayPreview(this.props.editingElement, true);
-    }
-
-    onPointerLeave() {
-        this.toggleOverlayPreview(this.props.editingElement, false);
+    /** @param {PointerEvent | FocusEvent} ev */
+    updateOverlayPreview(ev) {
+        const shouldShow = this.rootRef.el?.contains(ev.target);
+        if (shouldShow === this.showingOverlayPreview) {
+            return;
+        }
+        this.props.toggleOverlayPreview(this.props.editingElement, shouldShow);
+        this.showingOverlayPreview = shouldShow;
     }
 
     // Actions of the buttons in the title bar.
@@ -138,9 +140,5 @@ export class OptionsContainer extends BaseOptionComponent {
                 activateClone: false,
             });
         });
-    }
-
-    isLegacyOption(option) {
-        return typeof option === "object";
     }
 }

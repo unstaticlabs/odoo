@@ -8,12 +8,13 @@ from odoo import fields
 from odoo.addons.microsoft_calendar.utils.microsoft_calendar import MicrosoftCalendarService
 from odoo.addons.microsoft_calendar.utils.microsoft_event import MicrosoftEvent
 from odoo.addons.microsoft_account.models.microsoft_service import MicrosoftService, DEFAULT_MICROSOFT_TOKEN_ENDPOINT
-from odoo.tests import TransactionCase
+from odoo.tests import tagged, TransactionCase
 
 
 DEFAULT_TIMEOUT = 20
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMicrosoftService(TransactionCase):
 
     def _do_request_result(self, data):
@@ -480,13 +481,13 @@ class TestMicrosoftService(TransactionCase):
             }
         )
         IrParameter = self.env["ir.config_parameter"].sudo()
-        IrParameter.set_param("microsoft_calendar_client_id", "dummy_client_id")
-        IrParameter.set_param("microsoft_calendar_client_secret", "dummy_client_secret")
+        IrParameter.set_str("microsoft_calendar_client_id", "dummy_client_id")
+        IrParameter.set_str("microsoft_calendar_client_secret", "dummy_client_secret")
 
         self.env.user._refresh_microsoft_calendar_token()
 
         custom_token_endpoint = "https://login.microsoftonline.com/dummy_tenant_id/oauth2/v2.0/token"
-        IrParameter.set_param("microsoft_account.token_endpoint", custom_token_endpoint)
+        IrParameter.set_str("microsoft_account.token_endpoint", custom_token_endpoint)
         self.env.user._refresh_microsoft_calendar_token()
 
         kwargs = {

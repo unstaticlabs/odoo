@@ -32,13 +32,13 @@
       "id": "database",
       "type": "promptString",
       "description": "Database name",
-      "default": "odoo19"
+      "default": "odoo_dev"
     },
     {
       "id": "module",
       "type": "promptString",
       "description": "Module",
-      "default": "base"
+      "default": "rebuild_account_migration"
     }
   ]
 }

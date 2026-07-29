@@ -2,23 +2,23 @@
 # This file contains the translation of the following modules:
 # * sms_twilio
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 09:54+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-03-07 14:41+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sms_twilio/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.1\n"
 
 #. module: sms_twilio
 #. odoo-python
@@ -68,6 +68,12 @@ msgid "Auth Token"
 msgstr "Todennustunniste"
 
 #. module: sms_twilio
+#. odoo-javascript
+#: code:addons/sms_twilio/static/src/core/notification_model.js:0
+msgid "Authentication Error"
+msgstr ""
+
+#. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__mail_notification__failure_type__twilio_authentication
 #: model:ir.model.fields.selection,name:sms_twilio.selection__sms_sms__failure_type__twilio_authentication
 msgid "Authentication Error\""
@@ -75,10 +81,6 @@ msgstr "Todennusvirhe\""
 
 #. module: sms_twilio
 #: model:ir.model,name:sms_twilio.model_res_company
-msgid "Companies"
-msgstr "Yritykset"
-
-#. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_sms__record_company_id
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_account_manage__company_id
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_number__company_id
@@ -123,16 +125,6 @@ msgid "Credentials"
 msgstr "Tunnistetiedot"
 
 #. module: sms_twilio
-#: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
-msgid "Delete"
-msgstr "Poista"
-
-#. module: sms_twilio
-#: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
-msgid "Discard"
-msgstr "Hylkää"
-
-#. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_mail_notification__display_name
 #: model:ir.model.fields,field_description:sms_twilio.field_res_company__display_name
 #: model:ir.model.fields,field_description:sms_twilio.field_res_config_settings__display_name
@@ -161,10 +153,12 @@ msgid "Failure type"
 msgstr "Epäonnistumisen tyyppi"
 
 #. module: sms_twilio
+#. odoo-javascript
+#: code:addons/sms_twilio/static/src/core/notification_model.js:0
 #: model:ir.model.fields.selection,name:sms_twilio.selection__mail_notification__failure_type__twilio_from_to
 #: model:ir.model.fields.selection,name:sms_twilio.selection__sms_sms__failure_type__twilio_from_to
 msgid "From / To identic"
-msgstr "Lähettäjä / vastaanottaja identtinen"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_mail_notification__id
@@ -179,10 +173,12 @@ msgid "ID"
 msgstr "Tunnus"
 
 #. module: sms_twilio
+#. odoo-javascript
+#: code:addons/sms_twilio/static/src/core/notification_model.js:0
 #: model:ir.model.fields.selection,name:sms_twilio.selection__mail_notification__failure_type__twilio_callback
 #: model:ir.model.fields.selection,name:sms_twilio.selection__sms_sms__failure_type__twilio_callback
 msgid "Incorrect callback URL"
-msgstr "Virheellinen takaisinsoitto-URL"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
@@ -191,8 +187,6 @@ msgid ""
 "Invalid Twilio Account SID: must only contain alphanumeric characters after "
 "'AC'."
 msgstr ""
-"Virheellinen Twilio-tilin SID: saa sisältää vain aakkosnumeerisia merkkejä "
-"'AC':n jälkeen."
 
 #. module: sms_twilio
 #. odoo-python
@@ -200,8 +194,6 @@ msgstr ""
 msgid ""
 "Invalid Twilio Account SID: must start with 'AC' and be 34 characters long."
 msgstr ""
-"Virheellinen Twilio-tilin SID: alettava kirjaimilla 'AC' ja oltava 34 "
-"merkkiä pitkä."
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_account_manage__write_uid
@@ -221,22 +213,29 @@ msgid "Link SMS to mailing/sms tracking models"
 msgstr "Linkitä tekstiviestit postitus-/tekstiviestiseurantamalleihin"
 
 #. module: sms_twilio
+#: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
+msgid "Load from Twilio"
+msgstr ""
+
+#. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/models/res_company.py:0
 #: code:addons/sms_twilio/wizard/sms_twilio_account_manage.py:0
 msgid "Manage Twilio SMS"
-msgstr "Hallinnoi Twilio-tekstiviestejä"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model,name:sms_twilio.model_mail_notification
-msgid "Message Notifications"
-msgstr "Viestien ilmoitukset"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms_twilio
+#. odoo-javascript
+#: code:addons/sms_twilio/static/src/core/notification_model.js:0
 #: model:ir.model.fields.selection,name:sms_twilio.selection__mail_notification__failure_type__twilio_from_missing
 #: model:ir.model.fields.selection,name:sms_twilio.selection__sms_sms__failure_type__twilio_from_missing
 msgid "Missing From Number"
-msgstr "Lähettäjän numero puuttuu"
+msgstr ""
 
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
@@ -245,9 +244,6 @@ msgid ""
 "                            <i class=\"fa fa-external-link\" aria-"
 "hidden=\"true\"/>"
 msgstr ""
-"Tarvitsetko apua?\n"
-"                           <i class=\"fa fa-external-link\" aria-"
-"hidden=\"true\"/>"
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_res_company__sms_twilio_number_ids
@@ -263,30 +259,31 @@ msgstr "Lähtevät tekstiviestit"
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid "Phone Numbers"
-msgstr "Puhelinnumerot"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/wizard/sms_twilio_account_manage.py:0
 msgid "Please set the number to which you want to send a test SMS."
-msgstr "Määritä numero, johon haluat lähettää testiviestin."
+msgstr ""
 
 #. module: sms_twilio
-#: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
-msgid "Reload Numbers from Twilio"
-msgstr "Lataa numerot uudelleen Twiliosta"
+#. odoo-python
+#: code:addons/sms_twilio/tools/sms_api.py:0
+msgid "Recheck your credentials"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_res_company__sms_provider
 #: model:ir.model.fields,field_description:sms_twilio.field_res_config_settings__sms_provider
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_account_manage__sms_provider
 msgid "SMS Provider"
-msgstr "Tekstiviestien palveluntarjoaja"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model,name:sms_twilio.model_sms_twilio_account_manage
 msgid "SMS Twilio Connection Wizard"
-msgstr "Ohjattu Twilio-tekstiviestien yhteystoiminto"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model,name:sms_twilio.model_sms_composer
@@ -296,27 +293,27 @@ msgstr "Ohjattu tekstiviestin lähettäminen"
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid "Send test SMS"
-msgstr "Lähetä testiviesti"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__iap
 msgid "Send via Odoo"
-msgstr "Lähetä Odoon kautta"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__twilio
 msgid "Send via Twilio"
-msgstr "Lähetä Twilion kautta"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_number__sequence
 msgid "Sequence"
-msgstr "Sekvenssi"
+msgstr "Järjestys"
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_account_manage__test_number
 msgid "Test Number"
-msgstr "Testinumero"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields,help:sms_twilio.field_sms_twilio_number__country_code
@@ -331,88 +328,96 @@ msgstr ""
 #. odoo-python
 #: code:addons/sms_twilio/wizard/sms_twilio_account_manage.py:0
 msgid "The SMS has been sent from %s"
-msgstr "Tekstiviesti on lähetetty numerosta %s"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "The number you're trying to reach is not correctly formatted"
-msgstr "Tavoittelemasi numero ei ole muotoiltu oikein"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/wizard/sms_twilio_account_manage.py:0
 msgid "This is a test SMS from Odoo"
-msgstr "Tämä on Odoon lähettämä testiviesti"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Trial Account Limitation"
-msgstr "Kokeilutilin rajoitus"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Twilio Authentication Error"
-msgstr "Twilion varmennusvirhe"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model,name:sms_twilio.model_sms_twilio_number
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_twilio_number__number
 msgid "Twilio Number"
-msgstr "Twilio-numero"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/wizard/sms_twilio_account_manage.py:0
 msgid "Twilio SMS"
-msgstr "Twilio-tekstiviesti"
+msgstr ""
 
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid "Twilio SMS Manage Connection"
-msgstr "Twilio-tekstiviestiyhteyden hallinta"
+msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_sms__sms_twilio_sid
 #: model:ir.model.fields,field_description:sms_twilio.field_sms_tracker__sms_twilio_sid
 msgid "Twilio SMS SID"
-msgstr "Twilio-tekstiviestin SID"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Twilio StatusCallback URL is incorrect"
-msgstr "Twilion StatusCallback URL-osoite on väärä"
+msgstr ""
+
+#. module: sms_twilio
+#. odoo-javascript
+#: code:addons/sms_twilio/static/src/core/notification_model.js:0
+#: model:ir.model.fields.selection,name:sms_twilio.selection__mail_notification__failure_type__twilio_wrong_credentials
+#: model:ir.model.fields.selection,name:sms_twilio.selection__sms_sms__failure_type__twilio_wrong_credentials
+msgid "Twilio Wrong Credentials"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Unknown error, please contact Odoo support"
-msgstr "Tuntematon virhe, ota yhteyttä Odoo-tukeen"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Unknown failure at sending, please contact Odoo support"
-msgstr "Tuntematon virhe lähetettäessä, ota yhteyttä Odoo-tukeen"
+msgstr ""
 
 #. module: sms_twilio
 #. odoo-python
 #: code:addons/sms_twilio/tools/sms_api.py:0
 msgid "Unverified recipient on Trial Account"
-msgstr "Vahvistamaton vastaanottaja testitilillä"
+msgstr ""
 
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid "Update Account"
-msgstr "Päivitä tili"
+msgstr ""
 
 #. module: sms_twilio
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid "abcde12345abcde12345abcde12345ab"
-msgstr "abcde12345abcde12345abcde12345ab"
+msgstr ""
 
 #~ msgid "+1 555-123-4567"
 #~ msgstr "+1 555-123-4567"

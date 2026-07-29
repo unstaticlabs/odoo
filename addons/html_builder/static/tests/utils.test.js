@@ -3,12 +3,14 @@ import {
     addBuilderOption,
     setupHTMLBuilder,
 } from "@html_builder/../tests/helpers";
+import { Builder } from "@html_builder/builder";
 import { BuilderAction } from "@html_builder/core/builder_action";
+import { SavePlugin } from "@html_builder/core/save_plugin";
 import { BaseOptionComponent, useDomState } from "@html_builder/core/utils";
 import { describe, expect, test } from "@odoo/hoot";
-import { animationFrame, Deferred, delay, queryOne } from "@odoo/hoot-dom";
+import { animationFrame, delay, queryOne } from "@odoo/hoot-dom";
 import { xml } from "@odoo/owl";
-import { contains, onRpc } from "@web/../tests/web_test_helpers";
+import { contains, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
 
@@ -71,7 +73,7 @@ describe("waitSidebarUpdated", () => {
                 }
                 async apply({ editingElement, value }) {
                     await delay(delayAmount);
-                    await deferred;
+                    await deferred.promise;
                     editingElement.dataset.value = value;
                 }
             },
@@ -86,7 +88,7 @@ describe("waitSidebarUpdated", () => {
                 super.setup();
                 this.state = useDomState(async (el) => {
                     await delay(delayAmount);
-                    await deferred;
+                    await deferred.promise;
                     return { value: el.dataset.value };
                 });
             }
@@ -112,7 +114,7 @@ describe("waitSidebarUpdated", () => {
                 super.setup();
                 this.state = useDomState(async (el) => {
                     await delay(delayAmount);
-                    await deferred;
+                    await deferred.promise;
                     return { value: el.dataset.value, showOther: el.dataset.value === "c" };
                 });
             }
@@ -122,7 +124,7 @@ describe("waitSidebarUpdated", () => {
             `<div class="test" data-value="a">a</div>`
         );
 
-        deferred = new Deferred();
+        deferred = Promise.withResolvers();
         await contains(":iframe div.test").click();
         expect(".test-value-parent").toHaveCount(0);
         deferred.resolve();
@@ -130,7 +132,7 @@ describe("waitSidebarUpdated", () => {
         await waitSidebarUpdated();
         expect(".test-value-parent").toHaveText("a");
 
-        deferred = new Deferred();
+        deferred = Promise.withResolvers();
         await contains(".test-button-1 button").click();
         expect(".test-value-parent").toHaveText("a");
         expect(".test-button-3").toHaveCount(0);
@@ -140,7 +142,7 @@ describe("waitSidebarUpdated", () => {
         expect(".test-value-parent").toHaveText("b");
         expect(".test-value-sub").toHaveCount(0);
 
-        deferred = new Deferred();
+        deferred = Promise.withResolvers();
         await contains(".test-button-2 button").click();
         expect(".test-value-parent").toHaveText("b");
         expect(".test-value-sub").toHaveCount(0);
@@ -150,6 +152,67 @@ describe("waitSidebarUpdated", () => {
         expect(".test-value-parent").toHaveText("c");
         expect(".test-value-sub").toHaveText("c");
     });
+});
+
+test("Shouldn't reload(save, etc) when a reload is canceled", async () => {
+    const { promise, resolve } = Promise.withResolvers();
+
+    patchWithCleanup(SavePlugin.prototype, {
+        async save() {
+            expect.step("save");
+            await super.save();
+        },
+    });
+    patchWithCleanup(Builder.prototype, {
+        setup() {
+            super.setup();
+            this.editor.config.reloadEditor = async () => {
+                await promise;
+                expect.step("reload");
+            };
+        },
+    });
+
+    addBuilderAction({
+        TestCancelReloadAction: class extends BuilderAction {
+            static id = "testCancelReload";
+            setup() {
+                this.reload = {};
+            }
+            load({ editingElement }) {
+                return { shouldReload: editingElement.classList.contains("should_reload") };
+            }
+            async apply({ editingElement, loadResult }) {
+                editingElement.dataset.applied = "true";
+                if (!loadResult.shouldReload) {
+                    return BuilderAction.cancelReload;
+                }
+            }
+        },
+    });
+
+    addBuilderOption(
+        class extends BaseOptionComponent {
+            static selector = ".test-options-target";
+            static template = xml`<BuilderButton action="'testCancelReload'">Click</BuilderButton>`;
+        }
+    );
+
+    await setupHTMLBuilder(`<div class="test-options-target">Target</div>`);
+    await contains(":iframe .test-options-target").click();
+    await contains(".options-container [data-action-id='testCancelReload']").click();
+    expect(".o_blockUI").toHaveCount(0);
+    expect.verifySteps([]);
+
+    const editingEl = queryOne(":iframe .test-options-target");
+    editingEl.classList.add("should_reload");
+    await contains(":iframe .test-options-target").click();
+    await contains(".options-container [data-action-id='testCancelReload']").click();
+    expect(".o_blockUI").toHaveCount(1);
+    resolve();
+    await animationFrame();
+    expect(".o_blockUI").toHaveCount(0);
+    expect.verifySteps(["save", "reload"]);
 });
 
 test("UI is blocked when doing the reloadable operation", async () => {
@@ -217,56 +280,6 @@ test("System should not crash if an asynchronous useDomState is working with rem
     await useDomStateStarted.promise;
     queryOne(":iframe .test").remove();
     editingElRemoved.resolve();
-});
-
-test("Shouldn't reload(save, etc) when a reload is canceled", async () => {
-    const { promise, resolve } = Promise.withResolvers();
-
-    onRpc("ir.ui.view", "save", async () => {
-        await promise;
-        expect.step("save");
-        return true;
-    });
-    addBuilderAction({
-        TestCancelReloadAction: class extends BuilderAction {
-            static id = "testCancelReload";
-            setup() {
-                this.reload = {};
-            }
-            load({ editingElement }) {
-                return { shouldReload: editingElement.classList.contains("should_reload") };
-            }
-            async apply({ editingElement, loadResult }) {
-                editingElement.dataset.applied = "true";
-                if (!loadResult.shouldReload) {
-                    return BuilderAction.cancelReload;
-                }
-            }
-        },
-    });
-
-    addBuilderOption(
-        class extends BaseOptionComponent {
-            static selector = ".test-options-target";
-            static template = xml`<BuilderButton action="'testCancelReload'">Click</BuilderButton>`;
-        }
-    );
-
-    await setupHTMLBuilder(`<div class="test-options-target">Target</div>`);
-    await contains(":iframe .test-options-target").click();
-    await contains(".options-container [data-action-id='testCancelReload']").click();
-    expect(".o_blockUI").toHaveCount(0);
-    expect.verifySteps([]);
-
-    const editingEl = queryOne(":iframe .test-options-target");
-    editingEl.classList.add("should_reload");
-    await contains(":iframe .test-options-target").click();
-    await contains(".options-container [data-action-id='testCancelReload']").click();
-    expect(".o_blockUI").toHaveCount(1);
-    resolve();
-    await animationFrame();
-    expect(".o_blockUI").toHaveCount(0);
-    expect.verifySteps(["save"]);
 });
 
 test("UI is unblocked when getting an error on a reloadable operation", async () => {

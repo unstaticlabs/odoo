@@ -7,14 +7,14 @@
 # Martin Trigaux, 2022
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 18:20+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-10-27 07:49+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/website_slides_forum/zh_Hans/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -167,11 +167,6 @@ msgstr ""
 msgid ""
 "<span class=\"flex-grow-1\">Why can other people edit my questions/answers?</"
 "span>"
-msgstr ""
-
-#. module: website_slides_forum
-#: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_breadcrumb
-msgid "<strong>Forum</strong>"
 msgstr ""
 
 #. module: website_slides_forum
@@ -525,39 +520,3 @@ msgid ""
 msgstr ""
 "您的答案是伴随着问题提供，您希望有更多的答案：“我为________用____________的，"
 "您用什么？”"
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>我可以在这里问什么样的问题?</b>"
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>我应该在回答中避免什么?</b>"
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>我应该在我的问题中避免什么?</b>"
-
-#~ msgid "<b>Why can other people edit my questions/answers?</b>"
-#~ msgstr "<b>为什么其他人员可以编辑我的问题/答案?</b>"
-
-#~ msgid "<i class=\"fa fa-home\"/> Course"
-#~ msgstr "<i class=\"fa fa-home\"/> 课程"
-
-#~ msgid "Courses Discussions"
-#~ msgstr "课程讨论"
-
-#~ msgid "Description"
-#~ msgstr "说明"
-
-#~ msgid "Forum Page"
-#~ msgstr "论坛网页"
-
-#~ msgid "Hide Intro"
-#~ msgstr "隐藏简介"
-
-#~ msgid "Register"
-#~ msgstr "注册"
-
-#~ msgid "Reviews"
-#~ msgstr "评论"
-
-#~ msgid "See all Courses"
-#~ msgstr "查看所有课程"

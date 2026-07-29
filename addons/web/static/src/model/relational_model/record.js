@@ -1,7 +1,6 @@
 import { markRaw, markup, toRaw } from "@odoo/owl";
 import { serializeDate, serializeDateTime } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
-import { x2ManyCommands } from "@web/core/orm_service";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { DataPoint } from "./datapoint";
 import { Operation } from "./operation";
@@ -143,9 +142,13 @@ export class Record extends DataPoint {
     }
 
     get isInEdition() {
+        if (this.model.offline.offline) {
+            return false;
+        }
         if (this.config.mode === "readonly") {
             return false;
         } else {
+            // FIXME: why the or ? if it's not in 'readonly' it's in 'edit', in which case the first is false ?
             return this.config.mode === "edit" || !this.resId;
         }
     }
@@ -323,6 +326,9 @@ export class Record extends DataPoint {
     async urgentSave() {
         this.model._urgentSave = true;
         this.model.bus.trigger("WILL_SAVE_URGENTLY");
+        if (!this.resId && !this.dirty) {
+            return true;
+        }
         const succeeded = await this._save({ reload: false });
         this.model._urgentSave = false;
         return succeeded;
@@ -537,14 +543,18 @@ export class Record extends DataPoint {
             });
             return pair && { id: pair[0], display_name: pair[1] };
         }
-        if (resId && displayName === undefined) {
+        const activeField = this.activeFields[fieldName];
+        const relatedFields = ["display_name"].concat(
+            Object.keys(activeField.related?.activeFields || {})
+        );
+        if (resId && relatedFields.some((relatedField) => value[relatedField] === undefined)) {
             const fieldSpec = { display_name: {} };
-            if (this.activeFields[fieldName].related) {
+            if (activeField.related) {
                 Object.assign(
                     fieldSpec,
                     getFieldsSpec(
-                        this.activeFields[fieldName].related.activeFields,
-                        this.activeFields[fieldName].related.fields,
+                        activeField.related.activeFields,
+                        activeField.related.fields,
                         getBasicEvalContext(this.config)
                     )
                 );
@@ -554,6 +564,12 @@ export class Record extends DataPoint {
                 specification: fieldSpec,
             };
             const records = await this.model.orm.webRead(resModel, [resId], kwargs);
+            for (const fieldName in records[0]) {
+                const field = activeField.related?.fields[fieldName];
+                if (field) {
+                    records[0][fieldName] = parseServerValue(field, records[0][fieldName]);
+                }
+            }
             return records[0];
         }
         return value;
@@ -916,16 +932,21 @@ export class Record extends DataPoint {
                 parsedValues[fieldName] = staticList;
             } else {
                 parsedValues[fieldName] = parseServerValue(field, value);
-                if (field.type === "properties") {
+                const parsedValue = parsedValues[fieldName];
+                if (field.type === "many2one" && parsedValue) {
+                    const relFields = this.activeFields[fieldName].related?.fields || {};
+                    for (const relFieldName of Object.keys(parsedValues[fieldName])) {
+                        const relField = relFields[relFieldName];
+                        if (relField) {
+                            const relValue = parsedValue[relFieldName];
+                            parsedValue[relFieldName] = parseServerValue(relField, relValue);
+                        }
+                    }
+                } else if (field.type === "properties") {
                     const parent = serverValues[field.definition_record];
                     Object.assign(
                         parsedValues,
-                        this._processProperties(
-                            parsedValues[fieldName],
-                            fieldName,
-                            parent,
-                            currentValues
-                        )
+                        this._processProperties(parsedValue, fieldName, parent, currentValues)
                     );
                 }
             }
@@ -998,24 +1019,15 @@ export class Record extends DataPoint {
     }
 
     async _preprocessX2manyChanges(changes) {
-        for (const [fieldName, value] of Object.entries(changes)) {
+        for (const [fieldName, commands] of Object.entries(changes)) {
             if (
                 this.fields[fieldName].type !== "one2many" &&
                 this.fields[fieldName].type !== "many2many"
             ) {
                 continue;
             }
-            const list = this.data[fieldName];
-            for (const command of value) {
-                switch (command[0]) {
-                    case x2ManyCommands.SET:
-                        await list._replaceWith(command[2]);
-                        break;
-                    default:
-                        await list._applyCommands([command]);
-                }
-            }
-            changes[fieldName] = list;
+            await this.data[fieldName]._applyCommands(commands);
+            changes[fieldName] = this.data[fieldName];
         }
     }
 

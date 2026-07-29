@@ -1,11 +1,10 @@
 import { _t } from "@web/core/l10n/translation";
 import { clickOnElement } from '@website/js/tours/tour_utils';
 
-export function addToCart({
+export function goToProductPage({
     productName,
     search = true,
-    productHasVariants = false,
-    expectUnloadPage = false,
+    expectUnloadPage = true,
 } = {}) {
     const steps = [];
     if (search) {
@@ -17,18 +16,63 @@ export function addToCart({
         run: "click",
         expectUnloadPage,
     });
-    steps.push({
-        content: "Add to cart",
-        trigger: "#add_to_cart",
+
+    return steps;
+}
+
+export function increaseProductPageQuantity() {
+    return {
+        content: "Increase product quantity",
+        trigger: '.css_quantity a.js_add_cart_json i.oi-plus',
         run: "click",
-    });
+    }
+}
+
+export function assertProductPagePrice(price) {
+    return {
+        content: "Check if the product price is correct",
+        trigger: `.product_price .oe_price .oe_currency_value:text(${price})`,
+    }
+}
+
+export function assertProductPageStrikeThroughPrice(price) {
+    return {
+        content: "Check if the product strike-through price is correct",
+        trigger: `.product_price .oe_default_price .oe_currency_value:text(${price})`,
+    }
+}
+
+export function addToCartFromProductPage({ productHasVariants = false } = {}) {
+    const steps = [
+        {
+            content: "Add to cart",
+            trigger: '.js_product button[name="add_to_cart"]',
+            run: "click",
+        },
+        {
+            content: "Check if the button is disabled",
+            trigger: '.js_product button[name="add_to_cart"].pe-none',
+        },
+    ];
     if (productHasVariants) {
         steps.push(clickOnElement('Continue Shopping', 'button:contains("Continue Shopping")'));
     }
     return steps;
 }
 
-export function assertCartAmounts({taxes = false, untaxed = false, total = false, delivery = false}) {
+export function addToCart({
+    productName,
+    search = true,
+    productHasVariants = false,
+    expectUnloadPage = false,
+} = {}) {
+    return [
+        ...goToProductPage({ productName, search, expectUnloadPage }),
+        ...addToCartFromProductPage({ productHasVariants }),
+    ];
+}
+
+export function assertCartAmounts({ taxes = false, untaxed = false, total = false, delivery = false }) {
     let steps = [];
     if (taxes) {
         steps.push({
@@ -57,22 +101,62 @@ export function assertCartAmounts({taxes = false, untaxed = false, total = false
     return steps
 }
 
-export function assertCartContains({productName, backend, notContains = false, combinationName = false} = {}) {
-    let trigger = `h6:contains(${productName})`;
+export function assertCartContains({
+    productName,
+    backend,
+    combinationName = false,
+    description = false,
+    uomName = false,
+    price = false,
+    quantity = false,
+} = {}) {
+    const baseTrigger = '#cart_products div.o_cart_product';
+    const productTrigger = `${baseTrigger} h6:contains(${productName})`;
+    const lineTrigger = `${baseTrigger}:has(h6:contains(${productName}))`;
 
-    if (notContains) {
-        trigger = `:not(${trigger})`;
-    }
-    let steps = [{
+    const steps = [{
         content: `Checking if ${productName} is in the cart`,
-        trigger: `${backend ? ":iframe" : ""} ${trigger}`,
+        trigger: `${backend ? ":iframe" : ""} ${productTrigger}`,
     }];
 
     if (combinationName) {
-        const combination_trigger = `span[class*=h6]:contains(${combinationName})`;
+        const combinationTrigger = `${lineTrigger} span[class*=h6]:contains(${combinationName})`;
         steps.push({
             content: `Checking if ${combinationName} is the chosen combination in the cart`,
-            trigger: `${backend ? ":iframe" : ""} ${combination_trigger}`,
+            trigger: `${backend ? ":iframe" : ""} ${combinationTrigger}`,
+        })
+    }
+
+    if (description) {
+        const descriptionTrigger = `${lineTrigger} div.text-muted>span:contains(${description})`;
+        steps.push({
+            content: `Checking if the cart line holds the expected description`,
+            trigger: `${backend ? ":iframe" : ""} ${descriptionTrigger}`,
+        })
+    }
+
+    // Currently unused
+    if (uomName) {
+        const uomTrigger = `${lineTrigger} span[class*=badge]:contains(${uomName})`;
+        steps.push({
+            content: `Checking if ${uomName} is the chosen unit of measure in the cart`,
+            trigger: `${backend ? ":iframe" : ""} ${uomTrigger}`,
+        })
+    }
+
+    if (quantity) {
+        const quantityTrigger = `${lineTrigger} div.css_quantity input.quantity:value(${quantity})`;
+        steps.push({
+            content: `Checking if the cart line holds the expected quantity.`,
+            trigger: `${backend ? ":iframe" : ""} ${quantityTrigger}`,
+        })
+    }
+
+    if (price) {
+        const priceTrigger = `${lineTrigger} h6[name='website_sale_cart_line_price'] .oe_currency_value:contains(${price})`;
+        steps.push({
+            content: `Checking if the cart line holds the expected price.`,
+            trigger: `${backend ? ":iframe" : ""} ${priceTrigger}`,
         })
     }
 
@@ -89,7 +173,37 @@ export function assertProductPrice(attribute, value, productName) {
     };
 }
 
-export function fillAdressForm(
+export function login({login = 'admin', password = 'admin', redirectUrl = false} = {}) {
+    const steps = [
+        {
+            trigger: `.oe_login_form input[name="login"]`,
+            run: `edit ${login}`,
+        },
+        {
+            trigger: `.oe_login_form input[name="password"]`,
+            run: `edit ${password}`,
+        },
+    ];
+    if (redirectUrl) {
+        steps.push({
+            trigger: `.oe_login_form input[name="redirect"]:not(:visible)`,
+            run(helpers) {
+                this.anchor.value = redirectUrl;
+            },
+        });
+    }
+
+    steps.push({
+        content: "Submit login",
+        trigger: `.oe_login_form button[type="submit"]`,
+        run: "click",
+        expectUnloadPage: true,
+    });
+
+    return steps;
+}
+
+export function fillAddressForm(
     adressParams = {
         name: "John Doe",
         phone: "123456789",
@@ -98,13 +212,14 @@ export function fillAdressForm(
         city: "Paris",
         zip: "75000",
     },
-    expectUnloadPage = false
+    countryName="Belgium",
 ) {
-    const steps = [];
-    steps.push({
-        trigger: "#o_country_id",
-        run: "selectByLabel Belgium",
-    });
+    const steps = [
+        {
+            trigger: "#o_country_id",
+            run: `selectByLabel ${countryName}`,
+        }
+    ];
     for (const arg of ["name", "phone", "email", "street", "city", "zip"]) {
         steps.push({
             content: `Address filling ${arg}`,
@@ -116,7 +231,7 @@ export function fillAdressForm(
         content: "Continue checkout",
         trigger: "a[name='website_sale_main_button']",
         run: "click",
-        expectUnloadPage,
+        expectUnloadPage: true,
     });
     return steps;
 }
@@ -142,6 +257,14 @@ export function goToCheckout() {
         trigger: 'a[href^="/shop/checkout"]',
         run: 'click',
         expectUnloadPage: true,
+    };
+}
+
+export function selectDeliveryCarrier(provider) {
+    return {
+        content: `select ${provider} shipping`,
+        trigger: `li[name=o_delivery_method]:contains(${provider}) input`,
+        run: "click",
     };
 }
 
@@ -179,7 +302,7 @@ export function payWithDemo() {
         trigger: 'input[name="customer_input"]',
         run: "edit 4242424242424242",
     },
-    ...pay({expectUnloadPage: true}),
+    ...pay({ expectUnloadPage: true }),
     {
         content: 'eCommerce: check that the payment is successful',
         trigger: '[name="order_confirmation"]:contains("Your payment has been processed.")',
@@ -246,7 +369,7 @@ export function searchProduct(productName, { select = false } = {}) {
     if (select) {
         steps.push({
             content: `Select ${productName}`,
-            trigger: `.oe_product_cart:first a:text(${productName})`,
+            trigger: `.oe_product_cart a:text(${productName})`,
             run: "click",
             expectUnloadPage: true,
         });

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -67,7 +66,6 @@
         'views/res_partner_views.xml',
         'views/product_strategy_views.xml',
         'views/stock_lot_views.xml',
-        'views/stock_scrap_views.xml',
         'views/stock_quant_views.xml',
         'views/stock_warehouse_views.xml',
         'views/stock_move_line_views.xml',
@@ -82,17 +80,18 @@
         'views/report_stock_traceability.xml',
         'views/stock_template.xml',
         'views/stock_rule_views.xml',
+        'views/stock_scrap_reason_tag_views.xml',
         'views/stock_package_history_views.xml',
         'views/stock_package_type_view.xml',
         'views/stock_package_views.xml',
         'views/stock_forecasted.xml',
         'views/stock_reference_views.xml',
         'views/uom_uom_views.xml',
+        'views/digest_digest_views.xml',
     ],
-    'installable': True,
     'application': True,
     'pre_init_hook': 'pre_init_hook',
-    'post_init_hook': '_assign_default_mail_template_picking_id',
+    'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
     'assets': {
         'web.report_assets_common': [

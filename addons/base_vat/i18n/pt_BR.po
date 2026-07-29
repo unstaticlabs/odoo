@@ -5,24 +5,24 @@
 # Translators:
 # Martin Trigaux, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Maitê Dietze (madi)" <madi@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:27+0000\n"
+"PO-Revision-Date: 2026-04-23 11:51+0000\n"
 "Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
-"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/"
-"odoo-19/base_vat/pt_BR/>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/odoo-"
+"s19-2/base_vat/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: base_vat
 #. odoo-python
@@ -41,7 +41,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "11111111111 (NIN) or 2222222222 (VKN)"
-msgstr ""
+msgstr "11111111111 (NIN) ou 2222222222 (VKN)"
 
 #. module: base_vat
 #. odoo-python
@@ -49,6 +49,7 @@ msgstr ""
 msgid ""
 "12345678 or UA12345678 (EDRPOU), 1234567890 (RNOPP) or 123456789012 (IPN)"
 msgstr ""
+"12345678 ou UA12345678 (EDRPOU), 1234567890 (RNOPP) ou 123456789012 (IPN)"
 
 #. module: base_vat
 #. odoo-python
@@ -73,7 +74,7 @@ msgstr "49-098-576 ou 49098576"
 #. module: base_vat
 #: model:ir.actions.server,name:base_vat.vies_iap_check_update_ir_actions_server
 msgid "Base VAT: Sync updates from IAP VIES"
-msgstr ""
+msgstr "IVA de base: Sincronizar atualizações do IAP VIES"
 
 #. module: base_vat
 #. odoo-python
@@ -83,8 +84,8 @@ msgstr "CHE-123.456.788 TVA ou CHE-123.456.788 MWST ou CHE-123.456.788 IVA"
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_company
-msgid "Companies"
-msgstr "Empresas"
+msgid "Company"
+msgstr "Empresa"
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_config_settings
@@ -196,7 +197,7 @@ msgstr "Válido dentro da comunidade"
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "Invalid IAP VIES endpoint"
-msgstr ""
+msgstr "Endpoint IAP VIES inválido"
 
 #. module: base_vat
 #. odoo-python
@@ -213,7 +214,6 @@ msgstr "Executar a validação do VIES"
 #. module: base_vat
 #: model:ir.model.fields,field_description:base_vat.field_res_partner__vat
 #: model:ir.model.fields,field_description:base_vat.field_res_users__vat
-#: model_terms:ir.ui.view,arch_db:base_vat.view_partner_base_vat_form
 msgid "Tax ID"
 msgstr "CPF/CNPJ"
 
@@ -246,21 +246,22 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "The VIES check failed. Please check the Tax ID manually."
-msgstr ""
+msgstr "A verificação do VIES falhou. Verifique o CNPJ manualmente."
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "The VIES check is pending. The status will be updated soon."
 msgstr ""
+"A verificação do VIES está pendente. O status será atualizado em breve."
 
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "To explicitly indicate no (valid) VAT, use '/' instead. "
+msgid "To explicitly indicate no (valid) VAT, use '/', 'na' or 'NA' instead. "
 msgstr ""
-"Para indicar explicitamente que não há número de identificação fiscal "
-"(válido), use '/' no lugar. "
+"Para indicar explicitamente que não há IVA (válido), use “/”, “na” ou “NA” "
+"em seu lugar. "
 
 #. module: base_vat
 #. odoo-python
@@ -284,7 +285,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "XXXXXXXXX [9 digits]"
-msgstr ""
+msgstr "XXXXXXXXX [9 dígitos]"
 
 #. module: base_vat
 #. odoo-python
@@ -322,30 +323,11 @@ msgstr "usuário [%s]"
 #~ "formato do país. Use \"/\" para indicar que o usuário é isento de "
 #~ "impostos."
 
+#~ msgid "The Intra-Community validity has been updated."
+#~ msgstr "A validade intracomunitária foi atualizada."
+
 #~ msgid "either 11 digits for CPF or 14 digits for CNPJ"
 #~ msgstr "11 dígitos para CPF ou 14 dígitos para CNPJ"
 
-#~ msgid ""
-#~ "Connection with the VIES server failed. The VAT number %s could not be "
-#~ "validated."
-#~ msgstr ""
-#~ "Falha na conexão com o servidor VIES. O número de IVA %s não pôde ser "
-#~ "validado."
-
-#~ msgid "The VAT number %s could not be interpreted by the VIES server."
-#~ msgstr ""
-#~ "O número de identificação fiscal %s não pôde ser interpretado pelo "
-#~ "servidor VIES."
-
-#~ msgid ""
-#~ "The request for VAT validation was not processed. VIES service has "
-#~ "responded with the following error: %s"
-#~ msgstr ""
-#~ "A solicitação de validação do número de identificação fiscal não foi "
-#~ "processada. O serviço VIES respondeu com o seguinte erro: %s"
-
-#~ msgid "17291716060 (NIN) or 1729171602 (VKN)"
-#~ msgstr "17291716060 (NIN) ou 1729171602 (VKN)"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "Posição Fiscal"
+#~ msgid "Error while checking the VAT number '%s' against the VIES service."
+#~ msgstr "Erro ao verificar o número de IVA “%s ” no serviço VIES."

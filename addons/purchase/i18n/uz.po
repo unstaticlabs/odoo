@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/purchase/"
-"uz/>\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: purchase
 #: model:ir.actions.report,print_report_name:purchase.action_report_purchase_order
@@ -108,7 +106,6 @@ msgstr "Uch tomonlama moslashtirish: xaridlar, qabullar va hisob-kitoblar"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase_reminder
-#, fuzzy
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
@@ -139,41 +136,18 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\"> <p style=\"margin: 0px; padding: "
-"0px; font-size: 13px;\"> Hurmatli <t t-out=\"object.partner_id.name or ''\">"
-"Brandon Freeman</t> <t t-if=\"object.partner_id.parent_id\"> (<t t-"
-"out=\"object.partner_id.parent_id.name or ''\">Azure Interior</t>) </t> <br/>"
-"<br/> Ushbu xat orqali sizga <span style=\"font-weight:bold;\" t-"
-"out=\"object.name or ''\">P00015</span> raqamli xarid buyurtmasining <t t-"
-"if=\"object.partner_ref\"> <span style=\"font-weight:bold;\">(<t t-"
-"out=\"object.partner_ref or ''\">REF_XXX</t>)</span> </t> yetkazib berish "
-"muddati <t t-if=\"object.date_planned\"> <span style=\"font-weight:bold;\" t-"
-"out=\"format_date(object.date_planned) or ''\">05/05/2021</span> </t> <t t-"
-"else=\"\"> <span style=\"font-weight:bold;\">aniqlanmagan sana</span> </t> "
-"ekanligini eslatib o‘tmoqchimiz.         Iltimos, buyurtma o‘z vaqtida "
-"yetkazib beriladimi, tasdiqlashingiz mumkinmi?         <br/><br/> <a t-att-"
-"href=\"object.get_acknowledge_url()\" target=\"_blank\" style=\"padding: 5px "
-"10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; "
-"border: 1px solid #875A7B; border-radius: 3px\"> Tasdiqlash</a> <br/><br/> "
-"<t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-quote-"
-"container=\"1\"> <br/><br/> <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"object.user_id.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div> </t> <br/><br/> </p> </div>         "
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase_done
-#, fuzzy
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
@@ -205,63 +179,18 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Hurmatli <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</"
-"t>\n"
-"        <t t-if=\"object.partner_id.parent_id\">\n"
-"            (<t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
-"Interior</t>)\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"        Ushbu xatga ilova qilingan <span style=\"font-weight:bold;\" t-"
-"out=\"object.name or ''\">P00015</span> raqamli xarid buyurtmasi\n"
-"        <t t-if=\"object.partner_ref\">\n"
-"            havola raqami: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
-"        </t>\n"
-"        <t t-out=\"object.company_id.name or ''\">YourCompany</t> tomonidan "
-"yuborilgan bo‘lib, umumiy summasi <span style=\"font-weight:bold;\" t-"
-"out=\"format_amount(object.amount_total, object.currency_id) or ''\">$ "
-"10.00</span> ni tashkil etadi. <br/><br/>\n"
-"        <t t-if=\"object.date_planned\">\n"
-"            Tovarlarni qabul qilish sanasi <span style=\"font-weight:bold;\" "
-"t-out=\"format_date(object.date_planned) or ''\">05/05/2021</span> deb "
-"belgilangan.\n"
-"            <br/><br/>\n"
-"            Iltimos, ushbu buyurtmani olganiingizni tasdiqlay olasizmi?\n"
-"            <br/><br/>\n"
-"            <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
-"style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
-"color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"                Tasdiqlash\n"
-"            </a>\n"
-"        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <br/><br/>\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"        <br/><br/>\n"
-"    </p>\n"
-"</div>"
 
 #. module: purchase
 #: model:mail.template,body_html:purchase.email_template_edi_purchase
-#, fuzzy
 msgid ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
@@ -282,30 +211,14 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\"> <p style=\"margin: 0px; padding: "
-"0px; font-size: 13px;\"> Hurmatli <t t-out=\"object.partner_id.name or ''\">"
-"Brandon Freeman</t> <t t-if=\"object.partner_id.parent_id\"> (<t t-"
-"out=\"object.partner_id.parent_id.name or ''\">Azure Interior</t>) </t> <br/>"
-"<br/> Ilovada <span style=\"font-weight:bold;\" t-out=\"object.name or ''\">"
-"P00015</span> raqamli narx so‘rovi <t t-if=\"object.partner_ref\"> quyidagi "
-"havola bilan: <t t-out=\"object.partner_ref or ''\">REF_XXX</t> </t> <t t-"
-"out=\"object.company_id.name or ''\">YourCompany</t> tomonidan "
-"yuborilmoqda.         <br/><br/> Savollaringiz bo‘lsa, bizga murojaat "
-"qilishdan tortinmang.         <br/><br/> Hurmat bilan, <t t-if=\"not "
-"is_html_empty(object.user_id.signature)\" data-o-mail-quote-container=\"1\"> "
-"<br/><br/> <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div> </t> </p> </div>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -402,8 +315,8 @@ msgid ""
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Purchase Order </span>"
 msgstr ""
-"<span class=\"o_form_label\" invisible=\"state not in ('draft','sent')\">"
-"Narx so‘rovi </span> <span class=\"o_form_label\" invisible=\"state in "
+"<span class=\"o_form_label\" invisible=\"state not in ('draft','sent')"
+"\">Narx so‘rovi </span> <span class=\"o_form_label\" invisible=\"state in "
 "('draft','sent')\">Xarid buyurtmasi </span>"
 
 #. module: purchase
@@ -430,6 +343,15 @@ msgstr "<span class=\"o_stat_text\">Xarid moslashtirish</span>"
 #, fuzzy
 msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Xarid qilingan</span>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
@@ -480,6 +402,11 @@ msgstr "<strong class=\"d-block mb-1\">Kimdan:</strong>"
 #, fuzzy
 msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Hisob-fakturalar</strong>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -705,6 +632,11 @@ msgstr "Kimningdir faoliyatlari"
 #, fuzzy
 msgid "Activity Exception Decoration"
 msgstr "Faoliyat istisnosini ko‘rsatish"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -973,13 +905,6 @@ msgid "Auto-Complete"
 msgstr "Avtomatik to‘ldirish"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-#, fuzzy
-msgid "Auto-complete"
-msgstr "Avtomatik to‘ldirish"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 #, fuzzy
@@ -989,10 +914,8 @@ msgstr "Oldingi xarid buyurtmasidan avtomatik to‘ldirish"
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_vendor_bill_id
-#, fuzzy
 msgid "Auto-complete from a previous bill, refund, or purchase order."
 msgstr ""
-"Oldingi hisob-kitob, qaytarim yoki xarid buyurtmasidan avtomatik to‘ldirish."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -1184,11 +1107,6 @@ msgstr "Muloqot tarixi"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-#, fuzzy
-msgid "Companies"
-msgstr "Kompaniyalar"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1251,19 +1169,12 @@ msgid "Confirm your purchase."
 msgstr "Xaridingizni tasdiqlang."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 #, fuzzy
 msgid "Confirmation Date"
 msgstr "Tasdiqlash sanasi"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-#, fuzzy
-msgid "Confirmation Date Last Year"
-msgstr "O‘tgan yilgi tasdiqlash sanasi"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1374,9 +1285,8 @@ msgstr "Mijozlar portali URL manzili"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
-#, fuzzy
 msgid "Date"
-msgstr "Sana"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1466,16 +1376,6 @@ msgstr ""
 "bugungi sanaga asoslanadi."
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-#, fuzzy
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Yetkazib beruvchi tomonidan va'da qilingan yetkazib berish sanasi. Bu sana "
-"mahsulotlarning kutilayotgan kelish vaqtini aniqlash uchun ishlatiladi."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 #, fuzzy
@@ -1510,6 +1410,12 @@ msgstr "Chegirma (%)"
 #, fuzzy
 msgid "Discount:"
 msgstr "Chegirma:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1614,6 +1520,12 @@ msgid "Expected Arrival"
 msgstr "Kutilayotgan kelish vaqti"
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 #, fuzzy
@@ -1628,13 +1540,13 @@ msgid "Fiscal Position"
 msgstr "Soliq holati"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 #, fuzzy
 msgid "Follow orders you have to fulfill"
 msgstr "Bajarishingiz kerak bo‘lgan buyurtmalarni kuzatib boring"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 #, fuzzy
 msgid "Follow your Requests for Quotation"
 msgstr "Narx so‘rovlaringizni kuzatib boring"
@@ -1684,6 +1596,11 @@ msgid "Fully Billed"
 msgstr "To‘liq hisob-kitob qilingan"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 #, fuzzy
@@ -1707,7 +1624,8 @@ msgstr "Xarid buyurtmasini tasdiqlash uchun ikki bosqichli tasdiqlashni oling"
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 #, fuzzy
 msgid "Get warnings in orders for products or vendors"
-msgstr "Mahsulotlar yoki sotuvchilar uchun buyurtmalarda ogohlantirishlar oling"
+msgstr ""
+"Mahsulotlar yoki sotuvchilar uchun buyurtmalarda ogohlantirishlar oling"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__product_type
@@ -1716,8 +1634,8 @@ msgid ""
 "Goods are tangible materials and merchandise you provide.\n"
 "A service is a non-material product you provide."
 msgstr ""
-"Tovarlar - siz taqdim etadigan moddiy materiallar va mahsulotlar. Xizmat "
-"esa - siz ko‘rsatadigan nomoddiy mahsulot."
+"Tovarlar - siz taqdim etadigan moddiy materiallar va mahsulotlar. Xizmat esa "
+"- siz ko‘rsatadigan nomoddiy mahsulot."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__weight
@@ -2040,6 +1958,11 @@ msgid "Line Uom"
 msgstr "Qator o‘lchov birligi"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #, fuzzy
 msgid "Lock"
@@ -2353,6 +2276,11 @@ msgid "Not Acknowledged"
 msgstr "Tasdiqlanmagan"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 #, fuzzy
 msgid "Not using Odoo?"
@@ -2472,28 +2400,29 @@ msgid "Order"
 msgstr "Buyurtma"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #, fuzzy
 msgid "Order Date"
 msgstr "Buyurtma sanasi"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#, fuzzy
-msgid "Order Date: Last 365 Days"
-msgstr "Buyurtma sanasi: Oxirgi 365 kun"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 #, fuzzy
 msgid "Order Deadline"
 msgstr "Buyurtma muddati"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2531,12 +2460,11 @@ msgstr "%(date)s sanasida muddati tugaydigan buyurtma"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-#, fuzzy
-msgid "Other Information"
-msgstr "Qo‘shimcha ma'lumotlar"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 #, fuzzy
 msgid "Our Orders"
 msgstr "Bizning buyurtmalarimiz"
@@ -2546,6 +2474,11 @@ msgstr "Bizning buyurtmalarimiz"
 #, fuzzy
 msgid "Parent Section Line"
 msgstr "Asosiy bo‘lim satri"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_bill_to_po_wizard__partner_id
@@ -2725,7 +2658,6 @@ msgstr "Xaridlar uchun ikki bosqichli tasdiqlash mexanizmini ta'minlash"
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 #, fuzzy
 msgid "Purchase"
@@ -2736,6 +2668,11 @@ msgstr "Xarid"
 #, fuzzy
 msgid "Purchase Agreements"
 msgstr "Xarid shartnomalari"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2924,6 +2861,12 @@ msgid "Purchase Report"
 msgstr "Xarid hisoboti"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2947,7 +2890,8 @@ msgstr "Hisob-faktura qilingan xarid buyurtmalari"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #, fuzzy
 msgid "Purchase orders that include lines not invoiced."
-msgstr "Hisob-faktura qilinmagan qatorlarni o‘z ichiga olgan xarid buyurtmalari"
+msgstr ""
+"Hisob-faktura qilinmagan qatorlarni o‘z ichiga olgan xarid buyurtmalari"
 
 #. module: purchase
 #: model:ir.actions.server,name:purchase.purchase_send_reminder_mail_ir_actions_server
@@ -2984,7 +2928,9 @@ msgstr "Xarid: Yetkazib beruvchiga eslatma"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 #, fuzzy
 msgid "Purchased"
 msgstr "Xarid qilingan"
@@ -2992,9 +2938,10 @@ msgstr "Xarid qilingan"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-#, fuzzy
-msgid "Purchased in the last 365 days"
-msgstr "So‘nggi 365 kun ichida xarid qilingan"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3007,9 +2954,8 @@ msgstr "Xaridlar"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
-#, fuzzy
 msgid "Purchases & Bills Union"
-msgstr "Xaridlar va hisob-fakturalar birlashmasi"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -3138,6 +3084,7 @@ msgstr "Hujjatlarni o‘qish"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 #, fuzzy
 msgid "Receipt Reminder"
 msgstr "Kvitansiya eslatmasi"
@@ -3147,6 +3094,17 @@ msgstr "Kvitansiya eslatmasi"
 #, fuzzy
 msgid "Receipt Reminder Email"
 msgstr "Kvitansiya eslatma xati"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -3199,12 +3157,11 @@ msgstr "Havola"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
-#, fuzzy
 msgid "Reference Document"
-msgstr "Hujjat havolasi"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 #, fuzzy
 msgid "Reference Unit of Measure"
 msgstr "Standart o‘lchov birligi"
@@ -3277,8 +3234,8 @@ msgstr "Narx so‘rovlari"
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 #, fuzzy
 msgid "Requests for Quotation"
@@ -3326,9 +3283,8 @@ msgstr "Xarid buyurtmasini qidirish"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
-#, fuzzy
 msgid "Search Reference Document"
-msgstr "Havola hujjatini qidirish"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -3416,6 +3372,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr "Yetkazib berishni tasdiqlash uchun avtomatik eslatma xati yuborish"
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 #, fuzzy
@@ -3479,6 +3440,11 @@ msgstr "Ulashish"
 #, fuzzy
 msgid "Show Comparison"
 msgstr "Taqqoslashni ko‘rsatish"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -3716,6 +3682,14 @@ msgid "The Price of one unit of the product's Unit of Measure"
 msgstr ""
 
 #. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 #, fuzzy
 msgid ""
@@ -3941,7 +3915,7 @@ msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 #, fuzzy
 msgid "Unit"
 msgstr "Birlik"
@@ -4071,9 +4045,8 @@ msgstr "Yetkazib beruvchi"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
-#, fuzzy
 msgid "Vendor Bill"
-msgstr "Yetkazib beruvchi hisob-fakturasi"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -4328,6 +4301,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #, fuzzy
 msgid "day(s) before"
 msgstr "kun oldin"
@@ -4357,6 +4335,11 @@ msgstr "yoki yangisini yaratish"
 #, fuzzy
 msgid "partner_id"
 msgstr "hamkor_id"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -4391,6 +4374,11 @@ msgstr "avtomatik ravishda kotirovkalar yaratish uchun."
 #, fuzzy
 msgid "to learn all the ways to connect your software with"
 msgstr "dasturiy ta'minotingizni ulashning barcha usullarini o‘rganish uchun"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document

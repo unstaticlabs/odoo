@@ -186,16 +186,6 @@ class configmanager:
         self._load_default_options()
         self._parse_config()
 
-    @property
-    def rcfile(self):
-        self._warn("Since 19.0, use odoo.tools.config['config'] instead", DeprecationWarning, stacklevel=2)
-        return self['config']
-
-    @rcfile.setter
-    def rcfile(self, rcfile):
-        self._warn(f"Since 19.0, use odoo.tools.config['config'] = {rcfile!r} instead", DeprecationWarning, stacklevel=2)
-        self._runtime_options['config'] = rcfile
-
     def _build_cli(self):
         OdooOption = type('OdooOption', (_OdooOption,), {'config': self})
         FileOnlyOption = type('FileOnlyOption', (_FileOnlyOption, OdooOption), {})
@@ -254,7 +244,7 @@ class configmanager:
 
         # HTTP
         group = optparse.OptionGroup(parser, "HTTP Service Configuration")
-        group.add_option("--http-interface", dest="http_interface", my_default='0.0.0.0',
+        group.add_option("--http-interface", dest="http_interface", my_default='127.0.0.1',
                          help="Listen interface address for HTTP services.")
         group.add_option("-p", "--http-port", dest="http_port", my_default=8069,
                          help="Listen port for the main HTTP service", type="int", metavar="PORT")
@@ -289,7 +279,7 @@ class configmanager:
                          "A filter spec has the format: [-][tag][/module][:class][.method][[params]] "
                          "The '-' specifies if we want to include or exclude tests matching this spec. "
                          "The tag will match tags added on a class with a @tagged decorator "
-                         "(all Test classes have 'standard' and 'at_install' tags "
+                         "(all Test classes have 'standard' and 'post_install' tags "
                          "until explicitly removed, see the decorator documentation). "
                          "'*' will match all tags. "
                          "If tag is omitted on include mode, its value is 'standard'. "
@@ -396,6 +386,8 @@ class configmanager:
                          help="specify the maximum number of physical connections to PostgreSQL specifically for the gevent worker")
         group.add_option("--db-template", dest="db_template", my_default="template0", env_name='PGDATABASE_TEMPLATE',
                          help="specify a custom database template to create a new database")
+        group.add_option("--db-system", dest="db_system", my_default="postgres", env_name='PGDATABASE_SYSTEM',
+                         help="specify the database for shared system operations like bus and maintenance")
         parser.add_option_group(group)
 
         # i18n Group
@@ -431,7 +423,7 @@ class configmanager:
                               "- replica: simulate a deployment with readonly replica "
                               "- werkzeug: open a html debugger on http request error "
                               "- xml: read views from the source code, and not the db ")
-        group.add_option("--stop-after-init", action="store_true", dest="stop_after_init", my_default=False, file_exportable=False, file_loadable=False,
+        group.add_option("--stop", "--stop-after-init", action="store_true", dest="stop_after_init", my_default=False, file_exportable=False, file_loadable=False,
                          help="stop the server after its initialization")
         group.add_option("--osv-memory-count-limit", dest="osv_memory_count_limit", my_default=0,
                          help="Force a limit on the maximum number of records kept in the virtual "
@@ -461,6 +453,10 @@ class configmanager:
         group.add_option(PosixOnlyOption(
                          "--workers", dest="workers", my_default=0,
                          help="Specify the number of workers, 0 disable prefork mode.",
+                         type="int"))
+        group.add_option(PosixOnlyOption(
+                         "--gevent-workers", dest="gevent_workers", my_default=1,
+                         help="Specify the number of gevent workers in prefork mode. (requires SO_REUSEPORT)",
                          type="int"))
         group.add_option("--limit-memory-soft", dest="limit_memory_soft", my_default=2048 * 1024 * 1024,
                          help="Maximum allowed virtual memory per worker (in bytes), when reached the worker be "
@@ -573,10 +569,10 @@ class configmanager:
             # (mostly once this warning is bumped to DeprecationWarning proper)
             if setup_logging is None:
                 warnings.warn(
-                    "As of Odoo 18, it's recommended to specify whether"
-                    " you want Odoo to setup its own logging (or want to"
-                    " handle it yourself)",
-                    category=PendingDeprecationWarning,
+                    "As of Odoo 20, it is strongly recommended to specify"
+                    " whether you want Odoo to setup its own logging (or want"
+                    " to handle it yourself)",
+                    category=DeprecationWarning,
                     stacklevel=2,
                 )
         self._warn_deprecated_options()
@@ -667,6 +663,10 @@ class configmanager:
                 self._log(logging.INFO, "adding missing %r to %s", mod, self.options_index['server_wide_modules'])
                 self._runtime_options['server_wide_modules'] = [mod] + self['server_wide_modules']
 
+        # ensure default http_interface is set
+        if not self['http_interface']:
+            self._runtime_options['http_interface'] = '127.0.0.1'
+
         # accumulate all log_handlers
         self._runtime_options['log_handler'] = list(_deduplicate_loggers([
             *self._default_options.get('log_handler', []),
@@ -725,16 +725,6 @@ class configmanager:
                     "Empty %s, tests won't run", self.options_index['db_name'])
 
     def _warn_deprecated_options(self):
-        if self['http_enable'] and not self.http_socket_activation:
-            for map_ in self.options.maps:
-                if 'http_interface' in map_:
-                    if map_ is self._file_options and map_['http_interface'] == '':  # noqa: PLC1901
-                        del map_['http_interface']
-                    elif map_ is self._default_options:
-                        self._log(logging.WARNING, "missing %s, using 0.0.0.0 by default, will change to 127.0.0.1 in 20.0", self.options_index['http_interface'])
-                    else:
-                        break
-
         for old_option_name, new_option_name in self.aliases.items():
             for source_name, deprecated_value in self._get_sources(old_option_name).items():
                 if deprecated_value is EMPTY:
@@ -893,10 +883,6 @@ class configmanager:
         else:
             format_func = self.parser.option_class.TYPE_FORMATTER[option.type]
         return format_func(value)
-
-    def load(self):
-        self._warn("Since 19.0, use config._load_file_options instead", DeprecationWarning, stacklevel=2)
-        self._load_file_options(self['config'])
 
     def _load_file_options(self, rcfile):
         self._file_options.clear()

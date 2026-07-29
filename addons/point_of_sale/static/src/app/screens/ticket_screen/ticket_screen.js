@@ -1,6 +1,6 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { parseDateTime } from "@web/core/l10n/dates";
+import { parseDate, parseDateTime, serializeDate, serializeDateTime } from "@web/core/l10n/dates";
 import { parseFloat } from "@web/views/fields/parsers";
 import { _t } from "@web/core/l10n/translation";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -27,6 +27,8 @@ import { BarcodeVideoScanner } from "@web/core/barcode/barcode_video_scanner";
 import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { NumberPopup } from "@point_of_sale/app/components/popups/number_popup/number_popup";
 import { ConnectionLostError } from "@web/core/network/rpc";
+import { TipCell } from "@point_of_sale/app/screens/ticket_screen/tip_cell/tip_cell";
+import { logPosMessage } from "@point_of_sale/app/utils/pretty_console_log";
 
 const { DateTime } = luxon;
 const NBR_BY_PAGE = 30;
@@ -44,6 +46,7 @@ export class TicketScreen extends Component {
         Numpad,
         BackButton,
         BarcodeVideoScanner,
+        TipCell,
     };
     static props = {
         reuseSavedUIState: { type: Boolean, optional: true },
@@ -81,20 +84,21 @@ export class TicketScreen extends Component {
         Object.assign(this.state, this.props.stateOverride || {});
 
         onMounted(this.onMounted);
-        onWillStart(async () => {
+        onWillStart(() => {
             if (!this.pos.loadingOrderState) {
-                try {
-                    this.pos.loadingOrderState = true;
-                    await this.pos.getServerOrders();
-                } catch (error) {
-                    if (error instanceof ConnectionLostError) {
-                        Promise.reject(error);
-                        return error;
-                    }
-                    throw error;
-                } finally {
-                    this.pos.loadingOrderState = false;
-                }
+                this.pos.loadingOrderState = true;
+                // Start fetching orders without blocking screen rendering
+                this.pos
+                    .getServerOrders()
+                    .catch((error) => {
+                        if (error instanceof ConnectionLostError) {
+                            return;
+                        }
+                        throw error;
+                    })
+                    .finally(() => {
+                        this.pos.loadingOrderState = false;
+                    });
             }
         });
     }
@@ -131,7 +135,7 @@ export class TicketScreen extends Component {
         }
     }
     async print(order) {
-        await this.pos.printReceipt({ order: order });
+        await this.pos.ticketPrinter.printOrderReceipt({ order });
     }
     async onFilterSelected(selectedFilter) {
         this.state.filter = selectedFilter;
@@ -184,8 +188,10 @@ export class TicketScreen extends Component {
         this.setSelectedOrder(clickedOrder);
         this.numberBuffer.reset();
         if ((!clickedOrder || clickedOrder.finalized) && !this.getSelectedOrderlineId()) {
-            // Automatically select the first orderline of the selected order.
-            const firstLine = this.getSelectedOrder().getOrderlines()[0];
+            // Automatically select the first refundable orderline of the selected order.
+            const firstLine = this.getSelectedOrder()
+                .getOrderlines()
+                .find((line) => line.isValidForRefund);
             if (firstLine) {
                 this.state.selectedOrderlineIds[clickedOrder.id] = firstLine.id;
             }
@@ -197,9 +203,9 @@ export class TicketScreen extends Component {
         }
     }
     async onClickReprintAll(order) {
-        const printingChanges = order.uiState?.lastPrints;
-        if (printingChanges) {
-            await this.pos.printChanges(order, printingChanges, true);
+        const printingChanges = order.lastPrints;
+        if (printingChanges.length) {
+            await this.pos.ticketPrinter.printOrderChanges({ order, opts: printingChanges });
         }
     }
     async onNextPage() {
@@ -223,8 +229,30 @@ export class TicketScreen extends Component {
         this.setSelectedOrder(order);
     }
     onClickOrderline(orderline) {
-        if (this.getSelectedOrder()?.finalized) {
-            const order = this.getSelectedOrder();
+        const order = this.getSelectedOrder();
+        if (order?.finalized) {
+            // A refund line (one that already refunds another line) must not
+            // be refunded again, so a refund order cannot itself be refunded.
+            const refundableLine = orderline.combo_parent_id || orderline;
+            if (refundableLine.refunded_orderline_id) {
+                return;
+            }
+            if (this.state.selectedOrderlineIds[order.id] == orderline.id) {
+                const toRefundDetail = this.getToRefundDetail(orderline);
+                if (Object.values(toRefundDetail).some((detail) => detail.destination_order_uuid)) {
+                    return;
+                }
+                if (toRefundDetail.qty >= toRefundDetail.refundableQty) {
+                    toRefundDetail.qty = 0;
+                } else {
+                    toRefundDetail.qty += 1;
+                }
+                this._onUpdateSelectedOrderline({
+                    key: undefined,
+                    buffer: `${toRefundDetail.qty}`,
+                });
+                return;
+            }
             this.state.selectedOrderlineIds[order.id] = orderline.id;
             this.numberBuffer.reset();
         }
@@ -242,7 +270,6 @@ export class TicketScreen extends Component {
             return this.numberBuffer.reset();
         }
 
-        toRefundDetail.refundableQty = toRefundDetail.line.qty - toRefundDetail.line.refundedQty;
         if (toRefundDetail.refundableQty <= 0) {
             return this.numberBuffer.reset();
         }
@@ -280,12 +307,6 @@ export class TicketScreen extends Component {
             return this.numberBuffer.reset();
         }
 
-        if (!orderline.isPartOfCombo()) {
-            const toRefundDetail = this.getToRefundDetail(orderline);
-            this._setToRefundDetail(toRefundDetail, buffer);
-            return;
-        }
-
         if (orderline.combo_parent_id) {
             orderline = orderline.combo_parent_id;
         }
@@ -296,6 +317,23 @@ export class TicketScreen extends Component {
         for (const comboLine of orderline.combo_line_ids) {
             const toRefundDetail = this.getToRefundDetail(comboLine);
             toRefundDetail.qty = (comboLine.qty / orderline.qty) * parentToRefundDetail.qty;
+        }
+
+        if (parentToRefundDetail.qty == parentToRefundDetail.refundableQty) {
+            this._selectNextOrderline(order, selectedOrderlineId);
+        }
+    }
+    _selectNextOrderline(order, selectedOrderlineId) {
+        const orderlines = order.getOrderlines();
+        const currentIndex = orderlines.findIndex((line) => line.id === selectedOrderlineId);
+        if (currentIndex !== -1) {
+            const nextLine = orderlines
+                .slice(currentIndex + 1)
+                .find((line) => line.isValidForRefund);
+            if (nextLine) {
+                this.state.selectedOrderlineIds[order.id] = nextLine.id;
+                this.numberBuffer.reset();
+            }
         }
     }
     async addAdditionalRefundInfo(order, destinationOrder) {
@@ -341,7 +379,6 @@ export class TicketScreen extends Component {
             const line = this.pos.models["pos.order.line"].create({
                 qty: -refundDetail.qty,
                 price_unit: refundLine.price_unit,
-                price_subtotal_incl: refundLine.price_subtotal_incl,
                 product_id: refundLine.product_id,
                 order_id: destinationOrder,
                 discount: refundLine.discount,
@@ -424,9 +461,8 @@ export class TicketScreen extends Component {
         );
     }
     activeOrderFilter(o) {
-        const screen = ["ReceiptScreen", "TipScreen"];
         const oScreen = o.getScreenData();
-        return (!o.finalized || screen.includes(oScreen.name)) && o.uiState.displayed;
+        return (!o.finalized || oScreen.name == "TipScreen") && o.uiState.displayed;
     }
     getFilteredOrderList() {
         const orderModel = this.pos.models["pos.order"];
@@ -575,7 +611,9 @@ export class TicketScreen extends Component {
             return true;
         }
         const total = Object.values(order.uiState.lineToRefund).reduce((acc, val) => {
-            acc += val.qty;
+            if (!val.destination_order_uuid) {
+                acc += val.qty;
+            }
             return acc;
         }, 0);
 
@@ -625,7 +663,10 @@ export class TicketScreen extends Component {
         }
 
         const toRefundDetail = this.getToRefundDetail(orderline);
-        if (this.pos.isProductQtyZero(toRefundDetail.maxQty - 1) && toRefundDetail.qty === 0) {
+        if (
+            this.pos.isProductQtyZero(toRefundDetail.refundableQty - 1) &&
+            toRefundDetail.qty === 0
+        ) {
             toRefundDetail.qty = 1;
         }
         return true;
@@ -727,16 +768,14 @@ export class TicketScreen extends Component {
                 modelFields: ["date_order"],
                 formatSearch: (searchTerm) => {
                     const includesTime = searchTerm.includes(":");
-                    let parsedDateTime;
                     try {
-                        parsedDateTime = parseDateTime(searchTerm);
+                        if (includesTime) {
+                            return serializeDateTime(parseDateTime(searchTerm));
+                        } else {
+                            return serializeDate(parseDate(searchTerm));
+                        }
                     } catch {
                         return searchTerm;
-                    }
-                    if (includesTime) {
-                        return parsedDateTime.toUTC().toFormat("yyyy-MM-dd HH:mm:ss");
-                    } else {
-                        return parsedDateTime.toFormat("yyyy-MM-dd");
                     }
                 },
             },
@@ -763,8 +802,8 @@ export class TicketScreen extends Component {
     _getScreenToStatusMap() {
         return {
             ProductScreen: "ONGOING",
-            PaymentScreen: "PAYMENT",
-            ReceiptScreen: "RECEIPT",
+            PaymentScreen: this.pos.config.set_tip_after_payment ? "OPEN" : "PAYMENT",
+            TipScreen: "TIPPING",
         };
     }
     _getOrderStates() {
@@ -779,14 +818,16 @@ export class TicketScreen extends Component {
             text: _t("Ongoing"),
             indented: true,
         });
-        states.set("PAYMENT", {
-            text: _t("Payment"),
-            indented: true,
-        });
         states.set("RECEIPT", {
             text: _t("Receipt"),
             indented: true,
         });
+        if (this.pos.config.set_tip_after_payment) {
+            states.set("OPEN", { text: _t("Open"), indented: true });
+            states.set("TIPPING", { text: _t("Tipping"), indented: true });
+        } else {
+            states.set("PAYMENT", { text: _t("Payment"), indented: true });
+        }
         return states;
     }
     //#region SEARCH SYNCED ORDERS
@@ -886,6 +927,56 @@ export class TicketScreen extends Component {
         } else {
             return "bg-light text-emphasis";
         }
+    }
+
+    async settleTips() {
+        const promises = [];
+        for (const order of this.getFilteredOrderList()) {
+            const amount = this.env.utils.parseValidFloat(order.uiState.TipScreen.inputTipAmount);
+
+            if (!order.isSynced) {
+                logPosMessage(
+                    "TicketScreen",
+                    "settleTips",
+                    `${order.name} is not yet sync. Sync it to server before setting a tip.`
+                );
+                continue;
+            }
+
+            order.state = "draft";
+            this.pos.selectedOrderUuid = order.uuid;
+            await this.pos.setTip(amount);
+            order.state = "paid";
+            order.uiState.screen_data.value = { name: "", props: {} };
+
+            const serializedTipLine = order.getSelectedOrderline().serializeForORM();
+            order.getSelectedOrderline().delete();
+
+            promises.push(
+                new Promise((resolve) => {
+                    const fn = async () => {
+                        const tipLine = await this.pos.data.create("pos.order.line", [
+                            serializedTipLine,
+                        ]);
+                        const state = await this.pos.data.ormWrite("pos.order", [order.id], {
+                            is_tipped: true,
+                            tip_amount: tipLine[0].price_unit,
+                        });
+
+                        if (state) {
+                            order.update({
+                                is_tipped: true,
+                                tip_amount: tipLine[0].price_unit,
+                            });
+                        }
+                        resolve();
+                    };
+                    fn();
+                })
+            );
+        }
+
+        await Promise.all(promises);
     }
 }
 

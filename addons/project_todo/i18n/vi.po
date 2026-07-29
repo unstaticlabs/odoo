@@ -2,16 +2,15 @@
 # This file contains the translation of the following modules:
 # * project_todo
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:20+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-12-03 10:33+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "project_todo/vi/>\n"
 "Language: vi\n"
@@ -19,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -34,16 +33,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        Ensure you follow the correct format and order. For example: Send "
-"invitations #event @Mitchell !\n"
-"    </span>"
+"        <span style=\"font-size: 14px;\">\n"
+"            Ensure you follow the correct format and order. For example: "
+"Send invitations #event @Mitchell !\n"
+"        </span>"
 msgstr ""
-"<br/>\n"
-"    <span style=\"font-size: 14px;\">\n"
-"        Đảm bảo bạn tuân thủ đúng định dạng và thứ tự. Ví dụ: Gửi lời mời "
-"#sựkiện @Mitchell!\n"
-"    </span>"
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -141,6 +135,15 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-size: 14px;\">\n"
+"            Use these keywords in the title to streamline your to-dos:\n"
+"        </span>\n"
+"        <br/>"
+msgstr ""
+
+#. module: project_todo
+#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
+msgid ""
+"<span style=\"font-size: 14px;\">\n"
 "        Access your personal pipeline with your to-dos and assigned tasks by "
 "going to the Project app and clicking\n"
 "        <span>\n"
@@ -163,8 +166,8 @@ msgstr ""
 "        Truy cập quy trình cá nhân chứa các việc cần làm và nhiệm vụ được "
 "giao cho bạn bằng cách vào ứng dụng Project và nhấp\n"
 "        <span>\n"
-"            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">"
-"Nhiệm vụ của tôi</font>.\n"
+"            <font style=\"font-weight: bolder;\" class=\"text-o-"
+"color-2\">Nhiệm vụ của tôi</font>.\n"
 "        </span>\n"
 "    </span>\n"
 "    <br/>\n"
@@ -195,8 +198,8 @@ msgstr ""
 "        Theo mặc định, việc cần làm chỉ hiển thị cho bạn. Bạn có thể chia sẻ "
 "chúng với những người dùng khác bằng cách thêm họ làm\n"
 "        <span>\n"
-"            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">"
-"người được phân công</font>.\n"
+"            <font style=\"font-weight: bolder;\" class=\"text-o-"
+"color-2\">người được phân công</font>.\n"
 "        </span>\n"
 "    </span>\n"
 "    <br/>"
@@ -235,11 +238,11 @@ msgid ""
 "    <br/>"
 msgstr ""
 "<span style=\"font-size: 14px;\">\n"
-"        Nếu bạn muốn chuyển việc cần làm vào một dự án cụ thể, hãy mở menu "
-"⚙️ và nhấp\n"
+"        Nếu bạn muốn chuyển việc cần làm vào một dự án cụ thể, hãy mở menu ⚙️ "
+"và nhấp\n"
 "        <span>\n"
-"            <font style=\"font-weight: bolder;\" class=\"text-o-color-2\">"
-"Chuyển đổi thành Nhiệm vụ</font>.\n"
+"            <font style=\"font-weight: bolder;\" class=\"text-o-"
+"color-2\">Chuyển đổi thành Nhiệm vụ</font>.\n"
 "        </span>\n"
 "        Hành động này sẽ cho phép người dùng khác thấy được nhiệm vụ đó.\n"
 "    </span>\n"
@@ -257,15 +260,6 @@ msgstr ""
 "        Sử dụng để quản lý công việc của bạn, ghi chú khi đang di chuyển và "
 "tạo nhiệm vụ từ chúng.\n"
 "    </span>"
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
-msgid ""
-"<span style=\"font-size: 14px;\">\n"
-"        Use these keywords in the title to streamline your to-dos:\n"
-"    </span>\n"
-"    <br/>"
-msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
@@ -328,45 +322,45 @@ msgstr "<span style=\"font-size: 14px;\">Thử các tính năng sau</span>"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as urgent"
+"                    <font class=\"text-o-color-2\">!!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as urgent"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as high priority"
+"                    <font class=\"text-o-color-2\">!!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as high priority"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">!:</font>\n"
-"            </span>\n"
-"            Mark the to-do as medium priority"
+"                    <font class=\"text-o-color-2\">!:</font>\n"
+"                </span>\n"
+"                Mark the to-do as medium priority"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">#tags:</font>\n"
-"            </span>\n"
-"            Add tags to categorize the to-do"
+"                    <font class=\"text-o-color-2\">#tags:</font>\n"
+"                </span>\n"
+"                Add tags to categorize the to-do"
 msgstr ""
 
 #. module: project_todo
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid ""
 "<span style=\"font-weight: bolder;\">\n"
-"                <font class=\"text-o-color-2\">@user:</font>\n"
-"            </span>\n"
-"            Assign the to-do to a specific user"
+"                    <font class=\"text-o-color-2\">@user:</font>\n"
+"                </span>\n"
+"                Assign the to-do to a specific user"
 msgstr ""
 
 #. module: project_todo
@@ -402,7 +396,7 @@ msgstr "Thêm việc cần làm"
 
 #. module: project_todo
 #. odoo-javascript
-#: code:addons/project_todo/static/src/web/activity/activity_menu_patch.js:0
+#: code:addons/project_todo/static/src/core/web/activity_menu_patch.js:0
 msgid "Add a To-Do"
 msgstr "Thêm một việc cần làm"
 
@@ -506,12 +500,6 @@ msgstr "Thời hạn"
 #: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_kanban
 msgid "Delete"
 msgstr "Xoá"
-
-#. module: project_todo
-#: model_terms:ir.ui.view,arch_db:project_todo.mail_activity_todo_create_popup
-#: model_terms:ir.ui.view,arch_db:project_todo.project_task_view_todo_conversion_form
-msgid "Discard"
-msgstr "Huỷ bỏ"
 
 #. module: project_todo
 #: model:ir.model.fields,field_description:project_todo.field_mail_activity_todo_create__display_name
@@ -683,8 +671,10 @@ msgid ""
 msgstr ""
 
 #. module: project_todo
+#. odoo-javascript
 #. odoo-python
 #: code:addons/project_todo/models/res_users.py:0
+#: code:addons/project_todo/static/src/webclient/share_target/todo_share_target_item.js:0
 msgid "To-Do"
 msgstr "Việc cần làm"
 
@@ -843,15 +833,3 @@ msgstr "VD: Gửi lời mời"
 #: model_terms:ir.ui.view,arch_db:project_todo.todo_user_onboarding
 msgid "todo-access"
 msgstr "todo-access"
-
-#~ msgid "Group By"
-#~ msgstr "Nhóm theo"
-
-#~ msgid "Onboarding todo already generated for those users"
-#~ msgstr "Onboarding về việc cần làm đã được tạo cho những người dùng đó"
-
-#~ msgid "To-do..."
-#~ msgstr "Việc cần làm..."
-
-#~ msgid "menu load To-dos"
-#~ msgstr "menu load To-dos"

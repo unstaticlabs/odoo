@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-15 19:07+0000\n"
+"POT-Creation-Date: 2026-02-20 12:32+0000\n"
 "PO-Revision-Date: 2024-08-15 11:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,14 +27,10 @@ msgid "Account Chart Template"
 msgstr "Mẫu hệ thống tài khoản"
 
 #. module: l10n_vn
+#: model:ir.model,name:l10n_vn.model_res_partner_bank
 #: model:ir.model.fields.selection,name:l10n_vn.selection__res_partner_bank__proxy_type__bank_acc
 msgid "Bank Account"
 msgstr "Số TK ngân hàng"
-
-#. module: l10n_vn
-#: model:ir.model,name:l10n_vn.model_res_partner_bank
-msgid "Bank Accounts"
-msgstr "Tài khoản Ngân hàng"
 
 #. module: l10n_vn
 #. odoo-python
@@ -60,6 +56,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:l10n_vn.view_partner_bank_form_inherit_account
 msgid "Documentation"
 msgstr "Tài liệu"
+
+#. module: l10n_vn
+#: model_terms:ir.ui.view,arch_db:l10n_vn.view_invoice_form_inherit_l10n_vn
+msgid "E-Invoice"
+msgstr ""
 
 #. module: l10n_vn
 #: model:ir.model.fields,help:l10n_vn.field_account_bank_statement_line__l10n_vn_e_invoice_number
@@ -148,11 +149,6 @@ msgid ""
 msgstr ""
 "Loại proxy %s không được hỗ trợ cho khách hàng Việt Nam. Nó phải là ID người "
 "bán, số thẻ ATM hoặc tài khoản ngân hàng"
-
-#. module: l10n_vn
-#: model_terms:ir.ui.view,arch_db:l10n_vn.view_invoice_form_inherit_l10n_vn
-msgid "Vietnamese Electronic Invoicing"
-msgstr "Hoá đơn điện tử Việt Nam"
 
 #. module: l10n_vn
 #: model:ir.model.fields,field_description:l10n_vn.field_account_bank_statement_line__l10n_vn_e_invoice_number

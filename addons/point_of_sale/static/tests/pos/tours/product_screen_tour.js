@@ -6,7 +6,6 @@ import * as PartnerList from "@point_of_sale/../tests/pos/tours/utils/partner_li
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
 import * as ProductScreenPartnerList from "@point_of_sale/../tests/pos/tours/utils/product_screen_partner_list_util";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
 import { registry } from "@web/core/registry";
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
 import { back, inLeftSide, selectButton } from "@point_of_sale/../tests/pos/tours/utils/common";
@@ -29,9 +28,15 @@ registry.category("web_tour.tours").add("ProductScreenTour", {
             Chrome.startPoS(),
             Dialog.confirm("Open Register"),
             OfflineUtil.setOfflineMode(),
-            // ensure that even after refreshing the page while being offline all data is correctly reloaded
-            refresh(),
-            Dialog.confirm("Continue with limited functionality"),
+            inLeftSide([
+                ...ProductScreen.clickControlButtonMore(),
+                // check that cancel order button is disabled if there is no orderline in the order
+                {
+                    content: "Check that cancel order button is disabled",
+                    trigger: ".control-buttons button:contains('Cancel Order'):disabled",
+                },
+                Dialog.cancel(),
+            ]),
             ProductScreen.firstProductIsFavorite("Whiteboard Pen"),
             // Make sure we don't have any scroll bar on the product list
             {
@@ -243,6 +248,7 @@ registry.category("web_tour.tours").add("test_tax_control_button_visiblity", {
 });
 
 registry.category("web_tour.tours").add("test_reuse_empty_floating_order", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -256,8 +262,8 @@ registry.category("web_tour.tours").add("test_reuse_empty_floating_order", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.00" }),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
             // Should reuse previously created empty floating order
             ProductScreen.checkFloatingOrderCount(1),
         ].flat(),
@@ -275,7 +281,7 @@ registry.category("web_tour.tours").add("FiscalPositionNoTax", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.00" }),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Order.doesNotHaveLine({ discount: "" }),
         ].flat(),
 });
@@ -295,8 +301,8 @@ registry.category("web_tour.tours").add("FiscalPositionIncl", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.00" }),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
         ].flat(),
 });
 
@@ -620,13 +626,9 @@ registry.category("web_tour.tours").add("AutofillCashCount", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.isShown(),
             Chrome.clickMenuOption("Close Register"),
-            {
-                trigger: ".fa-clone.btn-secondary",
-                run: "click",
-            },
             ProductScreen.cashDifferenceIs(0),
         ].flat(),
 });
@@ -887,7 +889,7 @@ registry.category("web_tour.tours").add("test_draft_orders_not_syncing", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.endTour(),
         ].flat(),
 });
@@ -902,10 +904,16 @@ registry.category("web_tour.tours").add("test_fiscal_position_tax_group_labels",
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.00" }),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.checkOrderlineTaxGroupLabel("Tax Group 1"),
-            ReceiptScreen.checkTaxSummaryTaxGroupLabel("Tax Group 1"),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                cssRules: [
+                    {
+                        css: "tr[name='taxes_line']",
+                        text: "Tax Group 15%",
+                    },
+                ],
+            }),
+            FeedbackScreen.clickNextOrder(),
             ProductScreen.clickDisplayedProduct("Test Product"),
             ProductScreen.totalAmountIs("115.00"),
             ProductScreen.clickFiscalPosition("Fiscal Position Test"),
@@ -913,10 +921,15 @@ registry.category("web_tour.tours").add("test_fiscal_position_tax_group_labels",
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank", true, { remaining: "0.00" }),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.checkOrderlineTaxGroupLabel("Tax Group 2"),
-            ReceiptScreen.checkTaxSummaryTaxGroupLabel("Tax Group 2"),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.checkTicketData({
+                cssRules: [
+                    {
+                        css: "tr[name='taxes_line']",
+                        text: "Tax Group 5%",
+                    },
+                ],
+            }),
         ].flat(),
 });
 
@@ -944,8 +957,12 @@ registry.category("web_tour.tours").add("test_product_long_press", {
             ProductScreen.longPressProduct("Test Product"),
             Dialog.is(),
             {
+                content: "Check On hand quantity is display on product info popup",
+                trigger: ".section-inventory-body div:contains('On hand: 0')",
+            },
+            {
                 content: "Check that VAT label is present in the product details popup",
-                trigger: ".section-financials .vat-label:contains('VAT')",
+                trigger: ".section-financials .vat-label:contains('Tax')",
             },
             {
                 content: "Check that VAT value is correct in the product details popup",
@@ -1006,7 +1023,7 @@ registry.category("web_tour.tours").add("test_archived_product_removed_and_order
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.clickMenuOption("Close Register"),
             {
                 trigger: ".modal .modal-footer .btn:contains(close register)",
@@ -1043,7 +1060,7 @@ registry.category("web_tour.tours").add("test_archived_product_removed_and_order
             TicketScreen.confirmRefund(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
         ].flat(),
 });
 
@@ -1054,11 +1071,11 @@ registry.category("web_tour.tours").add("test_preset_timing_retail", {
             Chrome.startPoS(),
             Dialog.confirm("Open Register"),
             ProductScreen.clickDisplayedProduct("Desk Organizer"),
-            ProductScreen.selectPreset("Dine in", "Delivery"),
+            ProductScreen.selectPreset("Dine in", "Delivery", false),
             PartnerList.clickPartner("A simple PoS man!"),
-            Chrome.presetTimingSlotHourNotExists("09:00"),
-            Chrome.selectPresetTimingSlotHour("15:00"),
-            Chrome.presetTimingSlotIs("15:00"),
+            Chrome.presetTimingSlotHourNotExists("9:00am"),
+            Chrome.selectPresetTimingSlotHour({ title: "delivery", hour: "3:00pm" }),
+            Chrome.presetTimingSlotIs("3:00pm"),
             Chrome.createFloatingOrder(),
             ProductScreen.clickDisplayedProduct("Desk Organizer"),
             Chrome.clickOrders(),
@@ -1066,6 +1083,35 @@ registry.category("web_tour.tours").add("test_preset_timing_retail", {
             TicketScreen.nthRowContains(2, "Delivery", false),
             TicketScreen.nthRowContains(1, "002"),
             TicketScreen.nthRowContains(1, "Dine in", false),
+            TicketScreen.selectOrder("002"),
+            TicketScreen.loadSelectedOrder(),
+            ProductScreen.selectPreset("Dine in", "Delivery", false),
+            PartnerList.clickPartner("A simple PoS man!"),
+            Chrome.presetTimingSlotHourNotExists("9:00am"),
+            Chrome.selectPresetTimingSlotHour({ title: "delivery", hour: "5:00pm" }),
+            Chrome.presetTimingSlotIs("5:00pm"),
+            Chrome.clickOrders(),
+            TicketScreen.nthRowContains(2, "002"),
+            TicketScreen.nthRowContains(2, "Delivery", false),
+            {
+                content:
+                    "Simulate order cancellation from backend and check that the order is removed from the PoS",
+                trigger: "body",
+                run: async () => {
+                    const latestOrder = posmodel.models["pos.order"].getAll()[0];
+                    await posmodel.data.call(
+                        "pos.order",
+                        "action_pos_order_cancel",
+                        [latestOrder.id],
+                        {
+                            context: {
+                                active_ids: [latestOrder.id],
+                            },
+                        }
+                    );
+                },
+            },
+            negateStep(...TicketScreen.nthRowContains(2, "002")),
         ].flat(),
 });
 
@@ -1080,16 +1126,16 @@ registry
                 PartnerList.clickPartner("Partner Full"),
                 ProductScreen.clickDisplayedProduct("Desk Organizer"),
                 ProductScreen.clickFastPaymentButton("Bank"),
-                ReceiptScreen.isShown(),
+                FeedbackScreen.isShown(),
                 PartnerList.isShown().map(negateStep),
-                ReceiptScreen.clickNextOrder(),
+                FeedbackScreen.clickNextOrder(),
                 PartnerList.searchCustomerValue("Partner Full", true),
                 PartnerList.clickPartner("Partner Full"),
                 ProductScreen.clickDisplayedProduct("Desk Organizer"),
                 ProductScreen.clickPayButton(),
                 PaymentScreen.clickPaymentMethod("Bank"),
                 PaymentScreen.clickValidate(),
-                ReceiptScreen.isShown(),
+                FeedbackScreen.isShown(),
                 PartnerList.isShown().map(negateStep),
             ].flat(),
     });
@@ -1105,7 +1151,7 @@ registry
                 ProductScreen.clickFastPaymentButton("Bank"),
                 FeedbackScreen.isShown(),
                 Dialog.confirm(),
-                FeedbackScreen.clickScreen(),
+                FeedbackScreen.clickNextOrder(),
                 ProductScreen.isShown(),
                 ProductScreen.clickDisplayedProduct("Desk Organizer"),
                 ProductScreen.clickPayButton(),
@@ -1113,7 +1159,7 @@ registry
                 PaymentScreen.clickValidate(),
                 FeedbackScreen.isShown(),
                 Dialog.confirm(),
-                FeedbackScreen.clickScreen(),
+                FeedbackScreen.clickNextOrder(),
                 ProductScreen.isShown(),
             ].flat(),
     });
@@ -1125,7 +1171,7 @@ function existingLotsTour(expectedLot) {
         ProductScreen.clickDisplayedProduct("Product with existing lots"),
         ProductScreen.selectedOrderlineHas("Product with existing lots", "1.0"),
         inLeftSide({
-            trigger: `.order-container .orderline .lot-number:contains('Lot Number ${expectedLot}')`,
+            trigger: `.order-container .orderline .lot-number:contains('Lot ${expectedLot}')`,
         }),
         Chrome.endTour(),
     ].flat();
@@ -1140,6 +1186,7 @@ registry.category("web_tour.tours").add("test_only_existing_lots_lifo", {
 });
 
 registry.category("web_tour.tours").add("test_delete_line", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -1225,7 +1272,7 @@ registry.category("web_tour.tours").add("test_pos_ui_round_globally", {
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
             Chrome.endTour(),
         ].flat(),
 });

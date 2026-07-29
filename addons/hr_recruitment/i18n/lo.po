@@ -4,22 +4,19 @@
 #
 # Translators:
 # Martin Trigaux <mat@odoo.com>, 2017
-# Bone NI <bounkirdni@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-29 20:28+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/"
-"hr_recruitment/lo/>\n"
+"POT-Creation-Date: 2026-07-10 17:36+0000\n"
+"PO-Revision-Date: 2017-11-16 08:08+0000\n"
+"Last-Translator: Martin Trigaux <mat@odoo.com>, 2017\n"
+"Language-Team: Lao (https://www.transifex.com/odoo/teams/41243/lo/)\n"
 "Language: lo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__no_of_talents
@@ -36,25 +33,25 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "1 Meeting"
-msgstr "1 ການປະຊຸມ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "<b>Click to view</b> the application."
-msgstr "<b>ຄລິກເພື່ອເບິ່ງ</b> ໃບສະໝັກ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "<b>Did you apply by sending an email?</b> Check incoming applications."
-msgstr "<b>ທ່ານໄດ້ສະໝັກໂດຍການສົ່ງອີເມວແມ່ນບໍ່?</b> ກວດສອບໃບສະໝັກທີ່ເຂົ້າມາ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "<b>Drag this card</b>, to qualify him for a first interview."
-msgstr "<b>ລາກບັດນີ້</b>, ເພື່ອໃຫ້ລາວຜ່ານເຂົ້າສູ່ການສຳພາດຄັ້ງທຳອິດ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,body_html:hr_recruitment.email_template_data_applicant_congratulations
@@ -82,15 +79,15 @@ msgid ""
 "    <hr width=\"97%\" style=\"background-color: rgb(204,204,204); border: "
 "medium none; clear: both; display: block; font-size: 0px; min-height: 1px; "
 "line-height: 0; margin: 16px 0px 16px 0px;\"/>\n"
-"    <t t-if=\"object.user_id\">\n"
+"    <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\">\n"
 "        <h3 style=\"color:#9A6C8E;\"><strong>Your Contact:</strong></h3>\n"
 "        <p>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
+"            <span>Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t></span><br/>\n"
-"            <span>Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
+"            <span>Phone: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
 "        </p>\n"
 "        <hr width=\"97%\" style=\"background-color: rgb(204,204,204); "
 "border: medium none; clear: both; display: block; font-size: 0px; min-"
@@ -178,14 +175,14 @@ msgid ""
 "    <br/><br/>\n"
 "    Thank you,\n"
 "    <div style=\"font-size: 11px; color: grey;\">\n"
-"        <t t-if=\"object.user_id\">\n"
+"        <t t-if=\"object.recruiter_id\">\n"
 "            -- <br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            Email: <t t-out=\"object.user_id.email or "
+"            Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t><br/>\n"
-"            Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</"
-"t>\n"
+"            Phone: <t t-out=\"object.recruiter_id.work_phone or ''\">+1 "
+"650-123-4567</t>\n"
 "        </t>\n"
 "        <t t-else=\"\">\n"
 "            -- <br/>\n"
@@ -208,13 +205,14 @@ msgid ""
 "        <br/><br/>\n"
 "        Best<br/>\n"
 "        <div style=\"font-size: 11px; color: grey;\">\n"
-"            <t t-if=\"object.user_id\">\n"
+"            <t t-if=\"object.recruiter_id and "
+"object.recruiter_id.user_id\">\n"
 "                -- <br/>\n"
-"                <strong t-out=\"object.user_id.name or ''\">Marc Demo</"
+"                <strong t-out=\"object.recruiter_id.name or ''\">Marc Demo</"
 "strong><br/>\n"
-"                Email: <t t-out=\"object.user_id.email or "
+"                Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">mark.brown23@example.com</t><br/>\n"
-"                Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
+"                Phone: <t t-out=\"object.recruiter_id.work_phone or ''\">+1 "
 "650-123-4567</t>\n"
 "            </t>\n"
 "            <t t-else=\"\">\n"
@@ -253,14 +251,14 @@ msgid ""
 "8px 16px; border-radius: 5px;\">Job Description</a>\n"
 "        </div>\n"
 "\n"
-"        <t t-if=\"object.user_id\">\n"
+"        <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\">\n"
 "            You will soon be contacted by:<br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
+"            <span>Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t></span><br/>\n"
-"            <span>Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
+"            <span>Phone: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
 "            <br/><br/>\n"
 "        </t>\n"
 "        See you soon,\n"
@@ -344,8 +342,6 @@ msgid ""
 "<div><b>Try to send an email</b> to the applicant.</div><div><i>Tips: All "
 "emails sent or received are saved in the history here</i>"
 msgstr ""
-"<div><b>ລອງສົ່ງອີເມວ</b> ຫາຜູ້ສະໝັກ.</div><div><i>ຄຳແນະນຳ: ອີເມວທັງໝົດທີ່ສົ່ງ ຫຼື ຮັບ "
-"ແມ່ນຖືກເກັບໄວ້ໃນປະຫວັດຢູ່ບ່ອນນີ້</i>"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
@@ -354,37 +350,39 @@ msgid ""
 msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
-msgid "<i class=\"fa fa-paperclip\" role=\"img\" aria-label=\"Documents\"/>"
-msgstr "<i class=\"fa fa-paperclip\" role=\"img\" aria-label=\"ເອກະສານ\"/>"
-
-#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "<i class=\"fa fa-user fa-2x\" title=\"new_applications_icon\"/>"
+msgid ""
+"<i class=\"fa fa-envelope flex-shrink-0 me-1 text-center\" title=\"Email\"/>"
 msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
-msgid "<span class=\"o_stat_text\">Employee</span>"
-msgstr "<span class=\"o_stat_text\">ພະນັກງານ</span>"
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
+msgid "<i class=\"fa fa-paperclip\" role=\"img\" aria-label=\"Documents\"/>"
+msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
-msgid "<span invisible=\"address_id\" class=\"oe_read_only\">Remote</span>"
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
+msgid ""
+"<i class=\"fa fa-user\" title=\"new_applications_icon\" aria-hidden=\"true\"/"
+">"
 msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
 msgid ""
-"<span invisible=\"not is_warning_visible\">\n"
-"                                <span class=\"fa fa-exclamation-triangle "
-"text-danger ps-3\">\n"
-"                                </span>\n"
-"                                <span class=\"text-danger\">\n"
+"<span class=\"fa fa-exclamation-triangle pe-1\"/>\n"
 "                                    All applications will lose their hired "
-"date and hired status.\n"
-"                                </span>\n"
-"                            </span>"
+"date and hired status."
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "<span class=\"o_stat_text\">Employee</span>"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
+msgid "<span invisible=\"address_id\" class=\"oe_read_only\">Remote</span>"
 msgstr ""
 
 #. module: hr_recruitment
@@ -395,6 +393,11 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "<span invisible=\"not salary_proposed_extra\"> + </span>"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "<span> / </span>"
 msgstr ""
 
 #. module: hr_recruitment
@@ -410,12 +413,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "<span>New</span>"
-msgstr "<span>ໃໝ່</span>"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "<span>Reporting</span>"
-msgstr "<span>ການລາຍງານ</span>"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
@@ -425,35 +428,39 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "<span>View</span>"
-msgstr "<span>ເບິ່ງ</span>"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "<span>days</span>"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_defaults
 msgid ""
 "A Python dictionary that will be evaluated to provide default values when "
 "creating new records for this alias."
-msgstr "Python dictionary ທີ່ຈະຖືກປະເມີນເພື່ອໃຫ້ຄ່າເລີ່ມຕົ້ນ ເມື່ອສ້າງບັນທຶກໃໝ່ສຳລັບນາມແຝງນີ້."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_needaction
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_needaction
 msgid "Action Needed"
-msgstr "ຕ້ອງດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__active
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__active
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__active
 msgid "Active"
-msgstr "ເປີດໃຊ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_ids
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_activities
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Activities"
-msgstr "ກິດຈະກຳ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
@@ -469,7 +476,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_exception_decoration
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "ການຕົບແຕ່ງກິດຈະກຳທີ່ຍົກເວັ້ນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_mail_activity_plan
@@ -477,6 +484,8 @@ msgid "Activity Plan"
 msgstr ""
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_plans_ids
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_plans_ids
 #: model:ir.ui.menu,name:hr_recruitment.hr_recruitment_menu_config_activity_plan
 msgid "Activity Plans"
 msgstr ""
@@ -485,19 +494,19 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_state
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_state
 msgid "Activity State"
-msgstr "ສະຖານະກິດຈະກຳ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_type_icon
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "ໄອຄອນປະເພດກິດຈະກຳ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.mail_activity_type_action_config_hr_applicant
 #: model:ir.ui.menu,name:hr_recruitment.hr_recruitment_menu_config_activity_type
 msgid "Activity Types"
-msgstr "ປະເພດກິດຈະກຳ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.mail_activity_plan_action_config_hr_applicant
@@ -517,12 +526,6 @@ msgid "Activity type"
 msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
-msgid "Add Applicants"
-msgstr ""
-
-#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
 msgid "Add Applicants to Pool"
 msgstr ""
@@ -536,12 +539,13 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_job_stage_act
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_recruitment_stage_act
 msgid "Add a new stage in the recruitment process"
-msgstr "ເພີ່ມຂັ້ນຕອນໃໝ່ໃນຂະບວນການຮັບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_applicant_category_action
+#: model_terms:ir.actions.act_window,help:hr_recruitment.hr_job_tag_action
 msgid "Add a new tag"
-msgstr "ເພີ່ມແທັກໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -565,6 +569,7 @@ msgid "Add private notes about this applicant..."
 msgstr ""
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.talent_pool_add_applicants_view_form
@@ -577,19 +582,25 @@ msgid "Add/Remove Followers"
 msgstr ""
 
 #. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/wizard/talent_pool_add_applicants.py:0
+msgid "Added the following talents to %(talent_pools)s: %(talent_names)s."
+msgstr ""
+
+#. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_hr_recruitment_manager
 msgid "Administrator"
-msgstr "ຜູ້ດູແລລະບົບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_id
 msgid "Alias"
-msgstr "ນາມແຝງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_contact
 msgid "Alias Contact Security"
-msgstr "ຄວາມປອດໄພຂອງນາມແຝງຜູ້ຕິດຕໍ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_domain_id
@@ -609,42 +620,42 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__alias_id
 msgid "Alias ID"
-msgstr "ໄອດີນາມແຝງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_name
 msgid "Alias Name"
-msgstr "ຊື່ນາມແຝງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_status
 msgid "Alias Status"
-msgstr "ສະຖານະນາມແຝງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_status
 msgid "Alias status assessed on the last message received."
-msgstr "ສະຖານະນາມແຝງທີ່ປະເມີນຈາກຂໍ້ຄວາມສຸດທ້າຍທີ່ໄດ້ຮັບ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_model_id
 msgid "Aliased Model"
-msgstr "ໂມເດວທີ່ໃຊ້ນາມແຝງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__all_application_count
 msgid "All Application Count"
-msgstr "ຈຳນວນໃບສະໝັກທັງໝົດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_crm_case_categ_all_app
 msgid "All Applications"
-msgstr "ໃບສະໝັກທັງໝົດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Analysis"
-msgstr "ການວິເຄາະ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_applicant_new
@@ -655,18 +666,18 @@ msgstr "ການວິເຄາະ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.ir_attachment_hr_recruitment_list_view
 msgid "Applicant"
-msgstr "ຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_recruitment_degree
 msgid "Applicant Degree"
-msgstr "ລະດັບການສຶກສາຂອງຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,name:hr_recruitment.mt_applicant_hired
 #: model:mail.message.subtype,name:hr_recruitment.mt_job_applicant_hired
 msgid "Applicant Hired"
-msgstr "ຮັບຜູ້ສະໝັກເຂົ້າເຮັດວຽກແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__applicant_notes
@@ -674,29 +685,24 @@ msgid "Applicant Notes"
 msgstr ""
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__applicant_properties_definition
+#: model:ir.model.fields,field_description:hr_recruitment.field_res_company__applicant_properties_definition
 msgid "Applicant Properties"
 msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,name:hr_recruitment.mt_job_applicant_stage_changed
 msgid "Applicant Stage Changed"
-msgstr "ປ່ຽນຂັ້ນຕອນຂອງຜູ້ສະໝັກແລ້ວ"
-
-#. module: hr_recruitment
-#: model:mail.message.subtype,description:hr_recruitment.mt_applicant_new
-msgid "Applicant created"
-msgstr "ສ້າງຜູ້ສະໝັກແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__partner_name
 msgid "Applicant's Name"
-msgstr "ຊື່ຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__applicant_without_email
 msgid "Applicant(s) not having email"
-msgstr "ຜູ້ສະໝັກທີ່ບໍ່ມີອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_employee__applicant_ids
@@ -708,12 +714,12 @@ msgstr "ຜູ້ສະໝັກທີ່ບໍ່ມີອີເມວ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_activity
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Applicants"
-msgstr "ຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__applicant_hired
 msgid "Applicants Hired"
-msgstr "ຜູ້ສະໝັກທີ່ຮັບເຂົ້າເຮັດວຽກແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_applications
@@ -727,25 +733,27 @@ msgid ""
 msgstr ""
 
 #. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/models/hr_applicant.py:0
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Application"
-msgstr "ໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__application_count
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__application_count
 msgid "Application Count"
-msgstr "ຈຳນວນໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__application_status
 msgid "Application Status"
-msgstr "ສະຖານະໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "Application email"
-msgstr "ອີເມວສຳລັບການສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -758,9 +766,8 @@ msgstr "ອີເມວສຳລັບການສະໝັກ"
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_applications
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Applications"
-msgstr "ໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job_platform__email
@@ -772,7 +779,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__application_count
 msgid "Applications with the same email or phone or mobile"
-msgstr "ໃບສະໝັກທີ່ມີອີເມວ ຫຼື ເບີໂທລະສັບ ຫຼື ເບີມືຖືດຽວກັນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__create_date
@@ -785,22 +792,36 @@ msgid "Apply for a Job"
 msgstr ""
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
+msgid "Apply to Jobs"
+msgstr ""
+
+#. module: hr_recruitment
 #. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
 #: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Archive"
-msgstr "ເກັບມ້ຽນ"
+msgstr ""
+
+#. module: hr_recruitment
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid "Archive job position"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__application_status__archived
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Archived"
-msgstr "ເກັບມ້ຽນແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
@@ -811,7 +832,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__date_open
 msgid "Assigned"
-msgstr "ມອບໝາຍແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -834,29 +855,35 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_attachment_count
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_attachment_count
 msgid "Attachment Count"
-msgstr "ຈຳນວນເອກະສານຄັດຕິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__attachment_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__attachment_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__attachment_ids
 msgid "Attachments"
-msgstr "ເອກະສານຄັດຕິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__author_id
 msgid "Author"
-msgstr "ຜູ້ຂຽນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__availability
 msgid "Availability"
-msgstr "ຄວາມພ້ອມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.degree,name:hr_recruitment.degree_bachelor
 msgid "Bachelor Degree"
-msgstr "ປະລິນຍາຕີ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__biweekly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__biweekly
+msgid "Bi-Week"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_blacklisted
@@ -869,18 +896,10 @@ msgid "Blacklisted Phone is Phone"
 msgstr ""
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__blocked
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Blocked"
-msgstr "ຖືກບລັອກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__body_has_template_value
@@ -897,7 +916,7 @@ msgstr ""
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_job_position
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_job_position_interviewer
 msgid "By Job Positions"
-msgstr "ຕາມຕຳແໜ່ງງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_talent_pools
@@ -912,49 +931,44 @@ msgid ""
 "statistics according to the source of the application: LinkedIn, Monster, "
 "Indeed, etc."
 msgstr ""
-"ໂດຍການຕັ້ງນາມແຝງໃຫ້ກັບຕຳແໜ່ງງານ, ອີເມວທີ່ສົ່ງໄປຫາທີ່ຢູ່ນີ້ຈະສ້າງໃບສະໝັກໂດຍອັດຕະໂນມັດ. "
-"ທ່ານຍັງສາມາດໃຊ້ຕົວຕິດຕາມຫຼາຍຕົວເພື່ອຮັບສະຖິຕິຕາມແຫຼ່ງທີ່ມາຂອງໃບສະໝັກ: LinkedIn, Monster, "
-"Indeed, ແລະ ອື່ນໆ."
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_calendar_event
 msgid "Calendar Event"
-msgstr "ເຫດການໃນປະຕິທິນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__campaign_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__campaign_id
 msgid "Campaign"
-msgstr "ແຄມເປນ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_utm_campaigns
+msgid "Campaigns"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__can_edit_body
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__can_edit_body
 msgid "Can Edit Body"
-msgstr "ສາມາດແກ້ໄຂເນື້ອໃນໄດ້"
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_send_mail_view_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.talent_pool_add_applicants_view_form
-msgid "Cancel"
-msgstr "ຍົກເລີກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_graph_view_job
 msgid "Cases By Stage and Estimates"
-msgstr "ກໍລະນີຕາມຂັ້ນຕອນ ແລະ ການປະເມີນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_applicant_category
 msgid "Category of applicant"
-msgstr "ໝວດໝູ່ຂອງຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Choose an application email."
-msgstr "ເລືອກອີເມວສຳລັບການສະໝັກ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__color
@@ -965,15 +979,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__color
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__color
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__color
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__color
 msgid "Color Index"
-msgstr "ດັດຊະນີສີ"
-
-#. module: hr_recruitment
-#: model:ir.model,name:hr_recruitment.model_res_company
-msgid "Companies"
 msgstr ""
 
 #. module: hr_recruitment
+#: model:ir.model,name:hr_recruitment.model_res_company
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__company_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__company_id
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
@@ -982,16 +993,21 @@ msgid "Company"
 msgstr "ບໍລິສັດ"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__company_partner_id
+msgid "Company Partner"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_res_config_settings
 msgid "Config Settings"
-msgstr "ການຕັ້ງຄ່າລະບົບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_configuration
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Configuration"
-msgstr "ການຕັ້ງຄ່າ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
@@ -1001,40 +1017,45 @@ msgstr ""
 #. module: hr_recruitment
 #: model:mail.template,description:hr_recruitment.email_template_data_applicant_congratulations
 msgid "Confirmation email sent to all new job applications"
-msgstr "ອີເມວຍືນຢັນທີ່ສົ່ງໄປຫາທຸກໃບສະໝັກງານໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_res_partner
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__partner_id
 msgid "Contact"
-msgstr "ຜູ້ຕິດຕໍ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.ir_attachment_view_search_inherit_hr_recruitment
 msgid "Content"
-msgstr "ເນື້ອໃນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__body
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__body
 msgid "Contents"
-msgstr "ເນື້ອໃນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job4
 msgid "Contract Proposal"
-msgstr "ການສະເໜີສັນຍາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job5
 msgid "Contract Signed"
-msgstr "ເຊັນສັນຍາແລ້ວ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_contract_type
+msgid "Contract Types"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Copy this email address, to paste it in your email composer, to apply."
-msgstr "ກັອບປີ້ທີ່ຢູ່ອີເມວນີ້, ເພື່ອໄປວາງໃສ່ບ່ອນຂຽນອີເມວຂອງທ່ານ, ເພື່ອສະໝັກງານ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
@@ -1050,12 +1071,11 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "Create"
-msgstr "ສ້າງ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
 msgid "Create Applications"
@@ -1064,7 +1084,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "Create Employee"
-msgstr "ສ້າງພະນັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -1081,7 +1101,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:hr_recruitment.create_job_simple
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "Create a Job Position"
-msgstr "ສ້າງຕຳແໜ່ງງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.mail_activity_plan_action_config_hr_applicant
@@ -1097,7 +1117,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Create your first Job Position."
-msgstr "ສ້າງຕຳແໜ່ງງານທຳອິດຂອງທ່ານ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -1112,6 +1132,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__create_uid
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__create_uid
@@ -1119,7 +1140,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__create_uid
 msgid "Created by"
-msgstr "ສ້າງໂດຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__create_date
@@ -1127,6 +1148,7 @@ msgstr "ສ້າງໂດຍ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__create_date
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__create_date
@@ -1134,13 +1156,19 @@ msgstr "ສ້າງໂດຍ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__create_date
 msgid "Created on"
-msgstr "ສ້າງເມື່ອ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Creation Date"
-msgstr "ວັນທີສ້າງ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__currency_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__currency_id
+msgid "Currency"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__no_of_employee
@@ -1150,7 +1178,13 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_bounced_content
 msgid "Custom Bounced Message"
-msgstr "ຂໍ້ຄວາມຕອບກັບອັດຕະໂນມັດເມື່ອອີເມວສົ່ງບໍ່ເຖິງ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__daily
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__daily
+msgid "Day"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__rotting_threshold_days
@@ -1173,12 +1207,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__day_close
 msgid "Days to Close"
-msgstr "ຈຳນວນມື້ກ່ອນປິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__day_open
 msgid "Days to Open"
-msgstr "ຈຳນວນມື້ກ່ອນເປີດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__rotting_threshold_days
@@ -1188,7 +1222,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_defaults
 msgid "Default Values"
-msgstr "ຄ່າເລີ່ມຕົ້ນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_platforms
@@ -1205,8 +1239,6 @@ msgid ""
 "empty, the default email address will be used which is in human resources "
 "settings"
 msgstr ""
-"ກຳນົດທີ່ຢູ່ຕິດຕໍ່ສະເພາະສຳລັບຕຳແໜ່ງງານນີ້. ຫາກທ່ານປະວ່າງໄວ້, "
-"ລະບົບຈະໃຊ້ທີ່ຢູ່ອີເມວເລີ່ມຕົ້ນທີ່ຕັ້ງໄວ້ໃນການຕັ້ງຄ່າຊັບພະຍາກອນມະນຸດ"
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_job_stage_act
@@ -1216,56 +1248,52 @@ msgid ""
 "refused,\n"
 "                    hired."
 msgstr ""
-"ກຳນົດຂັ້ນຕອນຂອງຂະບວນການຮັບສະໝັກຂອງທ່ານຢູ່ບ່ອນນີ້, ຕົວຢ່າງ:\n"
-"                    ການໂທກວດສອບຄຸນສົມບັດ, ການສຳພາດຄັ້ງທີ 1, ການສຳພາດຄັ້ງທີ 2, "
-"ປະຕິເສດ,\n"
-"                    ຮັບເຂົ້າເຮັດວຽກ."
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__type_id
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_degree_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_degree_tree
 msgid "Degree"
-msgstr "ລະດັບການສຶກສາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__name
 msgid "Degree Name"
-msgstr "ຊື່ລະດັບການສຶກສາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_recruitment_degree_action
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_degree
 msgid "Degrees"
-msgstr "ລະດັບການສຶກສາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__delay_close
 msgid "Delay to Close"
-msgstr "ໄລຍະເວລາໃນການປິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Delete"
-msgstr "ລຶບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_department
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__department_id
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 msgid "Department"
-msgstr "ພະແນກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__manager_id
 msgid "Department Manager"
-msgstr "ຫົວໜ້າພະແນກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_department
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_department
 msgid "Departments"
-msgstr "ພະແນກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_form
@@ -1291,7 +1319,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_digest_digest
 msgid "Digest"
-msgstr "ສະຫຼຸບຂໍ້ມູນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
@@ -1309,15 +1337,9 @@ msgid "Directly Available"
 msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
-msgid "Discard"
-msgstr "ຖິ້ມ"
-
-#. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_applicant_cv_display
 msgid "Display CV on application form"
-msgstr "ສະແດງ CV ໃນຟອມໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__display_name
@@ -1331,6 +1353,7 @@ msgstr "ສະແດງ CV ໃນຟອມໃບສະໝັກ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_employee__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__display_name
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__display_name
@@ -1348,23 +1371,17 @@ msgstr "ສະແດງ CV ໃນຟອມໃບສະໝັກ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_utm_campaign__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_utm_source__display_name
 msgid "Display Name"
-msgstr "ຊື່ທີ່ສະແດງ"
-
-#. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "ບໍ່ມີສິດເຂົ້າເຖິງ, ຂ້າມຂໍ້ມູນນີ້ສຳລັບອີເມວສະຫຼຸບຂອງຜູ້ໃຊ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.degree,name:hr_recruitment.degree_bac5
 msgid "Doctoral Degree"
-msgstr "ປະລິນຍາເອກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__documents_count
 msgid "Document Count"
-msgstr "ຈຳນວນເອກະສານ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -1373,7 +1390,7 @@ msgstr "ຈຳນວນເອກະສານ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__document_ids
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
 msgid "Documents"
-msgstr "ເອກະສານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.applicant.refuse.reason,name:hr_recruitment.refuse_reason_1
@@ -1386,8 +1403,6 @@ msgid ""
 "Don't forget to specify the department if your recruitment process\n"
 "                is different according to the job position."
 msgstr ""
-"ຢ່າລືມລະບຸພະແນກ ຫາກຂະບວນການຮັບສະໝັກຂອງທ່ານ\n"
-"                ມີຄວາມແຕກຕ່າງກັນໄປຕາມຕຳແໜ່ງງານ."
 
 #. module: hr_recruitment
 #: model:hr.applicant.refuse.reason,name:hr_recruitment.refuse_reason_6
@@ -1415,14 +1430,14 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__email
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Email"
-msgstr "ອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_email
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
 msgid "Email Alias"
-msgstr "ນາມແຝງອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
@@ -1434,19 +1449,14 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__template_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__template_id
 msgid "Email Template"
-msgstr "ແພັດເບບອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_id
 msgid ""
 "Email alias for this job position. New emails will automatically create new "
 "applicants for this job position."
-msgstr "ນາມແຝງອີເມວສຳລັບຕຳແໜ່ງງານນີ້. ອີເມວໃໝ່ຈະສ້າງຜູ້ສະໝັກໃໝ່ສຳລັບຕຳແໜ່ງນີ້ໂດຍອັດຕະໂນມັດ."
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__email_cc
-msgid "Email cc"
-msgstr "ອີເມວສຳເນົາ (cc)"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_domain
@@ -1465,7 +1475,7 @@ msgstr ""
 #: model:ir.model,name:hr_recruitment.model_hr_employee
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__employee_id
 msgid "Employee"
-msgstr "ພະນັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__emp_is_active
@@ -1480,38 +1490,33 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__employee_name
 msgid "Employee Name"
-msgstr "ຊື່ພະນັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_hired_template
 msgid "Employee created:"
-msgstr "ສ້າງພະນັກງານແລ້ວ:"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__employee_id
 msgid "Employee linked to the applicant."
-msgstr "ພະນັກງານທີ່ເຊື່ອມໂຍງກັບຜູ້ສະໝັກ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_employees
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
 msgid "Employees"
-msgstr "ພະນັກງານ"
-
-#. module: hr_recruitment
-#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_contract_type
-msgid "Employment Types"
-msgstr "ປະເພດການຈ້າງງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__priority
 msgid "Evaluation"
-msgstr "ການປະເມີນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__priority__3
 msgid "Excellent"
-msgstr "ດີເລີດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__salary_expected
@@ -1527,12 +1532,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_department__expected_employee
 msgid "Expected Employee"
-msgstr "ຈຳນວນພະນັກງານທີ່ຄາດຫວັງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__salary_expected_extra
 msgid "Expected Salary Extra"
-msgstr "ສະຫວັດດີການອື່ນໆທີ່ຄາດຫວັງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__expected_employees
@@ -1543,12 +1548,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__extended_interviewer_ids
 msgid "Extended Interviewer"
-msgstr "ຜູ້ສຳພາດເພີ່ມເຕີມ"
+msgstr ""
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__favorite_user_ids
-msgid "Favorite User"
-msgstr "ຜູ້ໃຊ້ທີ່ຊື່ນຊອບ"
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__favorite_recruiter_ids
+msgid "Favorite Recruiter"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__phone_sanitized
@@ -1560,17 +1565,22 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.ir_attachment_hr_recruitment_list_view
 msgid "File"
-msgstr "ໄຟລ໌"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job2
 msgid "First Interview"
-msgstr "ການສຳພາດຄັ້ງທີ 1"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Fold by Default"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__fold
 msgid "Folded in Kanban"
-msgstr "ພັບໄວ້ໃນ Kanban"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_recruitment_stage_kanban
@@ -1581,39 +1591,39 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_follower_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_follower_ids
 msgid "Followers"
-msgstr "ຜູ້ຕິດຕາມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_partner_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "ຜູ້ຕິດຕາມ (ຄູ່ຮ່ວມງານ)"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__activity_type_icon
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "ໄອຄອນ Font awesome ເຊັ່ນ: fa-tasks"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Future Activities"
-msgstr "ກິດຈະກຳໃນອະນາຄົດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_applicant_get_refuse_reason
 msgid "Get Refuse Reason"
-msgstr "ລະບຸເຫດຜົນການປະຕິເສດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__priority__1
 msgid "Good"
-msgstr "ດີ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.degree,name:hr_recruitment.degree_graduate
 msgid "Graduate"
-msgstr "ຈົບການສຶກສາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:web_tour.tour,rainbow_man_message:hr_recruitment.hr_recruitment_tour
@@ -1621,30 +1631,20 @@ msgid "Great job! You hired a new colleague!"
 msgstr ""
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_done
-msgid "Green Kanban Label"
-msgstr "ປ້າຍ Kanban ສີຂຽວ"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_normal
-msgid "Grey Kanban Label"
-msgstr "ປ້າຍ Kanban ສີເທົາ"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__has_domain
 msgid "Has Domain"
-msgstr "ມີໂດເມນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__has_message
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__has_message
 msgid "Has Message"
-msgstr "ມີຂໍ້ຄວາມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__date_closed
 msgid "Hire Date"
-msgstr "ວັນທີຮັບເຂົ້າເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__no_of_hired_employee
@@ -1653,16 +1653,17 @@ msgstr "ວັນທີຮັບເຂົ້າເຮັດວຽກ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Hired"
-msgstr "ຮັບເຂົ້າເຮັດວຽກແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__hired_stage
 msgid "Hired Stage"
-msgstr "ຂັ້ນຕອນຮັບເຂົ້າເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
-msgid "Hiring Date"
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__hourly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__hourly
+msgid "Hour"
 msgstr ""
 
 #. module: hr_recruitment
@@ -1677,6 +1678,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__id
@@ -1694,32 +1696,32 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_utm_campaign__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_utm_source__id
 msgid "ID"
-msgstr "ໄອດີ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_parent_thread_id
 msgid ""
 "ID of the parent record holding the alias (example: project holding the task "
 "creation alias)"
-msgstr "ໄອດີຂອງບັນທຶກແມ່ທີ່ມີນາມແຝງ (ຕົວຢ່າງ: ໂຄງການທີ່ມີນາມແຝງໃນການສ້າງໜ້າວຽກ)"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_exception_icon
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_exception_icon
 msgid "Icon"
-msgstr "ໄອຄອນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__activity_exception_icon
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "ໄອຄອນເພື່ອບົ່ງບອກເຖິງກິດຈະກຳທີ່ຍົກເວັ້ນ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__message_needaction
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "ຫາກໝາຍໄວ້, ຂໍ້ຄວາມໃໝ່ຕ້ອງການຄວາມສົນໃຈຈາກທ່ານ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__message_has_error
@@ -1727,27 +1729,27 @@ msgstr "ຫາກໝາຍໄວ້, ຂໍ້ຄວາມໃໝ່ຕ້ອງ�
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__message_has_error
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "ຫາກໝາຍໄວ້, ບາງຂໍ້ຄວາມມີຄວາມຜິດພາດໃນການສົ່ງ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__hired_stage
 msgid ""
 "If checked, this stage is used to determine the hire date of an applicant"
-msgstr "ຫາກໝາຍໄວ້, ຂັ້ນຕອນນີ້ຈະຖືກໃຊ້ເພື່ອລະບຸວັນທີຮັບເຂົ້າເຮັດວຽກຂອງຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__template_id
 msgid ""
 "If set, a message is posted on the applicant using the template when the "
 "applicant is set to the stage."
-msgstr "ຫາກຕັ້ງໄວ້, ຂໍ້ຄວາມຈະຖືກໂພສຫາຜູ້ສະໝັກໂດຍໃຊ້ແພັດເບບນີ້ ເມື່ອຜູ້ສະໝັກຖືກປ່ຽນມາຢູ່ຂັ້ນຕອນນີ້."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_bounced_content
 msgid ""
 "If set, this content will automatically be sent out to unauthorized users "
 "instead of the default message."
-msgstr "ຫາກຕັ້ງໄວ້, ເນື້ອໃນນີ້ຈະຖືກສົ່ງອອກໄປຫາຜູ້ໃຊ້ທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດໂດຍອັດຕະໂນມັດ ແທນຂໍ້ຄວາມເລີ່ມຕົ້ນ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__emp_is_active
@@ -1761,7 +1763,7 @@ msgstr ""
 msgid ""
 "If the active field is set to false, it will allow you to hide the case "
 "without removing it."
-msgstr "ຫາກຊ່ອງເປີດໃຊ້ຖືກຕັ້ງເປັນ false, ມັນຈະຊ່ວຍໃຫ້ທ່ານສາມາດເຊື່ອງກໍລະນີໄດ້ໂດຍບໍ່ຕ້ອງລຶບມັນອອກ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__is_blacklisted
@@ -1778,18 +1780,28 @@ msgid ""
 msgstr ""
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job5
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid ""
+"If you archive these job positions, all their applicants will be archived "
+"too. Are you sure?"
+msgstr ""
+
+#. module: hr_recruitment
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid ""
+"If you archive this job position, all its applicants will be archived too. "
+"Are you sure?"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__normal
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "In Progress"
-msgstr "ກຳລັງດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
@@ -1800,7 +1812,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid ""
 "Incoming emails create applications automatically. Use it for direct "
-"applications or when posting job offers on LinkedIn, Monster, etc."
+"applications or when posting job opportunities on LinkedIn, Monster, etc."
 msgstr ""
 
 #. module: hr_recruitment
@@ -1819,7 +1831,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_res_config_settings__module_hr_recruitment_survey
 msgid "Interview Forms"
-msgstr "ຟອມການສຳພາດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_hr_recruitment_interviewer
@@ -1837,7 +1849,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__interviewer_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__interviewer_ids
 msgid "Interviewers"
-msgstr "ຜູ້ສຳພາດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_applicant_in_pool
@@ -1848,18 +1860,18 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__is_mail_template_editor
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__is_mail_template_editor
 msgid "Is Editor"
-msgstr "ແມ່ນຜູ້ແກ້ໄຂ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__is_favorite
 msgid "Is Favorite"
-msgstr "ແມ່ນລາຍການທີ່ມັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_is_follower
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_is_follower
 msgid "Is Follower"
-msgstr "ແມ່ນຜູ້ຕິດຕາມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_pool_applicant
@@ -1869,7 +1881,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__is_warning_visible
 msgid "Is Warning Visible"
-msgstr "ສະແດງຄຳເຕືອນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__duration_tracking
@@ -1881,13 +1893,13 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Job"
-msgstr "ວຽກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__application_ids
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_pivot_view_job
 msgid "Job Applications"
-msgstr "ການສະໝັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_job_boards
@@ -1897,12 +1909,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model:utm.campaign,title:hr_recruitment.utm_campaign_job
 msgid "Job Campaign"
-msgstr "ແຄມເປນຮັບສະໝັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__address_id
 msgid "Job Location"
-msgstr "ສະຖານທີ່ເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
@@ -1911,25 +1923,25 @@ msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_job_platform
-msgid "Job Platforms"
+msgid "Job Platform"
 msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_job
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__job_id
 msgid "Job Position"
-msgstr "ຕຳແໜ່ງງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,name:hr_recruitment.mt_department_new
 msgid "Job Position Created"
-msgstr "ສ້າງຕຳແໜ່ງງານແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,description:hr_recruitment.mt_job_new
 #: model:mail.message.subtype,name:hr_recruitment.mt_job_new
 msgid "Job Position created"
-msgstr "ສ້າງຕຳແໜ່ງງານແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_job
@@ -1937,13 +1949,14 @@ msgstr "ສ້າງຕຳແໜ່ງງານແລ້ວ"
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_job_interviewer
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__job_ids
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_jobs
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
 msgid "Job Positions"
-msgstr "ຕຳແໜ່ງງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Job Posting"
-msgstr "ການປະກາດຮັບສະໝັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_res_company__job_properties_definition
@@ -1958,7 +1971,13 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__job_ids
 msgid "Job Specific"
-msgstr "ສະເພາະຕຳແໜ່ງງານ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.actions.act_window,name:hr_recruitment.hr_job_tag_action
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_job_tag_menu
+msgid "Job Tags"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.applicant.refuse.reason,name:hr_recruitment.refuse_reason_5
@@ -1968,65 +1987,45 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 msgid "Jobs"
-msgstr "ວຽກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "Jobs - Recruitment Form"
-msgstr "ວຽກ - ຟອມການຮັບສະໝັກ"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_blocked
-msgid "Kanban Blocked"
-msgstr "Kanban ຖືກບລັອກ"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_normal
-msgid "Kanban Ongoing"
-msgstr "Kanban ກຳລັງດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__kanban_state
 msgid "Kanban State"
-msgstr "ສະຖານະ Kanban"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_done
-msgid "Kanban Valid"
-msgstr "Kanban ຖືກຕ້ອງ"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_waiting
-msgid "Kanban Waiting"
 msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_digest_digest__kpi_hr_recruitment_new_colleagues_value
 msgid "Kpi Hr Recruitment New Colleagues Value"
-msgstr "ຄ່າ KPI ການຮັບເພື່ອນຮ່ວມງານໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__lang
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__lang
 msgid "Language"
-msgstr "ພາສາ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "Last Meeting"
-msgstr "ການປະຊຸມຄັ້ງສຸດທ້າຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__last_stage_id
 msgid "Last Stage"
-msgstr "ຂັ້ນຕອນສຸດທ້າຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__date_last_stage_update
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Last Stage Update"
-msgstr "ອັບເດດຂັ້ນຕອນສຸດທ້າຍເມື່ອ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__write_uid
@@ -2035,6 +2034,7 @@ msgstr "ອັບເດດຂັ້ນຕອນສຸດທ້າຍເມື່
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__write_uid
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__write_uid
@@ -2042,7 +2042,7 @@ msgstr "ອັບເດດຂັ້ນຕອນສຸດທ້າຍເມື່
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__write_uid
 msgid "Last Updated by"
-msgstr "ອັບເດດລ່າສຸດໂດຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__write_date
@@ -2051,6 +2051,7 @@ msgstr "ອັບເດດລ່າສຸດໂດຍ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__write_date
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__write_date
@@ -2058,12 +2059,12 @@ msgstr "ອັບເດດລ່າສຸດໂດຍ"
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__write_date
 msgid "Last Updated on"
-msgstr "ອັບເດດລ່າສຸດເມື່ອ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Late Activities"
-msgstr "ກິດຈະກຳທີ່ຊ້າກວ່າກຳນົດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_config
@@ -2074,7 +2075,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/views/recruitment_helper_view.xml:0
 msgid "Let's create a job position."
-msgstr "ມາສ້າງຕຳແໜ່ງງານກັນເທາະ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
@@ -2083,31 +2084,29 @@ msgid ""
 "Let's create the position. An email will be setup for applications, and a "
 "public job description, if you use the Website app."
 msgstr ""
-"ມາສ້າງຕຳແໜ່ງງານກັນ. ລະບົບຈະຕັ້ງຄ່າອີເມວສຳລັບການສະໝັກ ແລະ ລາຍລະອຽດວຽກແບບສາທາລະນະ "
-"ຫາກທ່ານໃຊ້ແອັບເວັບໄຊທ໌."
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Let's have a look at how to <b>improve</b> your <b>hiring process</b>."
-msgstr "ມາເບິ່ງວິທີການ <b>ປັບປຸງ</b> <b>ຂະບວນການຈ້າງງານ</b> ຂອງທ່ານ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Let’s create this new employee now."
-msgstr "ມາສ້າງພະນັກງານໃໝ່ຜູ້ນີ້ເລີຍ."
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Let’s go back to the dashboard."
-msgstr "ກັບໄປທີ່ໜ້າດັສບອດ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__linkedin_profile
 msgid "LinkedIn Profile"
-msgstr "ໂປຣໄຟລ໌ LinkedIn"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.server,name:hr_recruitment.action_load_demo_data
@@ -2133,60 +2132,77 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__template_id
 msgid "Mail Template"
-msgstr "ແພັດເບບເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_main_attachment_id
 msgid "Main Attachment"
-msgstr "ເອກະສານຄັດຕິດຫຼັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.degree,name:hr_recruitment.degree_licenced
 msgid "Master Degree"
-msgstr "ປະລິນຍາໂທ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__salary_max
+msgid "Maximum Salary"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__medium_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__medium_id
 msgid "Medium"
-msgstr "ຊ່ອງທາງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_utm_mediums
 msgid "Mediums"
-msgstr "ຊ່ອງທາງຕ່າງໆ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__meeting_display_date
 msgid "Meeting Display Date"
-msgstr "ວັນທີສະແດງການປະຊຸມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__meeting_display_text
 msgid "Meeting Display Text"
-msgstr "ຂໍ້ຄວາມສະແດງການປະຊຸມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__meeting_ids
 msgid "Meetings"
-msgstr "ການປະຊຸມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_ir_ui_menu
 msgid "Menu"
-msgstr "ເມນູ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_has_error
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_has_error
 msgid "Message Delivery error"
-msgstr "ຂໍ້ຜິດພາດໃນການສົ່ງຂໍ້ຄວາມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_ids
 msgid "Messages"
-msgstr "ຂໍ້ຄວາມ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__salary_min
+msgid "Minimum Salary"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__monthly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__monthly
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "Month"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
@@ -2202,68 +2218,67 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__my_activity_date_deadline
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__my_activity_date_deadline
 msgid "My Activity Deadline"
-msgstr "ກຳນົດເວລາການດຳເນີນກິດຈະກຳຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "My Applications"
-msgstr "ໃບສະໝັກຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_job_filter_recruitment
 msgid "My Favorites"
-msgstr "ລາຍການທີ່ຂ້ອຍມັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_search_view
 msgid "My Job Positions"
-msgstr "ຕຳແໜ່ງງານຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__name
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__name
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 msgid "Name"
-msgstr "ຊື່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job0
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 msgid "New"
-msgstr "ໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_department__new_applicant_count
 #: model:mail.message.subtype,name:hr_recruitment.mt_applicant_new
 #: model:mail.message.subtype,name:hr_recruitment.mt_job_applicant_new
 msgid "New Applicant"
-msgstr "ຜູ້ສະໝັກໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_department_view_kanban
 msgid "New Applicants"
-msgstr "ຜູ້ສະໝັກໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_job_new_application
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__new_application_count
 msgid "New Application"
-msgstr "ໃບສະໝັກໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_applicant_action_from_department
 msgid "New Applications"
-msgstr "ໃບສະໝັກໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_digest_digest__kpi_hr_recruitment_new_colleagues
 msgid "New Employees"
-msgstr "ພະນັກງານໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_department__new_hired_employee
 msgid "New Hired Employee"
-msgstr "ພະນັກງານທີ່ຮັບໃໝ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,name:hr_recruitment.mt_talent_new
@@ -2274,43 +2289,43 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_tree_activity
 msgid "Next Activities"
-msgstr "ກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_calendar_event_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "ເຫດການປະຕິທິນກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_date_deadline
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "ກຳນົດເວລາການດຳເນີນກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_summary
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_summary
 msgid "Next Activity Summary"
-msgstr "ສະຫຼຸບກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_type_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_type_id
 msgid "Next Activity Type"
-msgstr "ປະເພດກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "Next Meeting"
-msgstr "ການປະຊຸມຄັ້ງຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "No Meeting"
-msgstr "ບໍ່ມີການປະຊຸມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_talent_pool_applications
@@ -2327,7 +2342,7 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_applications
 #: model_terms:ir.actions.act_window,help:hr_recruitment.crm_case_categ0_act_job
 msgid "No applications yet"
-msgstr "ຍັງບໍ່ມີໃບສະໝັກເທື່ອ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.mail_activity_type_action_config_hr_applicant
@@ -2339,7 +2354,12 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_recruitment_report_filtered_job
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_applicant_action_analysis
 msgid "No data yet!"
-msgstr "ຍັງບໍ່ມີຂໍ້ມູນເທື່ອ!"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "No email"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_platforms
@@ -2354,7 +2374,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__priority__0
 msgid "Normal"
-msgstr "ປົກກະຕິ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__email_normalized
@@ -2370,19 +2390,19 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_needaction_counter
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_needaction_counter
 msgid "Number of Actions"
-msgstr "ຈຳນວນການດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__attachment_number
 msgid "Number of Attachments"
-msgstr "ຈຳນວນເອກະສານຄັດຕິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__new_application_count
 msgid ""
 "Number of applications that are new in the flow (typically at first step of "
 "the flow)"
-msgstr "ຈຳນວນໃບສະໝັກທີ່ເຂົ້າມາໃໝ່ໃນຂະບວນການ (ໂດຍປົກກະຕິແມ່ນຢູ່ໃນຂັ້ນຕອນທຳອິດ)"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__open_application_count
@@ -2392,7 +2412,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__delay_close
 msgid "Number of days to close"
-msgstr "ຈຳນວນມື້ກ່ອນປິດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__no_of_employee
@@ -2403,7 +2423,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_has_error_counter
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_has_error_counter
 msgid "Number of errors"
-msgstr "ຈຳນວນຂໍ້ຜິດພາດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__no_of_hired_employee
@@ -2421,7 +2441,7 @@ msgstr ""
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__message_has_error_counter
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "ຈຳນວນຂໍ້ຄວາມທີ່ມີຂໍ້ຜິດພາດໃນການສົ່ງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_applications
@@ -2431,30 +2451,28 @@ msgid ""
 "                process and follow up all operations: meetings, interviews, "
 "etc."
 msgstr ""
-"Odoo ຊ່ວຍໃຫ້ທ່ານຕິດຕາມຜູ້ສະໝັກໃນຂະບວນການ\n"
-"                ຮັບສະໝັກ ແລະ ຕິດຕາມການດຳເນີນງານທັງໝົດ: ການປະຊຸມ, ການສຳພາດ, ແລະ ອື່ນໆ."
 
 #. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_hr_recruitment_user
 msgid "Officer: Manage all applicants"
-msgstr "ເຈົ້າໜ້າທີ່: ຈັດການຜູ້ສະໝັກທັງໝົດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__old_application_count
 msgid "Old Application"
-msgstr "ໃບສະໝັກເກົ່າ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__application_status__ongoing
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 msgid "Ongoing"
-msgstr "ກຳລັງດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_res_config_settings__module_website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Online Posting"
-msgstr "ການປະກາດທາງອອນລາຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__open_application_count
@@ -2473,8 +2491,6 @@ msgid ""
 "attached, even if they did not reply to it. If set, this will disable the "
 "creation of new records completely."
 msgstr ""
-"ໄອດີທາງເລືອກຂອງເທຣດ (ບັນທຶກ) ທີ່ຂໍ້ຄວາມຂາເຂົ້າທັງໝົດຈະຖືກແນບໃສ່, "
-"ເຖິງແມ່ນວ່າພວກເຂົາຈະບໍ່ໄດ້ຕອບກັບມັນກໍຕາມ. ຫາກຕັ້ງໄວ້, ມັນຈະປິດການສ້າງບັນທຶກໃໝ່ໂດຍສິ້ນເຊີງ."
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_applicant_get_refuse_reason__lang
@@ -2490,11 +2506,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Or talk about this applicant privately with your colleagues."
-msgstr "ຫຼື ສົນທະນາກ່ຽວກັບຜູ້ສະໝັກຜູ້ນີ້ເປັນສ່ວນຕົວກັບເພື່ອນຮ່ວມງານຂອງທ່ານ."
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_waiting
-msgid "Orange Kanban Label"
 msgstr ""
 
 #. module: hr_recruitment
@@ -2505,12 +2516,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_parent_model_id
 msgid "Parent Model"
-msgstr "ໂມເດວແມ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_parent_thread_id
 msgid "Parent Record Thread ID"
-msgstr "ໄອດີເທຣດຂອງບັນທຶກແມ່"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_parent_model_id
@@ -2519,13 +2530,11 @@ msgid ""
 "necessarily the model given by alias_model_id (example: project "
 "(parent_model) and task (model))"
 msgstr ""
-"ໂມເດວແມ່ທີ່ມີນາມແຝງ. ໂມເດວທີ່ມີການອ້າງອີງນາມແຝງບໍ່ຈຳເປັນຕ້ອງເປັນໂມເດວທີ່ລະບຸໂດຍ "
-"alias_model_id (ຕົວຢ່າງ: ໂຄງການ (ໂມເດວແມ່) ແລະ ໜ້າວຽກ (ໂມເດວ))"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__partner_phone
 msgid "Phone"
-msgstr "ເບີໂທລະສັບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__phone_sanitized_blacklisted
@@ -2541,7 +2550,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "Please provide an applicant name."
-msgstr "ກະລຸນາລະບຸຊື່ຜູ້ສະໝັກ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_contact
@@ -2552,10 +2561,6 @@ msgid ""
 "- followers: only followers of the related document or members of following "
 "channels\n"
 msgstr ""
-"ນະໂຍບາຍການໂພສຂໍ້ຄວາມໃນເອກະສານໂດຍໃຊ້ mailgateway.\n"
-"- ທຸກຄົນ: ທຸກຄົນສາມາດໂພສໄດ້\n"
-"- ຄູ່ຮ່ວມງານ: ສະເພາະຄູ່ຮ່ວມງານທີ່ໄດ້ຮັບການຢືນຢັນຕົວຕົນເທົ່ານັ້ນ\n"
-"- ຜູ້ຕິດຕາມ: ສະເພາະຜູ້ຕິດຕາມເອກະສານທີ່ກ່ຽວຂ້ອງ ຫຼື ສະມາຊິກຂອງຊ່ອງທາງທີ່ຕິດຕາມເທົ່ານັ້ນ\n"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__pool_applicant_id
@@ -2570,7 +2575,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__probability
 msgid "Probability"
-msgstr "ຄວາມເປັນໄປໄດ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
@@ -2592,11 +2597,11 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__salary_proposed_extra
 msgid "Proposed Salary Extra"
-msgstr "ສະຫວັດດີການອື່ນໆທີ່ສະເໜີ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
-msgid "Publish job offers on your website"
+msgid "Publish job opportunities on your website"
 msgstr ""
 
 #. module: hr_recruitment
@@ -2608,28 +2613,24 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__rating_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__rating_ids
 msgid "Ratings"
-msgstr "ການໃຫ້ຄະແນນ"
+msgstr ""
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__done
+msgid "Ready"
+msgstr ""
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Ready for Next Stage"
-msgstr "ພ້ອມສຳລັບຂັ້ນຕອນຖັດໄປ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/views/recruitment_helper_view.xml:0
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_config
 msgid "Ready to recruit more efficiently?"
-msgstr "ພ້ອມທີ່ຈະຮັບສະໝັກພະນັກງານຢ່າງມີປະສິດທິພາບຫຼາຍຂຶ້ນແລ້ວບໍ່?"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
@@ -2639,13 +2640,18 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_force_thread_id
 msgid "Record Thread ID"
-msgstr "ໄອດີເທຣດຂອງບັນທຶກ"
+msgstr ""
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__user_id
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__user_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__recruiter_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__recruiter_id
 msgid "Recruiter"
-msgstr "ຜູ້ຮັບສະໝັກ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__recruiter_email
+msgid "Recruiter Work Email"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_root
@@ -2654,12 +2660,12 @@ msgstr "ຜູ້ຮັບສະໝັກ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_department_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Recruitment"
-msgstr "ການຮັບສະໝັກພະນັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_job_stage_act
 msgid "Recruitment / Applicants Stages"
-msgstr "ຂັ້ນຕອນການຮັບສະໝັກ / ຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_recruitment_report_filtered_department
@@ -2670,7 +2676,7 @@ msgstr "ຂັ້ນຕອນການຮັບສະໝັກ / ຜູ້ສະ
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_pivot
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 msgid "Recruitment Analysis"
-msgstr "ການວິເຄາະການຮັບສະໝັກງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.mail_activity_plan_action_config_hr_applicant
@@ -2679,33 +2685,33 @@ msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_recruitment_stage
-msgid "Recruitment Stages"
-msgstr "ຂັ້ນຕອນການຮັບສະໝັກງານ"
+msgid "Recruitment Stage"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,name:hr_recruitment.email_template_data_applicant_congratulations
 msgid "Recruitment: Application Acknowledgement"
-msgstr "ການຮັບສະໝັກ: ການຕອບຮັບໃບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,name:hr_recruitment.email_template_data_applicant_interest
 msgid "Recruitment: Interest"
-msgstr "ການຮັບສະໝັກ: ຄວາມສົນໃຈ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,name:hr_recruitment.email_template_data_applicant_not_interested
 msgid "Recruitment: Not interested anymore"
-msgstr "ການຮັບສະໝັກ: ບໍ່ສົນໃຈແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,name:hr_recruitment.email_template_data_applicant_refuse
 msgid "Recruitment: Refuse"
-msgstr "ການຮັບສະໝັກ: ປະຕິເສດ"
+msgstr ""
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_blocked
-msgid "Red Kanban Label"
-msgstr "ປ້າຍ Kanban ສີແດງ"
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "Reference"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
@@ -2713,7 +2719,7 @@ msgstr "ປ້າຍ Kanban ສີແດງ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Refuse"
-msgstr "ປະຕິເສດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__refuse_date
@@ -2736,18 +2742,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_refuse_reason_view_tree
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Refuse Reason"
-msgstr "ເຫດຜົນການປະຕິເສດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_applicant_refuse_reason
 msgid "Refuse Reason of Applicant"
-msgstr "ເຫດຜົນການປະຕິເສດຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_applicant_refuse_reason_action
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_applicant_refuse_reason
 msgid "Refuse Reasons"
-msgstr "ເຫດຜົນການປະຕິເສດຕ່າງໆ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__application_status__refused
@@ -2756,7 +2762,7 @@ msgstr "ເຫດຜົນການປະຕິເສດຕ່າງໆ"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Refused"
-msgstr "ປະຕິເສດແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -2782,6 +2788,11 @@ msgid "Regex"
 msgstr ""
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__model
+msgid "Related Document Model"
+msgstr ""
+
+#. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_job.py:0
 msgid "Related Employees"
@@ -2790,58 +2801,62 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
 msgid "Remote"
-msgstr "ເຮັດວຽກທາງໄກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__render_model
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__render_model
 msgid "Rendering Model"
-msgstr "ໂມເດວການສະແດງຜົນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.report_hr_recruitment
 msgid "Reporting"
-msgstr "ການລາຍງານ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__requirements
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__requirements
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
 msgid "Requirements"
-msgstr "ຄວາມຕ້ອງການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Responsible"
-msgstr "ຜູ້ຮັບຜິດຊອບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_user_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_user_id
 msgid "Responsible User"
-msgstr "ຜູ້ໃຊ້ທີ່ຮັບຜິດຊອບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "Restore"
-msgstr "ຄືນຄ່າ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Resume's content"
-msgstr "ເນື້ອໃນຊີວະປະຫວັດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_rotting
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Rotting"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Rotting in"
 msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Running Applicants"
-msgstr "ຜູ້ສະໝັກທີ່ກຳລັງດຳເນີນການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
@@ -2852,17 +2867,17 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__message_has_sms_error
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr "ຂໍ້ຜິດພາດໃນການສົ່ງ SMS"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__salary_expected
 msgid "Salary Expected by Applicant"
-msgstr "ເງິນເດືອນທີ່ຜູ້ສະໝັກຕ້ອງການ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__salary_expected_extra
 msgid "Salary Expected by Applicant, extra advantages"
-msgstr "ເງິນເດືອນທີ່ຜູ້ສະໝັກຕ້ອງການ, ລວມທັງຜົນປະໂຫຍດເພີ່ມເຕີມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -2872,12 +2887,17 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__salary_proposed
 msgid "Salary Proposed by the Organisation"
-msgstr "ເງິນເດືອນທີ່ບໍລິສັດສະເໜີໃຫ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__salary_proposed_extra
 msgid "Salary Proposed by the Organisation, extra advantages"
-msgstr "ເງິນເດືອນທີ່ບໍລິສັດສະເໜີໃຫ້, ລວມທັງຜົນປະໂຫຍດເພີ່ມເຕີມ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
+msgid "Salary Range"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__phone_sanitized
@@ -2893,16 +2913,26 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Save it!"
-msgstr "ບັນທຶກເລີຍ!"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Schedule Interview"
-msgstr "ນັດໝາຍການສຳພາດ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__schedule_pay
+msgid "Schedule Pay"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__scheduled_date
 msgid "Scheduled Date"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__payment_interval
+msgid "Scheduled Pay"
 msgstr ""
 
 #. module: hr_recruitment
@@ -2918,17 +2948,17 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Search Applicants"
-msgstr "ຄົ້ນຫາຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_source_view_search
 msgid "Search Source"
-msgstr "ຄົ້ນຫາແຫຼ່ງທີ່ມາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job3
 msgid "Second Interview"
-msgstr "ການສຳພາດຄັ້ງທີ 2"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -2955,12 +2985,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_send_mail_view_form
 msgid "Send"
-msgstr "ສົ່ງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_res_config_settings__module_hr_recruitment_extract
 msgid "Send CV to OCR to fill applications"
-msgstr "ສົ່ງ CV ໄປທີ່ OCR ເພື່ອຕື່ມຂໍ້ມູນການສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -2968,23 +2998,23 @@ msgstr "ສົ່ງ CV ໄປທີ່ OCR ເພື່ອຕື່ມຂໍ້
 #: model:ir.actions.server,name:hr_recruitment.action_applicant_send_mail
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__send_mail
 msgid "Send Email"
-msgstr "ສົ່ງອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Send Interview Survey"
-msgstr "ສົ່ງແບບສຳຫຼວດການສຳພາດ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Send SMS"
-msgstr "ສົ່ງ SMS"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid ""
 "Send an Interview Survey to the applicant during the recruitment process"
-msgstr "ສົ່ງແບບສຳຫຼວດການສຳພາດໃຫ້ຜູ້ສະໝັກໃນລະຫວ່າງຂະບວນການຮັບສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -2995,18 +3025,18 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_applicant_send_mail
 msgid "Send mails to applicants"
-msgstr "ສົ່ງເມວຫາຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
 msgid "Send texts to your contacts"
-msgstr "ສົ່ງຂໍ້ຄວາມຫາຜູ້ຕິດຕໍ່ຂອງທ່ານ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Send your email. Followers will get a copy of the communication."
-msgstr "ສົ່ງອີເມວຂອງທ່ານ. ຜູ້ຕິດຕາມຈະໄດ້ຮັບສຳເນົາຂອງການສື່ສານນີ້."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__sequence
@@ -3014,20 +3044,20 @@ msgstr "ສົ່ງອີເມວຂອງທ່ານ. ຜູ້ຕິດຕ�
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__sequence
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__sequence
 msgid "Sequence"
-msgstr "ລຳດັບ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,description:hr_recruitment.email_template_data_applicant_interest
 msgid ""
 "Set this template to a recruitment stage to send it when applications reach "
 "that stage"
-msgstr "ຕັ້ງແພັດເບບນີ້ໃສ່ຂັ້ນຕອນການຮັບສະໝັກ ເພື່ອສົ່ງມັນເມື່ອໃບສະໝັກມາຮອດຂັ້ນຕອນນັ້ນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_recruitment_configuration
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_global_settings
 msgid "Settings"
-msgstr "ການຕັ້ງຄ່າ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
@@ -3035,25 +3065,30 @@ msgid "Show all records whose next activity date is past"
 msgstr ""
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Show for all positions"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__source_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__source_id
 msgid "Source"
-msgstr "ແຫຼ່ງທີ່ມາ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_recruitment_source
 msgid "Source of Applicants"
-msgstr "ແຫຼ່ງທີ່ມາຂອງຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_utm_sources
 msgid "Sources"
-msgstr "ແຫຼ່ງທີ່ມາຕ່າງໆ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_source_tree
 msgid "Sources of Applicants"
-msgstr "ແຫຼ່ງທີ່ມາຂອງຜູ້ສະໝັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -3086,41 +3121,41 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
 msgid "Stage"
-msgstr "ຂັ້ນຕອນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,name:hr_recruitment.mt_applicant_stage_changed
 msgid "Stage Changed"
-msgstr "ປ່ຽນຂັ້ນຕອນແລ້ວ"
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid "Stage Definition"
-msgstr "ການກຳນົດຂັ້ນຕອນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__name
 msgid "Stage Name"
-msgstr "ຊື່ຂັ້ນຕອນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.message.subtype,description:hr_recruitment.mt_applicant_stage_changed
 msgid "Stage changed"
-msgstr "ປ່ຽນຂັ້ນຕອນແລ້ວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__last_stage_id
 msgid ""
 "Stage of the applicant before being in the current stage. Used for lost "
 "cases analysis."
-msgstr "ຂັ້ນຕອນຂອງຜູ້ສະໝັກກ່ອນທີ່ຈະມາຢູ່ຂັ້ນຕອນປັດຈຸບັນ. ໃຊ້ສຳລັບການວິເຄາະກໍລະນີທີ່ພາດໄປ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_recruitment_stage_act
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_stage
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_tree
 msgid "Stages"
-msgstr "ຂັ້ນຕອນຕ່າງໆ"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
+msgid "State"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__activity_state
@@ -3131,10 +3166,6 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"ສະຖານະຕາມກິດຈະກຳ\n"
-"ກາຍກຳນົດ: ວັນຄົບກຳນົດໄດ້ຜ່ານໄປແລ້ວ\n"
-"ມື້ນີ້: ວັນທີກິດຈະກຳແມ່ນມື້ນີ້\n"
-"ວາງແຜນໄວ້: ກິດຈະກຳໃນອະນາຄົດ."
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__duration_tracking
@@ -3145,7 +3176,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__subject
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__subject
 msgid "Subject"
-msgstr "ຫົວຂໍ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
@@ -3153,26 +3184,35 @@ msgid "Subject..."
 msgstr ""
 
 #. module: hr_recruitment
+#: model:ir.model,name:hr_recruitment.model_hr_job_tag
+msgid "Tag"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__name
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__name
 msgid "Tag Name"
-msgstr "ຊື່ແທັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.constraint,message:hr_recruitment.constraint_hr_applicant_category_name_uniq
 msgid "Tag name already exists!"
-msgstr "ຊື່ແທັກນີ້ມີຢູ່ແລ້ວ!"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_applicant_category_action
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__categ_ids
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__tag_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__categ_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__categ_ids
 #: model:ir.ui.menu,name:hr_recruitment.hr_applicant_category_menu
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_category_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_category_view_tree
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_tag_view_form
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_tag_view_list
 msgid "Tags"
-msgstr "ແທັກ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__talent_ids
@@ -3201,11 +3241,13 @@ msgstr ""
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__talent_pool_ids
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Talent Pools"
 msgstr ""
 
 #. module: hr_recruitment
-#: model:mail.message.subtype,description:hr_recruitment.mt_talent_new
+#. odoo-python
+#: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "Talent created"
 msgstr ""
 
@@ -3223,6 +3265,12 @@ msgid "Talents"
 msgstr ""
 
 #. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/wizard/talent_pool_add_applicants.py:0
+msgid "Talents Added To Talent Pool(s)"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.constraint,message:hr_recruitment.constraint_hr_job_platform_email_uniq
 msgid ""
 "The Email must be unique, this one already corresponds to another Job "
@@ -3237,12 +3285,9 @@ msgid ""
 "they can refuse him. You don't need to have Recruitment rights to be set as "
 "an interviewer."
 msgstr ""
-"ຜູ້ສຳພາດທີ່ຖືກຕັ້ງໄວ້ໃນຕຳແໜ່ງງານສາມາດເຫັນຜູ້ສະໝັກທັງໝົດໃນນັ້ນ. ພວກເຂົາສາມາດເຂົ້າເຖິງຂໍ້ມູນ, "
-"ເອກະສານຄັດຕິດ, ການຈັດການການປະຊຸມ ແລະ ສາມາດປະຕິເສດຜູ້ສະໝັກໄດ້. "
-"ທ່ານບໍ່ຈຳເປັນຕ້ອງມີສິດໃນການຮັບສະໝັກກໍສາມາດຖືກຕັ້ງເປັນຜູ້ສຳພາດໄດ້."
 
 #. module: hr_recruitment
-#: model:ir.model.fields,help:hr_recruitment.field_hr_job__user_id
+#: model:ir.model.fields,help:hr_recruitment.field_hr_job__recruiter_id
 msgid ""
 "The Recruiter will be the default value for all Applicants in this "
 "job             position. The Recruiter is automatically added to all "
@@ -3255,18 +3300,18 @@ msgstr ""
 msgid ""
 "The UTM campaign '%s' cannot be deleted as it is used in the recruitment "
 "process."
-msgstr "ແຄມເປນ UTM '%s' ບໍ່ສາມາດລຶບໄດ້ ເນື່ອງຈາກມັນຖືກໃຊ້ໃນຂະບວນການຮັບສະໝັກງານ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__availability
 msgid "The date at which the applicant will be available to start working"
-msgstr "ວັນທີທີ່ຜູ້ສະໝັກພ້ອມທີ່ຈະເລີ່ມວຽກ"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/wizard/applicant_send_mail.py:0
 msgid "The following applicants are missing an email address: %s."
-msgstr "ຜູ້ສະໝັກດັ່ງຕໍ່ໄປນີ້ບໍ່ມີທີ່ຢູ່ອີເມວ: %s."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_model_id
@@ -3275,13 +3320,11 @@ msgid ""
 "email that does not reply to an existing record will cause the creation of a "
 "new record of this model (e.g. a Project Task)"
 msgstr ""
-"ໂມເດວ (ປະເພດເອກະສານ Odoo) ທີ່ນາມແຝງນີ້ກ່ຽວຂ້ອງ. ອີເມວຂາເຂົ້າໃດໆທີ່ບໍ່ໄດ້ຕອບກັບບັນທຶກທີ່ມີຢູ່ "
-"ຈະເຮັດໃຫ້ເກີດການສ້າງບັນທຶກໃໝ່ຂອງໂມເດວນີ້ (ຕົວຢ່າງ: ໜ້າວຽກໂຄງການ)"
 
 #. module: hr_recruitment
 #: model:ir.model.constraint,message:hr_recruitment.constraint_hr_recruitment_degree_name_uniq
 msgid "The name of the Degree of Recruitment must be unique!"
-msgstr "ຊື່ລະດັບການສຶກສາສຳລັບການຮັບສະໝັກງານຕ້ອງບໍ່ຊ້ຳກັນ!"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_name
@@ -3289,7 +3332,6 @@ msgid ""
 "The name of the email alias, e.g. 'jobs' if you want to catch emails for "
 "<jobs@example.odoo.com>"
 msgstr ""
-"ຊື່ຂອງນາມແຝງອີເມວ, ເຊັ່ນ: 'jobs' ຫາກທ່ານຕ້ອງການຮັບອີເມວສຳລັບ <jobs@example.odoo.com>"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__no_of_talents
@@ -3301,14 +3343,6 @@ msgstr ""
 msgid ""
 "The regex facilitates to extract information from the subject or body of the "
 "received email to autopopulate the Applicant's name field"
-msgstr ""
-
-#. module: hr_recruitment
-#. odoo-javascript
-#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
-msgid ""
-"These job positions and all related applicants will be archived. Are you "
-"sure?"
 msgstr ""
 
 #. module: hr_recruitment
@@ -3331,8 +3365,6 @@ msgid ""
 "This is a name that helps you keep track of your different campaign efforts, "
 "e.g. Fall_Drive, Christmas_Special"
 msgstr ""
-"ນີ້ແມ່ນຊື່ທີ່ຊ່ວຍໃຫ້ທ່ານຕິດຕາມຄວາມພະຍາຍາມໃນແຄມເປນຕ່າງໆຂອງທ່ານ, ເຊັ່ນ: Fall_Drive, "
-"Christmas_Special"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__source_id
@@ -3340,29 +3372,19 @@ msgid ""
 "This is the source of the link, e.g. Search Engine, another domain, or name "
 "of email list"
 msgstr ""
-"ນີ້ແມ່ນແຫຼ່ງທີ່ມາຂອງລິ້ງ, ເຊັ່ນ: ເຄື່ອງມືຄົ້ນຫາ (Search Engine), ໂດເມນອື່ນ, ຫຼື ຊື່ຂອງລາຍຊື່ອີເມວ"
-
-#. module: hr_recruitment
-#. odoo-javascript
-#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
-#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
-#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
-msgid ""
-"This job position and all related applicants will be archived. Are you sure?"
-msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__fold
 msgid ""
 "This stage is folded in the kanban view when there are no records in that "
 "stage to display."
-msgstr "ຂັ້ນຕອນນີ້ຈະຖືກພັບໄວ້ໃນມຸມມອງ kanban ເມື່ອບໍ່ມີບັນທຶກໃນຂັ້ນຕອນນັ້ນທີ່ຈະສະແດງ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:digest.tip,name:hr_recruitment.digest_tip_hr_recruitment_0
 #: model_terms:digest.tip,tip_description:hr_recruitment.digest_tip_hr_recruitment_0
 msgid "Tip: Let candidates apply by email"
-msgstr "ຄຳແນະນຳ: ໃຫ້ຜູ້ສະໝັກສະໝັກຜ່ານທາງອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__name
@@ -3372,12 +3394,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Today Activities"
-msgstr "ກິດຈະກຳມື້ນີ້"
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid "Tooltips"
-msgstr "ຄຳແນະນຳການໃຊ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__expected_employees
@@ -3389,7 +3406,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Trackers"
-msgstr "ຕົວຕິດຕາມ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_talent_pool_applications
@@ -3399,11 +3416,11 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:digest.tip,tip_description:hr_recruitment.digest_tip_hr_recruitment_0
 msgid "Try sending an email"
-msgstr "ລອງສົ່ງອີເມວ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:web_tour.tour,rainbow_man_message:hr_recruitment.hr_recruitment_tour
-msgid "Try the Website app to publish job offers online."
+msgid "Try the Website app to publish job opportunities online."
 msgstr ""
 
 #. module: hr_recruitment
@@ -3417,22 +3434,27 @@ msgstr ""
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__activity_exception_decoration
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "ປະເພດຂອງກິດຈະກຳທີ່ຍົກເວັ້ນໃນບັນທຶກ."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_utm_campaign
 msgid "UTM Campaign"
-msgstr "ແຄມເປນ UTM"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__utm_reference
+msgid "UTM Reference"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_utm_source
 msgid "UTM Source"
-msgstr "ແຫຼ່ງທີ່ມາ UTM"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_utm
 msgid "UTMs"
-msgstr "UTMs"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -3444,14 +3466,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Unarchive"
-msgstr "ຍົກເລີກການເກັບມ້ຽນ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Unassigned"
-msgstr "ຍັງບໍ່ໄດ້ມອບໝາຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
@@ -3466,7 +3488,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_sources
 msgid "Use emails and links trackers"
-msgstr "ໃຊ້ຕົວຕິດຕາມອີເມວ ແລະ ລິ້ງ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
@@ -3475,23 +3497,16 @@ msgid ""
 "process. Select the form to use in the job position detail form. This relies "
 "on the Survey app."
 msgstr ""
-"ໃຊ້ຟອມການສຳພາດທີ່ອອກແບບມາສະເພາະສຳລັບແຕ່ລະຕຳແໜ່ງງານໃນລະຫວ່າງຂະບວນການຮັບສະໝັກ. "
-"ເລືອກຟອມທີ່ຈະໃຊ້ໃນໜ້າລາຍລະອຽດຂອງຕຳແໜ່ງງານ. ສ່ວນນີ້ແມ່ນໃຊ້ງານຮ່ວມກັບແອັບແບບສຳຫຼວດ (Survey)."
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_res_users
 msgid "User"
-msgstr "ຜູ້ໃຊ້"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__user_email
-msgid "User Email"
-msgstr "ອີເມວຜູ້ໃຊ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__priority__2
 msgid "Very Good"
-msgstr "ດີຫຼາຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -3499,14 +3514,6 @@ msgid "Visible to all"
 msgstr ""
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__waiting
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Waiting"
@@ -3515,31 +3522,42 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_sources
 msgid "Want to analyse where applications come from ?"
-msgstr "ຕ້ອງການວິເຄາະວ່າໃບສະໝັກມາຈາກໃສແມ່ນບໍ່?"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__website_message_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__website_message_ids
 msgid "Website Messages"
-msgstr "ຂໍ້ຄວາມຈາກເວັບໄຊທ໌"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__website_message_ids
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__website_message_ids
 msgid "Website communication history"
-msgstr "ປະຫວັດການສື່ສານຜ່ານເວັບໄຊທ໌"
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__weekly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__weekly
+msgid "Week"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "What are the requirements to move an applicant to this stage?"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "What do you want to recruit today? Choose a job title..."
-msgstr "ມື້ນີ້ທ່ານຕ້ອງການຮັບສະໝັກຕຳແໜ່ງໃດ? ເລືອກຊື່ຕຳແໜ່ງງານ..."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,description:hr_recruitment.email_template_data_applicant_not_interested
 #: model:mail.template,description:hr_recruitment.email_template_data_applicant_refuse
 msgid "When you refuse an application, you can choose this template"
-msgstr "ເມື່ອທ່ານປະຕິເສດໃບສະໝັກ, ທ່ານສາມາດເລືອກໃຊ້ແພັດເບບນີ້ໄດ້"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -3554,29 +3572,18 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_send_mail_view_form
 msgid "Write your message here..."
-msgstr "ຂຽນຂໍ້ຄວາມຂອງທ່ານຢູ່ບ່ອນນີ້..."
+msgstr ""
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__yearly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__yearly
+msgid "Year"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "You are not allowed to perform this action."
-msgstr "ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ດຳເນີນການນີ້."
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid ""
-"You can define here the labels that will be displayed for the kanban state "
-"instead\n"
-"                            of the default labels."
-msgstr ""
-"ທ່ານສາມາດກຳນົດປ້າຍຊື່ທີ່ຈະສະແດງສຳລັບສະຖານະ kanban ຢູ່ບ່ອນນີ້\n"
-"                            ແທນປ້າຍຊື່ເລີ່ມຕົ້ນ."
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid ""
-"You can define the requirements here. They will be displayed when you hover "
-"over the stage title."
 msgstr ""
 
 #. module: hr_recruitment
@@ -3596,8 +3603,6 @@ msgid ""
 "recruitment sources in Recruitment:\n"
 "%(recruitment_sources)s"
 msgstr ""
-"ທ່ານບໍ່ສາມາດລຶບແຫຼ່ງທີ່ມາ UTM ເຫຼົ່ານີ້ໄດ້ ເນື່ອງຈາກພວກມັນຖືກເຊື່ອມໂຍງກັບແຫຼ່ງການຮັບສະໝັກດັ່ງຕໍ່ໄປນີ້:\n"
-"%(recruitment_sources)s"
 
 #. module: hr_recruitment
 #. odoo-python
@@ -3621,7 +3626,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "You must define a Contact Name for this applicant."
-msgstr "ທ່ານຕ້ອງລະບຸຊື່ຜູ້ຕິດຕໍ່ສຳລັບຜູ້ສະໝັກຜູ້ນີ້."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:mail.template,subject:hr_recruitment.email_template_data_applicant_congratulations
@@ -3629,7 +3634,7 @@ msgstr "ທ່ານຕ້ອງລະບຸຊື່ຜູ້ຕິດຕໍ່
 #: model:mail.template,subject:hr_recruitment.email_template_data_applicant_not_interested
 #: model:mail.template,subject:hr_recruitment.email_template_data_applicant_refuse
 msgid "Your Job Application: {{ object.job_id.name }}"
-msgstr "ໃບສະໝັກງານຂອງທ່ານ: {{ object.job_id.name }}"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_form
@@ -3644,12 +3649,12 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.quick_create_applicant_form
 msgid "e.g. John Doe"
-msgstr "ຕົວຢ່າງ: ທ້າວ ສົມຊາຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_source_tree
 msgid "e.g. LinkedIn"
-msgstr "ຕົວຢ່າງ: LinkedIn"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_platform_form
@@ -3662,9 +3667,14 @@ msgid "e.g. Masters"
 msgstr ""
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "e.g. Qualification"
+msgstr ""
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "e.g. Sales Manager"
-msgstr "ຕົວຢ່າງ: ຜູ້ຈັດການຝ່າຍຂາຍ"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
@@ -3709,7 +3719,7 @@ msgstr ""
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "e.g. sales-manager"
-msgstr "ຕົວຢ່າງ: sales-manager"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-python
@@ -3719,12 +3729,12 @@ msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "in<br/>progress"
+msgid "in<br/><span class=\"text-nowrap\">progress</span>"
 msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "new<br/>applications"
+msgid "new<br/><span class=\"text-nowrap\">applications</span>"
 msgstr ""
 
 #. module: hr_recruitment
@@ -3748,934 +3758,5 @@ msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "to<br/>recruit"
+msgid "to<br/><span class=\"text-nowrap\">recruit</span>"
 msgstr ""
-
-#~ msgid ""
-#~ "<div>Great job! You hired a new colleague!</div><div>Try the Website app "
-#~ "to publish job offers online.</div>"
-#~ msgstr ""
-#~ "<div>ເກັ່ງຫຼາຍ! ທ່ານໄດ້ຮັບເພື່ອນຮ່ວມງານໃໝ່ແລ້ວ!</"
-#~ "div><div>ລອງໃຊ້ແອັບເວັບໄຊທ໌ເພື່ອປະກາດຮັບສະໝັກງານທາງອອນລາຍ.</div>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"Company\" "
-#~ "title=\"Company\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-building-o\" role=\"img\" aria-label=\"ບໍລິສັດ\" "
-#~ "title=\"ບໍລິສັດ\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-envelope-o\" role=\"img\" aria-label=\"Alias\" "
-#~ "title=\"Alias\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-envelope-o\" role=\"img\" aria-label=\"ນາມແຝງ\" "
-#~ "title=\"ນາມແຝງ\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-mobile mr4\" role=\"img\" aria-label=\"Mobile\" "
-#~ "title=\"Mobile\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-mobile mr4\" role=\"img\" aria-label=\"ມືຖື\" title=\"ມືຖື\"/"
-#~ ">"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('address_id', '!=', False)]}\" "
-#~ "class=\"oe_read_only\">Remote</span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('address_id', '!=', False)]}\" "
-#~ "class=\"oe_read_only\">ເຮັດວຽກທາງໄກ</span>"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('is_warning_visible', '=', False)]}\">\n"
-#~ "                                <span class=\"fa fa-exclamation-triangle "
-#~ "text-danger ps-3\">\n"
-#~ "                                </span>\n"
-#~ "                                <span class=\"text-danger\">\n"
-#~ "                                    All applications will lose their "
-#~ "hired date and hired status.\n"
-#~ "                                </span>\n"
-#~ "                            </span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('is_warning_visible', '=', False)]}\">\n"
-#~ "                                <span class=\"fa fa-exclamation-triangle "
-#~ "text-danger ps-3\">\n"
-#~ "                                </span>\n"
-#~ "                                <span class=\"text-danger\">\n"
-#~ "                                    ໃບສະໝັກທັງໝົດຈະສູນເສຍວັນທີຮັບເຂົ້າເຮັດວຽກ ແລະ "
-#~ "ສະຖານະການຈ້າງງານ.\n"
-#~ "                                </span>\n"
-#~ "                            </span>"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible':[('salary_expected_extra','=',False)]}\"> + </"
-#~ "span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible':[('salary_expected_extra','=',False)]}\"> + </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible':[('salary_proposed_extra','=',False)]}\"> + </"
-#~ "span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible':[('salary_proposed_extra','=',False)]}\"> + </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"badge rounded-pill text-bg-danger float-end me-4\" "
-#~ "attrs=\"{'invisible': [('application_status', '!=', 'refused')]}"
-#~ "\">Refused</span>\n"
-#~ "                            <span class=\"badge rounded-pill text-bg-"
-#~ "secondary float-end me-4\" attrs=\"{'invisible': [('application_status', "
-#~ "'!=', 'archived')]}\">Archived</span>"
-#~ msgstr ""
-#~ "<span class=\"badge rounded-pill text-bg-danger float-end me-4\" "
-#~ "attrs=\"{'invisible': [('application_status', '!=', 'refused')]}"
-#~ "\">ປະຕິເສດແລ້ວ</span>\n"
-#~ "                            <span class=\"badge rounded-pill text-bg-"
-#~ "secondary float-end me-4\" attrs=\"{'invisible': [('application_status', "
-#~ "'!=', 'archived')]}\">ເກັບມ້ຽນແລ້ວ</span>"
-
-#~ msgid "<span class=\"o_stat_text\">Trackers</span>"
-#~ msgstr "<span class=\"o_stat_text\">ຕົວຕິດຕາມ</span>"
-
-#~ msgid "<span class=\"text-bg-success\">Hired</span>"
-#~ msgstr "<span class=\"text-bg-success\">ຮັບເຂົ້າເຮັດວຽກແລ້ວ</span>"
-
-#~ msgid "<span>Folded in Recruitment Pipe: </span>"
-#~ msgstr "<span>ພັບໄວ້ໃນຂັ້ນຕອນການຮັບສະໝັກ: </span>"
-
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"background-color: white; border-collapse: collapse; margin-left: "
-#~ "20px;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\" style=\"padding: 0px 10px;\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                Hello,\n"
-#~ "                <br><br>\n"
-#~ "                We confirm we successfully received your application for "
-#~ "the job\n"
-#~ "                \"<a t-att-href=\"hasattr(object.job_id, 'website_url') "
-#~ "and object.job_id.website_url or ''\" style=\"color:#9A6C8E;\"><strong t-"
-#~ "out=\"object.job_id.name or ''\">Experienced Developer</strong></a>\" at "
-#~ "<strong t-out=\"object.company_id.name or ''\">YourCompany</strong>.\n"
-#~ "                <br><br>\n"
-#~ "                We will come back to you shortly.\n"
-#~ "\n"
-#~ "                <div t-if=\"'website_url' in object.job_id and "
-#~ "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
-#~ "                    <a t-att-href=\"object.job_id.website_url\" "
-#~ "style=\"background-color: #875a7b; text-decoration: none; color: #fff; "
-#~ "padding: 8px 16px 8px 16px; border-radius: 5px;\">Job Description</a>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-if=\"object.user_id\">\n"
-#~ "                    <h3 style=\"color:#9A6C8E;\"><strong>Your Contact:</"
-#~ "strong></h3>\n"
-#~ "                    <p>\n"
-#~ "                        <strong t-out=\"object.user_id.name or "
-#~ "''\">Mitchell Admin</strong><br>\n"
-#~ "                        <span>Email: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t></span><br>\n"
-#~ "                        <span>Phone: <t t-out=\"object.user_id.phone or "
-#~ "''\">+1 650-123-4567</t></span>\n"
-#~ "                    </p>\n"
-#~ "                    <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                </t>\n"
-#~ "\n"
-#~ "                <h3 style=\"color:#9A6C8E;\"><strong>What is the next "
-#~ "step?</strong></h3>\n"
-#~ "                We usually <strong>answer applications within a few days."
-#~ "</strong><br><br>\n"
-#~ "                Feel free to <strong>contact us if you want a faster\n"
-#~ "                feedback</strong> or if you don't get news from us\n"
-#~ "                quickly enough (just reply to this email).\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 17px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-set=\"location\" t-value=\"''\"></t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.name\">\n"
-#~ "                    <strong t-out=\"object.job_id.address_id.name or "
-#~ "''\">Teksa SpA</strong><br>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street or "
-#~ "''\">Puerto Madero 9710</t><br>\n"
-#~ "                    <t t-set=\"location\" t-"
-#~ "value=\"object.job_id.address_id.street\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street2\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street2 or "
-#~ "''\">Of A15, Santiago (RM)</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.street2)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.city\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.city or "
-#~ "''\">Pudahuel</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.city)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.state_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.state_id.name or "
-#~ "''\">C1</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.state_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.zip\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.zip or "
-#~ "''\">98450</t>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.zip)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "                <t t-if=\"object.job_id.address_id.country_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.country_id.name "
-#~ "or ''\">Argentina</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.country_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>"
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"background-color: white; border-collapse: collapse; margin-left: "
-#~ "20px;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\" style=\"padding: 0px 10px;\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                ສະບາຍດີ,\n"
-#~ "                <br><br>\n"
-#~ "                ພວກເຮົາຂໍຢືນຢັນວ່າໄດ້ຮັບໃບສະໝັກວຽກຂອງທ່ານແລ້ວ ສຳລັບຕຳແໜ່ງ\n"
-#~ "                \"<a t-att-href=\"hasattr(object.job_id, 'website_url') "
-#~ "and object.job_id.website_url or ''\" style=\"color:#9A6C8E;\"><strong t-"
-#~ "out=\"object.job_id.name or ''\">Experienced Developer</strong></a>\" ທີ່ "
-#~ "<strong t-out=\"object.company_id.name or ''\">YourCompany</strong>.\n"
-#~ "                <br><br>\n"
-#~ "                ພວກເຮົາຈະຕິດຕໍ່ກັບຫາທ່ານໃນໄວໆນີ້.\n"
-#~ "\n"
-#~ "                <div t-if=\"'website_url' in object.job_id and "
-#~ "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
-#~ "                    <a t-att-href=\"object.job_id.website_url\" "
-#~ "style=\"background-color: #875a7b; text-decoration: none; color: #fff; "
-#~ "padding: 8px 16px 8px 16px; border-radius: 5px;\">ລາຍລະອຽດວຽກ</a>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-if=\"object.user_id\">\n"
-#~ "                    <h3 style=\"color:#9A6C8E;\"><strong>ບ່ອນຕິດຕໍ່ຂອງທ່ານ:</"
-#~ "strong></h3>\n"
-#~ "                    <p>\n"
-#~ "                        <strong t-out=\"object.user_id.name or "
-#~ "''\">Mitchell Admin</strong><br>\n"
-#~ "                        <span>ອີເມວ: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t></span><br>\n"
-#~ "                        <span>ເບີໂທລະສັບ: <t t-out=\"object.user_id.phone "
-#~ "or ''\">+1 650-123-4567</t></span>\n"
-#~ "                    </p>\n"
-#~ "                    <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                </t>\n"
-#~ "\n"
-#~ "                <h3 style=\"color:#9A6C8E;\"><strong>ຂັ້ນຕອນຕໍ່ໄປແມ່ນຫຍັງ?</"
-#~ "strong></h3>\n"
-#~ "                ໂດຍປົກກະຕິແລ້ວ ພວກເຮົາຈະ <strong>ຕອບກັບໃບສະໝັກພາຍໃນບໍ່ເທົ່າໃດມື້.</"
-#~ "strong><br><br>\n"
-#~ "                ທ່ານສາມາດ <strong>ຕິດຕໍ່ຫາພວກເຮົາໄດ້ຕະຫຼອດ "
-#~ "ຫາກຕ້ອງການຜົນຕອບຮັບທີ່ໄວຂຶ້ນ</strong> ຫຼື ຫາກທ່ານບໍ່ໄດ້ຮັບຂ່າວຄາວຈາກພວກເຮົາໄວພໍ "
-#~ "(ພຽງແຕ່ຕອບກັບອີເມວສະບັບນີ້).\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 17px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-set=\"location\" t-value=\"''\"></t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.name\">\n"
-#~ "                    <strong t-out=\"object.job_id.address_id.name or "
-#~ "''\">Teksa SpA</strong><br>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street or "
-#~ "''\">Puerto Madero 9710</t><br>\n"
-#~ "                    <t t-set=\"location\" t-"
-#~ "value=\"object.job_id.address_id.street\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street2\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street2 or "
-#~ "''\">Of A15, Santiago (RM)</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.street2)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.city\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.city or "
-#~ "''\">Pudahuel</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.city)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.state_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.state_id.name or "
-#~ "''\">C1</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.state_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.zip\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.zip or "
-#~ "''\">98450</t>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.zip)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "                <t t-if=\"object.job_id.address_id.country_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.country_id.name "
-#~ "or ''\">Argentina</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.country_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>"
-
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"background-color: white; border-collapse: collapse; margin-left: "
-#~ "20px;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\" style=\"padding: 0px 10px;\">\n"
-#~ "            <div style=\"text-align: center\">\n"
-#~ "                <h2>Congratulations!</h2>\n"
-#~ "                <div style=\"color:grey;\">Your resume has been "
-#~ "positively reviewed.</div>\n"
-#~ "            </div>\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                We just reviewed your resume, and it caught our\n"
-#~ "                attention. As we think you might be great for the\n"
-#~ "                position, your application has been short listed for a\n"
-#~ "                call or an interview.\n"
-#~ "                <br><br>\n"
-#~ "                <div t-if=\"'website_url' in object.job_id and "
-#~ "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
-#~ "                    <a t-att-href=\"object.job_id.website_url\" "
-#~ "style=\"background-color: #875a7b; text-decoration: none; color: #fff; "
-#~ "padding: 8px 16px 8px 16px; border-radius: 5px;\">Job Description</a>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <t t-if=\"object.user_id\">\n"
-#~ "                    You will soon be contacted by:<br>\n"
-#~ "                    <strong t-out=\"object.user_id.name or ''\">Mitchell "
-#~ "Admin</strong><br>\n"
-#~ "                    <span>Email: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t></span><br>\n"
-#~ "                    <span>Phone: <t t-out=\"object.user_id.phone or "
-#~ "''\">+1 650-123-4567</t></span>\n"
-#~ "                    <br><br>\n"
-#~ "                </t>\n"
-#~ "                See you soon,\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    -- <br>\n"
-#~ "                    The HR Team\n"
-#~ "                    <t t-if=\"'website_url' in object.job_id and "
-#~ "hasattr(object.job_id, 'website_url') and object.job_id.website_url\">\n"
-#~ "                        Discover <a href=\"/jobs\" style=\"text-"
-#~ "decoration:none;color:#717188;\">all our jobs</a>.<br>\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <h3 style=\"color:#9A6C8E;\"><strong>What is the next "
-#~ "step?</strong></h3>\n"
-#~ "                We usually <strong>answer applications within a few days</"
-#~ "strong>.\n"
-#~ "                <br><br>\n"
-#~ "                The next step is either a call or a meeting in our "
-#~ "offices.\n"
-#~ "                <br>\n"
-#~ "                Feel free to <strong>contact us if you want a faster\n"
-#~ "                feedback</strong> or if you don't get news from us\n"
-#~ "                quickly enough (just reply to this email).\n"
-#~ "                <br>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 17px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-set=\"location\" t-value=\"''\"></t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.name\">\n"
-#~ "                    <strong t-out=\"object.job_id.address_id.name or "
-#~ "''\">Teksa SpA</strong><br>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street or "
-#~ "''\">Puerto Madero 9710</t><br>\n"
-#~ "                    <t t-set=\"location\" t-"
-#~ "value=\"object.job_id.address_id.street\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street2\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street2 or "
-#~ "''\">Of A15, Santiago (RM)</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.street2)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.city\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.city or "
-#~ "''\">Pudahuel</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.city)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.state_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.state_id.name or "
-#~ "''\">C1</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.state_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.zip\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.zip or "
-#~ "''\">98450</t>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.zip)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "                <t t-if=\"object.job_id.address_id.country_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.country_id.name "
-#~ "or ''\">Argentina</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.country_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>"
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"background-color: white; border-collapse: collapse; margin-left: "
-#~ "20px;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\" style=\"padding: 0px 10px;\">\n"
-#~ "            <div style=\"text-align: center\">\n"
-#~ "                <h2>ຂໍສະແດງຄວາມຍິນດີ!</h2>\n"
-#~ "                <div style=\"color:grey;"
-#~ "\">ຊີວະປະຫວັດຂອງທ່ານຜ່ານການກວດສອບເບື້ອງຕົ້ນແລ້ວ.</div>\n"
-#~ "            </div>\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                ພວກເຮົາໄດ້ກວດສອບຊີວະປະຫວັດຂອງທ່ານແລ້ວ ແລະ ມັນໜ້າສົນໃຈຫຼາຍ.\n"
-#~ "                ເນື່ອງຈາກພວກເຮົາຄິດວ່າທ່ານອາດຈະເໝາະສົມກັບຕຳແໜ່ງນີ້,\n"
-#~ "                ໃບສະໝັກຂອງທ່ານຈຶ່ງຖືກຄັດເລືອກເພື່ອເຂົ້າສູ່ຂັ້ນຕອນການໂທສຳພາດ ຫຼື "
-#~ "ນັດສຳພາດຕໍ່ໄປ.\n"
-#~ "                <br><br>\n"
-#~ "                <div t-if=\"'website_url' in object.job_id and "
-#~ "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
-#~ "                    <a t-att-href=\"object.job_id.website_url\" "
-#~ "style=\"background-color: #875a7b; text-decoration: none; color: #fff; "
-#~ "padding: 8px 16px 8px 16px; border-radius: 5px;\">ລາຍລະອຽດວຽກ</a>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <t t-if=\"object.user_id\">\n"
-#~ "                    ທ່ານຈະໄດ້ຮັບການຕິດຕໍ່ຈາກ:<br>\n"
-#~ "                    <strong t-out=\"object.user_id.name or ''\">Mitchell "
-#~ "Admin</strong><br>\n"
-#~ "                    <span>ອີເມວ: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t></span><br>\n"
-#~ "                    <span>ເບີໂທ: <t t-out=\"object.user_id.phone or "
-#~ "''\">+1 650-123-4567</t></span>\n"
-#~ "                    <br><br>\n"
-#~ "                </t>\n"
-#~ "                ແລ້ວພົບກັນ,\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    -- <br>\n"
-#~ "                    ທີມງານ HR\n"
-#~ "                    <t t-if=\"'website_url' in object.job_id and "
-#~ "hasattr(object.job_id, 'website_url') and object.job_id.website_url\">\n"
-#~ "                        ເບິ່ງ <a href=\"/jobs\" style=\"text-"
-#~ "decoration:none;color:#717188;\">ຕຳແໜ່ງງານທັງໝົດຂອງພວກເຮົາ</a>.<br>\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 16px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <h3 style=\"color:#9A6C8E;\"><strong>ຂັ້ນຕອນຕໍ່ໄປແມ່ນຫຍັງ?</"
-#~ "strong></h3>\n"
-#~ "                ພວກເຮົາຈະ <strong>ຕອບກັບໃບສະໝັກພາຍໃນ 2-3 ມື້</strong>.\n"
-#~ "                <br><br>\n"
-#~ "                ຂັ້ນຕອນຕໍ່ໄປແມ່ນການໂທສຳພາດ ຫຼື ນັດໝາຍເຂົ້າມາສຳພາດຢູ່ຫ້ອງການ.\n"
-#~ "                <br>\n"
-#~ "                ທ່ານສາມາດ <strong>ຕິດຕໍ່ພວກເຮົາໄດ້ຫາກຕ້ອງການ\n"
-#~ "                ຂໍ້ມູນເພີ່ມເຕີມໄວຂຶ້ນ</strong> ຫຼື ຫາກທ່ານບໍ່ໄດ້ຮັບການຕອບກັບ\n"
-#~ "                ພາຍໃນເວລາທີ່ກຳນົດ (ພຽງແຕ່ຕອບກັບອີເມວນີ້).\n"
-#~ "                <br>\n"
-#~ "\n"
-#~ "                <hr width=\"97%\" style=\"background-color: "
-#~ "rgb(204,204,204); border: medium none; clear: both; display: block; font-"
-#~ "size: 0px; min-height: 1px; line-height: 0; margin: 17px 0px 16px 0px;"
-#~ "\">\n"
-#~ "                <t t-set=\"location\" t-value=\"''\"></t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.name\">\n"
-#~ "                    <strong t-out=\"object.job_id.address_id.name or "
-#~ "''\">Teksa SpA</strong><br>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street or "
-#~ "''\">Puerto Madero 9710</t><br>\n"
-#~ "                    <t t-set=\"location\" t-"
-#~ "value=\"object.job_id.address_id.street\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.street2\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.street2 or "
-#~ "''\">Of A15, Santiago (RM)</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.street2)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.city\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.city or "
-#~ "''\">Pudahuel</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.city)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.state_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.state_id.name or "
-#~ "''\">C1</t>,\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.state_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <t t-if=\"object.job_id.address_id.zip\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.zip or "
-#~ "''\">98450</t>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.zip)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "                <t t-if=\"object.job_id.address_id.country_id.name\">\n"
-#~ "                    <t t-out=\"object.job_id.address_id.country_id.name "
-#~ "or ''\">Argentina</t><br>\n"
-#~ "                    <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
-#~ "object.job_id.address_id.country_id.name)\"></t>\n"
-#~ "                </t>\n"
-#~ "                <br>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>"
-
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px "
-#~ "8px; border-collapse:separate;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                Dear,<br><br>\n"
-#~ "                We would like to thank you for your interest and your "
-#~ "time.<br>\n"
-#~ "                We wish you all the best in your future endeavors.\n"
-#~ "                <br><br>\n"
-#~ "                Best<br>\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    <t t-if=\"object.user_id\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <strong t-out=\"object.user_id.name or ''\">Marc "
-#~ "Demo</strong><br>\n"
-#~ "                        Email: <t t-out=\"object.user_id.email or "
-#~ "''\">mark.brown23@example.com</t><br>\n"
-#~ "                        Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-else=\"\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <t t-out=\"object.company_id.name or "
-#~ "''\">YourCompany</t><br>\n"
-#~ "                        The HR Team<br>\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>\n"
-#~ "        "
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px "
-#~ "8px; border-collapse:separate;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                ຮຽນທ່ານ,<br><br>\n"
-#~ "                ພວກເຮົາຂໍຂອບໃຈທີ່ທ່ານໃຫ້ຄວາມສົນໃຈ ແລະ "
-#~ "ສະຫຼະເວລາໃນການສະໝັກງານກັບພວກເຮົາ.<br>\n"
-#~ "                ພວກເຮົາຂໍອວຍພອນໃຫ້ທ່ານປະສົບຜົນສຳເລັດໃນໜ້າທີ່ການງານຕໍ່ໄປ.\n"
-#~ "                <br><br>\n"
-#~ "                ດ້ວຍຄວາມເຄົາລົບ<br>\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    <t t-if=\"object.user_id\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <strong t-out=\"object.user_id.name or ''\">Marc "
-#~ "Demo</strong><br>\n"
-#~ "                        ອີເມວ: <t t-out=\"object.user_id.email or "
-#~ "''\">mark.brown23@example.com</t><br>\n"
-#~ "                        ເບີໂທ: <t t-out=\"object.user_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-else=\"\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <t t-out=\"object.company_id.name or "
-#~ "''\">YourCompany</t><br>\n"
-#~ "                        ທີມງານ HR<br>\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>\n"
-#~ "        "
-
-#~ msgid ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px "
-#~ "8px; border-collapse:separate;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                Hello,<br><br>\n"
-#~ "                Thank you for your interest in joining the\n"
-#~ "                <b><t t-out=\"object.company_id.name or ''\">YourCompany</"
-#~ "t></b> team.  We\n"
-#~ "                wanted to let you know that, although your resume is\n"
-#~ "                competitive, our hiring team reviewed your application\n"
-#~ "                and <b>did not select it for further consideration</b>.\n"
-#~ "                <br><br>\n"
-#~ "                Please note that recruiting is hard, and we can make\n"
-#~ "                mistakes. Do not hesitate to reply to this email if you\n"
-#~ "                think we made a mistake, or if you want more information\n"
-#~ "                about our decision.\n"
-#~ "                <br><br>\n"
-#~ "                We will, however, keep your resume on record and get in\n"
-#~ "                touch with you about future opportunities that may be a\n"
-#~ "                better fit for your skills and experience.\n"
-#~ "                <br><br>\n"
-#~ "                We wish you all the best in your job search and hope we\n"
-#~ "                will have the chance to consider you for another role\n"
-#~ "                in the future.\n"
-#~ "                <br><br>\n"
-#~ "                Thank you,\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    <t t-if=\"object.user_id\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <strong t-out=\"object.user_id.name or "
-#~ "''\">Mitchell Admin</strong><br>\n"
-#~ "                        Email: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t><br>\n"
-#~ "                        Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-else=\"\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <t t-out=\"object.company_id.name or "
-#~ "''\">YourCompany</t><br>\n"
-#~ "                        The HR Team\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>\n"
-#~ "        "
-#~ msgstr ""
-#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-#~ "style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px "
-#~ "8px; border-collapse:separate;\">\n"
-#~ "    <tr>\n"
-#~ "        <td valign=\"top\">\n"
-#~ "            <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-#~ "                ສະບາຍດີ,<br><br>\n"
-#~ "                ຂອບໃຈທີ່ທ່ານໃຫ້ຄວາມສົນໃຈໃນການຮ່ວມງານກັບທີມງານ\n"
-#~ "                <b><t t-out=\"object.company_id.name or ''\">YourCompany</"
-#~ "t></b>. ພວກເຮົາ\n"
-#~ "                ຂໍແຈ້ງໃຫ້ທ່ານຊາບວ່າ, ເຖິງແມ່ນວ່າຊີວະປະຫວັດຂອງທ່ານຈະມີຄວາມໜ້າສົນໃຈ,\n"
-#~ "                ແຕ່ທີມງານຄັດເລືອກຂອງພວກເຮົາໄດ້ກວດສອບໃບສະໝັກຂອງທ່ານແລ້ວ\n"
-#~ "                ແລະ <b>ຍັງບໍ່ໄດ້ຄັດເລືອກທ່ານເພື່ອເຂົ້າສູ່ຂັ້ນຕອນຕໍ່ໄປໃນຕອນນີ້</b>.\n"
-#~ "                <br><br>\n"
-#~ "                ພວກເຮົາເຂົ້າໃຈວ່າການຄັດເລືອກຄົນເຂົ້າເຮັດວຽກນັ້ນມີຄວາມລະອຽດອ່ອນ ແລະ "
-#~ "ອາດມີຄວາມຜິດພາດໄດ້.\n"
-#~ "                ທ່ານສາມາດຕອບກັບອີເມວນີ້ໄດ້ທັນທີ ຫາກທ່ານຄິດວ່າພວກເຮົາມີຄວາມຜິດພາດ,\n"
-#~ "                ຫຼື ຫາກທ່ານຕ້ອງການຂໍ້ມູນເພີ່ມເຕີມກ່ຽວກັບການຕັດສິນໃຈຂອງພວກເຮົາ.\n"
-#~ "                <br><br>\n"
-#~ "                ແນວໃດກໍຕາມ, ພວກເຮົາຈະເກັບຊີວະປະຫວັດຂອງທ່ານໄວ້ໃນຖານຂໍ້ມູນ ແລະ "
-#~ "ຈະຕິດຕໍ່ຫາທ່ານ\n"
-#~ "                ຫາກມີຕຳແໜ່ງງານໃໝ່ໃນອະນາຄົດທີ່ເໝາະສົມກັບທັກສະ ແລະ ປະສົບການຂອງທ່ານ.\n"
-#~ "                <br><br>\n"
-#~ "                ພວກເຮົາຂໍອວຍພອນໃຫ້ທ່ານປະສົບຜົນສຳເລັດໃນການຊອກວຽກ ແລະ ຫວັງວ່າ\n"
-#~ "                ຈະມີໂອກາດໄດ້ຮ່ວມງານກັບທ່ານໃນອະນາຄົດ.\n"
-#~ "                <br><br>\n"
-#~ "                ຂອບໃຈ,\n"
-#~ "                <div style=\"font-size: 11px; color: grey;\">\n"
-#~ "                    <t t-if=\"object.user_id\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <strong t-out=\"object.user_id.name or "
-#~ "''\">Mitchell Admin</strong><br>\n"
-#~ "                        ອີເມວ: <t t-out=\"object.user_id.email or "
-#~ "''\">admin@yourcompany.example.com</t><br>\n"
-#~ "                        ເບີໂທ: <t t-out=\"object.user_id.phone or ''\">+1 "
-#~ "650-123-4567</t>\n"
-#~ "                    </t>\n"
-#~ "                    <t t-else=\"\">\n"
-#~ "                        -- <br>\n"
-#~ "                        <t t-out=\"object.company_id.name or "
-#~ "''\">YourCompany</t><br>\n"
-#~ "                        ທີມງານ HR\n"
-#~ "                    </t>\n"
-#~ "                </div>\n"
-#~ "            </div>\n"
-#~ "        </td>\n"
-#~ "    </tr>\n"
-#~ "</table>\n"
-#~ "        "
-
-#~ msgid "Activities Overdue"
-#~ msgstr "ກິດຈະກຳກາຍກຳນົດ"
-
-#~ msgid "Activities Today"
-#~ msgstr "ກິດຈະກຳມື້ນີ້"
-
-#~ msgid "Address where employees are working"
-#~ msgstr "ທີ່ຢູ່ບ່ອນທີ່ພະນັກງານເຮັດວຽກ"
-
-#~ msgid "Alias domain"
-#~ msgstr "ໂດເມນນາມແຝງ"
-
-#~ msgid ""
-#~ "Applicants and their attached CV are created automatically when an email "
-#~ "is sent.\n"
-#~ "                If you install the document management modules, all "
-#~ "resumes are indexed automatically,\n"
-#~ "                so that you can easily search through their content."
-#~ msgstr ""
-#~ "ຜູ້ສະໝັກ ແລະ ຊີວະປະຫວັດ (CV) ທີ່ແນບມາ ຈະຖືກສ້າງຂຶ້ນໂດຍອັດຕະໂນມັດເມື່ອມີການສົ່ງອີເມວ.\n"
-#~ "                ຫາກທ່ານຕິດຕັ້ງໂມດູນຈັດການເອກະສານ, "
-#~ "ຊີວະປະຫວັດທັງໝົດຈະຖືກເຮັດດັດຊະນີໂດຍອັດຕະໂນມັດ,\n"
-#~ "                ເພື່ອໃຫ້ທ່ານສາມາດຄົ້ນຫາຜ່ານເນື້ອໃນຂອງພວກເຂົາໄດ້ຢ່າງງ່າຍດາຍ."
-
-#~ msgid ""
-#~ "Applicants can send resume to this email address,<br/>it will create an "
-#~ "application automatically"
-#~ msgstr "ຜູ້ສະໝັກສາມາດສົ່ງຊີວະປະຫວັດມາທີ່ທີ່ຢູ່ອີເມວນີ້,<br/>ມັນຈະສ້າງໃບສະໝັກໂດຍອັດຕະໂນມັດ"
-
-#~ msgid "Application Summary"
-#~ msgstr "ສະຫຼຸບການສະໝັກ"
-
-#~ msgid "Applied Job"
-#~ msgstr "ຕຳແໜ່ງທີ່ສະໝັກ"
-
-#~ msgid "Body content is the same as tmeplate"
-#~ msgstr "ເນື້ອໃນຂໍ້ຄວາມຄືກັນກັບແພັດເບບ"
-
-#~ msgid "CV Digitization (OCR)"
-#~ msgstr "ການແປງ CV ເປັນດິຈິຕອນ (OCR)"
-
-#~ msgid "CV Display"
-#~ msgstr "ການສະແດງຜົນ CV"
-
-#~ msgid "Contact Email"
-#~ msgstr "ອີເມວຕິດຕໍ່"
-
-#~ msgid "Contract"
-#~ msgstr "ສັນຍາ"
-
-#~ msgid "Create new applications by sending an email to"
-#~ msgstr "ສ້າງໃບສະໝັກໃໝ່ໂດຍການສົ່ງອີເມວຫາ"
-
-#~ msgid "Digitize your CV to extract name and email automatically."
-#~ msgstr "ແປງ CV ຂອງທ່ານເປັນດິຈິຕອນເພື່ອດຶງຊື່ ແລະ ອີເມວໂດຍອັດຕະໂນມັດ."
-
-#~ msgid "Doesn't fit the job requirements"
-#~ msgstr "ຄຸນສົມບັດບໍ່ກົງກັບຄວາມຕ້ອງການຂອງວຽກ"
-
-#~ msgid "Email of the applicant is not set, email won't be sent."
-#~ msgstr "ບໍ່ໄດ້ຕັ້ງອີເມວຂອງຜູ້ສະໝັກ, ຈະບໍ່ມີການສົ່ງອີເມວ."
-
-#~ msgid "Email subject for applications sent via email"
-#~ msgstr "ຫົວຂໍ້ອີເມວສຳລັບໃບສະໝັກທີ່ສົ່ງຜ່ານອີເມວ"
-
-#~ msgid "Email template must be selected to send a mail"
-#~ msgstr "ຕ້ອງເລືອກແພັດເບບອີເມວເພື່ອສົ່ງເມວ"
-
-#~ msgid "Expected Salary"
-#~ msgstr "ເງິນເດືອນທີ່ຄາດຫວັງ"
-
-#~ msgid "Extended Filters"
-#~ msgstr "ຕົວຕອງເພີ່ມເຕີມ"
-
-#~ msgid "Extra advantages..."
-#~ msgstr "ຜົນປະໂຫຍດເພີ່ມເຕີມ..."
-
-#~ msgid "Generate Email"
-#~ msgstr "ສ້າງອີເມວ"
-
-#~ msgid "Green"
-#~ msgstr "ສີຂຽວ"
-
-#~ msgid "Grey"
-#~ msgstr "ສີເທົາ"
-
-#~ msgid "Group Applicant Cv Display"
-#~ msgstr "ກຸ່ມສະແດງ CV ຜູ້ສະໝັກ"
-
-#~ msgid "Group By"
-#~ msgstr "ຈັດກຸ່ມຕາມ"
-
-#~ msgid "HR Responsible"
-#~ msgstr "ຜູ້ຮັບຜິດຊອບ HR"
-
-#~ msgid "Initial Qualification"
-#~ msgstr "ການປະເມີນຄຸນສົມບັດເບື້ອງຕົ້ນ"
-
-#~ msgid "Jobs Sources"
-#~ msgstr "ແຫຼ່ງທີ່ມາຂອງວຽກ"
-
-#~ msgid "Let's have a look at the applications pipeline."
-#~ msgstr "ມາເບິ່ງຂັ້ນຕອນການດຳເນີນງານຂອງໃບສະໝັກກັນ."
-
-#~ msgid "Mobile"
-#~ msgstr "ມືຖື"
-
-#~ msgid "Motivations..."
-#~ msgstr "ແຮງຈູງໃຈ..."
-
-#~ msgid "Newly Hired"
-#~ msgstr "ຮັບເຂົ້າເຮັດວຽກໃໝ່"
-
-#~ msgid "Newly Hired Employees"
-#~ msgstr "ພະນັກງານທີ່ຮັບເຂົ້າເຮັດວຽກໃໝ່"
-
-#~ msgid "Newly hired employee"
-#~ msgstr "ພະນັກງານທີ່ຮັບເຂົ້າເຮັດວຽກໃໝ່"
-
-#~ msgid "No Subject"
-#~ msgstr "ບໍ່ມີຫົວຂໍ້"
-
-#~ msgid "No application found. Let's create one !"
-#~ msgstr "ບໍ່ພົບໃບສະໝັກ. ມາສ້າງໃໝ່ກັນເທາະ!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "ຈຳນວນຂໍ້ຄວາມທີ່ຕ້ອງການການດຳເນີນການ"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "ພາສາແປທາງເລືອກ (ລະຫັດ ISO) ເພື່ອເລືອກເມື່ອສົ່ງອີເມວ. ຫາກບໍ່ໄດ້ຕັ້ງໄວ້, ຈະໃຊ້ເວີຊັນພາສາອັງກິດ. "
-#~ "ໂດຍປົກກະຕິຄວນເປັນ placeholder ທີ່ໃຫ້ພາສາທີ່ເໝາະສົມ ເຊັ່ນ: "
-#~ "{{ object.partner_id.lang }}."
-
-#~ msgid "Other applications"
-#~ msgstr "ໃບສະໝັກອື່ນໆ"
-
-#~ msgid "Owner"
-#~ msgstr "ເຈົ້າຂອງ"
-
-#~ msgid "People can also apply by email to save time."
-#~ msgstr "ຄົນຍັງສາມາດສະໝັກຜ່ານອີເມວເພື່ອປະຢັດເວລາໄດ້."
-
-#~ msgid "Person responsible of validating the employee's contracts."
-#~ msgstr "ຜູ້ຮັບຜິດຊອບໃນການກວດສອບສັນຍາຂອງພະນັກງານ."
-
-#~ msgid "Proposed Salary"
-#~ msgstr "ເງິນເດືອນທີ່ສະເໜີ"
-
-#~ msgid "Publish available jobs on your website"
-#~ msgstr "ປະກາດຕຳແໜ່ງງານທີ່ວ່າງໃນເວັບໄຊທ໌ຂອງທ່ານ"
-
-#~ msgid "Recruitment Interviewer"
-#~ msgstr "ຜູ້ສຳພາດການຮັບສະໝັກງານ"
-
-#~ msgid "Recruitment Process"
-#~ msgstr "ຂະບວນການຮັບສະໝັກງານ"
-
-#~ msgid "Recruitments"
-#~ msgstr "ການຮັບສະໝັກພະນັກງານ"
-
-#~ msgid "Red"
-#~ msgstr "ສີແດງ"
-
-#~ msgid "Reserve"
-#~ msgstr "ສຳຮອງ"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "ສະແດງບັນທຶກທັງໝົດທີ່ມີວັນທີດຳເນີນການຖັດໄປກ່ອນມື້ນີ້"
-
-#~ msgid ""
-#~ "Specific jobs that uses this stage. Other jobs will not use this stage."
-#~ msgstr "ວຽກສະເພາະທີ່ໃຊ້ຂັ້ນຕອນນີ້. ວຽກອື່ນໆຈະບໍ່ໃຊ້ຂັ້ນຕອນນີ້."
-
-#~ msgid "Subject / Application"
-#~ msgstr "ຫົວຂໍ້ / ໃບສະໝັກ"
-
-#~ msgid ""
-#~ "The Recruiter will be the default value for all Applicants Recruiter's "
-#~ "field in this job position. The Recruiter is automatically added to all "
-#~ "meetings with the Applicant."
-#~ msgstr ""
-#~ "ຜູ້ຮັບສະໝັກຈະເປັນຄ່າເລີ່ມຕົ້ນສຳລັບທຸກໆຊ່ອງ 'ຜູ້ຮັບສະໝັກ' ຂອງຜູ້ສະໝັກໃນຕຳແໜ່ງງານນີ້. "
-#~ "ຜູ້ຮັບສະໝັກຈະຖືກເພີ່ມເຂົ້າໃນການປະຊຸມທັງໝົດກັບຜູ້ສະໝັກໂດຍອັດຕະໂນມັດ."
-
-#~ msgid "The applicant gets a better offer"
-#~ msgstr "ຜູ້ສະໝັກໄດ້ຮັບຂໍ້ສະເໜີທີ່ດີກວ່າ"
-
-#~ msgid "The applicant is not interested anymore"
-#~ msgstr "ຜູ້ສະໝັກບໍ່ສົນໃຈແລ້ວ"
-
-#~ msgid ""
-#~ "The email will not be sent to the following applicant(s) as they don't "
-#~ "have email address."
-#~ msgstr "ຈະບໍ່ມີການສົ່ງອີເມວຫາຜູ້ສະໝັກດັ່ງຕໍ່ໄປນີ້ ເນື່ອງຈາກພວກເຂົາບໍ່ມີທີ່ຢູ່ອີເມວ."
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "ເຈົ້າຂອງບັນທຶກທີ່ສ້າງຂຶ້ນເມື່ອໄດ້ຮັບອີເມວໃນນາມແຝງນີ້. ຫາກບໍ່ໄດ້ຕັ້ງຊ່ອງນີ້ໄວ້ "
-#~ "ລະບົບຈະພະຍາຍາມຊອກຫາເຈົ້າຂອງທີ່ຖືກຕ້ອງໂດຍອີງໃສ່ທີ່ຢູ່ຜູ້ສົ່ງ (ຈາກ), ຫຼື ຈະໃຊ້ບັນຊີ Administrator "
-#~ "ຫາກບໍ່ພົບຜູ້ໃຊ້ລະບົບສຳລັບທີ່ຢູ່ນັ້ນ."
-
-#~ msgid "This is the method of delivery, e.g. Postcard, Email, or Banner Ad"
-#~ msgstr "ນີ້ແມ່ນວິທີການສົ່ງ, ເຊັ່ນ: ໂປສກາດ, ອີເມວ, ຫຼື ໂຄສະນາແບນເນີ"
-
-#~ msgid "To Recruit"
-#~ msgstr "ເພື່ອຮັບສະໝັກ"
-
-#~ msgid "Use OCR to fill data from a picture of the CV or the file itself"
-#~ msgstr "ໃຊ້ OCR ເພື່ອຕື່ມຂໍ້ມູນຈາກຮູບພາບຂອງ CV ຫຼື ຈາກໄຟລ໌ໂດຍກົງ"
-
-#~ msgid ""
-#~ "You can search into attachment's content, like resumes, with the "
-#~ "searchbar."
-#~ msgstr "ທ່ານສາມາດຄົ້ນຫາໃນເນື້ອໃນຂອງເອກະສານຄັດຕິດ ເຊັ່ນ: ຊີວະປະຫວັດ ໄດ້ໂດຍໃຊ້ແຖບຄົ້ນຫາ."
-
-#~ msgid "e.g. Sales Manager 2 year experience"
-#~ msgstr "ຕົວຢ່າງ: ຜູ້ຈັດການຝ່າຍຂາຍ ປະສົບການ 2 ປີ"

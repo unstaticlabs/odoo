@@ -16,6 +16,15 @@ class SaleReport(models.Model):
     def _get_done_states(self):
         return ['sale']
 
+    @api.model
+    def _selection_target_model(self):
+        return [
+            (model.model, model.name)
+            for model
+            in self.env['ir.model'].sudo().search([])
+            if not model.is_transient()
+        ]
+
     # sale.order fields
     name = fields.Char(string="Order Reference", readonly=True)
     date = fields.Datetime(string="Order Date", readonly=True)
@@ -36,6 +45,7 @@ class SaleReport(models.Model):
     campaign_id = fields.Many2one(comodel_name='utm.campaign', string="Campaign", readonly=True)
     medium_id = fields.Many2one(comodel_name='utm.medium', string="Medium", readonly=True)
     source_id = fields.Many2one(comodel_name='utm.source', string="Source", readonly=True)
+    utm_reference = fields.Reference(string='UTM Reference', selection='_selection_target_model')
 
     # res.partner fields
     commercial_partner_id = fields.Many2one(
@@ -46,6 +56,7 @@ class SaleReport(models.Model):
         comodel_name='res.partner.industry', string="Customer Industry", readonly=True)
     partner_zip = fields.Char(string="Customer ZIP", readonly=True)
     state_id = fields.Many2one(comodel_name='res.country.state', string="Customer State", readonly=True)
+    partner_tag_ids = fields.Many2many(string="Customer Tags", related='partner_id.category_id', readonly=True)
 
     # sale.order.line fields
     order_reference = fields.Reference(
@@ -70,6 +81,7 @@ class SaleReport(models.Model):
     price_total = fields.Monetary(string="Total", readonly=True)
     untaxed_amount_to_invoice = fields.Monetary(string="Untaxed Amount To Invoice", readonly=True)
     untaxed_amount_invoiced = fields.Monetary(string="Untaxed Amount Invoiced", readonly=True)
+    untaxed_delivered_amount = fields.Monetary(string="Untaxed Amount Delivered", readonly=True)
     line_invoice_status = fields.Selection(
         selection=[
             ('upselling', "Upselling Opportunity"),
@@ -127,6 +139,11 @@ class SaleReport(models.Model):
                 * {self._case_value_or_one('account_currency_table.rate')}
                 ) ELSE 0
             END AS untaxed_amount_invoiced,
+            CASE WHEN l.product_id IS NOT NULL OR l.is_downpayment THEN SUM((l.price_unit * l.qty_delivered)
+                / {self._case_value_or_one('s.currency_rate')}
+                * {self._case_value_or_one('account_currency_table.rate')}
+                ) ELSE 0
+            END AS untaxed_delivered_amount,
             COUNT(*) AS nbr,
             s.name AS name,
             s.date_order AS date,
@@ -138,6 +155,7 @@ class SaleReport(models.Model):
             s.campaign_id AS campaign_id,
             s.medium_id AS medium_id,
             s.source_id AS source_id,
+            s.utm_reference AS utm_reference,
             t.categ_id AS categ_id,
             s.pricelist_id AS pricelist_id,
             s.team_id AS team_id,
@@ -213,6 +231,7 @@ class SaleReport(models.Model):
             s.campaign_id,
             s.medium_id,
             s.source_id,
+            s.utm_reference,
             s.pricelist_id,
             s.team_id,
             p.product_tmpl_id,

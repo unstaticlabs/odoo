@@ -6,15 +6,16 @@
 # Martin Trigaux, 2022
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 12:16+0000\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-23 14:33+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -36,8 +37,9 @@ msgstr "Tank mere saldo op"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
+#, fuzzy
+msgid "Company"
+msgstr "Virksomhed"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -145,36 +147,3 @@ msgstr "Testtilstand"
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr "Ikke muligt at berige virksomheden (saldo blev ikke brugt)."
-
-#~ msgid "Additional info"
-#~ msgstr "Yderligere info"
-
-#~ msgid "Company database ID"
-#~ msgstr "Virksomhed database ID"
-
-#~ msgid "Created by"
-#~ msgstr "Oprettet af"
-
-#~ msgid "Created on"
-#~ msgstr "Oprettet den"
-
-#~ msgid "Is synched"
-#~ msgstr "Er synkroniseret"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Sidst opdateret af"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Sidst opdateret den"
-
-#~ msgid "Partner"
-#~ msgstr "Kontakt"
-
-#~ msgid "Partner Autocomplete Sync"
-#~ msgstr "Partner autofuldfør synkronisering"
-
-#~ msgid "Partner created by Odoo Partner Autocomplete Service"
-#~ msgstr "Partner oprettet af Odoo Partner autofuldførings tjeneste"
-
-#~ msgid "Placeholder"
-#~ msgstr "Pladsholder"

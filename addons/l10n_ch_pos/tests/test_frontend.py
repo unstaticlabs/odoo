@@ -23,10 +23,10 @@ class TestUi(TestPointOfSaleHttpCommon):
             'payment_method_ids': [Command.link(customer_account_payment_method.id)],
         })
         swiss_bank = self.env['res.partner.bank'].create({
-            'acc_number': 'CH11 3000 5228 1308 3501 F',
+            'account_number': 'CH11 3000 5228 1308 3501 F',
             'allow_out_payment': True,
             'partner_id': self.company.partner_id.id,
-            'acc_type': 'bank',
+            'account_type': 'bank',
             'bank_name': 'swiss_bank'
         })
         self.partner_test_1.write({

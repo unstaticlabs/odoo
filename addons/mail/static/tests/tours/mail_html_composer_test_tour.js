@@ -1,5 +1,4 @@
 import { registry } from "@web/core/registry";
-import { contains } from "@web/../tests/utils";
 
 /**
  * This tour depends on data created by python test in charge of launching it.
@@ -15,8 +14,10 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_html_compo
             async run() {
                 const composerService = odoo.__WOWL_DEBUG__.root.env.services["mail.composer"];
                 composerService.setHtmlComposer();
-                await contains(".o-mail-Message", { count: 1 });
             },
+        },
+        {
+            trigger: ".o-mail-Message:count(1)",
         },
         {
             content: "Click on Send Message",
@@ -38,7 +39,7 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_html_compo
         },
         {
             content: "Bold the text",
-            trigger: ".o-we-toolbar button[title='Toggle bold']",
+            trigger: ".o-we-toolbar button[title='Bold (Ctrl + B)']",
             run: "click",
         },
         {
@@ -69,12 +70,12 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_html_compo
         },
         {
             content: "Remove the Bold",
-            trigger: ".o-we-toolbar button[title='Toggle bold']",
+            trigger: ".o-we-toolbar button[title='Bold (Ctrl + B)']",
             run: "click",
         },
         {
             content: "Italicize the text",
-            trigger: ".o-we-toolbar button[title='Toggle italic']",
+            trigger: ".o-we-toolbar button[title='Italic (Ctrl + I)']",
             run: "click",
         },
         {

@@ -1,6 +1,6 @@
 import base64
-import pytz
-from datetime import date, datetime
+from datetime import date, datetime, UTC
+from zoneinfo import ZoneInfo
 
 from odoo import _, api, exceptions, fields, models, modules
 
@@ -254,6 +254,9 @@ class CardCampaign(models.Model):
                 'default_card_campaign_id': self.id,
                 'default_mailing_model_id': self.env['ir.model']._get_id(self.res_model),
                 'default_body_arch': self._action_share_get_default_body(),
+                # even if excluded, consider communication to speaker might be important
+                # (main usage of marketing card)
+                'default_use_exclusion_list': False,
             },
             'views': [[False, 'form']],
             'target': 'current',
@@ -293,7 +296,7 @@ class CardCampaign(models.Model):
 <style id="design-element"></style>
 <div class="container o_mail_wrapper o_mail_regular oe_unremovable">
 <div class="row">
-<div class="col o_mail_no_options o_mail_wrapper_td bg-white oe_structure o_editable theme_selection_done">
+<div class="col o_mail_no_options o_mail_wrapper_td bg-white oe_structure theme_selection_done">
 
 <div class="s_text_block o_mail_snippet_general pt24 pb24" style="padding-left: 15px; padding-right: 15px;" data-snippet="s_text_block" data-name="Text">
     <div class="container s_allow_columns">
@@ -438,5 +441,5 @@ class CardCampaign(models.Model):
                     isinstance(result[el], (date, datetime))
                     and (tz := record._mail_get_timezone())
                 ):
-                    result[el] = pytz.utc.localize(result[el]).astimezone(pytz.timezone(tz)).replace(tzinfo=None)
+                    result[el] = result[el].replace(tzinfo=UTC).astimezone(ZoneInfo(tz)).replace(tzinfo=None)
         return result

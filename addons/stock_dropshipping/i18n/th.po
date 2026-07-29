@@ -5,15 +5,16 @@
 # Translators:
 # Wichanon Jamwutthipreecha, 2022
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 18:56+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 17:36+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_dropshipping/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
@@ -24,7 +25,8 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_res_company
-msgid "Companies"
+#, fuzzy
+msgid "Company"
 msgstr "บริษัท"
 
 #. module: stock_dropshipping
@@ -89,6 +91,11 @@ msgid "Lot/Serial"
 msgstr "ล็อต/ซีเรียล"
 
 #. module: stock_dropshipping
+#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_picking_type
 msgid "Picking Type"
 msgstr "ประเภทการรับ"
@@ -137,14 +144,3 @@ msgstr "เพื่อตรวจสอบ"
 #: model:ir.model,name:stock_dropshipping.model_stock_picking
 msgid "Transfer"
 msgstr "โอนย้าย"
-
-#. module: stock_dropshipping
-#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "ประเภทการปฏิบัติการ"
-
-#~ msgid "Stock Move"
-#~ msgstr "ย้ายสต็อก"
-
-#~ msgid "Procurement Group"
-#~ msgstr "กลุ่มการจัดซื้อ"

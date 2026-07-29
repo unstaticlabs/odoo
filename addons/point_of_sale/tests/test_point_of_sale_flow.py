@@ -1,3 +1,4 @@
+import copy
 import odoo
 
 from freezegun import freeze_time
@@ -197,6 +198,41 @@ class TestPointOfSaleFlow(CommonPosTest):
         current_session.action_pos_session_closing_control()
         self.assertEqual(current_session.state, 'closed')
 
+    def test_pos_orders_count(self):
+        parent_partner = self.env['res.partner'].create({
+            'name': 'Parent Partner',
+        })
+        child_partner = self.env['res.partner'].create({
+            'name': 'Child Partner',
+            'parent_id': parent_partner.id
+        })
+        order_1, _ = self.create_backend_pos_order({
+            'order_data': {
+                'partner_id': parent_partner.id,
+            },
+            'line_data': [
+                {'product_id': self.twenty_dollars_with_15_incl.product_variant_id.id},
+            ],
+            'payment_data': [
+                {'payment_method_id': self.credit_payment_method.id, 'amount': 20},
+            ],
+        })
+        order_2, _ = self.create_backend_pos_order({
+            'order_data': {
+                'partner_id': child_partner.id,
+            },
+            'line_data': [
+                {'product_id': self.ten_dollars_with_10_incl.product_variant_id.id},
+            ],
+            'payment_data': [
+                {'payment_method_id': self.credit_payment_method.id, 'amount': 10},
+            ],
+        })
+        self.assertEqual(len(order_1), 1, "Expected 1 order directly on parent partner")
+        self.assertEqual(len(order_2), 1, "Expected 1 order directly on child partner")
+        self.assertEqual(parent_partner.pos_order_count, 2, "Parent partner should see 2 orders including child’s")
+        self.assertEqual(child_partner.pos_order_count, 1, "Child partner should see only their own order")
+
     def test_order_to_picking(self):
         """
             In order to test the Point of Sale in module, I will do three orders
@@ -261,8 +297,9 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.assertEqual(order_3.picking_ids[0].move_ids.mapped('state'), ['done', 'done'])
 
         order_refund_3.action_pos_order_invoice()
-        invoice_pdf_content = str(order_refund_3.account_move._get_invoice_legal_documents(
-            'pdf', allow_fallback=True).get('content'))
+        legal_documents = order_refund_3.account_move._get_invoice_legal_documents('pdf', allow_fallback=True)
+        self.assertEqual(len(legal_documents), 1)
+        invoice_pdf_content = str(legal_documents[0]['content'])
         self.assertTrue("using Cash" in invoice_pdf_content)
         self.assertEqual(order_refund_3.picking_count, 1)
         self.pos_config_usd.current_session_id.action_pos_session_closing_control()
@@ -1035,6 +1072,49 @@ class TestPointOfSaleFlow(CommonPosTest):
         current_session.action_pos_session_closing_control()
         self.assertEqual(current_session.picking_ids.move_line_ids.owner_id.id, self.partner_adgu.id)
 
+    def test_invoiced_lot_values_use_stock_lot_for_pos_lot(self):
+        self.stock_location = self.company_data['default_warehouse'].lot_stock_id
+        product = self.twenty_dollars_no_tax.product_variant_id
+        product.write({
+            'tracking': 'serial',
+            'is_storable': True,
+        })
+        lot = self.env['stock.lot'].create({
+            'name': '1001',
+            'product_id': product.id,
+            'company_id': self.env.company.id,
+        })
+        lot.lot_properties = [{
+            'name': 'prop1',
+            'string': 'Test',
+            'type': 'char',
+            'value': 'abc',
+            'definition_changed': True,
+        }]
+        self.env['stock.quant']._update_available_quantity(product, self.stock_location, 1, lot_id=lot)
+
+        order, _ = self.create_backend_pos_order({
+            'order_data': {
+                'partner_id': self.partner_adgu.id,
+                'to_invoice': True,
+            },
+            'line_data': [{
+                'product_id': product.id,
+                'pack_lot_ids': [Command.create({'lot_name': lot.name})],
+            }],
+            'payment_data': [
+                {'payment_method_id': self.cash_payment_method.id, 'amount': product.lst_price},
+            ],
+        })
+
+        lot_values = order.account_move._get_invoiced_lot_values()
+
+        self.assertEqual(len(lot_values), 1)
+        self.assertEqual(lot_values[0]['lot_name'], lot.name)
+        self.assertEqual(lot_values[0]['pos_lot_id'], order.lines.pack_lot_ids.id)
+        self.assertEqual(lot_values[0]['lot_id'], lot.id)
+        self.assertEqual(lot_values[0]['lot_properties'][0]['value'], 'abc')
+
     def test_order_refund_with_invoice(self):
         """This test make sure that credit notes of pos orders are correctly
            linked to the original invoice."""
@@ -1460,6 +1540,131 @@ class TestPointOfSaleFlow(CommonPosTest):
             {'amount_total': 500},
         ])
 
+    def test_paid_order_synced_twice_no_duplicate_change(self):
+        """A paid order that reaches the server twice (e.g. a retried/duplicated
+        sync) must not re-create the server-side change payment, nor duplicate its
+        lines or regular payments."""
+        self.pos_config_usd.open_ui()
+        pos_session = self.pos_config_usd.current_session_id
+        cash_payment_method = pos_session.payment_method_ids.filtered('is_cash_count')[:1]
+        order_data = {
+            'amount_paid': 500,
+            'amount_return': -50,
+            'amount_tax': 0,
+            'amount_total': 450,
+            'date_order': fields.Datetime.to_string(fields.Datetime.now()),
+            'fiscal_position_id': False,
+            'pricelist_id': self.pos_config_usd.pricelist_id.id,
+            'lines': [[0, 0, {
+                'discount': 0,
+                'id': 42,
+                'pack_lot_ids': [],
+                'price_unit': 450.0,
+                'product_id': self.product.id,
+                'price_subtotal': 450.0,
+                'price_subtotal_incl': 450.0,
+                'tax_ids': [[6, False, []]],
+                'qty': 1,
+                'uuid': 'line-12346-123-1234',
+            }]],
+            'name': 'Order 12346-123-1234',
+            'partner_id': self.partner.id,
+            'session_id': pos_session.id,
+            'payment_ids': [[0, 0, {
+                'amount': 500,
+                'name': fields.Datetime.to_string(fields.Datetime.now()),
+                'payment_method_id': self.bank_payment_method.id,
+                'uuid': 'pay-bank-12346-123-1234',
+            }]],
+            'uuid': '12346-123-1234',
+            'user_id': self.env.uid,
+        }
+
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(order_data)])
+        order = self.env['pos.order'].search([('uuid', '=', '12346-123-1234')])
+        self.assertEqual(order.state, 'paid')
+        self.assertRecordValues(order.payment_ids.sorted(), [
+            {'amount': -50.0, 'payment_method_id': cash_payment_method.id, 'is_change': True},
+            {'amount': 500.0, 'payment_method_id': self.bank_payment_method.id, 'is_change': False},
+        ])
+
+        # Re-sync the exact same paid order (duplicate / retried sync).
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(order_data)])
+        self.assertEqual(len(order.lines), 1, "Re-syncing must not duplicate the order lines.")
+        self.assertRecordValues(order.payment_ids.sorted(), [
+            {'amount': -50.0, 'payment_method_id': cash_payment_method.id, 'is_change': True},
+            {'amount': 500.0, 'payment_method_id': self.bank_payment_method.id, 'is_change': False},
+        ])
+
+    def test_paid_order_resync_replays_payment_deletion(self):
+        """Editing the payments of an already paid order and syncing it twice must
+        be idempotent: replaying a delete command for a payment that the first sync
+        already removed must not raise MissingError nor duplicate the new payment."""
+        self.pos_config_usd.open_ui()
+        pos_session = self.pos_config_usd.current_session_id
+        order_data = {
+            'amount_paid': 450,
+            'amount_return': 0,
+            'amount_tax': 0,
+            'amount_total': 450,
+            'date_order': fields.Datetime.to_string(fields.Datetime.now()),
+            'fiscal_position_id': False,
+            'pricelist_id': self.pos_config_usd.pricelist_id.id,
+            'lines': [[0, 0, {
+                'discount': 0,
+                'id': 43,
+                'pack_lot_ids': [],
+                'price_unit': 450.0,
+                'product_id': self.product.id,
+                'price_subtotal': 450.0,
+                'price_subtotal_incl': 450.0,
+                'tax_ids': [[6, False, []]],
+                'qty': 1,
+                'uuid': 'line-22346-123-1234',
+            }]],
+            'name': 'Order 22346-123-1234',
+            'partner_id': self.partner.id,
+            'session_id': pos_session.id,
+            'payment_ids': [[0, 0, {
+                'amount': 450,
+                'name': fields.Datetime.to_string(fields.Datetime.now()),
+                'payment_method_id': self.cash_payment_method.id,
+                'uuid': 'pay-cash-22346-123-1234',
+            }]],
+            'uuid': '22346-123-1234',
+            'user_id': self.env.uid,
+        }
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(order_data)])
+        order = self.env['pos.order'].search([('uuid', '=', '22346-123-1234')])
+        cash_payment = order.payment_ids
+        self.assertEqual(len(cash_payment), 1)
+
+        # The cashier removes the cash payment and pays with the bank instead.
+        edit_data = copy.deepcopy(order_data)
+        edit_data['payment_ids'] = [
+            [2, cash_payment.id],
+            [0, 0, {
+                'amount': 450,
+                'name': fields.Datetime.to_string(fields.Datetime.now()),
+                'payment_method_id': self.bank_payment_method.id,
+                'uuid': 'pay-bank-22346-123-1234',
+            }],
+        ]
+
+        # First edit-sync applies the change.
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(edit_data)])
+        self.assertFalse(cash_payment.exists(), "The cash payment should have been removed.")
+        self.assertRecordValues(order.payment_ids, [
+            {'amount': 450.0, 'payment_method_id': self.bank_payment_method.id},
+        ])
+
+        # The same edit synced again replays the now stale [2, id] delete command:
+        # it must be skipped silently instead of raising MissingError.
+        self.env['pos.order'].sync_from_ui([copy.deepcopy(edit_data)])
+        self.assertRecordValues(order.payment_ids, [
+            {'amount': 450.0, 'payment_method_id': self.bank_payment_method.id},
+        ])
+
     def test_refund_qty_refund_cancel(self):
         """
         Test the refunded qty of an order, when the refund order has been cancelled
@@ -1510,7 +1715,7 @@ class TestPointOfSaleFlow(CommonPosTest):
         refund_action = order.refund()
         refund = self.env['pos.order'].browse(refund_action['res_id'])
         self.assertEqual(order.lines[0].refunded_qty, 1)
-        refund.action_pos_order_cancel()
+        refund.cancel_order_from_pos()
         self.assertEqual(order.lines[0].refunded_qty, 0)
 
     def test_pos_order_refund_ship_delay_totalcost(self):
@@ -1696,11 +1901,9 @@ class TestPointOfSaleFlow(CommonPosTest):
         resource_calendar = self.env['resource.calendar'].create({
             'name': 'Takeaway',
             'attendance_ids': [(0, 0, {
-                'name': 'Takeaway',
                 'dayofweek': str(day),
                 'hour_from': 0,
                 'hour_to': 24,
-                'day_period': 'morning',
             }) for day in range(7)],
         })
         preset_takeaway.write({
@@ -1734,7 +1937,7 @@ class TestPointOfSaleFlow(CommonPosTest):
             'preset_id': preset_takeaway.id,
             'preset_time': fields.Datetime.to_string(fields.Datetime.now() + timedelta(days=-2)),
         })
-        order.action_pos_order_cancel()
+        order.cancel_order_from_pos()
         self.assertEqual(order.state, 'cancel')
 
     def _create_and_invoice_order(self):
@@ -1771,7 +1974,7 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.pos_config_usd.open_ui()
         # Case 1: journal bank allows out payment
         allowed_bank = self.env["res.partner.bank"].create({
-            "acc_number": "FR7612345678901234567890123",
+            "account_number": "FR7612345678901234567890123",
             "partner_id": self.company.partner_id.id,
             "bank_name": "Test Bank",
             "allow_out_payment": True,
@@ -1787,16 +1990,16 @@ class TestPointOfSaleFlow(CommonPosTest):
         # Case 2: journal bank not allowed + no company fallback
         self.pos_config_usd.open_ui()
         blocked_bank = self.env["res.partner.bank"].create({
-            "acc_number": "FR7612345678901234567890124",
+            "account_number": "FR7612345678901234567890124",
             "partner_id": self.company.partner_id.id,
             "bank_name": "Test Bank",
         })
         self.cash_payment_method.journal_id.bank_account_id = blocked_bank
-        self.company.partner_id.bank_ids = False
         invoice = self._create_and_invoice_order()
-        self.assertFalse(
-            invoice.partner_bank_id,
-            "Invoice should not have a partner bank when out payment is not allowed."
+        self.assertNotEqual(
+            invoice.partner_bank_id.id,
+            blocked_bank.id,
+            "Invoice should not use journal bank account when not allowed."
         )
 
     def test_sum_only_pos_locations(self):
@@ -2313,7 +2516,7 @@ class TestPointOfSaleFlow(CommonPosTest):
 
     def test_draft_orders_products_loading(self):
         """ Test that products are correctly loaded when limited product loading is enabled and there are draft orders. """
-        self.env['ir.config_parameter'].sudo().set_param('point_of_sale.limited_product_count', 1)
+        self.env['ir.config_parameter'].sudo().set_int('point_of_sale.limited_product_count', 1)
         self.pos_config_usd.open_ui()
         current_session = self.pos_config_usd.current_session_id
         self.env['pos.order'].create([{

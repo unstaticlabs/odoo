@@ -13,26 +13,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-29 10:38+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
-"mass_mailing_themes/sk/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2022-09-22 05:53+0000\n"
+"Last-Translator: Matus Krnac <matus.krnac@gmail.com>, 2022\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "&amp;nbsp; &amp;nbsp;"
-msgstr ""
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "&amp;nbsp;&amp;nbsp;"
 msgstr ""
@@ -709,10 +701,7 @@ msgid ""
 msgstr ""
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Facebook"
 msgstr "Facebook"
 
@@ -874,10 +863,7 @@ msgid "Infographic: Our Company Throughout The Generations"
 msgstr ""
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Instagram"
 msgstr "Instagram"
 
@@ -937,12 +923,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_roadshow2_template
 msgid "Link 4"
 msgstr ""
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.email_designer_themes
@@ -1230,11 +1210,6 @@ msgid ""
 msgstr ""
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "TikTok"
-msgstr ""
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid ""
 "To fuel my motivation, I had to pick someone to fight against. In business, "
@@ -1424,10 +1399,7 @@ msgid "Woman having breakfast in bed"
 msgstr ""
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "X"
 msgstr ""
 
@@ -1552,6 +1524,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "with 1549% growth of the turnover between 2007 and 2011)."
 msgstr ""
-
-#~ msgid "Twitter"
-#~ msgstr "Twitter"

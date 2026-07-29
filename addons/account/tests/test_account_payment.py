@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 from contextlib import contextmanager
 
 from odoo import Command, fields
+from odoo.addons.account.tests.common import AccountTestInvoicingWithBanksCommon
 from odoo.exceptions import UserError
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.tests import Form, tagged
 from unittest.mock import patch
 
 
 @tagged('post_install', '-at_install')
-class TestAccountPayment(AccountTestInvoicingCommon, MailCommon):
+class TestAccountPayment(AccountTestInvoicingWithBanksCommon, MailCommon):
 
     @classmethod
     def setUpClass(cls):
@@ -22,29 +23,6 @@ class TestAccountPayment(AccountTestInvoicingCommon, MailCommon):
 
         cls.bank_journal_1 = cls.company_data['default_journal_bank']
         cls.bank_journal_2 = cls.company_data['default_journal_bank'].copy()
-
-        cls.partner_bank_account1 = cls.env['res.partner.bank'].create({
-            'acc_number': "0123456789",
-            'partner_id': cls.partner_a.id,
-            'acc_type': 'bank',
-        })
-        cls.partner_bank_account2 = cls.env['res.partner.bank'].create({
-            'acc_number': "9876543210",
-            'partner_id': cls.partner_a.id,
-            'acc_type': 'bank',
-        })
-        cls.comp_bank_account1 = cls.env['res.partner.bank'].create({
-            'acc_number': "985632147",
-            'partner_id': cls.env.company.partner_id.id,
-            'acc_type': 'bank',
-            'allow_out_payment': True,
-        })
-        cls.comp_bank_account2 = cls.env['res.partner.bank'].create({
-            'acc_number': "741258963",
-            'partner_id': cls.env.company.partner_id.id,
-            'acc_type': 'bank',
-            'allow_out_payment': True,
-        })
 
         cls.pay_term_epd = cls.env['account.payment.term'].create([{
             'name': "test",
@@ -639,7 +617,7 @@ class TestAccountPayment(AccountTestInvoicingCommon, MailCommon):
                     active_ids=move.ids
                 ).create({'amount': amount})._create_payments()
 
-                self.assertEqual(payment.state, 'paid' if is_community else 'in_process')
+                self.assertEqual(payment.state, 'reconciled' if is_community else 'paid')
 
         # Remove the outstanding account on the payment method line to avoid generating a journal entry on the payment
         self.company_data['default_journal_bank'].inbound_payment_method_line_ids.payment_account_id = self.env['account.account']

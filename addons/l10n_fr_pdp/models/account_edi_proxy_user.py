@@ -136,14 +136,6 @@ class AccountEdiProxyClientUser(models.Model):
             raise UserError(self.env._("Please fill the Peppol Endpoint field with scheme '%s' on the company partner.", scheme))
         return f'0225:{company.pdp_identifier}'
 
-    def _get_company_details(self):
-        self.ensure_one()
-        result = super()._get_company_details()
-        if self.proxy_type != 'pdp':
-            return result
-        result['pdp_pilot_phase'] = self.company_id.l10n_fr_pdp_pilot_phase
-        return result
-
     @handle_demo
     def _register_proxy_user(self, company, proxy_type, edi_mode):
         """ Override to avoid using the deprecated route on IAP """
@@ -162,7 +154,7 @@ class AccountEdiProxyClientUser(models.Model):
             try:
                 # b64encode returns a bytestring, we need it as a string
                 response = self._make_request(self._get_server_url(proxy_type, edi_mode) + self._get_peppol_proxy_endpoint("1/connect", proxy_type='pdp'), params={
-                    'dbuuid': company.env['ir.config_parameter'].sudo().get_param('database.uuid'),
+                    'dbuuid': company.env['ir.config_parameter'].sudo().get_str('database.uuid'),
                     'company_id': company.id,
                     'peppol_identifier': peppol_identifier,
                     'public_key': private_key_sudo._get_public_key_bytes(encoding='pem').decode(),
@@ -197,7 +189,7 @@ class AccountEdiProxyClientUser(models.Model):
             raise UserError(self.env._("Cannot register a user with a '%(proxy_state)s' application.", proxy_state=proxy_state_translated))
 
         params = {
-            'company_details': self._get_company_details(),
+            'company_details': self.env['pdp.registration']._get_company_details(self.company_id),
             'supported_identifiers': list(self.company_id._peppol_supported_document_types())
         }
         self._call_peppol_proxy(

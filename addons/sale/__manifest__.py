@@ -27,6 +27,7 @@ This module contains all the common features of Sales Management and eCommerce.
         'data/ir_sequence_data.xml',
         'data/mail_message_subtype_data.xml',
         'data/mail_template_data.xml',
+        'data/portal_entry_data.xml',
         'data/sale_tour.xml',
         'data/ir_config_parameter.xml', # Needs mail_template_data
 
@@ -41,6 +42,7 @@ This module contains all the common features of Sales Management and eCommerce.
         'views/sale_order_views.xml',
 
         'views/account_views.xml',
+        'views/account_analytic_line_views.xml',
         'views/crm_team_views.xml',
         'views/mail_activity_views.xml',
         'views/mail_activity_plan_views.xml',
@@ -60,7 +62,6 @@ This module contains all the common features of Sales Management and eCommerce.
         'data/product_demo.xml',
         'data/sale_demo.xml',
     ],
-    'installable': True,
     'assets': {
         'web.assets_backend': [
             'sale/static/src/scss/sale_onboarding.scss',
@@ -73,6 +74,7 @@ This module contains all the common features of Sales Management and eCommerce.
             'sale/static/src/js/product_configurator_dialog/*',
             'sale/static/src/js/product_list/*',
             'sale/static/src/js/product_template_attribute_line/*',
+            'sale/static/src/js/quantity_availability/*',
             'sale/static/src/js/quantity_buttons/*',
             'sale/static/src/js/sale_order_line_field/*',
             'sale/static/src/js/sale_progressbar_field.js',
@@ -103,6 +105,7 @@ This module contains all the common features of Sales Management and eCommerce.
             'sale/static/src/scss/sale_report.scss',
         ],
     },
+    'pre_init_hook': '_pre_init_sale',
     'post_init_hook': '_post_init_hook',
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',

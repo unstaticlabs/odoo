@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * pos_self_order
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 19:40+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-01-15 21:54+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-1/"
 "pos_self_order/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: pos_self_order
 #: model:ir.actions.report,print_report_name:pos_self_order.report_self_order_qr_codes_page
@@ -78,6 +78,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -108,6 +112,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -119,8 +127,7 @@ msgstr ""
 msgid ""
 "Access rights of this user will be used when visiting self order website "
 "when no session is open."
-msgstr ""
-"สิทธิ์การเข้าถึงของผู้ใช้รายนี้จะถูกใช้เมื่อเยี่ยมชมเว็บไซต์สั่งซื้อด้วยตนเองเมื่อไม่มีการเปิดเซสชัน"
+msgstr "สิทธิ์การเข้าถึงของผู้ใช้รายนี้จะถูกใช้เมื่อเยี่ยมชมเว็บไซต์สั่งซื้อด้วยตนเองเมื่อไม่มีการเปิดเซสชัน"
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_config__status__active
@@ -150,6 +157,12 @@ msgstr "เพิ่มรูปภาพ"
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Add to cart"
 msgstr "เพิ่มในรถเข็น"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Afternoon"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -222,7 +235,8 @@ msgstr "พื้นหลัง"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Cancel"
 msgstr "ยกเลิก"
@@ -279,12 +293,6 @@ msgstr "เลือกเวลาที่ลูกค้าจะชำระ
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Choose your time"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "City"
 msgstr "เมือง"
 
@@ -292,7 +300,7 @@ msgstr "เมือง"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/category_list_popup/category_list_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
-#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_propup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Close"
 msgstr "ปิด"
@@ -303,6 +311,13 @@ msgid "Close Session"
 msgstr "ปิดเซสชั่น"
 
 #. module: pos_self_order
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_config__self_ordering_primary_color
+#: model:ir.model.fields,field_description:pos_self_order.field_res_config_settings__pos_self_ordering_primary_color
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "Color"
+msgstr ""
+
+#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
@@ -311,13 +326,19 @@ msgstr "คำสั่งผสม"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__combo_id
-msgid "Combo reference"
+msgid "Combo Reference"
 msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_config_settings
 msgid "Config Settings"
 msgstr "ตั้งค่าการกำหนดค่า"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+msgid "Confirm"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -338,18 +359,6 @@ msgstr "ติดต่อ"
 #: code:addons/pos_self_order/static/src/app/components/timeout_popup/timeout_popup.xml:0
 msgid "Continue"
 msgstr "ต่อไป"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Continue with table"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Could you please confirm your table number?"
-msgstr "คุณช่วยยืนยันหมายเลขโต๊ะของคุณหน่อยได้ไหม?"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_country
@@ -387,8 +396,7 @@ msgstr "ลิงค์ที่กำหนดเอง"
 msgid ""
 "Custom links that the restaurant can configure to be displayed on the self "
 "order screen"
-msgstr ""
-"ลิงก์แบบกำหนดเองที่ร้านอาหารสามารถกำหนดค่าให้แสดงบนหน้าจอสั่งอาหารด้วยตนเองได้"
+msgstr "ลิงก์แบบกำหนดเองที่ร้านอาหารสามารถกำหนดค่าให้แสดงบนหน้าจอสั่งอาหารด้วยตนเองได้"
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__danger
@@ -425,9 +433,8 @@ msgid "Default language for the kiosk mode"
 msgstr "ภาษาเริ่มต้นสำหรับโหมดคีออสก์"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__delivery
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Delivery"
 msgstr "การจัดส่ง"
 
@@ -444,6 +451,7 @@ msgstr "ปิดการใช้งาน"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/language_popup/language_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Discard"
@@ -457,8 +465,10 @@ msgstr "ละทิ้ง"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__display_name
@@ -490,6 +500,12 @@ msgid "Download your receipt here"
 msgstr "ดาวน์โหลดใบเสร็จของคุณที่นี่"
 
 #. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
+msgid "E.g: Don't use food color, Extra spicy"
+msgstr ""
+
+#. module: pos_self_order
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Each Order"
@@ -503,10 +519,10 @@ msgid ""
 "                    both the point of sale and table names are encrypted in "
 "the generated URL, as shown in the example below:."
 msgstr ""
-"แต่ละตารางในแผนผังชั้นของคุณจะได้รับการกำหนดรหัส QR ที่ไม่ซ้ำกันโดยขึ้นอยู่กับการกำหนดค่าของคุณ ด้"
-"วยเหตุผลด้านความปลอดภัย\n"
-"                    ทั้งชื่อจุดขายและชื่อตารางได้รับการเข้ารหัสใน URL ที่สร้างขึ้น แสดงในตัวอย่"
-"างด้านล่าง:"
+"แต่ละตารางในแผนผังชั้นของคุณจะได้รับการกำหนดรหัส QR ที่ไม่ซ้ำกันโดยขึ้นอยู่กับการกำหนดค่าของคุณ "
+"ด้วยเหตุผลด้านความปลอดภัย\n"
+"                    ทั้งชื่อจุดขายและชื่อตารางได้รับการเข้ารหัสใน URL ที่สร้างขึ้น "
+"แสดงในตัวอย่างด้านล่าง:"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_preset
@@ -526,8 +542,8 @@ msgstr "ยืนยันทางอีเมล"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_mail_template
-msgid "Email Templates"
-msgstr "เทมเพลตอีเมล"
+msgid "Email Template"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -556,6 +572,12 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Evening"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 msgid "Extra:"
 msgstr ""
@@ -576,6 +598,12 @@ msgstr "ปฏิบัติตามคำแนะนำบนเทอร์
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
 msgid "Free Metal / Wood Stands"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Full Day"
 msgstr ""
 
 #. module: pos_self_order
@@ -614,8 +642,8 @@ msgid ""
 "Hey, looks like you forgot to create products or add them to pos_config. "
 "Please add them before using the Self Order"
 msgstr ""
-"ดูเหมือนว่าคุณจะลืมสร้างสินค้าหรือเพิ่มสินค้าลงใน pos_config โปรดเพิ่มสินค้าก่อนที่จะใช้การสั่งซื้อด้วย"
-"ตนเอง"
+"ดูเหมือนว่าคุณจะลืมสร้างสินค้าหรือเพิ่มสินค้าลงใน pos_config "
+"โปรดเพิ่มสินค้าก่อนที่จะใช้การสั่งซื้อด้วยตนเอง"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -646,8 +674,10 @@ msgstr "วิธีใช้"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__id
@@ -675,8 +705,8 @@ msgid ""
 "                use of a QR code generator like https://www.qrcode-"
 "monkey.com or https://www.qr-code-generator.com"
 msgstr ""
-"หากคุณต้องการรหัส QR โค้ดที่กำหนดเอง ให้เริ่มต้นด้วยการสแกนรหัส QR โค้ดที่เกี่ยวข้องเพื่อรับ URL จ"
-"ากนั้น\n"
+"หากคุณต้องการรหัส QR โค้ดที่กำหนดเอง ให้เริ่มต้นด้วยการสแกนรหัส QR โค้ดที่เกี่ยวข้องเพื่อรับ URL "
+"จากนั้น\n"
 "                ใช้ประโยชน์จากเครื่องสร้างรหัส QR โค้ดเช่น https://www.qrcode-"
 "monkey.com หรือ https://www.qr-code-generator.com"
 
@@ -699,8 +729,7 @@ msgstr "รูปภาพที่จะแสดงบนหน้าจอก
 #: code:addons/pos_self_order/models/res_config_settings.py:0
 msgid ""
 "In Self-Order mode, you must have at least one table to generate QR codes"
-msgstr ""
-"ในโหมดการสั่งซื้อด้วยตนเอง คุณต้องมีอย่างน้อยหนึ่งตารางเพื่อสร้างรหัส QR โค้ด"
+msgstr "ในโหมดการสั่งซื้อด้วยตนเอง คุณต้องมีอย่างน้อยหนึ่งตารางเพื่อสร้างรหัส QR โค้ด"
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_config__status__inactive
@@ -753,8 +782,8 @@ msgstr "คีออสก์"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Kiosk T"
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Kiosk Order"
 msgstr ""
 
 #. module: pos_self_order
@@ -792,11 +821,6 @@ msgstr "ให้ลูกค้าของคุณสั่งซื้อโ
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__light
 msgid "Light"
 msgstr "อ่อน"
-
-#. module: pos_self_order
-#: model:ir.model.fields,field_description:pos_self_order.field_pos_category__pos_config_ids
-msgid "Linked PoS Configurations"
-msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -847,6 +871,12 @@ msgstr "สั่งซื้อด้วยตนเองผ่านมือ
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Morning"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/landing_page/landing_page.xml:0
 msgid "My Order"
 msgstr "คำสั่งซื้อของฉัน"
@@ -857,18 +887,6 @@ msgstr "คำสั่งซื้อของฉัน"
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
 msgid "My Orders"
 msgstr "คำสั่งซื้อของฉัน"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NEW"
-msgstr "ใหม่"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NOTE"
-msgstr "โน้ต"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -961,7 +979,6 @@ msgstr "เปิดคีออสก์"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/stand_number_page/stand_number_page.js:0
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
 msgid "Order"
 msgstr "คำสั่งซื้อ"
 
@@ -970,6 +987,12 @@ msgstr "คำสั่งซื้อ"
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Order Now"
 msgstr "สั่งเลย"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "Order for"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1016,7 +1039,7 @@ msgstr "ชำระเงินภายหลัง"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
-msgid "Personalize the Kiosk background"
+msgid "Personalize the Interface"
 msgstr ""
 
 #. module: pos_self_order
@@ -1024,8 +1047,7 @@ msgstr ""
 msgid ""
 "Personalize your splash screen by adding one or multiple images to create a "
 "slideshow"
-msgstr ""
-"ปรับแต่งหน้าจอสแปลชของคุณโดยเพิ่มรูปภาพหนึ่งหรือหลายรูปเพื่อสร้างสไลด์โชว์"
+msgstr "ปรับแต่งหน้าจอสแปลชของคุณโดยเพิ่มรูปภาพหนึ่งหรือหลายรูปเพื่อสร้างสไลด์โชว์"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1034,8 +1056,7 @@ msgid "Phone"
 msgstr "โทรศัพท์"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Pickup At Counter"
 msgstr "รับสินค้าที่เคาน์เตอร์"
 
@@ -1044,6 +1065,18 @@ msgstr "รับสินค้าที่เคาน์เตอร์"
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__counter
 msgid "Pickup zone"
 msgstr "โซนรับสินค้า"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a table for your order."
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a time slot for your order."
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_load_mixin
@@ -1061,19 +1094,29 @@ msgid "Point of Sale Configuration"
 msgstr "กำหนดค่าการขายหน้าร้าน"
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "รายการคำสั่งซื้อการขายหน้าร้าน"
+#: model:ir.model,name:pos_self_order.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "คำสั่งซื้อการขายหน้าร้าน"
+#: model:ir.model,name:pos_self_order.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "วิธีการชำระเงินการขายหน้าร้าน"
+msgid "Point of Sale Payment Method"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_product_template_snooze
+msgid "Point of Sale Product Snooze"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_session
@@ -1239,18 +1282,13 @@ msgstr ""
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Select"
-msgstr "เลือก"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "Select a country"
 msgstr "เลือกประเทศ"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a hour"
 msgstr ""
 
@@ -1262,7 +1300,7 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a table"
 msgstr ""
 
@@ -1273,8 +1311,8 @@ msgid ""
 "to display it for all points of sale. You have to select among the points of "
 "sale that have the 'QR Code Menu' feature enabled."
 msgstr ""
-"เลือกการขายหน้าร้านที่คุณต้องการแสดงในลิงก์นี้ เว้นว่างไว้เพื่อแสดงการขายหน้าร้านทั้งหมด คุณต้องเลือ"
-"กการขายหน้าร้านที่เปิดใช้งานฟีเจอร์ 'เมนูรหัส QR โค้ด'"
+"เลือกการขายหน้าร้านที่คุณต้องการแสดงในลิงก์นี้ เว้นว่างไว้เพื่อแสดงการขายหน้าร้านทั้งหมด "
+"คุณต้องเลือกการขายหน้าร้านที่เปิดใช้งานฟีเจอร์ 'เมนูรหัส QR โค้ด'"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1283,8 +1321,10 @@ msgid "Selection"
 msgstr "การเลือก"
 
 #. module: pos_self_order
+#. odoo-javascript
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
 msgid "Self Order"
 msgstr ""
 
@@ -1346,12 +1386,6 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Self-Order T"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Self-Order T %s"
 msgstr ""
@@ -1365,8 +1399,8 @@ msgstr ""
 #. module: pos_self_order
 #: model:mail.template,description:pos_self_order.delivery_email_template
 #: model:mail.template,description:pos_self_order.takeout_email_template
-msgid "Sent to customers"
-msgstr ""
+msgid "Sent to customers with the receipt in attachment"
+msgstr "ส่งให้ลูกค้าพร้อมใบเสร็จแนบมาด้วย"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__sequence
@@ -1380,8 +1414,7 @@ msgid "Service at"
 msgstr "บริการที่"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Service at Table"
 msgstr "บริการที่โต๊ะ"
 
@@ -1441,19 +1474,18 @@ msgstr "หมายเลขโต๊ะยืน"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Table Tracker %s"
+msgstr ""
+
+#. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Table Tracker:"
 msgstr "เครื่องมือติดตามโต๊ะ:"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__self_ordering_table_id
 msgid "Table reference"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Table selection"
 msgstr ""
 
 #. module: pos_self_order
@@ -1480,7 +1512,6 @@ msgstr "ภาษี :"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
 msgid "Thanks a lot!"
 msgstr "ขอบคุณมากค่ะ!"
@@ -1512,6 +1543,25 @@ msgstr "ไม่มีการรวมนี้"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Today"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Tommorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+msgid "Tomorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.xml:0
 msgid "Total"
 msgstr "รวม"
@@ -1532,12 +1582,6 @@ msgstr "URL"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid "URL:"
 msgstr "URL:"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/pages/product_list_page/product_list_page.xml:0
-msgid "Unavailable"
-msgstr "ไม่พร้อม"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1630,13 +1674,6 @@ msgid "You are not authorized to remove this order"
 msgstr ""
 
 #. module: pos_self_order
-#. odoo-python
-#: code:addons/pos_self_order/models/pos_config.py:0
-#: code:addons/pos_self_order/models/res_config_settings.py:0
-msgid "You cannot add cash payment methods in kiosk mode."
-msgstr "คุณไม่สามารถเพิ่มวิธีการชำระเงินด้วยเงินสดในโหมดคีออสก์ได้"
-
-#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/services/self_order_service.js:0
 msgid "You're not authorized to perform this action"
@@ -1697,6 +1734,12 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "by cash"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "close"
 msgstr "ปิด"
@@ -1753,26 +1796,8 @@ msgstr ""
 msgid "x"
 msgstr ""
 
-#~ msgid "Sent to customers with the receipt in attachment"
-#~ msgstr "ส่งให้ลูกค้าพร้อมใบเสร็จแนบมาด้วย"
+#~ msgid "You cannot add cash payment methods in kiosk mode."
+#~ msgstr "คุณไม่สามารถเพิ่มวิธีการชำระเงินด้วยเงินสดในโหมดคีออสก์ได้"
 
 #~ msgid "Choose your"
 #~ msgstr "เลือก"
-
-#~ msgid "/ Tracker number:"
-#~ msgstr "/ หมายเลขติดตาม:"
-
-#~ msgid "Connection lost, please try again later"
-#~ msgstr "การเชื่อมต่อขาดหายไป โปรดลองอีกครั้งในภายหลัง"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "ฐานะทางการเงิน"
-
-#~ msgid "Self Ordering Enabled"
-#~ msgstr "เปิดใช้งานการสั่งซื้อด้วยตนเองแล้ว"
-
-#~ msgid "Your order has been cancelled"
-#~ msgstr "คำสั่งซื้อของคุณถูกยกเลิกแล้ว"
-
-#~ msgid "Your order status has been changed"
-#~ msgstr "สถานะการสั่งซื้อของคุณมีการเปลี่ยนแปลง"

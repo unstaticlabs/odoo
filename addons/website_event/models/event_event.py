@@ -1,12 +1,13 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from ast import literal_eval
-from dateutil.relativedelta import relativedelta
 import json
-import werkzeug.urls
+from datetime import UTC
+from zoneinfo import ZoneInfo
 
+import werkzeug.urls
+from dateutil.relativedelta import relativedelta
 from markupsafe import Markup
-from pytz import utc, timezone
 
 from odoo import api, fields, models, tools, _
 from odoo.exceptions import UserError, ValidationError
@@ -50,6 +51,8 @@ class EventEvent(models.Model):
         help="""Defines the Visibility of the Event on the Website and searches.\n
             Note that the EventEvent is however always available via its link.""")
     website_published = fields.Boolean(tracking=True)
+    is_published = fields.Boolean(tracking=True)
+    publish_on = fields.Datetime(tracking=True)
     website_menu = fields.Boolean(
         string='Website Menu',
         compute='_compute_website_menu', precompute=True, readonly=False, store=True,
@@ -205,10 +208,10 @@ class EventEvent(models.Model):
     def _compute_time_data(self):
         """ Compute start and remaining time. Do everything in UTC as we compute only
         time deltas here. """
-        now_utc = utc.localize(fields.Datetime.now().replace(microsecond=0))
+        now_utc = fields.Datetime.now().replace(microsecond=0, tzinfo=UTC)
         for event in self:
-            date_begin_utc = utc.localize(event.date_begin, is_dst=False)
-            date_end_utc = utc.localize(event.date_end, is_dst=False)
+            date_begin_utc = event.date_begin.replace(tzinfo=UTC)
+            date_end_utc = event.date_end.replace(tzinfo=UTC)
             event.is_ongoing = date_begin_utc <= now_utc <= date_end_utc
             event.is_done = now_utc > date_end_utc
             event.start_today = date_begin_utc.date() == now_utc.date()
@@ -467,6 +470,10 @@ class EventEvent(models.Model):
 
     def _track_subtype(self, init_values):
         self.ensure_one()
+        if init_values.keys() & {'publish_on'}:
+            if self.publish_on:
+                return self.env.ref('website_event.mt_event_scheduled', raise_if_not_found=False)
+            return self.env.ref('website_event.mt_event_unscheduled', raise_if_not_found=False)
         if init_values.keys() & {'is_published', 'website_published'}:
             if self.is_published:
                 return self.env.ref('website_event.mt_event_published', raise_if_not_found=False)
@@ -481,8 +488,8 @@ class EventEvent(models.Model):
         """
         start = slot.start_datetime if slot else self.date_begin
         end = slot.end_datetime if slot else self.date_end
-        url_date_start = start.astimezone(timezone(self.date_tz)).strftime('%Y%m%dT%H%M%S')
-        url_date_stop = end.astimezone(timezone(self.date_tz)).strftime('%Y%m%dT%H%M%S')
+        url_date_start = start.astimezone(ZoneInfo(self.date_tz)).strftime('%Y%m%dT%H%M%S')
+        url_date_stop = end.astimezone(ZoneInfo(self.date_tz)).strftime('%Y%m%dT%H%M%S')
         params = {
             'action': 'TEMPLATE',
             'text': self.name,
@@ -503,9 +510,9 @@ class EventEvent(models.Model):
         res = super()._default_website_meta()
         event_cover_properties = json.loads(self.cover_properties)
         # background-image might contain single quotes eg `url('/my/url')`
-        res['default_opengraph']['og:image'] = res['default_twitter']['twitter:image'] = event_cover_properties.get('background-image', 'none')[4:-1].strip("\"'")
-        res['default_opengraph']['og:title'] = res['default_twitter']['twitter:title'] = self.name
-        res['default_opengraph']['og:description'] = res['default_twitter']['twitter:description'] = self.subtitle
+        res['default_opengraph']['og:image'] = event_cover_properties.get('background-image', 'none')[4:-1].strip("\"'")
+        res['default_opengraph']['og:title'] = self.name
+        res['default_opengraph']['og:description'] = self.subtitle
         res['default_twitter']['twitter:card'] = 'summary'
         res['default_meta_description'] = self.subtitle
         return res
@@ -519,16 +526,16 @@ class EventEvent(models.Model):
         # To fetch the remaining events of the user's current day, the end of the user's day must
         # be localized and then converted in UTC, as it is the timezone used to record dates and
         # times in db.
-        tz = timezone(self.env.user.tz or self.env.context.get('tz') or 'UTC')
-        localized_today_begin = tz.localize(fields.Datetime.today())
-        utc_today_end = localized_today_begin.replace(hour=23, minute=59, second=59).astimezone(utc)
+        tz = self.env.tz
+        localized_today_begin = fields.Datetime.today().replace(tzinfo=tz)
+        utc_today_end = localized_today_begin.replace(hour=23, minute=59, second=59).astimezone(UTC)
 
         def sd(date):
             return fields.Datetime.to_string(date)
 
         def get_month_filter_domain(filter_name, months_delta):
             localized_month_begin = localized_today_begin.replace(day=1)
-            utc_months_delta_end = (localized_month_begin + relativedelta(months=months_delta + 1)).astimezone(utc)
+            utc_months_delta_end = (localized_month_begin + relativedelta(months=months_delta + 1)).astimezone(UTC)
             filter_string = _('This month') if months_delta == 0 \
                 else format_date(self.env, value=localized_today_begin + relativedelta(months=months_delta),
                     date_format='LLLL', lang_code=get_lang(self.env).code).capitalize()
@@ -582,11 +589,16 @@ class EventEvent(models.Model):
                 domain.append([('tag_ids', 'in', tags.ids)])
 
         no_country_domain = domain.copy()
+        include_online_events = (
+            website.is_view_active('website_event.event_location') and
+            website.is_view_active('website_event.event_location_include_online')
+        )
+
         if country:
             if country == 'online':
                 domain.append([("country_id", "=", False)])
             elif country != 'all':
-                domain.append([("country_id", "=", int(country))])
+                domain.append([("country_id", "in", [int(country), False] if include_online_events else [int(country)])])
 
         no_date_domain = domain.copy()
         dates = self._search_build_dates()
@@ -598,12 +610,13 @@ class EventEvent(models.Model):
                 if date_details[0] != 'scheduled':
                     current_date = date_details[1]
 
-        search_fields = ['name']
-        fetch_fields = ['name', 'website_url', 'address_name']
+        search_fields = ['name', 'tag_ids.name']
+        fetch_fields = ['name', 'website_url', 'address_name', 'tag_ids']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
             'address_name': {'name': 'address_name', 'type': 'text', 'match': True},
+            'tags': {'name': 'tag_ids', 'type': 'tags', 'match': True}
         }
         if with_description:
             search_fields.append('subtitle')
@@ -638,12 +651,13 @@ class EventEvent(models.Model):
     def _search_render_results(self, fetch_fields, mapping, icon, limit):
         with_date = 'detail' in mapping
         results_data = super()._search_render_results(fetch_fields, mapping, icon, limit)
-        if with_date:
-            for event, data in zip(self, results_data):
+        for event, data in zip(self, results_data):
+            if with_date:
                 begin = self.env['ir.qweb.field.date'].record_to_html(event, 'date_begin', {})
                 end = self.env['ir.qweb.field.date'].record_to_html(event, 'date_end', {})
                 data['range'] = (
                     Markup('{} <i class="fa fa-long-arrow-right"></i> {}').format(begin, end)
                     if begin != end else begin
                 )
+            data['tag_ids'] = event.tag_ids.read(['name'])
         return results_data

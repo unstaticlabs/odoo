@@ -1,7 +1,6 @@
 import { BaseOptionComponent, useDomState } from "@html_builder/core/utils";
 import { onWillStart, onWillUpdateProps, useState } from "@odoo/owl";
 import { FormActionFieldsOption } from "./form_action_fields_option";
-import { FormModelRequiredFieldAlert } from "./form_model_required_field_alert";
 import {
     getDependencyEl,
     getFieldName,
@@ -20,7 +19,7 @@ export class FormFieldOption extends BaseOptionComponent {
     static props = {
         redrawSequence: { type: Number, optional: true },
     };
-    static components = { FormActionFieldsOption, FormModelRequiredFieldAlert };
+    static components = { FormActionFieldsOption };
 
     setup() {
         super.setup();
@@ -59,6 +58,7 @@ export class FormFieldOption extends BaseOptionComponent {
                     isFormDate: false,
                     isFormDateTime: false,
                     hasDateTimePicker: false,
+                    isMultipleInputs: false,
                 };
             }
 
@@ -70,6 +70,7 @@ export class FormFieldOption extends BaseOptionComponent {
                 isFormDate: !!dependencyEl.closest(".s_website_form_date"),
                 isFormDateTime: !!dependencyEl.closest(".s_website_form_datetime"),
                 hasDateTimePicker: dependencyEl.classList.contains("datetimepicker-input"),
+                isMultipleInputs: !!dependencyEl.closest(".s_website_form_multiple"),
             };
         });
 
@@ -98,9 +99,18 @@ export class FormFieldOption extends BaseOptionComponent {
             };
         });
 
+        this.canLinkStateToCountry = useDomState((el) => {
+            const formEl = el.closest("form");
+            const hasCountryField = !!formEl.querySelector(
+                ".s_website_form_input[name='country_id']"
+            );
+            return { value: getFieldName(el) === "state_id" && hasCountryField };
+        });
+
         onWillStart(async () => {
             const el = this.env.getEditingElement();
             const fieldOptionData = await loadFieldOptionData(el);
+            this.state.fields = fieldOptionData.fields;
             this.state.availableFields.push(...fieldOptionData.availableFields);
             this.state.conditionInputs.push(...fieldOptionData.conditionInputs);
             this.state.valueList = fieldOptionData.valueList;
@@ -109,6 +119,7 @@ export class FormFieldOption extends BaseOptionComponent {
         onWillUpdateProps(async (props) => {
             const el = this.env.getEditingElement();
             const fieldOptionData = await loadFieldOptionData(el);
+            this.state.fields = fieldOptionData.fields;
             this.state.availableFields.length = 0;
             this.state.availableFields.push(...fieldOptionData.availableFields);
             this.state.conditionInputs.length = 0;
@@ -180,7 +191,19 @@ export class FormFieldOption extends BaseOptionComponent {
     }
     get isExistingFieldSelectType() {
         const el = this.env.getEditingElement();
-        return !isFieldCustom(el) && ["selection", "many2one"].includes(el.dataset.type);
+        return (
+            !isFieldCustom(el) &&
+            ["selection", "many2one", "many2many"].includes(el.dataset.type) &&
+            !el.querySelector("input[type='file']")
+        );
+    }
+    get isExistingFieldSelectTypeMultiple() {
+        const el = this.env.getEditingElement();
+        return !isFieldCustom(el) && this.state.fields[getFieldName(el)].type === "many2many";
+    }
+    get isOtherOptionSupported() {
+        const el = this.env.getEditingElement();
+        return isFieldCustom(el) && ["selection", "many2one"].includes(el.dataset.type);
     }
     get isMultipleInputs() {
         const el = this.env.getEditingElement();
@@ -194,6 +217,15 @@ export class FormFieldOption extends BaseOptionComponent {
         return (
             fieldEl.classList.contains("s_website_form_custom") ||
             ["one2many", "many2many"].includes(fieldEl.dataset.type)
+        );
+    }
+    get isMultiSelectVisible() {
+        const el = this.env.getEditingElement();
+        const dependencyEl = getDependencyEl(el);
+        return (
+            (["checkbox", "radio"].includes(dependencyEl.type) ||
+                dependencyEl.nodeName === "SELECT") &&
+            ["contains", "!contains"].includes(el.dataset.visibilityComparator)
         );
     }
 }

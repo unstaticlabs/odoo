@@ -154,7 +154,11 @@ export class ProductListPage extends Component {
     }
 
     getProducts(category) {
-        return category.associatedProducts || this.selfOrder.productByCategIds[category.id] || [];
+        return (
+            category.associatedProducts ||
+            this.selfOrder.productByCategIds[category.id] ||
+            []
+        ).filter((product) => product.self_order_available && this.isProductAvailable(product));
     }
 
     toggleSubCategoryPanel() {
@@ -190,7 +194,11 @@ export class ProductListPage extends Component {
     }
 
     selectProduct(product, target) {
-        if (!product.self_order_available || !this.isProductAvailable(product)) {
+        if (
+            !product.self_order_available ||
+            !this.isProductAvailable(product) ||
+            this.selfOrder.isProductSnoozed(product)
+        ) {
             return;
         }
         if (product.isCombo()) {

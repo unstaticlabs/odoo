@@ -4,11 +4,11 @@ import { registry } from "@web/core/registry";
 import { SearchbarOption } from "./searchbar_option";
 import { BuilderAction } from "@html_builder/core/builder_action";
 
-/** @typedef {import("plugins").TranslatedString} TranslatedString */
+/** @typedef {import("plugins").LazyTranslatedString} LazyTranslatedString */
 
 /**
  * @typedef {{
- *      label: TranslatedString;
+ *      label: LazyTranslatedString;
  *      orderBy: string;
  *      dependency?: string;
  *      id?: string;
@@ -33,7 +33,7 @@ import { BuilderAction } from "@html_builder/core/builder_action";
  */
 /**
  * @typedef {{
- *      label: TranslatedString;
+ *      label: LazyTranslatedString;
  *      dataAttribute: string;
  *      dependency: string;
  * }[]} searchbar_option_display_items

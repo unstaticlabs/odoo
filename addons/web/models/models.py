@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import base64
+import datetime
 import itertools
 import json
 import typing
 from collections import defaultdict
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import babel
 import babel.dates
-import datetime
-import pytz
 
 from odoo import api, models
 from odoo.fields import Command, Date, Domain
@@ -18,6 +17,7 @@ from odoo.api import NewId
 from odoo.models import regex_order, READ_GROUP_DISPLAY_FORMAT, READ_GROUP_NUMBER_GRANULARITY, READ_GROUP_TIME_GRANULARITY, BaseModel
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, date_utils, get_lang, unique, OrderedSet
 from odoo.exceptions import AccessError, UserError
+from odoo.tools.date_utils import all_timezones
 from odoo.tools.translate import LazyTranslate
 
 if typing.TYPE_CHECKING:
@@ -36,15 +36,6 @@ class lazymapping(defaultdict):
         return value
 
 
-def AND(domains):
-    return list(Domain.AND(domains))
-
-
-def OR(domains):
-    return list(Domain.OR(domains))
-
-
-
 class Base(models.AbstractModel):
     _inherit = 'base'
 
@@ -53,13 +44,11 @@ class Base(models.AbstractModel):
     def web_name_search(self, name, specification, domain=None, operator='ilike', limit=100):
         id_name_pairs = self.name_search(name, domain, operator, limit)
         records = self.browse([id for id, _ in id_name_pairs])
-        if len(specification) == 1 and 'display_name' in specification:
-            return [{
-                'id': record.id,
-                'display_name': record.display_name,
-                '__formatted_display_name': record.with_context(formatted_display_name=True).display_name,
-            } for record in records]
-        return records.web_read(specification)
+        read_vals_list = records.web_read(specification)
+        if 'display_name' in specification:
+            for read_vals, record in zip(read_vals_list, records):
+                read_vals['__formatted_display_name'] = record.with_context(formatted_display_name=True).display_name
+        return read_vals_list
 
     @api.model
     @api.readonly
@@ -445,7 +434,7 @@ class Base(models.AbstractModel):
         # First level of grouping
         first_groupby = [groupby[0]]
         read_group_order = self._get_read_group_order(dict_order, first_groupby, aggregates)
-        groups, length = self._formatted_read_group_with_length(
+        groups, length = self.with_context(formatted_display_name=True)._formatted_read_group_with_length(
             domain, first_groupby, aggregates, offset=offset, limit=limit, order=read_group_order,
         )
 
@@ -706,7 +695,7 @@ class Base(models.AbstractModel):
         aggregates: Sequence[str] = (),
         *,
         order: str | None = None,
-    ):
+    ) -> list[list[dict]]:
         """
         A method similar to :meth:`_read_grouping_set` but with all the
         formatting needed by the webclient.
@@ -1067,8 +1056,8 @@ class Base(models.AbstractModel):
             first_week_day = int(get_lang(self.env).week_start) - 1
             days_offset = first_week_day and 7 - first_week_day
         tz = False
-        if field.type == 'datetime' and self.env.context.get('tz') in pytz.all_timezones_set:
-            tz = pytz.timezone(self.env.context['tz'])
+        if field.type == 'datetime' and self.env.context.get('tz') in all_timezones:
+            tz = ZoneInfo(self.env.context['tz'])
 
         # existing non null date(time)
         existing = sorted(group_value for group in groups if (group_value := group[0])) or [None]
@@ -1078,14 +1067,14 @@ class Base(models.AbstractModel):
             fill_from = Date.to_date(fill_from)
             fill_from = date_utils.start_of(fill_from, granularity) - datetime.timedelta(days=days_offset)
             if tz:
-                fill_from = tz.localize(fill_from)
+                fill_from = fill_from.replace(tzinfo=tz)
         elif existing_from:
             fill_from = existing_from
         if fill_to:
             fill_to = Date.to_date(fill_to)
             fill_to = date_utils.start_of(fill_to, granularity) - datetime.timedelta(days=days_offset)
             if tz:
-                fill_to = tz.localize(fill_to)
+                fill_to = fill_to.replace(tzinfo=tz)
         elif existing_to:
             fill_to = existing_to
 
@@ -1157,7 +1146,7 @@ class Base(models.AbstractModel):
 
         # Reconstruct groups domain part
         for dict_group in result:
-            dict_group['__extra_domain'] = AND(dict_group.pop('__extra_domains'))
+            dict_group['__extra_domain'] = list(Domain.AND(dict_group.pop('__extra_domains')) or [])
 
         for aggregate_spec, values in zip(aggregates, column_iterator, strict=True):
             for value, dict_group in zip(values, result, strict=True):
@@ -1179,8 +1168,8 @@ class Base(models.AbstractModel):
             def formatter_follow_many2one(value):
                 value, domain = sub_formatter(value)
                 if not value:
-                    return value, ['|', (field_name, 'not any', []), (field_name, 'any', domain)]
-                return value, [(field_name, 'any', domain)]
+                    return value, Domain(field_name, 'not any', []) | Domain(field_name, 'any', domain)
+                return value, Domain(field_name, 'any', domain)
 
             return formatter_follow_many2one
 
@@ -1191,7 +1180,7 @@ class Base(models.AbstractModel):
                 if not value:
                     return False, [(field_name, 'not any', [])]
                 id_ = value.id
-                return (id_, value.sudo().display_name), [(field_name, '=', id_)]
+                return (id_, value.sudo().display_name), Domain(field_name, '=', id_)
 
             return formatter_many2many
 
@@ -1201,7 +1190,7 @@ class Base(models.AbstractModel):
                 if not value:
                     return False, [(field_name, '=', False)]
                 id_ = value.id
-                return (id_, value.sudo().display_name), [(field_name, '=', id_)]
+                return (id_, value.sudo().display_name), Domain(field_name, '=', id_)
 
             return formatter_many2one
 
@@ -1220,11 +1209,11 @@ class Base(models.AbstractModel):
                     range_end = value + interval
                     if field.type == 'datetime':
                         tzinfo = None
-                        if self.env.context.get('tz') in pytz.all_timezones_set:
-                            tzinfo = pytz.timezone(self.env.context['tz'])
-                            range_start = tzinfo.localize(range_start).astimezone(pytz.utc)
+                        if self.env.context.get('tz') in all_timezones:
+                            tzinfo = ZoneInfo(self.env.context['tz'])
+                            range_start = range_start.replace(tzinfo=tzinfo).astimezone(datetime.UTC)
                             # take into account possible hour change between start and end
-                            range_end = tzinfo.localize(range_end).astimezone(pytz.utc)
+                            range_end = range_end.replace(tzinfo=tzinfo).astimezone(datetime.UTC)
 
                         label = babel.dates.format_datetime(
                             range_start, format=READ_GROUP_DISPLAY_FORMAT[granularity],
@@ -1245,10 +1234,10 @@ class Base(models.AbstractModel):
                         )
                         label = f"W{week} {year:04}"
 
-                    additional_domain = ['&',
-                        (field_name, '>=', range_start.strftime(fmt)),
-                        (field_name, '<', range_end.strftime(fmt)),
-                    ]
+                    additional_domain = (
+                        Domain(field_name, '>=', range_start.strftime(fmt))
+                        & Domain(field_name, '<', range_end.strftime(fmt))
+                    )
                     # TODO: date label should be created by the webclient.
                     return (range_start.strftime(fmt), label), additional_domain
 
@@ -1259,7 +1248,7 @@ class Base(models.AbstractModel):
                 def formatter_date_number_granularity(value):
                     if value is None:
                         return [(field_name, '=', value)]
-                    return value, [(f"{field_name}.{granularity}", '=', value)]
+                    return value, Domain(f"{field_name}.{granularity}", '=', value)
 
                 return formatter_date_number_granularity
 
@@ -1268,7 +1257,7 @@ class Base(models.AbstractModel):
         if field.type == "properties":
             return self._web_read_group_groupby_properties_formatter(groupby_spec, values)
 
-        return lambda value: (value, [(field_name, '=', value)])
+        return lambda value: (value, Domain(field_name, '=', value))
 
     def _web_read_group_groupby_properties_formatter(self, groupby_spec, values):
         if '.' not in groupby_spec:
@@ -1286,7 +1275,7 @@ class Base(models.AbstractModel):
                     # can not do ('selection', '=', False) because we might have
                     # option in database that does not exist anymore
                     return value, ['|', (fullname, '=', False), (fullname, 'not in', options)]
-                return value, [(fullname, '=', value)]
+                return value, Domain(fullname, '=', value)
 
             return formatter_property_selection
 
@@ -1300,7 +1289,7 @@ class Base(models.AbstractModel):
                     # record in database that does not exist anymore
                     return value, ['|', (fullname, '=', False), (fullname, 'not in', all_groups)]
                 record = self.env[comodel].browse(value).with_prefetch(all_groups)
-                return (value, record.display_name), [(fullname, '=', value)]
+                return (value, record.display_name), Domain(fullname, '=', value)
 
             return formatter_property_many2one
 
@@ -1310,12 +1299,11 @@ class Base(models.AbstractModel):
 
             def formatter_property_many2many(value):
                 if not value:
-                    return value, OR([
-                        [(fullname, '=', False)],
-                        AND([[(fullname, 'not in', group)] for group in all_groups]),
-                    ]) if all_groups else []
+                    return value, ['|', (fullname, '=', False), *Domain.AND(
+                        Domain(fullname, 'not in', group) for group in all_groups
+                    )] if all_groups else []
                 record = self.env[comodel].browse(value).with_prefetch(all_groups)
-                return (value, record.display_name), [(fullname, 'in', value)]
+                return (value, record.display_name), Domain(fullname, 'in', value)
 
             return formatter_property_many2many
 
@@ -1325,45 +1313,41 @@ class Base(models.AbstractModel):
 
             def formatter_property_tags(value):
                 if not value:
-                    return value, OR([
-                        [(fullname, '=', False)],
-                        AND([[(fullname, 'not in', tag)] for tag in tags]),
-                    ]) if tags else []
+                    return value, ['|', (fullname, '=', False), *Domain.AND(
+                        Domain(fullname, 'not in', tag) for tag in tags
+                    )] if tags else []
 
                 # replace tag raw value with tuple of raw value, label and color
-                return tags.get(value), [(fullname, 'in', value)]
+                return tags.get(value), Domain(fullname, 'in', value)
 
             return formatter_property_tags
 
         if property_type in ('date', 'datetime'):
+            interval = READ_GROUP_TIME_GRANULARITY[func]
+            # Date / Datetime are not JSONifiable, so they are stored as raw text
+            fmt = DEFAULT_SERVER_DATE_FORMAT if property_type == 'date' else DEFAULT_SERVER_DATETIME_FORMAT
 
             def formatter_property_datetime(value):
                 if not value:
-                    return False, [(fullname, '=', False)]
-
-                # Date / Datetime are not JSONifiable, so they are stored as raw text
-                db_format = '%Y-%m-%d' if property_type == 'date' else '%Y-%m-%d %H:%M:%S'
-                fmt = DEFAULT_SERVER_DATE_FORMAT if property_type == 'date' else DEFAULT_SERVER_DATETIME_FORMAT
+                    return False, Domain(fullname, '=', False)
 
                 if func == 'week':
                     # the value is the first day of the week (based on local)
-                    start = value.strftime(db_format)
-                    end = (value + datetime.timedelta(days=7)).strftime(db_format)
+                    start = value
                 else:
-                    start = (date_utils.start_of(value, func)).strftime(db_format)
-                    end = (date_utils.end_of(value, func) + datetime.timedelta(minutes=1)).strftime(db_format)
+                    start = date_utils.start_of(value, func)
+                end = start + interval
 
                 label = babel.dates.format_date(
                     value,
                     format=READ_GROUP_DISPLAY_FORMAT[func],
                     locale=get_lang(self.env).code,
                 )
-                return (value.strftime(fmt), label), [(fullname, '>=', start), (fullname, '<', end)]
+                return (value.strftime(fmt), label), Domain(fullname, '>=', start.strftime(fmt)) & Domain(fullname, '<', end.strftime(fmt))
 
             return formatter_property_datetime
 
-        return lambda value: (value, [(fullname, '=', value)])
-
+        return lambda value: (value, Domain(fullname, '=', value))
 
     @api.model
     @api.readonly
@@ -1431,9 +1415,9 @@ class Base(models.AbstractModel):
 
         enable_counters = kwargs.get('enable_counters')
         only_counters = kwargs.get('only_counters')
-        extra_domain = Domain(kwargs.get('extra_domain', []))
+        extra_domain = Domain(kwargs.get('extra_domain', Domain.TRUE))
         no_extra = extra_domain.is_true()
-        model_domain = Domain(kwargs.get('model_domain', []))
+        model_domain = Domain(kwargs.get('model_domain', Domain.TRUE))
         count_domain = model_domain & extra_domain
 
         limit = kwargs.get('limit')
@@ -1444,7 +1428,7 @@ class Base(models.AbstractModel):
 
         model_domain_image = self._search_panel_domain_image(field_name, model_domain,
                             enable_counters and no_extra,
-                            set_limit and limit,
+                            limit if set_limit else None,
                         )
         if enable_counters and not no_extra:
             count_domain_image = self._search_panel_domain_image(field_name, count_domain, True)
@@ -1455,7 +1439,7 @@ class Base(models.AbstractModel):
         return model_domain_image
 
     @api.model
-    def _search_panel_domain_image(self, field_name, domain, set_count=False, limit=False):
+    def _search_panel_domain_image(self, field_name, domain, set_count=False, limit=None):
         """
         Return the values in the image of the provided domain by field_name.
 
@@ -1484,10 +1468,7 @@ class Base(models.AbstractModel):
             def group_id_name(value):
                 return value, field_name_selection[value]
 
-        domain = AND([
-            domain,
-            [(field_name, '!=', False)],
-        ])
+        domain = Domain(domain) & Domain(field_name, '!=', False)
         groups = self.with_context(read_group_expand=True).formatted_read_group(
             domain, [field_name], ['__count'], limit=limit)
 
@@ -1503,7 +1484,6 @@ class Base(models.AbstractModel):
             domain_image[id_] = values
 
         return domain_image
-
 
     @api.model
     def _search_panel_global_counters(self, values_range, parent_name):
@@ -1692,11 +1672,11 @@ class Base(models.AbstractModel):
                 field_type=types[field.type],
             ))
 
-        model_domain = kwargs.get('search_domain', [])
-        extra_domain = AND([
-            kwargs.get('category_domain', []),
-            kwargs.get('filter_domain', []),
-        ])
+        true = Domain.TRUE
+        model_domain = Domain(kwargs.get('search_domain', true))
+        extra_domain = Domain(kwargs.get('category_domain', true)) & Domain(kwargs.get('filter_domain', true))
+        model_domain = model_domain.optimize(self)
+        extra_domain = extra_domain.optimize(self)
 
         if field.type == 'selection':
             return {
@@ -1720,7 +1700,7 @@ class Base(models.AbstractModel):
         else:
             hierarchize = False
 
-        comodel_domain = kwargs.get('comodel_domain', [])
+        comodel_domain = Domain(kwargs.get('comodel_domain', true))
         enable_counters = kwargs.get('enable_counters')
         expand = kwargs.get('expand')
         limit = kwargs.get('limit')
@@ -1744,10 +1724,10 @@ class Base(models.AbstractModel):
         if not expand:
             image_element_ids = list(domain_image.keys())
             if hierarchize:
-                condition = [('id', 'parent_of', image_element_ids)]
+                condition = Domain('id', 'parent_of', image_element_ids)
             else:
-                condition = [('id', 'in', image_element_ids)]
-            comodel_domain = AND([comodel_domain, condition])
+                condition = Domain('id', 'in', image_element_ids)
+            comodel_domain &= condition
         comodel_records = Comodel.search_read(comodel_domain, field_names, limit=limit)
 
         if hierarchize:
@@ -1833,11 +1813,11 @@ class Base(models.AbstractModel):
                 'Only types %(supported_types)s are supported for filter (found type %(field_type)s)',
                 supported_types=supported_types, field_type=field.type))
 
-        model_domain = kwargs.get('search_domain', [])
-        extra_domain = AND([
-            kwargs.get('category_domain', []),
-            kwargs.get('filter_domain', []),
-        ])
+        true = Domain.TRUE
+        model_domain = Domain(kwargs.get('search_domain', true))
+        extra_domain = (Domain(kwargs.get('category_domain', true)) & Domain(kwargs.get('filter_domain', true)))
+        model_domain = model_domain.optimize(self)
+        extra_domain = extra_domain.optimize(self)
 
         if field.type == 'selection':
             return {
@@ -1871,18 +1851,14 @@ class Base(models.AbstractModel):
                 def group_id_name(value):
                     return (value, value) if value else (False, self.env._("Not Set"))
 
-        comodel_domain = kwargs.get('comodel_domain', [])
+        comodel_domain = Domain(kwargs.get('comodel_domain', true))
         enable_counters = kwargs.get('enable_counters')
         expand = kwargs.get('expand')
 
         if field.type == 'many2many':
             if not expand:
                 domain_image = self._search_panel_domain_image(field_name, model_domain, limit=limit)
-                image_element_ids = list(domain_image.keys())
-                comodel_domain = AND([
-                    comodel_domain,
-                    [('id', 'in', image_element_ids)],
-                ])
+                comodel_domain &= Domain('id', 'in', list(domain_image))
 
             comodel_records = Comodel.search_read(comodel_domain, field_names, limit=limit)
             if limit and len(comodel_records) == limit:
@@ -1902,20 +1878,9 @@ class Base(models.AbstractModel):
                     values['group_name'] = group_name
 
                 if enable_counters:
-                    search_domain = AND([
-                            model_domain,
-                            [(field_name, 'in', record_id)],
-                        ])
-                    local_extra_domain = extra_domain
+                    search_count_domain = model_domain & Domain(field_name, 'in', record_id) & extra_domain
                     if group_by and group_domain:
-                        local_extra_domain = AND([
-                            local_extra_domain,
-                            group_domain.get(json.dumps(group_id), []),
-                        ])
-                    search_count_domain = AND([
-                        search_domain,
-                        local_extra_domain
-                    ])
+                        search_count_domain &= Domain(group_domain.get(json.dumps(group_id), true))
                     values['__count'] = self.search_count(search_count_domain)
                 field_range.append(values)
 
@@ -1923,10 +1888,7 @@ class Base(models.AbstractModel):
 
         if field.type == 'many2one':
             if enable_counters or not expand:
-                extra_domain = AND([
-                    extra_domain,
-                    kwargs.get('group_domain', []),
-                ])
+                extra_domain &= Domain(kwargs.get('group_domain', true))
                 domain_image = self._search_panel_field_image(field_name,
                                     model_domain=model_domain, extra_domain=extra_domain,
                                     only_counters=expand,
@@ -1940,11 +1902,7 @@ class Base(models.AbstractModel):
                 return {'values': values, }
 
             if not expand:
-                image_element_ids = list(domain_image.keys())
-                comodel_domain = AND([
-                    comodel_domain,
-                    [('id', 'in', image_element_ids)],
-                ])
+                comodel_domain &= Domain('id', 'in', list(domain_image))
             comodel_records = Comodel.search_read(comodel_domain, field_names, limit=limit)
             if limit and len(comodel_records) == limit:
                 return {'error_msg': str(SEARCH_PANEL_ERROR_MESSAGE)}
@@ -2008,12 +1966,7 @@ class Base(models.AbstractModel):
         env = self.env
         first_call = not field_names
 
-        if not (self and self._name == 'res.users'):
-            # res.users defines SELF_WRITEABLE_FIELDS to give access to the user
-            # to modify themselves, we skip the check in that case because the
-            # user does not have write permission on themselves
-            # TODO update res.users
-            self.check_access('write' if self else 'create')
+        self.check_access('write' if self else 'create')
 
         if any(fname not in self._fields for fname in field_names):
             return {}
@@ -2230,23 +2183,23 @@ class ResCompany(models.Model):
             self._update_asset_style()
         return res
 
-    def _get_asset_style_b64(self):
+    def _get_asset_style_bin(self):
         # One bundle for everyone, so this method
         # necessarily updates the style for every company at once
         company_ids = self.sudo().search([])
         company_styles = self.env['ir.qweb']._render('web.styles_company_report', {
                 'company_ids': company_ids,
             }, raise_if_not_found=False)
-        return base64.b64encode(company_styles.encode())
+        return company_styles.encode()
 
     def _update_asset_style(self):
         asset_attachment = self.env.ref('web.asset_styles_company_report', raise_if_not_found=False)
         if not asset_attachment:
             return
         asset_attachment = asset_attachment.sudo()
-        b64_val = self._get_asset_style_b64()
-        if b64_val != asset_attachment.datas:
-            asset_attachment.write({'datas': b64_val})
+        raw = self._get_asset_style_bin()
+        if raw != asset_attachment.raw:
+            asset_attachment.write({'raw': raw})
 
 
 class RecordSnapshot(dict):

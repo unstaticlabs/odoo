@@ -42,7 +42,7 @@ registry.category("web_tour.tours").add("discuss_configuration_tour", {
             run: "click",
         },
         {
-            trigger: "select[name='inputDevice']",
+            trigger: ".o-mail-DeviceSelect-button[data-kind='audioinput']",
         },
         {
             trigger: "button:contains('Voice Detection')",
@@ -52,7 +52,7 @@ registry.category("web_tour.tours").add("discuss_configuration_tour", {
             trigger: "span:contains('Voice detection sensitivity')",
         },
         {
-            trigger: "button:contains('Push to Talk')",
+            trigger: "button:contains('Push-to-Talk')",
             run: "click",
         },
         {
@@ -73,6 +73,22 @@ registry.category("web_tour.tours").add("discuss_configuration_tour", {
         },
         {
             trigger: "label:contains('Edge blur intensity')",
+        },
+        {
+            trigger: ".modal-header button[aria-label='Close']",
+            run: "click",
+        },
+        {
+            trigger: ".o_main_navbar button:contains('Configuration')",
+            run: "click",
+        },
+        {
+            trigger: ".dropdown-menu a:contains('Settings')",
+            expectUnloadPage: true,
+            run: "click",
+        },
+        {
+            trigger: "#discuss_setting",
         },
     ],
 });

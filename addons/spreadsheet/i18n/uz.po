@@ -14,28 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:34+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"spreadsheet/uz/>\n"
+"POT-Creation-Date: 2026-04-24 17:38+0000\n"
+"PO-Revision-Date: 2025-10-08 18:39+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-" A string, possible empty, or a reference to a valid string. If empty, the "
-"text will be simply concatenated."
-msgstr ""
-"Satr, bo‘sh bo‘lishi mumkin yoki yaroqli satrga havola. Agar bo‘sh bo‘lsa, "
-"matn shunchaki birlashtiriladi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -103,6 +90,18 @@ msgstr "% qator jamisidan"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "%(hour)s AM"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "%(hour)s PM"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "%(hour_number)sh"
 msgstr "%(hour_number)s"
@@ -138,13 +137,10 @@ msgstr "%(newPivotName)s (Pivot #%(formulaId)s)"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid ""
 "%(replaceable_count)s match(es) replaced. %(irreplaceable_count)s match(es) "
-"cannot be replaced as they are part of a formula."
+"cannot be replaced as they are part of a formula or inside a locked sheet"
 msgstr ""
-"%(replaceable_count)s ta moslik almashtirildi. %(irreplaceable_count)s ta "
-"moslikni almashtirish imkonsiz, chunki ular formulaning bir qismi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -159,6 +155,12 @@ msgstr "%(row_count)s ta qator va %(column_count)s ta ustun tanlandi"
 #, fuzzy
 msgid "%(second_number)s''"
 msgstr "%(second_number)s''"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "%(zoom_percentage)s%"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -368,6 +370,18 @@ msgstr "- [ixtiyoriy]"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "-45° rotation"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "-90° rotation"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "0 = first match, 1 = all matches as an array, 2 = capturing groups from the "
@@ -375,6 +389,12 @@ msgid ""
 msgstr ""
 "0 = birinchi moslik, 1 = barcha mosliklar massiv sifatida, 2 = birinchi "
 "moslikdagi guruhlar massiv sifatida."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "0 = replace all matches. A negative number counts from the end."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -403,6 +423,18 @@ msgstr "2 ta ustun"
 #, fuzzy
 msgid "2 rows"
 msgstr "2 qator"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "45° rotation"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "90° rotation"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -446,17 +478,6 @@ msgid ""
 msgstr ""
 "Mantiqiy qiymat; agar TRUE bo‘lsa, matn argumentlarida tanlangan bo‘sh "
 "kataklar natijaga kiritilmaydi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"A column or row containing true or false values corresponding to the first "
-"column or row of range."
-msgstr ""
-"Diapazonning birinchi ustuni yoki qatoriga mos keladigan rost yoki yolg‘on "
-"qiymatlarni o‘z ichiga olgan ustun yoki qator."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -565,6 +586,14 @@ msgstr "Ishorasi o‘zgartirilgan son."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"A potential value to return. May be a reference to a cell or an individual "
+"value."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "A random number between 0 inclusive and 1 exclusive."
 msgstr "0 va 1 oralig‘idagi tasodifiy son."
@@ -661,6 +690,14 @@ msgstr "Manzil ko‘rsatilgan varaqning nomini ifodalovchi satr."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"A string, possible empty, or a reference to a valid string. If empty, the "
+"text will be simply concatenated."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "A substring from the end of a specified string."
 msgstr "Ko‘rsatilgan satr oxiridan olingan kichik satr."
@@ -716,7 +753,7 @@ msgstr "Absolyut satr, nisbiy ustun (masalan, A$1)"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Absolute value"
 msgstr "Mutlaq qiymat"
@@ -878,219 +915,6 @@ msgstr "Oraliqni qo‘shish"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional cases to try if the previous ones don't match expression."
-msgstr ""
-"Agar oldingilari ifodaga mos kelmasa, sinab ko‘rish uchun qo‘shimcha holatlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional column or row containing true or false values."
-msgstr ""
-"Rost yoki yolg‘on qiymatlarni o‘z ichiga olgan qo‘shimcha ustun yoki satr"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional conditions to be evaluated if the previous ones are FALSE."
-msgstr ""
-"Agar oldingilari YOLG‘ON bo‘lsa, baholanishi kerak bo‘lgan qo‘shimcha "
-"shartlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional criteria to check."
-msgstr "Tekshirish uchun qo‘shimcha mezonlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional criteria_range and criterion to check."
-msgstr "Tekshirish uchun qo‘shimcha mezonlar oralig‘i va mezon"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional future cash flows."
-msgstr "Kelajakdagi qo‘shimcha pul oqimlari"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional numbers or ranges to add to value1."
-msgstr "Qiymat1 ga qo‘shish uchun qo‘shimcha raqamlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional ranges or references for which you want the subtotal."
-msgstr ""
-"Oraliq yig‘indisini olmoqchi bo‘lgan qo‘shimcha oraliqlar yoki havolalar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional ranges over which to evaluate the additional criteria. The "
-"filtered set will be the intersection of the sets produced by each criterion-"
-"range pair."
-msgstr ""
-"Qo‘shimcha mezonlarni baholash uchun qo‘shimcha oraliqlar. Filtrlangan "
-"to‘plam har bir mezon-oraliq juftligi hosil qilgan to‘plamlarning kesishmasi "
-"bo‘ladi"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional ranges to add to range1."
-msgstr "Oraliq1 ga qo‘shish uchun qo‘shimcha oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional ranges to check."
-msgstr "Tekshirish uchun qo‘shimcha oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional ranges to flatten."
-msgstr "Tekislash uchun qo‘shimcha oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional text item(s)."
-msgstr "Qo‘shimcha matn elementi(lar)"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values or ranges in which to count the number of blanks."
-msgstr "Bo‘sh joylar sonini hisoblash uchun qo‘shimcha qiymatlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values or ranges to consider for uniqueness."
-msgstr ""
-"Noyoblikni aniqlash uchun ko‘rib chiqiladigan qo‘shimcha qiymatlar yoki "
-"oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values or ranges to consider when calculating the average value."
-msgstr ""
-"O‘rtacha qiymatni hisoblashda hisobga olinadigan qo‘shimcha qiymatlar yoki "
-"oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values or ranges to consider when calculating the maximum value."
-msgstr ""
-"Maksimal qiymatni hisoblashda hisobga olinadigan qo‘shimcha qiymatlar yoki "
-"oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values or ranges to consider when calculating the median value."
-msgstr ""
-"Mediana qiymatini hisoblashda hisobga olinishi kerak bo‘lgan qo‘shimcha "
-"qiymatlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values or ranges to consider when calculating the minimum value."
-msgstr ""
-"Minimal qiymatni hisoblashda hisobga olinadigan qo‘shimcha qiymatlar yoki "
-"oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values or ranges to consider when counting."
-msgstr "Hisoblashda hisobga olinadigan qo‘shimcha qiymatlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values or ranges to include in the population."
-msgstr "Bosh to‘plamga kiritish uchun qo‘shimcha qiymatlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values or ranges to include in the sample."
-msgstr "Namunaga kiritish uchun qo‘shimcha qiymatlar yoki oraliqlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional values to average."
-msgstr "O‘rtachaga qo‘shiladigan qiymatlar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values to be returned if their corresponding cases match "
-"expression."
-msgstr ""
-"Agar mos holatlar ifodaga to‘g‘ri kelsa, qaytariladigan qo‘shimcha qiymatlar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"Additional values to be returned if their corresponding conditions are TRUE."
-msgstr ""
-"Agar ularning tegishli shartlari TO‘G‘RI bo‘lsa, qaytariladigan qo‘shimcha "
-"qiymatlar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Additional weights."
-msgstr "Qo‘shimcha og‘irliklar."
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/helpers/geo_json_service.js:0
 #, fuzzy
 msgid "Africa"
@@ -1133,7 +957,15 @@ msgstr "Barcha mosliklar"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"All ranges in [[FUNCTION_NAME]] must have the same number of columns (got "
+"%s)."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "All sheets"
 msgstr "Barcha varaqlar"
@@ -1214,19 +1046,6 @@ msgstr "Foiz stavkasi qanday bo‘lishi haqidagi taxmin."
 #, fuzzy
 msgid "An estimate for what the internal rate of return will be."
 msgstr "Ichki daromad stavkasi qanday bo‘lishi haqidagi taxmin."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"An expression or reference to a cell containing an expression that "
-"represents some logical value, i.e. TRUE or FALSE, or an expression that can "
-"be coerced to a logical value."
-msgstr ""
-"Biror mantiqiy qiymatni, ya'ni TO‘G‘RI yoki NOTO‘G‘RIni ifodalovchi ifodani "
-"o‘z ichiga olgan katakka havola yoki ifoda, yoxud mantiqiy qiymatga "
-"o‘tkazilishi mumkin bo‘lgan ifoda."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1321,14 +1140,8 @@ msgstr ""
 #, fuzzy
 msgid ""
 "An range with dates corresponding to the cash flows in cashflow_amounts."
-msgstr "Pul oqimlari miqdoridagi pul oqimlariga mos keladigan sanalar oralig‘i."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "An unexpected error occurred during the image transfer"
-msgstr "Rasmni uzatishda kutilmagan xatolik yuz berdi."
+msgstr ""
+"Pul oqimlari miqdoridagi pul oqimlariga mos keladigan sanalar oralig‘i."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1442,20 +1255,18 @@ msgstr "Giperbolik tangensni hisoblash uchun istalgan haqiqiy qiymat."
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid ""
-"Any text item. This could be a string, or an array of strings in a range."
-msgstr ""
-"Istalgan matn elementi. Bu satr yoki diapazondagi satrlar to‘plami bo‘lishi "
-"mumkin."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "Appends ranges horizontally and in sequence to return a larger array."
 msgstr ""
 "Kattaroq massivni hosil qilish uchun diapazonlarni gorizontal va ketma-ket "
 "qo‘shadi."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Appends ranges horizontally and in sequence to return a larger array. All "
+"ranges must have the same number of rows."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1469,16 +1280,17 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Appends strings to one another."
-msgstr "Satrlarni bir-biriga ulaydi."
+msgid ""
+"Appends ranges vertically and in sequence to return a larger array. All "
+"ranges must have the same number of columns."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "Apply"
-msgstr "Qo‘llash"
+msgid "Appends strings to one another."
+msgstr "Satrlarni bir-biriga ulaydi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1592,7 +1404,7 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Arrow"
 msgstr "O‘q"
@@ -1600,7 +1412,6 @@ msgstr "O‘q"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Ascending"
 msgstr "O‘suvchi"
@@ -1744,6 +1555,7 @@ msgstr "Fon rangi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Banded columns"
 msgstr "Yo‘l-yo‘l ustunlar"
@@ -1754,6 +1566,12 @@ msgstr "Yo‘l-yo‘l ustunlar"
 #, fuzzy
 msgid "Banded rows"
 msgstr "Yo‘l-yo‘l satrlar"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Banded rows:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -1844,6 +1662,12 @@ msgstr "Qora"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Blue"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Blues"
 msgstr "Ko‘k tuslar"
@@ -1896,21 +1720,20 @@ msgstr "Chegaralar"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Bottom"
 msgstr "Pastki"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Bottom left"
 msgstr "Chap pastki"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Bottom right"
 msgstr "O‘ng pastki"
@@ -2094,10 +1917,15 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Calendar"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-#, fuzzy
-msgid "Cancel"
-msgstr "Bekor qilish"
+msgid "Calendar chart options"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2235,6 +2063,12 @@ msgstr "Karusel vaqtinchalik xotiraga nusxalandi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Case to be checked against expression."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Case-insensitive"
 msgstr "Katta-kichik harflarga sezgir emas"
@@ -2283,7 +2117,7 @@ msgstr "Sababi"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Cell values"
 msgstr "Katakcha qiymatlari"
@@ -2344,9 +2178,8 @@ msgstr "Diagramma"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/index.js:0
-#, fuzzy
-msgid "Chart - %(chart_model)s"
-msgstr "Diagramma - %(chart_model)s"
+msgid "Chart #%(odooChartId)s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2379,6 +2212,12 @@ msgstr "Belgilash katakchasi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Checks whether a string matches the supplied regular expression."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid ""
 "Checks whether there is a reference to a cell that contains a formula, and "
 "returns TRUE or FALSE."
@@ -2386,10 +2225,16 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Chip"
 msgstr "Chip"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Choice is undefined."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2489,6 +2334,18 @@ msgstr "Menyu panelini yopish"
 #, fuzzy
 msgid "Code"
 msgstr "Kod"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Collapse"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Collapse all"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2648,6 +2505,13 @@ msgstr "Berilgan katakning ustun raqami"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Column or row containing true or false values corresponding to the range."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Column right"
 msgstr "O‘ngdagi ustun"
@@ -2706,7 +2570,7 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Compute from totals"
 msgstr "Umumiy natijalardan hisoblash"
@@ -2812,6 +2676,12 @@ msgstr "Massiv elementlarini ajratuvchi bilan birlashtiradi"
 #, fuzzy
 msgid "Concatenation of two values."
 msgstr "Ikkita qiymatni birlashtirish"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Concise formatxA0(default)"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3113,6 +2983,18 @@ msgstr "Mezonlar"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Criteria to check."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Criterion to check."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Cumulative data"
 msgstr "Jamlanma ma'lumotlar"
@@ -3169,21 +3051,21 @@ msgstr "Yaxlitlangan valyuta"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/default_date_value/default_date_value.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #, fuzzy
 msgid "Current Month"
 msgstr "Joriy oy"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/default_date_value/default_date_value.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #, fuzzy
 msgid "Current Quarter"
 msgstr "Joriy chorak"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/default_date_value/default_date_value.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #, fuzzy
 msgid "Current Year"
 msgstr "Joriy yil"
@@ -3204,7 +3086,7 @@ msgstr "Joriy sana qiymat sifatida."
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Current sheet"
 msgstr "Joriy varaq"
@@ -3219,7 +3101,7 @@ msgstr "Maxsus"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/date_filter_dropdown/date_filter_dropdown.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #, fuzzy
 msgid "Custom Range"
 msgstr "Maxsus oraliq"
@@ -3241,9 +3123,8 @@ msgstr "Maxsus valyuta"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Custom currency format"
-msgstr "Maxsus valyuta formati"
+msgid "Custom date and time"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3258,6 +3139,12 @@ msgstr "Maxsus formula"
 #, fuzzy
 msgid "Custom formula %s"
 msgstr "Maxsus formula %s"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Custom number format"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3508,6 +3395,12 @@ msgstr "Narx sanasi."
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Date range"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Date time"
@@ -3533,20 +3426,6 @@ msgstr "Sana:"
 #, fuzzy
 msgid "Day"
 msgstr "Kun"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Day and full month"
-msgstr "Kun va to‘liq oy nomi"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Day and short month"
-msgstr "Kun va qisqa oy nomi"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3791,7 +3670,6 @@ msgstr "Yillar yig‘indisi usuli bo‘yicha amortizatsiya"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Descending"
 msgstr "Kamayuvchi"
@@ -3868,7 +3746,7 @@ msgstr "O‘lchovlar asosiy ta'rifga mos kelmaydi"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/filter_values_list/filter_values_list.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Discard"
 msgstr "Bekor qilish"
@@ -3908,6 +3786,12 @@ msgstr "Faqat yetishmayotgan katak(cha)larni ko‘rsatish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Display options"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Display style"
 msgstr "Ko‘rsatish uslubi"
@@ -3915,16 +3799,26 @@ msgstr "Ko‘rsatish uslubi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Displayed as % difference from \"%s\""
-msgstr "\"%s\" dan farq foizi sifatida ko‘rsatilgan"
+msgid "Displayed as % difference from \"%s\" : %s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Displayed as % of \"%s\""
-msgstr "\"%s\" ning foizi sifatida ko‘rsatilgan"
+msgid "Displayed as % difference from next \"%s\""
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as % difference from previous \"%s\""
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as % of \"%s\" : %s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3943,6 +3837,12 @@ msgstr "Umumiy jami foizi sifatida ko‘rsatilgan"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as % of next \"%s\""
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Displayed as % of parent \"%s\" total"
 msgstr "Yuqori \"%s\" jami foizi sifatida ko‘rsatilgan"
@@ -3957,9 +3857,14 @@ msgstr "Yuqori ustun jami foizi sifatida ko‘rsatilgan"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Displayed as % of parent row total of \"%s\""
-msgstr "\"%s\" ning yuqori qator jami foizi sifatida ko‘rsatilgan"
+msgid "Displayed as % of parent row total"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as % of previous \"%s\""
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3978,9 +3883,20 @@ msgstr "\"%s\" asosida ortib boruvchi jami foiz sifatida ko‘rsatilgan"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Displayed as difference from \"%s\""
-msgstr "\"%s\" dan farq sifatida ko‘rsatilgan"
+msgid "Displayed as difference from \"%s\" : %s"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as difference from next \"%s\""
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Displayed as difference from previous \"%s\""
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4188,6 +4104,12 @@ msgstr "Nusxalash"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Duplicate chart"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Duration"
 msgstr "Davomiylik"
@@ -4200,7 +4122,6 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/filter_values_list/filter_values_list.xml:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Edit"
@@ -4234,6 +4155,12 @@ msgstr "Maxsus jadval uslubini tahrirlash"
 #, fuzzy
 msgid "Edit link"
 msgstr "Havolani tahrirlash"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Edit pivot style"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4390,6 +4317,14 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Excludes a specified number of rows or columns from the start or end of an "
+"array."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Exit Full Screen"
 msgstr "To‘liq ekrandan chiqish"
@@ -4400,6 +4335,18 @@ msgstr "To‘liq ekrandan chiqish"
 #, fuzzy
 msgid "Exit fullscreen"
 msgstr "To‘liq ekrandan chiqish"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Expand"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Expand all"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4432,6 +4379,12 @@ msgstr "Qator guruhini kengaytirish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Expand/Collapse"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Expands or pads an array to specified row and column dimensions."
 msgstr ""
@@ -4440,10 +4393,18 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Exponential"
 msgstr "Eksponensial"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Expression or reference to a cell containing a logical value (TRUE/FALSE) or "
+"an expression that can be coerced to a logical value."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4512,6 +4473,12 @@ msgstr "\"%s\" turidagi maydonlar qo‘llab-quvvatlanmaydi"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Fields to group by"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "File"
@@ -4542,7 +4509,6 @@ msgstr "To‘ldirilgan radar"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/filter_values_list/filter_values_list.xml:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Filter"
@@ -4558,6 +4524,7 @@ msgstr "\"%(filter_name)s\" filtri topilmadi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Filter button"
 msgstr "Filtr tugmasi"
@@ -4658,7 +4625,8 @@ msgstr "Birinchi moslik"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "First position of string found in text, case-sensitive."
-msgstr "Matnda topilgan satrning birinchi o‘rni, katta-kichik harflarga sezgir."
+msgstr ""
+"Matnda topilgan satrning birinchi o‘rni, katta-kichik harflarga sezgir."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4691,13 +4659,6 @@ msgid "Fits points to linear trend derived via least-squares."
 msgstr ""
 "Nuqtalarni eng kichik kvadratlar usuli bilan topilgan chiziqli tendensiyaga "
 "moslashtiradi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-#, fuzzy
-msgid "Fixed Number"
-msgstr "O‘zgarmas raqam"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4775,9 +4736,27 @@ msgstr "Katakchalarni quyidagi holatda formatlash..."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Format code"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Format must be 0 or 1"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Format rules"
 msgstr "Formatlash qoidalari"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Format type"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -4789,7 +4768,6 @@ msgstr "Formatlash uslubi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Formula"
 msgstr "Formula"
@@ -4855,27 +4833,6 @@ msgstr "To‘liq ekran"
 #, fuzzy
 msgid "Full date time"
 msgstr "To‘liq sana va vaqt"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Full month"
-msgstr "To‘liq oy"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Full quarter"
-msgstr "To‘liq chorak"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Full week day and month"
-msgstr "To‘liq hafta kuni va oy"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5116,6 +5073,12 @@ msgstr "Katakcha haqida ma'lumot olish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Gets the spilled range of an array formula."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "Given a general exponential form of y = b*m^x for a curve fit, calculates b "
@@ -5202,6 +5165,12 @@ msgstr "Kulrang"
 #, fuzzy
 msgid "Greater than or equal to."
 msgstr "Katta yoki teng"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Green"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5402,6 +5371,7 @@ msgstr "Gorizontal tekislash"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Horizontal axis"
 msgstr "Gorizontal o‘q"
@@ -5500,20 +5470,6 @@ msgstr "Ro‘yxat identifikatori"
 #, fuzzy
 msgid "ID of the pivot."
 msgstr "Pivot identifikatori"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "ISO Date"
-msgstr "ISO sana"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "ISO Date time"
-msgstr "ISO sana va vaqt"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5683,6 +5639,14 @@ msgstr "O‘nli kasrlarni ko‘paytirish"
 #, fuzzy
 msgid "Index"
 msgstr "Indeks"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Index for CHOOSE is invalid. Valid values are between 1 and %(choices)s "
+"inclusive."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5995,9 +5959,9 @@ msgid ""
 "(nbrArgOptional)s optional. Got %(nbrValueRemaining)s too many."
 msgstr ""
 "%(functionName)s funksiyasi uchun argumentlar soni noto‘g‘ri. "
-"Takrorlanadigan argumentlar %(nbrArgRepeating)s ta guruhda, %(nbrArgOptional)"
-"s tagacha ixtiyoriy bo‘lishi kerak. %(nbrValueRemaining)s ta ortiqcha "
-"kiritildi"
+"Takrorlanadigan argumentlar %(nbrArgRepeating)s ta guruhda, %"
+"(nbrArgOptional)s tagacha ixtiyoriy bo‘lishi kerak. %(nbrValueRemaining)s ta "
+"ortiqcha kiritildi"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6142,6 +6106,12 @@ msgstr "Katta"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Is in Top/Bottom ranking"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Is less or equal to"
 msgstr "Kichik yoki teng"
@@ -6180,6 +6150,18 @@ msgstr "Teng emas"
 #, fuzzy
 msgid "Is valid date"
 msgstr "Yaroqli sana"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Is value duplicate"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Is value unique"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6247,9 +6229,8 @@ msgstr "Yorliqlar noto‘g‘ri"
 
 #. module: spreadsheet
 #: model:ir.model,name:spreadsheet.model_res_lang
-#, fuzzy
-msgid "Languages"
-msgstr "Tillar"
+msgid "Language"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6331,7 +6312,6 @@ msgstr "Muayyan sana tushgan yilning oxirgi kuni"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Left"
 msgstr "Chap"
@@ -6380,20 +6360,6 @@ msgstr "Yorqin"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Light blue"
-msgstr "Och ko‘k"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Light green"
-msgstr "Och yashil"
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/chart/index.js:0
 #: code:addons/spreadsheet/static/src/chart/odoo_chart/odoo_line_chart.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
@@ -6417,7 +6383,7 @@ msgstr "Chiziq uslubi"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Linear"
 msgstr "Chiziqli"
@@ -6474,7 +6440,13 @@ msgstr "Mahalliy"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Lock sheet"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Logarithmic"
 msgstr "Logarifmik"
@@ -6595,11 +6567,10 @@ msgstr "Oxirigacha moslashtirish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Match(es) cannot be replaced as they are part of a formula."
+msgid ""
+"Match(es) cannot be replaced as they are part of a formula or inside a "
+"locked sheet"
 msgstr ""
-"Mos kelgan qismlar formula tarkibida bo‘lganligi sababli almashtirilishi "
-"mumkin emas"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6621,6 +6592,18 @@ msgstr "Matritsani teskari aylantirish mumkin emas"
 #, fuzzy
 msgid "Max"
 msgstr "Maksimum"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Max columns:"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Max rows:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6726,7 +6709,8 @@ msgstr "O‘rtacha"
 #: code:addons/spreadsheet/static/src/ir_ui_menu/index.js:0
 #, fuzzy
 msgid "Menu %s not found. You may not have the required access rights."
-msgstr "%s menyusi topilmadi. Sizda kerakli kirish huquqlari bo‘lmasligi mumkin"
+msgstr ""
+"%s menyusi topilmadi. Sizda kerakli kirish huquqlari bo‘lmasligi mumkin"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6891,15 +6875,14 @@ msgstr "Aniq vaqtning daqiqali qismi."
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "Misc"
-msgstr "Turli-tuman"
+msgid "Miscellaneous"
+msgstr "Har xil"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Miscellaneous"
-msgstr "Har xil"
+msgid "Missing closing brace"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6916,8 +6899,14 @@ msgid "Missing opening parenthesis"
 msgstr "Ochuvchi qavs tushib qolgan"
 
 #. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Missing value color"
+msgstr ""
+
+#. module: spreadsheet
 #: model:ir.model,name:spreadsheet.model_ir_model
-msgid "Models"
+msgid "Model"
 msgstr ""
 
 #. module: spreadsheet
@@ -6964,7 +6953,7 @@ msgstr "Dushanba/seshanba dam olish kunlari"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/date_filter_dropdown/date_filter_dropdown.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Month"
@@ -7002,27 +6991,6 @@ msgstr "Oylar"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "More date formats"
-msgstr "Qo‘shimcha sana formatlari"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "More expressions that evaluate to logical values."
-msgstr "Mantiqiy qiymatlarga baho beruvchi ko‘proq ifodalar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "More expressions that represent logical values."
-msgstr "Mantiqiy qiymatlarni ifodalovchi ko‘proq ifodalar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "More formats"
 msgstr "Qo‘shimcha formatlar"
 
@@ -7030,29 +6998,8 @@ msgstr "Qo‘shimcha formatlar"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "More numbers or ranges to calculate for the product."
-msgstr "Ko‘paytma hisoblash uchun ko‘proq raqamlar yoki oraliqlar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "More strings to append in sequence."
-msgstr "Ketma-ket qo‘shish uchun qo‘shimcha satrlar."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "More than one match found in DGET evaluation."
 msgstr "DGET baholashida bittadan ortiq moslik topildi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "More values to be appended using delimiter."
-msgstr "Ajratuvchi yordamida qo‘shiladigan qo‘shimcha qiymatlar."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7095,6 +7042,12 @@ msgstr "O‘lchov nomi."
 #, fuzzy
 msgid "Negative values"
 msgstr "Manfiy qiymatlar"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Negative:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7218,6 +7171,12 @@ msgstr "TOROW ning berilgan argumentlari uchun hech qanday natija yo‘q."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "No rotation"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "No rows"
 msgstr "Qatorlar yo‘q"
@@ -7253,7 +7212,6 @@ msgstr "Noyob qiymatlar topilmadi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #: code:addons/spreadsheet/static/src/pivot/pivot_model.js:0
 #: code:addons/spreadsheet/static/src/pivot/pivot_time_adapters.js:0
 #, fuzzy
@@ -7298,7 +7256,6 @@ msgstr "Ma'lumotlar to‘plamidagi N-chi eng kichik element"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Number"
 msgstr "Raqam"
@@ -7359,7 +7316,8 @@ msgstr "Investitsiya uchun to‘lov davrlari soni"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Number of periods for an investment to reach a value."
-msgstr "Investitsiya ma'lum qiymatga erishishi uchun kerak bo‘lgan davrlar soni"
+msgstr ""
+"Investitsiya ma'lum qiymatga erishishi uchun kerak bo‘lgan davrlar soni"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7367,6 +7325,24 @@ msgstr "Investitsiya ma'lum qiymatga erishishi uchun kerak bo‘lgan davrlar son
 #, fuzzy
 msgid "Number of rows in a specified array or range."
 msgstr "Belgilangan massiv yoki oraliqda qatorlar soni"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Number or range to add together."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Number or range to calculate for the product."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Number too large"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7604,6 +7580,12 @@ msgstr "Faqat bitta ustundan tanlangan qismni ajratish mumkin"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Only single-cell references are allowed to get the spilled range."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "Oops—this pivot table is quite large (%s cells). Try simplifying it using "
@@ -7730,21 +7712,21 @@ msgstr "Foiz"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Percentage"
 msgstr "Foiz"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Percentage change from key value"
 msgstr "Asosiy qiymatdan foizli o‘zgarish"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Percentile"
 msgstr "Protsentil"
@@ -7768,9 +7750,8 @@ msgstr "Doiraviy diagramma"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Pin this panel to allow to open another side panel beside it."
-msgstr "Boshqa yon panelni ochish uchun bu panelni mahkamlang."
+msgid "Pin the side panel"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7816,6 +7797,12 @@ msgstr "Pivot jadvali"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Pivot table style"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
@@ -7829,7 +7816,6 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Plain text"
 msgstr "Oddiy matn"
@@ -7864,7 +7850,13 @@ msgstr "Iltimos, faqat bitta katak oralig‘ini tanlang"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/list/list_data_source.js:0
+msgid "Please specify the property field name"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Polynomial"
 msgstr "Polinom"
@@ -7911,6 +7903,12 @@ msgstr "Musbat sonning musbat kvadrat ildizi."
 #, fuzzy
 msgid "Positive values"
 msgstr "Musbat qiymatlar"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Positive:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7993,7 +7991,7 @@ msgstr "Jadval ko‘rinishidagi oralig‘dagi qiymatlar ko‘paytmasi."
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Progress bar"
 msgstr "Jarayon paneli"
@@ -8050,7 +8048,13 @@ msgstr "Q%(quarter_number)s"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/date_filter_dropdown/date_filter_dropdown.js:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Q%(value)s"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Quarter"
@@ -8134,8 +8138,8 @@ msgstr "Kamalak"
 #, fuzzy
 msgid "Random integer between two values, inclusive."
 msgstr ""
-"Ikki qiymat orasidagi tasodifiy butun son (ikkala qiymat ham hisobga olinadi)"
-"."
+"Ikki qiymat orasidagi tasodifiy butun son (ikkala qiymat ham hisobga "
+"olinadi)."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8150,6 +8154,30 @@ msgstr "Diapazon"
 #, fuzzy
 msgid "Range of values"
 msgstr "Qiymatlar oralig‘i"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Range or reference for which you want the subtotal."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Range over which to evaluate criteria."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Range to check."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Range to evaluate criteria."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8230,7 +8258,7 @@ msgstr "Hudud"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Reject the input"
 msgstr "Kiritilgan ma'lumotni rad etish"
@@ -8337,6 +8365,12 @@ msgstr "Hammasini almashtirish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Replace text in a string based on the supplied regular expression."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Replaces existing text with new text in a string."
 msgstr "Satrdagi mavjud matnni yangi matn bilan almashtiradi."
@@ -8426,12 +8460,6 @@ msgstr "Elektron jadval filtrining joriy qiymatini qaytarish"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/pivot/pivot_functions.js:0
-msgid "Return the label of the current value of a spreadsheet filter."
-msgstr ""
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Return unique columns"
@@ -8461,6 +8489,12 @@ msgid ""
 msgstr ""
 "Manba oralig‘ining filtrlangan versiyasini qaytaradi, faqat belgilangan "
 "shartlarga mos keladigan satr yoki ustunlarni qaytaradi"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Returns a formula as a string."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8506,6 +8540,14 @@ msgstr "Sonlar ketma-ketligini qaytaradi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"Returns a specified number of contiguous rows or columns from the start or "
+"end of an array."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "Returns a subtotal for a vertical range of cells using a specified "
@@ -8538,6 +8580,12 @@ msgid ""
 msgstr ""
 "Havoladagi chap yuqori katakning mutlaq havolasini oddiy matn sifatida "
 "qaytaradi"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Returns an element from a list of choices based on index."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8698,7 +8746,6 @@ msgstr "Belgilarni teskari aylantirish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Right"
 msgstr "O‘ng"
@@ -8709,6 +8756,12 @@ msgstr "O‘ng"
 #, fuzzy
 msgid "Right axis"
 msgstr "O‘ng o‘q"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Rotation"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8809,6 +8862,12 @@ msgstr "YIG‘INDI"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Sample:"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Saturday"
 msgstr "Shanba"
@@ -8864,6 +8923,12 @@ msgstr ""
 #, fuzzy
 msgid "Scatter"
 msgstr "Sochma diagramma"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Scientific"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9100,20 +9165,6 @@ msgstr "Yuqoriga surish"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Short month"
-msgstr "Qisqa oy nomi"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Short week day"
-msgstr "Qisqa hafta kuni nomi"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Show"
@@ -9128,10 +9179,16 @@ msgstr "Filtrlarni ko‘rsatish"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Show a warning"
 msgstr "Ogohlantirish ko‘rsatish"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Show column titles:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9178,6 +9235,12 @@ msgstr "O‘lchovni quyidagicha ko‘rsatish:"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Show measure titles:"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Show slicer"
 msgstr "Slayderni ko‘rsatish"
@@ -9188,6 +9251,12 @@ msgstr "Slayderni ko‘rsatish"
 #, fuzzy
 msgid "Show subtotals at the end of series"
 msgstr "Qator oxirida jami qiymatlarni ko‘rsatish"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "Show totals:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9339,7 +9408,7 @@ msgstr "Bo‘shliq"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Specific range"
 msgstr "Maxsus oraliq"
@@ -9594,6 +9663,12 @@ msgstr "Statistik"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Strict format"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Strictly greater than."
 msgstr "Qat'iy katta."
@@ -9605,6 +9680,12 @@ msgstr "Qat'iy katta."
 #, fuzzy
 msgid "Strikethrough"
 msgstr "Chiziq ustidan"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "String to append in sequence."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9745,12 +9826,10 @@ msgstr "Belgi"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid ""
-"TRUE or FALSE indicating whether to sort sort_column in ascending order."
+"TRUE or FALSE indicating whether to sort sort_column in ascending order. "
+"FALSE sorts in descending order."
 msgstr ""
-"TRUE yoki FALSE ustunlarni o‘sish tartibida saralash yoki saralamaslikni "
-"ko‘rsatadi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9765,6 +9844,12 @@ msgstr "Jadval"
 #, fuzzy
 msgid "Tangent of an angle provided in radians."
 msgstr "Radianda berilgan burchakning tangensi."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Target must contain at least one zone"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -9900,6 +9985,18 @@ msgstr "Matn to‘g‘ri elektron pochta manzili ekanligi"
 #, fuzzy
 msgid "Text is valid link"
 msgstr "Matn to‘g‘ri havola ekanligi"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Text item to join."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Text:"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10061,7 +10158,8 @@ msgstr ""
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The arguments array_x and array_y must have the same dimensions."
-msgstr "Massiv_x va massiv_y argumentlari bir xil o‘lchamga ega bo‘lishi kerak."
+msgstr ""
+"Massiv_x va massiv_y argumentlari bir xil o‘lchamga ega bo‘lishi kerak."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10076,6 +10174,18 @@ msgstr "Shart argumenti bitta ustun yoki satr bo‘lishi kerak."
 #, fuzzy
 msgid "The arguments conditions must have the same dimensions."
 msgstr "Shartlar argumentlari bir xil o‘lchamlarga ega bo‘lishi kerak."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The array from which to drop rows or columns"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The array from which to take rows or columns."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10211,6 +10321,12 @@ msgstr "Qaytarilishi kerak bo‘lgan qatorlarni o‘z ichiga olgan massiv."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The array to convert into text"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The array to expand."
 msgstr "Kengaytirilishi kerak bo‘lgan massiv."
@@ -10297,6 +10413,12 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The cell does not contain a formula."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "The cell whose column number will be returned. Column A corresponds to 1. By "
@@ -10355,6 +10477,12 @@ msgstr "Diagramma ta'rifi noma'lum sabab tufayli noto‘g‘ri."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The column index of the column to be returned."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid ""
 "The column index of the value to be returned, where the first column in "
@@ -10401,13 +10529,6 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The columns indexes of the columns to be returned."
-msgstr "Qaytarilishi kerak bo‘lgan ustunlarning indekslari."
-
-#. module: spreadsheet
-#. odoo-javascript
 #: code:addons/spreadsheet/static/src/currency/formulas.js:0
 #, fuzzy
 msgid "The company to take the exchange rate from."
@@ -10416,9 +10537,10 @@ msgstr "Valyuta kursini oladigan kompaniya."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The corresponding value to be returned if case1 matches expression."
-msgstr "Agar case1 ifodaga mos kelsa, qaytariladigan tegishli qiymat."
+msgid ""
+"The condition to be evaluated. It can be a boolean, a number, an array, or a "
+"reference to any of those."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11002,38 +11124,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "The first case to be checked against expression."
-msgstr "Ifodaga nisbatan tekshiriladigan birinchi holat."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first column index of the columns to be returned."
-msgstr "Qaytariladigan ustunlarning birinchi ustun indeksi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The first condition to be evaluated. This can be a boolean, a number, an "
-"array, or a reference to any of those."
-msgstr ""
-"Baholanishi kerak bo‘lgan birinchi shart. Bu mantiqiy qiymat, son, massiv "
-"yoki ularning istalganiga havola bo‘lishi mumkin."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first future cash flow."
-msgstr "Kelajakdagi birinchi pul oqimi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "The first matrix in the matrix multiplication operation."
 msgstr "Matritsalarni ko‘paytirish amalidagi birinchi matritsa."
 
@@ -11055,54 +11145,8 @@ msgstr "Ketma-ketlikdagi birinchi son"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "The first number or range to add together."
-msgstr "Qo‘shish uchun birinchi son yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first number or range to calculate for the product."
-msgstr "Ko‘paytma uchun hisoblanadigan birinchi son yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "The first number to compare."
 msgstr "Taqqoslash uchun birinchi son."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first range to be appended."
-msgstr "Qo‘shiladigan birinchi oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first range to flatten."
-msgstr "Tekislanadigan birinchi oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The first range whose entries will be multiplied with corresponding entries "
-"in the other ranges."
-msgstr ""
-"Elementlari boshqa oraliqlarning mos elementlari bilan ko‘paytiriladigan "
-"birinchi oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first row index of the rows to be returned."
-msgstr "Qaytariladigan satrlarning birinchi satr indeksi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11117,77 +11161,6 @@ msgstr "Taqqoslash uchun birinchi satr."
 #, fuzzy
 msgid "The first value must be a number"
 msgstr "Birinchi qiymat son bo‘lishi kerak"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range in which to count the number of blanks."
-msgstr "Bo‘sh kataklar sonini hisoblash uchun birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range of the population."
-msgstr "Umumiy to‘plamning birinchi qiymati yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range of the sample."
-msgstr "Namunaning birinchi qiymati yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range to consider for uniqueness."
-msgstr ""
-"Yagonalik uchun ko‘rib chiqilishi kerak bo‘lgan birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The first value or range to consider when calculating the average value."
-msgstr ""
-"O‘rtacha qiymatni hisoblashda hisobga olinadigan birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The first value or range to consider when calculating the maximum value."
-msgstr ""
-"Maksimal qiymatni hisoblashda hisobga olinadigan birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range to consider when calculating the median value."
-msgstr ""
-"Mediana qiymatini hisoblashda hisobga olinadigan birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The first value or range to consider when calculating the minimum value."
-msgstr ""
-"Minimal qiymatni hisoblashda hisobga olinadigan birinchi qiymat yoki oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The first value or range to consider when counting."
-msgstr "Sanashda hisobga olinadigan birinchi qiymat yoki oraliq."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11213,6 +11186,18 @@ msgstr ""
 #, fuzzy
 msgid "The first_period (%s) must be strictly positive."
 msgstr "Birinchi_davr (%s) qat'iy musbat bo‘lishi shart."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The format entered is not valid."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The format of the returned data."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11342,6 +11327,12 @@ msgstr "Jami yig‘indini hisoblashda foydalaniladigan funksiya."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The future cash flows."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The future value of the investment."
 msgstr "Investitsiyaning kelajakdagi qiymati."
@@ -11351,7 +11342,8 @@ msgstr "Investitsiyaning kelajakdagi qiymati."
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The future value remaining after the final payment has been made."
-msgstr "Yakuniy to‘lov amalga oshirilgandan so‘ng qoladigan kelajakdagi qiymat."
+msgstr ""
+"Yakuniy to‘lov amalga oshirilgandan so‘ng qoladigan kelajakdagi qiymat."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11402,13 +11394,10 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid ""
 "The index of the column in range or a range outside of range containing the "
-"values by which to sort."
+"value by which to sort."
 msgstr ""
-"Saralash uchun qiymatlarni o‘z ichiga olgan diapazon ustunining indeksi yoki "
-"diapazondan tashqaridagi diapazon."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11442,13 +11431,6 @@ msgstr "Ma'lumot turi %s dan biri bo‘lishi kerak."
 #, fuzzy
 msgid "The initial cost of the asset."
 msgstr "Aktivning boshlang‘ich qiymati."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The initial string."
-msgstr "Boshlang‘ich satr."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11873,6 +11855,14 @@ msgstr "Qaytarilishi kerak bo‘lgan ustunlar soni."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The number of columns to exclude. A negative value drops from the end of the "
+"array."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The number of columns to offset by."
 msgstr "Siljitish kerak bo‘lgan ustunlar soni."
@@ -11883,6 +11873,14 @@ msgstr "Siljitish kerak bo‘lgan ustunlar soni."
 #, fuzzy
 msgid "The number of columns to return"
 msgstr "Qaytariladigan ustunlar soni"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The number of columns to take. A negative value takes from the end of the "
+"array."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12008,6 +12006,12 @@ msgstr "Qatorlar soni (%s) musbat bo‘lishi shart."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The number of rows can not be zero."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The number of rows in the constrained array."
 msgstr "Cheklangan massivdagi qatorlar soni."
@@ -12043,9 +12047,24 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The number of rows or column to exclude must be smaller than the number of "
+"elements in the array."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The number of rows to be returned."
 msgstr "Qaytariladigan qatorlar soni."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The number of rows to drop. A negative value drops from the end of the array."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12060,6 +12079,13 @@ msgstr "O‘tkazib yuboriladigan qatorlar soni."
 #, fuzzy
 msgid "The number of rows to return"
 msgstr "Qaytariladigan qatorlar soni"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The number of rows to take. A negative value takes from the end of the array."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12085,14 +12111,16 @@ msgstr ""
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The number of the payment period to begin the cumulative calculation."
-msgstr "Jamg‘arib boriladigan hisob-kitobni boshlash uchun to‘lov davri raqami."
+msgstr ""
+"Jamg‘arib boriladigan hisob-kitobni boshlash uchun to‘lov davri raqami."
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The number of the payment period to end the cumulative calculation."
-msgstr "Jamg‘arib boriladigan hisob-kitobni tugatish uchun to‘lov davri raqami."
+msgstr ""
+"Jamg‘arib boriladigan hisob-kitobni tugatish uchun to‘lov davri raqami."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12295,44 +12323,8 @@ msgstr "Ma'lumotlarga moslash uchun ko‘phadning darajasi, 1 dan 6 gacha."
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid ""
-"The other range whose entries will be multiplied with corresponding entries "
-"in the other ranges."
-msgstr ""
-"Boshqa diapazondagi yozuvlar bilan ko‘paytiriladigan boshqa diapazon "
-"yozuvlari."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "The pattern or test to apply to criteria_range."
 msgstr "Mezonlar diapazoniga qo‘llaniladigan namuna yoki sinov."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid ""
-"The pattern or test to apply to criteria_range1, such that each cell that "
-"evaluates to TRUE will be included in the filtered set."
-msgstr ""
-"Mezonlar diapazoni1 ga qo‘llaniladigan namuna yoki sinov, bunda TRUE "
-"qiymatini oladigan har bir katakcha filtrlangan to‘plamga kiritiladi."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The pattern or test to apply to criteria_range1."
-msgstr "Mezonlar diapazoni1 ga qo‘llaniladigan namuna yoki sinov."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The pattern or test to apply to criteria_range2."
-msgstr "Mezonlar diapazoni2 ga qo‘llaniladigan namuna yoki sinov."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12633,20 +12625,6 @@ msgstr "Qiymatlar qaytariladigan kataklar oralig‘i."
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "The range of cells over which to evaluate criterion1."
-msgstr "Birinchi mezon baholanishi kerak bo‘lgan kataklar oralig‘i."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The range or reference for which you want the subtotal."
-msgstr "Siz oraliq jami olishni xohlagan oraliq yoki havola."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "The range representing the array or matrix of dependent data."
 msgstr "Bog‘liq ma'lumotlar massivi yoki matritsasini ifodalovchi oraliq."
 
@@ -12700,6 +12678,12 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The range to be appended."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The range to be summed, if different from range."
 msgstr "Yig‘iladigan oraliq, agar asosiy oraliqdan farq qilsa."
@@ -12717,13 +12701,6 @@ msgstr "Transpozitsiya qilinadigan oraliq."
 #, fuzzy
 msgid "The range to check against criterion."
 msgstr "Mezon bo‘yicha tekshiriladigan oraliq."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The range to check against criterion1."
-msgstr "Birinchi mezon bo‘yicha tekshiriladigan oraliq."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12768,6 +12745,12 @@ msgstr "Cheklanadigan oraliq."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The range to flatten."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The range to sum."
 msgstr "Yig‘iladigan oraliq."
@@ -12792,6 +12775,14 @@ msgstr "Mezon bo‘yicha tekshiriladigan oraliq."
 #, fuzzy
 msgid "The range whose column count will be returned."
 msgstr "Ustunlar soni qaytariladigan oraliq."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"The range whose entries will be multiplied with corresponding entries in the "
+"other range."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12863,6 +12854,12 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The reference to get the spilled range from."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The reference to the cell."
 msgstr "Katak havolasi."
@@ -12902,9 +12899,8 @@ msgstr "Qaytarish usuli (%s) 0, 1 yoki 2 bo‘lishi kerak."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The returned value if condition1 is TRUE."
-msgstr "Agar shart1 ROST bo‘lsa, qaytariladigan qiymat."
+msgid "The row index of the row to be returned."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -12950,13 +12946,6 @@ msgid "The rows arguments must be between -%s and %s (got %s), excluding 0."
 msgstr ""
 "Qator argumentlari -%s va %s orasida bo‘lishi kerak (hozirda %s), 0 bundan "
 "mustasno."
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The rows indexes of the rows to be returned."
-msgstr "Qaytarilishi kerak bo‘lgan qatorlarning indekslari."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13020,10 +13009,10 @@ msgid ""
 msgstr ""
 "Qidiruv usuli 1, 0 yoki -1 raqamlaridan iborat bo‘lib, qaysi qiymatni "
 "qaytarish kerakligini ko‘rsatadi. 1 - oraliq o‘sish tartibida saralanganda "
-"qidiruv kalitidan kichik yoki unga teng bo‘lgan eng katta qiymatni topadi. "
-"0 - oraliq saralanmaganda aniq qiymatni topadi. -1 - oraliq kamayish "
-"tartibida saralanganda qidiruv kalitidan katta yoki unga teng bo‘lgan eng "
-"kichik qiymatni topadi."
+"qidiruv kalitidan kichik yoki unga teng bo‘lgan eng katta qiymatni topadi. 0 "
+"- oraliq saralanmaganda aniq qiymatni topadi. -1 - oraliq kamayish tartibida "
+"saralanganda qidiruv kalitidan katta yoki unga teng bo‘lgan eng kichik "
+"qiymatni topadi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13271,6 +13260,12 @@ msgstr "O‘ng qismi qaytariladigan satr."
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The string in which you want to replace text."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The string on which you want to extract text."
 msgstr "Matnni ajratib olmoqchi bo‘lgan satr."
@@ -13330,6 +13325,12 @@ msgstr "Qidirilayotgan matn ichidan izlanishi kerak bo‘lgan satr."
 #, fuzzy
 msgid "The string to search for within text_to_search."
 msgstr "Qidirilayotgan matn ichidan izlanishi kerak bo‘lgan satr."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The string to test."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13400,6 +13401,12 @@ msgstr "Izlanayotgan so‘zning birinchi paydo bo‘lishini qidirish uchun matn.
 #, fuzzy
 msgid "The text to split."
 msgstr "Bo‘linadigan matn."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The text to use as the replacement."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13765,6 +13772,12 @@ msgstr "Qiymat son bo‘lishi shart"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value must be a positive number"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The value must be a text that begins with \"%s\""
 msgstr "Qiymat \"%s\" bilan boshlanadigan matn bo‘lishi shart"
@@ -13870,6 +13883,18 @@ msgstr "Qiymat %s dan katta bo‘lishi shart"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value must be in bottom %(value)s%(percentSymbol)s"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value must be in top %(value)s%(percentSymbol)s"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "The value must be less or equal to %s"
 msgstr "Qiymat %s dan kichik yoki teng bo‘lishi shart"
@@ -13894,6 +13919,12 @@ msgstr "Qiymat quyidagilardan biri bo‘lishi shart: %s"
 #, fuzzy
 msgid "The value must be the date %s"
 msgstr "Qiymat %s sanasi bo‘lishi shart"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value must be unique"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13926,16 +13957,15 @@ msgstr "Qiymat %s ga teng bo‘lmasligi shart"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "The value of the asset at the end of depreciation."
-msgstr "Aktivning eskirish davridan so‘ng qiymati."
+msgid "The value must not be unique"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "The value or values to be appended using delimiter."
-msgstr "Ajratuvchi yordamida qo‘shiladigan qiymat yoki qiymatlar."
+msgid "The value of the asset at the end of depreciation."
+msgstr "Aktivning eskirish davridan so‘ng qiymati."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -13978,6 +14008,12 @@ msgstr "Qiymat1ga qo‘shiladigan qiymat."
 #, fuzzy
 msgid "The value to be checked."
 msgstr "Tekshiriladigan qiymat."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value to be returned if its corresponding condition is TRUE."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -14209,7 +14245,8 @@ msgstr "Prognoz qilish uchun x o‘qidagi qiymat(lar)."
 #, fuzzy
 msgid ""
 "The values of the independent variable(s) corresponding with known_data_y."
-msgstr "Ma'lum_data_y ga mos keluvchi mustaqil o‘zgaruvchi(lar)ning qiymatlari."
+msgstr ""
+"Ma'lum_data_y ga mos keluvchi mustaqil o‘zgaruvchi(lar)ning qiymatlari."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -14329,7 +14366,8 @@ msgstr ""
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "There must be both positive and negative values in cashflow_amounts."
-msgstr "Pul oqimi miqdorlarida ham ijobiy, ham salbiy qiymatlar bo‘lishi kerak."
+msgstr ""
+"Pul oqimi miqdorlarida ham ijobiy, ham salbiy qiymatlar bo‘lishi kerak."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -14419,6 +14457,12 @@ msgstr "Bu pivotdan foydalanilmayapti"
 #, fuzzy
 msgid "This range is invalid"
 msgstr "Bu oraliq noto‘g‘ri"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "This sheet is locked and cannot be modified. Please unlock it first."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -14522,21 +14566,20 @@ msgstr "Bugun"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Top"
 msgstr "Yuqori"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Top left"
 msgstr "Yuqori chap"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Top right"
 msgstr "Yuqori o‘ng"
@@ -14558,7 +14601,7 @@ msgstr "Jami qator"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Trailing moving average"
 msgstr "Orqada qoluvchi harakatlanuvchi o‘rtacha"
@@ -14851,13 +14894,25 @@ msgstr "Noma'lum funksiya: \"%s\""
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Unlock sheet"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
 #: code:addons/spreadsheet/static/src/pivot/pivot_helpers.js:0
 msgid "Unnamed Field"
 msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Unpin the side panel"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Unsorted"
 msgstr "Saralanmagan"
@@ -14963,7 +15018,7 @@ msgstr "Ma'lumotlar to‘plamining berilgan foizligidagi qiymat"
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Value change from key value"
 msgstr "Asosiy qiymatdan qiymat o‘zgarishi"
@@ -15027,6 +15082,12 @@ msgstr "Qiymat %s va %s orasida"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value is duplicate"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Value is equal to %s"
 msgstr "Qiymat %s ga teng"
@@ -15044,6 +15105,18 @@ msgstr "Qiymat %s dan katta yoki teng"
 #, fuzzy
 msgid "Value is greater than %s"
 msgstr "Qiymat %s dan katta"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value is in bottom %(value)s%(percentSymbol)s"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value is in top %(value)s%(percentSymbol)s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15072,6 +15145,12 @@ msgstr "Qiymat %s va %s orasida emas"
 #, fuzzy
 msgid "Value is not equal to %s"
 msgstr "Qiymat %s ga teng emas"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value is unique"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15114,6 +15193,78 @@ msgstr "Qiymat yoki formula"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range in which to count the number of blanks."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider for uniqueness."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider when calculating the average value."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider when calculating the maximum value."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider when calculating the median value."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider when calculating the minimum value."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to consider when counting."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to include in the population."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value or range to include in the sample."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value to average."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value to be appended using delimiter."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Value to be returned if its corresponding case matches expression."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Value to return if the delimiter is not found."
 msgstr "Ajratuvchi topilmasa, qaytariladigan qiymat"
@@ -15134,17 +15285,11 @@ msgstr "Qiymat"
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Values"
 msgstr "Qiymatlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Values to average."
-msgstr "O‘rtacha qiymatlar"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15180,7 +15325,8 @@ msgstr "Butun bosh to‘plam dispersiyasi."
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Variance of population sample from table-like range."
-msgstr "Jadvalsimon oraliqdan olingan bosh to‘plam tanlanmasining dispersiyasi."
+msgstr ""
+"Jadvalsimon oraliqdan olingan bosh to‘plam tanlanmasining dispersiyasi."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15259,6 +15405,12 @@ msgstr "Hajm"
 #, fuzzy
 msgid "W%(week)s %(year)s"
 msgstr "%(week)s %(year)s-hafta"
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "W%(weekNumber)s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15364,16 +15516,15 @@ msgstr "Og‘irlik"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "Weighted average."
-msgstr "Tortilgan o‘rtacha."
+msgid "Weight for each corresponding value."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "Weights for each corresponding value."
-msgstr "Har bir tegishli qiymat uchun og‘irliklar."
+msgid "Weighted average."
+msgstr "Tortilgan o‘rtacha."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15446,7 +15597,8 @@ msgstr "Qiymat #N/A xatoligi ekanligi."
 #, fuzzy
 msgid ""
 "Whether or not to divide text around each character contained in delimiter."
-msgstr "Ajratuvchidagi har bir belgi atrofida matnni ajratish yoki ajratmaslik."
+msgstr ""
+"Ajratuvchidagi har bir belgi atrofida matnni ajratish yoki ajratmaslik."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15563,6 +15715,12 @@ msgstr ""
 #, fuzzy
 msgid "Whether to treat the end of text as a delimiter."
 msgstr "Matn oxirini ajratuvchi sifatida ko‘rish kerakmi."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Which choice to return."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15686,7 +15844,7 @@ msgstr "'n' qiymati noto‘g‘ri. Musbat son kutilgan edi. %s olingan."
 
 #. module: spreadsheet
 #. odoo-javascript
-#: code:addons/spreadsheet/static/src/global_filters/components/date_filter_dropdown/date_filter_dropdown.js:0
+#: code:addons/spreadsheet/static/src/global_filters/helpers.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "Year"
@@ -15757,6 +15915,13 @@ msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Zero:"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "Zoom"
@@ -15820,7 +15985,8 @@ msgstr "[[FUNCTION_NAME]] %s va %s argumentlari soni mos kelmaydi."
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
 msgid "[[FUNCTION_NAME]] has mismatched dimensions for argument %s (%s vs %s)."
-msgstr "[[FUNCTION_NAME]] %s argumentining o‘lchamlari mos kelmaydi (%s va %s)."
+msgstr ""
+"[[FUNCTION_NAME]] %s argumentining o‘lchamlari mos kelmaydi (%s va %s)."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -15937,6 +16103,18 @@ msgstr "masalan, 'meni qidiring‘"
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "e.g. 10"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
+msgid "e.g. 5"
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 #, fuzzy
 msgid "e.g. A1:A2"
 msgstr "masalan, A1:A2"
@@ -16010,13 +16188,6 @@ msgstr "moslik rejimi 0 yoki 1 qiymatga ega bo‘lishi kerak."
 #, fuzzy
 msgid "more rows at the bottom"
 msgstr "pastda qo‘shimcha qatorlar"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "negative"
-msgstr "manfiy"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -16113,20 +16284,6 @@ msgstr "6-daraja (sekstetik)"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 #, fuzzy
-msgid "positive"
-msgstr "musbat"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
-#, fuzzy
-msgid "repeatable"
-msgstr "takrorlanadigan"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
 msgid "return additional regression statistics"
 msgstr "qo‘shimcha regressiya statistikasini qaytarish"
 
@@ -16138,6 +16295,14 @@ msgid "return_range should have the same dimensions as lookup_range."
 msgstr ""
 "qaytarish diapazoni qidiruv diapazoni bilan bir xil o‘lchamga ega bo‘lishi "
 "kerak."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid ""
+"returns an array of text values from any specified range. It passes text "
+"values unchanged, and converts non-text values to text."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -16216,13 +16381,6 @@ msgstr ""
 #, fuzzy
 msgid "yesterday"
 msgstr "kecha"
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-#, fuzzy
-msgid "zero"
-msgstr "nol"
 
 #, fuzzy
 #~ msgid ""

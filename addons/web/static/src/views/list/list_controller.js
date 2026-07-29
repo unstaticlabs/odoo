@@ -15,11 +15,13 @@ import { MultiRecordViewButton } from "@web/views/view_button/multi_record_view_
 import { ViewButton } from "@web/views/view_button/view_button";
 import { executeButtonCallback, useViewButtons } from "@web/views/view_button/view_button_hook";
 import { ListConfirmationDialog } from "./list_confirmation_dialog";
+import { OfflineSearchBar } from "@web/search/search_bar/offline_search_bar";
 import { SearchBar } from "@web/search/search_bar/search_bar";
 import { useSearchBarToggler } from "@web/search/search_bar/search_bar_toggler";
 import { session } from "@web/session";
 import { ListCogMenu } from "./list_cog_menu";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { OfflineActionHelper } from "@web/views/offline_action_helper";
 import { SelectionBox } from "@web/views/view_components/selection_box";
 import { useExportRecords, useDeleteRecords } from "@web/views/view_hook";
 
@@ -39,11 +41,13 @@ import {
 export class ListController extends Component {
     static template = `web.ListView`;
     static components = {
+        OfflineActionHelper,
         ActionMenus,
         Layout,
         ViewButton,
         MultiRecordViewButton,
         SearchBar,
+        OfflineSearchBar,
         CogMenu: ListCogMenu,
         DropdownItem,
         SelectionBox,
@@ -53,7 +57,6 @@ export class ListController extends Component {
         allowSelectors: { type: Boolean, optional: true },
         onSelectionChanged: { type: Function, optional: true },
         readonly: { type: Boolean, optional: true },
-        showButtons: { type: Boolean, optional: true },
         allowOpenAction: { type: Boolean, optional: true },
         Model: Function,
         Renderer: Function,
@@ -64,7 +67,6 @@ export class ListController extends Component {
         allowSelectors: true,
         createRecord: () => {},
         selectRecord: () => {},
-        showButtons: true,
         allowOpenAction: true,
     };
 
@@ -72,6 +74,7 @@ export class ListController extends Component {
         this.actionService = useService("action");
         this.dialogService = useService("dialog");
         this.orm = useService("orm");
+        this.offlineService = useService("offline");
         this.rootRef = useRef("root");
 
         this.archInfo = this.props.archInfo;
@@ -230,6 +233,7 @@ export class ListController extends Component {
                 onAskMultiSaveConfirmation: this.onAskMultiSaveConfirmation.bind(this),
                 onWillSetInvalidField: this.onWillSetInvalidField.bind(this),
             },
+            useSendBeaconToSaveUrgently: true,
         };
     }
 
@@ -336,7 +340,7 @@ export class ListController extends Component {
         if (!this.model.isReady && !this.model.config.groupBy.length && this.editable) {
             // If the view isn't grouped and the list is editable, a new record row will be added,
             // in edition. In this situation, we must wait for the model to be ready.
-            await this.model.whenReady;
+            await this.model.whenReady.promise;
         }
         const list = (group && group.list) || this.model.root;
         if (this.editable && !list.isGrouped) {
@@ -512,7 +516,7 @@ export class ListController extends Component {
             ...this.props.display,
             controlPanel: {
                 ...controlPanel,
-                layoutActions: !this.hasSelectedRecords,
+                actions: !this.hasSelectedRecords,
             },
         };
     }

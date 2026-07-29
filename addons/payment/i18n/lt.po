@@ -19,13 +19,13 @@
 # Jonas Zinkevicius <jozi@odoo.com>, 2022
 # Martin Trigaux, 2022
 # Linas Versada <linaskrisiukenas@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 22:45+0000\n"
+"PO-Revision-Date: 2025-09-16 18:38+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "payment/lt/>\n"
@@ -36,7 +36,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
 "11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
 "1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report_records
@@ -202,11 +202,6 @@ msgstr ""
 #. module: payment
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
 msgid "ACH Direct Debit"
-msgstr ""
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
 msgstr ""
 
 #. module: payment
@@ -593,6 +588,11 @@ msgid "CMR"
 msgstr ""
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr ""
@@ -744,10 +744,6 @@ msgstr "Spalva"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "Įmonės"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -768,12 +764,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "Konfigūracija"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr ""
 
 #. module: payment
 #. odoo-javascript
@@ -950,6 +940,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
@@ -1190,6 +1181,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1437,7 +1429,7 @@ msgid ""
 msgstr ""
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "Tvarkyti mokėjimo būdus"
 
@@ -1492,7 +1484,7 @@ msgid "Mercado Livre"
 msgstr ""
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr ""
@@ -1512,6 +1504,11 @@ msgstr "Žinutė"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Messages"
 msgstr "Žinutės"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr ""
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_momo
@@ -1664,6 +1661,7 @@ msgid "OmanNet"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr ""
@@ -1789,6 +1787,16 @@ msgid "Pay Later"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr ""
@@ -1882,6 +1890,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -1961,7 +1970,6 @@ msgstr "Mokėjimo metodai"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr ""
 
@@ -2060,6 +2068,11 @@ msgid "Please wait..."
 msgstr ""
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr ""
@@ -2155,7 +2168,7 @@ msgid "Ratepay"
 msgstr ""
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr ""
@@ -2267,6 +2280,11 @@ msgid "Samsung Pay"
 msgstr ""
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "Išsaugoti"
@@ -2365,7 +2383,7 @@ msgid "Status"
 msgstr "Būsena"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Stripe"
@@ -2599,6 +2617,20 @@ msgid "The internal reference of the transaction"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2657,6 +2689,13 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_provider__pre_msg
 msgid "The message displayed to explain and help the payment process"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
 msgstr ""
 
 #. module: payment
@@ -3138,6 +3177,12 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr ""
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
 msgstr ""
 
@@ -3402,7 +3447,7 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
+msgid "minimum or maximum amount exceeded"
 msgstr ""
 
 #. module: payment
@@ -3440,176 +3485,3 @@ msgstr ""
 #: code:addons/payment/const.py:0
 msgid "tokenization without payment no supported"
 msgstr ""
-
-#~ msgid " Data Fetched"
-#~ msgstr "Pateikta informacija (Data fetched)"
-
-#~ msgid "<b>Amount:</b>"
-#~ msgstr "<b>Suma:</b>"
-
-#~ msgid "<b>Reference:</b>"
-#~ msgstr "<b>Numeris:</b>"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Grįžti į mano paskyrą"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> Ištrinti"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Nepavyko rasti tinkamo mokėjimo būdo.</strong><br/>\n"
-#~ "                                Jei manote, kad tai klaida, kreipkitės į "
-#~ "svetainės administratorių."
-
-#~ msgid "Account"
-#~ msgstr "Sąskaita"
-
-#~ msgid "Account Number"
-#~ msgstr "Sąskaitos numeris"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "Pridėti papildomus mokesčius"
-
-#~ msgid "Apply"
-#~ msgstr "Taikyti"
-
-#~ msgid "Bank"
-#~ msgstr "Bankas"
-
-#~ msgid "Bank Name"
-#~ msgstr "Banko pavadinimas"
-
-#~ msgid "Callback Document Model"
-#~ msgstr "Atgalinio kreipimosi dokumento modelis"
-
-#~ msgid "Callback Hash"
-#~ msgstr "Atgalinio kreipimosi maiša"
-
-#~ msgid "Callback Method"
-#~ msgstr "Atgalinio kreipimosi metodas"
-
-#~ msgid "Cancel"
-#~ msgstr "Atšaukti"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "Pasirinkti mokėjimo būdą"
-
-#~ msgid "Click here to be redirected to the confirmation page."
-#~ msgstr "Paspauskite čia, kad būtumėte nukreiptas į patvirtinimo puslapį."
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "Nestandartinio mokėjimo instrukcija"
-
-#~ msgid "Dismiss"
-#~ msgstr "Pašalinti"
-
-#~ msgid "Displayed as"
-#~ msgstr "Rodomas kaip"
-
-#~ msgid "Done"
-#~ msgstr "Atlikta"
-
-#~ msgid "Fees"
-#~ msgstr "Mokesčiai"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "Fiksuoti vietiniai mokesčiai"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "Fiksuoti tarptautiniai mokesčiai"
-
-#~ msgid "From"
-#~ msgstr "Iš"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuoti pagal"
-
-#~ msgid "Image displayed on the payment form"
-#~ msgstr "Paveikslėlis, rodomas mokėjimo formoje"
-
-#~ msgid "Internal server error"
-#~ msgstr "Vidinė serverio klaida"
-
-#~ msgid "Just done"
-#~ msgstr "Ką tik atlikta"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "Valdyti mokėjimo būdus"
-
-#~ msgid "Manual"
-#~ msgstr "Rankinė"
-
-#~ msgid "Method"
-#~ msgstr "Būdas"
-
-#~ msgid "No payment has been processed."
-#~ msgstr "Neapdorotas joks mokėjimas."
-
-#~ msgid "Not done"
-#~ msgstr "Neatlikta"
-
-#~ msgid "Ok"
-#~ msgstr "Gerai"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "Tik administratoriai gali pasiekti šiuos duomenis."
-
-#~ msgid "Other"
-#~ msgstr "Kita"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "PDT tapatybės žetonas"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "Mokėjimo instrukcijos"
-
-#~ msgid "Please wait ..."
-#~ msgstr "Palaukite..."
-
-#~ msgid "Selected onboarding payment method"
-#~ msgstr "Pasirinktas pradinis mokėjimo būdas"
-
-#~ msgid "Server Error"
-#~ msgstr "Serverio klaida"
-
-#~ msgid "Server error:"
-#~ msgstr "Serverio klaida:"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "Unable to contact the Odoo server."
-#~ msgstr "Nepavyko susisiekti su \"Odoo\" serveriu."
-
-#~ msgid "Verified"
-#~ msgstr "Patvirtintas"
-
-#~ msgid "We are not able to find your payment, but don't worry."
-#~ msgstr "Mums nepavyko rasti jūsų mokėjimo, tačiau nereikia jaudintis."
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "Palaukite, kol apdorojame Jūsų mokėjimus..."
-
-#~ msgid ""
-#~ "You should receive an email confirming your payment in a few minutes."
-#~ msgstr ""
-#~ "Turėtumėte gauti laišką, patvirtinantį jūsų mokėjimą, per kelias minutes."
-
-#~ msgid "You will be notified when the payment is confirmed."
-#~ msgstr "Būsite informuotas, kai mokėjimas bus patvirtintas."
-
-#~ msgid "You will be notified when the payment is fully confirmed."
-#~ msgstr "Būsite informuotas, kai mokėjimas bus pilnai patvirtintas."
-
-#~ msgid "Your payment has been received but need to be confirmed manually."
-#~ msgstr "Jūsų mokėjimas gautas, tačiau turi būti patvirtintas rankiniu būdu."
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "Jūsų mokėjimas sėkmingai apdorotas. Ačiū Jums!"
-
-#~ msgid "Your payment is in pending state."
-#~ msgstr "Jūsų mokėjimas yra laukiančioje būsenoje."

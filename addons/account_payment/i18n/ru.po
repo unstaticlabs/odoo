@@ -3,16 +3,17 @@
 # * account_payment
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 10:25+0000\n"
-"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
-"Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 12:36+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Russian <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -153,6 +154,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "Для создания новой платежной транзакции требуется токен."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -167,6 +173,11 @@ msgstr "Сумма, доступная для возврата"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Сумма к оплате"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -191,8 +202,9 @@ msgstr "Авторизованные транзакции"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Строка банковской выписки"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -356,7 +368,7 @@ msgid "Invoices Count"
 msgstr "Количество счетов"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "Счета к оплате"
 
@@ -415,6 +427,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "Онлайн-оплата не включена в настройках."
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -470,6 +489,7 @@ msgid "Pay overdue"
 msgstr "Оплатить просроченный счет"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -487,7 +507,17 @@ msgstr "Журнал платежей"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Способ оплаты"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "Строка метода платежа"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Способы оплаты"
@@ -527,15 +557,16 @@ msgid "Payment Transactions"
 msgstr "Платежные транзакции"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Платежи"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "Пожалуйста, войдите в систему, чтобы оплатить просроченные счета"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Прайс-листы"
 
 #. module: account_payment
 #. odoo-python
@@ -786,57 +817,17 @@ msgid "has been applied."
 msgstr "было применено."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "просрочен"
 
-#~ msgid "Code"
-#~ msgstr "Код"
-
-#~ msgid "<span class=\"o_stat_text\">Payment Transaction</span>"
-#~ msgstr "<span class=\"o_stat_text\">Платежная операция</span>"
-
-#~ msgid ""
-#~ "<strong>No suitable payment method could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website\n"
-#~ "                                administrator."
-#~ msgstr ""
-#~ "<strong>Не удалось найти подходящий способ оплаты.</strong><br/>\n"
-#~ "                                Если вы считаете, что это ошибка, "
-#~ "пожалуйста, свяжитесь с администратором сайта\n"
-#~ "                                администратор."
-
-#~ msgid "Activate Stripe"
-#~ msgstr "Активировать Stripe"
-
-#~ msgid "Enable credit & debit card payments supported by Stripe."
-#~ msgstr ""
-#~ "Включите оплату кредитными и дебетовыми картами, поддерживаемую Stripe."
-
-#~ msgid "Onboarding Online Payments"
-#~ msgstr "Ввод онлайн-платежей"
-
-#~ msgid "Onboarding Step"
-#~ msgstr "Этап адаптации"
-
-#~ msgid "Online Payments"
-#~ msgstr "Онлайн-платежи"
-
-#~ msgid "Pay with"
-#~ msgstr "Оплатить"
-
-#~ msgid "Register Payment"
-#~ msgstr "Регистрация оплаты"
-
-#~ msgid "Step Completed!"
-#~ msgstr "Шаг завершен!"
-
-#~ msgid ""
-#~ "The payment related to the transaction with reference %(ref)s has been "
-#~ "posted: %(link)s"
-#~ msgstr ""
-#~ "Платеж, связанный с транзакцией со ссылкой %(ref)s, был проведен: %(link)s"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Тип поддерживаемого возмещения"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

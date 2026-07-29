@@ -6,7 +6,7 @@ import time
 from markupsafe import Markup
 
 from odoo import api, fields, models, Command, _
-from odoo.tools import OrderedSet
+from odoo.tools import OrderedSet, SQL
 
 _logger = logging.getLogger(__name__)
 
@@ -16,13 +16,17 @@ TOLERANCE = 0.02  # tolerance applied to the total when searching for a matching
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    purchase_vendor_bill_id = fields.Many2one('purchase.bill.union', store=False, readonly=False,
-        string='Auto-complete',
-        help="Auto-complete from a previous bill, refund, or purchase order.")
+    purchase_vendor_bill_id = fields.Many2one(
+        'purchase.bill.union',
+        store=False,
+        readonly=False,
+        help="Auto-complete from a previous bill, refund, or purchase order."
+    )
     purchase_id = fields.Many2one('purchase.order', store=False, readonly=False,
         string='Purchase Order',
         help="Auto-complete from a past purchase order.")
     purchase_order_count = fields.Integer(compute="_compute_origin_po_count", string='Purchase Order Count')
+    display_auto_complete_field = fields.Boolean(compute="_compute_display_auto_complete", groups='purchase.group_purchase_user')
     purchase_order_name = fields.Char(compute='_compute_purchase_order_name')
     is_purchase_matched = fields.Boolean(compute='_compute_is_purchase_matched')  # 0: PO not required or partially linked. 1: All lines linked
     purchase_warning_text = fields.Text(
@@ -99,6 +103,24 @@ class AccountMove(models.Model):
 
         return res
 
+    @api.depends('partner_id')
+    def _compute_display_auto_complete(self):
+        partner_ids = self.mapped('partner_id').ids
+        purchase_orders = self.env['purchase.order']._search([
+            ('state', '=', 'purchase'),
+            ('invoice_status', 'in', ('to invoice', 'no'))
+        ], limit=1)
+
+        purchase_orders.add_where('purchase_order.partner_id = res_partner.id')
+        partners = self.env['res.partner']._search([
+            ('id', 'in', partner_ids),
+        ])
+        partners.add_where(SQL('EXISTS(%s)', purchase_orders.select()))
+        valid_partner_ids = {partner[0] for partner in self.env.execute_query(partners.select())}
+
+        for move in self:
+            move.display_auto_complete_field = move.partner_id.id in valid_partner_ids
+
     @api.depends('line_ids.purchase_line_id')
     def _compute_is_purchase_matched(self):
         for move in self:
@@ -139,6 +161,14 @@ class AccountMove(models.Model):
                 if product_msg := product.purchase_line_warn_msg:
                     warnings.add(product.display_name + ' - ' + product_msg)
             move.purchase_warning_text = '\n'.join(warnings)
+
+    @api.depends_context('uid')
+    def _compute_show_invoice_vendor_bill(self):
+        super()._compute_show_invoice_vendor_bill()
+        # If the user doesn't have purchase access, `invoice_vendor_bill_id` is displayed,
+        # as the user doesn't have access to `purchase_vendor_bill_id`.
+        for move in self:
+            move.show_invoice_vendor_bill &= not self.env.user.has_group('purchase.group_purchase_user')
 
     def action_purchase_matching(self):
         self.ensure_one()
@@ -539,7 +569,7 @@ class AccountMoveLine(models.Model):
             {
                 'product_id': line.product_id.id,
                 'product_qty': line.quantity,
-                'product_uom_id': line.product_uom_id.id,
+                'uom_id': line.product_uom_id.id,
                 'price_unit': line.price_unit,
                 'discount': line.discount,
             }

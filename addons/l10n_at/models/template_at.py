@@ -35,7 +35,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'account_tax_template_purchase_20_code060',
                 'income_account_id': 'chart_at_template_4000',
                 'expense_account_id': 'chart_at_template_5010',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'chart_at_template_1600',
             },
         }

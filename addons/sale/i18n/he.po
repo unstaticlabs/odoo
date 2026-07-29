@@ -22,26 +22,26 @@
 # NoaFarkash, 2022
 # hed shefer <hed@laylinetech.com>, 2023
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# diego gurwicz <diegog@dnghub.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-07-07 17:08+0000\n"
-"Last-Translator: diego gurwicz <diegog@dnghub.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/sale/he/"
-">\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-01-16 05:49+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-1/sale/"
+"he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: sale
 #. odoo-javascript
@@ -56,12 +56,6 @@ msgid ""
 "            UBL-RequestForQuotation file will work as well.\n"
 "        "
 msgstr ""
-"\n"
-"            אם הלקוח שלך משתמש ב-Odoo 18 ומעלה, נתוני הלקוח ושורות הזמנת "
-"המכירה\n"
-"            ייווצרו אוטומטית. כל PDF אחר המכיל קובץ UBL-RequestForQuotation\n"
-"            מצורף יעבוד גם כן.\n"
-"        "
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_crm_team__sale_order_count
@@ -97,8 +91,8 @@ msgstr "&amp;nbsp;"
 
 #. module: sale
 #: model:ir.actions.report,print_report_name:sale.action_report_pro_forma_invoice
-msgid "'PRO-FORMA - %s' % (object.name)"
-msgstr "'פרו-פורמה - %s' % (object.name)"
+msgid "'PRO FORMA - %s' % (object.name)"
+msgstr ""
 
 #. module: sale
 #: model:ir.actions.report,print_report_name:sale.action_report_saleorder
@@ -122,6 +116,439 @@ msgstr ", זה 100% בחינם! תחסוך זמן ביצירת הצעות מחי
 msgid ""
 "<b>Send the quote</b> to yourself and check what the customer will receive."
 msgstr "<b>שלח</b> לעצמך את הצעת המחיר ובדוק מה הלקוח יקבל."
+
+#. module: sale
+#: model:mail.template,body_html:sale.mail_template_sale_confirmation
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <t t-set=\"color\" t-"
+"value=\"object.company_id.email_secondary_color or '#875A7B'\"/>\n"
+"                    <t t-if=\"'website_id' in object and object.website_id\" "
+"t-set=\"logo_src\" t-value=\"object.website_id.image_url(object.website_id, "
+"'logo')\"/>\n"
+"                    <t t-else=\"\" t-set=\"logo_src\" t-valuef=\"/logo.png?"
+"company=#{object.company_id.id}\"/>\n"
+"                    <img t-att-src=\"logo_src\" style=\"display: block; "
+"height: 50px; margin: 0 0 16px;\" alt=\"Logo\"/>\n"
+"                    <p style=\"margin: 0 0 12px; padding: 0px; line-height: "
+"18px; font-size: 14px;\">\n"
+"                        Hello <t t-out=\"object.partner_id.display_name or "
+"''\">Johnny Tester</t>,\n"
+"                        <br/><br/>\n"
+"                        <t t-set=\"tx_sudo\" t-"
+"value=\"object.get_portal_last_transaction()\"/>\n"
+"                        Your order <span style=\"font-weight:bold;\" t-"
+"out=\"object.name or ''\">S00049</span>\n"
+"                        <t t-if=\"object.state == 'sale' or (tx_sudo and "
+"tx_sudo.state in ('done', 'authorized'))\">\n"
+"                            has been confirmed.<br/>\n"
+"                            Thank you for your trust.\n"
+"                        </t>\n"
+"                        <t t-elif=\"tx_sudo and tx_sudo.state == "
+"'pending'\">\n"
+"                            is pending. It will be confirmed when the "
+"payment is received.\n"
+"                            <t t-if=\"object.reference\">\n"
+"                                Your payment reference is <span style=\"font-"
+"weight:bold;\" t-out=\"object.reference or ''\"/>.\n"
+"                            </t>\n"
+"                        </t>\n"
+"                        <br/>\n"
+"                        <t t-set=\"documents\" t-"
+"value=\"object._get_product_documents()\"/>\n"
+"                        <t t-if=\"documents\">\n"
+"                            <br/>\n"
+"                            <t t-if=\"len(documents)&gt;1\">\n"
+"                                Here are some additional documents that may "
+"interest you:\n"
+"                            </t>\n"
+"                            <t t-else=\"\">\n"
+"                                Here is an additional document that may "
+"interest you:\n"
+"                            </t>\n"
+"                            <ul style=\"margin-bottom: 0;\">\n"
+"                                <t t-foreach=\"documents\" t-"
+"as=\"document\">\n"
+"                                    <li style=\"font-size: 14px;\">\n"
+"                                        <a t-"
+"out=\"document.ir_attachment_id.name\" t-att-href=\"object.get_portal_url('/"
+"document/' + str(document.id))\" t-att-target=\"target\"/>\n"
+"                                    </li>\n"
+"                                </t>\n"
+"                            </ul>\n"
+"                        </t>\n"
+"                        <t t-if=\"not is_html_empty(object.user_id.signature)"
+"\">\n"
+"                            <div style=\"font-size: 14px; margin: 0 0 16px;"
+"\"><t t-out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                    <t t-if=\"hasattr(object, 'website_id') and "
+"object.website_id\">\n"
+"                        <div style=\"margin: 0px; padding: 0px;\">\n"
+"                            <!-- The following loop is also used in the "
+"addons > sale > data > mail_template_data.xml file because we want the same "
+"layout. -->\n"
+"                            <t t-foreach=\"object.order_line\" t-"
+"as=\"line\">\n"
+"                                <t t-if=\"(not hasattr(line, 'is_delivery') "
+"or not line.is_delivery) and not line.combo_item_id\">\n"
+"                                    <table width=\"100%\" style=\"max-width: "
+"590px; font-size: 14px; border-collapse: collapse;\" role=\"presentation\">\n"
+"                                        <tr>\n"
+"                                            <td width=\"24%\" style=\"max-"
+"width: 120px; padding: 0 10px 10px 0; vertical-align: top;\">\n"
+"                                                <img t-attf-src=\"/web/image/"
+"product.product/{{ line.product_id.id }}/image_128\" t-attf-style=\"width: "
+"64px; height: {{object.website_id and "
+"object.website_id._get_product_image_ratio_height() or '64px'}}; object-fit: "
+"cover; object-position: center;\" alt=\"Product image\"/>\n"
+"                                            </td>\n"
+"                                            <td align=\"left\" "
+"style=\"vertical-align: top; padding-bottom: 22px;\">\n"
+"                                                <h3 t-attf-style=\"mso-line-"
+"height-rule:exactly; margin:0; font-size: 14px; {{'margin-bottom: 6px;' if "
+"line.product_type == 'combo' else ''}}\">\n"
+"                                                    <strong t-"
+"out=\"line.product_id.name or ''\" t-attf-style=\"color: #{color};\">Taking "
+"care of Trees Course</strong>\n"
+"                                                    <span t-"
+"if=\"line.product_id.product_template_attribute_value_ids\" style=\"opacity: "
+"0.5;\">\n"
+"                                                        <t t-out=\"', "
+"'.join(line.product_id.product_template_attribute_value_ids.mapped('name'))"
+"\"/>\n"
+"                                                    </span>\n"
+"                                                </h3>\n"
+"                                                <t t-set=\"combo_line_idx\" "
+"t-value=\"0\"/>\n"
+"                                                <t t-set=\"totalComboLines\" "
+"t-value=\"0\"/>\n"
+"                                                <t t-set=\"line_idx\" t-"
+"value=\"line_index\"/>\n"
+"                                                <t t-"
+"foreach=\"object.order_line\" t-as=\"combo_liness\">\n"
+"                                                    <t t-if=\"(not "
+"hasattr(line, 'is_delivery') or not line.is_delivery) and "
+"(combo_liness.linked_line_id.id == line.id) and line_idx == line_index\">\n"
+"                                                        <t t-"
+"if=\"combo_liness.linked_line_id.id == line.id and combo_liness.id != "
+"line.id\">\n"
+"                                                            <t t-"
+"set=\"totalComboLines\" t-value=\"totalComboLines + 1\"/>\n"
+"                                                        </t>\n"
+"                                                    </t>\n"
+"                                                </t>\n"
+"                                                <t t-"
+"foreach=\"object.order_line\" t-as=\"combo_line\">\n"
+"                                                    <t t-if=\"(not "
+"hasattr(line, 'is_delivery') or not line.is_delivery) and "
+"(combo_line.linked_line_id.id == line.id) and combo_line.combo_item_id and "
+"line_idx == line_index\">\n"
+"                                                            <t t-"
+"set=\"borderRadiusStyle\" t-value=\"''\"/>\n"
+"                                                            <t t-"
+"set=\"borderTopStyle\" t-value=\"''\"/>\n"
+"                                                            <t t-"
+"set=\"borderBottomStyle\" t-value=\"''\"/>\n"
+"\n"
+"                                                            <t t-"
+"if=\"combo_line.linked_line_id.id == line.id and combo_line.id != "
+"line.id\">\n"
+"                                                                <t t-"
+"set=\"combo_line_idx\" t-value=\"combo_line_idx + 1\"/>\n"
+"                                                            </t>\n"
+"                                                            <t t-"
+"elif=\"combo_line.id == line.id and line_idx != line_index\">\n"
+"                                                                <t t-"
+"set=\"combo_line_idx\" t-value=\"0\"/>\n"
+"                                                            </t>\n"
+"                                                            <t t-"
+"if=\"combo_line_idx == 1\">\n"
+"                                                                <t t-"
+"if=\"totalComboLines != 1\">\n"
+"                                                                    <t t-"
+"set=\"borderRadiusStyle\" t-value=\"'border-radius: 6px 6px 0 0;'\"/>\n"
+"                                                                    <t t-"
+"set=\"borderBottomStyle\" t-value=\"'border-bottom: none;'\"/>\n"
+"                                                                </t>\n"
+"                                                                <t t-"
+"else=\"\">\n"
+"                                                                    <t t-"
+"set=\"borderRadiusStyle\" t-value=\"'border-radius: 6px;'\"/>\n"
+"                                                                </t>\n"
+"                                                            </t>\n"
+"                                                            <t t-"
+"elif=\"totalComboLines == combo_line_idx\">\n"
+"                                                                <t t-"
+"set=\"borderRadiusStyle\" t-value=\"'border-radius: 0 0 6px 6px;'\"/>\n"
+"                                                                <t t-"
+"if=\"totalComboLines != 2\">\n"
+"                                                                    <t t-"
+"set=\"borderTopStyle\" t-value=\"'border-top: none;'\"/>\n"
+"                                                                </t>\n"
+"                                                            </t>\n"
+"                                                            <div t-attf-"
+"style=\"width: 100%; border: 1px solid #dee2e6; padding: 5px 8px; "
+"{{ borderRadiusStyle }} {{ borderBottomStyle }} {{ borderTopStyle }}\">\n"
+"                                                                        <t t-"
+"out=\"combo_line.product_id.name or ''\">Taking care of Trees Course</t>\n"
+"                                                                        <span "
+"t-if=\"combo_line.product_id.product_template_attribute_value_ids\" "
+"style=\"opacity: 0.5;\">\n"
+"                                                                            <t "
+"t-out=\"', "
+"'.join(combo_line.product_id.product_template_attribute_value_ids.mapped('name'))"
+"\"/>\n"
+"                                                                        </"
+"span>\n"
+"                                                                        -\n"
+"                                                                        <span>\n"
+"                                                                            <t "
+"t-out=\"int(combo_line.product_uom_qty) or ''\">10000</t>\n"
+"                                                                            <t "
+"t-out=\"combo_line.product_uom_id.name or ''\" t-"
+"if=\"combo_line.order_id.create_uid._has_group('uom.group_uom')\"/>\n"
+"                                                                        </"
+"span>\n"
+"                                                                        <p t-"
+"if=\"hasattr(combo_line, 'is_rental') and combo_line.is_rental and "
+"combo_line.id == line.id\" style=\"opacity: 0.7;\">\n"
+"                                                                            <t "
+"t-out=\"combo_line._get_rental_pricing_description() or ''\"/><br/>\n"
+"                                                                        </"
+"p>\n"
+"                                                                        <t t-"
+"if=\"(hasattr(combo_line, 'is_rental') and combo_line.is_rental) or "
+"(hasattr(combo_line, 'event_id') and combo_line.event_id) or "
+"(hasattr(combo_line, 'calendar_event_id') and combo_line.calendar_event_id)"
+"\">\n"
+"                                                                            <t "
+"t-set=\"description_lines\" t-"
+"value=\"combo_line.get_description_following_lines()\"/>\n"
+"                                                                            <div "
+"t-if=\"description_lines\" style=\"opacity: 0.7;\">\n"
+"                                                                                <t "
+"t-foreach=\"description_lines\" t-as=\"description_line\">\n"
+"                                                                                    <p "
+"t-if=\"description_line\" t-out=\"description_line\" style=\"margin: 4px 0 "
+"0;\"/>\n"
+"                                                                                </"
+"t>\n"
+"                                                                            </"
+"div>\n"
+"                                                                        </"
+"t>\n"
+"                                                            </div>\n"
+"                                                        </t>\n"
+"                                                    <t t-"
+"elif=\"not(combo_line.linked_line_id) and combo_line.id == line.id\">\n"
+"                                                        <p t-"
+"if=\"hasattr(line, 'is_rental') and line.is_rental\" style=\"margin: 4px 0 "
+"0; opacity: 0.7;\">\n"
+"                                                            <t t-"
+"out=\"line._get_rental_pricing_description() or ''\"/><br/>\n"
+"                                                        </p>\n"
+"                                                        <t t-"
+"if=\"(hasattr(combo_line, 'is_rental') and combo_line.is_rental) or "
+"(hasattr(combo_line, 'event_id') and combo_line.event_id) or "
+"(hasattr(combo_line, 'calendar_event_id') and combo_line.calendar_event_id)"
+"\">\n"
+"                                                            <t t-"
+"set=\"product_description_lines\" t-"
+"value=\"line.get_description_following_lines()\"/>\n"
+"                                                            <div t-"
+"if=\"product_description_lines\" style=\"opacity: 0.7;\">\n"
+"                                                                <t t-"
+"foreach=\"product_description_lines\" t-as=\"product_description_line\">\n"
+"                                                                    <p t-"
+"if=\"product_description_line\" t-out=\"product_description_line\" "
+"style=\"margin: 4px 0 0;\"/>\n"
+"                                                                </t>\n"
+"                                                            </div>\n"
+"                                                        </t>\n"
+"                                                    </t>\n"
+"                                                </t>\n"
+"                                                <span style=\"display: "
+"inline-block;  margin-top: 4px; padding: 4px 8px; border-radius: 20px; "
+"background-color: #e9ecef; color: #454748; font-size: 12px;\">\n"
+"                                                    <t t-"
+"out=\"int(line.product_uom_qty) or ''\">10000</t>\n"
+"                                                    <t t-"
+"out=\"line.product_uom_id.name or ''\" t-"
+"if=\"line.order_id.create_uid._has_group('uom.group_uom')\"/>\n"
+"                                                </span>\n"
+"                                            </td>\n"
+"                                            <td width=\"19%\" "
+"align=\"right\" style=\"max-width: 100px; vertical-align: top;\">\n"
+"                                                <t t-if=\"line.product_type "
+"== 'combo'\">\n"
+"                                                    <span t-"
+"out=\"format_amount(line._get_cart_display_price(), object.currency_id) or "
+"''\">$ 10.00</span>\n"
+"                                                </t>\n"
+"                                                <t t-else=\"\">\n"
+"                                                    <span style=\"white-"
+"space: nowrap;\">\n"
+"                                                        <t t-"
+"if=\"hasattr(object, 'website_id') and "
+"object.website_id.show_line_subtotals_tax_selection == 'tax_excluded'\">\n"
+"                                                            <t t-"
+"out=\"format_amount(line.price_subtotal, object.currency_id) or ''\">$ "
+"10.00</t>\n"
+"                                                        </t>\n"
+"                                                        <t t-else=\"\">\n"
+"                                                            <t t-"
+"out=\"format_amount(line.price_total, object.currency_id) or ''\">$ 10.00</"
+"t>\n"
+"                                                        </t>\n"
+"                                                    </span>\n"
+"                                                </t>\n"
+"                                                <t t-if=\"hasattr(line, "
+"'recurring_invoice') and line.recurring_invoice\">\n"
+"                                                    <br/>\n"
+"                                                    <t t-"
+"out=\"line.subscription_plan_id.billing_period_display_sentence or ''\"/>\n"
+"                                                </t>\n"
+"                                            </td>\n"
+"                                        </tr>\n"
+"                                    </table>\n"
+"                                </t>\n"
+"                            </t>\n"
+"                        </div>\n"
+"                        <div style=\"margin: 10px 0 16px; padding: 0px;\">\n"
+"                            <table width=\"100%\" t-if=\"hasattr(object, "
+"'carrier_id') and object.carrier_id\" style=\"max-width: 590px; font-size: "
+"14px; border-spacing: 0px 4px; white-space: nowrap;\" "
+"role=\"presentation\">\n"
+"                                <tr>\n"
+"                                    <td style=\"padding-top: 8px; width: "
+"50%; border-top: 1px solid #dee2e6;\" align=\"left\">Delivery</td>\n"
+"                                    <td style=\"padding-top: 8px; width: "
+"50%; border-top: 1px solid #dee2e6;\" align=\"right\" t-"
+"out=\"format_amount(object.amount_delivery, object.currency_id) or ''\">$ "
+"0.00</td>\n"
+"                                </tr>\n"
+"                                <tr>\n"
+"                                    <td style=\"width: 50%;\" "
+"align=\"left\">Untaxed Amount</td>\n"
+"                                    <td style=\"width: 50%;\" "
+"align=\"right\" t-out=\"format_amount(object.amount_untaxed, "
+"object.currency_id) or ''\">$ 10.00</td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                            <table width=\"100%\" t-else=\"\" style=\"max-"
+"width: 590px; opacity: 0.8; font-size: 14px; border-spacing: 0px 4px; white-"
+"space: nowrap;\" role=\"presentation\">\n"
+"                                <tr>\n"
+"                                    <td style=\"width: 50%; border-top: 1px "
+"solid #dee2e6;\" align=\"left\">Untaxed Amount</td>\n"
+"                                    <td style=\"width: 50%; border-top: 1px "
+"solid #dee2e6;\" align=\"right\" t-"
+"out=\"format_amount(object.amount_untaxed, object.currency_id) or ''\">$ "
+"10.00</td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                            <t t-if=\"object.tax_totals and "
+"object.tax_totals['subtotals']\">\n"
+"                                <t t-set=\"all_tax_lines\" t-value=\"[tax "
+"for line in object.tax_totals['subtotals'] for tax in line['tax_groups']]\"/"
+">\n"
+"                                <table width=\"100%\" t-if=\"all_tax_lines\" "
+"style=\"max-width: 590px; font-size: 14px; border-spacing: 0px; white-space: "
+"nowrap;\" role=\"presentation\">\n"
+"                                    <tr t-foreach=\"all_tax_lines\" t-"
+"as=\"tax_line\">\n"
+"                                        <td style=\"width: 20%; padding-"
+"bottom: 8px;\" align=\"left\"><span t-out=\"tax_line['group_name']\"/></td>\n"
+"                                        <td style=\"width: 80%;\" "
+"align=\"right\" t-out=\"format_amount(tax_line['tax_amount_currency'], "
+"object.currency_id) or ''\">$ 0.00</td>\n"
+"                                    </tr>\n"
+"                                </table>\n"
+"                            </t>\n"
+"                            <table width=\"100%\" style=\"max-width: 590px; "
+"font-size: 14px; border-spacing: 0px; white-space: nowrap;\" "
+"role=\"presentation\">\n"
+"                                <tr>\n"
+"                                    <td style=\"width: 20%; padding-top: "
+"4px; border-top: 1px solid #343a40; opacity: 0.9;\" "
+"align=\"left\"><strong>Total</strong></td>\n"
+"                                    <td style=\"width: 80%; padding-top: "
+"4px; border-top: 1px solid #343a40; font-weight: bold; \" align=\"right\">\n"
+"                                        <span style=\"display: inline-block; "
+"margin-right: 4px; padding: 4px 8px; border: 1px solid #dee2e6; border-"
+"radius: 4px;\">\n"
+"                                            <span style=\"opacity: "
+"0.9;\">Paid with</span>\n"
+"                                            <span t-attf-style=\"color: "
+"#{color}; font-weight: bold;\">\n"
+"                                                <t t-"
+"out=\"tx_sudo.provider_id.sudo().name or ''\"/>\n"
+"                                            </span>\n"
+"                                        </span>\n"
+"                                        <span style=\"opacity: 0.9;\"><t t-"
+"out=\"format_amount(object.amount_total, object.currency_id) or ''\">$ "
+"10.00</t></span>\n"
+"                                    </td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                        </div>\n"
+"                        <table t-if=\"object.partner_shipping_id and not "
+"object.only_services\" width=\"295\" style=\"vertical-align: top; font-size: "
+"14px; margin-bottom: 12px;\" align=\"left\" role=\"presentation\">\n"
+"                            <tr>\n"
+"                                <td style=\"padding-bottom: 4px; font-"
+"weight: bold;\">\n"
+"                                    <span style=\"opacity: 0.9;\">Delivery "
+"with</span>\n"
+"                                    <span t-attf-style=\"color: {{color}}; "
+"opacity: 1;\"><t t-out=\"object.carrier_id.name or ''\"/></span>\n"
+"                                </td>\n"
+"                            </tr>\n"
+"                            <tr>\n"
+"                                <td style=\"opacity: 0.9;\">\n"
+"                                    <t t-"
+"out=\"object.partner_shipping_id.street or ''\">1201 S Figueroa St</t><br/>\n"
+"                                    <t t-"
+"out=\"object.partner_shipping_id.city or ''\">Los Angeles</t>\n"
+"                                    <t t-"
+"out=\"object.partner_shipping_id.state_id.name or ''\">California</t>\n"
+"                                    <t t-"
+"out=\"object.partner_shipping_id.zip or ''\">90015</t><br/>\n"
+"                                    <t t-"
+"out=\"object.partner_shipping_id.country_id.name or ''\">United States</t>\n"
+"                                </td>\n"
+"                            </tr>\n"
+"                        </table>\n"
+"                        <table t-if=\"object.partner_invoice_id\" "
+"width=\"295\" style=\"vertical-align: top; opacity: 0.8; font-size: 14px;\" "
+"align=\"left\" role=\"presentation\">\n"
+"                            <tr>\n"
+"                                <td style=\"padding-bottom: 4px;\">\n"
+"                                    <span style=\"font-weight:bold;"
+"\">Billing</span>\n"
+"                                </td>\n"
+"                            </tr>\n"
+"                            <tr>\n"
+"                                <td>\n"
+"                                    <t t-"
+"out=\"object.partner_invoice_id.street or ''\">1201 S Figueroa St</t><br/>\n"
+"                                    <t t-"
+"out=\"object.partner_invoice_id.city or ''\">Los Angeles</t>\n"
+"                                    <t t-"
+"out=\"object.partner_invoice_id.state_id.name or ''\">California</t>\n"
+"                                    <t t-out=\"object.partner_invoice_id.zip "
+"or ''\">90015</t><br/>\n"
+"                                    <t t-"
+"out=\"object.partner_invoice_id.country_id.name or ''\">United States</t>\n"
+"                                </td>\n"
+"                            </tr>\n"
+"                        </table>\n"
+"                    </t>\n"
+"                </div>\n"
+"            "
+msgstr ""
 
 #. module: sale
 #: model:mail.template,body_html:sale.mail_template_sale_payment_executed
@@ -174,341 +601,13 @@ msgid ""
 "        Thank you for your trust!\n"
 "        <br/>\n"
 "        Do not hesitate to contact us if you have any questions.\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>\n"
 "            "
-msgstr ""
-
-#. module: sale
-#: model:mail.template,body_html:sale.mail_template_sale_confirmation
-msgid ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 12px;\">\n"
-"        Hello,\n"
-"        <br/><br/>\n"
-"        <t t-set=\"tx_sudo\" t-value=\"object.get_portal_last_transaction()"
-"\"/>\n"
-"        Your order <span style=\"font-weight:bold;\" t-out=\"object.name or "
-"''\">S00049</span> amounting in <span style=\"font-weight:bold;\" t-"
-"out=\"format_amount(object.amount_total, object.currency_id) or ''\">$ "
-"10.00</span>\n"
-"        <t t-if=\"object.state == 'sale' or (tx_sudo and tx_sudo.state in "
-"('done', 'authorized'))\">\n"
-"            has been confirmed.<br/>\n"
-"            Thank you for your trust!\n"
-"        </t>\n"
-"        <t t-elif=\"tx_sudo and tx_sudo.state == 'pending'\">\n"
-"            is pending. It will be confirmed when the payment is received.\n"
-"            <t t-if=\"object.reference\">\n"
-"                Your payment reference is <span style=\"font-weight:bold;\" "
-"t-out=\"object.reference or ''\"/>.\n"
-"            </t>\n"
-"        </t>\n"
-"        <br/>\n"
-"        <t t-set=\"documents\" t-value=\"object._get_product_documents()\"/"
-">\n"
-"        <t t-if=\"documents\">\n"
-"            <br/>\n"
-"            <t t-if=\"len(documents)&gt;1\">\n"
-"                Here are some additional documents that may interest you:\n"
-"            </t>\n"
-"            <t t-else=\"\">\n"
-"                Here is an additional document that may interest you:\n"
-"            </t>\n"
-"            <ul style=\"margin-bottom: 0;\">\n"
-"                <t t-foreach=\"documents\" t-as=\"document\">\n"
-"                    <li style=\"font-size: 13px;\">\n"
-"                        <a t-out=\"document.ir_attachment_id.name\" t-att-"
-"href=\"object.get_portal_url('/document/' + str(document.id))\" t-att-"
-"target=\"target\"/>\n"
-"                    </li>\n"
-"                </t>\n"
-"            </ul>\n"
-"        </t>\n"
-"        <br/>\n"
-"        Do not hesitate to contact us if you have any questions.\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
-"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
-"        </t>\n"
-"    </p>\n"
-"<t t-if=\"hasattr(object, 'website_id') and object.website_id\">\n"
-"    <div style=\"margin: 0px; padding: 0px;\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px; "
-"border-collapse: collapse; white-space: nowrap;\">\n"
-"            <tr style=\"border-bottom: 2px solid #dee2e6;\">\n"
-"                <td style=\"width: 150px;\"><span style=\"font-weight:bold;"
-"\">Products</span></td>\n"
-"                <td/>\n"
-"                <td width=\"15%\" align=\"center\"><span style=\"font-"
-"weight:bold;\">Quantity</span></td>\n"
-"                <td width=\"20%\" align=\"right\">\n"
-"                    <span style=\"font-weight:bold;\">\n"
-"                        <t t-if=\"hasattr(object, 'website_id') and "
-"object.website_id.show_line_subtotals_tax_selection == 'tax_excluded'\">\n"
-"                            Tax Excl.\n"
-"                        </t>\n"
-"                        <t t-else=\"\">\n"
-"                            Tax Incl.\n"
-"                        </t>\n"
-"                    </span>\n"
-"                </td>\n"
-"            </tr>\n"
-"        </table>\n"
-"        <t t-set=\"current_subtotal\" t-value=\"0\"/>\n"
-"        <t t-foreach=\"object.order_line\" t-as=\"line\">\n"
-"            <t t-set=\"line_subtotal\" t-value=\"                     "
-"line.price_subtotal                     if hasattr(object, 'website_id') and "
-"object.website_id.show_line_subtotals_tax_selection == "
-"'tax_excluded'                     else line.price_total                 \"/"
-">\n"
-"            <t t-set=\"current_subtotal\" t-value=\"current_subtotal + "
-"line_subtotal\"/>\n"
-"            <t t-if=\"(not hasattr(line, 'is_delivery') or not "
-"line.is_delivery) and (                     line.display_type in "
-"['line_section', 'line_subsection', 'line_note']                     or "
-"line.product_type == 'combo'                 )\">\n"
-"                <table width=\"100%\" style=\"color: #454748; font-size: "
-"12px; border-collapse: collapse;\">\n"
-"                    <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number or 0\"/>\n"
-"                    <tr t-att-style=\"'background-color: #f2f2f2' if "
-"loop_cycle_number % 2 == 0 else 'background-color: #ffffff'\">\n"
-"                        <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number + 1\"/>\n"
-"                        <td colspan=\"4\">\n"
-"                            <t t-if=\"line.display_type in ('line_section', "
-"'line_subsection') or line.product_type == 'combo'\">\n"
-"                                <span t-att-style=\"'font-weight:bold;' if "
-"line.display_type == 'line_subsection' else 'font-weight:bolder;'\" t-"
-"out=\"line.name or ''\">Taking care of Trees Course</span>\n"
-"                                <t t-set=\"current_section\" t-"
-"value=\"line\"/>\n"
-"                                <t t-set=\"current_subtotal\" t-value=\"0\"/"
-">\n"
-"                            </t>\n"
-"                            <t t-elif=\"line.display_type == 'line_note'\">\n"
-"                                <i t-out=\"line.name or ''\">Taking care of "
-"Trees Course</i>\n"
-"                            </t>\n"
-"                        </td>\n"
-"                    </tr>\n"
-"                </table>\n"
-"            </t>\n"
-"            <t t-elif=\"(not hasattr(line, 'is_delivery') or not "
-"line.is_delivery)\">\n"
-"                <table width=\"100%\" style=\"color: #454748; font-size: "
-"12px; border-collapse: collapse;\">\n"
-"                    <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number or 0\"/>\n"
-"                    <tr t-att-style=\"'background-color: #f2f2f2' if "
-"loop_cycle_number % 2 == 0 else 'background-color: #ffffff'\">\n"
-"                        <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number + 1\"/>\n"
-"                        <td style=\"width: 150px;\">\n"
-"                            <img t-attf-src=\"/web/image/product.product/"
-"{{ line.product_id.id }}/image_128\" t-attf-style=\"width: 64px; height: "
-"{{hasattr(object, 'website_id') and object.website_id and "
-"object.website_id._get_product_image_ratio_height() or '64px'}}; object-fit: "
-"cover; object-position: center;\" alt=\"Product image\"/>\n"
-"                        </td>\n"
-"                        <td align=\"left\" t-out=\"line.product_id.name or "
-"''\">\tTaking care of Trees Course</td>\n"
-"                        <td width=\"15%\" align=\"center\" t-"
-"out=\"line.product_uom_qty or ''\">1</td>\n"
-"                        <td width=\"20%\" align=\"right\"><span style=\"font-"
-"weight:bold; white-space: nowrap;\">\n"
-"                        <t t-if=\"hasattr(object, 'website_id') and "
-"object.website_id.show_line_subtotals_tax_selection == 'tax_excluded'\">\n"
-"                            <t t-"
-"out=\"format_amount(line.price_reduce_taxexcl, object.currency_id) or ''\">$ "
-"10.00</t>\n"
-"                        </t>\n"
-"                        <t t-else=\"\">\n"
-"                            <t t-"
-"out=\"format_amount(line.price_reduce_taxinc, object.currency_id) or ''\">$ "
-"10.00</t>\n"
-"                        </t>\n"
-"                        </span></td>\n"
-"                    </tr>\n"
-"                </table>\n"
-"            </t>\n"
-"            <t t-if=\"current_section and "
-"(                     line_last                     or "
-"object.order_line[line_index+1].display_type in ('line_section', "
-"'line_subsection')                     or "
-"object.order_line[line_index+1].product_type == 'combo'                     "
-"or (                         line.combo_item_id                         and "
-"not "
-"object.order_line[line_index+1].combo_item_id                     )                 ) "
-"and not line.is_downpayment\">\n"
-"                <t t-set=\"current_section\" t-value=\"None\"/>\n"
-"                <table width=\"100%\" style=\"color: #454748; font-size: "
-"12px; border-collapse: collapse;\">\n"
-"                    <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number or 0\"/>\n"
-"                    <tr t-att-style=\"'background-color: #f2f2f2' if "
-"loop_cycle_number % 2 == 0 else 'background-color: #ffffff'\">\n"
-"                        <t t-set=\"loop_cycle_number\" t-"
-"value=\"loop_cycle_number + 1\"/>\n"
-"                        <td style=\"width: 100%\" align=\"right\">\n"
-"                            <span style=\"font-weight: bold;\">Subtotal:</"
-"span>\n"
-"                            <span t-out=\"format_amount(current_subtotal, "
-"object.currency_id) or ''\">$ 10.00</span>\n"
-"                        </td>\n"
-"                    </tr>\n"
-"                </table>\n"
-"            </t>\n"
-"        </t>\n"
-"    </div>\n"
-"    <div style=\"margin: 0px; padding: 0px;\" t-if=\"hasattr(object, "
-"'carrier_id') and object.carrier_id\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px; "
-"border-spacing: 0px 4px; white-space: nowrap;\" align=\"right\">\n"
-"            <tr>\n"
-"                <td style=\"width: 60%\"/>\n"
-"                <td style=\"width: 30%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\"><span style=\"font-weight:bold;\">Delivery:</span></td>\n"
-"                <td style=\"width: 10%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\" t-out=\"format_amount(object.amount_delivery, "
-"object.currency_id) or ''\">$ 0.00</td>\n"
-"            </tr>\n"
-"            <tr>\n"
-"                <td style=\"width: 60%\"/>\n"
-"                <td style=\"width: 30%;\" align=\"right\"><span style=\"font-"
-"weight:bold;\">Untaxed Amount:</span></td>\n"
-"                <td style=\"width: 10%;\" align=\"right\" t-"
-"out=\"format_amount(object.amount_untaxed, object.currency_id) or ''\">$ "
-"10.00</td>\n"
-"            </tr>\n"
-"        </table>\n"
-"    </div>\n"
-"    <div style=\"margin: 0px; padding: 0px;\" t-else=\"\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px; "
-"border-spacing: 0px 4px; white-space: nowrap;\" align=\"right\">\n"
-"            <tr>\n"
-"                <td style=\"width: 60%\"/>\n"
-"                <td style=\"width: 30%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\"><span style=\"font-weight:bold;\">Untaxed Amount:</span></"
-"td>\n"
-"                <td style=\"width: 10%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\" t-out=\"format_amount(object.amount_untaxed, "
-"object.currency_id) or ''\">$ 10.00</td>\n"
-"            </tr>\n"
-"        </table>\n"
-"    </div>\n"
-"    <div style=\"margin: 0px; padding: 0px;\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px; "
-"border-spacing: 0px 4px; white-space: nowrap;\" align=\"right\">\n"
-"            <tr>\n"
-"                <td style=\"width: 60%\"/>\n"
-"                <td style=\"width: 30%;\" align=\"right\"><span style=\"font-"
-"weight:bold;\">Taxes:</span></td>\n"
-"                <td style=\"width: 10%;\" align=\"right\" t-"
-"out=\"format_amount(object.amount_tax, object.currency_id) or ''\">$ 0.00</"
-"td>\n"
-"            </tr>\n"
-"            <tr>\n"
-"                <td style=\"width: 60%\"/>\n"
-"                <td style=\"width: 30%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\"><span style=\"font-weight:bold;\">Total:</span></td>\n"
-"                <td style=\"width: 10%; border-top: 1px solid #dee2e6;\" "
-"align=\"right\" t-out=\"format_amount(object.amount_total, "
-"object.currency_id) or ''\">$ 10.00</td>\n"
-"            </tr>\n"
-"        </table>\n"
-"    </div>\n"
-"    <div t-if=\"object.partner_invoice_id\" style=\"margin: 0px; padding: "
-"0px;\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px;\">\n"
-"            <tr>\n"
-"                <td style=\"padding-top: 10px;\">\n"
-"                    <span style=\"font-weight:bold;\">Bill to:</span>\n"
-"                    <t t-out=\"object.partner_invoice_id.street or ''\">1201 "
-"S Figueroa St</t>\n"
-"                    <t t-out=\"object.partner_invoice_id.city or ''\">Los "
-"Angeles</t>\n"
-"                    <t t-out=\"object.partner_invoice_id.state_id.name or "
-"''\">California</t>\n"
-"                    <t t-out=\"object.partner_invoice_id.zip or ''\">90015</"
-"t>\n"
-"                    <t t-out=\"object.partner_invoice_id.country_id.name or "
-"''\">United States</t>\n"
-"                </td>\n"
-"            </tr>\n"
-"            <tr>\n"
-"                <td>\n"
-"                    <span style=\"font-weight:bold;\">Payment Method:</"
-"span>\n"
-"                    <t t-if=\"tx_sudo.token_id\">\n"
-"                        <t t-out=\"tx_sudo.token_id.display_name or ''\"/>\n"
-"                    </t>\n"
-"                    <t t-else=\"\">\n"
-"                        <t t-out=\"tx_sudo.provider_id.sudo().name or ''\"/"
-">\n"
-"                    </t>\n"
-"                    (<t t-out=\"format_amount(tx_sudo.amount, "
-"object.currency_id) or ''\">$ 10.00</t>)\n"
-"                </td>\n"
-"            </tr>\n"
-"        </table>\n"
-"    </div>\n"
-"    <div t-if=\"hasattr(object, 'only_services') and "
-"object.partner_shipping_id and not object.only_services\" style=\"margin: "
-"0px; padding: 0px;\">\n"
-"        <table width=\"100%\" style=\"color: #454748; font-size: 12px;\">\n"
-"            <tr>\n"
-"                <td>\n"
-"                    <br/>\n"
-"                    <span style=\"font-weight:bold;\">Ship to:</span>\n"
-"                    <t t-out=\"object.partner_shipping_id.street or "
-"''\">1201 S Figueroa St</t>\n"
-"                    <t t-out=\"object.partner_shipping_id.city or ''\">Los "
-"Angeles</t>\n"
-"                    <t t-out=\"object.partner_shipping_id.state_id.name or "
-"''\">California</t>\n"
-"                    <t t-out=\"object.partner_shipping_id.zip or ''\">90015</"
-"t>\n"
-"                    <t t-out=\"object.partner_shipping_id.country_id.name or "
-"''\">United States</t>\n"
-"                </td>\n"
-"            </tr>\n"
-"        </table>\n"
-"        <table t-if=\"hasattr(object, 'carrier_id') and object.carrier_id\" "
-"width=\"100%\" style=\"color: #454748; font-size: 12px;\">\n"
-"            <tr>\n"
-"                <td>\n"
-"                    <span style=\"font-weight:bold;\">Shipping Method:</"
-"span>\n"
-"                    <t t-out=\"object.carrier_id.name or ''\"/>\n"
-"                    <t t-if=\"object.amount_delivery == 0.0\">\n"
-"                        (Free)\n"
-"                    </t>\n"
-"                    <t t-else=\"\">\n"
-"                        (<t t-out=\"format_amount(object.amount_delivery, "
-"object.currency_id) or ''\">$ 10.00</t>)\n"
-"                    </t>\n"
-"                </td>\n"
-"            </tr>\n"
-"            <tr t-if=\"object.carrier_id.carrier_description\">\n"
-"                <td>\n"
-"                    <strong>Shipping Description:</strong>\n"
-"                    <t t-out=\"object.carrier_id.carrier_description\"/>\n"
-"                </td>\n"
-"            </tr>\n"
-"        </table>\n"
-"    </div>\n"
-"</t>\n"
-"</div>"
 msgstr ""
 
 #. module: sale
@@ -551,11 +650,9 @@ msgid ""
 "        </t>\n"
 "        <br/>\n"
 "        Do not hesitate to contact us if you have any questions.\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>\n"
@@ -571,7 +668,7 @@ msgid ""
 "('draft', 'sent') else 'order'\"/>\n"
 "        Hello,\n"
 "        <br/><br/>\n"
-"        Your Pro forma invoice for <t t-out=\"doc_name or ''\">quotation</t> "
+"        Your Pro Forma invoice for <t t-out=\"doc_name or ''\">quotation</t> "
 "<span style=\"font-weight: bold;\" t-out=\"object.name or ''\">S00052</"
 "span>\n"
 "        <t t-if=\"object.origin\">\n"
@@ -582,11 +679,9 @@ msgid ""
 "10.00</span> is available.\n"
 "        <br/><br/>\n"
 "        Do not hesitate to contact us if you have any questions.\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>\n"
@@ -616,7 +711,7 @@ msgstr "<i class=\"fa fa-fw fa-check\"/> שולם"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "<i class=\"fa fa-fw fa-check\"/> Reversed"
-msgstr "<i class=\"fa fa-fw fa-check\"/> בוצע היפוך"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.portal_my_quotations
@@ -706,9 +801,18 @@ msgid "<span class=\"o_stat_text\">Sold</span>"
 msgstr "<span class=\"o_stat_text\">נמכר</span>"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.product_form_view_sale_order_button
+#: model_terms:ir.ui.view,arch_db:sale.product_template_form_view_sale_order_button
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                Outgoing\n"
+"                            </span>"
+msgstr ""
+
+#. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
 msgid "<span id=\"o_sale_portal_use_amount_total\">By paying,</span>"
-msgstr "<span id=\"o_sale_portal_use_amount_total\">בתשלום,</span>"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_advance_payment_inv
@@ -723,7 +827,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "<span>1.00 Units</span>"
-msgstr "<span>1.00 יחידות</span>"
+msgstr ""
 
 #. module: sale
 #: model_terms:web_tour.tour,rainbow_man_message:sale.sale_tour
@@ -776,6 +880,11 @@ msgstr "<strong class=\"d-block mt-3\">כתובת אספקה</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
+msgid "<strong>Contact</strong>"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 msgid "<strong>Delivery Date</strong>"
 msgstr "<strong>תאריך משלוח</strong>"
 
@@ -791,8 +900,8 @@ msgstr "<strong>הערת מעמד פיסקלי:</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
-msgid "<strong>Salesperson</strong>"
-msgstr "<strong>איש מכירות</strong>"
+msgid "<strong>Incoterm</strong>"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
@@ -861,21 +970,14 @@ msgstr ""
 "שלהן (בהתבסס על כמות שהוזמנה או שסופקה)."
 
 #. module: sale
+#: model:ir.model.fields,help:sale.field_sale_order_line__is_storable
+msgid "A storable product is a product for which you manage stock."
+msgstr ""
+
+#. module: sale
 #: model:res.groups,name:sale.group_warning_sale
 msgid "A warning can be set on a product or a customer (Sale)"
 msgstr "ניתן להגדיר אזהרה עבור מוצר או לקוח (מכירה)"
-
-#. module: sale
-#. odoo-python
-#: code:addons/sale/models/sale_order.py:0
-msgid "Accept & Pay Quotation"
-msgstr "אשר ושלם את ההצעת מחיר"
-
-#. module: sale
-#. odoo-python
-#: code:addons/sale/models/sale_order.py:0
-msgid "Accept & Sign Quotation"
-msgstr "קבל וחתום על הצעת המחיר"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
@@ -912,11 +1014,6 @@ msgstr ""
 "תנועות מלאי: הכמות מגיעה מהעברות מלאי שאושרו.\n"
 
 #. module: sale
-#: model:ir.model,name:sale.model_account_chart_template
-msgid "Account Chart Template"
-msgstr "תבנית לוח חשבונות"
-
-#. module: sale
 #: model:ir.actions.act_window,name:sale.action_accrued_revenue_entry
 #: model:ir.actions.act_window,name:sale.action_accrued_revenue_entry_sale_order_line
 msgid "Accrued Revenue Entry"
@@ -926,16 +1023,6 @@ msgstr "הזנת הכנסה נצברת"
 #: model:ir.model.fields,field_description:sale.field_sale_order__message_needaction
 msgid "Action Needed"
 msgstr "נדרשת פעולה"
-
-#. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
-msgid "Activate"
-msgstr "הפעל"
-
-#. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
-msgid "Activate Stripe"
-msgstr "הפעל את Stripe"
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__activity_ids
@@ -954,6 +1041,7 @@ msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
 
 #. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__activity_plans_ids
 #: model:ir.ui.menu,name:sale.sale_menu_config_activity_plan
 msgid "Activity Plans"
 msgstr "תכניות פעילויות"
@@ -1056,17 +1144,17 @@ msgstr "הוספה/הסרה של עוקבים"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__allowed_uom_ids
 msgid "Allowed Uom"
-msgstr "יחידת מידה מותרת"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
-msgid "Allows you to send Pro-Forma Invoice to your customers"
-msgstr "מאפשר לך לשלוח חשבונית פרו-פורמה ללקוחות שלך"
+msgid "Allows you to send Pro Forma Invoice to your customers"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_res_config_settings__group_proforma_sales
-msgid "Allows you to send pro-forma invoice."
-msgstr "מאפשר לך לשלוח חשבונית פרו-פורמה."
+msgid "Allows you to send pro forma invoice."
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_product_document__attached_on_sale
@@ -1084,15 +1172,6 @@ msgid ""
 "Inside quote: The document will be included in the pdf of the quotation and "
 "sale order between the header pages and the quote table. "
 msgstr ""
-"מאפשר לך לשתף את המסמך עם הלקוחות שלך במסגרת מכירה.\n"
-"השאר ריק אם אינך רוצה לשתף מסמך זה עם לקוח המכירה.\n"
-"בהצעת מחיר: המסמך יישלח ללקוחות ויהיה נגיש להם בכל עת.\n"
-"לדוגמה, אפשרות זו שימושית לשיתוף קובצי תיאור מוצר.\n"
-"באישור הזמנה: המסמך יישלח ללקוחות ויהיה נגיש להם.\n"
-"לדוגמה, אפשרות זו שימושית לשיתוף מדריך למשתמש או תוכן דיגיטלי שנרכש במסחר "
-"מקוון. \n"
-"בתוך הצעת המחיר: המסמך ייכלל בקובץ ה-PDF של הצעת המחיר והזמנת המכירה בין "
-"עמודי הכותרת לטבלת ההצעה. "
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_payment_link_wizard__amount_paid
@@ -1126,7 +1205,12 @@ msgstr "סכום לפני הנחה"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
 msgid "Amount paid:"
-msgstr "סכום ששולם:"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_orders_to_invoice_tree
+msgid "Amount to invoice"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
@@ -1140,8 +1224,11 @@ msgid ""
 "            ordered quantities, and the invoicing policy is based on ordered "
 "quantities."
 msgstr ""
-"הזמנה מיועדת למכירה נוספת כאשר הכמויות שסופקו גבוהות מהכמויות\n"
-"            שהוזמנו במקור, ומדיניות החיוב מבוססת על כמויות שהוזמנו."
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__analytic_account_id
+msgid "Analytic Account"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__analytic_distribution
@@ -1195,15 +1282,6 @@ msgstr "האם אתה בטוח שברצונך לבטל את הפריט שנבח�
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid ""
-"Are you sure you want to cancel this order? This may affect related "
-"documents or processes."
-msgstr ""
-"האם אתה בטוח שברצונך לבטל הזמנה זו? פעולה זו עשויה להשפיע על מסמכים או "
-"תהליכים קשורים."
-
-#. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.view_order_form
-msgid ""
 "Are you sure you want to void the authorized transaction? This action can't "
 "be undone."
 msgstr "האם אתה בטוח שברצונך לבטל את העסקה המורשית? לא ניתן לבטל פעולה זו."
@@ -1225,9 +1303,6 @@ msgid ""
 "been used for this product, the change of unit of measure can not be done.If "
 "you want to change it, please archive the product and create a new one."
 msgstr ""
-"מאחר שיחידות מידה אחרות (למשל: %(problem_uom)s) מלבד %(uom)s כבר היו בשימוש "
-"עבור מוצר זה, לא ניתן לבצע את שינוי יחידת המידה. אם ברצונך לשנות אותה, יש "
-"להעביר את המוצר לארכיון וליצור מוצר חדש."
 
 #. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__product_template__expense_policy__cost
@@ -1261,6 +1336,18 @@ msgid "Automatic Invoice"
 msgstr "חשבונית אוטומטית"
 
 #. module: sale
+#. odoo-javascript
+#: code:addons/sale/static/src/js/quantity_availability/qty_at_date_widget.xml:0
+msgid "Availability"
+msgstr ""
+
+#. module: sale
+#. odoo-javascript
+#: code:addons/sale/static/src/js/quantity_availability/qty_at_date_widget.js:0
+msgid "Available"
+msgstr ""
+
+#. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_report_view_tree
 msgid "Average"
 msgstr "ממוצע"
@@ -1284,7 +1371,15 @@ msgstr "מבוסס על מזהה מסמך"
 #: model_terms:ir.actions.act_window,help:sale.action_quotations
 #: model_terms:ir.actions.act_window,help:sale.action_quotations_with_onboarding
 msgid "Beat competitors with stunning quotations!"
-msgstr "נצחו את המתחרים עם הצעות מחיר מרהיבות!"
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields,help:sale.field_sale_order__delivery_status
+msgid ""
+"Blue: Not Delivered/Started\n"
+"            Orange: Partially Delivered\n"
+"            Green: Fully Delivered"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.actions.act_window,help:sale.action_quotations
@@ -1344,16 +1439,16 @@ msgid "Can Edit Product"
 msgstr "יכול לערוך מוצר"
 
 #. module: sale
-#. odoo-javascript
-#: code:addons/sale/static/src/js/combo_configurator_dialog/combo_configurator_dialog.xml:0
-#: code:addons/sale/static/src/js/product_configurator_dialog/product_configurator_dialog.xml:0
 #: model:ir.actions.act_window,name:sale.action_mass_cancel_orders
 #: model_terms:ir.ui.view,arch_db:sale.mass_cancel_orders_view_form
-#: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
-#: model_terms:ir.ui.view,arch_db:sale.view_sale_advance_payment_inv
 msgid "Cancel"
 msgstr "בטל"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "Cancel Order"
+msgstr ""
 
 #. module: sale
 #: model:ir.model,name:sale.model_sale_mass_cancel_orders
@@ -1370,6 +1465,19 @@ msgstr "בטל הצעות מחיר"
 #: model:ir.model.fields.selection,name:sale.selection__sale_report__state__cancel
 msgid "Cancelled"
 msgstr "בוטל"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid ""
+"Cancelling this order will set its status to 'Cancelled' and will update "
+"related documents and processes. Are you sure?"
+msgstr ""
+
+#. module: sale
+#. odoo-python
+#: code:addons/sale/models/sale_order.py:0
+msgid "Cannot close %(orders_name)s: must be in 'Sales Order' state."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -1416,6 +1524,11 @@ msgid "Categories"
 msgstr "קטגוריות"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "Category"
+msgstr ""
+
+#. module: sale
 #: model:product.template,name:sale.product_product_1_product_template
 msgid "Chair floor protection"
 msgstr "מדבקות לרגלי כסא"
@@ -1435,7 +1548,7 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:sale.action_quotations
 #: model_terms:ir.actions.act_window,help:sale.action_quotations_with_onboarding
 msgid "Check a sample. It's clean!"
-msgstr "בדקו דוגמה. זה נקי!"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
@@ -1447,13 +1560,18 @@ msgstr "לחץ כאן כדי להוסיף מספר מוצרים או שירות�
 #. odoo-javascript
 #: code:addons/sale/static/src/js/product_card/product_card.xml:0
 msgid "Click to configure"
-msgstr "לחץ להגדרה"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
 #: code:addons/sale/static/src/xml/sales_team_progress_bar_template.xml:0
 msgid "Click to define an invoicing target"
 msgstr "לחץ להגדרת יעד לחיוב"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form_sale_inherit
+msgid "Client's most used account"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
@@ -1463,14 +1581,19 @@ msgid "Close"
 msgstr "סגור"
 
 #. module: sale
+#: model:ir.actions.server,name:sale.model_sale_order_action_close_invoicing
+msgid "Close Invoicing"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__collapse_composition
 msgid "Collapse Composition"
-msgstr "כווץ הרכב"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__collapse_prices
 msgid "Collapse Prices"
-msgstr "כווץ מחירים"
+msgstr ""
 
 #. module: sale
 #: model:ir.ui.menu,name:sale.menu_product_combos
@@ -1486,7 +1609,7 @@ msgstr "מוצר קומבו"
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "Combo Product"
-msgstr "מוצר קומבו"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_sale_commission
@@ -1505,10 +1628,6 @@ msgstr "היסטוריית התקשרות"
 
 #. module: sale
 #: model:ir.model,name:sale.model_res_company
-msgid "Companies"
-msgstr "חברות"
-
-#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_advance_payment_inv__company_id
 #: model:ir.model.fields,field_description:sale.field_sale_order__company_id
 #: model:ir.model.fields,field_description:sale.field_sale_order_discount__company_id
@@ -1531,9 +1650,6 @@ msgid ""
 "                                    <strong>(please go to Home&gt;Apps to "
 "install)</strong>"
 msgstr ""
-"חשב עלויות משלוח ושלח עם DHL<br/>\n"
-"                                    <strong>(נא לעבור אל בית&gt;יישומים כדי "
-"להתקין)</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1543,7 +1659,7 @@ msgstr "חשב עלויות המשלוח ושלח באמצעות Easypost"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Compute shipping costs and ship with Envia.com"
-msgstr "חשב עלויות משלוח ושלח עם Envia.com"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1552,9 +1668,6 @@ msgid ""
 "                                    <strong>(please go to Home&gt;Apps to "
 "install)</strong>"
 msgstr ""
-"חשב עלויות משלוח ושלח עם FedEx<br/>\n"
-"                                    <strong>(נא לעבור אל בית&gt;יישומים כדי "
-"להתקין)</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1578,9 +1691,6 @@ msgid ""
 "                                    <strong>(please go to Home&gt;Apps to "
 "install)</strong>"
 msgstr ""
-"חשב עלויות משלוח ושלח עם UPS<br/>\n"
-"                                    <strong>(נא לעבור אל בית&gt;יישומים כדי "
-"להתקין)</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1589,9 +1699,6 @@ msgid ""
 "                                    <strong>(please go to Home&gt;Apps to "
 "install)</strong>"
 msgstr ""
-"חשב עלויות משלוח ושלח עם USPS<br/>\n"
-"                                    <strong>(נא לעבור אל בית&gt;יישומים כדי "
-"להתקין)</strong>"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1632,9 +1739,25 @@ msgid "Confirm"
 msgstr "אשר"
 
 #. module: sale
+#: model:ir.actions.server,name:sale.model_sale_order_action_quotation_confirm
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_tree
+msgid "Confirm Orders"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_payment_link_wizard__confirmation_message
 msgid "Confirmation Message"
 msgstr "הודעת אישור"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
+msgid "Connect"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
+msgid "Connect Stripe"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
@@ -1743,8 +1866,6 @@ msgid ""
 "Create one invoice for all orders related to same customer, same invoicing "
 "address and same delivery address."
 msgstr ""
-"צור חשבונית אחת לכל ההזמנות של אותו לקוח, עם אותה כתובת חיוב ואותה כתובת "
-"אספקה."
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_advance_payment_inv__create_uid
@@ -1785,6 +1906,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__currency_id
 #: model:ir.model.fields,field_description:sale.field_sale_report__currency_id
 #: model:ir.model.fields,field_description:sale.field_utm_campaign__currency_id
+#: model_terms:ir.ui.view,arch_db:sale.view_sales_order_filter
 msgid "Currency"
 msgstr "מטבע"
 
@@ -1825,6 +1947,12 @@ msgid "Customer Industry"
 msgstr "תעשיית לקוח"
 
 #. module: sale
+#: model:ir.model.fields,field_description:sale.field_account_analytic_line__order_id
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
+msgid "Customer Order"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,help:sale.field_sale_order__access_url
 msgid "Customer Portal URL"
 msgstr "כתובת אתר של פורטל לקוחות"
@@ -1845,6 +1973,12 @@ msgid "Customer State"
 msgstr "מדינה"
 
 #. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_report__partner_tag_ids
+#: model_terms:ir.ui.view,arch_db:sale.view_order_product_search
+msgid "Customer Tags"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_report__partner_zip
 msgid "Customer ZIP"
 msgstr "ZIP"
@@ -1858,7 +1992,7 @@ msgstr "לקוחות"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "DHL Connector"
-msgstr "מחבר DHL"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery_dhl
@@ -1866,6 +2000,8 @@ msgid "DHL Express Connector"
 msgstr "DHL Express חיבור ל"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
 #: model_terms:ir.ui.view,arch_db:sale.view_order_product_search
 msgid "Date"
 msgstr "תאריך"
@@ -1882,7 +2018,7 @@ msgstr "תאריך:"
 msgid ""
 "Days between quotation proposal and expiration. 0 days means automatic "
 "expiration is disabled"
-msgstr "ימים בין הצעת המחיר לבין פקיעתה. 0 ימים משמעו שפקיעה אוטומטית מושבתת"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_advance_payment_inv__deduct_down_payments
@@ -1917,8 +2053,6 @@ msgid ""
 "Default period during which the quote is valid and can still be accepted by "
 "the customer. The default can be changed per order or template."
 msgstr ""
-"תקופת ברירת המחדל שבה הצעת המחיר תקפה ועדיין ניתנת לאישור על ידי הלקוח. ניתן "
-"לשנות את ברירת המחדל לכל הזמנה או תבנית."
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_res_company__sale_discount_product_id
@@ -1930,6 +2064,12 @@ msgstr "מוצר ברירת מחדל המשמש להנחות"
 #: code:addons/sale/static/src/js/sale_order_line_field/sale_order_line_field.xml:0
 msgid "Delete"
 msgstr "מחק"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+#: model_terms:ir.ui.view,arch_db:sale.view_order_tree
+msgid "Deliver"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -1959,7 +2099,9 @@ msgid "Delivery Address"
 msgstr "כתובת לאספקה"
 
 #. module: sale
-#: model:ir.model.fields,field_description:sale.field_sale_order__commitment_date
+#: model:ir.model.fields,field_description:sale.field_sale_order__delivery_date
+#: model:ir.model.fields,field_description:sale.field_sale_order_line__scheduled_date
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_tree
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid "Delivery Date"
 msgstr "תאריך משלוח"
@@ -1967,7 +2109,7 @@ msgstr "תאריך משלוח"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "Delivery Date:"
-msgstr "תאריך אספקה:"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery
@@ -1978,6 +2120,11 @@ msgstr "שיטות משלוח"
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__qty_delivered
 msgid "Delivery Quantity"
 msgstr "כמות שנשלחה"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__delivery_status
+msgid "Delivery Status"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_sale_order__expected_date
@@ -1999,6 +2146,8 @@ msgstr "פקדון"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__name
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid "Description"
 msgstr "תיאור"
@@ -2009,8 +2158,10 @@ msgid "Disc.%"
 msgstr "הנחה %"
 
 #. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.mass_cancel_orders_view_form
-#: model_terms:ir.ui.view,arch_db:sale.sale_order_line_wizard_form
+#. odoo-javascript
+#: code:addons/sale/static/src/js/combo_configurator_dialog/combo_configurator_dialog.xml:0
+#: code:addons/sale/static/src/js/product_configurator_dialog/product_configurator_dialog.xml:0
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
 msgid "Discard"
 msgstr "בטל"
 
@@ -2038,7 +2189,7 @@ msgstr "הנחה%(percent)s%%"
 #. odoo-python
 #: code:addons/sale/wizard/sale_order_discount.py:0
 msgid "Discount %(percent)s%%- On products with the following taxes %(taxes)s"
-msgstr "הנחה %(percent)s%%- על מוצרים עם המסים הבאים %(taxes)s"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__discount
@@ -2095,7 +2246,6 @@ msgstr "הצגת אזהרת חשבונית טיוטה"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_account_analytic_applicability__display_name
 #: model:ir.model.fields,field_description:sale.field_account_analytic_line__display_name
-#: model:ir.model.fields,field_description:sale.field_account_chart_template__display_name
 #: model:ir.model.fields,field_description:sale.field_account_invoice_report__display_name
 #: model:ir.model.fields,field_description:sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:sale.field_account_move_line__display_name
@@ -2123,6 +2273,11 @@ msgstr "הצגת אזהרת חשבונית טיוטה"
 #: model:ir.model.fields,field_description:sale.field_utm_campaign__display_name
 msgid "Display Name"
 msgstr "שם לתצוגה"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order_line__display_qty_widget
+msgid "Display Qty Widget"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__display_type
@@ -2290,17 +2445,12 @@ msgstr "הכנס ערך מותאם אישית"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery_envia
 msgid "Envia.com Connector"
-msgstr "מחבר Envia.com"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__expected_date
 msgid "Expected Date"
 msgstr "תאריך צפוי"
-
-#. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.view_order_form
-msgid "Expected:"
-msgstr "צפוי:"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_template_form_view
@@ -2318,9 +2468,14 @@ msgid "Expiration Date:"
 msgstr "תאריך תפוגה:"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_view_search_inherit_quotation
+msgid "Expired"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__extra_tax_data
 msgid "Extra Tax Data"
-msgstr "נתוני מס נוספים"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__product_no_variant_attribute_value_ids
@@ -2338,6 +2493,11 @@ msgstr "שורת נוספת עם %s"
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "FedEx Connector"
 msgstr "חיבור ל FedEx"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "Financial Account"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__fiscal_position_id
@@ -2359,7 +2519,7 @@ msgid "Fixed Amount"
 msgstr "סכום קבוע"
 
 #. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.portal_my_home_sale
+#: model:portal.entry,description:sale.portal_your_orders
 msgid "Follow, view or pay your orders"
 msgstr "עקוב, צפה או שלם את ההזמנות שלך"
 
@@ -2384,13 +2544,17 @@ msgid ""
 "For formula or fixed pricing, the original price isn’t shown in\n"
 "                                sale orders."
 msgstr ""
-"בתמחור לפי נוסחה או מחיר קבוע, המחיר המקורי אינו מוצג\n"
-"                                בהזמנות מכירה."
 
 #. module: sale
 #: model:ir.model.constraint,message:sale.constraint_sale_order_line_non_accountable_null_fields
 msgid "Forbidden values on non-accountable sale order line"
 msgstr "ערכים אסורים בשורת הזמנת לקוח שאינה חייבת רישום."
+
+#. module: sale
+#. odoo-javascript
+#: code:addons/sale/static/src/js/quantity_availability/qty_at_date_widget.js:0
+msgid "Forecasted Stock"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.actions.act_window,help:sale.action_account_invoice_report_salesteam
@@ -2409,6 +2573,11 @@ msgid "Full amount <br/>"
 msgstr "סכום מלא <br/>"
 
 #. module: sale
+#: model:ir.model.fields.selection,name:sale.selection__sale_order__delivery_status__full
+msgid "Fully Delivered"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__sale_order__invoice_status__invoiced
 #: model:ir.model.fields.selection,name:sale.selection__sale_order_line__invoice_status__invoiced
 #: model:ir.model.fields.selection,name:sale.selection__sale_report__invoice_status__invoiced
@@ -2425,7 +2594,7 @@ msgstr "פעילויות עתידיות"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_sale_gelato
 msgid "Gelato"
-msgstr "Gelato"
+msgstr ""
 
 #. module: sale
 #: model:ir.model,name:sale.model_payment_link_wizard
@@ -2496,12 +2665,12 @@ msgstr "מכיל מוצרים בארכיון"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__has_authorized_transaction_ids
 msgid "Has Authorized Transactions"
-msgstr "יש עסקאות מאושרות"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_mass_cancel_orders__has_confirmed_order
 msgid "Has Confirmed Order"
-msgstr "יש הזמנה מאושרת"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__show_update_fpos
@@ -2531,7 +2700,6 @@ msgstr "נסתר"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_account_analytic_applicability__id
 #: model:ir.model.fields,field_description:sale.field_account_analytic_line__id
-#: model:ir.model.fields,field_description:sale.field_account_chart_template__id
 #: model:ir.model.fields,field_description:sale.field_account_invoice_report__id
 #: model:ir.model.fields,field_description:sale.field_account_move__id
 #: model:ir.model.fields,field_description:sale.field_account_move_line__id
@@ -2582,6 +2750,11 @@ msgid "If checked, some messages have a delivery error."
 msgstr "אם מסומן, בחלק מההודעות קיימת שגיאת משלוח."
 
 #. module: sale
+#: model:ir.model.fields,help:sale.field_sale_order__invoicing_closed
+msgid "If enabled, the order is considered fully invoiced regardless of lines."
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,help:sale.field_sale_order__journal_id
 msgid ""
 "If set, the SO will invoice in this journal; otherwise the sales journal "
@@ -2617,7 +2790,7 @@ msgstr "ייבא הזמנות של אמזון וסנכרן משלוחים"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Import Shopee orders and sync deliveries"
-msgstr "ייבוא הזמנות Shopee וסנכרון משלוחים"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -2629,14 +2802,14 @@ msgstr "ייבא תבנית למוצרים"
 #. odoo-python
 #: code:addons/sale/models/sale_order.py:0
 msgid "Import Template for Quotations"
-msgstr "תבנית ייבוא להצעות מחיר"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
 #: code:addons/sale/static/src/views/sale_file_upload_kanban/sale_file_upload_kanban_renderer.js:0
 #: code:addons/sale/static/src/views/sale_file_upload_list/sale_file_upload_list_renderer.js:0
 msgid "Import a request for quotation from a customer"
-msgstr "ייבוא בקשה להצעת מחיר מלקוח"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_pricelist_item_form
@@ -2644,8 +2817,6 @@ msgid ""
 "In sale order line original price is unit price and discount is in\n"
 "                                discount column."
 msgstr ""
-"בשורת הזמנת המכירה המחיר המקורי הוא מחיר היחידה וההנחה מופיעה\n"
-"                                בעמודת ההנחה."
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_view_search_catalog
@@ -2664,11 +2835,39 @@ msgid "Included"
 msgstr "כולל"
 
 #. module: sale
+#: model:ir.model.fields,field_description:sale.field_res_partner__incoterm_id
+#: model:ir.model.fields,field_description:sale.field_res_users__incoterm_id
+#: model:ir.model.fields,field_description:sale.field_sale_order__incoterm
+msgid "Incoterm"
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_res_partner__incoterm_location
+#: model:ir.model.fields,field_description:sale.field_res_users__incoterm_location
+#: model:ir.model.fields,field_description:sale.field_sale_order__incoterm_location
+msgid "Incoterm Location"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
+msgid "Incoterm:"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,help:sale.field_account_bank_statement_line__sale_warning_text
 #: model:ir.model.fields,help:sale.field_account_move__sale_warning_text
 #: model:ir.model.fields,help:sale.field_sale_order__sale_warning_text
 msgid "Internal warning for the partner or the products as set by the user."
-msgstr "אזהרה פנימית עבור הלקוח או המוצרים כפי שהוגדרה על ידי המשתמש."
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields,help:sale.field_res_partner__incoterm_id
+#: model:ir.model.fields,help:sale.field_res_users__incoterm_id
+#: model:ir.model.fields,help:sale.field_sale_order__incoterm
+msgid ""
+"International Commercial Terms are a series of predefined commercial terms "
+"used in international transactions."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -2687,6 +2886,12 @@ msgstr "הזמנה לא חוקית."
 #: code:addons/sale/controllers/portal.py:0
 msgid "Invalid signature data."
 msgstr "נתוני חתימה לא חוקיים."
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_account_analytic_line__reinvoice_move_id
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "Invoice"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -2712,12 +2917,12 @@ msgstr "שורות חשבונית"
 #. module: sale
 #: model:mail.message.subtype,name:sale.mt_salesteam_invoice_paid
 msgid "Invoice Paid"
-msgstr "חשבונית שולמה"
+msgstr ""
 
 #. module: sale
 #: model:mail.message.subtype,name:sale.mt_salesteam_invoice_posted
 msgid "Invoice Posted"
-msgstr "חשבונית נרשמה"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_advance_payment_inv
@@ -2736,6 +2941,11 @@ msgstr "סטטוס חשבונית"
 #: code:addons/sale/models/product_template.py:0
 msgid "Invoice after delivery, based on quantities delivered, not ordered."
 msgstr "חשבונית לאחר משלוח, לפי כמויות שנמסרו, לא אלו שהוזמנו."
+
+#. module: sale
+#: model:ir.model.fields,help:sale.field_account_analytic_line__reinvoice_move_id
+msgid "Invoice created from related SO line"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -2849,6 +3059,18 @@ msgid "Invoicing and Shipping Address"
 msgstr "כתובת חיוב ואספקה"
 
 #. module: sale
+#. odoo-python
+#: code:addons/sale/models/sale_order.py:0
+msgid "Invoicing closed"
+msgstr ""
+
+#. module: sale
+#. odoo-python
+#: code:addons/sale/models/sale_order.py:0
+msgid "Invoicing reopened"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_account_move_line__is_downpayment
 msgid "Is Downpayment"
 msgstr "האם שולמה מקדמה"
@@ -2866,7 +3088,7 @@ msgstr "עוקב"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__is_product_archived
 msgid "Is Product Archived"
-msgstr "האם המוצר בארכיון"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__is_downpayment
@@ -2955,7 +3177,7 @@ msgstr "אפשר ללקוחות שלך להתחבר כדי לראות את המ�
 #. odoo-javascript
 #: code:addons/sale/static/src/js/tours/sale.js:0
 msgid "Let’s create a beautiful quotation in a few clicks ."
-msgstr "בואו ניצור הצעת מחיר יפהפייה בכמה לחיצות."
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__linked_line_id
@@ -2970,7 +3192,7 @@ msgstr "שורות הזמנה מקושרות"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__linked_virtual_id
 msgid "Linked Virtual"
-msgstr "וירטואלי מקושר"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
@@ -3021,6 +3243,11 @@ msgstr "ידני"
 #: model:ir.model.fields.selection,name:sale.selection__res_company__sale_onboarding_payment_method__manual
 msgid "Manual Payment"
 msgstr "תשלום ידני"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__invoicing_closed
+msgid "Manually Closed For Invoicing"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__product_template__service_type__manual
@@ -3106,13 +3333,18 @@ msgstr "Mitchell Admin"
 #. odoo-javascript
 #: code:addons/sale/static/src/js/sale_order_line_field/sale_order_line_field.xml:0
 msgid "Move Down"
-msgstr "הזז למטה"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
 #: code:addons/sale/static/src/js/sale_order_line_field/sale_order_line_field.xml:0
 msgid "Move Up"
-msgstr "הזז למעלה"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "My"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sales_order_filter
@@ -3202,6 +3434,16 @@ msgid "No orders to upsell found."
 msgstr "לא נמצאו הזמנות ל Upsell"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "No, go back"
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields.selection,name:sale.selection__sale_order__delivery_status__pending
+msgid "Not Delivered"
+msgstr ""
+
+#. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
 msgid "Not using Odoo?"
 msgstr "לא משתמש בOdoo?"
@@ -3260,7 +3502,13 @@ msgstr "Odoo"
 #. module: sale
 #: model:product.template,description_sale:sale.product_product_1_product_template
 msgid "Office chairs can harm your floor: protect it"
-msgstr "כיסאות משרד עלולים לפגוע ברצפה שלכם: הגנו עליה"
+msgstr ""
+
+#. module: sale
+#. odoo-javascript
+#: code:addons/sale/static/src/js/quantity_availability/qty_at_date_widget.xml:0
+msgid "On"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__sale_order_discount__discount_type__sol_discount
@@ -3489,7 +3737,7 @@ msgstr "הזמנות ל Upsell"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 msgid "Oscar Morgan"
-msgstr "Oscar Morgan"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
@@ -3509,8 +3757,8 @@ msgstr "בונה הצעות מחיר PDF"
 
 #. module: sale
 #: model:ir.actions.report,name:sale.action_report_pro_forma_invoice
-msgid "PRO-FORMA Invoice"
-msgstr "חשבונית פרו-פורמה"
+msgid "PRO FORMA Invoice"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
@@ -3521,7 +3769,17 @@ msgstr "אריזה"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__parent_id
 msgid "Parent Section Line"
-msgstr "שורת מקטע אב"
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields.selection,name:sale.selection__sale_order__delivery_status__partial
+msgid "Partially Delivered"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "Partner"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__partner_credit_warning
@@ -3612,7 +3870,7 @@ msgstr "תנאי תשלום"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__pending_email_template_id
 msgid "Pending Email Template"
-msgstr "תבנית אימייל בהמתנה"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_discount__discount_percentage
@@ -3622,7 +3880,7 @@ msgstr "אחוז"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Place orders through Gelato's print-on-demand service"
-msgstr "בצע הזמנות דרך שירות ההדפסה לפי דרישה של Gelato"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__access_url
@@ -3632,7 +3890,7 @@ msgstr "כתובת גישה לפורטל"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_payment_link_wizard__prepayment_amount
 msgid "Prepayment Amount"
-msgstr "סכום תשלום מראש"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_company__prepayment_percent
@@ -3652,6 +3910,16 @@ msgstr "אחוז התשלום מראש חייב להיות אחוז תקני/"
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid "Preview"
 msgstr "תצוגה מקדימה"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_product_product__previously_bought_by_customer
+msgid "Previously Bought By Customer"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.product_view_search_catalog
+msgid "Previously bought"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__price_reduce_taxexcl
@@ -3697,18 +3965,18 @@ msgstr "הדפס"
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__group_proforma_sales
-msgid "Pro-Forma Invoice"
-msgstr "חשבונית פרו-פורמה"
+msgid "Pro Forma Invoice"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
-msgid "Pro-Forma Invoice #"
-msgstr "חשבונית עסקה #"
+msgid "Pro Forma Invoice #"
+msgstr ""
 
 #. module: sale
 #: model:res.groups,name:sale.group_proforma_sales
-msgid "Pro-forma Invoices"
-msgstr "חשבוניות פרו-פורמה"
+msgid "Pro Forma Invoices"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
@@ -3717,6 +3985,7 @@ msgstr "חשבוניות פרו-פורמה"
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__product_id
 #: model:ir.model.fields,field_description:sale.field_sale_report__product_tmpl_id
 #: model_terms:ir.ui.view,arch_db:sale.sale_report_view_tree
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 #: model_terms:ir.ui.view,arch_db:sale.view_order_product_search
 #: model_terms:ir.ui.view,arch_db:sale.view_sales_order_filter
@@ -3816,9 +4085,14 @@ msgstr "מיסי מוצרים חושבו מחדש בהתאם לסוג תנועה
 #: model:ir.ui.menu,name:sale.menu_reporting_product
 #: model:ir.ui.menu,name:sale.prod_config_main
 #: model:ir.ui.menu,name:sale.product_menu_catalog
-#: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "Products"
 msgstr "מוצרים"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__commitment_date
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "Promised Delivery"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -3829,6 +4103,11 @@ msgstr "הנחות, מועדון לקוחות וכרטיסי מתנה"
 #: model_terms:ir.ui.view,arch_db:sale.view_order_line_tree
 msgid "Qty"
 msgstr "כמות"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order_line__qty_available_today
+msgid "Qty Available Today"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_report__qty_delivered
@@ -3865,6 +4144,7 @@ msgstr "כמויות לחיוב מהזמנות לקוח"
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 #: model_terms:ir.ui.view,arch_db:sale.sale_report_view_tree
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
 msgid "Quantity"
 msgstr "כמות"
 
@@ -3972,7 +4252,7 @@ msgid "Quotations and Sales"
 msgstr "הצעות מחיר ומכירות"
 
 #. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.portal_my_home_sale
+#: model:portal.entry,name:sale.portal_quotations_to_review
 msgid "Quotations to review"
 msgstr "הצעות מחיר לבדיקה"
 
@@ -4014,6 +4294,12 @@ msgid "Recompute all taxes based on this fiscal position"
 msgstr "חשב מחדש את כל המיסים בהתאם לסוג תנועה"
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.account_invoice_form
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "Reference"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,help:sale.field_sale_order__origin
 msgid "Reference of the document that generated this sales order request"
 msgstr "הפניה למסמך שיצר את בקשת הזמנת המכירה הזו."
@@ -4039,6 +4325,11 @@ msgstr "הסר"
 #: code:addons/sale/static/src/js/quantity_buttons/quantity_buttons.xml:0
 msgid "Remove one"
 msgstr "הסר אחד"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "Reopen Invoicing"
+msgstr ""
 
 #. module: sale
 #: model:ir.model,name:sale.model_ir_actions_report
@@ -4106,6 +4397,11 @@ msgid "Revenues generated by the campaign"
 msgstr "הכנסות שנוצרו מהקמפיין"
 
 #. module: sale
+#: model:portal.entry,description:sale.portal_quotations_to_review
+msgid "Review your quotations"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "שגיאה בשליחת SMS"
@@ -4113,7 +4409,7 @@ msgstr "שגיאה בשליחת SMS"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 msgid "SO0000"
-msgstr "SO0000"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
@@ -4135,12 +4431,13 @@ msgstr "פרטי מכירה"
 #: model:ir.model.fields,field_description:sale.field_account_move_line__sale_line_warn_msg
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__sale_line_warn_msg
 msgid "Sale Line Warn Msg"
-msgstr "הודעת אזהרה בשורת מכירה"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_advance_payment_inv__sale_order_ids
 #: model:ir.model.fields,field_description:sale.field_sale_order_discount__sale_order_id
 #: model:ir.model.fields.selection,name:sale.selection__account_analytic_applicability__business_domain__sale_order
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
 msgid "Sale Order"
 msgstr "הזמנת לקוח"
 
@@ -4155,7 +4452,7 @@ msgstr "כמות הזמנות לקוח"
 #. module: sale
 #: model:ir.actions.act_window,name:sale.mail_activity_plan_action_sale_order
 msgid "Sale Order Plans"
-msgstr "תוכניות הזמנת מכירה"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__group_warning_sale
@@ -4179,7 +4476,7 @@ msgstr "ספירת הזמנות לקוח"
 #: model:ir.model.fields,field_description:sale.field_account_move__sale_warning_text
 #: model:ir.model.fields,field_description:sale.field_sale_order__sale_warning_text
 msgid "Sale Warning"
-msgstr "אזהרת מכירה"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -4280,6 +4577,7 @@ msgstr "פריט הזמנת לקוח"
 #. module: sale
 #: model:ir.model,name:sale.model_sale_order_line
 #: model:ir.model.fields,field_description:sale.field_product_attribute_custom_value__sale_order_line_id
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
 msgid "Sales Order Line"
 msgstr "שורת הזמנת לקוח"
 
@@ -4287,7 +4585,7 @@ msgstr "שורת הזמנת לקוח"
 #: model:ir.model.fields,field_description:sale.field_product_product__sale_line_warn_msg
 #: model:ir.model.fields,field_description:sale.field_product_template__sale_line_warn_msg
 msgid "Sales Order Line Warning"
-msgstr "אזהרת שורת הזמנת מכירה"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_account_move_line__sale_line_ids
@@ -4325,7 +4623,6 @@ msgstr "הזמנה(ות) לקוח"
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_view_search_inherit_quotation
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_view_search_inherit_sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_product_search
-#: model_terms:ir.ui.view,arch_db:sale.view_order_tree
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_order_calendar
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_order_graph
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_order_pivot
@@ -4379,8 +4676,8 @@ msgstr "מכירות: תשלום בוצע"
 
 #. module: sale
 #: model:mail.template,name:sale.email_template_proforma
-msgid "Sales: Send Proforma"
-msgstr "מכירות: שליחת פרופורמה"
+msgid "Sales: Send Pro Forma"
+msgstr ""
 
 #. module: sale
 #: model:mail.template,name:sale.email_template_edi_sale
@@ -4390,7 +4687,7 @@ msgstr "מכירות : שלח הצעות מחיר"
 #. module: sale
 #: model:ir.actions.server,name:sale.send_pending_emails_cron_ir_actions_server
 msgid "Sales: Send pending emails"
-msgstr "מכירות: שליחת אימיילים בהמתנה"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__user_id
@@ -4433,7 +4730,7 @@ msgstr "שם פסקה (למשל מוצרים, שירותים)"
 #: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_content
 msgid "Section Summary"
-msgstr "סיכום מקטע"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__access_token
@@ -4454,7 +4751,7 @@ msgstr "פריטי קומבו שנבחרו"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Sell and purchase products in different units of measure or packagings"
-msgstr "מכירה ורכישה של מוצרים ביחידות מידה או אריזות שונות"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -4470,8 +4767,8 @@ msgstr "שלח"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
-msgid "Send PRO-FORMA Invoice"
-msgstr "שלח חשבונית פרו-פורמה"
+msgid "Send PRO FORMA Invoice"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -4486,7 +4783,7 @@ msgstr "שלח דוא\"ל"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery_sendcloud
 msgid "Sendcloud Connector"
-msgstr "מחבר Sendcloud"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -4515,6 +4812,24 @@ msgstr "נשלח ללקוחות כאשר מתקבל תשלום אך הוא אי�
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__sequence
 msgid "Sequence"
 msgstr "רצף"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_account_bank_statement_line__service_line_count
+#: model:ir.model.fields,field_description:sale.field_account_move__service_line_count
+msgid "Service Line Count"
+msgstr ""
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.account_invoice_form
+msgid "Services"
+msgstr ""
+
+#. module: sale
+#: model:ir.actions.act_window,name:sale.action_service_material
+#: model:ir.ui.menu,name:sale.menu_service_material
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_list
+msgid "Services & Material"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -4551,28 +4866,27 @@ msgstr "כתובת לאספקה"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery_shiprocket
 msgid "Shiprocket Connector"
-msgstr "מחבר Shiprocket"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_sale_shopee
 msgid "Shopee Sync"
-msgstr "סנכרון Shopee"
+msgstr ""
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order__show_deliver_button
+msgid "Show Deliver Button"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sales_order_filter
 msgid "Show all records whose next activity date is past"
-msgstr "הצג את כל הרשומות שתאריך הפעילות הבאה שלהן עבר"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Show margins on orders"
 msgstr "הצג שולי רווח בהזמנות"
-
-#. module: sale
-#. odoo-python
-#: code:addons/sale/models/sale_order.py:0
-msgid "Sign & Pay Quotation"
-msgstr "חתום ושלם את ההצעת מחיר"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
@@ -4609,19 +4923,23 @@ msgstr "נחתם ב-"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.mass_cancel_orders_view_form
 msgid "So, are you sure you want to cancel these"
-msgstr "אם כך, האם אתה בטוח שברצונך לבטל את"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_product_product__sales_count
 #: model:ir.model.fields,field_description:sale.field_product_template__sales_count
+#: model_terms:ir.ui.view,arch_db:sale.product_form_view_sale_order_button
+#: model_terms:ir.ui.view,arch_db:sale.product_template_form_view_sale_order_button
 msgid "Sold"
 msgstr "נמכר"
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_form_view_sale_order_button
 #: model_terms:ir.ui.view,arch_db:sale.product_template_form_view_sale_order_button
-msgid "Sold in the last 365 days"
-msgstr "נמכר ב -365 הימים האחרונים"
+msgid ""
+"Sold in the last 365 days. Outgoing represents confirmed sales orders not "
+"delivered, or partially delivered"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.mass_cancel_orders_view_form
@@ -4638,7 +4956,7 @@ msgstr ""
 msgid ""
 "Some order lines are missing a product, you need to correct them before "
 "going further."
-msgstr "בחלק משורות ההזמנה חסר מוצר, יש לתקן אותן לפני שממשיכים."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -4648,9 +4966,11 @@ msgstr "חלק מההזמנות אינן במצב המחייב אישור."
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_account_bank_statement_line__source_id
+#: model:ir.model.fields,field_description:sale.field_account_invoice_report__source_id
 #: model:ir.model.fields,field_description:sale.field_account_move__source_id
 #: model:ir.model.fields,field_description:sale.field_sale_order__source_id
 #: model:ir.model.fields,field_description:sale.field_sale_report__source_id
+#: model_terms:ir.ui.view,arch_db:sale.view_account_invoice_report_search_inherit
 msgid "Source"
 msgstr "מקור"
 
@@ -4667,12 +4987,17 @@ msgstr "דוא\"ל מסוים"
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_res_config_settings__module_delivery_starshipit
 msgid "Starshipit Connector"
-msgstr "מחבר Starshipit"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
 msgid "Start on Odoo"
 msgstr "התחל ב Odoo"
+
+#. module: sale
+#: model:ir.model.fields.selection,name:sale.selection__sale_order__delivery_status__started
+msgid "Started"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__state
@@ -4704,17 +5029,17 @@ msgstr "Stripe"
 msgid ""
 "Stripe Connect is not available in your country, please use another payment "
 "provider."
-msgstr "Stripe Connect אינו זמין במדינה שלך, אנא השתמש בספק תשלום אחר."
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__sale_order_line__display_type__line_subsection
 msgid "Subsection"
-msgstr "תת-מקטע"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
 msgid "Subsection Name"
-msgstr "שם תת-מקטע"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__price_subtotal
@@ -4905,13 +5230,13 @@ msgstr "האסימון גישה אינו חוקי."
 #. odoo-python
 #: code:addons/sale/controllers/portal.py:0
 msgid "The amount is lower than the prepayment amount."
-msgstr "הסכום נמוך מסכום התשלום מראש."
+msgstr ""
 
 #. module: sale
 #. odoo-python
 #: code:addons/sale/wizard/payment_link_wizard.py:0
 msgid "The amount must be greater than the prepayment amount."
-msgstr "הסכום חייב להיות גדול מסכום התשלום מראש."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -4950,6 +5275,14 @@ msgstr ""
 "%(used_products)s\n"
 "באפשרותך להעביר אותם לארכיון וליצור אותם מחדש עם הגבלת החברה שלך או להשאיר "
 "אותם כמוצרים משותפים."
+
+#. module: sale
+#. odoo-python
+#: code:addons/sale/models/sale_order.py:0
+msgid ""
+"The following sale orders %(invalid_orders)s can't be delivered. Cancelled "
+"all deliveries."
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_res_config_settings__automatic_invoice
@@ -5042,7 +5375,7 @@ msgstr "המוצר (%(product)s) מכיל ערכים שאינם תואמים: %(
 #. odoo-python
 #: code:addons/sale/wizard/payment_link_wizard.py:0
 msgid "The sale order has expired."
-msgstr "תוקף הזמנת המכירה פג."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -5063,7 +5396,7 @@ msgstr "כרגע אין הזמנות לקוח בחשבונך."
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sale_advance_payment_inv
 msgid "There are existing"
-msgstr "קיימים כבר"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -5223,6 +5556,11 @@ msgstr ""
 "האפשרות 'ניהול גישה לפורטל' בתפריט הנפתח * פעולה*."
 
 #. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_analytic_lines_service_search
+msgid "Today"
+msgstr ""
+
+#. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_sales_order_filter
 msgid "Today Activities"
 msgstr "פעילויות היום"
@@ -5258,6 +5596,11 @@ msgstr "סה\"כ כולל מע\"מ"
 #: code:addons/sale/static/src/js/product_configurator_dialog/product_configurator_dialog.js:0
 msgid "Total: %s"
 msgstr "סה\"כ: %s"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order_line__is_storable
+msgid "Track Inventory"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_product_product__service_type
@@ -5318,6 +5661,13 @@ msgid "UTM Campaign"
 msgstr "קמפיין UTM"
 
 #. module: sale
+#: model:ir.model.fields,field_description:sale.field_account_move__utm_reference
+#: model:ir.model.fields,field_description:sale.field_sale_order__utm_reference
+#: model:ir.model.fields,field_description:sale.field_sale_report__utm_reference
+msgid "UTM Reference"
+msgstr ""
+
+#. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__amount_to_invoice
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__amount_to_invoice
 msgid "Un-invoiced Balance"
@@ -5346,7 +5696,7 @@ msgstr "מחיר יחידה:"
 #: model:ir.ui.menu,name:sale.menu_product_uom_form_action
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Units & Packagings"
-msgstr "יחידות ואריזות"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
@@ -5357,6 +5707,11 @@ msgstr "שחרר נעילה"
 #: model:ir.model.fields,field_description:sale.field_sale_order__amount_untaxed
 msgid "Untaxed Amount"
 msgstr "סכום ללא מע\"מ"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_report__untaxed_delivered_amount
+msgid "Untaxed Amount Delivered"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_report__untaxed_amount_invoiced
@@ -5393,13 +5748,13 @@ msgstr "עדכון מיסים"
 #. odoo-javascript
 #: code:addons/sale/static/src/js/upload_rfq_cog_menu/upload_rfq_cog_menu.xml:0
 msgid "Upload Request For Quotation"
-msgstr "העלאת בקשה להצעת מחיר"
+msgstr ""
 
 #. module: sale
 #. odoo-python
 #: code:addons/sale/models/sale_order.py:0
 msgid "Upsell %(order)s for customer %(customer)s"
-msgstr "מכירה נוספת %(order)s ללקוח %(customer)s"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields.selection,name:sale.selection__sale_order__invoice_status__upselling
@@ -5418,8 +5773,8 @@ msgstr "השתמש REST URL כדי לקבל structure data של הזמנת רכ�
 
 #. module: sale
 #: model:mail.template,description:sale.email_template_proforma
-msgid "Used by salespeople when they send proforma to prospects"
-msgstr "משמש את אנשי המכירות כאשר הם שולחים פרופורמה ללקוחות פוטנציאליים"
+msgid "Used by salespeople when they send pro forma to prospects"
+msgstr ""
 
 #. module: sale
 #: model:mail.template,description:sale.email_template_edi_sale
@@ -5450,8 +5805,8 @@ msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_pricelist_item_form
-msgid "Validity Period"
-msgstr "תקופת תוקף החופשה"
+msgid "Validity"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,help:sale.field_sale_order__validity_date
@@ -5463,7 +5818,7 @@ msgstr "תוקף ההזמנה – לאחר מועד זה לא יהיה ניתן 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "Values set here are company-specific."
-msgstr "הערכים המוגדרים כאן הם ייחודיים לחברה."
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
@@ -5483,7 +5838,7 @@ msgstr "צפה בפרטים"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_config_settings_view_form
 msgid "View Other Providers"
-msgstr "הצג ספקים אחרים"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -5495,6 +5850,11 @@ msgstr "צפה בהצעת מחיר"
 #: model:ir.model.fields,field_description:sale.field_sale_order_line__virtual_id
 msgid "Virtual"
 msgstr "וירטואלי"
+
+#. module: sale
+#: model:ir.model.fields,field_description:sale.field_sale_order_line__virtual_available_at_date
+msgid "Virtual Available At Date"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.view_order_form
@@ -5528,12 +5888,12 @@ msgstr "אזהרה על שינוי החברה בהצעת המחיר שלך"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_template_form_view
 msgid "Warning on Sales Orders"
-msgstr "אזהרה בהזמנות מכירה"
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_partner_view_buttons
 msgid "Warning on Sales Orders and Invoices"
-msgstr "אזהרה בהזמנות מכירה ובחשבוניות"
+msgstr ""
 
 #. module: sale
 #: model:ir.model.fields,field_description:sale.field_sale_order__website_message_ids
@@ -5544,6 +5904,11 @@ msgstr "הודעות מאתר האינטרנט"
 #: model:ir.model.fields,help:sale.field_sale_order__website_message_ids
 msgid "Website communication history"
 msgstr "היסטורית התקשרויות מאתר האינטרנט"
+
+#. module: sale
+#: model_terms:ir.ui.view,arch_db:sale.view_order_form
+msgid "Yes, cancel order"
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -5607,9 +5972,21 @@ msgstr ""
 
 #. module: sale
 #. odoo-python
+#: code:addons/sale/models/account_analytic_line.py:0
+msgid "You cannot modify already invoiced services."
+msgstr ""
+
+#. module: sale
+#. odoo-python
 #: code:addons/sale/models/sale_order_line.py:0
 msgid "You cannot modify the product of this order line."
 msgstr "לא ניתן לשנות את המוצר בשורת הזמנה זו."
+
+#. module: sale
+#. odoo-python
+#: code:addons/sale/models/account_analytic_line.py:0
+msgid "You cannot remove already invoiced services."
+msgstr ""
 
 #. module: sale
 #: model:ir.model.constraint,message:sale.constraint_res_company_check_quotation_validity_days
@@ -5619,6 +5996,12 @@ msgid ""
 msgstr ""
 "אין אפשרות להגדיר מספר שלילי עבור תוקף הצעת המחיר ברירת המחדל. השאר ריק (או "
 "0) כדי לבטל את התפוגה האוטומטית של הצעות המחיר."
+
+#. module: sale
+#. odoo-python
+#: code:addons/sale/models/account_analytic_line.py:0
+msgid "You cannot set a negative quantity on services."
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
@@ -5635,7 +6018,7 @@ msgstr ""
 "בין אם מדובר במוצר מנוהל מלאי, במוצר לא מנוהל מלאי או בשירות."
 
 #. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.portal_my_home_sale
+#: model:portal.entry,name:sale.portal_your_orders
 #: model_terms:ir.ui.view,arch_db:sale.portal_my_orders
 msgid "Your Orders"
 msgstr "ההזמנות שלך"
@@ -5649,7 +6032,7 @@ msgstr "מזהה הזמנה:"
 #. odoo-javascript
 #: code:addons/sale/static/src/js/sale_action_helper/sale_action_helper_dialog.xml:0
 msgid "Your browser does not support iframe."
-msgstr "הדפדפן שלך אינו תומך ב-iframe."
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_template
@@ -5720,12 +6103,12 @@ msgstr "ימים"
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.res_partner_view_buttons
 msgid "e.g. This customer has reported recurring issues with previous orders."
-msgstr "לדוגמה: לקוח זה דיווח על בעיות חוזרות בהזמנות קודמות."
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.product_template_form_view
 msgid "e.g. This product is defective."
-msgstr "לדוגמה: מוצר זה פגום."
+msgstr ""
 
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
@@ -5741,7 +6124,7 @@ msgstr "להזמנת לקוח זו."
 #. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.mass_cancel_orders_view_form
 msgid "items?"
-msgstr "פריטים?"
+msgstr ""
 
 #. module: sale
 #. odoo-javascript
@@ -5753,7 +6136,7 @@ msgstr "בוא נמשיך"
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_sign_modal
 msgid "quote."
-msgstr "הצעת מחיר."
+msgstr ""
 
 #. module: sale
 #. odoo-python
@@ -5772,17 +6155,11 @@ msgid "units"
 msgstr "יחידות"
 
 #. module: sale
-#: model_terms:ir.ui.view,arch_db:sale.report_saleorder_document
-msgid "x"
-msgstr "x"
-
-#. module: sale
 #: model_terms:ir.ui.view,arch_db:sale.sale_order_portal_pay_modal
 msgid "you confirm acceptance on behalf of"
-msgstr "אתה מאשר קבלה בשם"
+msgstr ""
 
 #. module: sale
-#: model:mail.template,subject:sale.mail_template_sale_confirmation
 #: model:mail.template,subject:sale.mail_template_sale_payment_executed
 msgid ""
 "{{ object.company_id.name }} {{ (object.get_portal_last_transaction().state "
@@ -5794,22 +6171,25 @@ msgstr ""
 "קיים' } })"
 
 #. module: sale
+#: model:mail.template,subject:sale.mail_template_sale_confirmation
+msgid ""
+"{{ object.company_id.name }} {{ (object.get_portal_last_transaction().state "
+"== 'pending') and 'Pending Order' or 'Order' }} {{ object.name or 'n/a' }}"
+msgstr ""
+
+#. module: sale
 #: model:mail.template,subject:sale.email_template_proforma
 msgid ""
-"{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and "
-"'Proforma' or 'Order'}} (Ref {{ object.name or 'n/a' }})"
+"{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and 'Pro "
+"Forma' or 'Order'}} (Ref {{ object.name or 'n/a' }})"
 msgstr ""
-"{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and "
-"'פרופורמה' or 'הזמנה'}} (סימוכין {{ object.name or 'לא זמין' }})"
 
 #. module: sale
 #: model:mail.template,subject:sale.email_template_edi_sale
 msgid ""
 "{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and "
-"'Quotation' or 'Order' }} (Ref {{ object.name or 'n/a' }})"
+"'Quotation' or 'Order' }} {{ object.name or 'n/a' }}"
 msgstr ""
-"{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and 'הצעת "
-"מחיר' or 'הזמנה' }} (סימוכין {{ object.name or 'לא זמין' }})"
 
 #~ msgid "Connect your software"
 #~ msgstr "התחבר לתוכנה שלך"
@@ -5831,591 +6211,3 @@ msgstr ""
 
 #~ msgid "31.05"
 #~ msgstr "31.05"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-building-o p-2\" title=\"Values set here are "
-#~ "company-specific.\" groups=\"base.group_multi_company\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-building-o p-2\" title=\"Values set here are "
-#~ "company-specific.\" groups=\"base.group_multi_company\"/>"
-
-#~ msgid " Data Fetched"
-#~ msgstr "הנתונים נאספו"
-
-#~ msgid "<b>Set a price</b>."
-#~ msgstr "<b>קבע.י מחיר</b>"
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> שלח הודעה"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> הורד"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/>Done"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/>בוצע"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/> <b>שולם</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>תשלום ממתין</b>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-usd\" role=\"img\" aria-label=\"Sale orders\" "
-#~ "title=\"Sales orders\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-usd\" role=\"img\" aria-label=\"Sale orders\" "
-#~ "title=\"Sales orders\"/>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> הדפס"
-
-#~ msgid "<small><b class=\"text-muted\">This offer expires on</b></small>"
-#~ msgstr ""
-#~ "<small><b class=\"text-muted\">תוקף ההצעה הזה יפוג בתאריך</b></small>"
-
-#~ msgid "<span>Accepted on the behalf of:</span>"
-#~ msgstr "<span>התקבל בשם:</span>"
-
-#~ msgid ""
-#~ "<span>By paying this proposal, I agree to the following terms:</span>"
-#~ msgstr "<span>בתשלום הצעה זו אני מסכים לתנאים הבאים:</span>"
-
-#~ msgid ""
-#~ "<span>By signing this proposal, I agree to the following terms:</span>"
-#~ msgstr "<span>בחתימה על הצעה זו אני מסכים לתנאים הבאים:</span>"
-
-#~ msgid "<span>For an amount of:</span>"
-#~ msgstr "<span>לסכום של:</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>תשלום</span>"
-
-#~ msgid "<span>With payment terms:</span>"
-#~ msgstr "<span>עם תנאי תשלום:</span>"
-
-#~ msgid ""
-#~ "<strong class=\"d-block mb-1\">\n"
-#~ "                            Shipping Address:\n"
-#~ "                        </strong>"
-#~ msgstr ""
-#~ "<strong class=\"d-block mb-1\">\n"
-#~ "כתובת למשלוח:\n"
-#~ "</strong>"
-
-#~ msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
-#~ msgstr "<strong class=\"d-block mb-1\">חשבוניות</strong>"
-
-#~ msgid "<strong class=\"mr16\">Subtotal</strong>"
-#~ msgstr "<strong class=\"mr16\">סכום ביניים</strong>"
-
-#~ msgid "<strong class=\"text-muted\">Salesperson</strong>"
-#~ msgstr "<strong class=\"text-muted\">איש מכירות</strong>"
-
-#~ msgid "<strong>Expiration Date:</strong>"
-#~ msgstr "<strong>תאריך תוקף:</strong>"
-
-#~ msgid "<strong>Expiration:</strong>"
-#~ msgstr "<strong>תוקף:</strong>"
-
-#~ msgid "<strong>Order Date:</strong>"
-#~ msgstr "<strong>תאריך הזמנה:</strong>"
-
-#~ msgid "<strong>Quotation Date:</strong>"
-#~ msgstr "<strong>תאריך הצעת מחיר:</strong>"
-
-#~ msgid "<strong>Salesperson:</strong>"
-#~ msgstr "<strong>איש מכירות:</strong>"
-
-#~ msgid "<strong>Shipping Address:</strong>"
-#~ msgstr "<strong>כתובת לאספקה:</strong>"
-
-#~ msgid "<strong>This quotation has been canceled.</strong>"
-#~ msgstr "<strong>הצעה זו בוטלה.</strong>"
-
-#~ msgid "<strong>Your Reference:</strong>"
-#~ msgstr "<strong>מזהה שלך:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "מוצר מנוהל מלאי הוא מוצר שעבורו מתבצע ניהול מלאי במערכת. יש להתקין את "
-#~ "יישום המלאי.מוצר לא מנוהל מלאי הוא מוצר אשר לא מתבצע עבורו ניהול מלאי "
-#~ "במערכת.שירות הוא מוצר לא חומרי שאתה מספק."
-
-#~ msgid ""
-#~ "Ability to select a package type in sales orders and to force a quantity "
-#~ "that is a multiple of the number of units per package."
-#~ msgstr ""
-#~ "היכולת לבחור סוג חבילה בהזמנות לקוח ולאלץ כמות שהיא כפולה של מספר היחידות "
-#~ "בחבילה."
-
-#~ msgid "Account Number"
-#~ msgstr "מספר חשבון"
-
-#~ msgid "Account used for deposits"
-#~ msgstr "חשבון המשמש להפקדות"
-
-#~ msgid "Amount of quotations to invoice"
-#~ msgstr "סכום הצעות מחיר לחיוב"
-
-#~ msgid "Analytic Account"
-#~ msgstr "חשבון אנליטי"
-
-#~ msgid "Attribute Value"
-#~ msgstr "ערך תכונה"
-
-#~ msgid "Author"
-#~ msgstr "מחבר"
-
-#~ msgid "Bank Name"
-#~ msgstr "שם בנק"
-
-#~ msgid "Blocking Message"
-#~ msgstr "הודעת חסימה"
-
-#~ msgid "Can Edit Body"
-#~ msgstr "ניתן לערוך גוף"
-
-#~ msgid "Category"
-#~ msgstr "קטגוריה"
-
-#~ msgid "Choose between electronic signatures or online payments."
-#~ msgstr "בחר בין חתימות אלקטרוניות או תשלומים מקוונים."
-
-#~ msgid "Choose how to confirm quotations"
-#~ msgstr "בחר כיצד לאשר הצעות מחיר"
-
-#~ msgid "Closed"
-#~ msgstr "סגור"
-
-#~ msgid "Compute shipping costs and ship with DHL"
-#~ msgstr "חשב עלויות המשלוח ושלח באמצעות  DHL"
-
-#~ msgid "Compute shipping costs and ship with FedEx"
-#~ msgstr "חשב עלויות המשלוח ושלח באמצעות FedEx"
-
-#~ msgid "Compute shipping costs and ship with UPS"
-#~ msgstr "חשב עלויות המשלוח ושלח באמצעות UPS"
-
-#~ msgid "Compute shipping costs and ship with USPS"
-#~ msgstr "חשב עלויות המשלוח ושלח באמצעות USPS"
-
-#~ msgid "Contents"
-#~ msgstr "תוכן"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Create invoices"
-#~ msgstr "צור חשבוניות"
-
-#~ msgid "Custom"
-#~ msgstr "מותאם"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "הוראות תשלום מותאמות אישית"
-
-#~ msgid "Customer Taxes"
-#~ msgstr "מיסי לקוח"
-
-#~ msgid "Customize"
-#~ msgstr "התאמה אישית"
-
-#~ msgid "Customize the look of your quotations."
-#~ msgstr "התאם אישית את מראה הצעות המחיר שלך."
-
-#~ msgid "Customize your quotes and orders."
-#~ msgstr "התאם אישית את הצעות המחיר וההזמנות שלך."
-
-#~ msgid "Deposit Product"
-#~ msgstr "מוצר פקדון"
-
-#~ msgid "Discounts, Loyalty & Gift Card"
-#~ msgstr "הנחות, מועדון לקוחות וכרטיסי מתנה"
-
-#~ msgid "Done"
-#~ msgstr "בוצע"
-
-#~ msgid "Down Payment Amount"
-#~ msgstr "סכום המקדמה"
-
-#~ msgid "Down Payment Product"
-#~ msgstr "מוצר מקדמה"
-
-#~ msgid "Download"
-#~ msgstr "הורד"
-
-#~ msgid "Draft Quotation"
-#~ msgstr "טיוטת הצעת מחיר"
-
-#~ msgid "Electronic signature"
-#~ msgstr "חתימה אלקטרונית"
-
-#~ msgid "Email"
-#~ msgstr "דוא\"ל"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "אשף יצירת דוא\"ל"
-
-#~ msgid ""
-#~ "Expenses and vendor bills can be re-invoiced to a customer.With this "
-#~ "option, a validated expense can be re-invoice to a customer at its cost "
-#~ "or sales price."
-#~ msgstr ""
-#~ "הוצאות וחשבוניות ספק ניתנות לחיוב מחדש ללקוח. עם אפשרות, הוצאה מאומתת "
-#~ "ניתנת לחיוב מחדש כעלות או כמחיר מכירה."
-
-#~ msgid "Extended Filters"
-#~ msgstr "מסננים מורחבים"
-
-#~ msgid "Good job, let's continue."
-#~ msgstr "כל הכבוד, בואו נמשיך."
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "History"
-#~ msgstr "היסטוריה"
-
-#~ msgid "If true, the packaging can be used for sales orders"
-#~ msgstr "אם זה נכון, ניתן להשתמש באריזה להזמנות מכירה"
-
-#~ msgid "Income Account"
-#~ msgstr "חשבון הכנסות"
-
-#~ msgid "Invoice Alert"
-#~ msgstr "התראת חשבונית"
-
-#~ msgid "Invoice Confirmed"
-#~ msgstr "חשבונית אושרה"
-
-#~ msgid "Invoice Created"
-#~ msgstr "חשבונית נוצרה"
-
-#~ msgid "Invoice Email Template"
-#~ msgstr "תבנית דוא\"ל חשבונית"
-
-#~ msgid "Invoicing Address:"
-#~ msgstr "כתובת לחיוב:"
-
-#~ msgid "Invoicing and Payments"
-#~ msgstr "חשבוניות ותשלומים"
-
-#~ msgid "Invoicing and Shipping Address:"
-#~ msgstr "כתובת לחיוב ולאספקה:"
-
-#~ msgid "Is Editor"
-#~ msgstr "האם עורך"
-
-#~ msgid "It is not allowed to confirm an order in the following states: %s"
-#~ msgstr "אסור לאשר הזמנה במצבים הבאים: %s"
-
-#~ msgid "Just done"
-#~ msgstr "הרגע בוצע"
-
-#~ msgid "Language"
-#~ msgstr "שפה"
-
-#~ msgid "Let's send the quote."
-#~ msgstr "בוא נשלח את הצעת המחיר."
-
-#~ msgid "Lets keep electronic signature for now."
-#~ msgstr "בוא נשמור לעת עתה את החתימה האלקטרונית."
-
-#~ msgid "Looks good. Let's continue."
-#~ msgstr "נראה טוב, בואו נמשיך."
-
-#~ msgid "Looks great!"
-#~ msgstr "נראה נהדר!"
-
-#~ msgid "Mail Template"
-#~ msgstr "תבנית דואר"
-
-#~ msgid "Message"
-#~ msgstr "הודעה"
-
-#~ msgid "Message for Sales Order Line"
-#~ msgstr "הודעה עבור שורת הזמנת לקוח"
-
-#~ msgid "Method"
-#~ msgstr "אמצעי תשלום"
-
-#~ msgid "No Message"
-#~ msgstr "אין הודעה"
-
-#~ msgid "Not done"
-#~ msgstr "לא בוצע"
-
-#~ msgid "Now, we'll create a sample quote."
-#~ msgstr "עכשיו, ניצור הצעת מחיר לדוגמא."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Number of quotations to invoice"
-#~ msgstr "מספר הצעות המחיר לחיוב"
-
-#~ msgid "Number of sales to invoice"
-#~ msgstr "מספר המכירות לחיוב"
-
-#~ msgid "Online confirmation"
-#~ msgstr "אישור מקוון"
-
-#~ msgid "Open Sales app to send your first quotation in a few clicks."
-#~ msgstr ""
-#~ "פתח את יישום המכירות כדי לשלוח את הצעת המחיר הראשונה שלך במספר לחיצות."
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "שפת תרגום אופציונלית (קוד ISO) לבחירה בעת שליחת אימייל. אם לא מוגדר, "
-#~ "הגרסה האנגלית תשמש. בדרך כלל זה צריך להיות ביטוי מציין מיקום המספק את "
-#~ "השפה המתאימה, למשל. {{ object.partner_id.lang }}."
-
-#~ msgid "Order Confirmation"
-#~ msgstr "אישור הזמנה "
-
-#~ msgid "Order Upsell"
-#~ msgstr "Upsell להזמנה"
-
-#~ msgid "Order to Invoice"
-#~ msgstr "הזמנה לחיוב"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "אסימון מזהה PDT"
-
-#~ msgid "Packaging Quantity"
-#~ msgstr "כמות אריזה"
-
-#~ msgid "Pay with"
-#~ msgstr "שלם עם"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "הוראות תשלום"
-
-#~ msgid "Product Attribute"
-#~ msgstr "תכונת מוצר"
-
-#~ msgid "Product Packaging"
-#~ msgstr "אריזת מוצר"
-
-#~ msgid "Product used for down payments"
-#~ msgstr "מוצר המשמש למקדמות"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "הצעת מחיר/הזמנה"
-
-#~ msgid "Quotation Layout"
-#~ msgstr "עיצוב הצעת מחיר"
-
-#~ msgid "Re-Invoice Expenses"
-#~ msgstr "חיוב הוצאות מחדש"
-
-#~ msgid "Recipients"
-#~ msgstr "נמענים"
-
-#~ msgid "Reference"
-#~ msgstr "מזהה"
-
-#~ msgid "Register Payment"
-#~ msgstr "רשום תשלום"
-
-#~ msgid "Rendering Model"
-#~ msgstr "דגם עיבוד"
-
-#~ msgid "Request an online payment to confirm orders"
-#~ msgstr "בקש תשלום מקוון כדי לאשר הזמנות"
-
-#~ msgid "Request an online signature to confirm orders"
-#~ msgstr "בקש חתימה מקוונת כדי לאשר הזמנות"
-
-#~ msgid ""
-#~ "Revenue target for the current month (untaxed total of confirmed "
-#~ "invoices)."
-#~ msgstr "יעד הכנסות לחודש הנוכחי (סה\"כ ללא מע\"מ מחשבוניות שאושרו)."
-
-#~ msgid "Sales Done"
-#~ msgstr "מכירות שבוצעו"
-
-#~ msgid "Sales Warnings"
-#~ msgstr "אזהרות מכירה"
-
-#~ msgid "Sales: Untaxed Total"
-#~ msgstr "מכירות: סה\"כ ללא מע\"מ"
-
-#~ msgid "Sample Order Line"
-#~ msgstr "שורת הזמנה לדוגמה"
-
-#~ msgid "Sample Product"
-#~ msgstr "מוצר לדוגמה"
-
-#~ msgid "Sample Quotation"
-#~ msgstr "הצעת מחיר לדוגמה"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "בחירה באפשרות \"אזהרה\" תודיע למשתמש על ידי הודעה,בחירת \"הודעת חסימה\" "
-#~ "תתריע על חריגה בהודעה ותחסום את ההתקדמות בתהליך. ההודעה צריכה להיכתב בשדה "
-#~ "הבא."
-
-#~ msgid "Sell and purchase products in different units of measure"
-#~ msgstr "מכור ורכוש מוצרים ביחידות מידה שונות"
-
-#~ msgid "Sell products by multiple of unit # per package"
-#~ msgstr "מכור מוצרים לפי מס' יחידות בחבילה"
-
-#~ msgid "Send a quotation to test the customer portal."
-#~ msgstr "שלח הצעת מחיר לבדיקת פורטל הלקוחות."
-
-#~ msgid "Send by Email"
-#~ msgstr "שלח בדוא\"ל"
-
-#~ msgid "Send sample"
-#~ msgstr "שלח דוגמה"
-
-#~ msgid "Set payments"
-#~ msgstr "הגדר אמצעי תשלום"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "הצג את כל הרשומות שתאריך הפעולה הבא שלהן הוא עד היום"
-
-#~ msgid "Stage"
-#~ msgstr "שלב"
-
-#~ msgid "Start by checking your company's data."
-#~ msgstr "התחל בבדיקת הנתונים של החברה שלך."
-
-#~ msgid "State of the onboarding confirmation order step"
-#~ msgstr "מצב שלב אישור רישום הזמנה"
-
-#~ msgid "State of the onboarding sample quotation step"
-#~ msgstr "מצב שלב אישור רישום הצעת מחיר"
-
-#~ msgid "State of the sale onboarding panel"
-#~ msgstr "מצב תהליך ההטמעה של המכירה"
-
-#~ msgid "Subject"
-#~ msgstr "נושא"
-
-#~ msgid "Taxes used for deposits"
-#~ msgstr "מיסים המשמשים להפקדות"
-
-#~ msgid ""
-#~ "The Sales Order %s linked to the Analytic Account %s is cancelled. You "
-#~ "cannot register an expense on a cancelled Sales Order."
-#~ msgstr ""
-#~ "הזמנת הלקוח %s קשורה לחשבון אנליטי %s מבוטלת. אינך יכול לרשום הוצאה על "
-#~ "הזמנת לקוח שבוטלה."
-
-#~ msgid ""
-#~ "The Sales Order %s linked to the Analytic Account %s is currently locked. "
-#~ "You cannot register an expense on a locked Sales Order. Please create a "
-#~ "new SO linked to this Analytic Account."
-#~ msgstr ""
-#~ "הזמנת הלקוח %s קשורה לחשבון אנליטי %s נעולה כרגע. אינך יכול לרשום הוצאה "
-#~ "על הזמנת לקוח נעולה. אנא צור הזמנת לקוח חדשה המקושרת לחשבון אנליטי זה."
-
-#~ msgid ""
-#~ "The Sales Order %s linked to the Analytic Account %s must be validated "
-#~ "before registering expenses."
-#~ msgstr ""
-#~ "הזמנת הלקוח %s קשורה לחשבון אנליטי %s חייבת להיות מאומתת לפני רישום "
-#~ "הוצאות."
-
-#~ msgid ""
-#~ "The following products cannot be restricted to the company %s because "
-#~ "they have already been used in quotations or sales orders in another "
-#~ "company:\n"
-#~ "%s\n"
-#~ "You can archive these products and recreate them with your company "
-#~ "restriction instead, or leave them as shared product."
-#~ msgstr ""
-#~ "לא ניתן להגביל את המוצרים הבאים לחברה %s מכיוון שכבר נעשה בהם שימוש "
-#~ "בהצעות מחיר או הזמנות לקוח בחברה אחרת:\n"
-#~ "%s\n"
-#~ "באפשרותך להעביר אותם לארכיון וליצור אותם מחדש עם הגבלת החברה שלך או "
-#~ "להשאיר אותם כמוצרים משותפים."
-
-#~ msgid ""
-#~ "The product used to invoice a down payment should be of type 'Service'. "
-#~ "Please use another product or update this product."
-#~ msgstr ""
-#~ "מוצר המשמש לחיוב מקדמה צריך להיות מסוג 'שירות'. אנא השתמש במוצר אחר או "
-#~ "עדכן מוצר זה."
-
-#~ msgid "There are currently no orders for your account."
-#~ msgstr "כרגע אין הזמנות בחשבונך."
-
-#~ msgid ""
-#~ "This will update all unit prices based on the currently set pricelist."
-#~ msgstr "פעולה זו תעדכן את כל מחירי היחידות בהתבסס על המחירון שנקבע כעת."
-
-#~ msgid ""
-#~ "To speed up order confirmation, we can activate electronic signatures or "
-#~ "payments."
-#~ msgstr ""
-#~ "כדי להאיץ את אישור ההזמנה, נוכל להפעיל חתימות או תשלומים אלקטרוניים."
-
-#~ msgid "Type a message..."
-#~ msgstr "כתבו הודעה..."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Units of Measure"
-#~ msgstr "יחידות מידה"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "קטגוריות יחידות מידה"
-
-#~ msgid "UoM"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Warning for %s"
-#~ msgstr "אזהרה עבור %s"
-
-#~ msgid "Warning on the Sales Order"
-#~ msgstr "אזהרה בהזמנת הלקוח"
-
-#~ msgid "Warning when Selling this Product"
-#~ msgstr "אזהרה בעת מכירת מוצר זה"
-
-#~ msgid "Write a company name to create one, or see suggestions."
-#~ msgstr "כתוב שם חברה כדי ליצור אחד, או ראה המלצות."
-
-#~ msgid "You can invoice them before they are delivered."
-#~ msgstr "ניתן להוציא עליהם חשבונית לפני השילוח."
-
-#~ msgid ""
-#~ "You can not remove an order line once the sales order is confirmed.\n"
-#~ "You should rather set the quantity to 0."
-#~ msgstr ""
-#~ "אינך יכול להסיר שורת הזמנה לאחר אישור הזמנת הלקוח.\n"
-#~ "עליך להגדיר את הכמות ל- 0."
-
-#~ msgid ""
-#~ "{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and "
-#~ "(ctx.get('proforma') and 'Proforma' or 'Quotation') or 'Order' }} (Ref "
-#~ "{{ object.name or 'n/a' }})"
-#~ msgstr ""
-#~ "{{ object.company_id.name }} {{ object.state in ('draft', 'sent') and "
-#~ "(ctx.get('proforma') and 'פרו-פורמה' or 'הצעת מחיר') or 'הזמנה' }} ( מספר "
-#~ "{{ object.name or 'לא קיים' }})"

@@ -22,28 +22,27 @@
 # Linas Versada <linaskrisiukenas@gmail.com>, 2022
 # Arunas V. <arunas@devoro.com>, 2023
 # Jonas Zinkevicius <jozi@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Vytenis Viruišis <vytenis@users.noreply.translate.odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Vytenis Viruišis <vytenis@users.noreply.translate.odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 11:44+0000\n"
-"Last-Translator: Vytenis Viruišis <vytenis@users.noreply.translate.odoo.com>"
-"\n"
-"Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:38+0000\n"
+"PO-Revision-Date: 2026-01-16 05:47+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-s19-1/"
 "product/lt/>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: product
 #. odoo-python
@@ -278,6 +277,11 @@ msgid "<span class=\"o_stat_text\">Products</span>"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "<span> - </span>"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
 msgid "<span>%</span>"
 msgstr ""
@@ -386,6 +390,12 @@ msgid "A sellable combo product can only contain sellable products."
 msgstr ""
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__is_storable
+#: model:ir.model.fields,help:product.field_product_template__is_storable
+msgid "A storable product is a product for which you manage stock."
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__access_token
 msgid "Access Token"
 msgstr "Prieigos raktas"
@@ -446,6 +456,13 @@ msgstr "Veiklos"
 #: model:ir.model.fields,field_description:product.field_product_template__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Veiklos išimties žymėjimas"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_pricelist__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_product__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_template__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_pricelist__activity_state
@@ -598,7 +615,6 @@ msgstr "Apple"
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Applied On"
 msgstr "Taikoma"
 
@@ -693,19 +709,23 @@ msgstr "Atributo pavadinimas"
 #. module: product
 #: model:ir.model,name:product.model_product_attribute_value
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__custom_product_template_attribute_value_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_template_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_update_product_attribute_value__attribute_value_id
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Attribute Value"
 msgstr "Atributo reikšmė"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_template_attribute_value_ids
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__value_ids
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_value_list
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_view_form
 msgid "Attribute Values"
 msgstr "Atributų reikšmės"
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "Attribute name (e.g. Color, Size, ... )"
+msgstr ""
 
 #. module: product
 #: model:ir.actions.act_window,name:product.attribute_action
@@ -732,11 +752,19 @@ msgid "Back to Quotation"
 msgstr ""
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__barcode
 #: model:ir.model.fields,field_description:product.field_product_template__barcode
 #: model:ir.model.fields,field_description:product.field_product_uom__barcode
 msgid "Barcode"
 msgstr "Brūkšninis kodas"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_res_config_settings__module_product_barcodelookup
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Barcode Database"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -834,11 +862,6 @@ msgid "Can Variant Image 1024 be zoomed"
 msgstr ""
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.update_product_attribute_value_form
-msgid "Cancel"
-msgstr "Atšaukti"
-
-#. module: product
 #: model:product.attribute.value,name:product.pav_brand_canon
 msgid "Canon"
 msgstr ""
@@ -858,10 +881,9 @@ msgid "Category"
 msgstr "Kategorija"
 
 #. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Category: %s"
-msgstr "Kategorija: %s"
+#: model:product.combo,name:product.chairs_combo
+msgid "Chairs Combo"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -981,10 +1003,6 @@ msgstr ""
 
 #. module: product
 #: model:ir.model,name:product.model_res_company
-msgid "Companies"
-msgstr "Įmonės"
-
-#. module: product
 #: model:ir.model.fields,field_description:product.field_product_combo__company_id
 #: model:ir.model.fields,field_description:product.field_product_combo_item__company_id
 #: model:ir.model.fields,field_description:product.field_product_document__company_id
@@ -1023,6 +1041,7 @@ msgid "Config Settings"
 msgstr "Konfigūracijos nustatymai"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_attribute_value_view_tree
 #: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
 msgid "Configure"
 msgstr "Konfigūruoti"
@@ -1097,6 +1116,11 @@ msgid "Create a new product"
 msgstr "Sukurkite naują produktą"
 
 #. module: product
+#: model_terms:ir.actions.act_window,help:product.product_category_action_form
+msgid "Create a new product category"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.actions.act_window,help:product.product_normal_action
 #: model_terms:ir.actions.act_window,help:product.product_normal_action_sell
 #: model_terms:ir.actions.act_window,help:product.product_variant_action
@@ -1116,6 +1140,11 @@ msgid "Create on Order"
 msgstr "Sukurti užsakymą"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Create products by scanning using"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__create_uid
@@ -1130,7 +1159,6 @@ msgstr "Sukurti užsakymą"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template__create_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__create_uid
@@ -1153,7 +1181,6 @@ msgstr "Sukūrė"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_date
 #: model:ir.model.fields,field_description:product.field_product_tag__create_date
 #: model:ir.model.fields,field_description:product.field_product_template__create_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_date
 #: model:ir.model.fields,field_description:product.field_product_uom__create_date
@@ -1188,6 +1215,20 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__currency_id
 msgid "Currency"
 msgstr "Valiuta"
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__qty_available
+msgid ""
+"Current quantity of products.\n"
+"In a context with a single Stock Location, this includes goods stored at "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"stored in the Stock Location of the Warehouse of this Shop, or any of its "
+"children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_custom
@@ -1225,6 +1266,18 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_document__db_datas
 msgid "Database Data"
 msgstr "Duomenų bazės duomenys"
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
+msgid "Date"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Decrease quantity"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -1288,6 +1341,11 @@ msgid "Design and plan smart offices with ease"
 msgstr ""
 
 #. module: product
+#: model:product.combo,name:product.desk_accessories_combo
+msgid "Desk Accessories Combo"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_3_product_template
 msgid "Desk Combination"
 msgstr "Stalo kombinacija"
@@ -1313,15 +1371,16 @@ msgid "Desk combination, black-brown: chair + desk + drawer"
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_attribute__sequence
-#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
-msgid "Determine the display order"
-msgstr "Nustatoma atvaizdavimo tvarka"
+#: model:product.combo,name:product.desks_combo
+msgid "Desks Combo"
+msgstr ""
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_label_layout_form
-msgid "Discard"
-msgstr "Atmesti"
+#: model:ir.model.fields,help:product.field_product_attribute__sequence
+#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__sequence
+msgid "Determine the display order"
+msgstr "Nustatoma atvaizdavimo tvarka"
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_pricelist_item__compute_price__percentage
@@ -1361,7 +1420,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__display_name
 #: model:ir.model.fields,field_description:product.field_product_tag__display_name
 #: model:ir.model.fields,field_description:product.field_product_template__display_name
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__display_name
 #: model:ir.model.fields,field_description:product.field_product_uom__display_name
@@ -1407,11 +1465,6 @@ msgstr "Dokumentai"
 #: model:ir.model.fields,field_description:product.field_product_template__product_document_count
 msgid "Documents Count"
 msgstr "Dokumentų skaičius"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_document_search
-msgid "Documents of this variant"
-msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_brand_dove
@@ -1524,9 +1577,14 @@ msgid "Error exporting file. Please try again."
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__exclude_for
-msgid "Exclude for"
-msgstr "Neįtraukti"
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__excluded_value_ids
+msgid "Exclude For"
+msgstr ""
+
+#. module: product
+#: model:product.category,name:product.product_category_expenses
+msgid "Expenses"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__name
@@ -1608,6 +1666,12 @@ msgid "Fixed Price"
 msgstr "Fiksuota kaina"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__fixed_pricelist_rule_ids
+#: model:ir.model.fields,field_description:product.field_product_template__fixed_pricelist_rule_ids
+msgid "Fixed Pricelist Rule"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_20_product_template
 msgid "Flipover"
 msgstr "Užverčiamas"
@@ -1647,6 +1711,32 @@ msgstr ""
 "Išreikšta numatytaisiais produkto matavimo vienetais."
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__virtual_available
+msgid ""
+"Forecast quantity (computed as Quantity On Hand - Outgoing + Incoming - "
+"Quantity to Remove)\n"
+"In a context with a single Stock Location, this includes goods stored in "
+"this location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Forecasted"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__virtual_available
+#: model:ir.model.fields,field_description:product.field_product_template__virtual_available
+msgid "Forecasted Quantity"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_label_layout__print_format
 msgid "Format"
 msgstr "Formatas"
@@ -1665,6 +1755,11 @@ msgstr "Keturių žmonių stalas"
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__is_custom
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__is_custom
 msgid "Free text"
+msgstr ""
+
+#. module: product
+#: model:product.category,name:product.product_category_furniture
+msgid "Furniture"
 msgstr ""
 
 #. module: product
@@ -1710,6 +1805,7 @@ msgstr ""
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_template__type__consu
+#: model:product.category,name:product.product_category_goods
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Goods"
@@ -1785,6 +1881,11 @@ msgid "History"
 msgstr "Istorija"
 
 #. module: product
+#: model:product.category,name:product.product_category_construction
+msgid "Home Construction"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.expense_hotel_product_template
 msgid "Hotel Accommodation"
 msgstr "Nakvynė viešbutyje"
@@ -1806,7 +1907,6 @@ msgstr "Nakvynė viešbutyje"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__id
 #: model:ir.model.fields,field_description:product.field_product_tag__id
 #: model:ir.model.fields,field_description:product.field_product_template__id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__id
 #: model:ir.model.fields,field_description:product.field_product_uom__id
@@ -1963,6 +2063,18 @@ msgid "Inactive"
 msgstr "Neaktyvus"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__incoming_qty
+#: model:ir.model.fields,field_description:product.field_product_template__incoming_qty
+msgid "Incoming"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Increase quantity"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__index_content
 msgid "Indexed Content"
 msgstr "Indeksuotas turinys"
@@ -1983,8 +2095,11 @@ msgid "Internal Notes"
 msgstr "Vidinės pastabos"
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__default_code
 #: model:ir.model.fields,field_description:product.field_product_template__default_code
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Internal Reference"
 msgstr "Vidinis numeris"
 
@@ -2115,7 +2230,6 @@ msgstr "Didelis susitikimų stalas"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template__write_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__write_uid
@@ -2137,7 +2251,6 @@ msgstr "Paskutinį kartą atnaujino"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_date
 #: model:ir.model.fields,field_description:product.field_product_tag__write_date
 #: model:ir.model.fields,field_description:product.field_product_template__write_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_date
 #: model:ir.model.fields,field_description:product.field_product_uom__write_date
@@ -2213,6 +2326,11 @@ msgid "Link between products and their UoMs"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "List of possible values (e.g. Blue, Green, White, ... )"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_local_delivery_product_template
 msgid "Local Delivery"
 msgstr ""
@@ -2241,10 +2359,9 @@ msgid "M"
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_template_attribute_value__exclude_for
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__excluded_value_ids
 msgid ""
-"Make this attribute value not compatible with other values of the product or "
-"some attribute values of optional and accessory products."
+"Make this attribute value not compatible with other values of the product."
 msgstr ""
 
 #. module: product
@@ -2386,6 +2503,7 @@ msgstr "Veiklos paskutinis terminas"
 #: model:ir.model.fields,field_description:product.field_product_product__name
 #: model:ir.model.fields,field_description:product.field_product_tag__name
 #: model:ir.model.fields,field_description:product.field_product_template__name
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Name"
 msgstr "Pavadinimas"
 
@@ -2544,6 +2662,11 @@ msgid "Number of messages with delivery error"
 msgstr "Žinučių su pristatymo klaida skaičius"
 
 #. module: product
+#: model:product.category,name:product.product_category_office
+msgid "Office"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_delivery_01_product_template
 msgid "Office Chair"
 msgstr "Biuro kėdė"
@@ -2576,6 +2699,18 @@ msgstr ""
 #. module: product
 #: model:product.attribute.value,name:product.pav_color_olive
 msgid "Olive"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "On Hand"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_kanban_view
+msgid "On hand:"
 msgstr ""
 
 #. module: product
@@ -2636,8 +2771,19 @@ msgid "Other Pricelist"
 msgstr "Kitas kainoraštis"
 
 #. module: product
+#: model:product.category,name:product.product_category_outdoor_furniture
+msgid "Outdoor"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_template_dining_table
 msgid "Outdoor dining table"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__outgoing_qty
+#: model:ir.model.fields,field_description:product.field_product_template__outgoing_qty
+msgid "Outgoing"
 msgstr ""
 
 #. module: product
@@ -2775,6 +2921,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__price
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view_from_product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Price"
 msgstr "Kaina"
 
@@ -3080,18 +3227,12 @@ msgstr "Produkto žymos"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_tmpl_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_tmpl_id
 #: model_terms:ir.ui.view,arch_db:product.product_search_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Product Template"
 msgstr "Produkto šablonas"
-
-#. module: product
-#: model:ir.model,name:product.model_product_template_attribute_exclusion
-msgid "Product Template Attribute Exclusion"
-msgstr "Produkto šablono atributų neįtraukimas"
 
 #. module: product
 #: model:ir.model,name:product.model_product_template_attribute_line
@@ -3148,12 +3289,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.product_tag_tree_view
 msgid "Product Variant"
 msgstr "Produkto variantas"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "Product Variant Values"
-msgstr "Produkto varianto reikšmės"
 
 #. module: product
 #: model:ir.actions.act_window,name:product.product_normal_action
@@ -3234,6 +3369,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_product__purchase_ok
 #: model:ir.model.fields,field_description:product.field_product_template__purchase_ok
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Purchase"
 msgstr "Pirkimas"
 
@@ -3271,15 +3407,40 @@ msgid "Quantity (%s UoM)"
 msgstr ""
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__qty_available
+#: model:ir.model.fields,field_description:product.field_product_template__qty_available
+msgid "Quantity On Hand"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.js:0
 msgid "Quantity already present (%s)."
 msgstr ""
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
-msgid "Quotation Description"
-msgstr "Pardavimo užsakymo aprašymas"
+#: model:ir.model.fields,help:product.field_product_product__incoming_qty
+msgid ""
+"Quantity of planned incoming products.\n"
+"In a context with a single Stock Location, this includes goods arriving to "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods arriving to the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods arriving to any Stock Location with "
+"'internal' type."
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__outgoing_qty
+msgid ""
+"Quantity of planned outgoing products.\n"
+"In a context with a single Stock Location, this includes goods leaving this "
+"Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods leaving the Stock "
+"Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods leaving any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_attribute__display_type__radio
@@ -3405,6 +3566,11 @@ msgid "Rule Tip"
 msgstr "Patarimas taisyklei"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+msgid "Rules"
+msgstr ""
+
+#. module: product
 #: model:product.attribute.value,name:product.pav_size_s
 msgid "S"
 msgstr ""
@@ -3412,6 +3578,7 @@ msgstr ""
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__sale_ok
 #: model:ir.model.fields,field_description:product.field_product_template__sale_ok
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
@@ -3433,11 +3600,6 @@ msgstr "Pardavimo aprašymas"
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
 msgid "Sales Price"
 msgstr "Pardavimo kaina"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
-msgid "Sales Prices"
-msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__lst_price
@@ -3471,6 +3633,7 @@ msgstr "Pasirinkti"
 #: model:ir.model.fields,field_description:product.field_product_tag__sequence
 #: model:ir.model.fields,field_description:product.field_product_template__sequence
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__sequence
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__sequence
 msgid "Sequence"
 msgstr "Seka"
 
@@ -3480,8 +3643,10 @@ msgid "Service"
 msgstr "Paslauga"
 
 #. module: product
+#: model:product.category,name:product.product_category_services
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Services"
 msgstr "Paslaugos"
 
@@ -3499,14 +3664,41 @@ msgid "Shoes size"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+msgid "Short Description"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__show_price_extra
+msgid "Show Extra Price"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "Show Name"
 msgstr ""
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_qty_update_button
+#: model:ir.model.fields,field_description:product.field_product_template__show_qty_update_button
+msgid "Show Qty Update Button"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_sales_price_page
+#: model:ir.model.fields,field_description:product.field_product_template__show_sales_price_page
+msgid "Show Sales Price Page"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Show all records whose next activity date is past"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__show_price_extra
+msgid "Show separately the extra price for this attribute value."
 msgstr ""
 
 #. module: product
@@ -3801,11 +3993,9 @@ msgstr ""
 #: model:ir.model.fields,help:product.field_product_combo_item__lst_price
 #: model:ir.model.fields,help:product.field_product_product__lst_price
 msgid ""
-"The sale price is managed from the product template. Click on the 'Configure "
-"Variants' button to set the extra attribute prices."
+"The sale price can be set manually or computed from the product template. "
+"Click on the 'Configure Variants' button to set the extra attribute prices."
 msgstr ""
-"Pardavimo kaina yra valdoma iš produkto šablono. Paspauskite mygtuką "
-"\"Konfiguruoti variantus\", kad nustatytumėte papildomas atributo kainas."
 
 #. module: product
 #. odoo-python
@@ -3898,6 +4088,26 @@ msgid "Today Activities"
 msgstr "Šiandienos veiklos"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total Forecasted"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total On Hand"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__is_storable
+#: model:ir.model.fields,field_description:product.field_product_template__is_storable
+msgid "Track Inventory"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.consu_delivery_01_product_template
 msgid "Two-Seat Sofa"
 msgstr ""
@@ -3965,7 +4175,7 @@ msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__uom_id
-#: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_uom_id
+#: model:ir.model.fields,field_description:product.field_product_supplierinfo__uom_id
 #: model:ir.model.fields,field_description:product.field_product_template__uom_id
 #: model:ir.model.fields,field_description:product.field_product_uom__uom_id
 msgid "Unit"
@@ -4004,6 +4214,16 @@ msgstr "Matavimo vienetai"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_uom
 msgid "Units of Measure & Packagings"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Update Quantities"
+msgstr ""
+
+#. module: product
+#: model:ir.actions.act_window,name:product.product_variant_edit_qty_action
+msgid "Update Variant Quantities"
 msgstr ""
 
 #. module: product
@@ -4082,20 +4302,24 @@ msgid "Username"
 msgstr "Vartotojo vardas"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "VINT_1000"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__valid_product_template_attribute_line_ids
 #: model:ir.model.fields,field_description:product.field_product_template__valid_product_template_attribute_line_ids
 msgid "Valid Product Attribute Lines"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 #: model_terms:ir.ui.view,arch_db:product.product_supplierinfo_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Validity"
 msgstr "Galiojimas"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
-msgid "Validity Period"
-msgstr "Galiojimo Laikotarpis"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__name
@@ -4130,6 +4354,7 @@ msgstr "Reikšmės"
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__product_id
 #: model_terms:ir.ui.view,arch_db:product.product_document_kanban
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Variant"
 msgstr "Variantas"
 
@@ -4194,12 +4419,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.attribute_tree_view
 msgid "Variant Values"
 msgstr "Varianto reikšmės"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Variant: %s"
-msgstr "Variantas: %s"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_product_variant
@@ -4447,6 +4666,15 @@ msgstr ""
 
 #. module: product
 #. odoo-python
+#: code:addons/product/models/product_product.py:0
+#: code:addons/product/models/product_template.py:0
+msgid ""
+"You cannot archive a product that is part of a combo. Please remove it from "
+"the following combos first: %s"
+msgstr ""
+
+#. module: product
+#. odoo-python
 #: code:addons/product/models/product_attribute.py:0
 msgid ""
 "You cannot archive this attribute as there are still products linked to it"
@@ -4484,12 +4712,6 @@ msgid ""
 "You cannot change the value of the value %(value)s set on product %"
 "(product)s."
 msgstr ""
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_category.py:0
-msgid "You cannot create recursive categories."
-msgstr "Negalite kurti pasikartojančių kategorijų."
 
 #. module: product
 #. odoo-python
@@ -4613,6 +4835,11 @@ msgid "attribute_id"
 msgstr ""
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "barcodelookup.com"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "csv"
@@ -4665,12 +4892,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 msgid "e.g. USD Retailers"
 msgstr "e.g. USD mažmenininkai"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "id"
-msgstr ""
 
 #. module: product
 #. odoo-python
@@ -4753,367 +4974,3 @@ msgstr ""
 
 #~ msgid "85"
 #~ msgstr "85"
-
-#~ msgid ""
-#~ "You cannot assign the Main Pricelist as Other Pricelist in PriceList Item"
-#~ msgstr ""
-#~ "Negalite priskirti pagrindinio kainoraščio kaip kito kainoraščio "
-#~ "kainoraščių įrašuose"
-
-#~ msgid "%s %% discount"
-#~ msgstr "%s %% nuolaida"
-
-#~ msgid ""
-#~ "- Instantly: All possible variants are created as soon as the attribute "
-#~ "and its values are added to a product.\n"
-#~ "        - Dynamically: Each variant is created only when its "
-#~ "corresponding attributes and values are added to a sales order.\n"
-#~ "        - Never: Variants are never created for the attribute.\n"
-#~ "        Note: the variants creation mode cannot be changed once the "
-#~ "attribute is used on at least one product."
-#~ msgstr ""
-#~ "- Iš kart: visi galimi variantai sukuriami, iš kart kai tik atributas ir "
-#~ "jo reikšmės priskiriami prie produkto.\n"
-#~ " - Dinamiškai: kiekvienas variantas sukuriamas tik tada, kai pardavimo "
-#~ "užsakyme parenkamas atributas(-ai) ir reikšmės.\n"
-#~ " - Niekada: Variantas niekada nebus sukurtas su šiuo atributu.\n"
-#~ "Pastaba: variantų kūrimo režimo nebegalima pakeisti, kai atributas jau "
-#~ "panaudotas bent viename produkte."
-
-#~ msgid "160x80cm, with large legs."
-#~ msgstr "160x80cm, su didelėmis kojomis."
-
-#~ msgid "2 year"
-#~ msgstr "2 metai"
-
-#~ msgid "<span class=\"o_stat_text\">Related Products</span>"
-#~ msgstr "<span class=\"o_stat_text\">Susiję produktai</span>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Kaupiamas produktas yra produktas, kuriam valdote atsargas. Inventoriaus "
-#~ "programa turi būti įdiegta.\n"
-#~ "Vartojamas produktas yra produktas, kuriam nėra valdomos atsargos.\n"
-#~ "Paslauga yra nematerialus produktas, kurį suteikiate."
-
-#~ msgid "Advanced Pricelists"
-#~ msgstr "Sudėtiniai kainoraščiai"
-
-#~ msgid "Advanced price rules (discounts, formulas)"
-#~ msgstr "Sudėtinės kainų taisyklės (nuolaidos, formulės)"
-
-#~ msgid "Allow users to input custom values for this attribute value"
-#~ msgstr ""
-#~ "Leisti vartotojams pridėti nestandartines reikšmes šio atributo reikšmei"
-
-#~ msgid ""
-#~ "Allows to manage different prices based on rules per category of "
-#~ "customers.\n"
-#~ "                Example: 10% for retailers, promotion of 5 EUR on this "
-#~ "product, etc."
-#~ msgstr ""
-#~ "Leidžia valdyti skirtingas kainas pagal klientų kategorijų taisykles.\n"
-#~ "Pvz: 10% mažmeniniams pardavėjams, 5 EUR nuolaida šiam produktui ir pan."
-
-#~ msgid "Applicable On"
-#~ msgstr "Taikoma"
-
-#~ msgid "Availability"
-#~ msgstr "Pasiekiamumas"
-
-#~ msgid "Can be Purchased"
-#~ msgstr "Galima nupirkti"
-
-#~ msgid "Can be Sold"
-#~ msgstr "Galima parduoti"
-
-#~ msgid "Choose Labels Layout"
-#~ msgstr "Pasirinkite etiketės išdėstymą"
-
-#~ msgid "Computation"
-#~ msgstr "Apskaičiavimas"
-
-#~ msgid "Conditions"
-#~ msgstr "Sąlygos"
-
-#~ msgid "Conference room table"
-#~ msgstr "Konferencijų stalas"
-
-#~ msgid "Configuration"
-#~ msgstr "Konfigūracija"
-
-#~ msgid "Consumable"
-#~ msgstr "Vartojami produktai"
-
-#~ msgid ""
-#~ "Consumables are physical products for which you don't manage the "
-#~ "inventory level: they are always available."
-#~ msgstr ""
-#~ "Suvartojamas yra fizinis produktas, kuris neapskaitomas sandėlį: jis "
-#~ "visada pasiekiamas"
-
-#~ msgid "Contact Us"
-#~ msgstr "Susisiekite su mumis"
-
-#~ msgid "Contained Quantity"
-#~ msgstr "Talpinamas kiekis"
-
-#~ msgid "Contained Quantity should be positive."
-#~ msgstr "Turimas kiekis privalo būti teigiamas."
-
-#~ msgid "Contained quantity"
-#~ msgstr "Talpinamas kiekis"
-
-#~ msgid "Cubic Feet"
-#~ msgstr "Kubinės Pėdos"
-
-#~ msgid "Cubic Meters"
-#~ msgstr "Kubiniai Metrai"
-
-#~ msgid "Decimal Precision"
-#~ msgstr "Dešimtainis tikslumas"
-
-#~ msgid ""
-#~ "Default unit of measure used for purchase orders. It must be in the same "
-#~ "category as the default unit of measure."
-#~ msgstr ""
-#~ "Numatytasis matavimo vienetas, naudojamas pirkimo užsakymams. Jis turi "
-#~ "būti toje pačioje kategorijoje kaip numatytasis matavimo vienetas."
-
-#~ msgid "Delivery Lead Time"
-#~ msgstr "Pristatymo terminas"
-
-#~ msgid "Desk combination, black-brown: chair + desk + drawer."
-#~ msgstr "Stalo kombinacija, juoda-ruda: kėdė + stalas + stalčius."
-
-#~ msgid "Discount Policy"
-#~ msgstr "Nuolaidų politika"
-
-#~ msgid "Discount included in the price"
-#~ msgstr "Nuolaida įtraukta į kainą"
-
-#~ msgid "Discount on lines"
-#~ msgstr "Nuolaida eilutėse"
-
-#~ msgid "Discounts"
-#~ msgstr "Nuolaidos"
-
-#~ msgid "Drawer with two routing possiblities."
-#~ msgstr "Stalčius su dviem kryptimis."
-
-#~ msgid "Four person modern office workstation"
-#~ msgstr "Moderni keturių asmenų biuro darbo vieta"
-
-#~ msgid "Generate Pricelist Report"
-#~ msgstr "Generuoti kainoraščio ataskaitą"
-
-#~ msgid "Get product pictures using Barcode"
-#~ msgstr "Gaukite produktų nuotraukas naudodami brūkšninį kodą"
-
-#~ msgid "Gives the different ways to package the same product."
-#~ msgstr "Pateikia skirtingus būdus supakuoti tą patį produktą."
-
-#~ msgid "Google Images"
-#~ msgstr "Google Images"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuoti pagal"
-
-#~ msgid "Is custom value"
-#~ msgstr "Yra nestandartinė reikšmė"
-
-#~ msgid "Kilograms"
-#~ msgstr "Kilogramai"
-
-#~ msgid "Manage Product Packaging"
-#~ msgstr "Tvarkyti produktų pakavimą"
-
-#~ msgid "Multiple prices per product"
-#~ msgstr "Kelios kainos vienam produktui"
-
-#~ msgid ""
-#~ "Multiple prices: Pricelists with fixed price rules by product,\n"
-#~ "Advanced rules: enables advanced price rules for pricelists."
-#~ msgstr ""
-#~ "Kelios kainos: kainoraščiai su nustatyta kaina pagal produktą\n"
-#~ "Išplėstiniai kainoraščiai: galimybė kurti sudėtingesnes kainos formavimo "
-#~ "taisykles"
-
-#~ msgid "Never (option)"
-#~ msgstr "Niekada (pasirinkimas)"
-
-#~ msgid "Normal"
-#~ msgstr "Įprastas"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Žinučių, kurioms reikia jūsų veiksmo, skaičius"
-
-#~ msgid "Number of price rules"
-#~ msgstr "Kainos taisyklių skaičius"
-
-#~ msgid "Packaging"
-#~ msgstr "Pakavimas"
-
-#~ msgid "Pounds"
-#~ msgstr "Svarai"
-
-#~ msgid "Price Computation"
-#~ msgstr "Kainos skaičiavimas"
-
-#~ msgid "Price Surcharge"
-#~ msgstr "Kainos priemoka"
-
-#~ msgid "Pricelist:"
-#~ msgstr "Kainoraštis"
-
-#~ msgid "Pricelists Method"
-#~ msgstr "Kainoraščio būdas"
-
-#~ msgid "Pricelists are managed on"
-#~ msgstr "Kainoraščiai yra valdomi"
-
-#~ msgid "Product Packages"
-#~ msgstr "Produkto pakuotės"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Produkto pakavimas"
-
-#~ msgid "Product Packaging (PDF)"
-#~ msgstr "Produkto pakuotė (PDF)"
-
-#~ msgid "Product Packagings"
-#~ msgstr "Produktų pakuotės"
-
-#~ msgid "Product: %s"
-#~ msgstr "Produktas: %s"
-
-#~ msgid "Purchase UoM"
-#~ msgstr "Pirkimo matavimo vnt."
-
-#~ msgid "Quantity of products contained in the packaging."
-#~ msgstr "Pakuotėje esančių produktų kiekis"
-
-#~ msgid "Rounding Method"
-#~ msgstr "Apvalinimo būdas"
-
-#~ msgid ""
-#~ "Sets the price so that it is a multiple of this value.\n"
-#~ "Rounding is applied after the discount and before the surcharge.\n"
-#~ "To have prices that end in 9.99, set rounding 10, surcharge -0.01"
-#~ msgstr ""
-#~ "Nustato kainą, kad ji būtų šio skaičiaus daugiklis.\n"
-#~ "Kainos apvalimas atliekamas po nuolaidos pritaikymo ir prieš papildomą "
-#~ "mokestį.\n"
-#~ "Norint gauti kainą, kuri baigiasi 9.99, nustatykite apvalinimą 10, o "
-#~ "papildomą mokestį -0.01"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Rodyti visus įrašus, kurių sekančio veiksmo data yra ankstesnė nei "
-#~ "šiandiena"
-
-#~ msgid "Show public price & discount to the customer"
-#~ msgstr "Rodyti galutinę kainą ir nuolaidą klientui"
-
-#~ msgid "Tag Name"
-#~ msgstr "Žymos pavadinimas"
-
-#~ msgid ""
-#~ "The computed price is expressed in the default Unit of Measure of the "
-#~ "product."
-#~ msgstr ""
-#~ "Suskaičiuota kaina yra išreikšta numatytuoju produkto matavimo vienetu."
-
-#~ msgid ""
-#~ "The default Unit of Measure and the purchase Unit of Measure must be in "
-#~ "the same category."
-#~ msgstr ""
-#~ "Numatytasis matavimo vienetas ir pirkimo matavimo vienetas turi būti toje "
-#~ "pačioje kategorijoje."
-
-#~ msgid "The first in the sequence is the default one."
-#~ msgstr "Pirmasis eilėje yra numatytasis."
-
-#~ msgid ""
-#~ "The number of variants to generate is too high. You should either not "
-#~ "generate variants for each combination or generate them on demand from "
-#~ "the sales order. To do so, open the form view of attributes and change "
-#~ "the mode of *Create Variants*."
-#~ msgstr ""
-#~ "Generuojamų variantų skaičius yra per didelis. Turėtumėte arba generuoti "
-#~ "variantus kiekvienai kombinacijai, arba generuoti juos pagal poreikį iš "
-#~ "pardavimų užsakymo. Norėdami tai padaryti, atidarykite formų atributų "
-#~ "peržiūrą ir pakeiskite *Variantų sukūrimo* režimą."
-
-#~ msgid ""
-#~ "This pricelist will be used, instead of the default one, for sales to the "
-#~ "current partner"
-#~ msgstr ""
-#~ "Kainoraštis naudojamas siūlant/parduodant produktus esamam partneriui"
-
-#~ msgid ""
-#~ "This rounding precision is higher than the Decimal Accuracy (%s digits).\n"
-#~ "This may cause inconsistencies in computations.\n"
-#~ "Please set a precision between %s and 1."
-#~ msgstr ""
-#~ "Šis apvalinimo tikslumas yra didesnis nei numatytas apvalinimas parametre "
-#~ "Dešimtainis tikslumas (%sskaitmenų). \n"
-#~ "Tai gali įtakoti skaičiavimų paklaidas.\n"
-#~ "Prašome, nustatykite tikslumą nuo %s iki 1."
-
-#~ msgid "Three-Seat Sofa"
-#~ msgstr "Trivietė sofa"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mato vienetas"
-
-#~ msgid "Unit of Measure Name"
-#~ msgstr "Matavimo vieneto pavadinimas"
-
-#~ msgid "UoM"
-#~ msgstr "Mat. vnt."
-
-#~ msgid "Value Price Extra"
-#~ msgstr "Vertės papildoma kaina"
-
-#~ msgid "Variants Creation Mode"
-#~ msgstr "Variantų kūrimo režimas"
-
-#~ msgid "Warning!"
-#~ msgstr "Įspėjimas!"
-
-#~ msgid ""
-#~ "You cannot create two values with the same name for the same attribute."
-#~ msgstr ""
-#~ "Negalima sukurti dviejų verčių tokiu pačiu pavadinimu ir tokiais pačiais "
-#~ "atributais."
-
-#~ msgid ""
-#~ "You cannot define the decimal precision of 'Account' as greater than the "
-#~ "rounding factor of the company's main currency"
-#~ msgstr ""
-#~ "Jūs negalite nustatyti dešimtainio \"Paskyros\" tikslumo, didesnio nei "
-#~ "kompanijos pagrindinės valiutos apvalinimo faktorius"
-
-#~ msgid ""
-#~ "You cannot delete this product category, it is the default generic "
-#~ "category."
-#~ msgstr ""
-#~ "Negalite ištrinti šios produktų kategorijos, tai numatytoji bazinė "
-#~ "kategorija."
-
-#~ msgid ""
-#~ "You cannot delete those pricelist(s):\n"
-#~ "(%s)\n"
-#~ ", they are used in other pricelist(s):\n"
-#~ "%s"
-#~ msgstr ""
-#~ "Negalima ištrinti šio kainoraščio(-ių): %s,\n"
-#~ "jis(-e) yra naudojami šiame kainoraštyje(-iuose): %s"
-
-#~ msgid "the parent company"
-#~ msgstr "tėvinė įmonė"

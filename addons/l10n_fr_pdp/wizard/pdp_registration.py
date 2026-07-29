@@ -171,7 +171,7 @@ class PdpRegistration(models.TransientModel):
     # -------------------------------------------------------------------------
 
     def _get_kyc_siren(self):
-        kyc_siren_param = self.env['ir.config_parameter'].sudo().get_param('l10n_fr_pdp.kyc_siren', default='')
+        kyc_siren_param = self.env['ir.config_parameter'].sudo().get_str('l10n_fr_pdp.kyc_siren')
         match = PDP_identifier_re.match(kyc_siren_param)
         kyc_siren = match and match.group(1)
         return kyc_siren or self.siren_number
@@ -201,7 +201,7 @@ class PdpRegistration(models.TransientModel):
 
     def _check_can_register(self):
         """ No longer used, need to remove in master """
-        if not self.env.user.totp_enabled and not bool(self.env['ir.config_parameter'].sudo().get_param('auth_totp.policy')) and self.edi_mode != 'demo':
+        if not self.env.user.totp_enabled and not bool(self.env['ir.config_parameter'].sudo().get_str('auth_totp.policy')) and self.edi_mode != 'demo':
             raise RedirectWarning(
                 message=self.env._("To be able to register, you need to enable the two-factor authentication."),
                 action=self.env.user._get_records_action(
@@ -218,6 +218,13 @@ class PdpRegistration(models.TransientModel):
             target='new',
             view_mode='form',
         )
+
+    @api.model
+    def _get_company_details(self, company):
+        return {
+            **self.env['peppol.registration']._get_company_details(company),
+            'pdp_pilot_phase': self.company_id.l10n_fr_pdp_pilot_phase,
+        }
 
     # -------------------------------------------------------------------------
     # BUSINESS ACTIONS
@@ -236,7 +243,7 @@ class PdpRegistration(models.TransientModel):
             raise ValidationError(self.env._("Invalid email address '%s'", self.contact_email))
         base_url = self.company_id._pdp_get_iap_url()
         response = iap_tools.iap_jsonrpc(f'{base_url}/api/id_authentication/1/authentication', params={
-            'db_uuid': self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
+            'db_uuid': self.env['ir.config_parameter'].sudo().get_str('database.uuid'),
             'vat': self._get_kyc_siren(),
             'auth_email': self.contact_email,
             'company_name': self.company_id.name,
@@ -308,7 +315,7 @@ class PdpRegistration(models.TransientModel):
         self.ensure_one()
         base_url = self.company_id._pdp_get_iap_url()
         response = iap_tools.iap_jsonrpc(f'{base_url}/api/id_authentication/1/get_authentication_hash', params={
-            'db_uuid': self.env['ir.config_parameter'].sudo().get_param('database.uuid'),
+            'db_uuid': self.env['ir.config_parameter'].sudo().get_str('database.uuid'),
             'vat': self._get_kyc_siren(),
             'auth_email': self.contact_email,
             'object_uuid': self.pdp_authentication_uuid,

@@ -38,7 +38,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'mu_tax_purchase_15',
                 'expense_account_id': 'mu_expense',
                 'income_account_id': 'mu_income',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'mu_stock_valuation',
             },
         }

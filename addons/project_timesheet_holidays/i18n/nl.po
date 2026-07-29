@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-29 10:07+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-12 17:37+0000\n"
+"PO-Revision-Date: 2026-06-24 16:18+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "project_timesheet_holidays/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -36,8 +36,8 @@ msgstr "Analytische boekingen"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_company
-msgid "Companies"
-msgstr "Bedrijven"
+msgid "Company"
+msgstr "Bedrijf"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_config_settings
@@ -58,7 +58,7 @@ msgstr "Taak aanmaken"
 #: model:ir.model.fields,field_description:project_timesheet_holidays.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:project_timesheet_holidays.field_resource_calendar_leaves__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_hr_employee
@@ -237,37 +237,3 @@ msgstr ""
 #: code:addons/project_timesheet_holidays/__init__.py:0
 msgid "allow_timesheets"
 msgstr "allow_timesheets"
-
-#~ msgid ""
-#~ "Both the internal project and task are required to generate a timesheet "
-#~ "for the time off %s. If you don't want a timesheet, you should leave the "
-#~ "internal project and task empty."
-#~ msgstr ""
-#~ "Zowel het interne project als de taak zijn vereist om een urenstaat voor "
-#~ "het verlof %s te genereren. Als je geen urenstaat wilt, moet je het "
-#~ "interne project en de taak leeg laten."
-
-#~ msgid "Generate Timesheet"
-#~ msgstr "Urenstaat genereren"
-
-#~ msgid "Global Time Off"
-#~ msgstr "Algemene verlof"
-
-#~ msgid ""
-#~ "If checked, when validating a time off, timesheet will be generated in "
-#~ "the Vacation Project of the company."
-#~ msgstr ""
-#~ "Indien aangevinkt wordt er een urenstaat gegenereerd in het verlofproject "
-#~ "van het bedrijf wanneer de verlofaanvraag bevestigd wordt."
-
-#~ msgid "Is Time off Task"
-#~ msgstr "Is een verloftaak"
-
-#~ msgid "Operation not supported"
-#~ msgstr "Bewerking niet ondersteund"
-
-#~ msgid "Time Off (%s/%s)"
-#~ msgstr "Verlof (%s/%s)"
-
-#~ msgid "Time Off Type"
-#~ msgstr "Soort verlof"

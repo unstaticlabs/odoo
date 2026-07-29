@@ -6,25 +6,25 @@
 # Yoshi Tashiro (Quartile) <tashiro@roomsfor.hk>, 2022
 # Martin Trigaux, 2022
 # Andy Yiu, 2023
-# Ryoko Tsuda <ryoko@quartile.co>, 2023, 2025, 2026.
+# Ryoko Tsuda <ryoko@quartile.co>, 2023, 2025.
 # 江口和志 <sandwhale1010@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 15:16+0000\n"
-"Last-Translator: Ryoko Tsuda <ryoko@quartile.co>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/payment/"
-"ja/>\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
+"payment/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report_records
@@ -225,11 +225,6 @@ msgid "ACH Direct Debit"
 msgstr "ACH Direct Debit"
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
-msgstr "有効化"
-
-#. module: payment
 #: model:payment.method,name:payment.payment_method_abitab
 msgid "Abitab"
 msgstr "Abitab"
@@ -373,7 +368,7 @@ msgstr "支払方法の保存中にエラーが発生しました。"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_appota
 msgid "Appota"
-msgstr ""
+msgstr "Appota"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_form
@@ -611,6 +606,11 @@ msgid "CMR"
 msgstr "CMR"
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr "接続"
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr "Cabal"
@@ -765,10 +765,6 @@ msgstr "色"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "会社"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -789,12 +785,6 @@ msgstr "構成設定"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "設定"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr "確認"
 
 #. module: payment
 #. odoo-javascript
@@ -860,7 +850,7 @@ msgstr "トークンを作成"
 #. module: payment
 #: model:ir.model,website_form_label:payment.model_res_partner
 msgid "Create a Customer"
-msgstr "顧客を作成する"
+msgstr "顧客を作成"
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_capture_wizard__create_uid
@@ -971,6 +961,7 @@ msgstr "ディスカバー"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
@@ -1214,6 +1205,7 @@ msgstr "Humm"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1373,7 +1365,7 @@ msgstr "KrungThai Bank"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_kfh
 msgid "Kuwait Finance House"
-msgstr ""
+msgstr "クウェート・ファイナンス・ハウス"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_linepay
@@ -1464,7 +1456,7 @@ msgid ""
 msgstr "プロバイダーが無効になっているため、プロバイダーへの要求はできません。"
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "お支払方法の管理"
 
@@ -1519,7 +1511,7 @@ msgid "Mercado Livre"
 msgstr "Mercado Livre"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr "Mercado Pago"
@@ -1541,6 +1533,11 @@ msgid "Messages"
 msgstr "メッセージ"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr "最小金額"
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_momo
 msgid "MoMo"
 msgstr "MoMo"
@@ -1548,7 +1545,7 @@ msgstr "MoMo"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_mobile
 msgid "Mobile"
-msgstr ""
+msgstr "モバイル"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_mobile_wallet
@@ -1691,6 +1688,7 @@ msgid "OmanNet"
 msgstr "OmanNet"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr "オンボーディング決済モジュール"
@@ -1816,6 +1814,16 @@ msgid "Pay Later"
 msgstr "Pay Later"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr "PayBright"
@@ -1909,6 +1917,7 @@ msgstr "支払方法コード"
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -1988,7 +1997,6 @@ msgstr "支払方法"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr "支払方法"
 
@@ -2088,6 +2096,11 @@ msgid "Please wait..."
 msgstr "お待ちください..."
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr "ポータルエントリ"
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr "後処理"
@@ -2183,7 +2196,7 @@ msgid "Ratepay"
 msgstr "Ratepay"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr "Razorpay"
@@ -2295,6 +2308,11 @@ msgid "Samsung Pay"
 msgstr "Samsung Pay"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "保存"
@@ -2317,7 +2335,7 @@ msgstr "国を選択。制限しない場合は空欄にします。"
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Select currencies. Leave empty not to restrict any."
-msgstr "通貨を選択。制限しない場合は空欄にします。"
+msgstr "通貨を選択して下さい。何も制限しないように空欄にしておいて下さい。"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_method_form
@@ -2395,7 +2413,7 @@ msgid "Status"
 msgstr "ステータス"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Stripe"
@@ -2508,7 +2526,7 @@ msgstr "%(formatted_amount)s の%(tx_label)s %(ref)s が承認されました。
 #. odoo-python
 #: code:addons/payment/models/payment_transaction.py:0
 msgid "The %(tx_label)s %(ref)s of %(formatted_amount)s has been canceled."
-msgstr "%(tx_label)s %(ref)s (%(formatted_amount)s) はキャンセルされました。"
+msgstr "%(formatted_amount)s の %(tx_label)s %(ref)s はキャンセルされました。"
 
 #. module: payment
 #. odoo-python
@@ -2520,7 +2538,7 @@ msgstr "%(tx_label)s %(ref)s(%(formatted_amount)s)が確定されました。"
 #. odoo-python
 #: code:addons/payment/models/payment_transaction.py:0
 msgid "The %(tx_label)s %(ref)s of %(formatted_amount)s is pending."
-msgstr "%(tx_label)s %(ref)s (%(formatted_amount)s)は保留中です。"
+msgstr "%(formatted_amount)s の%(tx_label)s %(ref)s が保留中です。"
 
 #. module: payment
 #. odoo-python
@@ -2634,6 +2652,20 @@ msgid "The internal reference of the transaction"
 msgstr "取引の内部参照"
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2699,6 +2731,13 @@ msgstr "支払処理後にオーダが保留中の場合に表示されるメッ
 #: model:ir.model.fields,help:payment.field_payment_provider__pre_msg
 msgid "The message displayed to explain and help the payment process"
 msgstr "支払処理を説明しサポートするために表示されるメッセージ"
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__support_manual_capture
@@ -3037,12 +3076,12 @@ msgstr "VISA"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vnptwallet
 msgid "VNPT Money"
-msgstr ""
+msgstr "VNPTマネー"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vpbank
 msgid "VP Bank"
-msgstr ""
+msgstr "VP銀行"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_valu
@@ -3062,7 +3101,7 @@ msgstr "Venmo"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vietcapital
 msgid "Viet Capital"
-msgstr ""
+msgstr "Viet Capital"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vietcom
@@ -3072,7 +3111,7 @@ msgstr "Vietcombank"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_viettelpay
 msgid "Viettel Pay"
-msgstr ""
+msgstr "Viettel Pay"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_vipps
@@ -3176,7 +3215,7 @@ msgstr "電信送金"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_woori
 msgid "Woori Bank"
-msgstr ""
+msgstr "Woori Bank"
 
 #. module: payment
 #: model:payment.provider,name:payment.payment_provider_worldline
@@ -3207,6 +3246,12 @@ msgid ""
 msgstr ""
 "Safariを開き、プリンタのIPアドレスに移動します。そうすると警告ページが表示さ"
 "れます;"
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr "プロバイダーに紐づけられた支払い方法は削除できません。"
 
 #. module: payment
 #. odoo-python
@@ -3406,7 +3451,7 @@ msgstr "郵便番号"
 #. module: payment
 #: model:payment.method,name:payment.payment_method_zalopay
 msgid "Zalopay"
-msgstr ""
+msgstr "Zalopay"
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_zip
@@ -3479,8 +3524,8 @@ msgstr "手動確定はサポートされていません"
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
-msgstr "上限金額を超えています"
+msgid "minimum or maximum amount exceeded"
+msgstr ""
 
 #. module: payment
 #. odoo-python
@@ -3525,182 +3570,3 @@ msgstr "支払なしのトークン化はサポートされていません"
 
 #~ msgid "JazzCash"
 #~ msgstr "JazzCash"
-
-#~ msgid "ACTIVATE STRIPE"
-#~ msgstr "STRIPEを有効化"
-
-#~ msgid " Data Fetched"
-#~ msgstr " フェッチされたデータ"
-
-#~ msgid "<b>Amount:</b>"
-#~ msgstr "<b>金額:</b>"
-
-#~ msgid "<b>Reference:</b>"
-#~ msgstr "<b>参照:</b>"
-
-#~ msgid ""
-#~ "<h3>Please make a payment to: </h3><ul><li>Bank: %s</li><li>Account "
-#~ "Number: %s</li><li>Account Holder: %s</li></ul>"
-#~ msgstr ""
-#~ "<h3>お支払いはこちら: </h3><ul><li>銀行: %s</li><li>口座番号: %s</li><li>"
-#~ "口座名義人: %s</li></ul>"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> マイアカウントに戻る"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> 削除する"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>適用可能な決済オプションが見つかりませんでした</strong><br/>\n"
-#~ "                                エラーと思われる場合は、サイトの管理者まで"
-#~ "お問い合わせください。"
-
-#~ msgid "<strong>No suitable payment provider could be found.</strong>"
-#~ msgstr "<strong>適切な決済プロバイダーは見つかりませんでした。</strong>"
-
-#~ msgid "Account"
-#~ msgstr "勘定科目"
-
-#~ msgid "Account Number"
-#~ msgstr "口座番号"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "手数料追加"
-
-#~ msgid "Apply"
-#~ msgstr "適用"
-
-#~ msgid "Bank"
-#~ msgstr "銀行"
-
-#~ msgid "Bank Name"
-#~ msgstr "銀行名"
-
-#~ msgid "Callback Document Model"
-#~ msgstr "コールバックドキュメントモデル"
-
-#~ msgid "Callback Hash"
-#~ msgstr "コールバックハッシュ"
-
-#~ msgid "Callback Method"
-#~ msgstr "コールバックメソッド"
-
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "支払方法を選択"
-
-#~ msgid "Create a new payment provider"
-#~ msgstr "新規決済プロバイダーを作成"
-
-#~ msgid "Credit & Debit Card"
-#~ msgstr "クレジットカード＆デビットカード"
-
-#~ msgid "Credit & Debit card (via Stripe)"
-#~ msgstr "クレジット＆デビットカード（Stripe経由）"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "カスタム支払案内"
-
-#~ msgid "Description of the provider for customers"
-#~ msgstr "顧客へのプロバイダーの表記"
-
-#~ msgid "Dismiss"
-#~ msgstr "エラーの理由:"
-
-#~ msgid "Displayed as"
-#~ msgstr "次のように表示されます"
-
-#~ msgid "Done"
-#~ msgstr "完了"
-
-#~ msgid "Fees"
-#~ msgstr "手数料"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "国内固定手数料"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "国外固定手数料"
-
-#~ msgid "From"
-#~ msgstr "開始日"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
-
-#~ msgid "If not defined, the provider name will be used."
-#~ msgstr "定義されていない場合は、プロバイダ名が使用されます。"
-
-#~ msgid "Image displayed on the payment form"
-#~ msgstr "支払フォームに表示される画像"
-
-#~ msgid "Internal server error"
-#~ msgstr "内部サーバーエラー"
-
-#~ msgid "Just done"
-#~ msgstr "完了"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "支払方法を管理"
-
-#~ msgid "Manual"
-#~ msgstr "手動"
-
-#~ msgid "Method"
-#~ msgstr "償却方法"
-
-#~ msgid "Not done"
-#~ msgstr "未完了"
-
-#~ msgid "Ok"
-#~ msgstr "OK"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "管理者のみこのデータをアクセスできます。"
-
-#~ msgid "Other"
-#~ msgstr "その他"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "PDTIDトークン"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "お支払い方法"
-
-#~ msgid "Payment Ref"
-#~ msgstr "支払参照"
-
-#~ msgid "Providers list"
-#~ msgstr "プロバイダーリスト"
-
-#~ msgid "Server Error"
-#~ msgstr "サーバーエラー"
-
-#~ msgid "Server error:"
-#~ msgstr "サーバーエラー:"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "The access token is invalid."
-#~ msgstr "アクセストークンは無効です。"
-
-#~ msgid "The value of the payment amount must be positive."
-#~ msgstr "支払金額はプラスでなければなりません。"
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "お支払いを処理しています。少々お待ちください..."
-
-#~ msgid ""
-#~ "Your payment has been successfully processed but is waiting for approval."
-#~ msgstr "お支払いは無事処理されましたが、承認待ちとなっています。"
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "お支払いは無事処理されました。ありがとうございました。"

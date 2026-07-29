@@ -13,15 +13,15 @@
 # Piotr Cierkosz <piotr.w.cierkosz@gmail.com>, 2022
 # Grzegorz Grzelak <grzegorz.grzelak@openglobe.pl>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Marta (wacm)" <wacm@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 04:19+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-14 15:23+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
 "snailmail_account/pl/>\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail_account
 #. odoo-python
@@ -48,16 +48,6 @@ msgid ""
 msgstr ""
 "<span class=\"fa fa-lg fa-building-o\" title=\"Ustawione wartości są "
 "specyficzne dla firmy.\"/>"
-
-#. module: snailmail_account
-#: model:ir.model,name:snailmail_account.model_account_move_send
-msgid "Account Move Send"
-msgstr "Wyślij zapis księgowy"
-
-#. module: snailmail_account
-#: model:ir.model,name:snailmail_account.model_account_move_send_batch_wizard
-msgid "Account Move Send Batch Wizard"
-msgstr "Kreator zapisu księgowego i wysyłania zbiorczego"
 
 #. module: snailmail_account
 #. odoo-python
@@ -108,6 +98,16 @@ msgid "Send By Post Stamps"
 msgstr "Wyślij przez Post Stamps"
 
 #. module: snailmail_account
+#: model:ir.model,name:snailmail_account.model_account_move_send_batch_wizard
+msgid "Send Invoice Batch Wizard"
+msgstr ""
+
+#. module: snailmail_account
+#: model:ir.model,name:snailmail_account.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
+
+#. module: snailmail_account
 #. odoo-python
 #: code:addons/snailmail_account/models/account_move_send.py:0
 msgid ""
@@ -129,12 +129,3 @@ msgstr "Zobacz Fakturę/-y"
 #: model:ir.model.fields.selection,name:snailmail_account.selection__res_partner__invoice_sending_method__snailmail
 msgid "by Post"
 msgstr "pocztą"
-
-#~ msgid "Companies"
-#~ msgstr "Firmy"
-
-#~ msgid "Config Settings"
-#~ msgstr "Ustawienia konfiguracji"
-
-#~ msgid "Send by Post"
-#~ msgstr "Wyślij pocztą"

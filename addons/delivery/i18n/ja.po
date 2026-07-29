@@ -6,26 +6,26 @@
 # Martin Trigaux, 2022
 # Andy Yiu, 2022
 # Yoshi Tashiro (Quartile) <tashiro@roomsfor.hk>, 2023
-# Ryoko Tsuda <ryoko@quartile.co>, 2023, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# Ryoko Tsuda <ryoko@quartile.co>, 2023
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Yoshi Tashiro <tashiro@quartile.co>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Yoshi Tashiro <tashiro@quartile.co>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:36+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-05-28 08:54+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "delivery/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: delivery
 #. odoo-python
@@ -99,8 +99,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>配送説明:</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr "<strong>配送説明</strong>"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -131,7 +131,7 @@ msgstr "追加"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
+msgid "Add a delivery method"
 msgstr "配送方法を追加"
 
 #. module: delivery
@@ -198,23 +198,8 @@ msgstr "返品可"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "配送業者"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr "配送業者%sは、必須タグと除外タグの両方に同じタグを持つことはできません。"
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "配送業者説明"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -281,7 +266,7 @@ msgstr "国"
 #. module: delivery
 #: model:ir.model,website_form_label:delivery.model_res_partner
 msgid "Create a Customer"
-msgstr "顧客を作成する"
+msgstr "顧客を作成"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__create_uid
@@ -327,14 +312,9 @@ msgid "Define a new delivery method"
 msgstr "新規配送方法の登録"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "配送業者"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "配送業者選択ガイド"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr "デリバリー"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -348,18 +328,28 @@ msgid "Delivery Message"
 msgstr "配送メッセージ"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "配送方法"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr "配送方法選択ウィザード"
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "配送方法"
 
@@ -395,15 +385,34 @@ msgid "Delivery cost should be recomputed"
 msgstr "送料の再計算が必要です。"
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"配送郵便番号プレフィックスは配送業者に割り当てられ\n"
-"どの郵便番号が使用可能かを制限します。"
+"配送方法%(name)s は、必須タグと除外タグの両方に同じタグを設定できません。"
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+"配送方法の詳細は、見積書や受注確認メールの下部に表示されます(例：お客様向けの"
+"案内や指示など)。"
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+"配送先郵便番号プレフィックスは配送方法に割り当てられ、\n"
+"            利用可能な郵便番号を制限します。"
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "説明"
@@ -417,11 +426,6 @@ msgstr "配送先"
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
 msgstr "表示順序を決定します"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "破棄"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -476,8 +480,8 @@ msgid ""
 "cost of theshipping will be updated on the SO after the delivery."
 msgstr ""
 "見積コスト：顧客に送料の見積コストが請求されます。\n"
-"実費: 顧客に送料の実費が請求されます。送料は納品後に販売オーダで更新されます"
-"。"
+"実費: 顧客に送料の実費が請求されます。送料は納品後に販売オーダで更新されま"
+"す。"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__invoice_policy__estimated
@@ -492,16 +496,17 @@ msgstr "除外済タグ"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_sale_order__carrier_id
 msgid "Fill this field if you plan to invoice the shipping based on picking."
-msgstr "ピッキングに基づいて出荷品の請求をする場合は、このフィールドに入力します。"
+msgstr ""
+"ピッキングに基づいて出荷品の請求をする場合は、このフィールドに入力します。"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"このフォームに記入することで、オーダの内容や配送先に応じて配送方法を選択する"
-"ことができます。"
+"このフォームに記入することで、オーダ内容や配送先に応じて配送方法を選択できる"
+"ようになります。"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -794,15 +799,15 @@ msgstr "プレフィックスはすでに存在します！"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"このキャリアが適用される郵便番号のプレフィックス。正規表現を使用すると、郵便"
-"番号の長さが異なる国にも対応できることに注意しましょう。 つまり、"
-"プレフィックスの最後の '$'は、正確な郵便番号にマッチする場合に使用できます "
-"(たとえば '100$' は '100' にのみマッチし、 '1000' にはマッチしません)。"
+"この配送方法を適用する郵便番号のプレフィクス(接頭辞)を指定します。国によって"
+"郵便番号の桁数が異なる場合に対応するため、正規表現を使用することもできます。"
+"たとえば、末尾に $ を付けることで完全一致を指定できます(例：100$ は 100 にの"
+"み一致し、1000 には一致しません)"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -897,17 +902,6 @@ msgid "Set to True if your credentials are certified for production."
 msgstr "証明書が本稼動のために認定されている場合はTrueに設定します。"
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "配送方法"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "配送方法"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 msgid "Shipping Weight"
 msgstr "荷物重量"
@@ -918,17 +912,8 @@ msgid ""
 "Shipping insurance is a service which may reimburse senders whose parcels "
 "are lost, stolen, and/or damaged in transit."
 msgstr ""
-"運送保険は、小包の紛失、盗難、および/または輸送中の損傷を補償するサービスです"
-"。"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"販売オーダとその確認メールの下部に記載される配送方法の詳細。例：お客様が従う"
-"べき指示。"
+"運送保険は、小包の紛失、盗難、および/または輸送中の損傷を補償するサービスで"
+"す。"
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1024,8 +1009,8 @@ msgid ""
 "This option adds a link for the customer in the portal to track their "
 "package easily. Use <shipmenttrackingnumber> as a placeholder in your URL."
 msgstr ""
-"このオプションは、ポータルで顧客が簡単に梱包を追跡できるリンクを追加します"
-"。<shipmenttrackingnumber>をURLのプレースホルダとして使用します。"
+"このオプションは、ポータルで顧客が簡単に梱包を追跡できるリンクを追加します。"
+"<shipmenttrackingnumber>をURLのプレースホルダとして使用します。"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__margin
@@ -1128,11 +1113,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"配送プロダクトカテゴリは、輸送業者プロダクトで使用されているため、削除するこ"
-"とはできません。"
+"このプロダクトカテゴリは配送方法に関連付けられたプロダクトで使用されているた"
+"め、削除できません。"
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1179,29 +1164,5 @@ msgstr "例. UPS Express"
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-msgstr "つまり https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-
-#~ msgid "<strong>Shipping Description:</strong>"
-#~ msgstr "<strong>配送概要:</strong>"
-
-#~ msgid "Default delivery method used in sales orders."
-#~ msgstr "注文書に使用するデフォルト配送方法"
-
-#~ msgid "Delivery Rating Success"
-#~ msgstr "配送評価"
-
-#~ msgid "Destination Availability"
-#~ msgstr "対応地域"
-
-#~ msgid ""
-#~ "Filling this form allows you to filter delivery carriers according to the "
-#~ "delivery address of your customer."
-#~ msgstr ""
-#~ "このフォームを入力すると、顧客の配送先住所に応じて配送業者をフィルタリング"
-#~ "することができます。"
-
-#~ msgid "Free Shipping"
-#~ msgstr "送料無料"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
+msgstr ""
+"つまり https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"

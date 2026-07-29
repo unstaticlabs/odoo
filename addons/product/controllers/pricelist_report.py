@@ -5,7 +5,8 @@ import io
 import json
 
 from odoo import _
-from odoo.http import Controller, request, route, content_disposition
+from odoo.http import Controller, request, route
+from odoo.http.stream import content_disposition
 
 
 class ProductPricelistExportController(Controller):
@@ -19,12 +20,15 @@ class ProductPricelistExportController(Controller):
         products = report_data['products']
         headers = [
             _("Product"),
+            _("Internal Reference"),
+            _("Barcode"),
             _("UOM"),
         ] + [_("Quantity (%s UoM)", qty) for qty in quantities]
+        date = report_data['date']
         if export_format == 'csv':
-            return self._generate_csv(pricelist_name, quantities, products, headers)
+            return self._generate_csv(pricelist_name, quantities, products, headers, date)
         else:
-            return self._generate_xlsx(pricelist_name, quantities, products, headers)
+            return self._generate_xlsx(pricelist_name, quantities, products, headers, date)
 
     def _generate_rows(self, products, quantities):
         rows = []
@@ -33,12 +37,14 @@ class ProductPricelistExportController(Controller):
             for variant in variants:
                 row = [
                     variant['name'],
-                    variant['uom']
+                    variant['default_code'] or '',
+                    variant['barcode'] or '',
+                    variant['uom'],
                 ] + [variant['price'].get(qty, 0.0) for qty in quantities]
                 rows.append(row)
         return rows
 
-    def _generate_csv(self, pricelist_name, quantities, products, headers):
+    def _generate_csv(self, pricelist_name, quantities, products, headers, date):
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(headers)
@@ -48,11 +54,14 @@ class ProductPricelistExportController(Controller):
         buffer.close()
         headers = [
             ('Content-Type', 'text/csv'),
-            ('Content-Disposition', content_disposition(f'Pricelist - {pricelist_name}.csv'))
+            (
+                'Content-Disposition',
+                content_disposition(f'Pricelist - {pricelist_name} - {date}.csv'),
+            ),
         ]
         return request.make_response(content, headers)
 
-    def _generate_xlsx(self, pricelist_name, quantities, products, headers):
+    def _generate_xlsx(self, pricelist_name, quantities, products, headers, date):
         buffer = io.BytesIO()
         import xlsxwriter  # noqa: PLC0415
         workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
@@ -72,6 +81,6 @@ class ProductPricelistExportController(Controller):
         buffer.close()
         headers = [
             ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
-            ('Content-Disposition', content_disposition(f'Pricelist - {pricelist_name}.xlsx'))
+            ('Content-Disposition', content_disposition(f'Pricelist - {pricelist_name} - {date}.xlsx'))
         ]
         return request.make_response(content, headers)

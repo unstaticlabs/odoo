@@ -12,10 +12,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:18+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/portal/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-23 15:29+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/portal/"
 "da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -34,6 +34,11 @@ msgstr "\" for at validere din handling."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s dage forfalden"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -60,10 +65,8 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Log ud"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
@@ -114,16 +117,6 @@ msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 msgstr ""
 "<i title=\"Dokumentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">Land ...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">Stat/provins ...</option>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -273,7 +266,7 @@ msgid "Add extra content to display in the email"
 msgstr "Tilføj ekstra indhold, der vises i e-mailen"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "Tilføj, fjern eller redigér dine adresser"
 
@@ -288,8 +281,8 @@ msgid "Address Management"
 msgstr "Adressestyring"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "Adresser"
 
@@ -326,10 +319,9 @@ msgid "Billing address"
 msgstr "Faktureringsadresse"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "Annullér"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -388,12 +380,17 @@ msgid "Company Name"
 msgstr "Virksomhedsnavn"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "Konfigurationsindstillinger"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "Konfigurér dine forbindelsesparametre"
 
@@ -410,7 +407,11 @@ msgid "Confirm Password"
 msgstr "Bekræft adgangskode"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "Forbindelse og sikkerhed"
@@ -446,11 +447,17 @@ msgid "Country"
 msgstr "Land"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "Opret en kunde"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -458,6 +465,7 @@ msgid "Created by"
 msgstr "Oprettet af"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -512,6 +520,11 @@ msgid "Description"
 msgstr "Beskrivelse"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "Detaljer"
@@ -540,11 +553,17 @@ msgstr ""
 "                                       </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -659,6 +678,7 @@ msgstr "Startside"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -685,6 +705,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "Hvis du ønsker at ændre det, skal du opdatere"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -751,6 +776,7 @@ msgstr ""
 "                og fyldestgørende,"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -758,6 +784,7 @@ msgid "Last Updated by"
 msgstr "Sidst opdateret af"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -799,8 +826,8 @@ msgstr "Besked"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
 "Modellen %(model_name)s understøtter ikke tokenunderskrift, eftersom den "
 "ikke har et %(field_name)s felt."
@@ -893,6 +920,11 @@ msgid "Phone"
 msgstr "Telefon"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -909,6 +941,11 @@ msgstr "Administration af portaladgang"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "URL til portaladgang"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -1065,6 +1102,11 @@ msgid "Show As Optional Inherit"
 msgstr "Vis som valgfri nedarvning"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "Log ind"
@@ -1095,6 +1137,11 @@ msgid "State / Province"
 msgstr "Stat/provins"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "Status"
@@ -1103,6 +1150,11 @@ msgstr "Status"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "Gade og nummer"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1244,6 +1296,11 @@ msgstr ""
 "portalen."
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
 msgstr "Aktivér filtre"
@@ -1310,9 +1367,9 @@ msgstr "Vis"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1348,9 +1405,9 @@ msgstr "Beskeder fra hjemmesiden"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1385,7 +1442,7 @@ msgstr "Skriv en besked ..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "Skriv en besked …"
 
@@ -1428,6 +1485,12 @@ msgstr "Du skal indtaste \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "Du skal først give portalen adgang til partneren \"%s\"."
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1477,9 +1540,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "adgangskode"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1497,109 +1560,3 @@ msgstr "til din brugerkonto, er det meget vigtigt at opbevare den sikkert."
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "dine kontooplysninger"
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>Rediger Sikkerhedsindstillinger"
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> Redigér"
-
-#~ msgid "Account Security"
-#~ msgstr "Konto sikkerhed"
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "En adgangs token skal angives for hver vedhæftning."
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "Ændring af virksomhedsnavn er ikke tilladt når først dokument(er) er "
-#~ "blevet udstedt for din konto. Vær venlig at kontakte os direkte for denne "
-#~ "operation."
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr "Bekræft"
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "Kunne ikke gemme filen <strong>%s</strong>"
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr ""
-#~ "Er i øjeblikket tilgængelig for alle der får vist dette dokument, klik "
-#~ "for at begrænse til interne medarbejdere."
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr ""
-#~ "Er i øjeblikket begrænset til interne medarbejdere, klik for at gøre "
-#~ "tilgængelig for alle der får vist dette dokument."
-
-#~ msgid "Discard"
-#~ msgstr "Kassér"
-
-#~ msgid "Documents"
-#~ msgstr "Dokumenter"
-
-#~ msgid "Employees Only"
-#~ msgstr "Kun Medarbejdere"
-
-#~ msgid "Internal Note"
-#~ msgstr "Intern note"
-
-#~ msgid "Name"
-#~ msgstr "Navn"
-
-#~ msgid "Prev"
-#~ msgstr "Forrige"
-
-#~ msgid "Published on %s"
-#~ msgstr "Udgivet den %s"
-
-#~ msgid "Street"
-#~ msgstr "Vej"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr ""
-#~ "Vedhæftningen %s eksisterer ikke, eller også har du ikke rettighederne "
-#~ "til at tilgå den."
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr ""
-#~ "Dokumentet eksisterer ikke, eller også har du ikke rettighederne til at "
-#~ "tilgå det."
-
-#~ msgid "There are no comments for now."
-#~ msgstr "Der er ingen kommentarer indtil videre."
-
-#~ msgid "VAT Number"
-#~ msgstr "Momsnummer"
-
-#~ msgid "Visible"
-#~ msgstr "Synlig"
-
-#~ msgid "You are invited to access %s"
-#~ msgstr "Du er inviteret til at tilgå %s"
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "Du er blevet inviteret til at tilgå følgende dokument:"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "Postnummer"
-
-#~ msgid "avatar"
-#~ msgstr "avatar"
-
-#~ msgid "comment"
-#~ msgstr "Kommentar"
-
-#~ msgid "comments"
-#~ msgstr "Kommentarer"

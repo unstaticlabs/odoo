@@ -6,16 +6,17 @@
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
 # Martin Trigaux, 2022
 # David Ramia, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 14:17+0000\n"
-"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 14:16+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -154,6 +155,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "Se requiere un token para crear una nueva transacción de pago."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -168,6 +174,11 @@ msgstr "Importe disponible para reembolso"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Importe adeudado"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -360,7 +371,7 @@ msgid "Invoices Count"
 msgstr "Número de facturas"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "Facturas a pagar"
 
@@ -420,6 +431,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "La opción de pago en línea no está habilitada en la configuración."
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -475,6 +493,7 @@ msgid "Pay overdue"
 msgstr "Pagar facturas vencidas"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -492,7 +511,17 @@ msgstr "Diario de pago"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Método de pago"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "Línea de método de pago"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Métodos de pago"
@@ -532,15 +561,16 @@ msgid "Payment Transactions"
 msgstr "Transacciones de pago"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Pagos"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "Inicie sesión para pagar sus facturas vencidas"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Listas de precios"
 
 #. module: account_payment
 #. odoo-python
@@ -791,44 +821,17 @@ msgid "has been applied."
 msgstr "se ha aplicado."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "vencidas"
 
-#~ msgid "Code"
-#~ msgstr "Código"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>No se ha encontrado ninguna opción de pago adecuada.</strong><br/"
-#~ ">\n"
-#~ "                                Si cree que se trata de un error, póngase "
-#~ "en contacto con el administrador del sitio web."
-
-#~ msgid "Pay with"
-#~ msgstr "Pagar con"
-
-#~ msgid "Register Payment"
-#~ msgstr "Registrar pago"
-
-#~ msgid ""
-#~ "The payment related to the transaction with reference %(ref)s has been "
-#~ "posted: %(link)s"
-#~ msgstr ""
-#~ "Se ha publicado el pago relacionado a la transacción con referencia %"
-#~ "(ref)s: %(link)s"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Tipo de reembolso compatible"
-
-#~ msgid ""
-#~ "You can't delete a payment method that is linked to a provider in the "
-#~ "enabled or test state.\n"
-#~ "Linked provider(s): %s"
-#~ msgstr ""
-#~ "No puede eliminar un método de pago vinculado a un proveedor en el estado "
-#~ "habilitado o de prueba.\n"
-#~ "Proveedores vinculados: %s"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

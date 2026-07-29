@@ -1,12 +1,12 @@
-from datetime import date, datetime, timedelta, timezone
+import random
+from datetime import date, datetime, timedelta, timezone, UTC
+from unittest.mock import patch
+from zoneinfo import ZoneInfo
+
 from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
-from unittest.mock import patch
 
-import pytz
-import random
-
-from odoo import fields, tests
+from odoo import exceptions, fields, tests
 from odoo.addons.mail.models.mail_activity import MailActivity
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.addons.test_mail.tests.test_mail_activity import TestActivityCommon
@@ -43,8 +43,8 @@ class TestActivityMixin(TestActivityCommon):
             self.assertEqual(len(self.test_record.message_ids), 1)
             self.assertEqual(self.test_record.env.user, self.user_employee)
 
-            now_utc = datetime.now(pytz.UTC)
-            now_user = now_utc.astimezone(pytz.timezone(self.env.user.tz or 'UTC'))
+            now_utc = datetime.now(UTC)
+            now_user = now_utc.astimezone(ZoneInfo(self.env.user.tz or 'UTC'))
             today_user = now_user.date()
 
             # Test various scheduling of activities
@@ -269,13 +269,13 @@ class TestActivityMixin(TestActivityCommon):
             'res_name': 'test',
             'res_model': 'mail.activity',
             'res_id': activity.id,
-            'datas': 'test',
+            'raw': b'test',
         }, {
             'name': 'test2',
             'res_name': 'test',
             'res_model': 'mail.activity',
             'res_id': activity.id,
-            'datas': 'testtest',
+            'raw': b'testtest',
         }])
 
         # Checking if the attachment has been forwarded to the message
@@ -286,56 +286,6 @@ class TestActivityMixin(TestActivityCommon):
         for attachment in attachments:
             self.assertEqual(attachment.res_id, activity_message.id)
             self.assertEqual(attachment.res_model, activity_message._name)
-
-    @users('employee')
-    def test_feedback_chained_current_date(self):
-        frozen_now = datetime(2021, 10, 10, 14, 30, 15)
-
-        test_record = self.env['mail.test.activity'].browse(self.test_record.ids)
-        first_activity = self.env['mail.activity'].create({
-            'activity_type_id': self.env.ref('test_mail.mail_act_test_chained_1').id,
-            'date_deadline': frozen_now + relativedelta(days=-2),
-            'res_id': test_record.id,
-            'res_model_id': self.env['ir.model']._get_id('mail.test.activity'),
-            'summary': 'Test',
-        })
-        first_activity_id = first_activity.id
-
-        with freeze_time(frozen_now):
-            first_activity.action_feedback(feedback='Done')
-        self.assertFalse(first_activity.active)
-
-        # check chained activity
-        new_activity = test_record.activity_ids
-        self.assertNotEqual(new_activity.id, first_activity_id)
-        self.assertEqual(new_activity.summary, 'Take the second step.')
-        self.assertEqual(new_activity.date_deadline, frozen_now.date() + relativedelta(days=10))
-
-    @users('employee')
-    def test_feedback_chained_previous(self):
-        self.env.ref('test_mail.mail_act_test_chained_2').sudo().write({'delay_from': 'previous_activity'})
-        frozen_now = datetime(2021, 10, 10, 14, 30, 15)
-
-        test_record = self.env['mail.test.activity'].browse(self.test_record.ids)
-        first_activity = self.env['mail.activity'].create({
-            'activity_type_id': self.env.ref('test_mail.mail_act_test_chained_1').id,
-            'date_deadline': frozen_now + relativedelta(days=-2),
-            'res_id': test_record.id,
-            'res_model_id': self.env['ir.model']._get_id('mail.test.activity'),
-            'summary': 'Test',
-        })
-        first_activity_id = first_activity.id
-
-        with freeze_time(frozen_now):
-            first_activity.action_feedback(feedback='Done')
-        self.assertFalse(first_activity.active)
-
-        # check chained activity
-        new_activity = test_record.activity_ids
-        self.assertNotEqual(new_activity.id, first_activity_id)
-        self.assertEqual(new_activity.summary, 'Take the second step.')
-        self.assertEqual(new_activity.date_deadline, frozen_now.date() + relativedelta(days=8),
-                         'New deadline should take into account original activity deadline, not current date')
 
     def test_mail_activity_state(self):
         """Create 3 activity for 2 different users in 2 different timezones.
@@ -546,6 +496,164 @@ class TestActivityMixin(TestActivityCommon):
             result = self.env['mail.test.activity'].search([('activity_state', '=', 'today')])
             self.assertNotIn(origin_1, result, 'The activity state miss calculated during the search')
 
+    @freeze_time("2025-09-15 10:00:00")
+    def test_mail_activity_mixin_search_done_and_archived(self):
+        """Test both directly and through related records"""
+
+        archived_record = self.env['mail.test.activity'].create({'name': 'Archived Test Record', 'active': False})
+        common_values = {
+                'res_model_id': self.env['ir.model']._get_id('mail.test.activity'),
+                'user_id': self.user_employee.id,
+                'activity_type_id': self.env.ref('mail.mail_activity_data_todo').id,
+                'date_deadline': '2025-09-03',
+                }
+
+        active_activity, done_activity, done_activity_on_archived_record = self.env['mail.activity'].create([
+            common_values | {'summary': summary, 'res_id': res_id}
+            for summary, res_id in [
+                ("Active To-Do", self.test_record.id),
+                ("Done To-Do", self.test_record.id),
+                ("Done To-Do on Archived Record", archived_record.id),
+            ]
+        ])
+        (done_activity + done_activity_on_archived_record).action_done()
+
+        all_activities = active_activity + done_activity + done_activity_on_archived_record
+        all_records = self.test_record + archived_record
+
+        activity_test_cases = [
+            (
+                "Default search finds the only active activity",
+                [('id', 'in', all_activities.ids)],
+                active_activity,
+            ),
+            (
+                "Search on 'date_done' finds archived (done) activities",
+                [('id', 'in', all_activities.ids), ('date_done', '=', '2025-09-15')],
+                done_activity + done_activity_on_archived_record,
+            ),
+        ]
+
+        for case, domain, expected in activity_test_cases:
+            with self.subTest(model='mail.activity', domain=domain):
+                found = self.env['mail.activity'].search(domain)
+                self.assertEqual(found, expected, case)
+
+        record_test_cases = [
+            (
+                "Search on related active activity finds parent record",
+                [('id', 'in', all_records.ids), ('activity_ids', '=', active_activity.id)],
+                self.test_record,
+                {},
+            ),
+            (
+                "Search on related archived (done) activities finds active parent record",
+                [('id', 'in', all_records.ids), ('activity_ids.date_done', '=', '2025-09-15')],
+                self.test_record,
+                {},
+            ),
+            (
+                "Search with context on related archived (done) activities finds active and archived parent records",
+                [('id', 'in', all_records.ids), ('activity_ids.date_done', '=', '2025-09-15')],
+                self.test_record + archived_record,
+                {'active_test': False},
+            ),
+            (
+                "Complex search on related archived (done) activities finds active parent record",
+                [
+                    ('id', 'in', all_records.ids),
+                    ('activity_ids', 'any', [
+                        '&', '&',
+                        ('date_done', '=', '2025-09-15'),
+                        ('date_deadline', '>=', '2025-09-01'),
+                        ('date_deadline', '<', '2025-09-05'),
+                    ]),
+                ],
+                self.test_record,
+                {},
+            ),
+        ]
+
+        for msg, domain, expected, context in record_test_cases:
+            with self.subTest(model='mail.test.activity', domain=domain, context=context):
+                found = self.env['mail.test.activity'].with_context(**context).search(domain)
+                self.assertEqual(found, expected, msg=msg)
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_activity_plans_ids_search_semantics_single(self):
+        """
+        Test the search semantics of computed field `activity_plans_ids`:
+
+        Covers:
+            - Compute correctly deduplicates plan IDs from related activities.
+            - Searching by specific plan IDs (`in` / `not in`) returns expected records.
+            - Boolean-style domains (`= True`, `!= False`) correctly map to "has plan".
+            - Boolean-style domains (`in [False]`, `not in [True]`) correctly map to "no plan".
+        """
+
+        MailTestActivity = self.env['mail.test.activity']
+        todo_activity_type = self.env.ref('test_mail.mail_act_test_todo')
+        record_with_plan = self.test_record
+        record_without_plan = self.test_record_2
+        plan_a, plan_b = self.env['mail.activity.plan'].create([{
+            'name': 'Plan A',
+            'res_model': 'mail.test.activity',
+        }, {
+            'name': 'Plan B',
+            'res_model': 'mail.test.activity',
+        }])
+
+        # Attach two activities with two distinct plans to record_with_plan
+        today = fields.Date.today()
+        self.env['mail.activity'].create([{
+            'activity_type_id': todo_activity_type.id,
+            'res_id': record_with_plan.id,
+            'res_model_id': self.env.ref('test_mail.model_mail_test_activity').id,
+            'date_deadline': today,
+            'activity_plan_id': plan_a.id,
+            'summary': 'Activity with plan',
+        }, {
+            'activity_type_id': todo_activity_type.id,
+            'res_id': record_with_plan.id,
+            'res_model_id': self.env.ref('test_mail.model_mail_test_activity').id,
+            'date_deadline': today,
+            'activity_plan_id': plan_b.id,
+            'summary': 'Activity with plan',
+        }, {
+            'activity_type_id': todo_activity_type.id,
+            'res_id': record_without_plan.id,
+            'res_model_id': self.env.ref('test_mail.model_mail_test_activity').id,
+            'date_deadline': today,
+            'summary': 'Without Plan',
+        }])
+
+        self.assertSetEqual(set(record_with_plan.activity_plans_ids.ids), {plan_a.id, plan_b.id})
+        self.assertFalse(record_without_plan.activity_plans_ids)
+
+        records_in_plan_a = MailTestActivity.search([('activity_plans_ids', 'in', [plan_a.id])])
+        records_not_in_plans = MailTestActivity.search([('activity_plans_ids', 'not in', [plan_a.id, plan_b.id])])
+        self.assertIn(record_with_plan, records_in_plan_a)
+        self.assertNotIn(record_without_plan, records_in_plan_a)
+        self.assertIn(record_without_plan, records_not_in_plans)
+        self.assertNotIn(record_with_plan, records_not_in_plans)
+
+        # in [True] --> has plan
+        # not in [False] -> has plan
+        records_with_plan = MailTestActivity.search([('activity_plans_ids', '=', True)])
+        records_with_plan1 = MailTestActivity.search([('activity_plans_ids', '!=', False)])
+        self.assertEqual(record_with_plan, records_with_plan1)
+        self.assertIn(record_with_plan, records_with_plan)
+        self.assertIn(record_with_plan, records_with_plan1)
+        self.assertIn(record_with_plan, records_with_plan1)
+
+        # in [False]     -> no plan
+        # not in [False] -> has plan
+        records_without_plan = MailTestActivity.search([('activity_plans_ids', 'in', [False])])
+        records_without_plan_1 = MailTestActivity.search([('activity_plans_ids', 'not in', [True])])
+        self.assertEqual(records_without_plan, records_without_plan_1)
+        self.assertIn(record_without_plan, records_without_plan)
+        self.assertIn(record_without_plan, records_without_plan_1)
+
     @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_my_activity_flow_employee(self):
         Activity = self.env['mail.activity']
@@ -601,17 +709,18 @@ class TestActivityMixin(TestActivityCommon):
         with patch.object(MailActivity, 'unlink', lambda self: None):
             test_record.unlink()
         self.assertTrue(act.exists())
-        self.assertFalse(act.active)
+        self.assertFalse(act.sudo().active)
         self.assertFalse(test_record.exists())
 
         self.env.invalidate_all()
-        self.assertEqual(
+        self.assertFalse(
             self.env['mail.activity'].with_user(self.user_admin).with_context(active_test=False).search(
-                [('active', '=', False)]), act,
-            'Should consider unassigned activity on removed record = access without crash'
+                [('active', '=', False)]),
+            'Should consider unassigned activity on removed record = no access'
         )
         self.env.invalidate_all()
-        _dummy = act.with_user(self.user_admin).read(['summary'])
+        with self.assertRaises(exceptions.AccessError):
+            _dummy = act.with_user(self.user_admin).read(['summary'])
 
 
 @tests.tagged('mail_activity', 'mail_activity_mixin')

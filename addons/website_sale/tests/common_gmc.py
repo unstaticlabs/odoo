@@ -1,11 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import time
+from odoo.fields import Command, Date
 
-from odoo.fields import Command
-
-from odoo.addons.website_sale.controllers.product_feed import ProductFeed
 from odoo.addons.product.tests.common import ProductVariantsCommon
+from odoo.addons.website_sale.controllers.product_feed import ProductFeed
 from odoo.addons.website_sale.tests.common import MockRequest, WebsiteSaleCommon
 
 
@@ -15,7 +13,7 @@ class WebsiteSaleGMCCommon(ProductVariantsCommon, WebsiteSaleCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.ProductFeedController = ProductFeed()
-        cls.website.enabled_gmc_src = True
+        cls.env['res.config.settings'].create({'group_gmc_feed': True}).execute()
 
         cls.gmc_feed = cls.env['product.feed'].create({
             'name': "GMC",
@@ -60,7 +58,7 @@ class WebsiteSaleGMCCommon(ProductVariantsCommon, WebsiteSaleCommon):
             'active': True,
             'rate_ids': [
                 Command.clear(),
-                Command.create({'name': time.strftime('%Y-%m-%d'), 'rate': 1.1})
+                Command.create({'name': Date.subtract(Date.today(), days=1), 'rate': 1.1})
             ],
         })
         cls.eur_pricelist = cls._create_pricelist(

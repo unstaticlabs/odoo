@@ -40,6 +40,7 @@ class TestClickAndCollectFlow(HttpCase, ClickAndCollectCommon):
         """
         self.env['delivery.carrier'].search([]).active = False
         self.in_store_dm.active = True
+        self.in_store_dm.is_published = True
         self.start_tour('/', 'website_sale_collect_buy_product_default_location_pick_up_in_store')
 
     def test_cash_on_delivery_resets_on_in_store_type(self):

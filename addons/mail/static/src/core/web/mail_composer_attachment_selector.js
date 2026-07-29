@@ -15,9 +15,7 @@ export class MailComposerAttachmentSelector extends Component {
     setup() {
         this.mailStore = useService("mail.store");
         this.attachmentUploadService = useService("mail.attachment_upload");
-        this.operations = useX2ManyCrud(() => {
-            return this.props.record.data["attachment_ids"];
-        }, true);
+        this.operations = useX2ManyCrud(() => this.props.record.data["attachment_ids"], true);
     }
 
     /** @param {Object} data */
@@ -31,7 +29,7 @@ export class MailComposerAttachmentSelector extends Component {
                 ? JSON.parse(this.props.record.data.res_ids)
                 : this.props.record.context.active_ids;
         }
-        const thread = await this.mailStore.Thread.insert({
+        const thread = await this.mailStore["mail.thread"].insert({
             model: this.props.record.data.model,
             id: resIds[0],
         });

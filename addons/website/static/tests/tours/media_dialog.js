@@ -1,13 +1,14 @@
 import {
-    changeOption,
     clickOnSave,
     insertSnippet,
     registerWebsitePreviewTour,
+    changeImageShape,
 } from "@website/js/tours/tour_utils";
 
 registerWebsitePreviewTour(
     "website_media_dialog_undraw",
     {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         url: "/",
         edition: true,
     },
@@ -123,7 +124,6 @@ registerWebsitePreviewTour(
 registerWebsitePreviewTour(
     "website_media_dialog_icons",
     {
-        url: "/",
         edition: true,
     },
     () => [
@@ -166,6 +166,7 @@ registerWebsitePreviewTour(
 registerWebsitePreviewTour(
     "website_media_dialog_image_shape",
     {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         url: "/",
         edition: true,
     },
@@ -180,12 +181,7 @@ registerWebsitePreviewTour(
             trigger: ":iframe .s_text_image img:not(:visible), :iframe .s_text_image img",
             run: "click",
         },
-        changeOption("Image", "[data-label='Shape'] .dropdown-toggle"),
-        {
-            content: "Click on the first image shape",
-            trigger: "[data-action-id='setImageShape']",
-            run: "click",
-        },
+        ...changeImageShape(),
         {
             content: "Open MediaDialog from an image",
             trigger: ".btn-success[data-action-id='replaceMedia']",
@@ -193,7 +189,8 @@ registerWebsitePreviewTour(
         },
         {
             content: "Click on the 'Icons' tab",
-            trigger: '.o_select_media_dialog .o_notebook_headers .nav-item a:contains("Icons")',
+            trigger:
+                '.o_select_media_dialog .o_notebook_headers .nav-item button:contains("Icons")',
             run: "click",
         },
         {
@@ -247,7 +244,7 @@ registerWebsitePreviewTour(
         },
         {
             content: "Click on the 'Icons' tab",
-            trigger: ".o_select_media_dialog a.nav-link:contains('Icons')",
+            trigger: ".o_select_media_dialog button.nav-link:contains('Icons')",
             run: "click",
         },
         {
@@ -300,7 +297,7 @@ registerWebsitePreviewTour(
         },
         {
             content: "Click on the 'Documents' tab",
-            trigger: ".o_select_media_dialog a.nav-link:contains('Documents')",
+            trigger: ".o_select_media_dialog button.nav-link:contains('Documents')",
             run: "click",
         },
         {
@@ -316,7 +313,7 @@ registerWebsitePreviewTour(
         },
         {
             content: "Verify that the dialog opened on the Documents tab",
-            trigger: ".o_select_media_dialog a.nav-link.active:contains('Documents')",
+            trigger: ".o_select_media_dialog button.nav-link.active:contains('Documents')",
         },
     ]
 );
@@ -365,7 +362,7 @@ registerWebsitePreviewTour(
         },
         {
             content: "Confirm the removal of the attachment",
-            trigger: ".btn:contains('Ok')",
+            trigger: ".btn:contains('Delete')",
             run: "click",
         },
         {

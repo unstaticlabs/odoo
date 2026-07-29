@@ -312,11 +312,27 @@ class TestAccountMove(AccountTestInvoicingCommon):
     def test_modify_posted_move_readonly_fields(self):
         self.test_move.action_post()
 
-        readonly_fields = ('invoice_line_ids', 'line_ids', 'invoice_date', 'date', 'partner_id',
-                           'invoice_payment_term_id', 'currency_id', 'fiscal_position_id', 'invoice_cash_rounding_id')
-        for field in readonly_fields:
+        readonly_fields = {
+            'invoice_line_ids': False,
+            'line_ids': False,
+            'invoice_date': '4321-11-11',
+            'date': '4321-11-11',
+            'partner_id': 42424242,
+            'invoice_payment_term_id': 42424242,
+            'currency_id': 42424242,
+            'fiscal_position_id': 42424242,
+            'invoice_cash_rounding_id': 42424242,
+        }
+        for fname, value in readonly_fields.items():
             with self.assertRaisesRegex(UserError, "You cannot modify the following readonly fields on a posted move"):
-                self.test_move.write({field: False})
+                self.test_move.write({fname: value})
+        for fname in readonly_fields:
+            if fname.endswith('_ids'):
+                continue  # x2m are always raising
+            elif fname.endswith('_id'):
+                self.test_move.write({fname: self.test_move[fname].id})
+            else:
+                self.test_move.write({fname: self.test_move[fname]})
 
     def test_misc_move_onchange(self):
         ''' Test the behavior on onchanges for account.move having 'entry' as type. '''
@@ -767,7 +783,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
     def _get_cache_count(self, model_name='account.move', field_name='name'):
         model = self.env[model_name]
         field = model._fields[field_name]
-        return len(self.env.cache.get_records(model, field))
+        return len(field._get_cache(self.env))
 
     def test_cache_invalidation(self):
         self.env.invalidate_all()
@@ -1026,7 +1042,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         self.test_move.button_draft()  # move has posted_before == True
         self.assertEqual(self.test_move.journal_id, self.company_data['default_journal_misc'])
         self.assertEqual(self.test_move.name, 'MISC/2016/01/0001')
-        with self.assertRaisesRegex(UserError, 'You cannot edit the journal of an account move if it has been posted once, unless the name is removed or set to "/". This might create a gap in the sequence.'):
+        with self.assertRaisesRegex(UserError, 'You cannot edit the journal of a journal entry if it has been posted once, unless the name is removed or set to "/". This might create a gap in the sequence.'):
             self.test_move.write({'journal_id': False})
         # Once move name in draft is changed to '/', changing the journal is allowed
         self.test_move.name = '/'
@@ -1049,7 +1065,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         test_move_2 = self.test_move.copy({'name': 'TEST/2016/01/0002', 'date': '2016-01-01'})
         self.assertEqual(test_move_2.sequence_number, 2)
         self.assertEqual(test_move_2.journal_id, self.company_data['default_journal_misc'])
-        with self.assertRaisesRegex(UserError, 'You cannot edit the journal of an account move with a sequence number assigned, unless the name is removed or set to "/". This might create a gap in the sequence.'):
+        with self.assertRaisesRegex(UserError, 'You cannot edit the journal of a journal entry with a sequence number assigned, unless the name is removed or set to "/". This might create a gap in the sequence.'):
             test_move_2.write({'journal_id': False})
         # Once move name in draft is changed to '/', changing the journal is allowed
         test_move_2.write({'name': False, 'journal_id': journal.id})
@@ -1105,17 +1121,17 @@ class TestAccountMove(AccountTestInvoicingCommon):
         })
         honest_move.action_post()
 
-        with self.assertRaisesRegex(UserError, 'not balanced'), contextlib.closing(self.env.cr.savepoint()):
+        with self.assertRaisesRegex(UserError, 'not balanced'):
             self.env['account.move'].create({'line_ids': [Command.set(honest_move.line_ids[0].ids)]})
 
-        with self.assertRaisesRegex(UserError, 'not balanced'), contextlib.closing(self.env.cr.savepoint()):
+        with self.assertRaisesRegex(UserError, 'not balanced'):
             self.env['account.move'].create({'line_ids': [Command.link(honest_move.line_ids[0].id)]})
 
         stealer_move = self.env['account.move'].create({})
-        with self.assertRaisesRegex(UserError, 'not balanced'), contextlib.closing(self.env.cr.savepoint()):
+        with self.assertRaisesRegex(UserError, 'not balanced'):
             stealer_move.write({'line_ids': [Command.set(honest_move.line_ids[0].ids)]})
 
-        with self.assertRaisesRegex(UserError, 'not balanced'), contextlib.closing(self.env.cr.savepoint()):
+        with self.assertRaisesRegex(UserError, 'not balanced'):
             stealer_move.write({'line_ids': [Command.link(honest_move.line_ids[0].id)]})
 
     def test_validate_move_wizard_with_auto_post_entry(self):
@@ -1128,39 +1144,62 @@ class TestAccountMove(AccountTestInvoicingCommon):
         self.assertTrue(self.test_move.state == 'posted')
 
     def test_cumulated_balance(self):
-        move = self.env['account.move'].create({
-            'line_ids': [Command.create({
-                'balance': 100,
-                'account_id': self.company_data['default_account_receivable'].id,
-            }), Command.create({
-                'balance': 100,
-                'account_id': self.company_data['default_account_tax_sale'].id,
-            }), Command.create({
-                'balance': -200,
-                'account_id': self.company_data['default_account_revenue'].id,
-            })]
-        })
+        receivable_account = self.copy_account(self.company_data['default_account_receivable'])
+        tax_account = self.copy_account(self.company_data['default_account_tax_sale'])
+        revenue_account = self.copy_account(self.company_data['default_account_revenue'])
 
-        for order, expected in [
-            ('balance DESC', [
-                (100, 0),
-                (100, -100),
-                (-200, -200),
-            ]),
-            ('balance ASC', [
-                (-200, 0),
-                (100, 200),
-                (100, 100),
-            ]),
+        for receivable_amount, tax_amount, revenue_amount, date in [
+            (115.0, 15.0, -130.0, '2024-01-15'),
+            (180.0, 20.0, -200.0, '2024-05-20'),
+            (245.0, 45.0, -290.0, '2025-07-10'),
         ]:
-            read_results = self.env['account.move.line'].search_read(
-                domain=[('move_id', '=', move.id)],
-                fields=['balance', 'cumulated_balance'],
-                order=order,
-            )
-            for (balance, cumulated_balance), read_result in zip(expected, read_results):
-                self.assertAlmostEqual(balance, read_result['balance'])
-                self.assertAlmostEqual(cumulated_balance, read_result['cumulated_balance'])
+            self.env['account.move'].create({
+                'date': date,
+                'line_ids': [Command.create({
+                    'balance': receivable_amount,
+                    'account_id': receivable_account.id,
+                }), Command.create({
+                    'balance': tax_amount,
+                    'account_id': tax_account.id,
+                }), Command.create({
+                    'balance': revenue_amount,
+                    'account_id': revenue_account.id,
+                })]
+            })
+
+        expected = [
+            # The cumulated balance should sum the balances of all previous moves during the period.
+            ('2024-01-01', 1, receivable_account, [115.0, 295.0]),
+            ('2024-01-01', 1, tax_account, [15.0, 35.0]),
+            ('2024-01-01', 1, revenue_account, [-130.0, -330.0]),
+
+            # Accounts that don't include their intinal balance should reset to 0, other should keep their balance.
+            ('2025-01-01', 1, receivable_account, [540.0]),
+            ('2025-01-01', 1, tax_account, [80.0]),
+            ('2025-01-01', 1, revenue_account, [-290.0]),
+
+            # If we start partitaly in the fiscal year, accounts should calculate over the entire fiscal year.
+            ('2024-05-01', 1, receivable_account, [295.0]),
+            ('2024-05-01', 1, tax_account, [35.0]),
+            ('2024-05-01', 1, revenue_account, [-330.0]),
+
+            # If we search_fetch over multiples fiscal year, if the result include move lines from different fiscal
+            # years and the account shouldn't include it's initial balance, the balance should still reset.
+            ('2024-01-01', 2, receivable_account, [115.0, 295.0, 540.0]),
+            ('2024-01-01', 2, tax_account, [15.0, 35.0, 80.0]),
+            ('2024-01-01', 2, revenue_account, [-130.0, -330.0, -290.0]),
+        ]
+
+        for date_from, years, account, excepted_amounts in expected:
+            date_from = fields.Date.from_string(date_from)
+            move_lines = self.env['account.move.line'].search_fetch(domain=[
+                ('account_id', '=', account.id),
+                ('date', '>=', date_from),
+                ('date', '<=', date_from + relativedelta(years=years)),
+            ], field_names=['cumulated_balance'])
+            self.assertEqual(len(move_lines), len(excepted_amounts))
+            for line, expected_amount in zip(reversed(move_lines), excepted_amounts):
+                self.assertEqual(line.cumulated_balance, expected_amount)
 
     def test_move_line_rounding(self):
         """Whatever arguments we give to the creation of an account move,

@@ -48,7 +48,7 @@
                 <filter name="favorites" string="Favorites" domain="[('is_favorite', '=', True)]"/>
                 <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
                 <group>
-                    <filter string="Type of Operation" name="groupby_code" domain="[]" context="{'group_by': 'code'}"/>
+                    <filter string="Operation Category" name="groupby_code" domain="[]" context="{'group_by': 'code'}"/>
                     <filter string="Warehouse" name="groupby_warehouse_id" domain="[]" context="{'group_by': 'warehouse_id'}"/>
                 </group>
             </search>
@@ -90,7 +90,7 @@
                                     <field name="hide_reservation_method" invisible="1"/>
                                     <field name="show_picking_type" invisible="1"/>
                                     <field name="sequence_id" groups="base.group_no_one"/>
-                                    <field name="sequence_code"/>
+                                    <field name="sequence_code" required="1"/>
                                     <field name="warehouse_id" groups="stock.group_stock_multi_warehouses" force_save="1"/>
                                     <field name="reservation_method" invisible="hide_reservation_method" widget="radio"/>
                                     <span invisible="code == 'incoming' or reservation_method != 'by_date'"/>
@@ -104,7 +104,7 @@
                                     <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                                     <field invisible="code not in ['incoming', 'outgoing', 'internal']" name="return_picking_type_id" string="Returns Type"/>
                                     <field name="create_backorder"/>
-                                    <field name="move_type" help="Unless previously specified by the source document, this will be the default picking policy for this operation type." invisible="code != 'internal'"/>
+                                    <field name="move_type" help="Unless previously specified by the source document, this will be the default shipping policy for this operation type." invisible="code != 'internal'"/>
                                 </group>
                             </group>
                             <group name="second">
@@ -134,6 +134,12 @@
                         <page name="hardware" string="Hardware" invisible="code not in ['incoming', 'outgoing', 'internal']" >
                             <group name="auto_print">
                                 <group string="Print on Validation">
+                                    <div colspan="2" class="alert alert-info" role="alert">
+                                        Odoo opens a PDF preview by default. If you (Enterprise users only) want to print instantly,
+                                        install the IoT App on a computer that is on the same local network as the
+                                        barcode operator and configure the routing of the reports.
+                                        <widget name="documentation_link" path="/applications/productivity/iot/devices/printer.html" label=" Documentation" icon="fa-arrow-right"/>
+                                    </div>
                                     <field name="auto_print_delivery_slip" string="Delivery Slip"/>
                                     <field name="auto_print_return_slip" string="Return Slip"/>
                                     <label for="auto_print_product_labels" string="Product Labels"/>
@@ -151,15 +157,6 @@
                                     <field name="auto_print_reception_report" string="Reception Report" invisible="code == 'outgoing'" groups="stock.group_reception_report"/>
                                     <field name="auto_print_reception_report_labels" string="Reception Report Labels" invisible="code == 'outgoing'" groups="stock.group_reception_report"/>
                                     <field name="auto_print_packages" string="Package Content" groups="stock.group_tracking_lot"/>
-                                </group>
-                                <group string="">
-                                    <div colspan="2">
-                                        Odoo opens a PDF preview by default. If you (Enterprise users only) want to print instantly,
-                                        install the IoT App on a computer that is on the same local network as the
-                                        barcode operator and configure the routing of the reports.
-                                        <br/>
-                                        <widget name="documentation_link" path="/applications/productivity/iot/devices/printer.html" label=" Documentation" icon="fa-arrow-right"/>
-                                    </div>
                                 </group>
                                 <group string='Print on "Put in Pack"' groups="stock.group_tracking_lot">
                                     <label for="auto_print_package_label" string="Package Label"/>
@@ -184,7 +181,6 @@
             <kanban highlight_color="color" class="o_stock_kanban" js_class="stock_dashboard_kanban" records_draggable="0" create="0" group_create="false" can_open="0">
                 <field name="color"/>
                 <field name="code" readonly="1"/>
-                <field name="count_move_ready"/>
                 <field name="show_picking_type" invisible="1"/>
                 <templates>
                     <t t-name="menu" t-if="!selection_mode">
@@ -272,15 +268,6 @@
                                             <div class="row">
                                                 <span class="col-6">Back Orders</span>
                                                 <field class="col-2 text-end" name="count_picking_backorders"/>
-                                            </div>
-                                        </a>
-                                    </div>
-
-                                    <div t-if="record.count_move_ready.raw_value > 0" class="row">
-                                        <a class="col-8 offset-4 pe-0 text-truncate" name="get_action_picking_type_ready_moves" type="object">
-                                            <div class="row">
-                                                <span class="col-6">Operations</span>
-                                                <field class="col-2 text-end" name="count_move_ready"/>
                                             </div>
                                         </a>
                                     </div>

@@ -10,16 +10,16 @@ msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 21:52+0000\n"
+"PO-Revision-Date: 2026-05-23 17:22+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_edi_ubl_cii/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -49,11 +49,6 @@ msgid ""
 "                        Preview\n"
 "                    </span>"
 msgstr ""
-"<span style=\"font-size: 16px; font-weight: bold; color: #ffffff; display: "
-"inline-block; vertical-align: middle; text-transform: uppercase; margin: 0px "
-"8px; letter-spacing: 0.5px;\">\n"
-"                        Förhandsvisning\n"
-"                    </span>"
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
@@ -64,7 +59,7 @@ msgstr "A"
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl_pint_eu.py:0
 msgid "A buyer reference or purchase order reference must be provided."
-msgstr "Ett referensnummer till en köpare eller en inköpsorder måste anges."
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -93,16 +88,6 @@ msgstr "AE - Omvänd momsdragning"
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__as
 msgid "AS2 exchange"
 msgstr "AS2-växling"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
-msgid "Account Move Send"
-msgstr "Skicka verifikation"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr "Verktygsguide för att skicka verifikationer"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9923
@@ -268,8 +253,6 @@ msgid ""
 "Could not retrieve a partner corresponding to '%s' with the same VAT. A new "
 "partner was created."
 msgstr ""
-"Kunde inte hitta en partner som motsvarar '%s' med samma "
-"momsregistreringsnummer. En ny partner har skapats."
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -429,7 +412,7 @@ msgstr "EU-standard (Peppol Bis 3.0)"
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
 msgid "EXTENDED"
-msgstr "UTÖKAD"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -592,13 +575,13 @@ msgstr "GS1-identifieringsnycklar"
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl.py:0
 msgid "General discount"
-msgstr "Allmän rabatt"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl.py:0
 msgid "General upsell"
-msgstr "Allmän merförsäljning"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -749,7 +732,7 @@ msgstr "SST - Japan"
 #. module: account_edi_ubl_cii
 #: model:ir.model,name:account_edi_ubl_cii.model_account_move
 msgid "Journal Entry"
-msgstr "Verifikation"
+msgstr "Bokföringspost"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__account_tax__ubl_cii_tax_category_code__k
@@ -806,7 +789,7 @@ msgstr "Moms Luxemburg"
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__account_tax__ubl_cii_tax_category_code__m
 msgid "M - Tax for production, services and importation in Ceuta and Melilla"
-msgstr "M - Skatt för produktion, tjänster och import i Ceuta och Melilla"
+msgstr "M - Skatt för tillverkning, tjänster och import i Ceuta och Melilla"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9942
@@ -822,6 +805,12 @@ msgstr "Malaysia"
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9943
 msgid "Malta VAT"
 msgstr "Moms Malta"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Missing '_title' for multi-level constraints."
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9940
@@ -856,7 +845,7 @@ msgstr "Moms Nederländerna"
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0244
 msgid "Nigeria Tax Identification"
-msgstr "Skattenummer i Nigeria"
+msgstr "Skatteregistreringsnummer i Nigeria"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0192
@@ -877,6 +866,12 @@ msgstr "O.F.T.P. (ODETTE File Transfer Protocol)"
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
 msgid "Odoo"
 msgstr "Odoo"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Other Errors:"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.view_partner_property_form
@@ -996,7 +991,7 @@ msgstr "SIA Objektidentifierare"
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0245
 msgid "SK Tax identification number (DIČ)"
-msgstr "Skattenummer i Slovakien (DIČ)"
+msgstr "Skatteregistreringsnummer i Slovakien (DIČ)"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9951
@@ -1004,9 +999,19 @@ msgid "San Marino VAT"
 msgstr "Moms San Marino"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9948
 msgid "Serbia VAT"
 msgstr "Moms Serbien"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__ubl_sg
@@ -1070,6 +1075,11 @@ msgid "Tax Category Code"
 msgstr "Kod som anger skattekategori"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason
+msgid "Tax Exemption Reason"
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason_code
 msgid "Tax Exemption Reason Code"
 msgstr "Kod som anger anledning för skattebefrielse"
@@ -1078,7 +1088,7 @@ msgstr "Kod som anger anledning för skattebefrielse"
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.layout_invoices_generated_by_odoo
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.report_invoice_document
 msgid "Tax ID"
-msgstr "Skattenummer"
+msgstr "Skatteregistreringsnummer"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -1097,8 +1107,6 @@ msgid ""
 "Taxes of category 'Service outside scope of tax' shall not be mixed with tax "
 "from other categories. You should split your invoice in two"
 msgstr ""
-"Skatter av kategorin 'Tjänster utanför skattens omfång' bör inte blandas "
-"ihop med skatter ur andra kategorier. Fakturan bör delas upp i två"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -1114,7 +1122,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/res_partner.py:0
 msgid "The Peppol endpoint is not valid. A valid email is required"
-msgstr "Peppol-destinationen är inte giltig. En giltig e-postadress krävs"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -1150,9 +1158,6 @@ msgid ""
 "line for product '%(product)s' because it is not compatible with the "
 "product's Unit of Measure '%(product_uom)s'. The UoM was left empty."
 msgstr ""
-"Måttenheten '%(uom)s' (från enhetskoden '%(code)s') ignorerades på "
-"produktraden för '%(product)s' eftersom den inte är kompatibel med "
-"produktens måttenhet '%(product_uom)s'. Måttenheten lämnades tom."
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields,help:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_category_code
@@ -1246,9 +1251,6 @@ msgid ""
 "                    <strong style=\"color: #495057;\">It is not an official "
 "document.</strong>"
 msgstr ""
-"Detta är en visuell representation av XML-innehållet.<br/>\n"
-"                    <strong style=\"color: #495057;\">Det är inte ett "
-"officiellt dokument.</strong>"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9952
@@ -1258,7 +1260,7 @@ msgstr "Moms Turkiet"
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0235
 msgid "UAE Tax Identification Number (TIN)"
-msgstr "Skattenummer i Förenade Arabemiraten (TIN)"
+msgstr "Skatteregistreringsnummer i Förenade Arabemiraten (TIN)"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model,name:account_edi_ubl_cii.model_account_edi_xml_ubl_20
@@ -1278,17 +1280,17 @@ msgstr "UBL BIS Billing 3.0.12"
 #. module: account_edi_ubl_cii
 #: model:ir.model,name:account_edi_ubl_cii.model_account_edi_ubl_cen_en16931
 msgid "UBL CEN-EN16931"
-msgstr "UBL CEN-EN16931"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model,name:account_edi_ubl_cii.model_account_edi_ubl_pint
 msgid "UBL PINT"
-msgstr "UBL PINT"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model,name:account_edi_ubl_cii.model_account_edi_ubl_pint_eu
 msgid "UBL PINT-EU Layer"
-msgstr "UBL PINT-EU-nivå"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0193
@@ -2164,6 +2166,22 @@ msgid "Z - Zero rated goods"
 msgstr "Z - Momsfria varor"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
+"customer '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
+"company '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_partner__invoice_edi_format
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_users__invoice_edi_format
 msgid "eInvoice format"
@@ -2217,12 +2235,3 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ msgstr ""
 #~ "Inget bruttopris, nettopris eller radsubtotalbelopp hittades för raden i "
 #~ "xml"
-
-#~ msgid "Your endpoint"
-#~ msgstr "Din slutpunkt"
-
-#~ msgid "Australia BIS Billing 3.0 A-NZ"
-#~ msgstr "Australien BIS Billing 3.0 A-NZ"
-
-#~ msgid "Singapore BIS Billing 3.0 SG"
-#~ msgstr "Singapore BIS Fakturering 3.0 SG"

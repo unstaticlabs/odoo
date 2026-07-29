@@ -4,17 +4,17 @@
 #
 # Translators:
 # Cozmin Candea <office@terrabit.ro>, 2022
-# Dorin Hongu <dhongu@gmail.com>, 2022, 2025, 2026.
+# Dorin Hongu <dhongu@gmail.com>, 2022, 2025.
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 19:42+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-25 02:33+0000\n"
 "Last-Translator: Dorin Hongu <dhongu@gmail.com>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
 "snailmail/ro/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -119,10 +119,6 @@ msgstr "Color"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Companii"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Companie"
@@ -293,8 +289,8 @@ msgstr "Mesaj"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Mesaje notificări"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -416,11 +412,6 @@ msgstr "Snailmail"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "Culoare Snailmail"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "Copertă Snailmail doar citire"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -637,82 +628,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "Cod postal"
-
-#~ msgid "Address"
-#~ msgstr "Adresa"
-
-#~ msgid "Buy credits"
-#~ msgstr "Cumpărare credit"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "Anulare Scrisoare"
-
-#~ msgid "Cancel letter"
-#~ msgstr "Anulare scrisoara"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Eroare Notificare Anulare "
-
-#~ msgid "Canceled"
-#~ msgstr "Anulat(ă)"
-
-#~ msgid "Close"
-#~ msgstr "Închide"
-
-#~ msgid "Failed letter"
-#~ msgstr "Scrisoare eșuată"
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "Eroare Format Trimitere Scrisoare Snailmail"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Tipul de mesaj: email pentru mesaj email, notificare pentru mesajul "
-#~ "sistem, comentariu pentru alte mesaje, cum ar fi răspunsurile "
-#~ "utilizatorului"
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "Serviciul nostru nu poate citi scrisoarea dvs. datorită formatului său."
-#~ "<br/>\n"
-#~ "                Vă rugăm să modificați formatul șablonului sau să "
-#~ "actualizați setările\n"
-#~ "                pentru a adăuga automat o pagină de copertă goală tuturor "
-#~ "scrisorilor."
-
-#~ msgid "Partner"
-#~ msgstr "Partener"
-
-#~ msgid "Re-send letter"
-#~ msgstr "Retrimitere scrisoare"
-
-#~ msgid "Street 2..."
-#~ msgstr "Strada 2..."
-
-#~ msgid "Street..."
-#~ msgstr "Strada..."
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "Adresa clientului nu este completă. Actualizați adresa aici și trimiteți "
-#~ "din nou scrisoarea."
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "Actualizați Config și trimiteți din nou"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "Actualizare adresă și re-trimitere"
-
-#~ msgid "Update address of partner"
-#~ msgstr "Adresă actualizare partener"
-
-#~ msgid "ZIP"
-#~ msgstr "Cod poștal"

@@ -6,9 +6,10 @@ import * as ProductScreenResto from "@pos_restaurant/../tests/tours/utils/produc
 import * as FloorScreen from "@pos_restaurant/../tests/tours/utils/floor_screen_util";
 import * as DeviceSynchronization from "@pos_restaurant/../tests/tours/utils/devices_synchronization";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
 import { registry } from "@web/core/registry";
+import { inLeftSide } from "@point_of_sale/../tests/pos/tours/utils/common";
 
 const ProductScreen = { ...ProductScreenPos, ...ProductScreenResto };
 const Chrome = { ...ChromePos, ...ChromeRestaurant };
@@ -65,7 +66,7 @@ registry.category("web_tour.tours").add("test_devices_synchronization", {
             ProductScreen.discardOrderWarningDialog(),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             Chrome.clickPlanButton(),
             FloorScreen.clickTable("4"),
             ProductScreen.checkTotalAmount(176.0),
@@ -73,7 +74,7 @@ registry.category("web_tour.tours").add("test_devices_synchronization", {
             ProductScreen.discardOrderWarningDialog(),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
 
             // product_screen
             // Check if creating an order one same table from two devices
@@ -114,6 +115,7 @@ registry.category("web_tour.tours").add("OrderSynchronisationTour", {
             TicketScreen.selectFilter("Paid"),
             TicketScreen.checkStatus("device_sync", "Paid"),
             TicketScreen.selectOrder("device_sync"),
-            TicketScreen.confirmRefund(),
+            inLeftSide(ProductScreen.orderLineHas("Coca-Cola", 50)),
+            inLeftSide(ProductScreen.orderLineHas("Water", 30)),
         ].flat(),
 });

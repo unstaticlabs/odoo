@@ -1,17 +1,17 @@
 
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import pytz
 import re
 import smtplib
-from email import message_from_string
-
 from datetime import datetime, timedelta
+from email import message_from_string
+from socket import gaierror, timeout
+from unittest.mock import call, patch, PropertyMock
+from zoneinfo import ZoneInfo
+
 from freezegun import freeze_time
 from markupsafe import Markup
 from OpenSSL.SSL import Error as SSLError
-from socket import gaierror, timeout
-from unittest.mock import call, patch, PropertyMock
 
 from odoo import api, Command, fields, SUPERUSER_ID
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
@@ -22,6 +22,7 @@ from odoo.tools import formataddr, mute_logger
 
 
 @tagged('mail_mail')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailMail(MailCommon):
 
     @classmethod
@@ -66,10 +67,10 @@ class TestMailMail(MailCommon):
             'email_to': 'test@example.com',
             'partner_ids': [(4, self.user_employee.partner_id.id)],
             'attachment_ids': [
-                (0, 0, {'name': 'file 1', 'datas': 'c2VjcmV0'}),
-                (0, 0, {'name': 'file 2', 'datas': 'c2VjcmV0'}),
-                (0, 0, {'name': 'file 3', 'datas': 'c2VjcmV0'}),
-                (0, 0, {'name': 'file 4', 'datas': 'c2VjcmV0'}),
+                (0, 0, {'name': 'file 1', 'raw': b'secret'}),
+                (0, 0, {'name': 'file 2', 'raw': b'secret'}),
+                (0, 0, {'name': 'file 3', 'raw': b'secret'}),
+                (0, 0, {'name': 'file 4', 'raw': b'secret'}),
             ],
         })
 
@@ -85,11 +86,12 @@ class TestMailMail(MailCommon):
 
         new_attachment = self.env['ir.attachment'].create({
             'name': 'new file',
-            'datas': 'c2VjcmV0',
+            'raw': b'secret',
         })
 
         with patch.object(self.env.registry['ir.attachment'], '_check_access', _patched_check_access):
             # Sanity check
+            self.env.transaction.clear_access_cache()
             self.assertEqual(mail.restricted_attachment_count, 2)
             self.assertEqual(len(mail.unrestricted_attachment_ids), 2)
             self.assertEqual(mail.unrestricted_attachment_ids.mapped('name'), ['file 1', 'file 3'])
@@ -334,7 +336,7 @@ class TestMailMail(MailCommon):
             # falsy values
             False, '', 'This is not a date format',
             # datetimes (UTC/GMT +10 hours for Australia/Brisbane)
-            now, pytz.timezone('Australia/Brisbane').localize(now),
+            now, now.replace(tzinfo=ZoneInfo('Australia/Brisbane')),
             # string
             fields.Datetime.to_string(now - timedelta(days=1)),
             fields.Datetime.to_string(now + timedelta(days=1)),
@@ -346,7 +348,7 @@ class TestMailMail(MailCommon):
         ]
         expected_datetimes = [
             False, False, False,
-            now, now - pytz.timezone('Australia/Brisbane').utcoffset(now),
+            now, now - ZoneInfo('Australia/Brisbane').utcoffset(now),
             now - timedelta(days=1), now + timedelta(days=1), now + timedelta(days=1),
             now + timedelta(hours=-1),
             now + timedelta(hours=1),
@@ -389,7 +391,7 @@ class TestMailMail(MailCommon):
         ]:
             with self.subTest(queue_batch_size=queue_batch_size), \
                  self.mock_mail_gateway():
-                self.env['ir.config_parameter'].sudo().set_param('mail.mail.queue.batch.size', queue_batch_size)
+                self.env['ir.config_parameter'].sudo().set_int('mail.mail.queue.batch.size', queue_batch_size)
                 mails = self.env['mail.mail'].create([
                     {
                         'auto_delete': False,
@@ -406,7 +408,7 @@ class TestMailMail(MailCommon):
                 mails.write({'state': 'sent'})  # avoid conflicts between batch
 
         # test 'mail.session.batch.size': batch send size
-        self.env['ir.config_parameter'].sudo().set_param('mail.mail.queue.batch.size', False)
+        self.env['ir.config_parameter'].sudo().set_int('mail.mail.queue.batch.size', False)
         for session_batch_size, exp_call_count in [
             (3, 4),  # 10 mails -> 4 iterations of 3
             (0, 1),
@@ -414,7 +416,7 @@ class TestMailMail(MailCommon):
         ]:
             with self.subTest(session_batch_size=session_batch_size), \
                  self.mock_mail_gateway():
-                self.env['ir.config_parameter'].sudo().set_param('mail.session.batch.size', session_batch_size)
+                self.env['ir.config_parameter'].sudo().set_int('mail.session.batch.size', session_batch_size)
                 mails = self.env['mail.mail'].create([
                     {
                         'auto_delete': False,
@@ -786,6 +788,7 @@ class TestMailMail(MailCommon):
         self.assertEqual(msg.message_type, 'email_outgoing', 'Mails should have outgoing email type by default')
 
 @tagged('mail_mail', 'mail_server')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailMailServer(MailCommon):
 
     @classmethod
@@ -1068,17 +1071,17 @@ class TestMailMailServer(MailCommon):
                 max_size_test_succeed = max_size_never_exceed
                 max_size_test_fail = max_size_always_exceed * n_attachment
             if mail_server:
-                self.env['ir.config_parameter'].sudo().set_param('base.default_max_email_size', max_size_test_fail)
+                self.env['ir.config_parameter'].sudo().set_float('base.default_max_email_size', max_size_test_fail)
                 mail_server.max_email_size = max_size_test_succeed
             else:
-                self.env['ir.config_parameter'].sudo().set_param('base.default_max_email_size', max_size_test_succeed)
+                self.env['ir.config_parameter'].sudo().set_float('base.default_max_email_size', max_size_test_succeed)
 
             attachments = self.env['ir.attachment'].sudo().create([{
                 'name': f'attachment{idx_attachment}',
                 'res_name': 'test',
                 'res_model': self.test_record._name if business_attachment else 'mail.message',
                 'res_id': self.test_record.id if business_attachment else 0,
-                'datas': 'IA==',  # a non-empty base64 content. We mock attachment file_size to simulate bigger size.
+                'raw': b' ',  # a non-empty content. We mock attachment file_size to simulate bigger size.
             } for idx_attachment in range(n_attachment)])
             with self.mock_smtplib_connection():
                 mails = self.env['mail.mail'].create([{
@@ -1113,6 +1116,7 @@ class TestMailMailServer(MailCommon):
 
 
 @tagged('mail_mail')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailMailRace(MailCommon):
 
     @mute_logger('odoo.addons.mail.models.mail_mail')

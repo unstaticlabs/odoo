@@ -6,18 +6,18 @@
 # Wil Odoo, 2025
 # Tony Ng, 2025
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Tony Ng (ngto)" <ngto@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 01:28+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-06 13:36+0000\n"
 "Last-Translator: \"Tony Ng (ngto)\" <ngto@odoo.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_forum/zh_Hant/>\n"
+"projects/odoo-s19-2/website_forum/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -369,8 +369,8 @@ msgid ""
 "            - it really helps to select the best questions and answers!"
 msgstr ""
 "<b>請嘗試給出一個實質性的答案。</b>如果您想對問題或答案<b>發表評論，只需使用"
-"評論工具即可。</b>請記住，您可以隨時<b>修改您的答案</b>- 無需兩次回答同一問題"
-"。另外，請<b>不要忘記投票</b>- 選擇最佳問題和答案真的很有幫助！"
+"評論工具即可。</b>請記住，您可以隨時<b>修改您的答案</b>- 無需兩次回答同一問"
+"題。另外，請<b>不要忘記投票</b>- 選擇最佳問題和答案真的很有幫助！"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -569,8 +569,8 @@ msgid ""
 "<i class=\"fa fa-thumbs-up text-success\" role=\"img\" aria-label=\"Positive "
 "votes\" title=\"Positive votes\"/>"
 msgstr ""
-"<i class=\"fa fa-thumbs-up text-success\" role=\"img\" aria-label=\"正評數"
-"目\" title=\"正評數目\"/>"
+"<i class=\"fa fa-thumbs-up text-success\" role=\"img\" aria-label=\"正評數目"
+"\" title=\"正評數目\"/>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -691,7 +691,8 @@ msgstr "<span class=\"flex-grow-1\">我的問題應該避免甚麼？</span>"
 msgid ""
 "<span class=\"flex-grow-1\">Why can other people edit my questions/answers?</"
 "span>"
-msgstr "<span class=\"flex-grow-1\">為甚麼其他人可以編輯我的問題 / 答案？</span>"
+msgstr ""
+"<span class=\"flex-grow-1\">為甚麼其他人可以編輯我的問題 / 答案？</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.edit_post
@@ -699,7 +700,8 @@ msgstr "<span class=\"flex-grow-1\">為甚麼其他人可以編輯我的問題 /
 msgid ""
 "<span class=\"form-text small text-muted d-block\">consider adding an "
 "example.</span>"
-msgstr "<span class=\"form-text small text-muted d-block\">可考慮加入例子。</span>"
+msgstr ""
+"<span class=\"form-text small text-muted d-block\">可考慮加入例子。</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.edit_post
@@ -718,8 +720,8 @@ msgid ""
 "<span class=\"form-text small text-muted d-block\">use '/' to insert images."
 "</span>"
 msgstr ""
-"<span class=\"form-text small text-muted d-block\">使用「/」（斜線）插入圖片"
-"。</span>"
+"<span class=\"form-text small text-muted d-block\">使用「/」（斜線）插入圖"
+"片。</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.edit_post
@@ -859,8 +861,8 @@ msgid ""
 "After posting the user will be proposed to share its question or answer on "
 "social networks, enabling social network propagation of the forum content."
 msgstr ""
-"發帖後，使用者將提議分享其問題或社交網路上的回答，使論壇內容以社會化網路傳播"
-"。"
+"發帖後，使用者將提議分享其問題或社交網路上的回答，使論壇內容以社會化網路傳"
+"播。"
 
 #. module: website_forum
 #. odoo-python
@@ -2171,9 +2173,9 @@ msgid ""
 "motivation is “I would like others to explain ______ to me”, then you are "
 "probably OK."
 msgstr ""
-"如果您符合這些範例之一，或者如果您提出問題的動機是“我想參與關於 ______ 的討論"
-"”，那麼您不應該在這裡提問，而應該在我們的郵件列表上提問。但是，如果您的動機是"
-"“我希望其他人向我解釋______”，那麼您可以在此提出問題。"
+"如果您符合這些範例之一，或者如果您提出問題的動機是“我想參與關於 ______ 的討"
+"論”，那麼您不應該在這裡提問，而應該在我們的郵件列表上提問。但是，如果您的動機"
+"是“我希望其他人向我解釋______”，那麼您可以在此提出問題。"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.mark_as_offensive
@@ -2354,11 +2356,6 @@ msgstr "格式"
 #: model_terms:gamification.badge,description:website_forum.badge_25
 msgid "Left 10 answers with score of 10 or more"
 msgstr "保留10個10分以上的回答"
-
-#. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "前往附有此標籤的其他問題的連結"
 
 #. module: website_forum
 #. odoo-javascript
@@ -3360,6 +3357,20 @@ msgid "The accepted answer is deleted"
 msgstr "獲採納答案已被刪除"
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3465,8 +3476,8 @@ msgid ""
 "<b>Reject</b> this post."
 msgstr ""
 "帖文目前正等待審批，尚未公開發佈。<br/>\n"
-"                    作為版主，你可選擇「<b>批准</b>」或「<b>拒絕</b>」此帖文"
-"。"
+"                    作為版主，你可選擇「<b>批准</b>」或「<b>拒絕</b>」此帖"
+"文。"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -3742,6 +3753,13 @@ msgid "Website / Forum"
 msgstr "網站 / 討論區"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3749,7 +3767,9 @@ msgid "Website Messages"
 msgstr "網站資訊"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "網站網址"
 
@@ -4227,53 +4247,3 @@ msgstr "您的基礎資料可以被視為提示工具"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "你的電郵地址⋯"
-
-#~ msgid ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> Return to questions "
-#~ "list</a>"
-#~ msgstr ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> 返回問題列表</a>"
-
-#~ msgid "'Please enter 2 or more characters'"
-#~ msgstr "'請輸入 2 個或更多字元'"
-
-#~ msgid "'Tags'"
-#~ msgstr "'Tags'"
-
-#~ msgid ""
-#~ "<a class=\"mb-2 o_translate_inline\" t-attf-href=\"/profile/users?"
-#~ "forum_origin=#{request.httprequest.path}\" data-bs-original-title=\"\" "
-#~ "title=\"\" target=\"_blank\">Meet our community members</a>"
-#~ msgstr ""
-#~ "<a class=\"mb-2 o_translate_inline\" t-attf-href=\"/profile/users?"
-#~ "forum_origin=#{request.httprequest.path}\" data-bs-original-title=\"\" "
-#~ "title=\"\" target=\"_blank\">認識我們的社群成員</a>"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> 返回"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "日期（從新到舊）"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "日期（從舊到新）"
-
-#~ msgid "Group By"
-#~ msgstr "分組依據"
-
-#~ msgid "Oh no! Please sign in to perform this action"
-#~ msgstr "哎唷！請登入以執行此操作"
-
-#~ msgid "This user hasn't answered any questions yet. <br/>"
-#~ msgstr "此用戶尚未回答任何問題。<br/>"
-
-#~ msgid "This user hasn't posted any questions yet.<br/>"
-#~ msgstr "此用戶尚未提問任何問題。<br/>"
-
-#~ msgid "You have not answered any questions yet. <br/>"
-#~ msgstr "你尚未回答任何問題。<br/>"
-
-#~ msgid "You have not posted any questions yet. <br/>"
-#~ msgstr "你尚未提問任何問題。<br/>"

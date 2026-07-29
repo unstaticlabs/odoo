@@ -1,24 +1,26 @@
 import { Component, onWillStart, useState } from "@odoo/owl";
-import { useSelfOrder } from "@pos_self_order/app/services/self_order_service";
 import { rpc } from "@web/core/network/rpc";
-import { localization } from "@web/core/l10n/localization";
+import { Dialog } from "@web/core/dialog/dialog";
 import { useService } from "@web/core/utils/hooks";
 import { isValidPhone } from "@point_of_sale/utils";
 
 const { DateTime } = luxon;
 export class PresetInfoPopup extends Component {
     static template = "pos_self_order.PresetInfoPopup";
-    static props = { callback: Function };
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        getPayload: Function,
+    };
 
     setup() {
-        this.notification = useService("notification");
-        this.selfOrder = useSelfOrder();
+        this.selfOrder = useService("self_order");
+
         const partner = this.selfOrder.currentOrder.partner_id;
         const companyStateId = this.selfOrder.config.company_id.country_id.state_ids[0]?.id;
         const companyCountryId = this.selfOrder.config.company_id.country_id.id;
 
         this.state = useState({
-            selectedSlot: null,
             selectedPartnerId: partner?.id || null,
             name: partner?.name || "",
             email: partner?.email || "",
@@ -71,14 +73,8 @@ export class PresetInfoPopup extends Component {
         } else {
             this.selfOrder.currentOrder.floating_order_name = this.state.name;
         }
-
-        if (this.preset.needsSlot && this.state.selectedSlot) {
-            this.selfOrder.currentOrder.preset_time = DateTime.fromSQL(this.state.selectedSlot)
-                .toUTC()
-                .toFormat("yyyy-MM-dd HH:mm:ss");
-        }
-
-        this.props.callback(this.state);
+        this.props.getPayload(this.state);
+        this.props.close();
     }
 
     // TODO: remove in master
@@ -95,7 +91,7 @@ export class PresetInfoPopup extends Component {
     }
 
     close() {
-        this.props.callback(false);
+        this.props.close();
     }
 
     get preset() {
@@ -118,7 +114,7 @@ export class PresetInfoPopup extends Component {
     }
 
     get validSelection() {
-        return this.selfOrder.isValidSelection(this.state.selectedSlot, {
+        return this.selfOrder.isValidSelection(this.selfOrder.currentOrder.raw.preset_time, {
             id: parseInt(this.state.selectedPartnerId),
             name: this.state.name,
             email: this.state.email,
@@ -133,7 +129,7 @@ export class PresetInfoPopup extends Component {
 
     formatDate(date) {
         const dateObj = DateTime.fromFormat(date, "yyyy-MM-dd");
-        return dateObj.toFormat(localization.dateFormat);
+        return this.preset.formatDate(dateObj);
     }
 
     checkPhoneFormat() {

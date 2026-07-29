@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Web',
     'category': 'Hidden',
-    'version': '1.0',
     'description': """
 Odoo Web core module.
 ========================
@@ -57,16 +55,14 @@ This module provides the core of the Odoo Web Client.
 
             ('include', 'web._assets_core'),
 
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/lib/odoo_ui_icons/*',
+            ('include', 'web.icons_fonts'),
             'web/static/src/webclient/navbar/navbar.scss',
             'web/static/src/scss/animation.scss',
-            'web/static/src/scss/fontawesome_overridden.scss',
             'web/static/src/scss/mimetypes.scss',
             'web/static/src/scss/ui.scss',
             'web/static/src/views/fields/translation_dialog.scss',
 
-            'web/static/src/polyfills/**/*.js',
+            'web/static/src/polyfills/clipboard.js',
 
             'web/static/lib/popper/popper.js',
             'web/static/lib/bootstrap/js/dist/util/index.js',
@@ -176,15 +172,14 @@ This module provides the core of the Odoo Web Client.
             'web/static/lib/bootstrap/scss/_variables-dark.scss',
             'web/static/lib/bootstrap/scss/_maps.scss',
             'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
 
             ('include', 'web._assets_bootstrap_frontend'),
 
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/lib/odoo_ui_icons/*',
+            ('include', 'web.icons_fonts'),
             'web/static/src/webclient/navbar/navbar.scss',
             'web/static/src/scss/animation.scss',
             'web/static/src/scss/base_frontend.scss',
-            'web/static/src/scss/fontawesome_overridden.scss',
             'web/static/src/scss/mimetypes.scss',
             'web/static/src/scss/ui.scss',
             'web/static/src/views/fields/translation_dialog.scss',
@@ -303,15 +298,13 @@ This module provides the core of the Odoo Web Client.
             'web/static/lib/bootstrap/js/dist/toast.js',
 
             'base/static/src/css/description.css',
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/src/scss/fontawesome_overridden.scss',
-            'web/static/lib/odoo_ui_icons/*',
+            ('include', 'web.icons_fonts'),
             'web/static/fonts/fonts.scss',
 
             'web/static/src/webclient/actions/reports/bootstrap_review_report.scss',
             'web/static/src/webclient/actions/reports/report.scss',
             'web/static/src/webclient/actions/reports/report_tables.scss',
-            'web/static/src/webclient/actions/reports/layout_assets/layout_*.scss',
+            'web/static/src/webclient/actions/reports/report_layouts.scss',
             'web/static/asset_styles_company_report.scss',
         ],
         'web.report_assets_pdf': [
@@ -364,6 +357,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/module_loader.js',
             # libs
             'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
             'web/static/lib/owl/owl.js',
             'web/static/lib/owl/odoo_module.js',
             # core
@@ -426,8 +420,7 @@ This module provides the core of the Odoo Web Client.
             # the bundle "assets_tests" is first called in web.
             'web/static/tests/legacy/helpers/cleanup.js',
             'web/static/tests/legacy/helpers/utils.js',
-            'web/static/tests/legacy/utils.js',
-            'web/static/tests/tours/**/*'
+            'web/static/tests/tours/**/*',
         ],
         'web.__assets_tests_call__': [
             'web/static/tests/legacy/ignore_missing_deps_start.js',
@@ -475,65 +468,68 @@ This module provides the core of the Odoo Web Client.
             ('remove', 'web/static/tests/legacy/**/*'), # to remove when all legacy tests are ported
         ],
         'web.tests_assets': [
-            ('include', 'web.assets_backend'),
-            ('include', 'web.assets_backend_lazy'),
+            'web/static/src/module_loader.js',
 
-            'web/static/tests/legacy/patch_translations.js',
+            'web/static/lib/owl/owl.js',
+            'web/static/lib/owl/odoo_module.js',
+            'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
+
+            'web/static/src/session.js',
+            'web/static/src/core/registry.js',
+            'web/static/src/core/assets.js',
+            'web/static/src/core/lazy_component.js',
+            'web/static/src/core/user.js',
+            'web/static/src/core/transition.js',
+            'web/static/src/core/currency.js',
+            'web/static/src/core/templates.js',
+            'web/static/src/core/template_inheritance.js',
+            'web/static/src/core/browser/browser.js',
+            'web/static/src/core/browser/cookie.js',
+            'web/static/src/core/browser/router.js',
+            'web/static/src/core/browser/feature_detection.js',
+            'web/static/src/core/errors/error_utils.js',
+            'web/static/src/core/network/rpc.js',
+            'web/static/src/core/utils/ui.js',
+            'web/static/src/core/utils/functions.js',
+            'web/static/src/core/utils/patch.js',
+            'web/static/src/core/utils/arrays.js',
+            'web/static/src/core/utils/html.js',
+            'web/static/src/core/utils/objects.js',
+            'web/static/src/core/utils/strings.js',
+            'web/static/src/core/utils/cache.js',
+            'web/static/src/core/utils/numbers.js',
+            'web/static/src/core/utils/urls.js',
+            'web/static/src/core/utils/hooks.js',
+            'web/static/src/core/utils/render.js',
+            'web/static/src/core/utils/concurrency.js',
+            'web/static/src/core/l10n/translation.js',
+            'web/static/src/core/l10n/localization.js',
+            'web/static/src/core/l10n/dates.js',
+            'web/static/src/core/l10n/utils.js',
+            'web/static/src/core/l10n/utils/locales.js',
+            'web/static/src/core/l10n/utils/format_list.js',
+            'web/static/src/core/l10n/utils/normalize.js',
+
             'web/static/lib/qunit/qunit-2.9.1.css',
             'web/static/lib/qunit/qunit-2.9.1.js',
-            'web/static/tests/legacy/legacy_tests/helpers/**/*',
-            ('remove', 'web/static/tests/legacy/legacy_tests/helpers/test_utils_tests.js'),
 
             ('include', 'web._assets_jquery'),
 
-            'web/static/lib/fullcalendar/core/index.global.js',
-            'web/static/lib/fullcalendar/interaction/index.global.js',
-            'web/static/lib/fullcalendar/daygrid/index.global.js',
-            'web/static/lib/fullcalendar/timegrid/index.global.js',
-            'web/static/lib/fullcalendar/list/index.global.js',
-            'web/static/lib/fullcalendar/luxon3/index.global.js',
-
-            'web/static/lib/zxing-library/zxing-library.js',
-
-            'web/static/lib/ace/ace.js',
-            'web/static/lib/ace/mode-python.js',
-            'web/static/lib/ace/mode-xml.js',
-            'web/static/lib/ace/mode-javascript.js',
-            'web/static/lib/ace/mode-qweb.js',
-            'web/static/lib/ace/theme-monokai.js',
-            'web/static/lib/stacktracejs/stacktrace.js',
-            ('include', "web.chartjs_lib"),
-            'web/static/lib/signature_pad/signature_pad.umd.js',
-
+            'web/static/tests/legacy/patch_translations.js',
             'web/static/tests/legacy/helpers/**/*.js',
-            'web/static/tests/legacy/views/helpers.js',
-            'web/static/tests/legacy/search/helpers.js',
-            'web/static/tests/legacy/views/calendar/helpers.js',
-            'web/static/tests/legacy/webclient/**/helpers.js',
             'web/static/tests/legacy/qunit.js',
             'web/static/tests/legacy/main.js',
-            'web/static/tests/legacy/mock_server_tests.js',
             'web/static/tests/legacy/setup.js',
-            'web/static/tests/legacy/utils.js',
-            'web/static/src/webclient/clickbot/clickbot.js',
         ],
         'web.qunit_suite_tests': [
             'web/static/src/legacy/js/core/class.js',
             'web/static/src/legacy/js/public/minimal_dom.js',
             'web/static/src/legacy/js/public/public_widget.js',
-            'web/static/tests/legacy/core/**/*.js',
-            'web/static/tests/legacy/search/**/*.js',
-            ('remove', 'web/static/tests/legacy/search/helpers.js'),
-            'web/static/tests/legacy/views/**/*.js',
-            ('remove', 'web/static/tests/legacy/views/helpers.js'),
-            ('remove', 'web/static/tests/legacy/views/calendar/helpers.js'),
-            'web/static/tests/legacy/webclient/**/*.js',
-            ('remove', 'web/static/tests/legacy/webclient/**/helpers.js'),
             'web/static/tests/legacy/public/**/*.js',
 
             # Legacy
             'web/static/tests/legacy/legacy_tests/**/*.js',
-            ('remove', 'web/static/tests/legacy/legacy_tests/helpers/**/*.js'),
         ],
         'web.assets_clickbot': [
             'web/static/src/webclient/clickbot/clickbot.js',
@@ -550,6 +546,24 @@ This module provides the core of the Odoo Web Client.
             '/web/static/lib/fullcalendar/luxon3/index.global.js',
             '/web/static/lib/fullcalendar/timegrid/index.global.js',
             '/web/static/lib/fullcalendar/list/index.global.js',
+        ],
+        # Icons bundles: font-awesome, odoo_ui_icons and both combined. Only the
+        # combination should probably be used. But it is split to allow FA
+        # preload on the frontend.
+        'web.fontawesome': [
+            '/web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2',
+            '/web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff',
+            '/web/static/src/libs/fontawesome/css/font-awesome.css',
+        ],
+        'web.odoo_ui_icons': [
+            '/web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2',
+            '/web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff',
+            '/web/static/lib/odoo_ui_icons/style.css',
+        ],
+        'web.icons_fonts': [
+            ('include', 'web.fontawesome'),
+            ('include', 'web.odoo_ui_icons'),
+            'web/static/src/scss/fontawesome_overridden.scss',  # some are fa classes... but using odoo_ui_icons font
         ],
     },
     'bootstrap': True,  # load translations for login screen,

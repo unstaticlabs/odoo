@@ -26,7 +26,7 @@
                 <footer>
                     <button name="action_apply" string="Apply" type="object" class="btn-primary"/>
                     <button name="action_split_and_assign_serials" string="Prepare MO" type="object" class="btn-secondary"/>
-                    <button string="Discard" class="btn-secondary" special="cancel" />
+                    <button class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>

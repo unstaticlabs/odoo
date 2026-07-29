@@ -4,7 +4,7 @@
     'version': '1.1',
     'icon': '/account/static/description/l10n.png',
     'countries': ['ca'],
-    'author': 'Savoir-faire Linux (https://www.savoirfairelinux.com); Odoo SA',
+    'author': 'Savoir-faire Linux (https://www.savoirfairelinux.com); Odoo S.A.',
     'website': 'https://www.odoo.com/documentation/latest/applications/finance/fiscal_localizations.html',
     'category': 'Accounting/Localizations/Account Charts',
     'description': """
@@ -36,7 +36,6 @@ position.
     """,
     'depends': [
         'account',
-        'base_iban',
     ],
     'auto_install': ['account'],
     'data': [

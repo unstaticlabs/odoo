@@ -5,7 +5,6 @@ import { rpc } from "@web/core/network/rpc";
 
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
-import { Deferred } from "@web/core/utils/concurrency";
 import { session } from "@web/session";
 import { canLoadLivechat } from "@im_livechat/embed/common/misc";
 
@@ -55,9 +54,8 @@ export class LivechatService {
      * @returns {Promise<import("models").Thread|undefined>}
      */
     async open(options = {}) {
-        const thread = await this._createThread({ persist: false, options});
-        await thread?.openChatWindow({ focus: true });
-        return thread;
+        const channel = await this._createChannel({ persist: false, options });
+        await channel?.openChatWindow({ focus: true });
     }
 
     /**
@@ -70,44 +68,38 @@ export class LivechatService {
         if (!thread.isTransient) {
             return thread;
         }
-        if (this._persistDeferred) {
-            return this._persistDeferred;
+        if (this._persistResolvers) {
+            return this._persistResolvers.promise;
         }
-        this._persistDeferred = new Deferred();
+        this._persistResolvers = Promise.withResolvers();
         try {
             const temporaryThread = thread;
-            const deleteTemporary = async () => {
-                await this.store.chatHub.initPromise;
-                await this.store.ChatWindow.get({ thread: temporaryThread })?.close({
-                    force: true,
-                });
-                temporaryThread?.delete();
-            };
-            const savedThread = await this._createThread({ originThread: thread, persist: true });
-            if (!savedThread) {
-                await deleteTemporary();
+            const savedChannel = await this._createChannel({ originThread: thread, persist: true });
+            if (!savedChannel) {
+                temporaryThread.channel.chatWindow?.close();
+                this._persistResolvers.resolve(savedChannel);
                 return;
             }
-            savedThread.fetchNewMessages();
+            savedChannel.fetchNewMessages();
             this.env.services["mail.store"].initialize();
-            savedThread.readyToSwapDeferred.then(async () => {
-                if (!savedThread?.exists()) {
+            savedChannel.readyToSwapDeferred.then(async () => {
+                if (!savedChannel?.exists()) {
                     return;
                 }
                 // Do not load unread messages: new messages were loaded to avoid
                 // flickering, we do not want another load that would result in the
                 // same issue.
-                savedThread.scrollUnread = false;
-                deleteTemporary();
-                savedThread.openChatWindow({ focus: true });
+                savedChannel.scrollUnread = false;
+                temporaryThread.channel?.chatWindow?.close();
+                savedChannel.openChatWindow({ focus: true });
             });
-            this._persistDeferred.resolve(savedThread);
-            return savedThread;
+            this._persistResolvers.resolve(savedChannel);
+            return savedChannel;
         } catch (error) {
-            this._persistDeferred.reject(error);
+            this._persistResolvers.reject(error);
             throw error;
         } finally {
-            this._persistDeferred = null;
+            this._persistResolvers = null;
         }
     }
 
@@ -125,13 +117,15 @@ export class LivechatService {
      * @param {import("models").Thread} [param0.originThread]
      * @returns {Promise<import("models").Thread>}
      */
-    async _createThread({ originThread, persist = false, options = {} }) {
+    async _createChannel({ originThread, persist = false, options = {} }) {
         const { store_data, channel_id } = await rpc(
             "/im_livechat/get_session",
             {
                 channel_id: options.channel_id ?? this.options.channel_id,
                 previous_operator_id: expirableStorage.getItem(OPERATOR_STORAGE_KEY),
-                chatbot_script_id: originThread?.chatbot?.script.id ?? this.store.livechat_rule?.chatbot_script_id?.id,
+                chatbot_script_id:
+                    originThread?.channel?.chatbot?.script.id ??
+                    this.store.livechat_rule?.chatbot_script_id?.id,
                 persisted: options.persist ?? persist,
                 ...this.getSessionExtraParams(originThread, options),
             },
@@ -142,14 +136,20 @@ export class LivechatService {
             return;
         }
         this.store.insert(store_data);
-        const thread = this.store.Thread.get({ id: channel_id, model: "discuss.channel" });
+        const channel = this.store["discuss.channel"].get(channel_id);
         const ONE_DAY_TTL = 60 * 60 * 24;
-        expirableStorage.setItem(
-            "im_livechat_previous_operator",
-            thread.livechat_operator_id.id,
-            ONE_DAY_TTL * 7
+        // The channel has just been created and only has one agent member
+        const agent = channel.livechat_channel_member_history_ids.find(
+            (member) => member.livechat_member_type === "agent"
         );
-        return thread;
+        if (agent?.partner_id) {
+            expirableStorage.setItem(
+                "im_livechat_previous_operator",
+                agent.partner_id.id,
+                ONE_DAY_TTL * 7
+            );
+        }
+        return channel;
     }
 
     getSessionExtraParams(thread, options) {

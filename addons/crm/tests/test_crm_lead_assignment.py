@@ -35,8 +35,8 @@ class TestLeadAssignCommon(TestLeadConvertCommon):
         with mute_logger('odoo.models.unlink'):
             cls.env['crm.lead'].with_context(active_test=False).search(['|', ('team_id', '=', False), ('user_id', 'in', cls.sales_teams.member_ids.ids)]).unlink()
         cls.bundle_size = 50
-        cls.env['ir.config_parameter'].set_param('crm.assignment.commit.bundle', '%s' % cls.bundle_size)
-        cls.env['ir.config_parameter'].set_param('crm.assignment.delay', '0')
+        cls.env['ir.config_parameter'].set_int('crm.assignment.commit.bundle', '%s' % cls.bundle_size)
+        cls.env['ir.config_parameter'].set_float('crm.assignment.delay', 0)
 
     def assertInitialData(self):
         self.assertEqual(self.sales_team_1.assignment_max, 75)
@@ -61,6 +61,7 @@ class TestLeadAssignCommon(TestLeadConvertCommon):
 
 
 @tagged('lead_assign')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadAssign(TestLeadAssignCommon):
     """ Test lead assignment feature added in saas-14.2 """
 
@@ -161,8 +162,8 @@ class TestLeadAssign(TestLeadAssignCommon):
         self.members.invalidate_model(['lead_month_count'])
         self.assertEqual(self.sales_team_1_m3.lead_month_count, 12)
 
-        # sales_team_1_m2 is opt-out (new field in 14.3) -> even with max, no lead assigned
-        self.sales_team_1_m2.update({'assignment_max': 45, 'assignment_optout': True})
+        # assignment_max = 0 means opt-out -> no leads should be assigned
+        self.sales_team_1_m2.update({'assignment_max': 0})
         self.sales_team_1_m3.update({'assignment_max': 45})
         with self.with_user('user_sales_manager'):
             teams_data, members_data = self.sales_team_1._action_assign_leads(force_quota=True)
@@ -461,6 +462,58 @@ class TestLeadAssign(TestLeadAssignCommon):
         self.assertMemberAssign(test_sales_team_m1, 5)
         self.assertMemberAssign(test_sales_team_m2, 3)
         self.assertMemberAssign(test_sales_team_m3, 3)
+
+    def test_assign_preferred_and_probability(self):
+        random.seed(1914)
+        preferred_tag = self.env['crm.tag'].create({'name': 'preferred'})
+        leads = self._create_leads_batch(
+            lead_type='lead',
+            user_ids=[False],
+            count=10,
+        )
+        for proba, lead in enumerate(leads[:5]):
+            lead.write({
+                'tag_ids': [(6, 0, preferred_tag.ids)],
+                'probability': proba,
+            })
+
+        for proba, lead in enumerate(leads[5:]):
+            lead.write({
+                'probability': proba,
+            })
+            proba += 1
+
+        leads.flush_recordset()
+
+        test_sales_team = self.env['crm.team'].create({
+            'name': 'Sales Team 5',
+            'sequence': 15,
+            'alias_name': False,
+            'use_leads': True,
+            'use_opportunities': True,
+            'company_id': False,
+            'user_id': False,
+        })
+        test_sales_team_m1 = self.env['crm.team.member'].create({
+            'user_id': self.user_sales_manager.id,
+            'crm_team_id': test_sales_team.id,
+            'assignment_max': 180,
+            'assignment_domain': False,
+            'assignment_domain_preferred': "[('tag_ids', 'in', %s)]" % preferred_tag.ids,
+        })
+
+        test_sales_team._action_assign_leads()
+
+        member_leads = self.env['crm.lead'].search([
+            ('user_id', '=', test_sales_team_m1.user_id.id),
+            ('team_id', '=', test_sales_team_m1.crm_team_id.id),
+            ('date_open', '>=', Datetime.now() - timedelta(hours=24)),
+        ])
+        self.assertEqual(
+                len(member_leads.filtered_domain(literal_eval(test_sales_team_m1.assignment_domain_preferred))),
+                3
+            )
+        self.assertMemberAssign(test_sales_team_m1, 6)
 
     def test_assign_quota(self):
         """ Test quota computation """

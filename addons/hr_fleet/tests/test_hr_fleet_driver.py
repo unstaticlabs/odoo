@@ -1,8 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import common
+from odoo.tests import tagged, common
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHrFleetDriver(common.TransactionCase):
 
     @classmethod
@@ -31,13 +32,13 @@ class TestHrFleetDriver(common.TransactionCase):
         cls.car = cls.env["fleet.vehicle"].create({
             "model_id": cls.model.id,
             "future_driver_id": cls.test_employee.work_contact_id.id,
-            "plan_to_change_car": False,
+            "plan_to_change_vehicle": False,
             "fuel_type": "diesel"
         })
 
         cls.car2 = cls.env["fleet.vehicle"].create({
             "model_id": cls.model.id,
-            "plan_to_change_car": False,
+            "plan_to_change_vehicle": False,
             "fuel_type": "diesel"
         })
 

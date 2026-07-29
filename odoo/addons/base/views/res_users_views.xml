@@ -12,7 +12,7 @@
                     </group>
                     <footer>
                         <button string="Change Password" name="change_password" type="object" class="btn-primary" data-hotkey="q"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x" />
+                        <button class="btn-secondary" special="cancel" data-hotkey="x"/>
                     </footer>
                 </form>
             </field>
@@ -27,7 +27,7 @@
                     <field mode="list" name="user_ids"/>
                     <footer>
                         <button string="Change Password" name="change_password_button" type="object" class="btn-primary" data-hotkey="q"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x" />
+                        <button class="btn-secondary" special="cancel" data-hotkey="x"/>
                     </footer>
                 </form>
             </field>
@@ -49,7 +49,6 @@
             <field name="res_model">change.password.wizard</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
-            <field name="binding_model_id" ref="base.model_res_users"/>
         </record>
 
         <!-- res.users -->
@@ -60,26 +59,30 @@
             <field name="arch" type="xml">
                 <form string="Users">
                     <sheet>
-                        <div class="d-flex gap-3">
-                            <field name="image_1920" widget="contact_image" options="{'preview_image': 'avatar_128', 'zoom': true, 'size': [130,130], 'img_class': 'rounded-4'}"/>
-                            <field name="avatar_128" invisible="1"/> <!-- Needed in contact_image widget -->
-                            <div class="d-flex flex-column flex-grow-1 justify-content-center">
-                                <h1 class="mb-0 w-100">
-                                    <field name="name" placeholder="e.g. John Doe" required="1"/>
-                                </h1>
-                                <div class="d-flex align-items-baseline w-100">
-                                    <field name="email" invisible="1"/> <!-- needed to update partner's email from on_change_login() -->
-                                    <i class="fa fa-fw me-1 fa-envelope text-primary" title="Email"/>
-                                    <field name="email_domain_placeholder" invisible="1" /> <!-- needed to compute the placeholder whenever the dialog opens -->
-                                    <field name="login" class="w-100" options="{'placeholder_field': 'email_domain_placeholder'}"/>
-                                </div>
-                                <div class="d-flex align-items-baseline w-100">
-                                    <i class="fa fa-fw me-1 fa-phone text-primary" title="Phone"/>
-                                    <field name="phone" class="w-100" widget="phone" placeholder="Phone"/>
-                                </div>
-                                <div class="d-flex align-items-baseline w-100" groups="base.group_multi_company">
-                                    <i class="fa fa-fw me-1 fa-building text-primary" title="Company"/>
-                                    <field name="company_id" class="w-100" context="{'user_preference': 0}" placeholder="Company"/>
+                        <div class="d-flex gap-3 flex-column flex-sm-row mb-3">
+                            <div class="text-center">
+                                <field name="image_1920" widget="contact_image" options="{'preview_image': 'avatar_128', 'zoom': true, 'size': [130,130], 'img_class': 'rounded-4'}"/>
+                                <field name="avatar_128" invisible="1"/> <!-- Needed in contact_image widget -->
+                            </div>
+                            <div class="flex-fill d-flex">
+                                <div class="d-flex flex-column flex-grow-1 justify-content-center">
+                                    <h1 class="d-flex align-items-baseline w-100">
+                                        <field name="name" class="w-100" placeholder="e.g. John Doe" required="1"/>
+                                    </h1>
+                                    <div class="d-flex align-items-baseline w-100">
+                                        <field name="email" invisible="1"/> <!-- needed to update partner's email from on_change_login() -->
+                                        <i class="fa fa-fw me-1 fa-envelope text-primary" title="Email"/>
+                                        <field name="email_domain_placeholder" invisible="1" /> <!-- needed to compute the placeholder whenever the dialog opens -->
+                                        <field name="login" class="w-100" options="{'placeholder_field': 'email_domain_placeholder'}"/>
+                                    </div>
+                                    <div class="d-flex align-items-baseline w-100">
+                                        <i class="fa fa-fw me-1 fa-phone text-primary" title="Phone"/>
+                                        <field name="phone" class="w-100" widget="phone" placeholder="Phone"/>
+                                    </div>
+                                    <div class="d-flex align-items-baseline w-100" groups="base.group_multi_company">
+                                        <i class="fa fa-fw me-1 fa-building text-primary" title="Company"/>
+                                        <field name="company_id" class="w-100" context="{'user_preference': 0}" placeholder="Company"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -132,15 +135,14 @@
                                 <h1 class="mb-0 w-sm-75">
                                     <field name="name" placeholder="e.g. John Doe" required="1"/>
                                 </h1>
-                                <h5 name="h5_email" class="d-flex flex-wrap align-items-baseline mb-0">
-                                    <div class="w-100">
-                                        <i class="fa fa-fw fa-envelope me-1 text-primary" title="Login / Email" invisible="login != email"/>
-                                        <i class="fa fa-fw fa-key me-1 text-primary" title="Login" invisible="login == email"/>
-                                        <field name="login" placeholder="Login" class="w-75"/>
-                                    </div>
-
-                                    <i class="fa fa-fw fa-envelope me-1 text-primary" title="Email" invisible="login == email"/>
-                                    <field name="email" placeholder="Email" class="w-75"  invisible="login == email"/>
+                                <h5 name="h5_login" class="d-flex align-items-baseline mb-0">
+                                    <i class="fa fa-fw fa-envelope me-1 text-primary" title="Login / Email" invisible="login != email"/>
+                                    <i class="fa fa-fw fa-key me-1 text-primary" title="Login" invisible="login == email"/>
+                                    <field name="login" placeholder="Login" class="w-75"/>
+                                </h5>
+                                <h5 name="h5_email" class="d-flex align-items-baseline mb-0" invisible="login == email">
+                                    <i class="fa fa-fw fa-envelope me-1 text-primary" title="Email"/>
+                                    <field name="email" placeholder="Email" class="w-75"/>
                                 </h5>
                                 <h5 name="h5_phone" class="d-flex align-items-baseline mb-0">
                                     <i class="fa fa-fw fa-phone me-1 text-primary" title="Phone"/>
@@ -158,7 +160,7 @@
                             <page name="access_rights" string="Access Rights">
                                 <group string="Roles" invisible="share and companies_count &lt;= 1">
                                     <field name="role" invisible="share" widget="radio" options="{'horizontal': true}"/>
-                                    <field string="Companies" name="company_ids" invisible="companies_count &lt;= 1" widget="many2many_tags" options="{'no_create': True, 'color_field': 'color'}"/>
+                                    <field string="Companies" name="company_ids" invisible="companies_count &lt;= 1" widget="many2many_tags" options="{'no_create': True, 'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                                     <field string="Default Company" name="company_id" invisible="companies_count &lt;= 1" context="{'user_preference': 0}"/>
                                 </group>
                                 <field name="group_ids" widget="res_user_group_ids" nolabel="1" colspan="2" groups="base.group_no_one"/>
@@ -231,7 +233,7 @@
                                         </span>
                                     </div>
                                     <div class="w-md-50 w-lg-75 d-flex flex-column my-auto">
-                                        <field name="device_ids" mode="kanban" class="w-sm-75 w-md-100 w-lg-75 w-xl-50 o_base_devices_kanban_view"/>
+                                        <field name="session_ids" mode="kanban" class="w-sm-75 w-md-100 w-lg-75 w-xl-50 o_base_devices_kanban_view"/>
                                         <div>
                                             <button name="action_revoke_all_devices" type="object" string="Log out from all devices" class="btn btn-secondary h-100"/>
                                         </div>
@@ -366,7 +368,7 @@
                     </p>
                     <footer>
                         <button name="make_key" type="object" string="Generate key" class="btn-primary" data-hotkey="q"/>
-                        <button special="cancel" data-hotkey="x" string="Cancel" class="btn-secondary"/>
+                        <button special="cancel" data-hotkey="x" class="btn-secondary"/>
                     </footer>
                     </sheet>
                 </form>
@@ -494,7 +496,7 @@
                                         </span>
                                     </div>
                                     <div class="w-lg-75 d-flex flex-column my-auto">
-                                        <field name="device_ids" mode="kanban" class="w-lg-75 o_base_devices_kanban_view"/>
+                                        <field name="session_ids" mode="kanban" class="w-lg-75 o_base_devices_kanban_view"/>
                                         <div>
                                             <button name="action_revoke_all_devices" type="object" string="Log out from all devices" class="btn btn-secondary h-100"/>
                                         </div>
@@ -504,7 +506,7 @@
                         </notebook>
                         <footer>
                             <button name="preference_save" type="object" string="Update Preferences" class="btn-primary" data-hotkey="q"/>
-                            <button name="preference_cancel" string="Discard" special="cancel" data-hotkey="x" class="btn-secondary"/>
+                            <button name="preference_cancel" special="cancel" data-hotkey="x" class="btn-secondary"/>
                         </footer>
                     </sheet>
                 </form>

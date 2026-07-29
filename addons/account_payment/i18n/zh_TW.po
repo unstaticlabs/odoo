@@ -1,19 +1,21 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* account_payment
+# * account_payment
 #
 # Translators:
 # Wil Odoo, 2025
 #
+# "Tony Ng (ngto)" <ngto@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:20+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:58+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
-"projects/odoo-19/account_payment/zh_Hant/>\n"
+"projects/odoo-s19-2/account_payment/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -119,8 +121,8 @@ msgid ""
 msgstr ""
 "<strong>警告！</strong>這筆付款尚有退款正待處理。\n"
 "                        請稍等，讓系統先完成處理退款。\n"
-"                        若幾分鐘後，退款仍在處理中，請檢查付款服務商相關設置"
-"。"
+"                        若幾分鐘後，退款仍在處理中，請檢查付款服務商相關設"
+"置。"
 
 #. module: account_payment
 #. odoo-python
@@ -148,6 +150,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "建立新的支付交易需要一個代碼(token)。"
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -162,6 +169,11 @@ msgstr "可退款金額"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "到期金額"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -184,8 +196,9 @@ msgstr "已授權的交易"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "銀行結單資料行"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -348,7 +361,7 @@ msgid "Invoices Count"
 msgstr "無效憑單數量"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "待付款發票"
 
@@ -394,13 +407,21 @@ msgstr "請注意，只限允許收取金額的服務商提供的代碼才可用
 msgid ""
 "Note that tokens from providers set to only authorize transactions (instead "
 "of capturing the amount) are not available."
-msgstr "請注意，服務商若設為只可授權交易（而非收取金額），其提供的代碼便不可用。"
+msgstr ""
+"請注意，服務商若設為只可授權交易（而非收取金額），其提供的代碼便不可用。"
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
 msgid "Online payment option is not enabled in Configuration."
 msgstr "配置中的網上付款選項未啟用。"
+
+#. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
 
 #. module: account_payment
 #. odoo-python
@@ -458,6 +479,7 @@ msgid "Pay overdue"
 msgstr "支付逾期款項"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -475,7 +497,17 @@ msgstr "付款日記帳"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "付款方法"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "付款方式明細"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "付款方式"
@@ -515,15 +547,15 @@ msgid "Payment Transactions"
 msgstr "付款交易"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "付款"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "請登入，以支付逾期發票款項"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+msgid "Pricelists"
+msgstr "價格表"
 
 #. module: account_payment
 #. odoo-python
@@ -765,32 +797,17 @@ msgid "has been applied."
 msgstr "已套用。"
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "逾期"
 
-#~ msgid "Code"
-#~ msgstr "程式碼"
-
-#~ msgid "Activate Stripe"
-#~ msgstr "啟用 Stripe"
-
-#~ msgid "Enable credit & debit card payments supported by Stripe."
-#~ msgstr "啟用以 Stripe 支援的信用卡及扣賬卡付款。"
-
-#~ msgid "Onboarding Online Payments"
-#~ msgstr "網上付款新手簡介"
-
-#~ msgid "Onboarding Step"
-#~ msgstr "新手簡介步驟"
-
-#~ msgid "Online Payments"
-#~ msgstr "網上付款"
-
-#~ msgid "Step Completed!"
-#~ msgstr "步驟已完成!"
-
-#~ msgid ""
-#~ "The payment related to the transaction with reference %(ref)s has been "
-#~ "posted: %(link)s"
-#~ msgstr "參考編號 %(ref)s 的交易，相關付款已過賬： %(link)s"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

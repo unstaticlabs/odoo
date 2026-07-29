@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * pos_self_order
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 13:39+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
+"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_self_order/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_self_order
 #: model:ir.actions.report,print_report_name:pos_self_order.report_self_order_qr_codes_page
@@ -78,6 +78,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -108,6 +112,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -150,7 +158,13 @@ msgstr "Lägg till bilder"
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Add to cart"
-msgstr "Lägg i varukorg"
+msgstr "Lägg i varukorgen"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Afternoon"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -223,7 +237,8 @@ msgstr "Bakgrund"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Cancel"
 msgstr "Avbryt"
@@ -280,12 +295,6 @@ msgstr "Välj när kunden ska betala"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Choose your time"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "City"
 msgstr "Stad"
 
@@ -293,7 +302,7 @@ msgstr "Stad"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/category_list_popup/category_list_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
-#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_propup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Close"
 msgstr "Stäng"
@@ -304,6 +313,13 @@ msgid "Close Session"
 msgstr "Stäng Sessionen"
 
 #. module: pos_self_order
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_config__self_ordering_primary_color
+#: model:ir.model.fields,field_description:pos_self_order.field_res_config_settings__pos_self_ordering_primary_color
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "Color"
+msgstr ""
+
+#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
@@ -312,13 +328,19 @@ msgstr "Kombination"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__combo_id
-msgid "Combo reference"
-msgstr "Referens för kombination"
+msgid "Combo Reference"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_config_settings
 msgid "Config Settings"
 msgstr "Inställningar"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+msgid "Confirm"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -339,18 +361,6 @@ msgstr "Kontakt"
 #: code:addons/pos_self_order/static/src/app/components/timeout_popup/timeout_popup.xml:0
 msgid "Continue"
 msgstr "Fortsätt"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Continue with table"
-msgstr "Fortsätt med tabellen"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Could you please confirm your table number?"
-msgstr "Kan du bekräfta ditt bordsnummer?"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_country
@@ -427,9 +437,8 @@ msgid "Default language for the kiosk mode"
 msgstr "Standardspråk för kioskläget"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__delivery
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Delivery"
 msgstr "Leverans"
 
@@ -441,11 +450,12 @@ msgstr ""
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_config__self_ordering_mode__nothing
 msgid "Disable"
-msgstr "Avaktivera"
+msgstr "Inaktivera"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/language_popup/language_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Discard"
@@ -459,8 +469,10 @@ msgstr "Avbryt"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__display_name
@@ -490,6 +502,12 @@ msgstr "Ladda ner QR-koder"
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Download your receipt here"
 msgstr "Ladda ner ditt kvitto här"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
+msgid "E.g: Don't use food color, Extra spicy"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-python
@@ -528,8 +546,8 @@ msgstr "E-postverifiering"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_mail_template
-msgid "Email Templates"
-msgstr "E-postmallar"
+msgid "Email Template"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -554,6 +572,12 @@ msgstr "Ange ditt anpassade värde"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/stand_number_page/stand_number_page.xml:0
 msgid "Enter your tracker number"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Evening"
 msgstr ""
 
 #. module: pos_self_order
@@ -583,6 +607,12 @@ msgid "Free Metal / Wood Stands"
 msgstr ""
 
 #. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Full Day"
+msgstr ""
+
+#. module: pos_self_order
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Generic"
@@ -604,7 +634,7 @@ msgstr ""
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP-routing"
+msgstr "HTTP-rutt"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_config__has_paper
@@ -650,8 +680,10 @@ msgstr "Hur man använder"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__id
@@ -703,7 +735,8 @@ msgstr "Bild som ska visas på skärmen för självbeställning"
 #: code:addons/pos_self_order/models/res_config_settings.py:0
 msgid ""
 "In Self-Order mode, you must have at least one table to generate QR codes"
-msgstr "I Self-Order-läget måste du ha minst ett bord för att generera QR-koder"
+msgstr ""
+"I Self-Order-läget måste du ha minst ett bord för att generera QR-koder"
 
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_config__status__inactive
@@ -713,7 +746,7 @@ msgstr "Inaktiv"
 #. module: pos_self_order
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__info
 msgid "Info"
-msgstr "Info"
+msgstr "Information"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -756,8 +789,8 @@ msgstr "Kiosk"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Kiosk T"
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Kiosk Order"
 msgstr ""
 
 #. module: pos_self_order
@@ -795,11 +828,6 @@ msgstr "Låt dina kunder beställa via mobilen eller en kiosk."
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__light
 msgid "Light"
 msgstr "Ljus"
-
-#. module: pos_self_order
-#: model:ir.model.fields,field_description:pos_self_order.field_pos_category__pos_config_ids
-msgid "Linked PoS Configurations"
-msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -850,6 +878,12 @@ msgstr "Mobil självbetjäning & Kiosk"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Morning"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/landing_page/landing_page.xml:0
 msgid "My Order"
 msgstr "Min beställning"
@@ -860,18 +894,6 @@ msgstr "Min beställning"
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
 msgid "My Orders"
 msgstr "Mina beställningar"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NEW"
-msgstr "NY"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NOTE"
-msgstr "NOT"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -964,7 +986,6 @@ msgstr "Open Kiosk"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/stand_number_page/stand_number_page.js:0
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
 msgid "Order"
 msgstr "Order"
 
@@ -973,6 +994,12 @@ msgstr "Order"
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Order Now"
 msgstr "Beställ Nu"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "Order for"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1019,7 +1046,7 @@ msgstr "Betala efter"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
-msgid "Personalize the Kiosk background"
+msgid "Personalize the Interface"
 msgstr ""
 
 #. module: pos_self_order
@@ -1038,8 +1065,7 @@ msgid "Phone"
 msgstr "Telefon"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Pickup At Counter"
 msgstr "Upphämtning vid disk"
 
@@ -1048,6 +1074,18 @@ msgstr "Upphämtning vid disk"
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__counter
 msgid "Pickup zone"
 msgstr "Upphämtningszon"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a table for your order."
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a time slot for your order."
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_load_mixin
@@ -1065,19 +1103,29 @@ msgid "Point of Sale Configuration"
 msgstr "Kassakonfigurering"
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassa Orderlinjer"
+#: model:ir.model,name:pos_self_order.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassaorder"
+#: model:ir.model,name:pos_self_order.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Kassa Betalningsmetoder"
+msgid "Point of Sale Payment Method"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_product_template_snooze
+msgid "Point of Sale Product Snooze"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_session
@@ -1097,7 +1145,7 @@ msgstr "Försäljningsställen"
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__link_html
 msgid "Preview"
-msgstr "Förhandsvisning"
+msgstr "Förhandsgranskning"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -1243,18 +1291,13 @@ msgstr ""
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Select"
-msgstr "Välj"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "Select a country"
 msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a hour"
 msgstr ""
 
@@ -1266,7 +1309,7 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a table"
 msgstr "Välj ett bord"
 
@@ -1288,8 +1331,10 @@ msgid "Selection"
 msgstr "Urval"
 
 #. module: pos_self_order
+#. odoo-javascript
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
 msgid "Self Order"
 msgstr ""
 
@@ -1351,12 +1396,6 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Self-Order T"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Self-Order T %s"
 msgstr ""
@@ -1370,7 +1409,7 @@ msgstr "Självbeställning:"
 #. module: pos_self_order
 #: model:mail.template,description:pos_self_order.delivery_email_template
 #: model:mail.template,description:pos_self_order.takeout_email_template
-msgid "Sent to customers"
+msgid "Sent to customers with the receipt in attachment"
 msgstr ""
 
 #. module: pos_self_order
@@ -1385,8 +1424,7 @@ msgid "Service at"
 msgstr "Service på"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Service at Table"
 msgstr "Service vid bordet"
 
@@ -1446,19 +1484,18 @@ msgstr "Bordsstativ nummer"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Table Tracker %s"
+msgstr ""
+
+#. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Table Tracker:"
 msgstr "Tabell Tracker:"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__self_ordering_table_id
 msgid "Table reference"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Table selection"
 msgstr ""
 
 #. module: pos_self_order
@@ -1485,7 +1522,6 @@ msgstr "Moms:"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
 msgid "Thanks a lot!"
 msgstr "Tack så mycket!"
@@ -1517,6 +1553,25 @@ msgstr "Kombinationen existerar inte."
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Today"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Tommorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+msgid "Tomorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.xml:0
 msgid "Total"
 msgstr "Totalt"
@@ -1537,12 +1592,6 @@ msgstr "URL"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid "URL:"
 msgstr "URL:"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/pages/product_list_page/product_list_page.xml:0
-msgid "Unavailable"
-msgstr "Ej tillgänglig"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1635,13 +1684,6 @@ msgid "You are not authorized to remove this order"
 msgstr ""
 
 #. module: pos_self_order
-#. odoo-python
-#: code:addons/pos_self_order/models/pos_config.py:0
-#: code:addons/pos_self_order/models/res_config_settings.py:0
-msgid "You cannot add cash payment methods in kiosk mode."
-msgstr "Du kan inte lägga till kontantbetalningsmetoder i kioskläget."
-
-#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/services/self_order_service.js:0
 msgid "You're not authorized to perform this action"
@@ -1702,6 +1744,12 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "by cash"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "close"
 msgstr "stäng"
@@ -1758,23 +1806,8 @@ msgstr ""
 msgid "x"
 msgstr ""
 
+#~ msgid "You cannot add cash payment methods in kiosk mode."
+#~ msgstr "Du kan inte lägga till kontantbetalningsmetoder i kioskläget."
+
 #~ msgid "Choose your"
 #~ msgstr "Välj din"
-
-#~ msgid "/ Tracker number:"
-#~ msgstr "/ Tracker nummer:"
-
-#~ msgid "Connection lost, please try again later"
-#~ msgstr "Förbindelsen bröts, försök igen senare"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "Finansiell ställning"
-
-#~ msgid "Self Ordering Enabled"
-#~ msgstr "Självbeställning aktiverad"
-
-#~ msgid "Your order has been cancelled"
-#~ msgstr "Din beställning har annullerats"
-
-#~ msgid "Your order status has been changed"
-#~ msgstr "Din orderstatus har ändrats"

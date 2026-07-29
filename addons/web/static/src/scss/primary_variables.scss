@@ -161,6 +161,7 @@ $o-btn-custom: (
 
 
 // Forms
+$o-form-check-input-border-color: $o-gray-300 !default;
 
 // o-inputs
 $o-input-padding-y: 2px !default;
@@ -183,7 +184,10 @@ $o-statbutton-height: 44px !default;
 $o-statbutton-spacing: 6px !default;
 
 $o-modal-lg: 980px !default;
-$o-modal-md: 650px !default;
+$o-modal-md: 620px !default;
+$o-modal-sm: 460px !default;
+
+$o-modal-animation-duration: .4s !default;
 
 // Needed for having no spacing between sheet and mail body in mass_mailing:
 // Different required cancel paddings between web and web_enterprise

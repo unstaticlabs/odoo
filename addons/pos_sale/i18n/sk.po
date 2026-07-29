@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * pos_sale
+# 	* pos_sale
 #
 # Translators:
 # Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
@@ -9,23 +9,21 @@
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
 # Jan Prokop, 2022
 # Martin Trigaux, 2022
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 20:23+0000\n"
-"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/pos_sale/"
-"sk/>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Martin Trigaux, 2022\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: pos_sale
 #. odoo-python
@@ -48,6 +46,11 @@ msgstr ""
 #. module: pos_sale
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "<span style=\"margin: 0px 5px;\">:</span>"
+msgstr ""
+
+#. module: pos_sale
+#: model_terms:ir.ui.view,arch_db:pos_sale.pos_orderline_receipt_information
+msgid "<strong>Sale Order: </strong>"
 msgstr ""
 
 #. module: pos_sale
@@ -109,12 +112,19 @@ msgid "Delivery Quantity"
 msgstr ""
 
 #. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid "Discard"
+msgstr ""
+
+#. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_crm_team__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__display_name
@@ -181,6 +191,7 @@ msgstr "Od"
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__id
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__id
@@ -203,6 +214,14 @@ msgstr "Fakturované"
 msgid ""
 "It seems that you didn't configure a down payment product in your point of "
 "sale. You can go to your point of sale configuration to choose one."
+msgstr ""
+
+#. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid ""
+"It seems that you didn't configure a down payment product in your point of "
+"sale. You can go to your point of sale settings to choose one."
 msgstr ""
 
 #. module: pos_sale
@@ -270,14 +289,19 @@ msgid "Point of Sale Configuration"
 msgstr "Konfigurácia miesta predaja"
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Riadky objednávky miesta predaja"
+#: model:ir.model,name:pos_sale.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Objednávky miesta predaja"
+#: model:ir.model,name:pos_sale.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_sale
+#: model:ir.model,name:pos_sale.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_pos_session
@@ -340,7 +364,7 @@ msgstr "Report analýzy predaja"
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_sale_order
 msgid "Sales Order"
-msgstr "Predajná objednávka"
+msgstr "Objednávka "
 
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_sale_order_line
@@ -457,57 +481,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "x"
 msgstr ""
-
-#~ msgid "Back"
-#~ msgstr "Späť"
-
-#~ msgid "Cancelled"
-#~ msgstr "Zrušené"
-
-#~ msgid "Customer"
-#~ msgstr "Zákazník"
-
-#~ msgid "Date"
-#~ msgstr "Dátum"
-
-#~ msgid "Locked"
-#~ msgstr "Uzamknuté"
-
-#~ msgid "New"
-#~ msgstr "Nové"
-
-#~ msgid "No"
-#~ msgstr "Nie"
-
-#~ msgid "Open POS Sessions"
-#~ msgstr "Otvorte POS relácie"
-
-#~ msgid "Quotation"
-#~ msgstr "Cenová ponuka"
-
-#~ msgid "Quotation Sent"
-#~ msgstr "Cenová ponuka poslaná"
-
-#~ msgid "Salesman"
-#~ msgstr "Obchodník"
-
-#~ msgid "Salesperson"
-#~ msgstr "Obchodník"
-
-#~ msgid "Session Running"
-#~ msgstr "Spustená relácia"
-
-#~ msgid "Session Sale Amount"
-#~ msgstr "Suma predaja za reláciu"
-
-#~ msgid "Sessions Running"
-#~ msgstr "Spustené relácie"
-
-#~ msgid "State"
-#~ msgstr "Štát"
-
-#~ msgid "Total"
-#~ msgstr "Celkom"
-
-#~ msgid "Yes"
-#~ msgstr "Áno"

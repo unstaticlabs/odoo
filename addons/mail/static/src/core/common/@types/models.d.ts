@@ -14,6 +14,9 @@ declare module "models" {
     import { MailActivityType as MailActivityTypeClass } from "@mail/core/common/mail_activity_type_model";
     import { MailGuest as MailGuestClass } from "@mail/core/common/mail_guest_model";
     import { MailMessageSubtype as MailMessageSubtypeClass } from "@mail/core/common/mail_message_subtype_model";
+    import { MailPollModel as MailPollModelClass } from "@mail/core/common/mail_poll_model";
+    import { MailPollOptionModel as MailPollOptionModelClass } from "@mail/core/common/mail_poll_option_model";
+    import { MailPollVote as MailPollVoteClass } from "@mail/core/common/mail_poll_vote_model";
     import { MailTemplate as MailTemplateClass } from "@mail/core/common/mail_template_model";
     import { Message as MessageClass } from "@mail/core/common/message_model";
     import { MessageLinkPreview as MessageLinkPreviewClass } from "@mail/core/common/message_link_preview_model";
@@ -27,6 +30,7 @@ declare module "models" {
     import { ResRole as ResRoleClass } from "@mail/core/common/res_role_model";
     import { ResUsers as ResUsersClass } from "@mail/core/common/res_users_model";
     import { Settings as SettingsClass } from "@mail/core/common/settings_model";
+    import { Store as StoreClass } from "@mail/core/common/store_service";
     import { Thread as ThreadClass } from "@mail/core/common/thread_model";
     import { Volume as VolumeClass } from "@mail/core/common/volume_model";
 
@@ -45,6 +49,9 @@ declare module "models" {
     export interface MailActivityType extends MailActivityTypeClass {}
     export interface MailGuest extends MailGuestClass {}
     export interface MailMessageSubtype extends MailMessageSubtypeClass {}
+    export interface MailPollModel extends MailPollModelClass {}
+    export interface MailPollOptionModel extends MailPollOptionModelClass {}
+    export interface MailPollVote extends MailPollVoteClass {}
     export interface MailTemplate extends MailTemplateClass {}
     export interface Message extends MessageClass {}
     export interface MessageLinkPreview extends MessageLinkPreviewClass {}
@@ -56,10 +63,17 @@ declare module "models" {
     export interface ResLang extends ResLangClass {}
     export interface ResPartner extends ResPartnerClass {}
     export interface ResRole extends ResRoleClass {}
-    export interface ResUsers extends ResUsersClass {}
+    export interface ResUsers extends ResUsersClass, ResPartner {}
     export interface Settings extends SettingsClass {}
+    export interface Store extends StoreClass {}
     export interface Thread extends ThreadClass {}
     export interface Volume extends VolumeClass {}
+
+    type StaticMailRecord<ClassInterface, JSClassType> = Omit<JSClassType, "get" | "insert" | "records"> & {
+        get: (data: any) => ClassInterface;
+        insert: <D extends object | object[]>(data: D, options?: object) => D extends object[] ? ClassInterface[] : ClassInterface;
+        records: { [localId: string]: ClassInterface };
+    };
 
     export interface Store {
         ChatHub: StaticMailRecord<ChatHub, typeof ChatHubClass>;
@@ -79,7 +93,11 @@ declare module "models" {
         "mail.message.link.preview": StaticMailRecord<MessageLinkPreview, typeof MessageLinkPreviewClass>;
         "mail.message.subtype": StaticMailRecord<MailMessageSubtype, typeof MailMessageSubtypeClass>;
         "mail.notification": StaticMailRecord<Notification, typeof NotificationClass>;
+        "mail.poll": StaticMailRecord<MailPollModel, typeof MailPollModelClass>;
+        "mail.poll.option": StaticMailRecord<MailPollOptionModel, typeof MailPollOptionModelClass>;
+        "mail.poll.vote": StaticMailRecord<MailPollVote, typeof MailPollVoteClass>;
         "mail.template": StaticMailRecord<MailTemplate, typeof MailTemplateClass>;
+        "mail.thread": StaticMailRecord<Thread, typeof ThreadClass>;
         MessageReactions: StaticMailRecord<MessageReactions, typeof MessageReactionsClass>;
         "res.company": StaticMailRecord<ResCompany, typeof ResCompanyClass>;
         "res.country": StaticMailRecord<Country, typeof CountryClass>;
@@ -90,7 +108,7 @@ declare module "models" {
         "res.role": StaticMailRecord<ResRole, typeof ResRoleClass>;
         "res.users": StaticMailRecord<ResUsers, typeof ResUsersClass>;
         Settings: StaticMailRecord<Settings, typeof SettingsClass>;
-        Thread: StaticMailRecord<Thread, typeof ThreadClass>;
+        Store: StaticMailRecord<Store, typeof StoreClass>;
         Volume: StaticMailRecord<Volume, typeof VolumeClass>;
     }
 
@@ -112,7 +130,11 @@ declare module "models" {
         "mail.message.link.preview": MessageLinkPreview;
         "mail.message.subtype": MailMessageSubtype;
         "mail.notification": Notification;
+        "mail.poll": MailPollModel;
+        "mail.poll.option": MailPollOptionModel;
+        "mail.poll.vote": MailPollVote;
         "mail.template": MailTemplate;
+        "mail.thread": Thread;
         MessageReactions: MessageReactions;
         "res.company": ResCompany;
         "res.country": Country;
@@ -123,7 +145,7 @@ declare module "models" {
         "res.role": ResRole;
         "res.users": ResUsers;
         Settings: Settings;
-        Thread: Thread;
+        Store: Store;
         Volume: Volume;
     }
 }

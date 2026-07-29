@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import pytz
-from datetime import datetime
+from datetime import datetime, UTC
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from odoo import fields
 from odoo.tests import Form, new_test_user
@@ -10,6 +10,7 @@ from odoo.tests.common import tagged, TransactionCase, freeze_time
 
 
 @tagged('attendance_process')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHrAttendance(TransactionCase):
     """Test for presence validity"""
 
@@ -83,16 +84,17 @@ class TestHrAttendance(TransactionCase):
 
         grouped_employee_ids = [g['employee_id'][0] for g in groups]
 
-        # Check that both employees appears
-        self.assertIn(self.test_employee.id, grouped_employee_ids)
+        # Result should still be the same - test_employee is only added in
+        # overridden get_gantt_data()
+        self.assertNotIn(self.test_employee.id, grouped_employee_ids)
         self.assertIn(self.employee_kiosk.id, grouped_employee_ids)
 
     def test_hours_today(self):
         """ Test day start is correctly computed according to the employee's timezone """
 
         def tz_datetime(year, month, day, hour, minute):
-            tz = pytz.timezone('Europe/Brussels')
-            return tz.localize(datetime(year, month, day, hour, minute)).astimezone(pytz.utc).replace(tzinfo=None)
+            tz = ZoneInfo('Europe/Brussels')
+            return datetime(year, month, day, hour, minute).replace(tzinfo=tz).astimezone(UTC).replace(tzinfo=None)
 
         employee = self.env['hr.employee'].create({'name': 'Cunégonde', 'tz': 'Europe/Brussels'})
         self.env['hr.attendance'].create({
@@ -106,7 +108,7 @@ class TestHrAttendance(TransactionCase):
         })
 
         # now = 2019/3/2 14:00 in the employee's timezone
-        with patch.object(fields.Datetime, 'now', lambda: tz_datetime(2019, 3, 2, 14, 0).astimezone(pytz.utc).replace(tzinfo=None)):
+        with patch.object(fields.Datetime, 'now', lambda: tz_datetime(2019, 3, 2, 14, 0).astimezone(UTC).replace(tzinfo=None)):
             self.assertEqual(employee.hours_today, 5, "It should have counted 5 hours")
 
     def test_remove_check_in_value_from_attendance(self):
@@ -123,7 +125,7 @@ class TestHrAttendance(TransactionCase):
             'employee_id': self.test_employee.id,
         })
 
-        with freeze_time("2024-01-01 17:00:00"):
+        with freeze_time("2024-01-01 16:00:00"):
             self.test_employee.action_archive()
             self.assertEqual(test_attendance.check_out, fields.Datetime.now())
             self.assertEqual(test_attendance.worked_hours, 8.0)

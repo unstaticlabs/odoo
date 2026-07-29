@@ -1,7 +1,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_interface";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
-import { register_payment_method } from "@point_of_sale/app/services/pos_store";
+import { registry } from "@web/core/registry";
 
 export class PaymentMercadoPago extends PaymentInterface {
     async createPaymentIntent() {
@@ -17,46 +17,52 @@ export class PaymentMercadoPago extends PaymentInterface {
             },
         };
         // mp_payment_intent_create will call the Mercado Pago api
-        return await this.env.services.orm.silent.call(
-            "pos.payment.method",
-            "mp_payment_intent_create",
-            [[line.payment_method_id.id], infos]
-        );
+        return await this.callPaymentMethod("mp_payment_intent_create", [
+            [line.payment_method_id.id],
+            infos,
+        ]);
     }
     async getLastStatusPaymentIntent() {
         const line = this.pos.getOrder().getSelectedPaymentline();
         // mp_payment_intent_get will call the Mercado Pago api
-        return await this.env.services.orm.silent.call(
-            "pos.payment.method",
-            "mp_payment_intent_get",
-            [[line.payment_method_id.id], this.payment_intent.id]
-        );
+        return await this.callPaymentMethod("mp_payment_intent_get", [
+            [line.payment_method_id.id],
+            this.payment_intent.id,
+        ]);
     }
 
     async cancelPaymentIntent() {
         const line = this.pos.getOrder().getSelectedPaymentline();
         // mp_payment_intent_cancel will call the Mercado Pago api
-        return await this.env.services.orm.silent.call(
-            "pos.payment.method",
-            "mp_payment_intent_cancel",
-            [[line.payment_method_id.id], this.payment_intent.id]
-        );
+        return await this.callPaymentMethod("mp_payment_intent_cancel", [
+            [line.payment_method_id.id],
+            this.payment_intent.id,
+        ]);
     }
 
     async getPayment(payment_id) {
         const line = this.pos.getOrder().getSelectedPaymentline();
         // mp_get_payment_status will call the Mercado Pago api
-        return await this.env.services.orm.silent.call(
-            "pos.payment.method",
-            "mp_get_payment_status",
-            [[line.payment_method_id.id], payment_id]
-        );
+        return await this.callPaymentMethod("mp_get_payment_status", [
+            [line.payment_method_id.id],
+            payment_id,
+        ]);
     }
 
     setup() {
         super.setup(...arguments);
         this.webhook_resolver = null;
         this.payment_intent = {};
+
+        this.connectWebSocket("MERCADO_PAGO_LATEST_MESSAGE", (payload) => {
+            if (payload.config_id === this.pos.config.id) {
+                const pendingLine = this.pos.getPendingPaymentLine("mercado_pago");
+
+                if (pendingLine && pendingLine.payment_method_id.id === payload.payment_method_id) {
+                    pendingLine.payment_method_id.payment_terminal.handleMercadoPagoWebhook();
+                }
+            }
+        });
     }
 
     async sendPaymentRequest(cid) {
@@ -191,4 +197,4 @@ export class PaymentMercadoPago extends PaymentInterface {
     }
 }
 
-register_payment_method("mercado_pago", PaymentMercadoPago);
+registry.category("electronic_payment_interfaces").add("mercado_pago", PaymentMercadoPago);

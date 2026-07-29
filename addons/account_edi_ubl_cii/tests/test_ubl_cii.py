@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from io import BytesIO
+from lxml import etree
 from zipfile import ZipFile
 
-from lxml import etree
 from odoo import fields, Command
 from odoo.tests import HttpCase, tagged
 from odoo.tools.safe_eval import datetime
@@ -137,9 +137,9 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         company.phone = '+33499999999'
         company.zip = '78440'
         company.partner_id.bank_ids = [Command.create({
-            'acc_number': '999999',
+            'account_number': '999999',
             'partner_id': company.partner_id.id,
-            'acc_holder_name': 'The Chosen One',
+            'holder_name': 'The Chosen One',
             'allow_out_payment': True,
         })]
 
@@ -311,13 +311,14 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         invoice_de = self.init_invoice('out_invoice', partner=german_partner, amounts=[100], taxes=[self.tax_sale_a], post=True)
         invoice_be = self.init_invoice('out_invoice', partner=belgian_partner, amounts=[100], taxes=[self.tax_sale_a], post=True)
         invoice_us = self.init_invoice('out_invoice', partner=us_partner, amounts=[100], taxes=[self.tax_sale_a], post=True)
-        res = [invoice._get_invoice_legal_documents('ubl', allow_fallback=True) for invoice in (invoice_de + invoice_be + invoice_us)]
-        self.assertEqual(len(res), 3)
+        res = [document for invoice in (invoice_de + invoice_be + invoice_us) for document in invoice._get_invoice_legal_documents('ubl', allow_fallback=True)]
+        self.assertEqual(len(res), 2)
         self.assertEqual(res[0].get('filename'), 'INV_2019_00001_zugferd.xml')
         self.assertEqual(res[1].get('filename'), 'INV_2019_00002_ubl_bis3.xml')
-        self.assertFalse(res[2])
         invoice_be_failing = self.init_invoice('out_invoice', partner=belgian_partner, amounts=[100], post=True)
-        res_errors = invoice_be_failing._get_invoice_legal_documents('ubl', allow_fallback=True)
+        legal_documents = invoice_be_failing._get_invoice_legal_documents('ubl', allow_fallback=True)
+        self.assertEqual(len(legal_documents), 1)
+        res_errors = legal_documents[0]
         self.assertIn("Each invoice line should have at least one tax.", res_errors.get('errors'))
 
     def test_billing_date_in_cii_xml(self):
@@ -342,8 +343,7 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         self.assertEqual(end_date.text, '20241231')
 
     def test_export_import_billing_dates(self):
-        if self.env.ref('base.module_accountant').state != 'installed':
-            self.skipTest("payment_custom module is not installed")
+        self.ensure_installed('accountant')
 
         invoice = self.env['account.move'].create({
             'partner_id': self.partner_a.id,
@@ -417,7 +417,7 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
 
     def test_import_bill(self):
         self.env['res.partner.bank'].sudo().create({
-            'acc_number': 'Test account',
+            'account_number': 'Test account',
             'partner_id': self.company_data['company'].partner_id.id,
             'allow_out_payment': True,
         })
@@ -529,7 +529,7 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
             f'/account/download_invoice_documents/{invoices[0].id}/ubl?allow_fallback=true',
         )
 
-        xml_content = invoices[0]._get_invoice_legal_documents('ubl', allow_fallback=True)
+        xml_content = invoices[0]._get_invoice_legal_documents('ubl', allow_fallback=True)[0]
         xml_etree = self.get_xml_tree_from_string(xml_content['content'].decode()[39:])
 
         self.assertEqual(
@@ -541,11 +541,11 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
         self.assertListEqual(formats, ['ubl_bis3', False, 'nlcius'])
 
     def test_payment_means_code_in_facturx_xml(self):
-        bank_ing = self.env['res.bank'].create({'name': 'ING', 'bic': 'BBRUBEBB'})
         partner_bank = self.env['res.partner.bank'].create({
-                'acc_number': 'BE15001559627230',
+                'account_number': 'BE15001559627230',
                 'partner_id': self.partner_a.id,
-                'bank_id': bank_ing.id,
+                'bank_name': 'ING',
+                'bank_bic': 'BBRUBEBB',
                 'company_id': self.env.company.id,
                 'allow_out_payment': True,
             })
@@ -570,12 +570,9 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
             company = self.env.company
             company.sdd_creditor_identifier = 'BE30ZZZ300D000000042'
             company_bank_journal = self.company_data['default_journal_bank']
-            company_bank_journal.bank_acc_number = 'CH9300762011623852957'
+            company_bank_journal.bank_account_number = 'CH9300762011623852957'
             self.partner_a.country_id = self.env.ref('base.nl').id
-            company_bank_journal.bank_account_id.write({
-                'bank_id': bank_ing.id,
-                'allow_out_payment': True,
-            })
+            company_bank_journal.bank_account_id.allow_out_payment = True
 
             mandate = self.env['sdd.mandate'].create({
                 'name': 'mandate ' + (self.partner_a.name or ''),
@@ -626,11 +623,31 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
                 self.assertEqual(node.findtext('.//{*}ID') or False, tax.ubl_cii_tax_category_code)
                 self.assertEqual(node.findtext('.//{*}TaxExemptionReasonCode') or False, tax.ubl_cii_tax_exemption_reason_code)
 
+    def test_custom_tax_exemption_reason(self):
+        taxes = self.company_data['default_tax_sale'].copy({
+            'name': 'Custom Exemtion Reason Tax',
+            'ubl_cii_tax_category_code': 'AE',
+            'ubl_cii_tax_exemption_reason': 'Just because',
+            'ubl_cii_tax_exemption_reason_code': 'VATEX-EU-AE',
+        })
+        invoice = self.env["account.move"].create({
+            "partner_id": self.partner_a.id,
+            "move_type": "out_invoice",
+            "invoice_line_ids": [Command.create({"name": "Test product", "price_unit": 10, "tax_ids": [Command.set(taxes.ids)]})],
+        })
+        invoice.action_post()
+        xml = self.env['account.edi.xml.ubl_bis3']._export_invoice(invoice)[0]
+        root = etree.fromstring(xml)
+        for tax, node in zip(taxes, root.findall('.//{*}TaxTotal/{*}TaxSubtotal/{*}TaxCategory')):
+            self.assertEqual(node.findtext('.//{*}ID') or False, tax.ubl_cii_tax_category_code)
+            self.assertEqual(node.findtext('.//{*}TaxExemptionReason') or False, tax.ubl_cii_tax_exemption_reason)
+            self.assertEqual(node.findtext('.//{*}TaxExemptionReasonCode') or False, tax.ubl_cii_tax_exemption_reason_code)
+
     def test_oin_code(self):
         partner = self.partner_a
         partner.peppol_endpoint = '00000000001020304050'
         partner.country_id = self.env.ref('base.nl').id
-        partner.bank_ids = [Command.create({'acc_number': "0123456789", 'allow_out_payment': True})]
+        partner.bank_ids = [Command.create({'account_number': "0123456789", 'allow_out_payment': True})]
         invoice = self.env['account.move'].create({
             'partner_id': partner.id,
             'move_type': 'out_invoice',
@@ -722,7 +739,7 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
         acc_number = '1234567890'
         partner_bank = self.env['res.partner.bank'].create({
             'active': False,
-            'acc_number': acc_number,
+            'account_number': acc_number,
             'partner_id': self.partner_a.id
         })
         invoice = self.env['account.move'].create({

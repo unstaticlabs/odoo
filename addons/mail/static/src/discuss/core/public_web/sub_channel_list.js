@@ -3,8 +3,6 @@ import { ActionPanel } from "@mail/discuss/core/common/action_panel";
 import { SubChannelPreview } from "@mail/discuss/core/public_web/sub_channel_preview";
 import { useSequential, useVisible } from "@mail/utils/common/hooks";
 import { Component, useEffect, useRef, useState } from "@odoo/owl";
-import { _t } from "@web/core/l10n/translation";
-import { rpc } from "@web/core/network/rpc";
 import { useAutofocus, useService } from "@web/core/utils/hooks";
 import { fuzzyLookup } from "@web/core/utils/search";
 
@@ -18,23 +16,23 @@ export class SubChannelList extends Component {
     static template = "mail.SubChannelList";
     static components = { ActionPanel, NotificationItem, SubChannelPreview };
 
-    static props = ["thread", "close?"];
+    static props = ["channel", "close?"];
 
     setup() {
         this.store = useService("mail.store");
+        this.offlineService = useService("offline");
         this.state = useState({
             loading: false,
             searchTerm: "",
-            lastSearchTerm: "",
             searching: false,
-            subChannels: this.props.thread.sub_channel_ids,
+            subChannels: this.props.channel.sub_channel_ids,
         });
         this.searchRef = useRef("search");
         this.sequential = useSequential();
         useAutofocus({ refName: "search" });
         this.loadMoreState = useVisible("load-more", (isVisible) => {
             if (isVisible) {
-                this.props.thread.loadMoreSubChannels({
+                this.props.channel.loadMoreSubChannels({
                     searchTerm: this.state.searching ? this.state.searchTerm : undefined,
                 });
             }
@@ -49,26 +47,19 @@ export class SubChannelList extends Component {
         );
     }
 
-    get NO_THREAD_FOUND() {
-        return _t(`No thread named "%(thread_name)s"`, { thread_name: this.state.lastSearchTerm });
-    }
-
-    async onClickSubThread(subThread) {
-        if (!subThread.hasSelfAsMember) {
-            await rpc("/discuss/channel/join", { channel_id: subThread.id });
-        }
-        subThread.open({ focus: true });
-        if (this.env.inChatWindow) {
-            this.props.close?.();
-        }
+    /**
+     * @param {import("models").DiscussChannel} subChannel
+     */
+    async onClickSubChannel(subChannel) {
+        subChannel.open({ focus: true });
+        this.props.close?.();
     }
 
     clearSearch() {
         this.state.searchTerm = "";
-        this.state.lastSearchTerm = "";
         this.state.searching = false;
         this.state.loading = false;
-        this.state.subChannels = this.props.thread.sub_channel_ids;
+        this.state.subChannels = this.props.channel.sub_channel_ids;
     }
 
     onKeydownSearch(ev) {
@@ -78,7 +69,7 @@ export class SubChannelList extends Component {
     }
 
     async onClickCreate() {
-        await this.props.thread.createSubChannel({ name: this.state.searchTerm });
+        await this.props.channel.createSubChannel({ name: this.state.searchTerm });
         this._refreshSubChannelList();
         this.props.close?.();
     }
@@ -91,12 +82,11 @@ export class SubChannelList extends Component {
             this.state.searching = true;
             this.state.loading = true;
             try {
-                await this.props.thread.loadMoreSubChannels({
+                await this.props.channel.loadMoreSubChannels({
                     searchTerm: this.state.searchTerm,
                 });
                 if (this.state.searching) {
                     this._refreshSubChannelList();
-                    this.state.lastSearchTerm = this.state.searchTerm;
                 }
             } finally {
                 this.state.loading = false;
@@ -107,7 +97,7 @@ export class SubChannelList extends Component {
     _refreshSubChannelList() {
         this.state.subChannels = fuzzyLookup(
             this.state.searchTerm ?? "",
-            this.props.thread.sub_channel_ids,
+            this.props.channel.sub_channel_ids,
             ({ name }) => name
         );
     }

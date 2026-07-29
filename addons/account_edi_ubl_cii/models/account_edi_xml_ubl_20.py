@@ -47,9 +47,10 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         # 3. Run constraints
         vals['document_node'] = document_node
-        template = self._get_document_template(vals)
         nsmap = document_node['_nsmap'] = self._get_document_nsmap(vals)
-        errors = [constraint for constraint in self._export_invoice_constraints(invoice, vals).values() if constraint]
+        constraints = self._flatten_multilevel_constraints(self._export_invoice_constraints(invoice, vals))
+        errors = [constraint for constraint in constraints.values() if constraint]
+        template = self._get_document_template(vals)
 
         # 4. Render the XML
         xml_content = dict_to_xml(document_node, nsmap=nsmap, template=template)
@@ -312,8 +313,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 'cac:Address': self._get_address_node({'partner': partner_shipping}),
             },
         }
-        # TODO master: clean that code a bit hacky, when the module account_add_gln is merged with account
-        if gln := 'global_location_number' in partner_shipping._fields and partner_shipping.global_location_number:
+
+        if gln := partner_shipping.global_location_number:
             document_node['cac:Delivery']['cac:DeliveryLocation'].update({
                 'cbc:ID': {'schemeID': '0088', '_text': gln},
             })
@@ -408,6 +409,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         line_node = {}
         self._add_invoice_line_id_nodes(line_node, vals)
         self._add_invoice_line_note_nodes(line_node, vals)
+        self._add_invoice_line_free_of_charge_indicator_nodes(line_node, vals)
         self._add_invoice_line_period_nodes(line_node, vals)
         self._add_invoice_line_allowance_charge_nodes(line_node, vals)
         self._add_invoice_line_amount_nodes(line_node, vals)
@@ -445,6 +447,9 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
     def _add_invoice_line_note_nodes(self, line_node, vals):
         self._add_document_line_note_nodes(line_node, vals)
+
+    def _add_invoice_line_free_of_charge_indicator_nodes(self, line_node, vals):
+        pass
 
     def _add_invoice_line_amount_nodes(self, line_node, vals):
         self._add_document_line_amount_nodes(line_node, vals)
@@ -609,23 +614,19 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _get_address_node(self, vals):
-        """ Generic helper to generate the Address node for a res.partner or res.bank. """
+        """ Generic helper to generate the Address node for a res.partner or res.partner.bank. """
         partner = vals['partner']
-        country_key = 'country' if partner._name == 'res.bank' else 'country_id'
-        state_key = 'state' if partner._name == 'res.bank' else 'state_id'
-        country = partner[country_key]
-        state = partner[state_key]
 
         return {
             'cbc:StreetName': {'_text': partner.street},
             'cbc:AdditionalStreetName': {'_text': partner.street2},
             'cbc:CityName': {'_text': partner.city},
             'cbc:PostalZone': {'_text': partner.zip},
-            'cbc:CountrySubentity': {'_text': state.name},
-            'cbc:CountrySubentityCode': {'_text': state.code},
+            'cbc:CountrySubentity': {'_text': partner.state_id.name},
+            'cbc:CountrySubentityCode': {'_text': partner.state_id.code},
             'cac:Country': {
-                'cbc:IdentificationCode': {'_text': country.code},
-                'cbc:Name': {'_text': country.name},
+                'cbc:IdentificationCode': {'_text': partner.country_id.code},
+                'cbc:Name': {'_text': partner.country_id.name},
             },
         }
 
@@ -679,25 +680,24 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     def _get_financial_account_node(self, vals):
         """ Generic helper to generate the FinancialAccount node for a res.partner.bank """
         partner_bank = vals['partner_bank']
-        bank = partner_bank.bank_id
         financial_institution_branch = None
-        if bank:
+        if partner_bank.bank_bic:
             financial_institution_branch = {
                 'cbc:ID': {
-                    '_text': bank.bic,
+                    '_text': partner_bank.bank_bic,
                     'schemeID': 'BIC'
                 },
                 'cac:FinancialInstitution': {
                     'cbc:ID': {
-                        '_text': bank.bic,
+                        '_text': partner_bank.bank_bic,
                         'schemeID': 'BIC'
                     },
-                    'cbc:Name': {'_text': bank.name},
-                    'cac:Address': self._get_address_node({**vals, 'partner': bank})
+                    'cbc:Name': {'_text': partner_bank.bank_name},
+                    'cac:Address': self._get_address_node({**vals, 'partner': partner_bank})
                 }
             }
         return {
-            'cbc:ID': {'_text': partner_bank.acc_number.replace(' ', '')},
+            'cbc:ID': {'_text': partner_bank.account_number.replace(' ', '')},
             'cac:FinancialInstitutionBranch': financial_institution_branch
         }
 

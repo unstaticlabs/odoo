@@ -6,11 +6,11 @@ from odoo import _, api, models
 from odoo.exceptions import ValidationError
 from odoo.tools import urls
 
+from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.const import CURRENCY_MINOR_UNITS
 from odoo.addons.payment.logging import get_payment_logger
 from odoo.addons.payment_mollie import const
 from odoo.addons.payment_mollie.controllers.main import MollieController
-
 
 _logger = get_payment_logger(__name__)
 
@@ -77,7 +77,41 @@ class PaymentTransaction(models.Model):
             # redirection, we include it in the redirect URL to be able to match the transaction.
             'redirectUrl': f'{redirect_url}?ref={self.reference}',
             'webhookUrl': f'{webhook_url}?ref={self.reference}',
+            'billingAddress': self._mollie_prepare_billing_address_payload(),
+            'lines': [{
+                "description": 'Odoo purchase',
+                "quantity": 1,
+                "unitPrice": {
+                    "currency": self.currency_id.name,
+                    "value": f"{self.amount:.{decimal_places}f}"
+                },
+                "totalAmount": {
+                    "currency": self.currency_id.name,
+                    "value": f"{self.amount:.{decimal_places}f}"
+                },
+            }],
         }
+
+    def _mollie_prepare_billing_address_payload(self):
+        """Return correctly formatted billing address payload.
+
+        :return: The Mollie-formatted payload for the billingAddress field in the payment request.
+        :rtype: dict
+        """
+        given_name, family_name = payment_utils.split_partner_name(self.partner_name)
+        billing_address = {
+            "givenName": given_name,
+            "familyName": family_name,
+            "email": self.partner_email or "",
+        }
+        if all((self.partner_address, self.partner_zip, self.partner_city, self.partner_country_id)):
+            billing_address |= {
+                "streetAndNumber": self.partner_address,
+                "postalCode": self.partner_zip,
+                "city": self.partner_city,
+                "country": self.partner_country_id.code,
+            }
+        return billing_address
 
     @api.model
     def _extract_reference(self, provider_code, payment_data):
@@ -102,7 +136,8 @@ class PaymentTransaction(models.Model):
     def _apply_updates(self, payment_data):
         """Override of `payment` to update the transaction based on the payment data."""
         if self.provider_code != 'mollie':
-            return super()._apply_updates(payment_data)
+            super()._apply_updates(payment_data)
+            return
 
         # Update the payment method.
         payment_method_type = payment_data.get('method', '')

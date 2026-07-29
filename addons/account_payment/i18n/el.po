@@ -5,16 +5,17 @@
 # Translators:
 # Martin Trigaux, 2018
 # Kostas Goutoudis <goutoudis@gmail.com>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Panagiotis karampaglis <panosdotk@gmail.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Panagiotis karampaglis <panosdotk@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 22:14+0000\n"
-"Last-Translator: Panagiotis karampaglis <panosdotk@gmail.com>\n"
-"Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:08+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Greek <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/el/>\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
@@ -150,6 +151,11 @@ msgstr ""
 "πληρωμής."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -164,6 +170,11 @@ msgstr "Ποσό Διαθέσιμο για Επιστροφή Χρημάτων"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Οφειλόμενο Ποσό"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -188,8 +199,9 @@ msgstr "Εξουσιοδοτημένες Συναλλαγές"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Γραμμή Κίνησης Τραπεζικού Λογαριασμού"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -355,7 +367,7 @@ msgid "Invoices Count"
 msgstr "Αριθμός Τιμολογίων"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr ""
 
@@ -415,6 +427,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -470,6 +489,7 @@ msgid "Pay overdue"
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -487,7 +507,16 @@ msgstr "Ημερολόγιο Πληρωμών"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Μέθοδος Πληρωμής"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+msgid "Payment Method Line"
+msgstr ""
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Μέθοδοι Πληρωμής"
@@ -527,15 +556,16 @@ msgid "Payment Transactions"
 msgstr "Συναλλαγές Πληρωμής"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Συναλλαγές"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr ""
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Τιμοκατάλογοι"
 
 #. module: account_payment
 #. odoo-python
@@ -749,8 +779,8 @@ msgid ""
 "Linked providers(s): %s"
 msgstr ""
 "Δεν μπορείτε να διαγράψετε μια μέθοδο πληρωμής που είναι συνδεδεμένη με έναν "
-"πάροχο στην ενεργοποιημένη ή δοκιμαστική κατάσταση. Συνδεδεμένος πάροχος(οι)"
-": %s"
+"πάροχο στην ενεργοποιημένη ή δοκιμαστική κατάσταση. Συνδεδεμένος "
+"πάροχος(οι): %s"
 
 #. module: account_payment
 #. odoo-python
@@ -791,12 +821,17 @@ msgid "has been applied."
 msgstr ""
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr ""
 
-#~ msgid "Code"
-#~ msgstr "Κωδικός"
-
-#~ msgid "Pay with"
-#~ msgstr "Πληρωμή με"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

@@ -53,6 +53,7 @@ _REGISTRY_CACHES = {
     'assets': 512,
     'stable': 1024,
     'templates': 1024,
+    'template_code': 1024,
     'routing': 1024,  # 2 entries per website
     'routing.rewrites': 8192,  # url_rewrite entries
     'templates.cached_values': 2048, # arbitrary
@@ -88,8 +89,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
     There is one registry instance per database.
 
     """
-    _lock: threading.RLock | DummyRLock = threading.RLock()
-    _saved_lock: threading.RLock | DummyRLock | None = None
+    _lock = threading.RLock()
 
     registries = LRU[str, "Registry"](42)  # random default value
     """ A mapping from database names to registries. """
@@ -97,6 +97,9 @@ class Registry(Mapping[str, type["BaseModel"]]):
     def __new__(cls, db_name: str):
         """ Return the registry for the given database name."""
         assert db_name, "Missing database name"
+        # set the database name for logging
+        current_thread = threading.current_thread()
+        current_thread.dbname = db_name
         with cls._lock:
             try:
                 return cls.registries[db_name]
@@ -237,8 +240,9 @@ class Registry(Mapping[str, type["BaseModel"]]):
         self._reinit_modules: set[str] = set()  # modules to reinitialize
 
         # modules fully loaded (maintained during init phase by `loading` module)
-        self._init_modules: set[str] = set()       # modules have been initialized
-        self.updated_modules: list[str] = []       # installed/updated modules
+        self._init_modules: set[str] = set()         # modules have been initialized
+        self.updated_modules: list[str] = []         # installed/updated modules
+        self.uninstalling_modules: set[str] = set()  # modules being uninstalled
         self.loaded_xmlids: set[str] = set()
 
         self.db_name = db_name
@@ -440,7 +444,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
                     model_cls._setup_done__ = False
                 if model_cls._setup_done__:
                     models_field_depends_done.add(model_cls)
-                else:
+                elif not model_cls._abstract:
                     todo.extend(model_cls._fields.values())
 
             done = set()
@@ -484,6 +488,8 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
         # determine field_depends and field_depends_context
         for model_cls in self.models.values():
+            if model_cls._abstract:
+                continue
             if model_cls in models_field_depends_done:
                 continue
             model = model_cls(env, (), ())
@@ -795,12 +801,14 @@ class Registry(Mapping[str, type["BaseModel"]]):
                 for field_name, field in Model._fields.items():
                     if field_name == 'id':
                         self.not_null_fields.add(field)
-                        continue
-                    if field.column_type and field.store and field.required:
-                        if (Model._table, field_name) in not_null_columns:
+                    elif field.required and field.column_type:
+                        if field.store:
+                            if (Model._table, field_name) in not_null_columns:
+                                self.not_null_fields.add(field)
+                            else:
+                                _schema.warning("Missing not-null constraint on %s", field)
+                        elif field.compute_sql:
                             self.not_null_fields.add(field)
-                        else:
-                            _schema.warning("Missing not-null constraint on %s", field)
 
     def check_indexes(self, cr: Cursor, model_names: Iterable[str]) -> None:
         """ Create or drop column indexes for the given models. """
@@ -968,22 +976,20 @@ class Registry(Mapping[str, type["BaseModel"]]):
             for table in missing_tables:
                 _logger.error("Model %s has no table.", table2model[table])
 
-    def clear_cache(self, *cache_names: str) -> None:
+    def clear_cache(self, cache_name: str = 'default') -> None:
         """ Clear the caches associated to methods decorated with
         ``tools.ormcache``if cache is in `cache_name` subset. """
-        cache_names = cache_names or ('default',)
-        assert not any('.' in cache_name for cache_name in cache_names)
-        for cache_name in cache_names:
-            for cache in _CACHES_BY_KEY[cache_name]:
-                self.__caches[cache].clear()
-            self.cache_invalidated.add(cache_name)
+        assert '.' not in cache_name
+        for cache in _CACHES_BY_KEY[cache_name]:
+            self.__caches[cache].clear()
+        self.cache_invalidated.add(cache_name)
 
         # log information about invalidation_cause
         if _logger.isEnabledFor(logging.DEBUG):
             # could be interresting to log in info but this will need to minimize invalidation first,
             # mainly in some setupclass and crons
             caller_info = format_frame(inspect.currentframe().f_back)  # type: ignore
-            _logger.debug('Invalidating %s model caches from %s', ','.join(cache_names), caller_info)
+            _logger.debug('Invalidating %s model cache from %s', cache_name, caller_info)
 
     def clear_all_caches(self) -> None:
         """ Clear the caches associated to methods decorated with
@@ -1066,11 +1072,13 @@ class Registry(Mapping[str, type["BaseModel"]]):
     def get_sequences(self, cr: BaseCursor) -> tuple[int, dict[str, int]]:
         signaling_tables = tuple(f'orm_signaling_{cache_name}' for cache_name in ['registry', *_CACHES_BY_KEY])
         signaling_selects = SQL(', ').join([SQL('( SELECT max(id) FROM %s)', SQL.identifier(signaling_table)) for signaling_table in signaling_tables])
-        cr.execute(SQL("SELECT %s", signaling_selects))
+        cr.execute(SQL("SELECT (now() AT TIME ZONE 'UTC'), %s", signaling_selects))
         row = cr.fetchone()
         assert row is not None, "No result when reading signaling sequences"
-        registry_sequence, *cache_sequences_values = row
+        now, registry_sequence, *cache_sequences_values = row
         cache_sequences = dict(zip(_CACHES_BY_KEY, cache_sequences_values))
+        if cr._now is None:
+            cr._now = now
         return registry_sequence, cache_sequences
 
     def check_signaling(self, cr: BaseCursor | None = None) -> Registry:
@@ -1151,17 +1159,6 @@ class Registry(Mapping[str, type["BaseModel"]]):
                     self.__caches[cache].clear()
             self.cache_invalidated.clear()
 
-    @contextmanager
-    def manage_changes(self):
-        """ Context manager to signal/discard registry and cache invalidations. """
-        warnings.warn("Since 19.0, use signal_changes() and reset_changes() directly", DeprecationWarning)
-        try:
-            yield self
-            self.signal_changes()
-        except Exception:
-            self.reset_changes()
-            raise
-
     def cursor(self, /, readonly: bool = False) -> BaseCursor:
         """ Return a new cursor for the database. The cursor itself may be used
             as a context manager to commit/rollback and close automatically.
@@ -1184,18 +1181,6 @@ class Registry(Mapping[str, type["BaseModel"]]):
                     _logger.warning("Failed to open a readonly cursor, falling back to read-write cursor for %dmin %dsec", *divmod(_REPLICA_RETRY_TIME, 60))
             threading.current_thread().cursor_mode = 'ro->rw'
         return self._db.cursor()
-
-
-class DummyRLock(object):
-    """ Dummy reentrant lock, to be used while running rpc and js tests """
-    def acquire(self):
-        pass
-    def release(self):
-        pass
-    def __enter__(self):
-        self.acquire()
-    def __exit__(self, type, value, traceback):
-        self.release()
 
 
 class TriggerTree(dict['Field', 'TriggerTree']):

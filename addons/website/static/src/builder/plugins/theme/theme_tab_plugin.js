@@ -2,6 +2,7 @@ import { Plugin } from "@html_editor/plugin";
 import { getCSSVariableValue, getHtmlStyle } from "@html_editor/utils/formatting";
 import { withSequence } from "@html_editor/utils/resource";
 import { ThemeAdvancedOption } from "./theme_advanced_option";
+import { ThemeShadowOption } from "./theme_shadow_option";
 import { ThemeButtonOption } from "./theme_button_option";
 import { ThemeColorsOption } from "./theme_colors_option";
 import { ThemeHeadingsOption } from "./theme_headings_option";
@@ -20,6 +21,7 @@ import { BuilderAction } from "@html_builder/core/builder_action";
 import { CustomizeWebsiteVariableAction } from "../customize_website_plugin";
 import { EditHeadBodyDialog } from "@website/components/edit_head_body_dialog/edit_head_body_dialog";
 import { BaseOptionComponent } from "@html_builder/core/utils";
+import { ImageSize } from "@html_builder/plugins/image/image_size";
 
 /**
  * @typedef { Object } ThemeTabShared
@@ -47,7 +49,8 @@ export const OPTION_POSITIONS = {
     BUTTON: 50,
     LINK: 60,
     INPUT: 70,
-    ADVANCED: 80,
+    SHADOW: 80,
+    ADVANCED: 90,
 };
 
 export class ThemeTabPlugin extends Plugin {
@@ -63,21 +66,22 @@ export class ThemeTabPlugin extends Plugin {
             ChangeColorPaletteAction,
             EditCustomCodeAction,
             ConfigureApiKeyAction,
-            CustomizePageLayout,
         },
         theme_options: [
-            withSequence(
-                OPTION_POSITIONS.COLORS,
-                this.getThemeOptionBlock("theme-colors", _t("Colors"), ThemeColorsOption)
-            ),
             withSequence(
                 OPTION_POSITIONS.SETTINGS,
                 this.getThemeOptionBlock(
                     "website-settings",
-                    _t("Website"),
-                    class ThemeWebsiteSettingsOption extends BaseOptionComponent {
-                        static template = "website.ThemeWebsiteSettingsOption";
-                    }
+                    "",
+                    [
+                        ThemeColorsOption,
+                        class ThemeWebsiteSettingsOption extends BaseOptionComponent {
+                            static template = "website.ThemeWebsiteSettingsOption";
+                            static components = { ImageSize };
+                        },
+                    ],
+                    this.document.querySelector("#wrapwrap"),
+                    true
                 )
             ),
             withSequence(
@@ -117,6 +121,10 @@ export class ThemeTabPlugin extends Plugin {
                         static template = "website.ThemeInputOption";
                     }
                 )
+            ),
+            withSequence(
+                OPTION_POSITIONS.SHADOW,
+                this.getThemeOptionBlock("theme-shadow", _t("Shadow"), ThemeShadowOption)
             ),
             withSequence(
                 OPTION_POSITIONS.ADVANCED,
@@ -227,22 +235,30 @@ export class ThemeTabPlugin extends Plugin {
         );
     }
 
-    getThemeOptionBlock(id, name, options) {
-        // TODO Have a specific kind of options container that takes the specific parameters like name, no element, no selector...
-        const el = this.document.createElement("div");
-        el.dataset.name = name;
-        this.document.body.appendChild(el); // Currently editingElement needs to be isConnected
+    getThemeOptionBlock(id, name, options, el = null, hasOverlayOptions = false) {
+        let divEl = null;
+        // TODO Have a specific kind of options container that takes the
+        // specific parameters like name, no element, no selector...
+        if (!el) {
+            divEl = this.document.createElement("div");
+            divEl.dataset.name = name;
+            this.document.body.appendChild(divEl); // Currently editingElement needs to be isConnected
+            el = divEl;
+        }
 
-        options.selector = "*";
+        const optionsArray = Array.isArray(options) ? options : [options];
+        optionsArray.forEach((option) => {
+            option.selector = "*";
+        });
 
         return {
             id: id,
             element: el,
-            hasOverlayOptions: false,
+            hasOverlayOptions,
             headerMiddleButton: false,
             isClonable: false,
             isRemovable: false,
-            options: [options],
+            options: optionsArray,
             optionsContainerTopButtons: [],
             snippetModel: {},
         };
@@ -334,17 +350,6 @@ export class ConfigureApiKeyAction extends BuilderAction {
     }
     apply() {
         this.dependencies.googleMapsOption.configureGMapsAPI("", true);
-    }
-}
-
-export class CustomizePageLayout extends CustomizeWebsiteVariableAction {
-    static id = "customizePageLayout";
-
-    async apply(...args) {
-        await super.apply(...args);
-        // since we do not reload on website variables customization we need to
-        // trigger resize to have navbar layout recomputed when we modify page layout
-        this.window.dispatchEvent(new Event("resize"));
     }
 }
 

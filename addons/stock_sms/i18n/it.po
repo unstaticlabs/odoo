@@ -5,16 +5,17 @@
 # Translators:
 # Martin Trigaux, 2022
 # Sergio Zanchetta <primes2h@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Marianna Ciofani (cima)" <cima@odoo.com>, 2026.
 # Camille Dantinne <cmd@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 09:35+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-05-29 14:21+0000\n"
+"Last-Translator: Camille Dantinne <cmd@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_sms/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_sms
 #: model:sms.template,body:stock_sms.sms_template_data_stock_delivery
@@ -31,9 +32,9 @@ msgid ""
 "                {{ (object.company_id.name + ': We are glad to inform you "
 "that your order n° ' + object.origin + ' has been shipped.' if object.origin "
 "else object.company_id.name + ': We are glad to inform you that your order "
-"has been shipped.') + (' Your tracking reference is ' + "
-"(object.carrier_tracking_ref) + '.' if hasattr(object, "
-"'carrier_tracking_ref') and object.carrier_tracking_ref else '') }}\n"
+"has been shipped.') + (' Your tracking reference is ' + (object."
+"carrier_tracking_ref) + '.' if hasattr(object, 'carrier_tracking_ref') and "
+"object.carrier_tracking_ref else '') }}\n"
 "            "
 msgstr ""
 "\n"
@@ -46,14 +47,9 @@ msgstr ""
 "            "
 
 #. module: stock_sms
-#: model_terms:ir.ui.view,arch_db:stock_sms.view_confirm_stock_sms
-msgid "Cancel"
-msgstr "Annulla"
-
-#. module: stock_sms
 #: model:ir.model,name:stock_sms.model_res_company
-msgid "Companies"
-msgstr "Aziende"
+msgid "Company"
+msgstr "Azienda"
 
 #. module: stock_sms
 #: model:ir.model,name:stock_sms.model_res_config_settings
@@ -159,14 +155,5 @@ msgid ""
 msgstr ""
 "L'ordine di consegna sta per essere confermato con un messaggio SMS.<br/>\n"
 "                Questa funzionalità può essere disattivata in modo semplice "
-"dalle impostazioni del magazzino oppure con un clic su \"Disattiva "
-"SMS\".<br/>"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Ultima modifica il"
-
-#~ msgid "SMS Confirmation"
-#~ msgstr "SMS di conferma"
-
-#~ msgid "SMS Validation with stock move"
-#~ msgstr "Conferma via SMS dal movimento di magazzino "
+"dalle impostazioni del magazzino oppure con un clic su \"Disattiva SMS\".<br/"
+">"

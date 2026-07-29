@@ -58,7 +58,10 @@
                         <separator/>
                         <filter name="profit_loss_accounts" string="P&amp;L Accounts" domain="[('general_account_id.internal_group', 'in', ['income', 'expense'])]"/>
                     </xpath>
-                    <xpath expr="//group[@name='groupby']" position="inside">
+                    <xpath expr="//filter[@name='month']" position="inside">
+                        <filter string="For the Last 365 Days" name="last_365_days" domain="[('date', '&gt;=', 'today -365d')]"/>
+                    </xpath>
+                    <xpath expr="//group" position="inside">
                         <separator/>
                         <filter name="account_id" context="{'group_by': 'account_id'}"/>
                         <separator/>

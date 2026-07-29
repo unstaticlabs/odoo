@@ -1,8 +1,11 @@
 from odoo.fields import Datetime, Date
+from odoo.tests import tagged
+
 from odoo.addons.hr.tests.common import TestHrCommon
 from odoo.tests import Form, freeze_time
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestContractCalendars(TestHrCommon):
 
     @classmethod
@@ -54,7 +57,7 @@ class TestContractCalendars(TestHrCommon):
                 'date_to': end,
                 'resource_id': resource.id if resource else None,
                 'calendar_id': self.employee.resource_calendar_id.id,
-                'time_type': 'leave',
+                'count_as': 'absence',
             })
 
         start = Datetime.to_datetime('2015-11-17 07:00:00')

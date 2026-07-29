@@ -57,13 +57,14 @@ class TestPayrollFieldsAccess(TransactionCase):
         }
         whitelist_field_names = [
             'resource_calendar_id',
+            'hours_per_week',
+            'hours_per_day',
             'employee_type',
             'tz',
             'currency_id',
             'lang',
             'registration_number',
             'standard_calendar_id',
-            'employee_age',
             'distance_home_work',
             'distance_home_work_unit',
             'show_billable_time_target',

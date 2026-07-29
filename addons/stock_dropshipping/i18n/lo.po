@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * stock_dropshipping
 #
-# Bone NI <bounkirdni@gmail.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 19.2a1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 04:21+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 14:13+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Lao <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_dropshipping/lo/>\n"
 "Language: lo\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +21,8 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_res_company
-msgid "Companies"
+#, fuzzy
+msgid "Company"
 msgstr "ບໍລິສັດ"
 
 #. module: stock_dropshipping
@@ -36,20 +37,23 @@ msgstr "ບໍລິສັດ"
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_replenish_mixin__display_name
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_rule__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr "ຊື່ສະແດງ"
+msgstr "ຊື່ທີ່ສະແດງ"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields.selection,name:stock_dropshipping.selection__stock_picking_type__code__dropship
 #: model:stock.route,name:stock_dropshipping.route_drop_shipping
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.purchase_order_form_inherit_stock_dropshipping
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.view_order_form_inherit_sale_stock
+#, fuzzy
 msgid "Dropship"
-msgstr "ດຣອບຊິບ (Dropship)"
+msgstr "ດຣັອບຊິບ (Dropship)"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_purchase_order__dropship_picking_count
 #: model:ir.model.fields,field_description:stock_dropshipping.field_sale_order__dropship_picking_count
+#, fuzzy
 msgid "Dropship Count"
 msgstr "ຈຳນວນດຣອບຊິບ"
 
@@ -57,6 +61,7 @@ msgstr "ຈຳນວນດຣອບຊິບ"
 #: model:ir.actions.act_window,name:stock_dropshipping.action_picking_tree_dropship
 #: model:ir.ui.menu,name:stock_dropshipping.dropship_picking
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.view_picking_internal_search_inherit_stock_dropshipping
+#, fuzzy
 msgid "Dropships"
 msgstr "ດຣອບຊິບ"
 
@@ -72,70 +77,83 @@ msgstr "ດຣອບຊິບ"
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_replenish_mixin__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_rule__id
+#, fuzzy
 msgid "ID"
 msgstr "ລະຫັດ"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking__is_dropship
+#, fuzzy
 msgid "Is a Dropship"
-msgstr "ແມ່ນການສົ່ງແບບດຣອບຊິບ"
+msgstr "ແມ່ນດຣອບຊິບ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_lot
+#, fuzzy
 msgid "Lot/Serial"
 msgstr "ລັອດ/ຊີຣຽວ"
 
 #. module: stock_dropshipping
+#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_picking_type
+#, fuzzy
 msgid "Picking Type"
-msgstr "ປະເພດການຮັບ-ສົ່ງສິນຄ້າ"
+msgstr "ປະເພດການເກັບເຄື່ອງ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_replenish_mixin
+#, fuzzy
 msgid "Product Replenish Mixin"
-msgstr "ມິກຊິນການເຕີມເຕັມສິນຄ້າ"
+msgstr "ສິ່ງທີ່ປະສົມໃນການຕື່ມສິນຄ້າ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_product_product
+#, fuzzy
 msgid "Product Variant"
-msgstr "ຊະນິດຍ່ອຍສິນຄ້າ"
+msgstr "ສິນຄ້າທີ່ແຕກຕ່າງ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order
+#, fuzzy
 msgid "Purchase Order"
-msgstr "ໃບສັ່ງຊື້"
+msgstr "ການສັ່ງຊື້"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order_line
+#, fuzzy
 msgid "Purchase Order Line"
-msgstr "ລາຍການໃບສັ່ງຊື້"
+msgstr "ການສັ່ງຊື້ທາງອອນລາຍ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_sale_order
+#, fuzzy
 msgid "Sales Order"
-msgstr "ໃບສັ່ງຂາຍ"
+msgstr "ໃບສັ່ງຊື້"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_sale_order_line
+#, fuzzy
 msgid "Sales Order Line"
-msgstr "ລາຍການໃບສັ່ງຂາຍ"
+msgstr "ລາຍການສິນຄ້າທີ່ສັ່ງຊື້"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_rule
+#, fuzzy
 msgid "Stock Rule"
-msgstr "ກົດເກນສະຕັອກ"
+msgstr "ກົດລະບຽບສາງ"
 
 #. module: stock_dropshipping
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.stock_picking_type_kanban
+#, fuzzy
 msgid "To Validate"
-msgstr "ລໍຖ້າຢືນຢັນ"
+msgstr "ລໍຖ້າຍືນຍັນ"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_picking
+#, fuzzy
 msgid "Transfer"
-msgstr "ການໂອນຍ້າຍ"
-
-#. module: stock_dropshipping
-#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "ປະເພດການດຳເນີນການ"
+msgstr "ໂອນ"

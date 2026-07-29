@@ -46,7 +46,12 @@ registerWebsitePreviewTour(
             trigger: ":iframe .s_text_block .container p:first-child",
             run: "editor Paragraph",
         },
-        ...clickToolbarButton("Paragraph", "#wrap .s_text_block p", "Add a link", false),
+        ...clickToolbarButton(
+            "Paragraph",
+            "#wrap .s_text_block p",
+            "Insert link (Ctrl + K)",
+            false
+        ),
         {
             content: "Type the link URL",
             trigger: ".o-we-linkpopover .o_we_href_input_link",

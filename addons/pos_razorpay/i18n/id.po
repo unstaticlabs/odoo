@@ -2,23 +2,23 @@
 # This file contains the translation of the following modules:
 # * pos_razorpay
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 23:37+0000\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-01-24 12:30+0000\n"
 "Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-1/"
 "pos_razorpay/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: pos_razorpay
 #. odoo-javascript
@@ -117,14 +117,14 @@ msgstr ""
 "transaksi ini"
 
 #. module: pos_razorpay
-#: model:ir.model,name:pos_razorpay.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Metode Pembayaran POS"
+#: model:ir.model,name:pos_razorpay.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr "Pembayaran POS"
 
 #. module: pos_razorpay
-#: model:ir.model,name:pos_razorpay.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Pembayaran POS"
+#: model:ir.model,name:pos_razorpay.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr "Metode Pembayaran POS"
 
 #. module: pos_razorpay
 #: model:ir.model.fields,field_description:pos_razorpay.field_pos_payment_method__razorpay_api_key

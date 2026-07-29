@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from pytz import UTC
+from datetime import datetime, timezone
 
 from odoo import api, models
 from odoo.addons.l10n_my_edi.models.account_edi_xml_ubl_my import COUNTRY_CODE_MAP
@@ -230,7 +228,7 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         vals['tax_grouping_function'] = tax_grouping_function
 
     def _add_consolidated_invoice_header_nodes(self, document_node, vals):
-        utc_now = datetime.now(tz=UTC)
+        utc_now = datetime.now(timezone.utc)
 
         document_node.update({
             'cbc:UBLVersionID': None,
@@ -345,15 +343,11 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         }
 
     def _get_address_node(self, vals):
-        """ Generic helper to generate the Address node for a res.partner or res.bank. """
+        """ Generic helper to generate the Address node for a res.partner or res.partner.bank. """
         if 'consolidated_invoice' not in vals:
             return super()._get_address_node(vals)
 
         partner = vals['partner']
-        country_key = 'country' if partner._name == 'res.bank' else 'country_id'
-        state_key = 'state' if partner._name == 'res.bank' else 'state_id'
-        country = partner[country_key]
-        state = partner[state_key]
 
         subentity_code = partner.state_id.code or ''
         # The API does not expect the country code inside the state code, only the number part.
@@ -367,15 +361,15 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
             ],
             'cbc:CityName': {'_text': partner.city},
             'cbc:PostalZone': {'_text': partner.zip},
-            'cbc:CountrySubentity': {'_text': state.name},
+            'cbc:CountrySubentity': {'_text': partner.state_id.name},
             'cbc:CountrySubentityCode': {'_text': subentity_code},
             'cac:Country': {
                 'cbc:IdentificationCode': {
                     'listID': 'ISO3166-1',
                     'listAgencyID': '6',
-                    '_text': COUNTRY_CODE_MAP.get(country.code),
+                    '_text': COUNTRY_CODE_MAP.get(partner.country_id.code),
                 },
-                'cbc:Name': {'_text': country.name},
+                'cbc:Name': {'_text': partner.country_id.name},
             },
         }
 

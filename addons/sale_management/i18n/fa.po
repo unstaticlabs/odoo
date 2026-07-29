@@ -16,17 +16,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-29 19:21+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
-"sale_management/fa/>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: fardin mardani, 2023\n"
+"Language-Team: Persian (https://app.transifex.com/odoo/teams/41243/fa/)\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -75,11 +73,17 @@ msgid "Archived"
 msgstr "بایگانی شده"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "شرکت"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -156,12 +160,6 @@ msgid "Display Type"
 msgstr "نوع نمایش"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "دسترسی ندارید، از این داده ها برای ایمیل خلاصه کاربر صرفنظر کنید"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -170,6 +168,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "ترتیب دنباله را هنگام نمایش فهرستی از سطرهای پیش‌فاکتور ارایه می‌دهد."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -261,7 +271,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -331,6 +341,12 @@ msgstr "قالب‌های پیش‌فاکتور"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -414,6 +430,8 @@ msgstr ""
 "اندازه، ظرفیت، و غیره. رمزگذاری سفارشات فروش را آسان تر و بدون خطا کنید."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -510,8 +528,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -521,8 +539,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -545,120 +563,3 @@ msgstr "روز"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr ""
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "قالب‌ شما نمی‌تواند شامل محصولاتی از شرکت‌های متعدد باشد."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "الگوی شما شامل محصولات شرکت %(product_company)s است در حالی که الگوی شما "
-#~ "متعلق به شرکت %(template_company)s است.\n"
-#~ "  لطفاً شرکت قالب خود را تغییر دهید یا محصولات را از سایر شرکت ها حذف کنید."
-
-#~ msgid "Add to cart"
-#~ msgstr "افزودن به سبد"
-
-#~ msgid "Add to order lines"
-#~ msgstr "اضافه کردن به سطرهای سفارش"
-
-#~ msgid "Category"
-#~ msgstr "دسته بندی"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "تبدیل بین واحدهای اندازه گیری تنها در صورتی می تواند اتفاق بیفتد که به یک "
-#~ "دسته تعلق داشته باشند. تبدیل بر اساس نسبت ها انجام خواهد شد."
-
-#~ msgid "Disc.%"
-#~ msgstr "تخفیف%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "تخفیف(٪)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr "ترتیب دنباله را هنگام نمایش فهرستی از محصولات اختیاری ارایه می‌دهد."
-
-#~ msgid "Group By"
-#~ msgstr "گروه‌بندی برمبنای"
-
-#~ msgid "Line"
-#~ msgstr "سطر"
-
-#~ msgid "Office Chair"
-#~ msgstr "صندلی اداری"
-
-#~ msgid "Optional Products"
-#~ msgstr "محصولات اختیاری"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "سطرهای محصولات اختیاری"
-
-#~ msgid "Options"
-#~ msgstr "گزینه‌ها"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "حاضر در پیش‌فاکتور"
-
-#~ msgid "Quantity:"
-#~ msgstr "تعداد:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "سازنده پیش‌فاکتور"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "گزینه قالب پیش‌فاکتور"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "انقضای پیش‌فاکتور پس از"
-
-#~ msgid "Remove"
-#~ msgstr "حذف"
-
-#~ msgid "Sale Options"
-#~ msgstr "گزینه‌های فروش"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "مرجع سفارش فروش"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "سطرهای قالب پیش‌فاکتور فروش"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "این فیلد تیک خواهد خورد اگر گزینه سطر محصول در حال حاضر در پیش‌فاکتور وجود "
-#~ "دارد."
-
-#~ msgid "Unit Price"
-#~ msgstr "قیمت واحد"
-
-#~ msgid "Unit Price:"
-#~ msgstr "قیمت واحد:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "واحد اندازه‌گیری"
-
-#~ msgid "UoM"
-#~ msgstr "واحد اندازه گیری"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "شما نمی‌توانید گزینه‌هایی را به یک سفارش تاییدشده اضافه کنید."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "استعلام قیمت شما حاوی محصولات شرکت %(product_company)s است، در حالی که "
-#~ "استعلام قیمت شما متعلق به شرکت %(quote_company)s است.\n"
-#~ "  لطفا شرکت استعلام قیمت خود را تغییر دهید یا محصولات را از سایر شرکت ها "
-#~ "(%(bad_products)s) حذف کنید."

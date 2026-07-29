@@ -14,12 +14,13 @@ from odoo.tools import mute_logger, float_compare
 
 
 @tagged('functional')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestChannelStatistics(common.SlidesCase):
 
     @mute_logger('odoo.models')
     def test_channel_new_content(self):
-        (self.slide | self.slide_2).write({'date_published': fields.Datetime.now() + relativedelta(days=-6)})
-        self.slide_3.write({'date_published': fields.Datetime.now() + relativedelta(days=-8)})
+        (self.slide | self.slide_2).write({'published_date': fields.Datetime.now() + relativedelta(days=-6)})
+        self.slide_3.write({'published_date': fields.Datetime.now() + relativedelta(days=-8)})
         self.assertTrue(all(slide.is_new_slide for slide in (self.slide | self.slide_2)))
         self.assertFalse(self.slide_3.is_new_slide)
 
@@ -32,7 +33,7 @@ class TestChannelStatistics(common.SlidesCase):
         channel_asportal = self.channel.with_user(self.user_portal)
         self.assertTrue(channel_asportal.partner_has_new_content)
 
-        (self.slide | self.slide_2).write({'date_published': fields.Datetime.now() + relativedelta(days=-8)})
+        (self.slide | self.slide_2).write({'published_date': fields.Datetime.now() + relativedelta(days=-8)})
         channel_asportal.invalidate_recordset(['partner_has_new_content'])
         self.assertFalse(channel_asportal.partner_has_new_content)
 
@@ -177,6 +178,7 @@ class TestChannelStatistics(common.SlidesCase):
 
 
 @tagged('functional')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSlideStatistics(common.SlidesCase):
 
     def test_slide_user_statistics(self):
@@ -247,6 +249,7 @@ class TestSlideStatistics(common.SlidesCase):
         self.assertEqual(self.channel.total_slides, 3, 'The channel should still contain 3 slides')
 
 @tagged('functional')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHttpSlideStatistics(HttpCase, common.SlidesCase):
     @classmethod
     def setUpClass(cls):

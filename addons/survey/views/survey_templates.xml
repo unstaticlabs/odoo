@@ -182,6 +182,7 @@
             t-att-data-has-answered="bool(has_answered)"
             t-att-data-is-page-description="bool(question and question.is_page and not is_html_empty(question.description))"
             t-att-data-server-time="server_time"
+            t-att-data-survey-first-submitted="answer.survey_first_submitted"
             t-att-data-survey-last-triggering-answers="survey_last_triggering_answers"
             t-att-data-timer="timer_start"
             t-att-data-time-limit-minutes="time_limit_minutes"/>
@@ -223,11 +224,10 @@
 
             <div class="row">
                 <div class="col-12 text-center mt16">
-                    <t t-set="submit_value" t-value="'finish' if survey_last or answer.is_session_answer else 'next_skipped'
-                        if answer.survey_first_submitted and skipped_questions.page_id and page in skipped_questions.page_id else 'next'"/>
+                    <t t-set="submit_value" t-value="'finish' if survey_last or answer.is_session_answer else 'next_post_submit'
+                        if answer.survey_first_submitted and post_submit_questions.page_id and page in post_submit_questions.page_id else 'next'"/>
                     <button type="submit" t-att-value="submit_value" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} disabled">
                         <t t-if="submit_value == 'finish'">Submit</t>
-                        <t t-elif="submit_value == 'next_skipped'">Next Skipped</t>
                         <t t-else="">Continue</t>
                     </button>
                     <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
@@ -264,10 +264,9 @@
                 <div class="row">
                     <div class="col-12 text-center mt16">
                         <t t-set="submit_value" t-value="'finish' if survey_last or answer.is_session_answer else
-                            'next_skipped' if answer.survey_first_submitted and skipped_questions and question in skipped_questions else 'next'"/>
+                            'next_post_submit' if answer.survey_first_submitted and post_submit_questions and question in post_submit_questions else 'next'"/>
                         <button type="submit" t-att-value="submit_value" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} disabled">
                             <t t-if="submit_value == 'finish'">Submit</t>
-                            <t t-elif="submit_value == 'next_skipped'">Next Skipped</t>
                             <t t-else="">Continue</t>
                         </button>
                         <button id="next_page" t-attf-class="btn #{'btn-secondary' if survey_last else 'btn-primary'} d-none">Next</button>
@@ -323,7 +322,7 @@
                     </div>
                     <div class="col-6 text-center" t-if="survey.certification_give_badge and answer.scoring_success">
                         <img t-att-src="'/web/image/gamification.badge/%s/image_128' % survey.certification_badge_id.id"/>
-                        <div>You received the badge <span class="fw-bold" t-esc="survey.certification_badge_id.name"/>!</div>
+                        <div>You received the badge <span class="fw-bold" t-out="survey.certification_badge_id.name"/>!</div>
                     </div>
                 </div>
             </div>
@@ -351,7 +350,7 @@
         <t t-set="default_constr_error_msg">This question requires an answer.</t>
         <t t-set="default_validation_error_msg">The answer you entered is not valid.</t>
         <t t-set="default_comments_message">If other, please specify:</t>
-        <t t-set="is_skipped_question" t-value="skipped_questions and question in skipped_questions"/>
+        <t t-set="is_post_submit_question" t-value="post_submit_questions and question in post_submit_questions"/>
         <div t-attf-class="js_question-wrapper pb-4
                            #{'d-none' if not display_question else ''}
                            #{'me-2' if extra_right_margin else ''}"
@@ -375,9 +374,13 @@
             <t t-if="question.question_type == 'scale'" t-call="survey.question_scale"/>
             <t t-if="question.question_type == 'multiple_choice'" t-call="survey.question_multiple_choice"/>
             <t t-if="question.question_type == 'matrix'" t-call="survey.question_matrix"/>
+            <!-- Display the error message if the question is considered post submit (needs to be reviewed to get an answer) and
+            it's the post-submit flow or it's the pre-submit flow and the question was effectively skipped. -->
+            <t t-set="display_error_msg" t-value="is_post_submit_question and
+                (answer.survey_first_submitted or (answer_lines and all(answer_lines.mapped('skipped'))))"/>
             <div t-attf-class="o_survey_question_error d-flex align-items-center justify-content-between overflow-hidden
-                 border-0 py-0 px-3 alert alert-danger mt-2 #{'slide_in' if is_skipped_question else ''}" role="alert">
-                <span t-if="is_skipped_question" t-out="question.constr_error_msg or default_constr_error_msg"/>
+                 border-0 py-0 px-3 alert alert-danger mt-2 #{'slide_in' if display_error_msg else ''}" role="alert">
+                <span t-if="display_error_msg" t-out="question.constr_error_msg or default_constr_error_msg"/>
             </div>
         </div>
     </template>
@@ -386,7 +389,7 @@
         <div class="o_survey_comment_container h-auto p-0">
             <textarea class="form-control o_survey_question_text_box bg-transparent rounded-0 p-0" rows="3"
                       t-att-name="question.id" t-att-placeholder="question.question_placeholder"
-                      t-att-data-question-type="question.question_type"><t t-if="answer_lines" t-esc="answer_lines[0].value_text_box or None"/></textarea>
+                      t-att-data-question-type="question.question_type"><t t-if="answer_lines" t-out="answer_lines[0].value_text_box or None"/></textarea>
         </div>
     </template>
 
@@ -419,7 +422,7 @@
         <t t-set="answer_line" t-value="answer_lines and not answer_lines[0].skipped and answer_lines[0]"/>
         <div class="o_survey_answer_wrapper o_survey_form_choice"
              t-att-data-name="question.id"
-             t-att-data-is-skipped-question="is_skipped_question or None"
+             t-att-data-is-post-submit-question="is_post_submit_question or None"
              data-question-type="scale">
             <div role="radiogroup" class="btn-group d-flex mb-2" t-att-aria-label="">
                 <t t-foreach="range(question.scale_min, question.scale_max + 1)" t-as="value">
@@ -449,10 +452,9 @@
                     </label>
                 </t>
             </div>
-            <div t-if="question.scale_min_label or question.scale_mid_label or question.scale_max_label"
+            <div t-if="question.scale_min_label or question.scale_max_label"
                  class="d-flex justify-content-between text-primary">
                 <div class="text-start" t-out="question.scale_min_label"/>
-                <div class="text-center" t-out="question.scale_mid_label"/>
                 <div class="text-end" t-out="question.scale_max_label"/>
             </div>
         </div>
@@ -502,7 +504,7 @@
         <t t-set="comment_line" t-value="answer_lines.filtered(lambda line: line.value_char_box)"/>
         <div class="row g-2 o_survey_answer_wrapper o_survey_form_choice"
              t-att-data-name="question.id"
-             t-att-data-is-skipped-question="is_skipped_question or None"
+             t-att-data-is-post-submit-question="is_post_submit_question or None"
              data-question-type="simple_choice_radio">
             <t t-set="item_idx" t-value="0"/>
             <t t-set="has_correct_answer" t-value="scoring_display_correction and any(label.is_correct for label in question.suggested_answer_ids)"/>
@@ -516,9 +518,8 @@
                 <div t-attf-class="col-sm-12 #{use_half_col_lg}">
                     <label t-att-for="str(question.id) + '_' + str(label.id)"
                         t-attf-class="o_survey_choice_btn py-1 px-3 w-100 h-100 rounded #{answer_class} #{'o_survey_selected' if answer_selected else ''}">
-                        <t t-call="survey.survey_selection_key">
-                            <t t-set="selection_key_class" t-value="'position-relative o_survey_radio_btn float-start d-flex'"/>
-                        </t>
+                        <t t-call="survey.survey_selection_key"
+                            selection_key_class.f="position-relative o_survey_radio_btn float-start d-flex"/>
                         <t t-if="has_correct_answer and answer_selected">
                             <!-- While displaying results: change icons to have a check mark for a right answer and a cross for a wrong one -->
                             <i t-if="label.is_correct" class="float-end mt-1 position-relative d-inline fa fa-check-circle"/>
@@ -542,9 +543,8 @@
                 <div t-attf-class="col-sm-12 #{use_half_col_lg}">
                     <label t-attf-class="o_survey_choice_btn py-1 px-3 h-100 w-100 rounded #{'o_survey_selected' if comment_line else ''}">
                         <t t-set="item_idx" t-value="item_idx + 1"/>
-                        <t t-call="survey.survey_selection_key">
-                            <t t-set="selection_key_class" t-value="'position-relative o_survey_radio_btn float-start d-flex'"/>
-                        </t>
+                        <t t-call="survey.survey_selection_key"
+                            selection_key_class.f="position-relative o_survey_radio_btn float-start d-flex"/>
                         <i class="fa fa-check-circle float-end mt-1 ms-1 position-relative"/>
                         <i class="fa fa-circle-thin float-end mt-1 ms-1 position-relative"/>
                         <input type="radio" class="o_survey_form_choice_item o_survey_js_form_other_comment invisible position-absolute" value="-1"
@@ -556,13 +556,13 @@
                 </div>
                 <div t-attf-class="o_survey_comment_container mt-3 py-0 px-1 h-auto #{'d-none' if not comment_line else ''}">
                     <textarea type="text" class="form-control o_survey_question_text_box bg-transparent rounded-0 p-0"
-                        t-att-disabled="None if comment_line else 'disabled'"><t t-esc="comment_line.value_char_box if comment_line else ''"/></textarea>
+                        t-att-disabled="None if comment_line else 'disabled'"><t t-out="comment_line.value_char_box if comment_line else ''"/></textarea>
                 </div>
             </t>
             <div t-if='question.comments_allowed and not question.comment_count_as_answer'
                 class="mb-2 o_survey_comment_container mt-3">
                 <textarea type="text" class="col form-control o_survey_comment o_survey_question_text_box bg-transparent rounded-0 p-0"
-                    t-att-placeholder="question.comments_message or default_comments_message if not survey_form_readonly else ''"><t t-esc="comment_line.value_char_box if comment_line else ''"/></textarea>
+                    t-att-placeholder="question.comments_message or default_comments_message if not survey_form_readonly else ''"><t t-out="comment_line.value_char_box if comment_line else ''"/></textarea>
             </div>
         </div>
     </template>
@@ -584,9 +584,8 @@
 
                 <div t-attf-class="col-sm-12 #{use_half_col_lg}">
                     <label t-attf-class="o_survey_choice_btn py-1 px-3 w-100 h-100 rounded #{answer_class} #{'o_survey_selected' if answer_selected else ''}">
-                        <t t-call="survey.survey_selection_key">
-                            <t t-set="selection_key_class" t-value="'position-relative float-start d-flex'"/>
-                        </t>
+                        <t t-call="survey.survey_selection_key"
+                            selection_key_class.f="position-relative float-start d-flex"/>
                         <!-- While displaying results: change icons to have a check mark for a right answer and a cross for a wrong one -->
                         <i t-if="has_correct_answer and answer_selected" t-attf-class="float-end mt-1 position-relative d-inline
                             fa #{'fa-check-square' if is_correct else 'fa-times-square'}"/>
@@ -607,9 +606,8 @@
                 <div t-attf-class="col-sm-12 #{use_half_col_lg}">
                     <label t-attf-class="o_survey_choice_btn py-1 px-3 h-100 w-100 rounded #{'o_survey_selected' if comment_line else ''}">
                         <t t-set="item_idx" t-value="item_idx + 1"/>
-                        <t t-call="survey.survey_selection_key">
-                            <t t-set="selection_key_class" t-value="'position-relative float-start d-flex'"/>
-                        </t>
+                        <t t-call="survey.survey_selection_key"
+                            selection_key_class.f="position-relative float-start d-flex"/>
                         <i class="fa fa-check-square float-end mt-1 ms-1 position-relative"/>
                         <i class="fa fa-square-o float-end mt-1 ms-1 position-relative"/>
                         <input type="checkbox" class="o_survey_form_choice_item o_survey_js_form_other_comment invisible position-absolute" value="-1"
@@ -621,12 +619,12 @@
                 </div>
                 <div t-attf-class="o_survey_comment_container mt-3 py-0 h-auto px-1 #{'d-none' if not comment_line else ''}">
                     <textarea type="text" class="form-control o_survey_question_text_box bg-transparent rounded-0 p-0"
-                        t-att-disabled="None if comment_line else 'disabled'"><t t-esc="comment_line.value_char_box if comment_line else ''"/></textarea>
+                        t-att-disabled="None if comment_line else 'disabled'"><t t-out="comment_line.value_char_box if comment_line else ''"/></textarea>
                 </div>
             </t>
             <div t-if='question.comments_allowed and not question.comment_count_as_answer' class="mb-2 o_survey_comment_container mt-3">
                 <textarea type="text" class="col form-control o_survey_comment o_survey_question_text_box bg-transparent rounded-0 p-0"
-                    t-att-placeholder="question.comments_message or default_comments_message if not survey_form_readonly else ''"><t t-esc="comment_line.value_char_box if comment_line else ''"/></textarea>
+                    t-att-placeholder="question.comments_message or default_comments_message if not survey_form_readonly else ''"><t t-out="comment_line.value_char_box if comment_line else ''"/></textarea>
             </div>
         </div>
     </template>
@@ -637,7 +635,7 @@
                t-att-data-name="question.id"
                t-att-data-question-type="question.question_type"
                t-att-data-sub-questions="question.matrix_row_ids.ids"
-               t-att-data-is-skipped-question="is_skipped_question or None">
+               t-att-data-is-post-submit-question="is_post_submit_question or None">
             <thead>
                 <tr>
                     <th> </th>
@@ -664,10 +662,8 @@
                             % ('square-o' if question.matrix_subtype == 'multiple' else 'circle-thin')"></i>
                             <i t-att-class="'fa fa-%s position-relative'
                             % ('check-square' if question.matrix_subtype == 'multiple' else 'check-circle')"></i>
-                            <t t-call="survey.survey_selection_key">
-                                <t t-set="selection_key_class"
-                                   t-value="'position-absolute float-end fw-bold %s' % ('o_survey_radio_btn' if question.matrix_subtype != 'multiple' else '')"/>
-                            </t>
+                            <t t-call="survey.survey_selection_key"
+                                selection_key_class="'position-absolute float-end fw-bold %s' % ('o_survey_radio_btn' if question.matrix_subtype != 'multiple' else '')"/>
                             <t t-set="item_idx" t-value="item_idx + 1"/>
                         </td>
                     </t>
@@ -677,14 +673,14 @@
         <div t-if='question.comments_allowed'>
             <textarea type="text" class="form-control o_survey_question_text_box o_survey_comment bg-transparent rounded-0 p-0 mt-3"
                       t-att-placeholder="question.comments_message or default_comments_message if not survey_form_readonly else ''"
-                      t-att-name="'%s_%s' % (question.id, 'comment')"><t t-esc="comment_line.value_char_box if comment_line else ''"/></textarea>
+                      t-att-name="'%s_%s' % (question.id, 'comment')"><t t-out="comment_line.value_char_box if comment_line else ''"/></textarea>
         </div>
     </template>
 
     <template id="survey_selection_key">
         <div t-if="useKeySelection" t-att-class="'o_survey_choice_key bg-white rounded %s' % selection_key_class">
              <span class="o_survey_key text-center position-absolute bg-white rounded-start py-0 ps-2"><span class="text-primary text-center text-center w-100 position-relative">Key</span></span>
-             <span class="text-primary text-center w-100 position-relative" t-esc="letters[item_idx]"/>
+             <span class="text-primary text-center w-100 position-relative" t-out="letters[item_idx]"/>
         </div>
     </template>
 
@@ -692,10 +688,10 @@
         <t t-if="len(page_ids) > 1 and not survey.has_conditional_questions">
             <t t-set="percentage" t-value="round(100*(page_number/len(page_ids)))"/>
             <span t-if="survey.progression_mode == 'percent'">
-                <t t-esc="percentage"/>% completed
+                <t t-out="percentage"/>% completed
             </span>
             <span t-else="">
-                <t t-esc="page_number"/> of <t t-esc="len(page_ids)"/>
+                <t t-out="page_number"/> of <t t-out="len(page_ids)"/>
                 <t t-if="survey.questions_layout == 'page_per_question'">answered</t>
                 <t t-else="">pages</t>
             </span>

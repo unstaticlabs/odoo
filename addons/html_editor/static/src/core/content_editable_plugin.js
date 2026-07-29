@@ -1,5 +1,5 @@
-import { isArtificialVoidElement } from "@html_editor/core/selection_plugin";
 import { Plugin } from "@html_editor/plugin";
+import { isMediaElement } from "@html_editor/utils/dom_info";
 import { selectElements } from "@html_editor/utils/dom_traversal";
 import { withSequence } from "@html_editor/utils/resource";
 
@@ -47,26 +47,25 @@ export class ContentEditablePlugin extends Plugin {
             this.getResource("valid_contenteditable_predicates").every((p) => p(contentEditableEl))
         );
         for (const contentEditableEl of filteredContentEditableEls) {
-            if (!contentEditableEl.isContentEditable) {
-                if (
-                    isArtificialVoidElement(contentEditableEl) ||
-                    contentEditableEl.nodeName === "IMG"
-                ) {
-                    contentEditableEl.classList.add("o_editable_media");
-                    continue;
-                }
-                if (!contentNotEditableEls.includes(contentEditableEl)) {
-                    contentEditableEl.setAttribute("contenteditable", true);
-                }
+            if (
+                isMediaElement(contentEditableEl) &&
+                !contentEditableEl.parentNode.isContentEditable
+            ) {
+                contentEditableEl.classList.add("o_editable_media");
+                continue;
+            }
+            if (
+                !contentEditableEl.isContentEditable &&
+                !contentNotEditableEls.includes(contentEditableEl)
+            ) {
+                contentEditableEl.setAttribute("contenteditable", true);
             }
         }
     }
 
     cleanForSave({ root }) {
         const toRemoveSelector = this.getResource("contenteditable_to_remove_selector").join(",");
-        const contenteditableEls = toRemoveSelector
-            ? [...selectElements(root, toRemoveSelector)]
-            : [];
+        const contenteditableEls = toRemoveSelector ? selectElements(root, toRemoveSelector) : [];
         for (const contenteditableEl of contenteditableEls) {
             contenteditableEl.removeAttribute("contenteditable");
         }

@@ -1,11 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
 import json
 
 from werkzeug.urls import url_encode
 
-import odoo
 import odoo.tests
 from odoo import http
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
@@ -41,7 +39,6 @@ class TestUiCustomizeTheme(odoo.tests.HttpCase):
             'name': custom_url,
             'type': 'binary',
             'mimetype': 'text/scss',
-            'datas': '',
             'url': custom_url,
             'website_id': website_default.id
         })
@@ -54,7 +51,6 @@ class TestUiCustomizeTheme(odoo.tests.HttpCase):
             'name': 'SO036.pdf',
             'type': 'binary',
             'mimetype': 'application/pdf',
-            'datas': '',
             'website_id': website_test.id
         })
 
@@ -199,7 +195,7 @@ class TestUiHtmlEditor(HttpCaseWithUserDemo):
             'name': 'dynamic svg test',
             'type': 'binary',
             'mimetype': 'image/svg+xml',
-            'datas': base64.b64encode(svg.encode()),
+            'raw': svg.encode(),
             'public': True,
             'url': '/html_editor/shape/illustration/dynamic-svg-test',
         })
@@ -315,6 +311,29 @@ class TestUiTranslate(odoo.tests.HttpCase):
         })
         self.start_tour(f"/website/force/{website.id}", 'snippet_dialog_rtl', login='admin')
 
+    def test_multiple_websites_add_language(self):
+        self.env['res.lang'].create({
+            'name': 'Parseltongue',
+            'code': 'pa_GB',
+            'iso_code': 'pa_GB',
+            'url_code': 'pa_GB',
+        })
+        Website = self.env['website']
+        Website.create({'name': 'Website Test'})
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'multiple_websites_add_language', login='admin')
+
+    def test_translate_select_element(self):
+        lang_en = self.env.ref('base.lang_en')
+        lang_fr = self.env.ref('base.lang_fr')
+        self.env['res.lang']._activate_lang(lang_fr.code)
+        default_website = self.env.ref('website.default_website')
+        default_website.write({
+            'default_lang_id': lang_en.id,
+            'language_ids': [(6, 0, (lang_en + lang_fr).ids)],
+        })
+
+        self.start_tour(self.env['website'].get_client_action_url('/'), 'translate_select_element', login='admin')
+
 
 @odoo.tests.common.tagged('post_install', '-at_install')
 class TestUi(HttpCaseWithWebsiteUser):
@@ -346,7 +365,7 @@ class TestUi(HttpCaseWithWebsiteUser):
         attach = self.env['ir.attachment'].create({
             'name': 'EditorExtension.js',
             'mimetype': 'text/javascript',
-            'datas': base64.b64encode(code),
+            'raw': code,
         })
         custom_url = '/_custom/web/content/%s/%s' % (attach.id, attach.name)
         attach.url = custom_url
@@ -395,6 +414,13 @@ class TestUi(HttpCaseWithWebsiteUser):
         self.start_tour(self.env['website'].get_client_action_url('/'), 'snippet_version_1', login='admin')
 
     def test_08_website_style_custo(self):
+        self.env['ir.attachment'].create({
+            'public': True,
+            'type': 'url',
+            'url': '/web/image/123/bg_test.png',
+            'name': 'bg_test.png',
+            'mimetype': 'image/png',
+        })
         self.start_tour(self.env['website'].get_client_action_url('/'), 'website_style_edition', login='admin')
 
     def test_09_website_edit_link_popover(self):
@@ -523,6 +549,9 @@ class TestUi(HttpCaseWithWebsiteUser):
             'name': 'Test Website',
         })
         self.start_tour("/odoo/action-website.action_website_menu", "parent_child_menu", login="admin")
+
+    def test_34_website_page_breadcrumb(self):
+        self.start_tour('/contactus', 'website_page_breadcrumb', login='admin')
 
     def test_website_media_dialog_image_shape(self):
         self.start_tour("/", 'website_media_dialog_image_shape', login='admin')
@@ -678,6 +707,12 @@ class TestUi(HttpCaseWithWebsiteUser):
 
     def test_website_edit_menus_delete_parent(self):
         website = self.env['website'].browse(1)
+        self.env['website.menu'].create({
+            'name': 'Test Child Menu',
+            'url': '/test-child',
+            'website_id': website.id,
+            'parent_id': website.menu_id.id,
+        })
         menu_tree = self.env['website.menu'].get_tree(website.id)
 
         parent_menu = menu_tree['children'][0]['fields']
@@ -763,9 +798,19 @@ class TestUi(HttpCaseWithWebsiteUser):
         self.start_tour("/", "anchor_behaviour_on_accordion_same_tab", login="admin")
         self.start_tour("/#What-services-does-your-company-offer-%3F", "anchor_behaviour_on_accordion_new_tab", login="admin")
 
-    @mute_logger("odoo.http")
-    def test_website_replace_remove_image(self):
-        self.start_tour("/", "website_replace_remove_image", login="admin")
+    def test_background_color_gradient_precedence(self):
+        # Configure CC1 with a gradient and apply it to the header, then set a
+        # different gradient directly on the header background.
+        self.env['website.assets'].with_context(website_id=1).make_scss_customization(
+            '/website/static/src/scss/options/user_values.scss',
+            {
+                'o-cc1-bg-gradient': 'linear-gradient(rgb(0, 0, 0), rgb(1, 1, 1))',
+                'o-cc1-bg': 'null',
+                'menu': '1',
+                'menu-gradient': 'linear-gradient(rgb(2, 2, 2), rgb(3, 3, 3))',
+            },
+        )
+        self.start_tour('/', 'background_color_gradient_precedence', login='admin')
 
     def test_website_optimize_seo_with_multiple_fields(self):
         model_id = self.env["ir.model"]._get_id("website")
@@ -827,3 +872,7 @@ class TestUi(HttpCaseWithWebsiteUser):
             "website.test_website_seo_with_duplicate_images_across_html_fields",
             login="admin",
         )
+
+    @mute_logger("odoo.http")
+    def test_website_replace_remove_image(self):
+        self.start_tour("/", "website_replace_remove_image", login="admin")

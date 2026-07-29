@@ -28,29 +28,6 @@ class AccountMove(models.Model):
       help="Technical field to know if the chain has been stopped by a previous invoice",
   )
 
-    def _l10n_gcc_get_invoice_title(self):
-        # DEPRECATED - to be removed in master
-        # EXTENDS l10n_gcc_invoice
-        self.ensure_one()
-        if self.company_id.country_code == 'SA' and self._l10n_sa_is_simplified():
-            return self.env._('Simplified Tax Invoice')
-
-        return super()._l10n_gcc_get_invoice_title()
-
-    def _l10n_sa_is_simplified(self):
-        # DEPRECATED - to be removed in master
-        """
-            Returns True if the customer is an individual, i.e: The invoice is B2C
-        :return:
-        """
-        self.ensure_one()
-
-        return (
-            self.partner_id.commercial_partner_id.company_type == "person"
-            if self.partner_id.commercial_partner_id
-            else self.partner_id.company_type == "person"
-        )
-
     @api.ondelete(at_uninstall=False)
     def _prevent_zatca_rejected_invoice_deletion(self):
         # Prevent deletion of ZATCA-rejected invoices in production mode
@@ -355,17 +332,6 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
-    def _apply_retention_tax_filter(self, tax_values):
-        return not tax_values['tax_id'].l10n_sa_is_retention
-
-    def _is_global_discount_line(self):
-        """
-            Any line that has a negative amount and is not linked to a down-payment is considered as a
-            global discount line. These can be created either manually, or through a promotions program.
-        """
-        self.ensure_one()
-        return not self._get_downpayment_lines() and self.price_subtotal < 0
-
     @api.depends('price_subtotal', 'price_total')
     def _compute_tax_amount(self):
         super()._compute_tax_amount()
@@ -382,5 +348,5 @@ class AccountMoveLine(models.Model):
                 line.l10n_gcc_invoice_tax_amount = sum(
                     tax_data['tax_amount_currency']
                     for tax_data in base_line['tax_details']['taxes_data']
-                    if not tax_data['tax'].l10n_sa_is_retention
+                    if tax_data['tax'].amount > 0
                 )

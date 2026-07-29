@@ -3,14 +3,15 @@
 # * partner_autocomplete
 #
 # Oakarmin Iron <oakarminiron@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:43+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:14+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Burmese <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/my/>\n"
 "Language: my\n"
 "MIME-Version: 1.0\n"
@@ -32,8 +33,9 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr ""
+#, fuzzy
+msgid "Company"
+msgstr "ကုမ္ပဏီ"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -42,8 +44,9 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_partner
+#, fuzzy
 msgid "Contact"
-msgstr ""
+msgstr "ဆက်သွယ်ရန်"
 
 #. module: partner_autocomplete
 #: model:ir.model,website_form_label:partner_autocomplete.model_res_partner
@@ -56,8 +59,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_company__display_name
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_partner__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "ပြသသော အမည်"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_company__iap_enrich_auto_done
@@ -91,8 +95,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_company__id
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_config_settings__id
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_partner__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "အိုင်ဒီ"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_config_settings__partner_autocomplete_insufficient_credit
@@ -141,9 +146,3 @@ msgstr ""
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr ""
-
-#~ msgid "Created by"
-#~ msgstr "ဖန်တီးသူ"
-
-#~ msgid "Last Updated by"
-#~ msgstr "နောက်ဆုံးပြင်ဆင်သူ"

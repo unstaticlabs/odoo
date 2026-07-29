@@ -7,14 +7,14 @@
 # Odoo Thaidev <odoothaidev@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:30+0000\n"
-"PO-Revision-Date: 2026-07-01 23:30+0000\n"
+"POT-Creation-Date: 2026-06-05 19:35+0000\n"
+"PO-Revision-Date: 2025-11-12 13:05+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
 "website_links/th/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_links
 #. odoo-javascript
@@ -35,14 +35,21 @@ msgstr "# ของคลิก"
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
 msgid ""
 "<a class=\"copy-to-clipboard btn btn-success text-nowrap "
-"o_translate_inline\"><i class=\"fa fa-copy me-2\"/>Copy</a>"
+"o_translate_inline\"><i class=\"fa fa-copy me-2\"/>Copy</a>\n"
+"                                        <a class=\"download-qr-code btn btn-"
+"info text-nowrap o_translate_inline\"><i class=\"fa fa-qrcode align-middle "
+"me-2\"/>Download QR Code</a>"
 msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.graphs
-#, fuzzy
 msgid "<i class=\"fa fa-copy me-2\"/>Copy"
-msgstr "<i class=\"fa fa-copy me-2\"/>คัดลอก"
+msgstr ""
+
+#. module: website_links
+#: model_terms:ir.ui.view,arch_db:website_links.graphs
+msgid "<i class=\"fa fa-qrcode align-middle me-2\"/>Download QR Code"
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.graphs
@@ -277,8 +284,8 @@ msgid ""
 "Those trackers can be used in Google Analytics to track clicks and visitors, "
 "or in Odoo reports to track opportunities and related revenues."
 msgstr ""
-"เครื่องมือติดตามเหล่านั้นสามารถใช้ใน Google Analytics เพื่อติดตามการคลิกและผู้เยี่ยมชม หรือใช้ใ"
-"นรายงาน Odoo เพื่อติดตามโอกาสและรายได้ที่เกี่ยวข้อง"
+"เครื่องมือติดตามเหล่านั้นสามารถใช้ใน Google Analytics เพื่อติดตามการคลิกและผู้เยี่ยมชม "
+"หรือใช้ในรายงาน Odoo เพื่อติดตามโอกาสและรายได้ที่เกี่ยวข้อง"
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -377,54 +384,3 @@ msgstr "เช่น  https://www.odoo.com/contactus"
 #~ "class=\"o_website_links_cancel_edit o_translate_inline\" "
 #~ "href=\"#\">ยกเลิก</a>\n"
 #~ "                                        </span>"
-
-#~ msgid " clicks"
-#~ msgstr "คลิก"
-
-#~ msgid " countries"
-#~ msgstr "ประเทศ"
-
-#~ msgid "Copied"
-#~ msgstr "ทำสำเนาแล้ว"
-
-#~ msgid "Generating link..."
-#~ msgstr "กำลังสร้างลิงก์..."
-
-#~ msgid "Get tracked link"
-#~ msgstr "รับลิงก์ติดตาม"
-
-#~ msgid "Icon"
-#~ msgstr "ไอคอน"
-
-#~ msgid "Most Clicked"
-#~ msgstr "คลิกมากที่สุด"
-
-#~ msgid "No data"
-#~ msgstr "ไม่มีข้อมูล"
-
-#~ msgid "Recently Used"
-#~ msgstr "ใช้ล่าสุด"
-
-#~ msgid "Stats"
-#~ msgstr "สแตท"
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "Unable to get recent links"
-#~ msgstr "ไม่สามารถรับลิงก์ล่าสุดได้"
-
-#~ msgid "You don't have any recent links."
-#~ msgstr "คุณไม่มีลิงก์ล่าสุด"
-
-#~ msgid "cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgid "copy"
-#~ msgstr "ทำสำเนา"
-
-#~ msgid "ok"
-#~ msgstr "โอเค"
-
-#~ msgid "or"
-#~ msgstr "หรือ"

@@ -1,13 +1,13 @@
 from datetime import timedelta
 from freezegun import freeze_time
 
+from odoo import Command, fields
 from odoo.addons.stock_account.tests.common import TestStockValuationCommon
-from odoo import fields
 from odoo.exceptions import UserError
-from odoo.tests import users
-from odoo import Command
+from odoo.tests import tagged, users
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLotValuation(TestStockValuationCommon):
 
     @classmethod
@@ -420,7 +420,7 @@ class TestLotValuation(TestStockValuationCommon):
             Command.update(move.move_line_ids[1].id, {'quantity': 6}),
             Command.create({
                 'product_id': self.product.id,
-                'product_uom_id': self.product.uom_id.id,
+                'uom_id': self.product.uom_id.id,
                 'quantity': 3,
                 'lot_id': self.lot3.id,
             }),

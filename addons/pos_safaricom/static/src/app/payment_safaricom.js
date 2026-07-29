@@ -1,7 +1,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_interface";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
-import { register_payment_method } from "@point_of_sale/app/services/pos_store";
+import { registry } from "@web/core/registry";
 import { TextInputPopup } from "@point_of_sale/app/components/popups/text_input_popup/text_input_popup";
 import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { MpesaTransactionPopup } from "@pos_safaricom/app/components/popups/mpesa_transaction_popup";
@@ -216,4 +216,4 @@ export class PaymentSafaricom extends PaymentInterface {
     }
 }
 
-register_payment_method("safaricom", PaymentSafaricom);
+registry.category("electronic_payment_interfaces").add("safaricom", PaymentSafaricom);

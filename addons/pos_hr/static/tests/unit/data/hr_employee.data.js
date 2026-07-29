@@ -1,3 +1,5 @@
+/* global Sha1 */
+
 import { patch } from "@web/core/utils/patch";
 import { hootPosModels } from "@point_of_sale/../tests/unit/data/generate_model_definitions";
 import { models } from "@web/../tests/web_test_helpers";
@@ -36,6 +38,9 @@ export class HrEmployee extends models.ServerModel {
         };
         records.forEach((emp) => {
             emp._role = employeeRoles[emp.id] || "manager";
+            if (emp.id === 2) {
+                emp._pin = Sha1.hash("1234");
+            }
         });
         return records;
     }

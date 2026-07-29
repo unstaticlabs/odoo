@@ -28,6 +28,7 @@ class InstagramOptionPlugin extends Plugin {
         builder_actions: {
             InstagramPageAction,
         },
+        so_content_addition_selector: [".s_instagram_page"],
         normalize_handlers: this.normalize.bind(this),
     };
 
@@ -36,9 +37,7 @@ class InstagramOptionPlugin extends Plugin {
     }
 
     normalize(root) {
-        const nodes = [
-            ...selectElements(root, ".s_instagram_page[data-instagram-page-is-default]"),
-        ];
+        const nodes = selectElements(root, ".s_instagram_page[data-instagram-page-is-default]");
         if (nodes.length) {
             this.loadAndSetPage(nodes);
         }

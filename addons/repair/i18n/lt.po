@@ -20,14 +20,14 @@
 # Jonas Zinkevicius <jozi@odoo.com>, 2022
 # Denis Knotko <denis_knotko@yahoo.com>, 2022
 # Arunas V. <arunas@devoro.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:17+0000\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2025-11-15 14:15+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "repair/lt/>\n"
@@ -36,20 +36,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "%(name)s Sequence repair"
-msgstr ""
-
-#. module: repair
-#. odoo-python
-#: code:addons/repair/models/repair.py:0
-msgid "%(product)s: Insufficient Quantity To Repair"
 msgstr ""
 
 #. module: repair
@@ -76,11 +70,6 @@ msgid ""
 "* The 'Under Repair' status is used when the repair is ongoing.\n"
 "* The 'Repaired' status is set when repairing is completed.\n"
 "* The 'Cancelled' status is used when user cancel repair order."
-msgstr ""
-
-#. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "<br/>You can still confirm the repair of"
 msgstr ""
 
 #. module: repair
@@ -159,13 +148,6 @@ msgid "<strong>Status:</strong>"
 msgstr ""
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid ""
-"? , but get ready to have fun taking inventory to fix the negative stock "
-"quantity!"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_needaction
 msgid "Action Needed"
 msgstr "Reikalingas veiksmas"
@@ -179,6 +161,11 @@ msgstr "Veiklos"
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Veiklos išimties žymėjimas"
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_state
@@ -295,6 +282,11 @@ msgid "BoM Components"
 msgstr "KS komponentai"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__can_create_sale_or_invoice
+msgid "Can Create Sale Or Invoice"
+msgstr ""
+
+#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "Can't find any production location."
@@ -302,8 +294,8 @@ msgstr "Nepavyko rasti rasti produkcijos vietos."
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Cancel Repair"
-msgstr "Atšaukti taisymą"
+msgid "Cancel"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields.selection,name:repair.selection__repair_order__state__cancel
@@ -375,11 +367,6 @@ msgid "Confirmed"
 msgstr "Patvirtinti"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Create Quotation"
-msgstr ""
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 #: model:ir.actions.server,name:repair.action_create_repair_order
@@ -400,14 +387,12 @@ msgstr "Sukurti užsakymą"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_uid
 msgid "Created by"
 msgstr "Sukūrė"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_date
 msgid "Created on"
 msgstr "Sukurta"
 
@@ -444,6 +429,7 @@ msgid "Details"
 msgstr "Papildoma informacija"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__display_name
 #: model:ir.model.fields,field_description:repair.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:repair.field_product_product__display_name
 #: model:ir.model.fields,field_description:repair.field_product_template__display_name
@@ -459,7 +445,6 @@ msgstr "Papildoma informacija"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__display_name
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__display_name
 msgid "Display Name"
 msgstr "Rodomas pavadinimas"
 
@@ -500,13 +485,6 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Font awesome piktograma, pvz., fa-tasks"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid ""
-"For some of the parts, there is a difference between the initial demand and "
-"the actual quantity that was used. Are you sure you want to confirm ?"
-msgstr ""
-
-#. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Future Activities"
 msgstr "Būsimos veiklos"
@@ -522,6 +500,7 @@ msgid "Has Uncomplete Moves"
 msgstr ""
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__id
 #: model:ir.model.fields,field_description:repair.field_account_move_line__id
 #: model:ir.model.fields,field_description:repair.field_product_product__id
 #: model:ir.model.fields,field_description:repair.field_product_template__id
@@ -537,7 +516,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__id
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__id
 msgid "ID"
 msgstr "ID"
 
@@ -607,6 +585,22 @@ msgid "Inventory Moves"
 msgstr "Atsargų perkėlimai"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_ids
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoice"
+msgstr ""
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_count
+msgid "Invoice Count"
+msgstr ""
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoices"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_is_follower
 msgid "Is Follower"
 msgstr "Yra sekėjas"
@@ -622,9 +616,14 @@ msgid "John Doe"
 msgstr ""
 
 #. module: repair
+#: model:ir.model,name:repair.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: repair
 #: model:ir.model,name:repair.model_account_move_line
 msgid "Journal Item"
-msgstr "Žurnalo įrašas"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -639,14 +638,12 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_uid
 msgid "Last Updated by"
 msgstr "Paskutinį kartą atnaujino"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_date
 msgid "Last Updated on"
 msgstr "Paskutinį kartą atnaujinta"
 
@@ -667,11 +664,6 @@ msgid ""
 "Latest parts availability status for this RO. If green, then the RO's "
 "readiness status is ready."
 msgstr ""
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__location_id
-msgid "Location"
-msgstr "Vieta"
 
 #. module: repair
 #: model:ir.model,name:repair.model_stock_lot
@@ -808,6 +800,11 @@ msgid "Open"
 msgstr "Atidaryti"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_type_id
 msgid "Operation Type"
 msgstr "Operacijos tipas"
@@ -840,11 +837,6 @@ msgid "Pending"
 msgstr "Laukia"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Picked"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_ids
 msgid "Picking Product"
 msgstr ""
@@ -873,7 +865,6 @@ msgstr "Svarba"
 #. module: repair
 #: model:ir.model,name:repair.model_product_template
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_id
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Product"
 msgstr "Produktas"
@@ -957,17 +948,15 @@ msgid "Properties"
 msgstr "Savybės"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quant_ids
-msgid "Quant"
-msgstr "Kiekių grupė"
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quantity
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_tree
 msgid "Quantity"
 msgstr "Kiekis"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Quote"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -1023,7 +1012,6 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_stock_move__repair_id
 #: model:ir.model.fields,field_description:repair.field_stock_picking__repair_ids
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__repair_id
 #: model:ir.model.fields.selection,name:repair.selection__stock_picking_type__code__repair_operation
 msgid "Repair"
 msgstr "Taisyti"
@@ -1047,8 +1035,11 @@ msgstr ""
 #. module: repair
 #: model:ir.actions.report,name:repair.action_report_repair_order
 #: model:ir.model,name:repair.model_repair_order
+#: model:ir.model.fields,field_description:repair.field_account_bank_statement_line__repair_order_id
+#: model:ir.model.fields,field_description:repair.field_account_move__repair_order_id
 #: model:ir.model.fields,field_description:repair.field_sale_order__repair_order_ids
 #: model:ir.model.fields.selection,name:repair.selection__product_template__service_tracking__repair
+#: model_terms:ir.ui.view,arch_db:repair.view_account_move_form_inherit_repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Repair Order"
@@ -1107,7 +1098,7 @@ msgstr ""
 
 #. module: repair
 #: model:ir.model,name:repair.model_repair_tags
-msgid "Repair Tags"
+msgid "Repair Tag"
 msgstr ""
 
 #. module: repair
@@ -1165,6 +1156,11 @@ msgstr "Papildyti užsakius (MTO)"
 #: model_terms:ir.ui.view,arch_db:repair.stock_repair_type_kanban
 msgid "Reporting"
 msgstr "Ataskaitos"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Reserved"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__user_id
@@ -1416,11 +1412,6 @@ msgid "Type"
 msgstr "Tipas"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr "Operacijos tipas"
-
-#. module: repair
 #: model:ir.model.fields,help:repair.field_repair_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Įrašytos išimties veiklos tipas."
@@ -1437,8 +1428,7 @@ msgid "Under Warranty"
 msgstr ""
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_repair_order__product_uom
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_uom_name
+#: model:ir.model.fields,field_description:repair.field_repair_order__uom_id
 msgid "Unit"
 msgstr "Vienetas"
 
@@ -1448,7 +1438,7 @@ msgid "Units"
 msgstr "Vienetai"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+#: model:ir.actions.server,name:repair.action_unreserve
 msgid "Unreserve"
 msgstr "Atrezervuoti"
 
@@ -1461,11 +1451,6 @@ msgstr "Skubu"
 #: model:ir.model,name:repair.model_stock_warehouse
 msgid "Warehouse"
 msgstr "Sandėlis"
-
-#. module: repair
-#: model:ir.model,name:repair.model_stock_warn_insufficient_qty_repair
-msgid "Warn Insufficient Repair Quantity"
-msgstr ""
 
 #. module: repair
 #. odoo-python
@@ -1509,6 +1494,12 @@ msgstr "Negalite įvesti neigiamų kiekių."
 
 #. module: repair
 #. odoo-python
+#: code:addons/repair/models/account_move.py:0
+msgid "You can only have one invoice linked to a repair order."
+msgstr ""
+
+#. module: repair
+#. odoo-python
 #: code:addons/repair/models/repair.py:0
 msgid "You cannot cancel a Repair Order that's already been completed"
 msgstr ""
@@ -1534,11 +1525,6 @@ msgid ""
 msgstr ""
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "from location"
-msgstr "iš vietos"
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 msgid "id"
@@ -1549,254 +1535,3 @@ msgstr ""
 #: code:addons/repair/models/sale_order.py:0
 msgid "sale_order_id"
 msgstr ""
-
-#~ msgid "(update)"
-#~ msgstr "(atnaujinimas)"
-
-#~ msgid "<strong>Lot/Serial Number:</strong>"
-#~ msgstr "<strong>Partijos/serijinis numeris:</strong>"
-
-#~ msgid "<strong>Operations</strong>"
-#~ msgstr "<strong>Operacijos</strong>"
-
-#~ msgid "<strong>Parts</strong>"
-#~ msgstr "<strong>Dalys</strong>"
-
-#~ msgid "<strong>Printing Date:</strong>"
-#~ msgstr "<strong>Spausdinimo data:</strong>"
-
-#~ msgid "<strong>Product to Repair:</strong>"
-#~ msgstr "<strong>Produktas taisymui:</strong>"
-
-#~ msgid "<strong>Total Without Taxes</strong>"
-#~ msgstr "<strong>Suma be mokesčių</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Suma</strong>"
-
-#~ msgid "<strong>Warranty:</strong>"
-#~ msgstr "<strong>Garantija:</strong>"
-
-#~ msgid "After Repair"
-#~ msgstr "Po taisymo"
-
-#~ msgid "Before Repair"
-#~ msgstr "Prieš taisymą"
-
-#~ msgid "Cancel"
-#~ msgstr "Atšaukti"
-
-#~ msgid "Category"
-#~ msgstr "Kategorija"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konvertavimas galimas tik tarp tai pačiai grupei priklausančių matavimo "
-#~ "vienetų. Konvertuojant kiekiai bus paskaičiuoti pagal santykį."
-
-#~ msgid "Create Invoice"
-#~ msgstr "Sukurti sąskaitą-faktūrą"
-
-#~ msgid "Create invoices"
-#~ msgstr "Sukurti sąskaitas faktūras"
-
-#~ msgid "Currency"
-#~ msgstr "Valiuta"
-
-#~ msgid "Default Address"
-#~ msgstr "Numatytasis adresas"
-
-#~ msgid "Delivery Address"
-#~ msgstr "Pristatymo adresas"
-
-#~ msgid "Dest. Location"
-#~ msgstr "Siunčiama į"
-
-#~ msgid "Do you really want to create the invoice(s)?"
-#~ msgstr "Ar tikrai norite išrašyti sąskaitą (-as)?"
-
-#~ msgid "Done"
-#~ msgstr "Atlikta"
-
-#~ msgid "Draft"
-#~ msgstr "Juodraštis"
-
-#~ msgid "Extra Info"
-#~ msgstr "Papildoma informacija"
-
-#~ msgid "Fees"
-#~ msgstr "Mokesčiai"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuoti pagal"
-
-#~ msgid "Group by partner invoice address"
-#~ msgstr "Grupuoti pagal partnerio sąskaitos adresą"
-
-#~ msgid "History"
-#~ msgstr "Istorija"
-
-#~ msgid "Invoice"
-#~ msgstr "Sąskaita-faktūra"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Sąskaitos-faktūros eilutė"
-
-#~ msgid "Invoice Method"
-#~ msgstr "Sąskaitos-faktūros metodas"
-
-#~ msgid "Invoice State"
-#~ msgstr "Sąskaitos būsena"
-
-#~ msgid "Invoice address:"
-#~ msgstr "Sąskaitos adresas:"
-
-#~ msgid "Invoice and shipping address:"
-#~ msgstr "S/F ir pristatymo adresas:"
-
-#~ msgid "Invoice created"
-#~ msgstr "Sąskaita-faktūra sukurta"
-
-#~ msgid "Invoiced"
-#~ msgstr "Pateikta sąskaita"
-
-#~ msgid "Invoicing Address"
-#~ msgstr "Sąskaitos faktūros adresas"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Žurnalo įrašas"
-
-#~ msgid "No Invoice"
-#~ msgstr "Sąskaitos faktūros nėra"
-
-#~ msgid "No account defined for product \"%s\"."
-#~ msgstr "Produktui \"%s\" nenustatyta sąskaita."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Žinučių, kurioms reikia jūsų veiksmo, skaičius"
-
-#~ msgid "Price"
-#~ msgstr "Kaina"
-
-#~ msgid "Pricelist"
-#~ msgstr "Kainoraštis"
-
-#~ msgid "Pricelist of the selected partner."
-#~ msgstr "Pasirinkto partnerio kainoraštis."
-
-#~ msgid "Print Quotation"
-#~ msgstr "Spausdinti komercinį pasiūlymą"
-
-#~ msgid "Product Unit of Measure"
-#~ msgstr "Produkto matavimo vienetas"
-
-#~ msgid "Quotation"
-#~ msgstr "Komercinis pasiūlymas"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "Komercinis pasiūlymas / Užsakymas"
-
-#~ msgid "Quotation Notes"
-#~ msgstr "Pasiūlymo užrašai"
-
-#~ msgid "Quotations"
-#~ msgstr "Komerciniai pasiūlymai"
-
-#~ msgid "Ready To Repair"
-#~ msgstr "Paruošta taisyti"
-
-#~ msgid "Ready to Repair"
-#~ msgstr "Paruošta taisyti"
-
-#~ msgid "Repair Line"
-#~ msgstr "Taisymo eilutė"
-
-#~ msgid "Repair Order #:"
-#~ msgstr "Taisymo užsakymas #:"
-
-#~ msgid "Repair Order Reference"
-#~ msgstr "Taisymo užsakymo numeris"
-
-#~ msgid "Repair Quotation #:"
-#~ msgstr "Taisymo pasiūlymas #:"
-
-#~ msgid "Repair must be canceled in order to reset it to draft."
-#~ msgstr ""
-#~ "Kad būtų galima jį atstatyti į juodraštį, taisymas turi būt atšauktas."
-
-#~ msgid "Repair must be confirmed before starting reparation."
-#~ msgstr "Prieš pradedant taisymą, taisymas turi būti patvirtintas."
-
-#~ msgid "Repair must be repaired in order to make the product moves."
-#~ msgstr "Norint atlikti produkto perkėlimus, taisymas turi būti atliktas."
-
-#~ msgid "Return"
-#~ msgstr "Grąžinti"
-
-#~ msgid ""
-#~ "Selecting 'Before Repair' or 'After Repair' will allow you to generate "
-#~ "invoice before or after the repair is done respectively. 'No invoice' "
-#~ "means you don't want to generate invoice for this repair order."
-#~ msgstr ""
-#~ "\"Prieš taisymą\" arba \"po taisymo\" pasirinkimas leis jums atitinkamai "
-#~ "sugeneruoti sąskaitą prieš ar po atliktų darbų. \"Nėra sąskaitos\" "
-#~ "reiškia, kad nenorite sugeneruoti sąskaitos šiam taisymo užsakymui. "
-
-#~ msgid "Send Quotation"
-#~ msgstr "Siųsti komercinį pasiūlymą"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Rodyti visus įrašus, kurių sekančio veiksmo data yra ankstesnė nei "
-#~ "šiandiena"
-
-#~ msgid "Source Location"
-#~ msgstr "Šaltinio vieta"
-
-#~ msgid "Subtotal"
-#~ msgstr "Tarpinė suma"
-
-#~ msgid "Tax"
-#~ msgstr "Mokesčiai"
-
-#~ msgid "Taxes"
-#~ msgstr "Mokesčiai"
-
-#~ msgid "The name of the Repair Order must be unique!"
-#~ msgstr "Taisymo užsakymo pavadinimas turi būti unikalus!"
-
-#~ msgid ""
-#~ "The status of a repair line is set automatically to the one of the linked "
-#~ "repair order."
-#~ msgstr ""
-#~ "Taisymo eilutės būsena yra automatiškai nustatoma pagal susietą taisymo "
-#~ "užsakymą."
-
-#~ msgid "To be Invoiced"
-#~ msgstr "Turi būti išrašyta sąskaita faktūra"
-
-#~ msgid "Total"
-#~ msgstr "Suma"
-
-#~ msgid "Total amount"
-#~ msgstr "Iš viso"
-
-#~ msgid "Unit Price"
-#~ msgstr "Vieneto kaina"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mato vienetas"
-
-#~ msgid "Untaxed Amount"
-#~ msgstr "Suma be mokesčių"
-
-#~ msgid "Untaxed amount"
-#~ msgstr "Suma be mokesčių"
-
-#~ msgid "UoM"
-#~ msgstr "Mat. vnt."
-
-#~ msgid "Warranty Expiration"
-#~ msgstr "Garantijos galiojimo pabaiga"

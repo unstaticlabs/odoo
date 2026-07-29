@@ -8,18 +8,18 @@
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
 # Martin Trigaux, 2022
 # Cozmin Candea <office@terrabit.ro>, 2023
-# Dorin Hongu <dhongu@gmail.com>, 2023, 2025, 2026.
+# Dorin Hongu <dhongu@gmail.com>, 2023, 2025.
 # Fenyedi Levente, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Ciocoiu Beatrice-Flavia <ciocoiuflavia008@gmail.com>, 2025, 2026.
-# Alin Ilie <alin.ilie@logit-solutions.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Ciocoiu Beatrice-Flavia <ciocoiuflavia008@gmail.com>, 2025.
+# Alin Ilie <alin.ilie@logit-solutions.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 16:07+0000\n"
-"Last-Translator: Ciocoiu Beatrice-Flavia <ciocoiuflavia008@gmail.com>\n"
+"PO-Revision-Date: 2025-12-09 14:05+0000\n"
+"Last-Translator: Alin Ilie <alin.ilie@logit-solutions.com>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/payment/"
 "ro/>\n"
 "Language: ro\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report_records
@@ -234,11 +234,6 @@ msgstr "<strong>Atenție</strong> Trebuie să fiți autentificat pentru a plăti
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
 msgid "ACH Direct Debit"
 msgstr "ACH Direct Debit"
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
-msgstr "ACTIVEAZĂ"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_abitab
@@ -624,6 +619,11 @@ msgid "CMR"
 msgstr "CMR"
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr "Cabal"
@@ -778,10 +778,6 @@ msgstr "Color"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "Companii"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -802,12 +798,6 @@ msgstr "Setări de Configurare"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "Configurare"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr "Confirmă"
 
 #. module: payment
 #. odoo-javascript
@@ -984,6 +974,7 @@ msgstr "Discover"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
@@ -1228,6 +1219,7 @@ msgstr "Humm"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1480,7 +1472,7 @@ msgstr ""
 "Nu se poate face o cerere către furnizor deoarece furnizorul este dezactivat."
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "Gestionează metodele tale de plată"
 
@@ -1535,7 +1527,7 @@ msgid "Mercado Livre"
 msgstr "Mercado Livre"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr "Mercado Pago"
@@ -1555,6 +1547,11 @@ msgstr "Mesaj"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Messages"
 msgstr "Mesaje"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr ""
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_momo
@@ -1707,6 +1704,7 @@ msgid "OmanNet"
 msgstr "OmanNet"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr "Modul de plată pentru integrare"
@@ -1832,6 +1830,16 @@ msgid "Pay Later"
 msgstr "Plătește mai târziu"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr "PayBright"
@@ -1925,6 +1933,7 @@ msgstr "Cod metodă de plată"
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -2004,7 +2013,6 @@ msgstr "Metodă de plată"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr "Metode de plată"
 
@@ -2105,6 +2113,11 @@ msgid "Please wait..."
 msgstr "Vă rugăm să așteptați..."
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr "Post-procesare"
@@ -2200,7 +2213,7 @@ msgid "Ratepay"
 msgstr "Ratepay"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr "Razorpay"
@@ -2314,6 +2327,11 @@ msgid "Samsung Pay"
 msgstr "Samsung Pay"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "Salvează"
@@ -2415,7 +2433,7 @@ msgid "Status"
 msgstr "Stare"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Dungat"
@@ -2662,6 +2680,20 @@ msgid "The internal reference of the transaction"
 msgstr "Referința internă a tranzacției"
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2731,6 +2763,13 @@ msgstr "Mesajul afișat dacă comanda este în așteptare după procesul de plat
 #: model:ir.model.fields,help:payment.field_payment_provider__pre_msg
 msgid "The message displayed to explain and help the payment process"
 msgstr "Mesajul afișat pentru a explica și ajuta procesul de plată"
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__support_manual_capture
@@ -3254,6 +3293,12 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr ""
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
 msgstr "Nu puteți șterge metoda de plată implicită."
 
@@ -3524,8 +3569,8 @@ msgstr "captură manuală neacceptată"
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
-msgstr "suma maximă depășită"
+msgid "minimum or maximum amount exceeded"
+msgstr ""
 
 #. module: payment
 #. odoo-python
@@ -3568,327 +3613,3 @@ msgstr "tokenizarea fără plată nu este acceptată"
 
 #~ msgid "JazzCash"
 #~ msgstr "JazzCash"
-
-#~ msgid " Data Fetched"
-#~ msgstr "Date preluate"
-
-#~ msgid "<b>Amount:</b>"
-#~ msgstr "<b>Valoare:</b>"
-
-#~ msgid "<b>Reference:</b>"
-#~ msgstr "<b>Referință:</b>"
-
-#~ msgid ""
-#~ "<h3>Please make a payment to: </h3><ul><li>Bank: %s</li><li>Account "
-#~ "Number: %s</li><li>Account Holder: %s</li></ul>"
-#~ msgstr ""
-#~ "<h3>Vă rugăm să efectuați o plată în: </h3> <ul><li>Banca: %s</"
-#~ "li><li>Contul: %s</li><li>Titular cont: %s</li></ul>"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Înapoi la contul meu"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> Șterge"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Nu a fost găsită nicio opțiune de plată potrivită.</strong><br/>\n"
-#~ "                                Dacă credeți că este o eroare, vă rugăm "
-#~ "să contactați administratorul site-ului."
-
-#~ msgid "Account"
-#~ msgstr "Cont"
-
-#~ msgid "Account Number"
-#~ msgstr "Numar de Cont"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "Adaugă taxe extra"
-
-#~ msgid "An error occurred during the processing of this payment."
-#~ msgstr "A apărut o eroare în timpul procesării acestei plăți."
-
-#~ msgid "Apply"
-#~ msgstr "Aplică"
-
-#~ msgid "Bank"
-#~ msgstr "Bancă"
-
-#~ msgid "Bank Name"
-#~ msgstr "Numele Bancii"
-
-#~ msgid "Callback Document Model"
-#~ msgstr "Model Document Callback"
-
-#~ msgid "Callback Done"
-#~ msgstr "Callback Realizat"
-
-#~ msgid "Callback Hash"
-#~ msgstr "Callback Hash"
-
-#~ msgid "Callback Method"
-#~ msgstr "Metodă Callback"
-
-#~ msgid "Callback Record ID"
-#~ msgstr "ID Înregistrare Callback"
-
-#~ msgid "Cancel"
-#~ msgstr "Anulează"
-
-#~ msgid "Canceled Message"
-#~ msgstr "Mesaj Anulare"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "Alege metoda de plată"
-
-#~ msgid "Click here to be redirected to the confirmation page."
-#~ msgstr "Click aici pentru a fi redirecționat către pagina de confirmare."
-
-#~ msgid "Credit & Debit Card"
-#~ msgstr "Card de credit și debit"
-
-#~ msgid "Credit & Debit card (via Stripe)"
-#~ msgstr "Card de credit și debit (prin Stripe)"
-
-#~ msgid "Credit Card (powered by Adyen)"
-#~ msgstr "Card Credit (powered by Adyen)"
-
-#~ msgid "Credit Card (powered by Authorize)"
-#~ msgstr "Card Credit (powered by Authorize)"
-
-#~ msgid "Credit Card (powered by Buckaroo)"
-#~ msgstr "Card Credit (powered by Buckaroo)"
-
-#~ msgid "Credit Card (powered by Sips)"
-#~ msgstr "Card Credit (powered by Sips)"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "Instrucțiuni de plată personalizate"
-
-#~ msgid "Dismiss"
-#~ msgstr "Destituire"
-
-#~ msgid "Displayed as"
-#~ msgstr "Afișat ca"
-
-#~ msgid "Done"
-#~ msgstr "Efectuat"
-
-#~ msgid "Error: %s"
-#~ msgstr "Eroare: %s"
-
-#~ msgid "Fees"
-#~ msgstr "Taxe"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "Taxe locale fixe"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "Taxe internaționale fixe"
-
-#~ msgid "From"
-#~ msgstr "De la"
-
-#~ msgid "Group By"
-#~ msgstr "Grupează după"
-
-#~ msgid "If the payment hasn't been confirmed you can contact us."
-#~ msgstr "Dacă plata nu a fost confirmată ne puteți contacta."
-
-#~ msgid "Image displayed on the payment form"
-#~ msgstr "Imagine afișată pe formularul de plată"
-
-#~ msgid "Internal server error"
-#~ msgstr "Eroare internă server"
-
-#~ msgid "Just done"
-#~ msgstr "Doar făcut"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "Gestionați Metode Plată"
-
-#~ msgid "Manual"
-#~ msgstr "Manual"
-
-#~ msgid "Method"
-#~ msgstr "Metodă"
-
-#~ msgid "Multiple payment options selected"
-#~ msgstr "Mai multe opțiuni de plată selectate"
-
-#~ msgid "No payment has been processed."
-#~ msgstr "Nu a fost procesată nicio plată."
-
-#~ msgid "No payment option selected"
-#~ msgstr "Nicio opțiune de plată selectată"
-
-#~ msgid "Not done"
-#~ msgstr "Nerealizat"
-
-#~ msgid "Not verified"
-#~ msgstr "Neverificat"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "Doar administratorii pot accesa aceste date."
-
-#~ msgid "Other"
-#~ msgstr "Altul"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "Token de identitate PDT"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "Instrucțiuni de plată"
-
-#~ msgid "Payment Ref"
-#~ msgstr "Referință plată"
-
-#~ msgid "Please select a payment option."
-#~ msgstr "Vă rugăm să selectați o opțiune de plată."
-
-#~ msgid "Please select only one payment option."
-#~ msgstr "Vă rugăm să selectați doar o opțiune de plată."
-
-#~ msgid "Please set an amount smaller than %s."
-#~ msgstr "Vă rugăm să setați o valoare mai mică ca %s."
-
-#~ msgid "Please wait ..."
-#~ msgstr "Te rog așteaptă ..."
-
-#~ msgid "Reason: %s"
-#~ msgstr "Motiv: %s"
-
-#~ msgid "Save Payment Method"
-#~ msgstr "Salvează Metoda de Plată"
-
-#~ msgid "Save my payment details"
-#~ msgstr "Salvează detaliile mele de plată"
-
-#~ msgid "Selected onboarding payment method"
-#~ msgstr "Metoda de plată selectată la bord"
-
-#~ msgid "Server Error"
-#~ msgstr "Eroare server"
-
-#~ msgid "Server error:"
-#~ msgstr "Eroare Server:"
-
-#~ msgid "Show Allow Tokenization"
-#~ msgstr "Afișează Permite Tokenizare"
-
-#~ msgid "Show Auth Msg"
-#~ msgstr "Afișează Mesajul de Autorizare"
-
-#~ msgid "Show Cancel Msg"
-#~ msgstr "Afișează Mesajul de Anulare"
-
-#~ msgid "Show Credentials Page"
-#~ msgstr "Afișează Pagina de Credențiale"
-
-#~ msgid "Show Done Msg"
-#~ msgstr "Afișează Mesajul de Finalizare"
-
-#~ msgid "Show Pending Msg"
-#~ msgstr "Afișează Mesajul În Așteptare"
-
-#~ msgid "Show Pre Msg"
-#~ msgstr "Afișează Mesajul Precedent"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "The access token is invalid."
-#~ msgstr "Tokenul de acces este nevalid."
-
-#~ msgid ""
-#~ "The message displayed if the order is canceled during the payment process"
-#~ msgstr ""
-#~ "Mesajul afișat dacă comanda este anulată în timpul procesului de plată"
-
-#~ msgid ""
-#~ "The payment should either be direct, with redirection, or made by a token."
-#~ msgstr ""
-#~ "Plata ar trebui să fie directă, cu redirecționare, sau făcută cu un token."
-
-#~ msgid "The value of the payment amount must be positive."
-#~ msgstr "Valoarea sumei de plată trebuie să fie pozitivă."
-
-#~ msgid "This payment method has been verified by our system."
-#~ msgstr "Această metodă de plată a fost verificată de sistemul nostru."
-
-#~ msgid "This payment method has not been verified by our system."
-#~ msgstr "Această metodă de plată nu a fost verificată de sistemul nostru."
-
-#~ msgid "Tokenization Supported"
-#~ msgstr "Tokenizarea este suportată"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Tipul de rambursare suportat"
-
-#~ msgid "Unable to contact the Odoo server."
-#~ msgstr "Imposibil de contactat serverul Odoo."
-
-#~ msgid "Variable fees must always be positive and below 100%."
-#~ msgstr ""
-#~ "Taxele variabile trebuie să fie întotdeauna pozitive și mai mici de 100%."
-
-#~ msgid "Verified"
-#~ msgstr "Verificat"
-
-#~ msgid "We are not able to delete your payment method."
-#~ msgstr "Nu putem șterge metoda de plată."
-
-#~ msgid "We are not able to find your payment, but don't worry."
-#~ msgstr "Nu putem găsi plata dvs., dar nu vă faceți griji."
-
-#~ msgid "We are not able to process your payment."
-#~ msgstr "Nu putem procesa plata dvs."
-
-#~ msgid "We are not able to save your payment method."
-#~ msgstr "Nu putem salva metoda de plată."
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "Procesăm plățile, vă rugăm să așteptați ..."
-
-#~ msgid "Whether the callback has already been executed"
-#~ msgstr "Indică dacă callback-ul a fost deja executat"
-
-#~ msgid ""
-#~ "You should receive an email confirming your payment in a few minutes."
-#~ msgstr ""
-#~ "Ar trebui să primiți un e-mail care vă confirmă plata în câteva minute."
-
-#~ msgid "You will be notified when the payment is confirmed."
-#~ msgstr "Veți fi anunțat la confirmarea plății."
-
-#~ msgid "You will be notified when the payment is fully confirmed."
-#~ msgstr "Veți fi anunțat atunci când plata este complet confirmată."
-
-#~ msgid "Your payment has been received but need to be confirmed manually."
-#~ msgstr "Plata dvs. a fost primită, dar trebuie confirmată manual."
-
-#~ msgid ""
-#~ "Your payment has been successfully processed but is waiting for approval."
-#~ msgstr "Plata dvs. a fost procesată cu succes, dar așteaptă aprobarea."
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "Plata dvs. a fost procesată cu succes. Mulțumesc!"
-
-#~ msgid "Your payment is in pending state."
-#~ msgstr "Plata dvs. este în stare de așteptare."
-
-#~ msgid "payment: post-process transactions"
-#~ msgstr "plata: post-procesare tranzacții"
-
-#~ msgid "show less"
-#~ msgstr "afișează mai puțin"
-
-#~ msgid "show more"
-#~ msgstr "afișează mai mult"

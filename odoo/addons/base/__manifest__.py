@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
@@ -11,7 +10,6 @@ The kernel of Odoo, needed for all installation.
 ===================================================
 """,
     'data': [
-        'data/res_bank.xml',
         'data/res.lang.csv',
         'data/res_lang_data.xml',
         'data/res_partner_data.xml',
@@ -20,6 +18,7 @@ The kernel of Odoo, needed for all installation.
         'data/res_users_data.xml',
         'data/report_paperformat_data.xml',
         'data/res_country_data.xml',
+        'data/clearing_label_data.xml',
         'data/ir_demo_data.xml',
         'security/base_groups.xml',
         'security/base_security.xml',
@@ -65,7 +64,8 @@ The kernel of Odoo, needed for all installation.
         'views/res_company_views.xml',
         'views/res_lang_views.xml',
         'views/res_partner_views.xml',
-        'views/res_bank_views.xml',
+        'views/clearing_label_views.xml',
+        'views/res_partner_bank_views.xml',
         'views/res_country_views.xml',
         'views/res_currency_views.xml',
         'views/res_groups_views.xml',
@@ -76,13 +76,13 @@ The kernel of Odoo, needed for all installation.
         'views/res_config_settings_views.xml',
         'views/report_paperformat_views.xml',
         'security/ir.model.access.csv',
+        'data/ir_action_data.xml',
     ],
     'demo': [
         'data/res_users_demo.xml',
         'data/res_partner_bank_demo.xml',
         'data/res_currency_demo.xml',
         'data/res_currency_rate_demo.xml',
-        'data/res_bank_demo.xml',
         'data/res_partner_demo.xml',
         'data/res_partner_image_demo.xml',
     ],
@@ -91,7 +91,6 @@ The kernel of Odoo, needed for all installation.
             'base/static/tests/**/*',
         ],
     },
-    'installable': True,
     'auto_install': True,
     'post_init_hook': 'post_init',
     'author': 'Odoo S.A.',

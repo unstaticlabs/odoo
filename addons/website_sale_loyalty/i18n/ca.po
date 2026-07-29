@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * website_sale_loyalty
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 10:21+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-10-14 12:22+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
 "Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
 "website_sale_loyalty/ca/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_sale_loyalty
 #. odoo-python
@@ -76,12 +76,6 @@ msgid "Coupon"
 msgstr "Cupó"
 
 #. module: website_sale_loyalty
-#. odoo-javascript
-#: code:addons/website_sale_loyalty/static/src/website_builder/coupon_option_plugin.js:0
-msgid "Coupon Snippet Options"
-msgstr ""
-
-#. module: website_sale_loyalty
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.modify_code_form
 msgid "Coupons -"
 msgstr ""
@@ -118,16 +112,6 @@ msgid "Discount code or gift card"
 msgstr ""
 
 #. module: website_sale_loyalty
-#: model_terms:ir.ui.view,arch_db:website_sale_loyalty.cart_discount
-msgid "Discount:"
-msgstr "Descompte:"
-
-#. module: website_sale_loyalty
-#: model_terms:ir.ui.view,arch_db:website_sale_loyalty.cart_discount
-msgid "Discounted amount"
-msgstr "Quantitat descomptada"
-
-#. module: website_sale_loyalty
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_coupon_share__display_name
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_loyalty_card__display_name
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_loyalty_program__display_name
@@ -156,7 +140,7 @@ msgstr "Genera un enllaç curt"
 #. module: website_sale_loyalty
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.sale_coupon_result
 msgid "Gift card or discount code..."
-msgstr "Targeta regal codi de descompte..."
+msgstr "Gift card o codi de descompte..."
 
 #. module: website_sale_loyalty
 #: model:ir.ui.menu,name:website_sale_loyalty.menu_gift_ewallet_type_config
@@ -285,12 +269,6 @@ msgstr "Compartir enllaç"
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.coupon_share_view_form
 msgid "Share Loyalty Card"
 msgstr "Comparteix la targeta de fidelització"
-
-#. module: website_sale_loyalty
-#. odoo-javascript
-#: code:addons/website_sale_loyalty/static/src/website_builder/coupon_option.xml:0
-msgid "Show Discount in Subtotal"
-msgstr "Mostra el descompte en el subtotal"
 
 #. module: website_sale_loyalty
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_loyalty_program__show_non_published_product_warning

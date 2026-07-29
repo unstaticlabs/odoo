@@ -12,13 +12,10 @@ class TestVNEDIPOSTour(TestVNEDI, TestPointOfSaleHttpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.template = cls.env["l10n_vn_edi_viettel.sinvoice.template"].create({
-            "name": "2/0024",
-            "template_invoice_type": "2",
-        })
-        cls.symbol = cls.env["l10n_vn_edi_viettel.sinvoice.symbol"].create({
-            "name": "C25MNK",
-            "invoice_template_id": cls.template.id,
+        cls.template = "2/0024"
+        cls.symbol = cls.env['l10n_vn_edi_viettel.sinvoice.symbol'].create({
+            'name': 'C25MNK',
+            'invoice_template_code': cls.template,
         })
 
     @staticmethod
@@ -68,8 +65,6 @@ class TestVNEDIPOSTour(TestVNEDI, TestPointOfSaleHttpCommon):
             "l10n_vn_pos_symbol": self.symbol.id,
         })
 
-        with patch(
-            "odoo.addons.l10n_vn_edi_viettel.models.account_move._l10n_vn_edi_send_request",
-            side_effect=self._mock_sinvoice_send_request,
-        ):
+        with patch("odoo.addons.l10n_vn_edi_viettel.models.account_move._l10n_vn_edi_send_request", side_effect=self._mock_sinvoice_send_request), \
+             patch("odoo.addons.l10n_vn_edi_viettel.models.res_company._l10n_vn_edi_send_request", side_effect=self._mock_sinvoice_send_request):
             self.start_pos_tour("L10nVnEdiPosRefundReasonTour", login="pos_admin")

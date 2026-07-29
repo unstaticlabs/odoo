@@ -187,7 +187,7 @@ class ButtonOptionPlugin extends Plugin {
     }
 }
 
-export class ButtonTranslationPlugin extends Plugin {
+class ButtonTranslationPlugin extends Plugin {
     static id = "buttonTranslation";
     /** @type {import("plugins").WebsiteResources} */
     resources = {
@@ -196,3 +196,4 @@ export class ButtonTranslationPlugin extends Plugin {
 }
 
 registry.category("website-plugins").add(ButtonOptionPlugin.id, ButtonOptionPlugin);
+registry.category("translation-plugins").add(ButtonTranslationPlugin.id, ButtonTranslationPlugin);

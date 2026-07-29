@@ -1,9 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import json
-
-from odoo.tests.common import tagged, HttpCase
 from unittest.mock import patch
-from odoo.http import Request
+
+from odoo.http.requestlib import Request
+from odoo.tests.common import HttpCase, tagged
 
 
 @tagged('post_install', '-at_install', 'hr_attendance_overtime')
@@ -58,7 +58,7 @@ class TestHrAttendanceKiosk(HttpCase):
                     'limit': 10,
                     'offset': 0,
                     'domain': domain,
-                }
+                },
             }),
             headers={'Content-Type': 'application/json'},
         )

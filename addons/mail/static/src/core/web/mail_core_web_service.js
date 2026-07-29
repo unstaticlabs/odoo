@@ -32,8 +32,8 @@ export class MailCoreWeb {
             if (message.needaction && notifId > this.store.inbox.counter_bus_id) {
                 this.store.inbox.counter--;
             }
-            if (message.starred && notifId > this.store.starred.counter_bus_id) {
-                this.store.starred.counter--;
+            if (message.is_bookmarked && notifId > this.store.bookmarkBox.counter_bus_id) {
+                this.store.bookmarkBox.counter--;
             }
         });
         this.busService.subscribe("mail.message/inbox", (payload, { id: notifId }) => {
@@ -41,18 +41,19 @@ export class MailCoreWeb {
             this.store.insert(store_data);
             /** @type {import("models").Message} */
             const message = this.store["mail.message"].get(messageId);
-            const inbox = this.store.inbox;
-            if (notifId > inbox.counter_bus_id) {
-                inbox.counter++;
+            this.addMessageToInbox(message, notifId);
+            if (!this.store.self?.im_status?.includes("busy")) {
+                this.store.env.services["mail.out_of_focus"].notify(message);
             }
-            inbox.messages.add(message);
-            if (message.thread && notifId > message.thread.message_needaction_counter_bus_id) {
-                message.thread.message_needaction_counter++;
-            }
-            if (this.store.self_partner?.im_status?.includes("busy")) {
-                return;
-            }
-            this.store.env.services["mail.out_of_focus"].notify(message);
+        });
+        this.busService.subscribe("mail.message/mark_as_unread", (payload, { id: notifId }) => {
+            const { message_ids: messageIds, store_data } = payload;
+            this.store.insert(store_data);
+            messageIds.forEach((messageId) => {
+                const message = this.store["mail.message"].get(messageId);
+                this.addMessageToInbox(message, notifId);
+                this.store.history.messages.delete(message);
+            });
         });
         this.busService.subscribe("mail.message/mark_as_read", (payload, { id: notifId }) => {
             const { message_ids: messageIds, needaction_inbox_counter } = payload;
@@ -91,6 +92,20 @@ export class MailCoreWeb {
                 inbox.fetchMoreMessages();
             }
         });
+    }
+    /**
+     * @param {import("models").Message} message
+     * @param {number} notifId the bus notification id
+     */
+    addMessageToInbox(message, notifId) {
+        const inbox = this.store.inbox;
+        if (notifId > inbox.counter_bus_id) {
+            inbox.counter++;
+        }
+        inbox.messages.add(message);
+        if (message.thread && notifId > message.thread.message_needaction_counter_bus_id) {
+            message.thread.message_needaction_counter++;
+        }
     }
 }
 

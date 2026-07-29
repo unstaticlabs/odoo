@@ -16,6 +16,7 @@ class TestPeppolParticipant(PeppolConnectorCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env['ir.config_parameter'].sudo().set_str('account_peppol.edi.mode', 'test')
         cls.private_key = cls.env['certificate.key'].create([{
             'name': 'Test key PEPPOL',
             'content': b64encode(file_open('account_peppol/tests/assets/private_key.pem', 'rb').read()),

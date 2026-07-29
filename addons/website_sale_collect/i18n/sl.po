@@ -2,15 +2,14 @@
 # This file contains the translation of the following modules:
 # * website_sale_collect
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Žiga Trček <ziga.trcek@implex.si>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 03:36+0000\n"
-"Last-Translator: Žiga Trček <ziga.trcek@implex.si>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-09-16 21:38+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Slovenian <https://translate.odoo.com/projects/odoo-19/"
 "website_sale_collect/sl/>\n"
 "Language: sl\n"
@@ -19,12 +18,25 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
 "n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/sale_order.py:0
 msgid "%(available_qty)s/%(line_qty)s available at this location"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<i class=\"fa fa-fw fa-heart\"/> In wishlist"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid ""
+"<i class=\"fa fa-fw fa-heart-o\" role=\"presentation\" aria-label=\"Add to "
+"Wishlist\"/>\n"
+"                                    Wishlist"
 msgstr ""
 
 #. module: website_sale_collect
@@ -35,8 +47,18 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<span class=\"small\">|</span>"
+msgstr ""
+
+#. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.payment_confirmation_status
 msgid "<span class=\"text-muted\"> (In-store pickup)</span>"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "Add to Wishlist"
 msgstr ""
 
 #. module: website_sale_collect
@@ -86,6 +108,11 @@ msgid "Delivery"
 msgstr "Dostava"
 
 #. module: website_sale_collect
+#: model:ir.model,name:website_sale_collect.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/res_config_settings.py:0
 msgid "Delivery Methods"
@@ -132,13 +159,6 @@ msgid "Not available"
 msgstr "Ni na voljo"
 
 #. module: website_sale_collect
-#. odoo-javascript
-#: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
-#: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "Only"
-msgstr "Samo"
-
-#. module: website_sale_collect
 #: model:ir.model.fields,field_description:website_sale_collect.field_stock_warehouse__opening_hours
 msgid "Opening Hours"
 msgstr "Delovni čas"
@@ -158,7 +178,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:website_sale_collect.selection__payment_provider__custom_mode__on_site
 #: model:payment.method,name:website_sale_collect.payment_method_pay_on_site
 msgid "Pay on site"
-msgstr "Plačilo na kraju samem"
+msgstr ""
 
 #. module: website_sale_collect
 #: model:ir.model,name:website_sale_collect.model_payment_provider
@@ -222,9 +242,10 @@ msgid "Select store"
 msgstr ""
 
 #. module: website_sale_collect
-#: model:ir.model,name:website_sale_collect.model_delivery_carrier
-msgid "Shipping Methods"
-msgstr "Metode odpreme"
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.xml:0
+msgid "Selected country:"
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -260,6 +281,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_sale_collect/models/delivery_carrier.py:0
 msgid "The delivery method must have at least one warehouse to be published."
+msgstr ""
+
+#. module: website_sale_collect
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "This address may require to recompute taxes."
 msgstr ""
 
 #. module: website_sale_collect
@@ -308,8 +335,8 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 #: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "available"
-msgstr "Razpoložljivo"
+msgid "in stock"
+msgstr ""
 
 #. module: website_sale_collect
 #. odoo-python

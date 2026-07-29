@@ -6,23 +6,23 @@
 # Martin Trigaux, 2022
 # Larissa Manderfeld, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 23:50+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/pos_sale/"
-"de/>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-04-23 11:52+0000\n"
+"Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
+"pos_sale/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_sale
 #. odoo-python
@@ -40,12 +40,17 @@ msgstr "%(old_name)s (storniert)"
 #. odoo-javascript
 #: code:addons/pos_sale/static/src/app/components/orderline/orderline.xml:0
 msgid "(tax incl.)"
-msgstr "(inkl. Steuern)"
+msgstr "(Steuer inkl.)"
 
 #. module: pos_sale
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "<span style=\"margin: 0px 5px;\">:</span>"
 msgstr "<span style=\"margin: 0px 5px;\">:</span>"
+
+#. module: pos_sale
+#: model_terms:ir.ui.view,arch_db:pos_sale.pos_orderline_receipt_information
+msgid "<strong>Sale Order: </strong>"
+msgstr "<strong>Verkaufsauftrag: </strong>"
 
 #. module: pos_sale
 #. odoo-javascript
@@ -90,7 +95,7 @@ msgstr "Kontakt"
 #. module: pos_sale
 #: model:ir.model,website_form_label:pos_sale.model_res_partner
 msgid "Create a Customer"
-msgstr "Kunde erstellen"
+msgstr "Kunden erstellen"
 
 #. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__currency_rate
@@ -108,12 +113,19 @@ msgid "Delivery Quantity"
 msgstr "Liefermenge"
 
 #. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid "Discard"
+msgstr "Verwerfen"
+
+#. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_crm_team__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__display_name
@@ -183,6 +195,7 @@ msgstr "Von"
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__id
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__id
@@ -208,6 +221,17 @@ msgid ""
 msgstr ""
 "Es scheint, dass Sie in Ihrem Kassensystem kein Anzahlungsprodukt "
 "konfiguriert haben. Sie können in der Konfiguration Ihres Kassensystems ein "
+"solches Produkt auswählen."
+
+#. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid ""
+"It seems that you didn't configure a down payment product in your point of "
+"sale. You can go to your point of sale settings to choose one."
+msgstr ""
+"Es scheint, dass Sie in Ihrem Kassensystem kein Anzahlungsprodukt "
+"konfiguriert haben. Sie können in den Einstellungen Ihres Kassensystems ein "
 "solches Produkt auswählen."
 
 #. module: pos_sale
@@ -275,14 +299,19 @@ msgid "Point of Sale Configuration"
 msgstr "Kassensystem-Konfiguration"
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassenauftragszeilen"
+#: model:ir.model,name:pos_sale.model_pos_order
+msgid "Point of Sale Order"
+msgstr "Kassenauftrag"
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassenaufträge"
+#: model:ir.model,name:pos_sale.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr "Kassenauftragszeile"
+
+#. module: pos_sale
+#: model:ir.model,name:pos_sale.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr "Generator für Kassenbelege"
 
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_pos_session
@@ -468,119 +497,3 @@ msgstr "ID"
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "x"
 msgstr "x"
-
-#~ msgid "(left:"
-#~ msgstr "(links:"
-
-#~ msgid "Back"
-#~ msgstr "Zurück"
-
-#~ msgid "Back to list"
-#~ msgstr "Zurück zur Liste"
-
-#~ msgid "Cancelled"
-#~ msgstr "Abgebrochen"
-
-#~ msgid "Customer"
-#~ msgstr "Kunde"
-
-#~ msgid "Customer loading error"
-#~ msgstr "Fehler beim Laden des Kunden"
-
-#~ msgid "Date"
-#~ msgstr "Datum"
-
-#~ msgid "E.g. customer: Steward, date: 2020-05-09"
-#~ msgstr "z.B. Kunde: Steward, Datum: 2022-05-09"
-
-#~ msgid ""
-#~ "It seems that you didn't configure a down payment product in your point "
-#~ "of sale.\n"
-#~ "                        You can go to your point of sale configuration to "
-#~ "choose one."
-#~ msgstr ""
-#~ "Es scheint, dass Sie in Ihrem Kassensystem kein Anzahlungsprodukt "
-#~ "konfiguriert haben.\n"
-#~ "Sie können in der Konfiguration Ihres Kassensystems ein solches Produkt "
-#~ "auswählen."
-
-#~ msgid "Locked"
-#~ msgstr "Gesperrt"
-
-#~ msgid "New"
-#~ msgstr "Neu"
-
-#~ msgid "Next Order List"
-#~ msgstr "Liste nächster Aufträge"
-
-#~ msgid "No"
-#~ msgstr "Nein"
-
-#~ msgid "Open POS Sessions"
-#~ msgstr "PoS-Sitzungen öffnen"
-
-#~ msgid "Previous Order List"
-#~ msgstr "Vorherige Auftragsliste"
-
-#~ msgid "Products not available in POS"
-#~ msgstr "Produkte im Kassensystem nicht verfügbar"
-
-#~ msgid "Quotation"
-#~ msgstr "Angebot"
-
-#~ msgid "Quotation Sent"
-#~ msgstr "Angebot gesendet"
-
-#~ msgid "Salesman"
-#~ msgstr "Verkäufer"
-
-#~ msgid "Salesperson"
-#~ msgstr "Verkäufer"
-
-#~ msgid "Session Running"
-#~ msgstr "Sitzung läuft"
-
-#~ msgid "Session Sale Amount"
-#~ msgstr "Anzahl der Sitzungsverkäufe"
-
-#~ msgid "Sessions Running"
-#~ msgstr "Laufende Sitzungen"
-
-#~ msgid ""
-#~ "Some of the products in your Sale Order are not available in POS, do you "
-#~ "want to import them?"
-#~ msgstr ""
-#~ "Einige der Produkte in Ihrem Kundenauftrag sind nicht in POS verfügbar. "
-#~ "Möchten Sie diese importieren?"
-
-#~ msgid "State"
-#~ msgstr "Status"
-
-#~ msgid "The amount due from the sale order."
-#~ msgstr "Der fällige Betrag aus dem Verkaufsauftrag."
-
-#~ msgid "There was a problem in loading the %s customer."
-#~ msgstr "Es gab ein Problem beim Laden des Kunden %s."
-
-#~ msgid "Total"
-#~ msgstr "Gesamt"
-
-#~ msgid ""
-#~ "Transfered<br/>\n"
-#~ "                                from Sale"
-#~ msgstr ""
-#~ "Übertragen<br/>\n"
-#~ "                                aus Sale"
-
-#~ msgid ""
-#~ "Transfered<br/>\n"
-#~ "                                to POS"
-#~ msgstr ""
-#~ "Übertragen<br/>\n"
-#~ "                               an PoS"
-
-#~ msgid "Unpaid Amount"
-#~ msgstr "Unbezahlter Betrag"
-
-#~ msgid "Yes"
-#~ msgstr "Ja"

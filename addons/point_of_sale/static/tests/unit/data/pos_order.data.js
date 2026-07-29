@@ -20,7 +20,7 @@ export class PosOrder extends models.ServerModel {
         return [];
     }
 
-    action_pos_order_cancel(self) {
+    cancel_order_from_pos(self) {
         const records = this.browse(self);
         const orderIds = [];
 
@@ -40,13 +40,11 @@ export class PosOrder extends models.ServerModel {
         return orderId;
     }
 
-    sync_from_ui(data) {
-        for (const order of data) {
-            if (order.to_invoice) {
-                order.invoice_status = "invoiced";
-            }
-        }
+    get_receipt_template_for_pos_frontend() {
+        return [];
+    }
 
+    sync_from_ui(data) {
         const orderIds = [];
         for (const record of data) {
             const record_uuid_mapping = record.relations_uuid_mapping || {};

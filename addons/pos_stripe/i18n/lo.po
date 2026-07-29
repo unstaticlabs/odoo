@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * pos_stripe
 #
-# Bone NI <bounkirdni@gmail.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 19.1a1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:40+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/pos_stripe/"
-"lo/>\n"
+"POT-Creation-Date: 2026-07-03 17:35+0000\n"
+"PO-Revision-Date: 2026-06-13 18:42+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Lao <https://translate.odoo.com/projects/odoo-s19-2/"
+"pos_stripe/lo/>\n"
 "Language: lo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,38 +27,37 @@ msgstr ""
 
 #. module: pos_stripe
 #: model:ir.model.fields,field_description:pos_stripe.field_pos_payment_method__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr "ຊື່ສະແດງ"
+msgstr "ຊື່ທີ່ສະແດງ"
 
 #. module: pos_stripe
 #. odoo-python
 #: code:addons/pos_stripe/models/pos_payment_method.py:0
+#, fuzzy
 msgid "Do not have access to fetch token from Stripe"
-msgstr "ບໍ່ມີສິດເຂົ້າເຖິງໃນການດຶງເອົາໂທເຄັນຈາກ Stripe"
-
-#. module: pos_stripe
-#. odoo-python
-#: code:addons/pos_stripe/models/pos_payment_method.py:0
-msgid "Do not have access to refund Stripe payment"
-msgstr "ບໍ່ມີສິດເຂົ້າເຖິງໃນການຄືນເງິນຜ່ານ Stripe"
+msgstr "ບໍ່ມີສິດເຂົ້າເຖິງເພື່ອດຶງຂໍ້ມູນ Token ຈາກ Stripe"
 
 #. module: pos_stripe
 #: model_terms:ir.ui.view,arch_db:pos_stripe.pos_payment_method_view_form_inherit_pos_stripe
+#, fuzzy
 msgid ""
 "Don't forget to complete Stripe connect before using this payment method."
-msgstr "ຢ່າລືມຕັ້ງຄ່າການເຊື່ອມຕໍ່ Stripe ໃຫ້ສຳເລັດ ກ່ອນຈະນຳໃຊ້ວິທີການຊຳລະເງິນນີ້."
+msgstr "ຢ່າລືມສໍາເລັດການເຊື່ອມຕໍ່ Stripe ກ່ອນທີ່ຈະໃຊ້ວິທີການຊໍາລະເງິນນີ້."
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Failed to discover: %s"
-msgstr "ກວດຫາບໍ່ພົບ: %s"
+msgstr "ບໍ່ສາມາດຄົ້ນພົບ: %s"
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Failed to load resource: net::ERR_INTERNET_DISCONNECTED."
-msgstr "ໂຫຼດຊັບພະຍາກອນບໍ່ສຳເລັດ: net::ERR_INTERNET_DISCONNECTED."
+msgstr "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໄດ້: net::ERR_INTERNET_DISCONNECTED."
 
 #. module: pos_stripe
 #. odoo-javascript
@@ -74,75 +73,86 @@ msgstr ""
 
 #. module: pos_stripe
 #: model:ir.model.fields,field_description:pos_stripe.field_pos_payment_method__id
+#, fuzzy
 msgid "ID"
-msgstr "ໄອດີ"
+msgstr "ລະຫັດ"
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "No available Stripe readers."
 msgstr "ບໍ່ມີເຄື່ອງອ່ານ Stripe ທີ່ພ້ອມໃຊ້ງານ."
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Payment cancelled because not reader connected"
-msgstr "ການຊຳລະເງິນຖືກຍົກເລີກ ເນື່ອງຈາກບໍ່ມີການເຊື່ອມຕໍ່ເຄື່ອງອ່ານ"
+msgstr "ການຊໍາລະເງິນຖືກຍົກເລີກເນື່ອງຈາກບໍ່ໄດ້ເຊື່ອມຕໍ່ເຄື່ອງອ່ານ"
 
 #. module: pos_stripe
 #: model:ir.model,name:pos_stripe.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "ວິທີການຊຳລະເງິນຂອງຈຸດຂາຍ"
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Reader disconnected"
 msgstr "ເຄື່ອງອ່ານຖືກຕັດການເຊື່ອມຕໍ່"
 
 #. module: pos_stripe
 #. odoo-python
 #: code:addons/pos_stripe/models/pos_payment_method.py:0
+#, fuzzy
 msgid "Stripe"
 msgstr "Stripe"
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Stripe Error"
 msgstr "ຂໍ້ຜິດພາດຂອງ Stripe"
 
 #. module: pos_stripe
 #: model:ir.model.fields,field_description:pos_stripe.field_pos_payment_method__stripe_serial_number
+#, fuzzy
 msgid "Stripe Serial Number"
-msgstr "ເລກລຳດັບເຄື່ອງ Stripe"
+msgstr "ເລກລໍາດັບ Stripe"
 
 #. module: pos_stripe
 #. odoo-python
 #: code:addons/pos_stripe/models/pos_payment_method.py:0
+#, fuzzy
 msgid "Stripe payment provider for company %s is missing"
-msgstr "ບໍ່ພົບຜູ້ໃຫ້ບໍລິການຊຳລະເງິນ Stripe ສຳລັບບໍລິສັດ %s"
+msgstr "ບໍ່ພົບຜູ້ໃຫ້ບໍລິການຊໍາລະເງິນ Stripe ສໍາລັບບໍລິສັດ %s"
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
+#, fuzzy
 msgid "Stripe readers %s not listed in your account"
-msgstr "ເຄື່ອງອ່ານ Stripe %s ບໍ່ມີຢູ່ໃນບັນຊີຂອງທ່ານ"
+msgstr "ເຄື່ອງອ່ານ Stripe %s ບໍ່ມີຢູ່ໃນລາຍຊື່ບັນຊີຂອງທ່ານ"
 
 #. module: pos_stripe
 #. odoo-python
 #: code:addons/pos_stripe/models/pos_payment_method.py:0
+#, fuzzy
 msgid ""
 "Terminal %(terminal)s is already used on payment method %(payment_method)s."
-msgstr "ເຄື່ອງແທັກມີນໍ %(terminal)s ຖືກນຳໃຊ້ແລ້ວໃນວິທີການຊຳລະເງິນ %(payment_method)s."
+msgstr "ເຄື່ອງຊຳລະເງິນ %(terminal)s ຖືກນຳໃຊ້ແລ້ວໃນວິທີການຊຳລະເງິນ %(payment_method)s."
 
 #. module: pos_stripe
 #. odoo-javascript
 #: code:addons/pos_stripe/static/src/app/payment_stripe.js:0
 msgid "You cannot refund a non-Stripe payment via Stripe"
-msgstr "ທ່ານບໍ່ສາມາດຄືນເງິນທີ່ບໍ່ແມ່ນການຊຳລະຜ່ານ Stripe ຜ່ານລະບົບ Stripe ໄດ້"
+msgstr ""
 
 #. module: pos_stripe
 #: model:ir.model.fields,help:pos_stripe.field_pos_payment_method__stripe_serial_number
+#, fuzzy
 msgid "[Serial number of the stripe terminal], for example: WSC513105011295"
-msgstr "[ເລກລຳດັບຂອງເຄື່ອງ Stripe], ຕົວຢ່າງ: WSC513105011295"
+msgstr "[ເລກລໍາດັບຂອງເຄື່ອງເທີມິນໍ Stripe], ຕົວຢ່າງ: WSC513105011295"

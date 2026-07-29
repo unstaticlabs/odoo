@@ -6,19 +6,18 @@
 # Martin Trigaux, 2022
 # Nancy Momoland <thanhnguyen.icsc@gmail.com>, 2023
 # Thi Huong Nguyen, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Alex Tran <tral@odoo.com>, 2026.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-15 07:44+0000\n"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-07-15 08:35+0000\n"
 "Last-Translator: Alex Tran <tral@odoo.com>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_account/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
@@ -71,7 +70,7 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__avco_value
 msgid "AVCO Value"
-msgstr ""
+msgstr "Giá trị AVCO"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_account
@@ -165,8 +164,8 @@ msgstr "Dòng tài khoản phân tích"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Kế hoạch phân tích"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -213,6 +212,12 @@ msgid "Bacon"
 msgstr "Thịt hun khói"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -237,10 +242,6 @@ msgstr "Nguồn gốc giá vốn hàng bán"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Công ty"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -528,9 +529,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Tham chiếu/Lý do điều chỉnh tồn kho"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Vị trí kiểm kho"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -592,8 +599,6 @@ msgid ""
 "It exists closing entries after the selected date. Cancel them before "
 "generate an entry prior to them"
 msgstr ""
-"Có các giao dịch đóng sau ngày đã chọn. Hủy bỏ chúng trước khi tạo giao dịch "
-"trước đó"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_move
@@ -813,8 +818,8 @@ msgstr "Tài khoản chung WIP sản xuất"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Quant"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1191,9 +1196,6 @@ msgstr "stock_move_id"
 msgid "units"
 msgstr "đơn vị"
 
-#~ msgid "6.00"
-#~ msgstr "6.00"
-
 #~ msgid ""
 #~ "Value of the product (automatically computed in AVCO).\n"
 #~ "        Used to value the product when the purchase cost is not known "
@@ -1205,416 +1207,12 @@ msgstr "đơn vị"
 #~ "(ví dụ: điều chỉnh tồn kho).\n"
 #~ "        Được sử dụng để tính toán lợi nhuận trên các đơn bán hàng."
 
+#~ msgid "6.00"
+#~ msgstr "6.00"
+
 #~ msgid ""
 #~ "You cannot modify the scheduled date of this operation because it falls "
 #~ "within a locked fiscal period."
 #~ msgstr ""
 #~ "Bạn không thể thay đổi ngày đã lên lịch cho thao tác này vì nó nằm trong "
 #~ "khoảng thời gian tài chính đã được khóa."
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Thủ công: Các bút toán kế toán để định giá hàng tồn kho không được vào sổ "
-#~ "tự động.\n"
-#~ "        Tự động: Một bút toán kế toán được tạo tự động để định giá hàng "
-#~ "tồn kho khi một sản phẩm nhập hoặc xuất khỏi công ty.\n"
-#~ "        "
-
-#~ msgid " Product cost updated from %(previous)s to %(new_cost)s."
-#~ msgstr " Giá vốn sản phẩm được cập nhật từ %(previous)s thành %(new_cost)s."
-
-#~ msgid ""
-#~ "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
-#~ msgstr ""
-#~ "%(user)s đã thay đổi giá vốn từ %(previous)s thành %(new_price)s - %"
-#~ "(product)s"
-
-#~ msgid ""
-#~ "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
-#~ "(product)s"
-#~ msgstr ""
-#~ "%(user)s đã đổi giá trị tồn kho từ  %(previous)s thành %(new_value)s - %"
-#~ "(product)s"
-
-#~ msgid ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Use a "
-#~ "negative added value to record a decrease in the product value</small>"
-#~ msgstr ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Sử dụng giá "
-#~ "trị gia tăng âm để ghi giảm giá trị sản phẩm</small>"
-
-#~ msgid "<b>Set other input/output accounts on specific </b>"
-#~ msgstr "<b>Thiết lập các tài khoản nhập/xuất khác trên các</b>"
-
-#~ msgid "Account Move"
-#~ msgstr "Dịch chuyển tài khoản"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Thuộc tính tài khoản kho"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Bút toán kế toán"
-
-#~ msgid "Add Manual Valuation"
-#~ msgstr "Thêm định giá thủ công"
-
-#~ msgid "Added value"
-#~ msgstr "Giá trị gia tăng"
-
-#~ msgid "Automated"
-#~ msgstr "Tự động"
-
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Không tìm thấy tài khoản nhập tồn kho cho sản phẩm %s. Bạn phải xác định "
-#~ "một tài khoản ở danh mục sản phẩm hoặc ở vị trí lưu kho trước khi xử lý "
-#~ "hoạt động này."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Không tìm thấy tài khoản xuất tồn kho cho sản phẩm %s. Bạn phải xác định "
-#~ "một tài khoản ở danh mục sản phẩm hoặc ở vị trí lưu kho trước khi xử lý "
-#~ "hoạt động này."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "Thay đổi phương thức giá vốn là một thay đổi quan trọng sẽ ảnh hưởng đến "
-#~ "giá trị tồn kho. Bạn có chắc chắn bạn muốn thực hiện thay đổi này?"
-
-#~ msgid "Choose a date to get the valuation at that date"
-#~ msgstr "Chọn một ngày để tiến hành định giá vào ngày đó"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "Lỗi cấu hình! Vui lòng cấu hình tài khoản chênh lệch giá trên sản phẩm "
-#~ "hoặc danh mục sản phẩm để xử lý hoạt động này."
-
-#~ msgid "Costing method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Thay đổi phương pháp giá vốn cho danh mục sản phẩm %s: từ %s thành %s."
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Tài khoản đối ứng"
-
-#~ msgid ""
-#~ "Counterpart journal items for all incoming stock moves will be posted in "
-#~ "this account, unless there is a specific valuation account\n"
-#~ "                set on the source location. This is the default value for "
-#~ "all products in this category. It can also directly be set on each "
-#~ "product."
-#~ msgstr ""
-#~ "Các bút toán đối ứng cho tất cả dịch chuyển nhập hàng sẽ được ghi vào tài "
-#~ "khoản này, trừ khi có một tài khoản định giá cụ thể\n"
-#~ "                được thiết lập trong vị trí nguồn. Đây là giá trị mặc "
-#~ "định cho tất cả sản phẩm trong danh mục này. Nó cũng có thể được thiết "
-#~ "lập trực tiếp trên từng sản phẩm."
-
-#~ msgid "Current Quantity"
-#~ msgstr "Số lượng hiện tại"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "Đơn vị tính mặc định dùng cho tất cả hoạt động kho."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "Do có thay đổi danh mục sản phẩm (từ %s thành %s), nên phương pháp giá "
-#~ "vốn                               cho mẫu sản phẩm %s đã thay đổi: từ %s "
-#~ "thành %s."
-
-#~ msgid "Group by..."
-#~ msgstr "Nhóm theo..."
-
-#~ msgid "Has Remaining Qty"
-#~ msgstr "Có SL còn lại"
-
-#~ msgid "Incoming"
-#~ msgstr "Nhập về"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Chi tiết hóa đơn"
-
-#~ msgid "Invoice value correction with invoice currency"
-#~ msgstr "Điều chỉnh giá trị hóa đơn với đơn vị tiền tệ hóa đơn"
-
-#~ msgid "Journal"
-#~ msgstr "Sổ nhật ký"
-
-#~ msgid "Linked To"
-#~ msgstr "Liên kết với"
-
-#~ msgid "Manual Stock Valuation: %s."
-#~ msgstr "Định giá tồn kho thủ công: %s."
-
-#~ msgid "Manual Stock Valuation: No Reason Given."
-#~ msgstr "Định giá tồn kho thủ công: Không có lý do."
-
-#~ msgid "Moved Quantity"
-#~ msgstr "Số lượng đã dịch chuyển"
-
-#~ msgid "New value"
-#~ msgstr "Giá trị mới"
-
-#~ msgid "New value by quantity"
-#~ msgstr "Giá trị mới theo số lượng"
-
-#~ msgid "Open Valuation Layer"
-#~ msgstr "Mở lớp giá trị định giá"
-
-#~ msgid "Other Info"
-#~ msgstr "Thông tin khác"
-
-#~ msgid "Outgoing"
-#~ msgstr "Xuất đi"
-
-#~ msgid "Product Revaluation"
-#~ msgstr "Tái định giá sản phẩm"
-
-#~ msgid "Product Template"
-#~ msgstr "Mẫu sản phẩm"
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "Giá trị sản phẩm được chỉnh sửa thủ công (từ %s thành %s)"
-
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgid "Quantity Svl"
-#~ msgstr "Số lượng Svl"
-
-#~ msgid "Reason"
-#~ msgstr "Lý do"
-
-#~ msgid "Reason of the revaluation"
-#~ msgstr "Lý do tái định giá"
-
-#~ msgid "Related product"
-#~ msgstr "Sản phẩm liên quan"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "SL còn lại"
-
-#~ msgid "Return Picking"
-#~ msgstr "Phiếu trả hàng"
-
-#~ msgid "Revaluation of %s"
-#~ msgstr "Tái định giá %s"
-
-#~ msgid "Revalue"
-#~ msgstr "Tái định giá"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Tài khoản nhập kho"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Tài khoản xuất kho"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "Lịch sử số lượng tồn kho"
-
-#~ msgid "Stock Request an Inventory Count"
-#~ msgstr "Tồn kho cần kiểm kho"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Tài khoản định giá tồn kho (Nhập về)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Tài khoản định giá tồn kho (Xuất đi)"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Lớp giá trị tồn kho"
-
-#~ msgid ""
-#~ "The Stock Input and/or Output accounts cannot be the same as the Stock "
-#~ "Valuation account."
-#~ msgstr ""
-#~ "Tài khoản nhập và/hoặc xuất tồn kho không được trùng với tài khoản định "
-#~ "giá tồn kho."
-
-#~ msgid ""
-#~ "The action leads to the creation of a journal entry, for which you don't "
-#~ "have the access rights."
-#~ msgstr ""
-#~ "Hành động này dẫn đến việc tạo một bút toán mà bạn không có quyền truy "
-#~ "cập."
-
-#~ msgid "The added value doesn't have any impact on the stock valuation"
-#~ msgstr "Giá trị gia tăng không ảnh hưởng đến định giá tồn kho"
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "Chi tiết dịch chuyển không nhất quán: một số đang nhập vào và một số khác "
-#~ "đang xuất ra khỏi công ty."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "Chi tiết di chuyển không nhất quán: chúng đang thực hiện một tác vụ liên "
-#~ "công ty trong một bước duy nhất trong khi chúng phải đi qua vị trí trung "
-#~ "chuyển liên công ty."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "Chi tiết dịch chuyển không nhất quán: chúng không có cùng xuất xứ hoặc "
-#~ "công ty đích."
-
-#~ msgid ""
-#~ "There are no valuation layers. Valuation layers are created when there "
-#~ "are product moves that impact the valuation of the stock."
-#~ msgstr ""
-#~ "Không có lớp định giá. Các lớp định giá được tạo ra khi có những dịch "
-#~ "chuyển sản phẩm ảnh hưởng đến việc định giá tồn kho."
-
-#~ msgid "Total Remaining Quantity"
-#~ msgstr "Tổng số lượng còn lại"
-
-#~ msgid "Unit Value"
-#~ msgstr "Giá trị đơn vị"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Đơn vị tính"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Được sử dụng cho định giá tồn kho theo thời gian thực. Khi được thiết lập "
-#~ "trên một địa điểm ảo (không phải loại nội bộ), tài khoản này sẽ được sử "
-#~ "dụng để giữ giá trị của những sản phẩm được di chuyển từ một vị trí nội "
-#~ "bộ sang vị trí này, thay cho Tài khoản xuất kho được thiết lập trên sản "
-#~ "phẩm. Việc này không ảnh hưởng tới vị trí nội bộ."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Được sử dụng cho định giá tồn kho theo thời gian thực. Khi được thiết lập "
-#~ "trên một địa điểm ảo (không phải loại nội bộ), tài khoản này sẽ được sử "
-#~ "dụng để giữ giá trị của những sản phẩm được di chuyển ra khỏi vị trí này "
-#~ "và vào một vị trí nội bộ, thay cho Tài khoản xuất kho được thiết lập trên "
-#~ "sản phẩm. Việc này không ảnh hưởng tới vị trí nội bộ."
-
-#~ msgid "Valuation Report"
-#~ msgstr "Báo cáo định giá"
-
-#~ msgid "Valuation at Date"
-#~ msgstr "Định giá tại ngày"
-
-#~ msgid "Valuation method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Thay đổi phương pháp định giá cho danh mục sản phẩm: %s: từ%s thành %s."
-
-#~ msgid "Value Svl"
-#~ msgstr "Giá trị Svl"
-
-#~ msgid "Warning"
-#~ msgstr "Cảnh báo"
-
-#~ msgid ""
-#~ "When doing automated inventory valuation, counterpart journal items for "
-#~ "all outgoing stock moves will be posted in this account,\n"
-#~ "                unless there is a specific valuation account set on the "
-#~ "destination location. This is the default value for all products in this "
-#~ "category.\n"
-#~ "                It can also directly be set on each product."
-#~ msgstr ""
-#~ "Khi thực hiện định giá tồn kho tự động, các hạng mục bút toán đối ứng cho "
-#~ "tất cả dịch chuyển tồn kho xuất đi sẽ được ghi sổ trong tài khoản này,\n"
-#~ "                trừ khi có một tài khoản định giá cụ thể được thiết lập "
-#~ "trên vị trí đích. Đây là giá trị mặc định cho tất cả sản phẩm trong danh "
-#~ "mục này.\n"
-#~ "                Tài khoản này cũng có thể được thiết lập trực tiếp trên "
-#~ "mỗi sản phẩm."
-
-#~ msgid "Wizard model to reavaluate a stock inventory for a product"
-#~ msgstr "Model công cụ để tái định giá tồn kho cho một sản phẩm"
-
-#~ msgid "You cannot revalue a product with a standard cost method."
-#~ msgstr ""
-#~ "Bạn không thể tái định giá sản phẩm với phương pháp giá vốn tiêu chuẩn."
-
-#~ msgid "You cannot revalue a product with an empty or negative stock."
-#~ msgstr "Bạn không thể tái định giá một sản phẩm có tồn kho trống hoặc âm."
-
-#~ msgid ""
-#~ "You cannot update the cost of a product in automated valuation as it "
-#~ "leads to the creation of a journal entry, for which you don't have the "
-#~ "access rights."
-#~ msgstr ""
-#~ "Bạn không thể cập nhật giá vốn của một sản phẩm trong định giá tự động vì "
-#~ "điều này dẫn đến việc tạo một bút toán mà bạn không có quyền truy cập."
-
-#~ msgid ""
-#~ "You don't have any input valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Bạn chưa xác định bất kỳ tài khoản định giá nhập kho nào trên danh mục "
-#~ "sản phẩm. Bạn phải xác định một tài khoản trước khi thực hiện hành động "
-#~ "này."
-
-#~ msgid ""
-#~ "You don't have any stock input account defined on your product category. "
-#~ "You must define one before processing this operation."
-#~ msgstr ""
-#~ "Bạn chưa xác định bất kỳ tài khoản nhập tồn kho nào trong danh mục sản "
-#~ "phẩm. Bạn phải xác định một tài khoản trước khi thực hiện hành động này."
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "Bạn chưa xác định bất kỳ sổ nhật ký tồn kho nào trong danh mục sản phẩm, "
-#~ "hãy kiểm tra xem bạn đã cài đặt sơ đồ tài khoản hay chưa."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Bạn chưa xác định tài khoản định giá tồn kho trong danh mục sản phẩm. Bạn "
-#~ "phải xác định một tài khoản trước khi thực hiện hành động này."
-
-#~ msgid "You must set a counterpart account on your product category."
-#~ msgstr "Bạn phải thiết lập một tài khoản đối ứng trong danh mục sản phẩm."
-
-#~ msgid "by"
-#~ msgstr "bởi"
-
-#~ msgid "for"
-#~ msgstr "cho"
-
-#~ msgid "locations"
-#~ msgstr "các vị trí cụ thể"

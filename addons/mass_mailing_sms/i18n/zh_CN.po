@@ -8,23 +8,23 @@
 # digitalliuzg8888, 2022
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 18:55+0000\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-04-28 14:38+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/mass_mailing_sms/zh_Hans/>\n"
+"projects/odoo-s19-2/mass_mailing_sms/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: mass_mailing_sms
 #. odoo-javascript
@@ -55,13 +55,14 @@ msgstr "24小时内的%(mailing_type)s\"%(mailing_name)s\"的统计资料"
 msgid ""
 "<br/>\n"
 "                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> Contacts\n"
+"                        <i class=\"fa fa-mobile fa-lg\"/> Contacts\n"
 "                    </span>"
 msgstr ""
-"<br/>\n"
-"                    <span class=\"text-muted\">\n"
-"                        <i class=\"fa fa-phone\"/> 联系人\n"
-"                    </span>"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_kanban
+msgid "<i class=\"fa fa-phone text-primary me-2\" title=\"Phone\"/>"
+msgstr "<i class=\"fa fa-phone text-primary me-2\" title=\"Phone\"/>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_mailing_view_form_sms
@@ -114,8 +115,8 @@ msgid ""
 "<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">SMS Text "
 "Messages have been sent.</span>"
 msgstr ""
-"<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">已发送 SMS 短信"
-"。</span>"
+"<span name=\"sent_sms\" invisible=\"mailing_type != 'sms'\">已发送 SMS 短信。"
+"</span>"
 
 #. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_trace_view_form_sms
@@ -143,8 +144,8 @@ msgid ""
 "                        </strong>"
 msgstr ""
 "<strong>\n"
-"                            看来您的短信息账户没有注册。点击这里设置您的账户"
-"。\n"
+"                            看来您的短信息账户没有注册。点击这里设置您的账"
+"户。\n"
 "                        </strong>"
 
 #. module: mass_mailing_sms
@@ -230,7 +231,8 @@ msgstr "投掷（%i）。"
 msgid ""
 "Blacklist through SMS Marketing unsubscribe (mailing ID: %(mailing_id)s - "
 "model: %(model)s)"
-msgstr "通过短信推广取消订阅黑名单（邮寄清单识别码：%(mailing_id)s，模型：%(model)s）"
+msgstr ""
+"通过短信推广取消订阅黑名单（邮寄清单识别码：%(mailing_id)s，模型：%(model)s）"
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_blacklist
@@ -340,11 +342,6 @@ msgid "Date"
 msgstr "日期"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_sms_test_view_form
-msgid "Discard"
-msgstr "丢弃"
-
-#. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_list__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_mailing__display_name
@@ -355,7 +352,7 @@ msgstr "丢弃"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__display_name
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__display_name
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__display_name
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__display_name
 msgid "Display Name"
 msgstr "显示名称"
 
@@ -447,7 +444,7 @@ msgstr "最高的点击率"
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_sms__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_sms_tracker__id
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_campaign__id
-#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_medium__id
+#: model:ir.model.fields,field_description:mass_mailing_sms.field_utm_mixin__id
 msgid "ID"
 msgstr "ID"
 
@@ -647,6 +644,12 @@ msgid "My SMS Marketing"
 msgstr "我的短信营销"
 
 #. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_kanban
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
+msgid "New SMS"
+msgstr ""
+
+#. module: mass_mailing_sms
 #: model_terms:ir.actions.act_window,help:mass_mailing_sms.mailing_trace_report_action_sms
 msgid "No data yet!"
 msgstr "还没有数据耶！"
@@ -743,6 +746,11 @@ msgstr "选项"
 #: model:ir.model,name:mass_mailing_sms.model_sms_sms
 msgid "Outgoing SMS"
 msgstr "发信短信息"
+
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_form
+msgid "Phone"
+msgstr ""
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields,field_description:mass_mailing_sms.field_mailing_contact__phone_sanitized_blacklisted
@@ -912,12 +920,6 @@ msgid "Send Now"
 msgstr "立即发送"
 
 #. module: mass_mailing_sms
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_list_view_form
-#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.utm_campaign_view_form
-msgid "Send SMS"
-msgstr "发送短信息"
-
-#. module: mass_mailing_sms
 #: model:ir.model,name:mass_mailing_sms.model_sms_composer
 msgid "Send SMS Wizard"
 msgstr "发送短信息向导"
@@ -998,14 +1000,6 @@ msgid "Test SMS successfully sent to %s"
 msgstr "测试短信成功发送至 %s"
 
 #. module: mass_mailing_sms
-#. odoo-python
-#: code:addons/mass_mailing_sms/models/utm.py:0
-msgid ""
-"The UTM medium '%s' cannot be deleted as it is used in some main functional "
-"flows, such as the SMS Marketing."
-msgstr "UTM媒体“%s”不能被删除，因为它被用于一些主要的功能流，如短信营销。"
-
-#. module: mass_mailing_sms
 #: model_terms:ir.ui.view,arch_db:mass_mailing_sms.blacklist_main
 msgid "There was an error when trying to unsubscribe"
 msgstr "在尝试取消订阅时出现了一个错误"
@@ -1041,9 +1035,9 @@ msgid "UTM Campaign"
 msgstr "UTM营销"
 
 #. module: mass_mailing_sms
-#: model:ir.model,name:mass_mailing_sms.model_utm_medium
-msgid "UTM Medium"
-msgstr "UTM媒介"
+#: model:ir.model,name:mass_mailing_sms.model_utm_mixin
+msgid "UTM Mixin"
+msgstr ""
 
 #. module: mass_mailing_sms
 #: model:ir.model.fields.selection,name:mass_mailing_sms.selection__mailing_trace__failure_type__sms_acc
@@ -1127,116 +1121,14 @@ msgstr "已成功加入黑名单"
 msgid "has been successfully removed from"
 msgstr "已成功从"
 
+#. module: mass_mailing_sms
+#: model_terms:ir.ui.view,arch_db:mass_mailing_sms.mailing_contact_view_tree
+msgid "📵 Blacklisted"
+msgstr ""
+
 #~ msgid ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
 #~ msgstr ""
 #~ "+32 495 85 85 77\n"
 #~ "+33 545 55 55 55"
-
-#~ msgid ""
-#~ "<span name=\"canceled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message have been canceled and will not be sent."
-#~ "</span>"
-#~ msgstr ""
-#~ "<span name=\"canceled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS短信息已被取消，将不再发送。</span>"
-
-#~ msgid ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">SMS Text Message could not be sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"failed_text_sms\" attrs=\"{'invisible': [('mailing_type', '!"
-#~ "=', 'sms')]}\">短信息未能发送。</span>"
-
-#~ msgid ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">This SMS marketing is scheduled for </"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"next_departure_text\" attrs=\"{'invisible': "
-#~ "[('mailing_type', '!=', 'sms')]}\">短信息营销计划为</span>"
-
-#~ msgid ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">SMS Text Message are in queue and will be sent soon.</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"scheduled_text_sms\" attrs=\"{'invisible': [('mailing_type', "
-#~ "'!=', 'sms')]}\">短信息已在队列将很快发送。</span>"
-
-#~ msgid ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">SMS Text Message have been sent.</span>"
-#~ msgstr ""
-#~ "<span name=\"sent_sms\" attrs=\"{'invisible': [('mailing_type', '!=', "
-#~ "'sms')]}\">短信息文本已发送。</span>"
-
-#~ msgid "<span>Valid SMS Recipients</span>"
-#~ msgstr "<span>有效的短信息收件人</span>"
-
-#~ msgid "Bioutifoul SMS"
-#~ msgstr "Bioutifoul SMS"
-
-#~ msgid ""
-#~ "Blacklist through SMS Marketing unsubscribe (mailing ID: %s - model: %s)"
-#~ msgstr "取消短信息营销订阅的黑名单(邮件 ID：%s - 模型：%s)"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "列入黑名单的手机是移动的"
-
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "指示列入黑名单的已净化电话号码是否为手机号码。帮助区分在模型中同时存在手机"
-#~ "和手机字段时列入黑名单的号码。"
-
-#~ msgid ""
-#~ "No need to import mailing lists, you can send SMS Text Messages to "
-#~ "contacts saved in other Odoo apps."
-#~ msgstr ""
-#~ "不需要导入邮件列表，您可以向保存在其他Odoo应用程序中的联系人发送SMS短信"
-#~ "息。"
-
-#~ msgid "Number %s not found"
-#~ msgstr "数字 %s 没找到"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "需要作业消息数量"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "电话/手机"
-
-#~ msgid "Please enter your phone number"
-#~ msgstr "请输入您的电话号码"
-
-#~ msgid "SMS ID (tech)"
-#~ msgstr "短信息 ID(技术)"
-
-#~ msgid ""
-#~ "Send a sample SMS for testing purpose to the numbers below (carriage-"
-#~ "return-separated list)."
-#~ msgstr "发送一个测试用的短信息样本到下面的号码（车厢-返回-分离的列表）。"
-
-#~ msgid "Test SMS Marketing"
-#~ msgstr "测试短信息营销"
-
-#~ msgid "Test SMS could not be sent to %s:<br>%s"
-#~ msgstr "测试短信息无法发送至%s 。<br>%s"
-
-#~ msgid "Test SMS marketing"
-#~ msgstr "测试短信息营销"
-
-#~ msgid "The following numbers are not correctly encoded: %s"
-#~ msgstr "以下数字未正确编码：%s"
-
-#~ msgid "Unsubscribe me"
-#~ msgstr "退订"
-
-#~ msgid "XMas Promo"
-#~ msgstr "XMas促销活动"

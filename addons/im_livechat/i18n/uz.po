@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 11:18+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"im_livechat/uz/>\n"
+"POT-Creation-Date: 2026-04-03 18:37+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: im_livechat
 #. odoo-python
@@ -76,6 +74,24 @@ msgid "% of Happiness"
 msgstr "Mamnunlik foizi"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(days)sd"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(hours)sh"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "%(minutes)sm"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-python
 #: code:addons/im_livechat/models/chatbot_script_step.py:0
 #, fuzzy
@@ -92,13 +108,26 @@ msgstr "%s (nusxa)"
 #. module: im_livechat
 #. odoo-python
 #: code:addons/im_livechat/models/chatbot_script.py:0
-#: code:addons/im_livechat/models/discuss_channel.py:0
 #, fuzzy
 msgid ""
 "'%(input_email)s' does not look like a valid email. Can you please try again?"
 msgstr ""
 "'%(input_email)s' to‘g‘ri elektron pochta manziliga o‘xshamaydi. Iltimos, "
 "qayta urinib ko‘ring."
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/chatbot_script.py:0
+msgid ""
+"'%(input_phone)s' does not look like a valid phone number. Can you please "
+"try again?"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/chatbot_script_step.py:0
+msgid "'%s' is not a valid phone number."
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_rule__action
@@ -115,6 +144,12 @@ msgstr ""
 "bilan ko‘rsatish' - bu 'Ko‘rsatish' va tugma yonidagi suzuvchi matn. * "
 "'Avtomatik ochish' tugmani ko‘rsatadi va suhbat oynasini avtomatik ravishda "
 "ochadi. * 'Yashirish' sahifalardagi chat tugmasini berkitadi."
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.js:0
+msgid "< 1m"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
@@ -269,7 +304,6 @@ msgstr "Administrator"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__partner_id
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel_member__livechat_member_type__agent
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel_member_history__livechat_member_type__agent
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -290,7 +324,6 @@ msgstr "Agent malakasi"
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_agent_partner_ids
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__user_ids
 #: model:ir.ui.menu,name:im_livechat.menu_reporting_livechat_agent
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 #, fuzzy
@@ -304,6 +337,11 @@ msgid "Agents (History)"
 msgstr "Agentlar (tarix)"
 
 #. module: im_livechat
+#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__available_operator_ids_count
+msgid "Agents Connected"
+msgstr ""
+
+#. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 #, fuzzy
 msgid ""
@@ -312,12 +350,6 @@ msgid ""
 msgstr ""
 "Odooda 30 daqiqadan ortiq faol bo‘lmagan agentlar aloqasi uzilgan deb "
 "hisoblanadi."
-
-#. module: im_livechat
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_all_conversations
-#, fuzzy
-msgid "All Conversations"
-msgstr "Barcha suhbatlar"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_form
@@ -418,12 +450,6 @@ msgstr ""
 "Tashrif buyuruvchiga birinchi javobni berish uchun o‘rtacha vaqt (soatlarda)"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#, fuzzy
-msgid "Bot"
-msgstr "Bot"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__operator_partner_id
 #, fuzzy
 msgid "Bot Operator"
@@ -493,10 +519,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__channel_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__channel_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__livechat_channel_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
 #, fuzzy
 msgid "Channel"
@@ -511,6 +535,7 @@ msgstr "Kanal a'zosi"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__channel_name
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 #, fuzzy
 msgid "Channel Name"
 msgstr "Kanal nomi"
@@ -547,6 +572,12 @@ msgstr ""
 "sozlamalariga qarab)."
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/embed/common/livechat_button.xml:0
+msgid "Chat with us"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.actions.act_window,name:im_livechat.chatbot_script_action
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_answer__chatbot_script_id
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__chatbot_script_id
@@ -554,7 +585,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__chatbot_script_id
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel_member__livechat_member_type__bot
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel_member_history__livechat_member_type__bot
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -668,7 +698,7 @@ msgid "Closed Live Chat session should not have a status."
 msgstr "Yopilgan jonli chat sessiyasida holat bo‘lmasligi kerak."
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__color
+#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__color
 #, fuzzy
 msgid "Color"
 msgstr "Rang"
@@ -717,7 +747,7 @@ msgstr "Suhbat"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
 #, fuzzy
 msgid "Conversation has ended"
 msgstr "Suhbat yakunlandi"
@@ -746,7 +776,6 @@ msgstr "Mamlakatlar"
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__country_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__session_country_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_kanban
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
@@ -775,19 +804,6 @@ msgid "Country of the visitor of the channel"
 msgstr "Kanal tashrif buyuruvchisining mamlakati"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-#, fuzzy
-msgid "Country:"
-msgstr "Mamlakat:"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-#, fuzzy
-msgid "Create"
-msgstr "Yaratish"
-
-#. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.chatbot_script_action
 #, fuzzy
 msgid "Create a Chatbot"
@@ -807,7 +823,6 @@ msgstr "Mijoz yaratish"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__create_uid
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__create_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__create_uid
 #, fuzzy
 msgid "Created by"
@@ -821,7 +836,6 @@ msgstr "Yaratuvchi"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__create_date
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__create_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__create_date
 #, fuzzy
 msgid "Created on"
@@ -829,8 +843,6 @@ msgstr "Yaratilgan sana"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__visitor_partner_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #, fuzzy
@@ -856,7 +868,6 @@ msgid "Customers (Partners)"
 msgstr "Mijozlar (Hamkorlar)"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -865,7 +876,6 @@ msgid "Date"
 msgstr "Sana"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_kanban
 #, fuzzy
 msgid "Date:"
@@ -884,6 +894,11 @@ msgstr "Sana: O‘tgan oy"
 #, fuzzy
 msgid "Date: Last week"
 msgstr "Sana: O‘tgan hafta"
+
+#. module: im_livechat
+#: model:ir.model.fields,help:im_livechat.field_discuss_channel__livechat_looking_for_help_since_dt
+msgid "Datetime when the chat entered the 'Looking for help' status."
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
@@ -926,6 +941,7 @@ msgstr "Ochilgandan so‘ng kanal sarlavhasining standart rangi"
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_action
+#: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_config_action
 #, fuzzy
 msgid "Define a new website live chat channel"
 msgstr "Yangi veb-sayt uchun jonli chat kanalini belgilash"
@@ -943,12 +959,6 @@ msgstr ""
 "hisobga olinmaydi."
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#, fuzzy
-msgid "Description"
-msgstr "Tavsif"
-
-#. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/embed/common/feedback_panel/feedback_panel.xml:0
 #, fuzzy
@@ -962,17 +972,17 @@ msgid "Digest"
 msgstr "Qisqacha mazmun"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: im_livechat
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_discuss_demo
 #: model:im_livechat.expertise,name:im_livechat.chatbot_script_expertise_discuss_demo
 #, fuzzy
 msgid "Discuss"
 msgstr "Muhokama qilish"
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__conversation_ids
-#, fuzzy
-msgid "Discuss Channels"
-msgstr "Muhokama kanallari"
 
 #. module: im_livechat
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_discuss_livechat_demo
@@ -1000,7 +1010,6 @@ msgstr "Muhokama kanali"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__display_name
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_ir_qweb__display_name
@@ -1011,6 +1020,7 @@ msgstr "Muhokama kanali"
 #: model:ir.model.fields,field_description:im_livechat.field_res_partner__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__display_name
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__display_name
+#: model:ir.model.fields,field_description:im_livechat.field_utm_mixin__display_name
 #, fuzzy
 msgid "Display Name"
 msgstr "Ko‘rsatiladigan nom"
@@ -1034,13 +1044,6 @@ msgstr ""
 #, fuzzy
 msgid "Download a copy of this conversation"
 msgstr "Ushbu suhbatning nusxasini yuklab olish"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/livechat_button.xml:0
-#, fuzzy
-msgid "Drag to Move"
-msgstr "Ko‘chirish uchun suring"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__duration
@@ -1111,8 +1114,6 @@ msgstr "Keskinlashgan"
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.actions.act_window,name:im_livechat.expertise_action
 #: model:ir.ui.menu,name:im_livechat.expertise_menu
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -1122,12 +1123,6 @@ msgstr "Keskinlashgan"
 #, fuzzy
 msgid "Expertise"
 msgstr "Mutaxassislik"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-#, fuzzy
-msgid "Expertise:"
-msgstr "Mutaxassislik:"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_list
@@ -1253,9 +1248,9 @@ msgid ""
 "<strong>Settings</strong> &gt; <strong>Email</strong> &amp; "
 "<strong>Marketing.</strong>"
 msgstr ""
-"<strong>Veb-sayt</strong> &gt; <strong>Konfiguratsiya</strong> &gt; <strong>"
-"Sozlamalar</strong> &gt; <strong>Elektron pochta</strong> va <strong>"
-"Marketing</strong> bo‘limiga o‘ting."
+"<strong>Veb-sayt</strong> &gt; <strong>Konfiguratsiya</strong> &gt; "
+"<strong>Sozlamalar</strong> &gt; <strong>Elektron pochta</strong> va "
+"<strong>Marketing</strong> bo‘limiga o‘ting."
 
 #. module: im_livechat
 #. odoo-javascript
@@ -1355,20 +1350,16 @@ msgid "Help Status"
 msgstr "Yordam holati"
 
 #. module: im_livechat
-#: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_looking_for_help_action
-#, fuzzy
-msgid ""
-"Help out by joining requests from teammates, or mark your own conversations "
-"as needing help."
-msgstr ""
-"Hamkasblarga so‘rovlarda qo‘shilish orqali yordam bering yoki o‘z "
-"suhbatlaringizni yordamga muhtoj deb belgilang."
-
-#. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 #, fuzzy
 msgid "Here's a copy of your conversation with"
 msgstr "bilan suhbatingiz nusxasi"
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Here's the most recent message:"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel_rule__action__hide_button
@@ -1377,7 +1368,6 @@ msgid "Hide"
 msgstr "Yashirish"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #, fuzzy
 msgid "History"
@@ -1463,7 +1453,6 @@ msgstr "Narxlar haqida savolim bor"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__id
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__id
 #: model:ir.model.fields,field_description:im_livechat.field_ir_qweb__id
@@ -1474,6 +1463,7 @@ msgstr "Narxlar haqida savolim bor"
 #: model:ir.model.fields,field_description:im_livechat.field_res_partner__id
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__id
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__id
+#: model:ir.model.fields,field_description:im_livechat.field_utm_mixin__id
 #, fuzzy
 msgid "ID"
 msgstr "ID"
@@ -1568,8 +1558,8 @@ msgstr "Qo‘ng‘iroqda"
 
 #. module: im_livechat
 #. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
 #: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__in_progress
 #, fuzzy
 msgid "In progress"
@@ -1598,12 +1588,6 @@ msgstr ""
 #, fuzzy
 msgid "Is Follower"
 msgstr "Kuzatuvchimi"
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__is_forward_operator
-#, fuzzy
-msgid "Is Forward Operator"
-msgstr "Yo‘naltiruvchi operatormi"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__is_forward_operator_child
@@ -1637,13 +1621,6 @@ msgid "Join Channel"
 msgstr "Kanalga qo‘shilish"
 
 #. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/thread_actions.js:0
-#, fuzzy
-msgid "Join Chat"
-msgstr "Chatga qo‘shilish"
-
-#. module: im_livechat
 #: model:ir.model,name:im_livechat.model_discuss_call_history
 #, fuzzy
 msgid "Keep the call history"
@@ -1675,7 +1652,7 @@ msgstr "KPI jonli chat javobi qiymati"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/channel_member_list_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/channel_member_patch.xml:0
 #, fuzzy
 msgid "Lang"
 msgstr "Til"
@@ -1692,16 +1669,9 @@ msgstr "Kanalga tashrif buyuruvchining tili"
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_lang_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__lang_id
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #, fuzzy
 msgid "Language"
 msgstr "Til"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_kanban
-#, fuzzy
-msgid "Language:"
-msgstr "Til:"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -1710,28 +1680,24 @@ msgid "Languages"
 msgstr "Tillar"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #, fuzzy
 msgid "Last 24 Hours"
 msgstr "So‘nggi 24 soat"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #, fuzzy
 msgid "Last 30 Days"
 msgstr "So‘nggi 30 kun"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #, fuzzy
 msgid "Last 365 Days"
 msgstr "So‘nggi 365 kun"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #, fuzzy
 msgid "Last 7 Days"
@@ -1745,7 +1711,6 @@ msgstr "So‘nggi 7 kun"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__write_uid
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__write_uid
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__write_uid
 #, fuzzy
 msgid "Last Updated by"
@@ -1759,7 +1724,6 @@ msgstr "Oxirgi yangilovchi"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__write_date
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__write_date
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__write_date
 #, fuzzy
 msgid "Last Updated on"
@@ -1797,8 +1761,22 @@ msgstr "Kanalni tark etish"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/common/close_confirmation.xml:0
-#: code:addons/im_livechat/static/src/core/public_web/thread_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.xml:0
+msgid "Leave Conversation"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/common/close_confirmation.js:0
+#: code:addons/im_livechat/static/src/core/public_web/livechat_leave_dialog.js:0
+msgid ""
+"Leaving will end the live chat with %(channel_name)s. Are you sure you want "
+"to continue?"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/common/close_confirmation.js:0
 #, fuzzy
 msgid "Leaving will end the live chat. Do you want to proceed?"
 msgstr "Chiqish jonli muloqotni yakunlaydi. Davom etishni xohlaysizmi?"
@@ -1807,7 +1785,8 @@ msgstr "Chiqish jonli muloqotni yakunlaydi. Davom etishni xohlaysizmi?"
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_module_info_expert_text_step_demo
 #, fuzzy
 msgid "Let me check if I can connect you with the right expert..."
-msgstr "Sizni tegishli mutaxassis bilan bog‘lay olishimni tekshirib ko‘raman..."
+msgstr ""
+"Sizni tegishli mutaxassis bilan bog‘lay olishimni tekshirib ko‘raman..."
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__im_livechat_channel__max_sessions_mode__limited
@@ -1816,6 +1795,8 @@ msgid "Limited"
 msgstr "Cheklangan"
 
 #. module: im_livechat
+#. odoo-javascript
+#: code:addons/im_livechat/static/src/core/public_web/discuss_app/discuss_app_model_patch.js:0
 #: model:ir.ui.menu,name:im_livechat.menu_livechat_root
 #: model:res.groups.privilege,name:im_livechat.res_groups_privilege_live_chat
 #: model_terms:ir.ui.view,arch_db:im_livechat.digest_digest_view_form_inherit
@@ -1832,25 +1813,26 @@ msgid "Live Chat Button"
 msgstr "Jonli muloqot tugmasi"
 
 #. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
+msgid "Live Chat Channel Search"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.actions.act_window,name:im_livechat.im_livechat_channel_action
+#: model:ir.actions.act_window,name:im_livechat.im_livechat_channel_config_action
+#: model:ir.ui.menu,name:im_livechat.livechat_channels_config
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 #, fuzzy
 msgid "Live Chat Channels"
 msgstr "Jonli muloqot kanallari"
 
 #. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
 #: model:ir.actions.report,name:im_livechat.action_report_livechat_conversation
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 #, fuzzy
 msgid "Live Chat Conversation"
 msgstr "Jonli muloqot suhbati"
-
-#. module: im_livechat
-#: model:ir.model,name:im_livechat.model_im_livechat_conversation_tag
-#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_conversation_tag_ids
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__conversation_tag_ids
-#, fuzzy
-msgid "Live Chat Conversation Tags"
-msgstr "Jonli muloqot suhbati teglari"
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_im_livechat_expertise
@@ -1867,6 +1849,12 @@ msgid "Live Chat History"
 msgstr "Jonli muloqot tarixi"
 
 #. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
+#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
+msgid "Live Chat Name"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_note
 #, fuzzy
 msgid "Live Chat Note"
@@ -1877,6 +1865,14 @@ msgstr "Jonli muloqot izohi"
 #, fuzzy
 msgid "Live Chat Session Failure"
 msgstr "Jonli muloqot seansi muvaffaqiyatsizligi"
+
+#. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
+msgid "Live Chat Support Statistics"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -1898,14 +1894,6 @@ msgid "Live chat channel"
 msgstr "Jonli muloqot kanali"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
-#, fuzzy
-msgid "LiveChat Channel Search"
-msgstr "Jonli muloqot kanali qidiruvi"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_app_model_patch.js:0
 #: model:chatbot.script.answer,name:im_livechat.chatbot_script_answer_livechat_demo
 #: model:im_livechat.expertise,name:im_livechat.chatbot_script_expertise_livechat_demo
 #, fuzzy
@@ -1935,9 +1923,8 @@ msgstr "Jonli muloqot kanali a'zolari tarixi"
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_im_livechat_channel_rule
-#, fuzzy
-msgid "Livechat Channel Rules"
-msgstr "Jonli muloqot kanali qoidalari"
+msgid "Livechat Channel Rule"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__channel_type__livechat
@@ -1994,21 +1981,6 @@ msgid "Livechat Member Type"
 msgstr "Jonli muloqot a'zosi turi"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
-#: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
-#, fuzzy
-msgid "Livechat Name"
-msgstr "Jonli muloqot nomi"
-
-#. module: im_livechat
-#: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_operator_id
-#, fuzzy
-msgid "Livechat Operator ID is required for a channel of type livechat."
-msgstr ""
-"Jonli muloqot turidagi kanal uchun Jonli muloqot operatori ID si talab "
-"qilinadi."
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_outcome
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__session_outcome
 #, fuzzy
@@ -2034,15 +2006,6 @@ msgid "Livechat Support Channel Report"
 msgstr "Jonli muloqot yordam kanali hisoboti"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
-#, fuzzy
-msgid "Livechat Support Statistics"
-msgstr "Jonli muloqot yordam xizmati statistikasi"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__livechat_username
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__livechat_username
 #, fuzzy
@@ -2056,21 +2019,21 @@ msgid "Livechat languages"
 msgstr "Jonli muloqot tillari"
 
 #. module: im_livechat
-#: model:ir.actions.act_window,name:im_livechat.discuss_channel_looking_for_help_action
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_looking_for_help
-#, fuzzy
-msgid "Looking for Help"
-msgstr "Yordam qidirilmoqda"
-
-#. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_app_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_app/discuss_app_model_patch.js:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_channel_model_patch.js:0
 #: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__need_help
 #, fuzzy
 msgid "Looking for help"
 msgstr "Yordam qidirilmoqda"
+
+#. module: im_livechat
+#: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_looking_for_help_since_dt_constraint
+msgid ""
+"Looking for help date should only be set if the channel is looking for help "
+"and must be empty otherwise."
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_discuss_channel_rtc_session
@@ -2140,7 +2103,6 @@ msgstr "Xabar yetkazib berish xatosi"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__message_ids
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
 #, fuzzy
 msgid "Messages"
@@ -2166,19 +2128,6 @@ msgid "Monday"
 msgstr "Dushanba"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#, fuzzy
-msgid "My Expertise"
-msgstr "Mening mutaxassisligim"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#, fuzzy
-msgid "My Languages"
-msgstr "Mening tillarim"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -2187,11 +2136,10 @@ msgid "My Sessions"
 msgstr "Mening seanslarim"
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__name
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__name
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_conversation_tag__name
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__name
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_view_search
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 #, fuzzy
 msgid "Name"
 msgstr "Ism"
@@ -2257,12 +2205,6 @@ msgid "No conversation found"
 msgstr "Suhbat topilmadi"
 
 #. module: im_livechat
-#: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_looking_for_help_action
-#, fuzzy
-msgid "No conversations found"
-msgstr "Suhbatlar topilmadi"
-
-#. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_action
 #: model_terms:ir.actions.act_window,help:im_livechat.discuss_channel_action_from_livechat_channel
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_agent_history_action
@@ -2289,13 +2231,6 @@ msgstr "Tarix topilmadi"
 #, fuzzy
 msgid "No one Available"
 msgstr "Hech kim mavjud emas"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-#, fuzzy
-msgid "No tags found"
-msgstr "Teglar topilmadi"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
@@ -2383,7 +2318,6 @@ msgstr "Yetkazib berishda xato bo‘lgan xabarlar soni"
 
 #. module: im_livechat
 #: model:chatbot.script,title:im_livechat.chatbot_script_welcome_bot_demo
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 #, fuzzy
 msgid "Odoo"
 msgstr "Odoo"
@@ -2445,12 +2379,6 @@ msgid "Open automatically"
 msgstr "Avtomatik ravishda ochish"
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_operator_id
-#, fuzzy
-msgid "Operator"
-msgstr "Operator"
-
-#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__operator_expertise_ids
 #, fuzzy
 msgid "Operator Expertise"
@@ -2458,6 +2386,8 @@ msgstr "Operator mutaxassisligi"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_expertise__user_ids
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_search
 #, fuzzy
 msgid "Operators"
 msgstr "Operatorlar"
@@ -2483,7 +2413,6 @@ msgid "Outcome"
 msgstr "Natija"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_list
 #, fuzzy
 msgid "Participants"
@@ -2522,12 +2451,6 @@ msgid "Please do! If there is anything we can help with, let us know"
 msgstr "Albatta! Yordam kerak bo‘lsa, bizga xabar bering"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
-#, fuzzy
-msgid "Powered by"
-msgstr "Tomonidan quvvatlanadi"
-
-#. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__chatbot_script_step__step_type__question_selection
 #, fuzzy
 msgid "Question"
@@ -2540,7 +2463,7 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-python
-#: code:addons/im_livechat/controllers/main.py:0
+#: code:addons/im_livechat/models/discuss_channel.py:0
 #: model:ir.model,name:im_livechat.model_rating_rating
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__rating_id
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__rating
@@ -2558,6 +2481,7 @@ msgstr "Baholash"
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_pivot
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
 #, fuzzy
@@ -2645,7 +2569,8 @@ msgstr "Yo‘naltirish havolasi"
 #, fuzzy
 msgid ""
 "Regular expression specifying the web pages this rule will be applied on."
-msgstr "Ushbu qoida qo‘llaniladigan veb-sahifalarni belgilovchi muntazam ifoda."
+msgstr ""
+"Ushbu qoida qo‘llaniladigan veb-sahifalarni belgilovchi muntazam ifoda."
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_message__mail_message_id
@@ -2655,8 +2580,8 @@ msgstr "Tegishli xat xabari"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_actions_patch.xml:0
-#: code:addons/im_livechat/static/src/core/web/discuss_sidebar_category_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/discuss_app/sidebar/category_patch.xml:0
 msgid "Relevant to your expertise"
 msgstr ""
 
@@ -2673,6 +2598,11 @@ msgid "Reporting"
 msgstr "Hisobotlar"
 
 #. module: im_livechat
+#: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_looking_for_help_since_dt
+msgid "Requested At"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/js/colors_reset_button/colors_reset_button.xml:0
 #, fuzzy
@@ -2684,15 +2614,10 @@ msgstr "Standart ranglarga qaytarish"
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__time_to_answer
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_pivot
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
 #, fuzzy
 msgid "Response Time"
 msgstr "Javob berish vaqti"
-
-#. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_pivot
-#, fuzzy
-msgid "Response Time (hh:mm:ss)"
-msgstr "Javob vaqti (ss:dd:mm)"
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2755,13 +2680,6 @@ msgstr "Sozlash vidjetini olish uchun kanalingizni saqlang."
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-#, fuzzy
-msgid "Say something"
-msgstr "Biror narsa ayting"
-
-#. module: im_livechat
-#. odoo-javascript
 #: code:addons/im_livechat/static/src/embed/common/composer_patch.js:0
 #, fuzzy
 msgid "Say something..."
@@ -2804,18 +2722,10 @@ msgid "Search History"
 msgstr "Qidiruv tarixi"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #, fuzzy
 msgid "Search history"
 msgstr "Qidiruvlar tarixi"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-#, fuzzy
-msgid "Search or create new tags"
-msgstr "Yangi teglarni qidirish yoki yaratish"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -2829,13 +2739,6 @@ msgstr "Qidiruv hisoboti"
 #, fuzzy
 msgid "See 15 last visited pages"
 msgstr "So‘nggi tashrif buyurilgan 15 ta sahifani ko‘rish"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-#, fuzzy
-msgid "Select an option above"
-msgstr "Yuqoridagi variantlardan birini tanlang"
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2859,8 +2762,6 @@ msgid "Sequence"
 msgstr "Ketma-ketlik"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_form
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_list
 #, fuzzy
@@ -2931,6 +2832,7 @@ msgstr "Qo‘ng‘iroqlar bilan o‘tkazilgan seanslar (%)"
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_graph
 #: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_pivot
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
+#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 #, fuzzy
 msgid "Sessions"
 msgstr "Seanslar"
@@ -2971,12 +2873,6 @@ msgstr "Bildirishnoma bilan ko‘rsatish"
 #, fuzzy
 msgid "Someone has already joined this conversation"
 msgstr "Bu suhbatga allaqachon kimdir qo‘shilgan"
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__source_id
-#, fuzzy
-msgid "Source"
-msgstr "Manba"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
@@ -3064,46 +2960,8 @@ msgstr "Yordam bot"
 #. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/composer_patch.js:0
-#, fuzzy
-msgid "Tab to next livechat"
-msgstr "Keyingi jonli chatga o‘tish"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-#, fuzzy
-msgid "Tag has already been selected"
-msgstr "Bu teg allaqachon tanlangan"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
-#: model:ir.actions.act_window,name:im_livechat.livechat_conversation_tag_action
-#: model:ir.ui.menu,name:im_livechat.menu_livechat_conversation_tag
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_looking_for_help_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_tree
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_agent_history_view_search
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_conversation_tag_view_form
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_conversation_tag_view_list
-#: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
-#, fuzzy
-msgid "Tags"
-msgstr "Teglar"
-
-#. module: im_livechat
-#: model:ir.model.fields,help:im_livechat.field_discuss_channel__livechat_conversation_tag_ids
-#: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_member_history__conversation_tag_ids
-#: model:ir.model.fields,help:im_livechat.field_im_livechat_report_channel__conversation_tag_ids
-#, fuzzy
-msgid "Tags to qualify the conversation."
-msgstr "Suhbatni tavsiflash uchun teglar."
-
-#. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__conversation_tag_ids
-#, fuzzy
-msgid "Tags used in this conversation"
-msgstr "Bu suhbatda ishlatilgan teglar"
+msgid "Tab to next live chat"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.ui.menu,name:im_livechat.livechat_technical
@@ -3203,9 +3061,13 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/common/thread_model_patch.js:0
-#: code:addons/im_livechat/static/src/embed/common/thread_model_patch.js:0
-msgid "This livechat conversation has ended."
+#: code:addons/im_livechat/static/src/core/common/discuss_channel_model_patch.js:0
+msgid "This live chat conversation has ended."
+msgstr ""
+
+#. module: im_livechat
+#: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
+msgid "This message has been removed"
 msgstr ""
 
 #. module: im_livechat
@@ -3328,6 +3190,11 @@ msgstr ""
 "sahifa URL manzili."
 
 #. module: im_livechat
+#: model:ir.model,name:im_livechat.model_utm_mixin
+msgid "UTM Mixin"
+msgstr ""
+
+#. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__uuid
 #, fuzzy
 msgid "UUID"
@@ -3356,29 +3223,12 @@ msgid "Unlimited"
 msgstr "Cheklanmagan"
 
 #. module: im_livechat
-#: model_terms:ir.ui.view,arch_db:im_livechat.discuss_channel_view_search
-#, fuzzy
-msgid "Unrated"
-msgstr "Baholanmagan"
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/livechat_conversation_tag_edit.xml:0
-#, fuzzy
-msgid "Unselect tag"
-msgstr "Teg tanlashni bekor qilish"
-
-#. module: im_livechat
 #: model_terms:digest.tip,tip_description:im_livechat.digest_tip_im_livechat_0
-#, fuzzy
 msgid ""
-"Use canned responses to define templates of messages in the livechat app. To "
-"load a canned response, start your sentence with '::' and select the "
+"Use canned responses to define templates of messages in the Live Chat app. "
+"To load a canned response, start your sentence with '::' and select the "
 "template."
 msgstr ""
-"Jonli muloqot ilovasida xabar andozalarini belgilash uchun tayyor "
-"javoblardan foydalaning. Tayyor javobni yuklash uchun gapingizni '::' bilan "
-"boshlang va andozani tanlang."
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_res_users
@@ -3478,15 +3328,6 @@ msgid ""
 msgstr ""
 "Ijobiy sharh qoldirgan tashrif buyuruvchilar ushbu ixtiyoriy havolaga "
 "yo‘naltiriladi."
-
-#. module: im_livechat
-#. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/store_service_patch.js:0
-#: code:addons/im_livechat/static/src/core/web/thread_model_patch.js:0
-#: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_status__waiting
-#, fuzzy
-msgid "Waiting for customer"
-msgstr "Mijoz kutilmoqda"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__web_page
@@ -3651,6 +3492,7 @@ msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_action
+#: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_channel_config_action
 #, fuzzy
 msgid ""
 "You can create channels for each website on which you want\n"
@@ -3664,7 +3506,7 @@ msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_categories_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_category_patch.xml:0
 msgid "You have joined this live chat channel"
 msgstr ""
 
@@ -3690,7 +3532,7 @@ msgstr "...da"
 
 #. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/web/channel_member_list_patch.xml:0
+#: code:addons/im_livechat/static/src/core/web/channel_member_patch.xml:0
 #, fuzzy
 msgid "country"
 msgstr "mamlakat"
@@ -3739,9 +3581,21 @@ msgid "in a call"
 msgstr "qo‘ng‘iroqda"
 
 #. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
+msgid "invited %s to the conversation"
+msgstr ""
+
+#. module: im_livechat
 #. odoo-javascript
-#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_categories_patch.xml:0
+#: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_category_patch.xml:0
 msgid "joined"
+msgstr ""
+
+#. module: im_livechat
+#. odoo-python
+#: code:addons/im_livechat/models/discuss_channel.py:0
+msgid "joined the conversation"
 msgstr ""
 
 #. module: im_livechat
@@ -3768,18 +3622,3 @@ msgstr "soniya"
 #, fuzzy
 msgid "websocket message handling"
 msgstr "veb-soket xabarlarini qayta ishlash"
-
-#, fuzzy
-#~ msgid "This livechat conversation has ended"
-#~ msgstr "Bu jonli muloqot tugadi"
-
-#, fuzzy
-#~ msgid ""
-#~ "<span groups=\"im_livechat.im_livechat_group_manager\">Configure Channel</"
-#~ "span>\n"
-#~ "                                <span groups=\"!"
-#~ "im_livechat.im_livechat_group_manager\">View Channel</span>"
-#~ msgstr ""
-#~ "<span groups=\"im_livechat.im_livechat_group_manager\">Kanalni sozlash</"
-#~ "span> <span groups=\"!im_livechat.im_livechat_group_manager\">Kanalni "
-#~ "ko‘rish</span>"

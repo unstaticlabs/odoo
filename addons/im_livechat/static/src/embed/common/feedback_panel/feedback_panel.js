@@ -51,11 +51,6 @@ export class FeedbackPanel extends Component {
         );
     }
 
-    /** @deprecated use `thread.transcriptUrl` instead */
-    get transcriptUrl() {
-        return this.props.thread.transcriptUrl;
-    }
-
     onClickSendFeedback() {
         rpc("/im_livechat/feedback", {
             reason: this.state.feedback,

@@ -7,15 +7,14 @@
 # Niyas Raphy, 2023
 # Martin Trigaux, 2023
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 15:21+0000\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2025-11-16 15:03+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/analytic/"
 "ar/>\n"
@@ -25,7 +24,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: analytic
 #. odoo-python
@@ -53,8 +52,8 @@ msgstr "<span class=\"o_stat_text\">الهامش الإجمالي</span>"
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
 "يجب أن تكون هناك خطة 'للمشروع' ويجب أن يتم تعيين المعرف الخاص بها كـ "
 "`analytic.project_plan` في متغيرات النظام"
@@ -207,6 +206,7 @@ msgid "Analytic Mixin"
 msgstr "مجموعة المخصصات (Mixin) التحليلية"
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr "الخطة التحليلية"
@@ -223,7 +223,6 @@ msgstr "إمكانية تطبيق الخطة التحليلية"
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -928,7 +927,6 @@ msgid ""
 "The value for %s must be the ID to a valid analytic plan that is not a "
 "subplan"
 msgstr ""
-"يجب أن تكون قيمة %s عبارة عن المعرف الخاص بخطة تحليلية صالحة وليست خطة فرعية"
 
 #. module: analytic
 #: model:account.analytic.account,name:analytic.analytic_absences
@@ -1008,69 +1006,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "e.g. Project XYZ"
 msgstr "مثلًا: مشروع س ع ص"
-
-#~ msgid "Deco Addict"
-#~ msgstr "Deco Addict"
-
-#~ msgid "(no accounts)"
-#~ msgstr "(لا توجد حسابات) "
-
-#~ msgid "Add a line"
-#~ msgstr "إضافة بند"
-
-#~ msgid "Analytic Distribution Template"
-#~ msgstr "قالب التوزيع التحليلي "
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "لا يمكن التحويل بين وحدات القياس إلا إذا كانت تنتمي لنفس الفئة. سيتم "
-#~ "إجراء التحويل بناءً على النسب."
-
-#~ msgid "Editing"
-#~ msgstr "تحرير"
-
-#~ msgid "Group By..."
-#~ msgstr "التجميع حسب.."
-
-#~ msgid "Invalid"
-#~ msgstr "غير صالح "
-
-#~ msgid "Loading..."
-#~ msgstr "جار التحميل..."
-
-#~ msgid "No Analytic Accounts for this plan"
-#~ msgstr "لا توجد حسابات تحليلية لهذه الخطة "
-
-#~ msgid "No plans available"
-#~ msgstr "لا توجد خطط متاحة"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء "
-
-#~ msgid "OK"
-#~ msgstr "نعم"
-
-#~ msgid ""
-#~ "The selected account belongs to another company than the one you're "
-#~ "trying to create an analytic item for"
-#~ msgstr ""
-#~ "الحساب المحدد ينتمي إلى شركة أخرى تختلف عن الشركة التي تحاول إنشاء عنصر "
-#~ "تحليلي من أجلها "
-
-#~ msgid "Unit of Measure"
-#~ msgstr "وحدة القياس"
-
-#~ msgid "UoM Category"
-#~ msgstr "فئة وحدة القياس "
-
-#~ msgid "View"
-#~ msgstr "عرض "
-
-#~ msgid ""
-#~ "You can't set a different company on your analytic account since there "
-#~ "are some analytic items linked to it."
-#~ msgstr ""
-#~ "لا يمكنك تعيين شركة أخرى على حسابك التحليلي نظراً لارتباط بعض العناصر "
-#~ "التحليلية به. "

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import base64
 
-from odoo import http
-from odoo.addons.base.tests.test_mimetypes import PNG
+from odoo.addons.base.tests.files import PNG_B64, PNG_RAW
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.addons.website_slides.tests import common
 from odoo.exceptions import AccessError
@@ -12,6 +10,7 @@ from odoo.tools import mute_logger
 
 
 @tagged('security')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAccess(common.SlidesCase):
 
     @mute_logger('odoo.models', 'odoo.addons.base.models.ir_rule')
@@ -318,6 +317,7 @@ class TestAccess(common.SlidesCase):
             self.slide.with_user(self.user_portal).read(['name'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAccessHttp(common.SlidesCase, HttpCase):
     @mute_logger('odoo.models', 'odoo.addons.base.models.ir_rule', 'odoo.http')
     def test_access_slide_attachment(self):
@@ -331,7 +331,7 @@ class TestAccessHttp(common.SlidesCase, HttpCase):
                 'channel_id': self.channel.id,
                 'slide_category': 'infographic',
                 'is_published': True,
-                'binary_content': PNG,
+                'binary_content': PNG_B64,
                 'is_preview': True,
             },
             {
@@ -358,8 +358,8 @@ class TestAccessHttp(common.SlidesCase, HttpCase):
                 response = self.url_open(url)
                 if can_read:
                     self.assertEqual(
-                        base64.b64encode(response.content),
-                        PNG,
+                        response.content,
+                        PNG_RAW,
                         f'{user.login} must be able to see the slide image',
                     )
                 else:
@@ -425,10 +425,11 @@ class TestAccessHttp(common.SlidesCase, HttpCase):
 
 
 @tagged('functional', 'security')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestRemoveMembership(common.SlidesCase):
 
     def setUp(self):
-        super(TestRemoveMembership, self).setUp()
+        super().setUp()
         self.channel_partner = self.env['slide.channel.partner'].create({
             'channel_id': self.channel.id,
             'partner_id': self.customer.id,
@@ -459,6 +460,7 @@ class TestRemoveMembership(common.SlidesCase):
 
 
 @tagged('functional')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAccessFeatures(common.SlidesCase):
 
     @mute_logger('odoo.models', 'odoo.addons.base.models.ir_rule')
@@ -637,6 +639,7 @@ class TestAccessFeatures(common.SlidesCase):
 
 
 @tagged("functional")
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestReview(common.SlidesCase, HttpCase):
     @mute_logger("odoo.addons.http_routing.models.ir_http", "odoo.http")
     def test_channel_multiple_reviews(self):

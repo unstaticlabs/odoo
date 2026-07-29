@@ -355,6 +355,8 @@ class TestCreateEvents(TestCommon):
         self.assertEqual(self.organizer_user.microsoft_last_sync_date, False,
                          "Variable last_sync_date must be False due to sync stop.")
 
+        # Avoid default alarm for the test event as self.call_post_commit_hooks never clear self.env.cr.postcommit._funcs.
+        self.simple_event_values.update(alarm_ids=False)
         # Create a not synced event (local).
         simple_event_values_updated = self.simple_event_values
         for date_field in ['start', 'stop']:
@@ -578,7 +580,7 @@ class TestCreateEvents(TestCommon):
             self.skipTest("The 'hr_holidays' module must be installed to run this test.")
 
         self.user_hrmanager = mail_new_test_user(self.env, login='bastien', groups='base.group_user,hr_holidays.group_hr_holidays_manager')
-        self.user_employee = mail_new_test_user(self.env, login='enguerran', password='enguerran', groups='base.group_user')
+        self.user_employee = mail_new_test_user(self.env, login='enguerran', password='enguerran', groups='base.group_user,hr_holidays.group_hr_holidays_employee')
         self.rd_dept = self.env['hr.department'].with_context(tracking_disable=True).create({
             'name': 'Research and Development',
         })
@@ -587,14 +589,17 @@ class TestCreateEvents(TestCommon):
             'user_id': self.user_employee.id,
             'department_id': self.rd_dept.id,
         })
-        self.hr_leave_type = self.env['hr.leave.type'].with_user(self.user_hrmanager).create({
+        self.hr_work_entry_type = self.env['hr.work.entry.type'].with_user(self.user_hrmanager).create({  # noqa: OLS03001
             'name': 'Time Off Type',
+            'code': 'Time Off Type',
             'requires_allocation': False,
+            'request_unit': 'day',
+            'unit_of_measure': 'day',
         })
         self.holiday = self.env['hr.leave'].with_context(mail_create_nolog=True, mail_notrack=True).with_user(self.user_employee).create({
             'name': 'Time Off Employee',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': self.hr_leave_type.id,
+            'work_entry_type_id': self.hr_work_entry_type.id,
             'request_date_from': datetime(2020, 1, 15),
             'request_date_to': datetime(2020, 1, 15),
         })
@@ -824,7 +829,7 @@ class TestCreateEvents(TestCommon):
         with self.mock_datetime_and_now(t_minus_12h), patch.object(ResUsers, '_get_microsoft_calendar_token', _mock_calendar_token):
             self.organizer_user.with_user(self.organizer_user).restart_microsoft_synchronization()
             # also force set first sync far in the past as it affects the domain and we don't care to take it into account here
-            self.env['ir.config_parameter'].sudo().set_param('microsoft_calendar.sync.first_synchronization_date', t_minus_12h - timedelta(days=5))
+            self.env['ir.config_parameter'].sudo().set_str('microsoft_calendar.sync.first_synchronization_date', t_minus_12h - timedelta(days=5))
         self.env.cr.postcommit.clear()
 
         # users without sync create events at last sync, 1 hour later, and 12 hours later

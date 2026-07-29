@@ -8,32 +8,6 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 
-class PosOrderLine(models.Model):
-    _inherit = "pos.order.line"
-
-    combo_id = fields.Many2one('product.combo', string='Combo reference')
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if (vals.get('combo_parent_uuid')):
-                vals.update([
-                    ('combo_parent_id', self.search([('uuid', '=', vals.get('combo_parent_uuid'))]).id)
-                ])
-            if 'combo_parent_uuid' in vals:
-                del vals['combo_parent_uuid']
-        return super().create(vals_list)
-
-    def write(self, vals):
-        if (vals.get('combo_parent_uuid')):
-            vals.update([
-                ('combo_parent_id', self.search([('uuid', '=', vals.get('combo_parent_uuid'))]).id)
-            ])
-        if 'combo_parent_uuid' in vals:
-            del vals['combo_parent_uuid']
-        return super().write(vals)
-
-
 class PosOrder(models.Model):
     _inherit = "pos.order"
 
@@ -68,12 +42,16 @@ class PosOrder(models.Model):
         self._send_notification(order_ids)
         return result
 
-    def action_pos_order_cancel(self):
-        orders = super().action_pos_order_cancel()
+    def cancel_order_from_pos(self):
+        orders = super().cancel_order_from_pos()
         success_orders_ids = [o['id'] for o in orders['pos.order'] if o['state'] == 'cancel']
-        orders_ids = self.browse(success_orders_ids)
+        orders_ids = self.browse(success_orders_ids).exists()
         self._send_notification(orders_ids)
         return orders
+
+    def action_pos_order_cancel(self):
+        super().action_pos_order_cancel()
+        self._send_notification(self)
 
     def _send_notification(self, order_ids):
         config_ids = order_ids.config_id
@@ -164,6 +142,31 @@ class PosOrder(models.Model):
         return []
 
     @api.model
+    def _check_pos_order_payment(self, device_type, order, payment):
+        if device_type != "kiosk" or not payment or len(payment) != 1 or len(payment[0]) != 3:
+            return []
+
+        command, payment_id = payment[0][0:2]
+        if command != Command.CREATE or payment_id != 0:
+            return []
+
+        payment_line = payment[0][2]
+        if "amount" not in payment_line or payment_line["amount"] != order.get("amount_total", 0):
+            return []
+
+        safe_fields = [
+            "payment_method_id", "card_type", "card_brand", "card_no", "cardholder_name",
+            "payment_ref_no", "payment_method_authcode", "payment_method_issuer_bank",
+            "payment_method_payment_mode", "transaction_id", "ticket", "uuid",
+        ] + self.env["pos.payment"]._get_additional_payment_fields()
+
+        return [[Command.CREATE, 0, {
+            'amount': order.get('amount_total'),
+            'payment_status': 'done',
+            **{field: payment_line.get(field) for field in safe_fields}
+        }]]
+
+    @api.model
     def _check_pos_order(self, pos_config, order, device_type, table=None):
         company = pos_config.company_id
         preset_id = order['preset_id'] if pos_config.use_presets else False
@@ -178,10 +181,13 @@ class PosOrder(models.Model):
             pos_reference, tracking_number = pos_config._get_next_order_refs()
             prefix = f"K{pos_config.id}-" if device_type == "kiosk" else "S"
 
-            if device_type == 'kiosk':
-                floating_order_name = f"Table tracker {order['table_stand_number']}" if order.get('table_stand_number') else tracking_number
-            elif not floating_order_name:
-                floating_order_name = f"Self-Order T {table.table_number}" if table else f"Self-Order {tracking_number}"
+            if not floating_order_name:
+                if device_type == 'kiosk':
+                    floating_order_name = f"Table tracker {order['table_stand_number']}" if order.get('table_stand_number') else f"Kiosk Order {tracking_number}"
+                elif table:
+                    floating_order_name = f"Self-Order T {table.table_number}"
+                else:
+                    floating_order_name = f"Self-Order {tracking_number}"
 
             tracking_number = f"{prefix}{tracking_number}"
         else:
@@ -193,6 +199,8 @@ class PosOrder(models.Model):
         pricelist_id = preset_id.pricelist_id if preset_id else pos_config.pricelist_id
         lines = [self._check_pos_order_lines(pos_config, order, line, fiscal_position_id) for line in order.get('lines', [])]
         lines = [line for line in lines if len(line)]
+        payment_lines = self._check_pos_order_payment(device_type, order, order.get("payment_ids"))
+        payment_lines = [line for line in payment_lines if len(line)]
         partner_id = order.get('partner_id')
         partner = pos_config.env['res.partner'].browse(partner_id) if partner_id else None
 
@@ -235,6 +243,7 @@ class PosOrder(models.Model):
             'uuid': order.get('uuid'),
             'has_deleted_line': order.get('has_deleted_line'),
             'lines': lines,
+            'payment_ids': payment_lines,
             'relations_uuid_mapping': order.get('relations_uuid_mapping', {}),
         }
 

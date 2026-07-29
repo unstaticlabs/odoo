@@ -8,9 +8,8 @@ import unittest
 
 from PIL import Image
 
-from odoo.tests.common import TransactionCase, can_import, RecordCapturer
-from odoo.tools import mute_logger, DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
-from odoo.tools.misc import file_open
+from odoo.tests.common import tagged, TransactionCase, can_import, RecordCapturer
+from odoo.tools import file_open, mute_logger, DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.addons.base_import.models.base_import import ImportValidationError
 
 
@@ -128,6 +127,7 @@ class BaseImportCase(TransactionCase):
         ))
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestBasicFields(BaseImportCase):
 
     def get_fields(self, field):
@@ -178,11 +178,12 @@ class TestBasicFields(BaseImportCase):
         ]))
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestO2M(BaseImportCase):
 
     def test_shallow(self):
         self.assertEqualFields(
-            self.env['base_import.import'].get_fields_tree("import.o2m"), 
+            self.env['base_import.import'].get_fields_tree("import.o2m"),
             [
                 get_id_field("import.o2m"),
                 {'id': 'name', 'name': 'name', 'string': "Name", 'required': False, 'fields': [], 'type': 'char', 'model_name': 'import.o2m'},
@@ -251,6 +252,7 @@ class TestO2M(BaseImportCase):
             )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMatchHeadersSingle(TransactionCase):
 
     def test_match_by_name(self):
@@ -304,6 +306,7 @@ class TestMatchHeadersSingle(TransactionCase):
         self.assertEqual(match, {})
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMatchHeadersMultiple(TransactionCase):
 
     def test_noheaders(self):
@@ -333,7 +336,7 @@ class TestMatchHeadersMultiple(TransactionCase):
     def test_mixed(self):
         self.assertEqual(
             self.env['base_import.import']._get_mapping_suggestions(
-                'foo bar baz qux/corge'.split(),
+                ['foo', 'bar', 'baz', 'qux/corge'],
                 {
                     (0, 'foo'): ['int'],
                     (1, 'bar'): ['char'],
@@ -356,14 +359,18 @@ class TestMatchHeadersMultiple(TransactionCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestColumnMapping(TransactionCase):
 
     def test_column_mapping(self):
+        content = (
+            b"Name,Some Value,value\n"
+            b"chhagan,10,1\n"
+            b"magan,20,2\n"
+        )
         import_record = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b"Name,Some Value,value\n"
-                    b"chhagan,10,1\n"
-                    b"magan,20,2\n",
+            'file': base64.b64encode(content),
             'file_type': 'text/csv',
             'file_name': 'data.csv',
         })
@@ -404,12 +411,13 @@ class TestColumnMapping(TransactionCase):
             )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPreview(TransactionCase):
 
     def make_import(self):
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'res.users',
-            'file': "로그인,언어\nbob,1\n".encode('euc_kr'),
+            'file': base64.b64encode("로그인,언어\nbob,1\n".encode('euc_kr')),
             'file_type': 'text/csv',
             'file_name': 'kr_data.csv',
         })
@@ -441,12 +449,15 @@ class TestPreview(TransactionCase):
         self.assertTrue('error' in result)
 
     def test_csv_success(self):
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,,\n'
+            b'bar,,4\n'
+            b'qux,5,6\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,,\n'
-                    b'bar,,4\n'
-                    b'qux,5,6\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
         })
 
@@ -469,7 +480,8 @@ class TestPreview(TransactionCase):
 
     @unittest.skipUnless(can_import('xlrd'), "XLRD module not available")
     def test_xls_success(self):
-        file_content = file_open('test_import_export/data/test_import.xls', 'rb').read()
+        with file_open('test_import_export/data/test_import.xls', 'rb') as f:
+            file_content = base64.b64encode(f.read())
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
             'file': file_content,
@@ -492,7 +504,8 @@ class TestPreview(TransactionCase):
 
     @unittest.skipUnless(can_import('xlrd.xlsx') or can_import('openpyxl'), "XLRD/XLSX not available")
     def test_xlsx_success(self):
-        file_content = file_open('test_import_export/data/test_import.xlsx', 'rb').read()
+        with file_open('test_import_export/data/test_import.xlsx', 'rb') as f:
+            file_content = base64.b64encode(f.read())
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
             'file': file_content,
@@ -515,7 +528,8 @@ class TestPreview(TransactionCase):
 
     @unittest.skipUnless(can_import('odf'), "ODFPY not available")
     def test_ods_success(self):
-        file_content = file_open('test_import_export/data/test_import.ods', 'rb').read()
+        with file_open('test_import_export/data/test_import.ods', 'rb') as f:
+            file_content = base64.b64encode(f.read())
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
             'file': file_content,
@@ -537,17 +551,21 @@ class TestPreview(TransactionCase):
         self.assertEqual(result['preview'], [['foo', 'bar', 'aux'], ['1', '3', '5'], ['2', '4', '6']])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class test_convert_import_data(TransactionCase):
     """ Tests conversion of base_import.import input into data which
     can be fed to Model.load
     """
     def test_all(self):
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,1,2\n'
+            b'bar,3,4\n'
+            b'qux,5,6\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,1,2\n'
-                    b'bar,3,4\n'
-                    b'qux,5,6\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
 
         })
@@ -564,10 +582,13 @@ class test_convert_import_data(TransactionCase):
         ])
 
     def test_date_fields(self):
+        content = (
+            'c,d,create_date\n'
+            '"foo","2013年07月18日","2016-10-12 06:06"\n'
+        ).encode()
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.complex',
-            'file': 'c,d,create_date\n'
-                    '"foo","2013年07月18日","2016-10-12 06:06"\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
 
         })
@@ -589,10 +610,13 @@ class test_convert_import_data(TransactionCase):
 
     def test_date_fields_no_options(self):
         self.env['res.lang']._activate_lang('de_DE')
+        content = (  # noqa: UP012
+            'c,d,dt\n'
+            '"foo","15.10.2023","15.10.2023 15:15:15"\n'
+        ).encode()
         import_wizard = self.env['base_import.import'].with_context(lang='de_DE').create({
             'res_model': 'import.complex',
-            'file': 'c,d,dt\n'
-                    '"foo","15.10.2023","15.10.2023 15:15:15"\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv',
         })
 
@@ -621,8 +645,10 @@ class test_convert_import_data(TransactionCase):
         self.env['res.lang']._activate_lang('de_DE')
         import_wizard = self.env['base_import.import'].with_context(lang='de_DE').create({
             'res_model': 'import.complex',
-            'file': 'c,d,create_date\n'
-                    '"foo","2023/01/01","2023.01.01 15:15:15"\n',
+            'file': base64.b64encode(
+                b'c,d,create_date\n'
+                b'"foo","2023/01/01","2023.01.01 15:15:15"\n',
+            ),
             'file_type': 'text/csv',
         })
 
@@ -651,8 +677,10 @@ class test_convert_import_data(TransactionCase):
         self.env['res.lang']._activate_lang('de_DE')
         import_wizard = self.env['base_import.import'].with_context(lang='de_DE').create({
             'res_model': 'import.complex',
-            'file': 'c,d,create_date\n'
-                    '"foo","01/01/2023","2023.01.01 15:15:15"\n',
+            'file': base64.b64encode(
+                b'c,d,create_date\n'
+                b'"foo","01/01/2023","2023.01.01 15:15:15"\n',
+            ),
             'file_type': 'text/csv',
         })
 
@@ -681,10 +709,13 @@ class test_convert_import_data(TransactionCase):
         """ Ensure that relational fields float and date are correctly
         parsed during the import call.
         """
+        content = (
+            'name,parent_id/id,parent_id/date,parent_id/partner_latitude\n'
+            '"foo","__export__.res_partner_1","2017年10月12日","5,69"\n'
+        ).encode()
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.complex',
-            'file': 'name,parent_id/id,parent_id/date,parent_id/partner_latitude\n'
-                    '"foo","__export__.res_partner_1","2017年10月12日","5,69"\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
 
         })
@@ -730,12 +761,15 @@ class test_convert_import_data(TransactionCase):
         """ If ``False`` is provided as field mapping for a column,
         that column should be removed from importable data
         """
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,1,2\n'
+            b'bar,3,4\n'
+            b'qux,5,6\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,1,2\n'
-                    b'bar,3,4\n'
-                    b'qux,5,6\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
         })
         data, fields = import_wizard._convert_import_data(
@@ -754,12 +788,15 @@ class test_convert_import_data(TransactionCase):
         """ If a row is composed only of empty values (due to having
         filtered out non-empty values from it), it should be removed
         """
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,1,2\n'
+            b',3,\n'
+            b',5,6\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,1,2\n'
-                    b',3,\n'
-                    b',5,6\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
         })
         data, fields = import_wizard._convert_import_data(
@@ -774,14 +811,17 @@ class test_convert_import_data(TransactionCase):
         ])
 
     def test_empty_rows(self):
+        content = (
+            b'name,Some Value\n'
+            b'foo,1\n'
+            b'\n'
+            b'bar,2\n'
+            b'     \n'
+            b'\t \n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value\n'
-                    b'foo,1\n'
-                    b'\n'
-                    b'bar,2\n'
-                    b'     \n'
-                    b'\t \n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
         })
         data, fields = import_wizard._convert_import_data(
@@ -796,20 +836,26 @@ class test_convert_import_data(TransactionCase):
         ])
 
     def test_nofield(self):
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,1,2\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,1,2\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
 
         })
         self.assertRaises(ImportValidationError, import_wizard._convert_import_data, [], {'quoting': '"', 'separator': ',', 'has_headers': True})
 
     def test_falsefields(self):
+        content = (
+            b'name,Some Value,Counter\n'
+            b'foo,1,2\n'
+        )
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': b'name,Some Value,Counter\n'
-                    b'foo,1,2\n',
+            'file': base64.b64encode(content),
             'file_type': 'text/csv'
         })
 
@@ -833,7 +879,7 @@ class test_convert_import_data(TransactionCase):
 
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': output.getvalue().encode(),
+            'file': base64.b64encode(output.getvalue().encode()),
             'file_type': 'text/csv',
         })
         data, _ = import_wizard._convert_import_data(
@@ -847,19 +893,20 @@ class test_convert_import_data(TransactionCase):
         partners_before = self.env['res.partner'].search([])
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'res.partner',
-            'file': """foo,US,person\n
-foo1,Invalid Country,person\n
-foo2,US,persons\n""",
+            'file': base64.b64encode(b"""\
+foo,US\n
+foo1,Invalid Country\n
+foo2,US\n"""),
             'file_type': 'text/csv'
         })
 
         results = import_wizard.execute_import(
-            ['name', 'country_id', 'company_type'],
+            ['name', 'country_id'],
             [],
             {
                 'quoting': '"',
                 'separator': ',',
-                'import_set_empty_fields': ['country_id', 'company_type'],
+                'import_set_empty_fields': ['country_id'],
             }
         )
         partners_now = self.env['res.partner'].search([]) - partners_before
@@ -867,11 +914,9 @@ foo2,US,persons\n""",
 
         self.assertEqual(partners_now[0].name, 'foo', "New partner's name should be foo")
         self.assertEqual(partners_now[0].country_id.id, self.env.ref('base.us').id, "Foo partner's country should be US")
-        self.assertEqual(partners_now[0].company_type, 'person', "Foo partner's country should be person")
 
         self.assertEqual(partners_now[1].country_id.id, False, "foo1 partner's country should be False")
 
-        self.assertEqual(partners_now[2].company_type, False, "foo2 partner's country should be False")
         # if results empty, no errors
         self.assertItemsEqual(results['messages'], [])
 
@@ -879,20 +924,21 @@ foo2,US,persons\n""",
         partners_before = self.env['res.partner'].search([])
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'res.partner',
-            'file': """foo,US,0,person\n
-foo1,Invalid Country,0,person\n
-foo2,US,False Value,person\n
-foo3,US,0,persons\n""",
+            'file': base64.b64encode(b"""\
+foo,US\n
+foo1,Invalid Country\n
+foo2,Invalid Country\n
+foo3,Invalid Country\n"""),
             'file_type': 'text/csv'
         })
 
         results = import_wizard.execute_import(
-            ['name', 'country_id', 'is_company', 'company_type'],
+            ['name', 'country_id'],
             [],
             {
                 'quoting': '"',
                 'separator': ',',
-                'import_skip_records': ['country_id', 'is_company', 'company_type']
+                'import_skip_records': ['country_id']
             }
         )
         partners_now = self.env['res.partner'].search([]) - partners_before
@@ -925,7 +971,7 @@ foo3,US,0,persons\n""",
         with RecordCapturer(self.env['res.partner']) as capture:
             import_wizard = self.env['base_import.import'].create({
                 'res_model': 'res.partner',
-                'file': '\n'.join([';'.join(partner_values) for partner_values in file_partner_values]),
+                'file': base64.b64encode('\n'.join([';'.join(partner_values) for partner_values in file_partner_values]).encode()),
                 'file_type': 'text/csv',
             })
 
@@ -955,8 +1001,7 @@ foo3,US,0,persons\n""",
     def test_multi_mapping_hmtl(self):
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.complex',
-            'file': 'html,html\n'
-                    '"<p>foo</p>","<p>bar</p>"\n',
+            'file': base64.b64encode(b'html,html\n"<p>foo</p>","<p>bar</p>"\n'),
             'file_type': 'text/csv',
         })
 
@@ -1029,7 +1074,7 @@ foo3,US,0,persons\n""",
             ]:
                 import_wizard = self.env['base_import.import'].create({
                     'res_model': 'import.preview',
-                    'file': file_content,
+                    'file': base64.b64encode(file_content),
                     'file_type': file_type,
                 })
                 result = import_wizard.parse_preview({'has_headers': True})
@@ -1061,7 +1106,7 @@ foo3,US,0,persons\n""",
 
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.preview',
-            'file': file_content,
+            'file': base64.b64encode(file_content),
             'file_type': file_type,
         })
 
@@ -1092,7 +1137,7 @@ foo3,US,0,persons\n""",
         file_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         import_wizard = self.env["base_import.import"].create({
             'res_model': "import.o2m",
-            'file': file_content,
+            'file': base64.b64encode(file_content),
             'file_type': file_type,
         })
         import_wizard.parse_preview({'has_headers': True})
@@ -1129,7 +1174,7 @@ foo3,US,0,persons\n""",
         file_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'import.properties',
-            'file': file_content,
+            'file': base64.b64encode(file_content),
             'file_type': file_type,
         })
         import_wizard.parse_preview({'has_headers': True})
@@ -1150,6 +1195,7 @@ foo3,US,0,persons\n""",
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestBatching(TransactionCase):
     def _makefile(self, rows):
         f = io.StringIO()
@@ -1165,7 +1211,7 @@ class TestBatching(TransactionCase):
             'file_type': 'text/csv',
         })
 
-        import_wizard.file = self._makefile(10)
+        import_wizard.file = base64.b64encode(self._makefile(10))
         result = import_wizard.parse_preview({
             'quoting': '"',
             'separator': ',',
@@ -1211,7 +1257,7 @@ class TestBatching(TransactionCase):
             'res_model': 'import.o2m',
             'file_type': 'text/csv',
             'file_name': 'things.csv',
-            'file': f.getvalue().encode(),
+            'file': base64.b64encode(f.getvalue().encode()),
         })
         opts = {'quoting': '"', 'separator': ',', 'has_headers': True}
         preview = import_wizard.parse_preview({**opts, 'limit': 15})
@@ -1241,7 +1287,7 @@ class TestBatching(TransactionCase):
             'res_model': 'res.partner',
             'file_type': 'text/csv',
             'file_name': 'clients.csv',
-            'file': b"""name,email
+            'file': base64.b64encode(b"""name,email
 a,a@example.com
 b,b@example.com
 ,
@@ -1250,7 +1296,7 @@ d,d@example.com
 e,e@example.com
 f,f@example.com
 g,g@example.com
-"""
+""")
         })
 
         results = import_wizard.execute_import(['name', 'email'], [], {**opts, 'limit': 1})
@@ -1277,6 +1323,7 @@ g,g@example.com
         self.assertEqual(partners_3.mapped('name'), ['d', 'e', 'f', 'g'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class test_failures(TransactionCase):
     def test_big_attachments(self):
         """
@@ -1289,12 +1336,12 @@ class test_failures(TransactionCase):
         writer = csv.writer(fout, dialect=None)
         writer.writerows([
             ['name', 'db_datas'],
-            ['foo', base64.b64encode(im.tobytes()).decode('ascii')]
+            ['foo', base64.b64encode(im.tobytes()).decode()]
         ])
 
         import_wizard = self.env['base_import.import'].create({
             'res_model': 'ir.attachment',
-            'file': fout.getvalue().encode(),
+            'file': base64.b64encode(fout.getvalue().encode()),
             'file_type': 'text/csv'
         })
         results = import_wizard.execute_import(

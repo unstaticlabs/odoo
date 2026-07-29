@@ -68,6 +68,12 @@ class Delivery(WebsiteSale):
         """
         Monetary = request.env['ir.qweb.field.monetary']
         currency = order.currency_id
+        rendered_tax_lines = request.env['ir.ui.view']._render_template(
+            'website_sale.order_tax_lines',
+            {
+                'website_sale_order': order,
+            }
+        )
         return {
             'success': True,
             'is_free_delivery': not bool(order.amount_delivery),
@@ -78,9 +84,7 @@ class Delivery(WebsiteSale):
             'amount_untaxed': Monetary.value_to_html(
                 order.amount_untaxed, {'display_currency': currency}
             ),
-            'amount_tax': Monetary.value_to_html(
-                order.amount_tax, {'display_currency': currency}
-            ),
+            'amount_tax_lines': rendered_tax_lines,
             'amount_total': Monetary.value_to_html(
                 order.amount_total, {'display_currency': currency}
             ),
@@ -123,24 +127,23 @@ class Delivery(WebsiteSale):
         """ Fetch the order from the request and set the pickup location on the current order.
 
         :param str pickup_location_data: The JSON-formatted pickup location address.
-        :return: None
+        :return: The order summary values.
+        :rtype: dict
         """
         order_sudo = request.cart
         order_sudo._set_pickup_location(pickup_location_data)
+        return self._order_summary_values(order_sudo)
 
     @route('/website_sale/get_pickup_locations', type='jsonrpc', auth='public', website=True)
-    def website_sale_get_pickup_locations(self, zip_code=None, **kwargs):
+    def website_sale_get_pickup_locations(self, **kwargs):
         """ Fetch the order from the request and return the pickup locations close to the zip code.
 
-        Determine the country based on GeoIP or fallback on the order's delivery address' country.
-
-        :param int zip_code: The zip code to look up to.
         :return: The close pickup locations data.
         :rtype: dict
         """
         order_sudo = request.cart
         country = order_sudo.partner_shipping_id.country_id
-        return order_sudo._get_pickup_locations(zip_code, country, **kwargs)
+        return order_sudo._get_pickup_locations(country=country, **kwargs)
 
     @route(_express_checkout_delivery_route, type='jsonrpc', auth='public', website=True)
     def express_checkout_process_delivery_address(self, partial_delivery_address):
@@ -204,6 +207,11 @@ class Delivery(WebsiteSale):
                 order_sudo=order_sudo,
             )
 
+        try:
+            order_sudo.with_context(is_express_checkout_flow=True)._recompute_taxes()
+        except UserError:
+            return {'external_tax_error': True}
+
         sorted_delivery_methods = sorted([{
             'id': dm.id,
             'name': dm.name,
@@ -223,8 +231,15 @@ class Delivery(WebsiteSale):
         ):
             order_sudo._set_delivery_method(cheapest_dm)
 
+        amount_without_delivery = order_sudo._compute_amount_total_without_delivery()
+
         # Return the list of delivery methods available for the sales order.
-        return {'delivery_methods': sorted_delivery_methods}
+        return {
+            'delivery_methods': sorted_delivery_methods,
+            'adjusted_minor_amount': payment_utils.to_minor_currency_units(
+                amount_without_delivery, order_sudo.currency_id
+            ),
+        }
 
     @classmethod
     def _get_delivery_methods_express_checkout(cls, order_sudo):

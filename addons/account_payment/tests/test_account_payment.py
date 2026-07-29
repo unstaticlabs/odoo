@@ -166,7 +166,7 @@ class TestAccountPayment(AccountPaymentCommon):
             payment.action_post()
 
         self.assertEqual(payment.payment_transaction_id.state, 'pending')
-        self.assertEqual(payment.state, 'in_process')
+        self.assertEqual(payment.state, 'paid')
 
     def test_action_post_calls_send_payment_request_only_once(self):
         payment_token = self._create_token()
@@ -327,8 +327,9 @@ class TestAccountPayment(AccountPaymentCommon):
             flow='direct',
             state='done',
             amount=invoice.invoice_payment_term_id._get_amount_due_after_discount(
-                total_amount=invoice.amount_residual,
-                untaxed_amount=invoice.amount_tax,
+                invoice.amount_residual,
+                invoice.amount_tax,
+                currency=invoice.currency_id,
             ),
             invoice_ids=[invoice.id],
             partner_id=self.partner.id,
@@ -416,57 +417,53 @@ class TestAccountPayment(AccountPaymentCommon):
         tx._set_done()
         # _post_process() shouldn't raise an error even though the invoice is cancelled
         tx._post_process()
-        self.assertEqual(tx.payment_id.state, 'in_process')
+        self.assertEqual(tx.payment_id.state, 'paid')
 
     def test_payment_token_for_invoice_partner_is_available(self):
         """Test that the payment token of the invoice partner is available"""
         Wizard = self.env['account.payment.register'].with_context(active_model='account.move')
-        with self.mocked_get_payment_method_information():
-            bank_journal = self.company_data['default_journal_bank']
-            payment_method_line = bank_journal.inbound_payment_method_line_ids\
-                .filtered(lambda line: line.payment_provider_id == self.dummy_provider)
-            self.assertTrue(payment_method_line)
+        bank_journal = self.company_data['default_journal_bank']
+        payment_method_line = bank_journal.inbound_payment_method_line_ids.filtered(
+            lambda line: line.payment_provider_id == self.dummy_provider,
+        )
+        self.assertTrue(payment_method_line)
 
-            def payment_register_wizard(invoices):
-                return Wizard.with_context(active_ids=invoices.ids).create({
-                    'payment_method_line_id': payment_method_line.id,
-                })
-
-            child_partner, other_child = self.env['res.partner'].create([{
-                'name': name,
-                'is_company': False,
-                'parent_id': self.partner.id,
-            } for name in ("child_partner", "other_child")])
-            invoice = self.env['account.move'].create({
-                'move_type': 'out_invoice',
-                'partner_id': child_partner.id,
-                'invoice_line_ids': [
-                    Command.create({
-                        'name': 'test line',
-                        'price_unit': 100.0,
-                    }),
-                ],
+        def payment_register_wizard(invoices):
+            return Wizard.with_context(active_ids=invoices.ids).create({
+                'payment_method_line_id': payment_method_line.id,
             })
-            invoice.action_post()
-            payment_token = self._create_token(partner_id=child_partner.id)
-            wizard = payment_register_wizard(invoice)
-            self.assertRecordValues(wizard, [{
-                'suitable_payment_token_ids': payment_token.ids,
-                'payment_token_id': payment_token.id,
-            }])
 
-            # Check that tokens assigned to the specific partner as well as their
-            # commercial partner can be selected.
-            parent_token = self._create_token(partner_id=self.partner.id)
-            wizard = payment_register_wizard(invoice)
-            self.assertEqual(wizard.suitable_payment_token_ids, payment_token + parent_token)
+        self.partner.write({
+            'vat': 'BE0477472701',
+            'child_ids': [Command.create({
+                'name': name,
+            }) for name in ("Child 1", "Child 2")],
+        })
+        child_1, child_2 = self.partner.child_ids
+        invoice_1, invoice_2 = self.env['account.move'].create([{
+            'partner_id': partner.id,
+            'move_type': 'out_invoice',
+            'invoice_line_ids': [Command.create({'product_id': self.product.id})],
+        } for partner in (child_1, child_2)])
+        invoice_1.action_post()
+        payment_token = self._create_token(partner_id=child_1.id)
+        wizard = payment_register_wizard(invoice_1)
+        self.assertRecordValues(wizard, [{
+            'suitable_payment_token_ids': payment_token.ids,
+            'payment_token_id': payment_token.id,
+        }])
 
-            # Check that payments for multiple invoices with multiple partners
-            # only retrieve tokens assigned to a common commercial partner.
-            other_invoice = invoice.copy({'partner_id': other_child.id})
-            other_invoice.action_post()
-            wizard = payment_register_wizard(invoice + other_invoice)
-            self.assertEqual(wizard.suitable_payment_token_ids, parent_token)
+        # Check that tokens assigned to the specific partner as well as their
+        # commercial partner can be selected.
+        parent_token = self._create_token(partner_id=self.partner.id)
+        wizard = payment_register_wizard(invoice_1)
+        self.assertEqual(wizard.suitable_payment_token_ids, payment_token + parent_token)
+
+        # Check that payments for multiple invoices with multiple partners
+        # only retrieve tokens assigned to a common commercial partner.
+        invoice_2.action_post()
+        wizard = payment_register_wizard(invoice_1 + invoice_2)
+        self.assertEqual(wizard.suitable_payment_token_ids, parent_token)
 
     def test_generate_and_send_invoice_with_qr_code(self):
         """Test generating & sending invoices with QR codes enabled."""

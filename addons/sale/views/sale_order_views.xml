@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Kept first because this server action is referenced by the SO list header button -->
+    <record id="model_sale_order_action_quotation_confirm" model="ir.actions.server">
+        <field name="name">Confirm Orders</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_confirm()</field>
+    </record>
+
     <!-- VIEWS -->
 
     <record id="sale_order_view_activity" model="ir.ui.view">
@@ -123,14 +133,22 @@
                         name="%(sale.action_view_sale_advance_payment_inv)d"
                         type="action"
                         class="btn-secondary"/>
+                    <button
+                        string="Confirm Orders"
+                        name="%(sale.model_sale_order_action_quotation_confirm)d"
+                        type="action"
+                        class="btn-secondary"
+                    />
                 </header>
                 <field name="message_needaction" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
 
                 <field name="name" string="Number" readonly="1" decoration-bf="1"/>
                 <field name="date_order" optional="show" readonly="state in ['cancel', 'sale']"/>
-                <field name="commitment_date" optional="hide"/>
-                <field name="expected_date" optional="hide"/>
+                <field name="delivery_date" string="Delivery Date" optional="hide"
+                    decoration-muted="not commitment_date"
+                    decoration-danger="(commitment_date and (expected_date &lt; commitment_date or commitment_date &lt; context_today().strftime('%Y-%m-%d'))) and state in ['draft', 'sent']"/>
+                <field name="commitment_date" readonly="1" optional="hide"/>
                 <field name="partner_id" readonly="1"/>
                 <field name="user_id" widget="many2one_avatar_user" optional="show"/>
                 <field name="activity_ids" widget="list_activity" optional="show"/>
@@ -156,7 +174,7 @@
                        optional="show"/>
                 <field name="tag_ids"
                       widget="many2many_tags"
-                      options="{'color_field': 'color'}"
+                      options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"
                       optional="hide"/>
                 <field name="state"
                     decoration-success="state == 'sale'"
@@ -164,12 +182,16 @@
                     decoration-primary="state == 'sent'"
                     widget="badge"
                     optional="hide"/>
-                <field name="invoice_status"
-                    decoration-success="invoice_status == 'invoiced'"
+                <field
+                    name="invoice_status"
+                    decoration-success="invoice_status == 'invoiced' and not invoicing_closed"
                     decoration-info="invoice_status == 'to invoice'"
-                    decoration-warning="invoice_status == 'upselling'"
+                    decoration-warning="
+                        (invoice_status == 'invoiced' and invoicing_closed)
+                        or invoice_status == 'upselling'"
                     widget="badge"
-                    optional="show"/>
+                    optional="show"
+                />
                 <field name="client_order_ref" optional="hide"/>
                 <field name="validity_date" optional="hide"/>
             </list>
@@ -183,10 +205,41 @@
         <field name="mode">primary</field>
         <field name="priority">2</field>
         <field name="arch" type="xml">
-            <!-- Dummy view content since empty views are not supported atm -->
-            <list position="attributes">
-                <attribute name="string">Sales Orders</attribute>
-            </list>
+            <xpath expr="//header/button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="before">
+                <button
+                    string="Deliver"
+                    name="deliver_sold_quantity"
+                    type="object"
+                    class="btn-secondary"/>
+            </xpath>
+            <field name="invoice_status" position="before">
+                <field
+                    name="delivery_status"
+                    decoration-success="delivery_status == 'full'"
+                    decoration-warning="delivery_status == 'partial'"
+                    decoration-info="delivery_status in ['pending', 'started']"
+                    widget="badge"
+                    optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_orders_to_invoice_tree" model="ir.ui.view">
+        <field name="name">sale.order.list (To Invoice)</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_order_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">32</field>
+        <field name="arch" type="xml">
+            <field name="amount_total" position="before">
+                <field name="amount_to_invoice"
+                       sum="Amount to invoice"
+                       widget="monetary"
+                       decoration-bf="1"
+                       decoration-info="invoice_status == 'to invoice'"
+                       optional="show"
+                       column_invisible="True"/>
+            </field>
         </field>
     </record>
 
@@ -286,6 +339,13 @@
                     data-hotkey="q"
                     invisible="invoice_status != 'no' or state != 'sale'"/>
                 <button
+                    string="Deliver"
+                    id="deliver_quantities"
+                    name="deliver_sold_quantity"
+                    type="object"
+                    invisible="not show_deliver_button"
+                    data-hotkey="d"/>
+                <button
                     string="Send"
                     id="quotation_send_primary"
                     name="action_quotation_send"
@@ -295,7 +355,7 @@
                     data-hotkey="g"
                     invisible="state != 'draft'"/>
                 <button
-                    string="Send PRO-FORMA Invoice"
+                    string="Send PRO FORMA Invoice"
                     id="send_proforma_primary"
                     name="action_quotation_send"
                     type="object"
@@ -326,7 +386,7 @@
                     data-hotkey="q"
                     invisible="state != 'draft'"/>
                 <button
-                    string="Send PRO-FORMA Invoice"
+                    string="Send PRO FORMA Invoice"
                     id="send_proforma"
                     name="action_quotation_send"
                     type="object"
@@ -358,7 +418,10 @@
                     string="Cancel"
                     name="action_cancel"
                     type="object"
-                    confirm="Are you sure you want to cancel this order? This may affect related documents or processes."
+                    confirm-title="Cancel Order"
+                    confirm="Cancelling this order will set its status to 'Cancelled' and will update related documents and processes. Are you sure?"
+                    confirm-label="Yes, cancel order"
+                    cancel-label="No, go back"
                     data-hotkey="x"
                     invisible="state not in ['draft', 'sent', 'sale'] or not id or locked"/>
                 <button
@@ -376,6 +439,14 @@
                         invisible="locked or state != 'sale'"
                         groups="sales_team.group_sale_manager"/>
                 </t>
+                <button
+                    string="Reopen Invoicing"
+                    name="action_reopen_order"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not invoicing_closed or state != 'sale'"
+                    groups="sales_team.group_sale_manager"
+                />
                 <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale"/>
             </header>
             <div class="alert alert-warning" role="alert" invisible="not sale_warning_text">
@@ -542,6 +613,7 @@
                                                 widget="many2one_uom"
                                                 readonly="product_uom_readonly"
                                                 required="not display_type and not is_downpayment"/>
+                                            <widget name="simple_qty_at_date_widget"/>
                                         </div>
                                         <label for="qty_delivered" string="Delivered" invisible="parent.state != 'sale'"/>
                                         <div name="delivered_qty" invisible="parent.state != 'sale'">
@@ -686,6 +758,7 @@
                                     decoration-info="(not display_type and invoice_status == 'to invoice')"
                                     decoration-bf="(not display_type and invoice_status == 'to invoice')"
                                     readonly="is_downpayment"/>
+                                <widget name="simple_qty_at_date_widget" width="20px"/>
                                 <field
                                     name="qty_delivered"
                                     string="Delivered"
@@ -755,6 +828,7 @@
                                     invisible="is_downpayment"
                                     optional="hide"
                                 />
+                                <widget name="section_state"/>
                             </list>
                             <kanban class="o_kanban_mobile">
                                 <field name="display_type"/>
@@ -844,7 +918,7 @@
                             <group colspan="4" class="order-1 order-lg-0">
                                 <field  colspan="2" name="note" nolabel="1" placeholder="Terms and conditions..."/>
                             </group>
-                            <group class="oe_subtotal_footer d-flex order-0 order-lg-1 flex-column gap-0 gap-sm-3" colspan="2" name="sale_total">
+                            <group class="oe_subtotal_footer border-top-0 d-flex order-0 order-lg-1 flex-column gap-0 gap-sm-3" colspan="2" name="sale_total">
                                 <field name="tax_totals" widget="account-tax-totals-field" nolabel="1" readonly="1"/>
                             </group>
                         </group>
@@ -870,7 +944,7 @@
                                 </div>
                                 <field name="reference" readonly="1" invisible="not reference"/>
                                 <field name="client_order_ref"/>
-                                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color', 'no_create_edit': True}"/>
                             </group>
                             <group name="sale_info" string="Invoicing">
                                 <field name="show_update_fpos" invisible="1"/>
@@ -895,17 +969,22 @@
                                 <field name="invoice_status" invisible="1" groups="!base.group_no_one"/>
                             </group>
                             <group name="sale_shipping" string="Shipping">
-                                <label for="commitment_date" string="Delivery Date"/>
+                                <field name="incoterm" options="{'no_open': True, 'no_create': True}"/>
+                                <field name="incoterm_location"/>
+                                <label for="commitment_date" string="Delivery Date" invisible="state != 'draft'"/>
+                                <label for="commitment_date" string="Promised Delivery" invisible="state =='draft'"/>
                                 <div name="commitment_date_div" class="o_row">
                                     <field name="commitment_date" readonly="state == 'cancel' or locked"/>
-                                    <span name="expected_date_span" invisible="not expected_date" class="text-muted">Expected: <field name="expected_date" class="oe_inline"/></span>
                                 </div>
+                                <field name="delivery_status" invisible="state != 'sale'"/>
                             </group>
                             <group name="sale_reporting" string="Tracking">
                                 <field name="origin"/>
                                 <field name="campaign_id" options="{'create_name_field': 'title'}"/>
-                                <field name="medium_id"/>
+                                <field name="medium_id" readonly="1"/>
                                 <field name="source_id"/>
+                                <field name="utm_reference" string="Reference" options="{'hide_model': True}"
+                                    invisible="not utm_reference" readonly="True"/>
                             </group>
                         </group>
                     </page>
@@ -958,6 +1037,7 @@
                     <filter name="customer" string="Customer" context="{'group_by': 'partner_id'}"/>
                     <filter name="order_month" string="Order Date" context="{'group_by': 'date_order'}"/>
                     <filter name="preferred_payment_method_line_groupby" string="Payment Method" context="{'group_by': 'preferred_payment_method_line_id'}"/>
+                    <filter name="currency" string="Currency" context="{'group_by': 'currency_id'}" groups="base.group_multi_currency"/>
                 </group>
             </search>
         </field>
@@ -978,6 +1058,8 @@
                 <filter string="Sales Orders" name="sales" domain="[('state', '=', 'sale')]"/>
                 <separator/>
                 <filter string="Create Date" name="filter_create_date" date="create_date"/>
+                <separator/>
+                <filter string="Expired" name="expired" domain="[('is_expired', '=', True)]"/>
             </filter>
         </field>
     </record>
@@ -1181,6 +1263,13 @@
         </field>
     </record>
 
+    <record id="action_orders_to_invoice_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="sale.view_orders_to_invoice_tree"/>
+        <field name="act_window_id" ref="action_orders_to_invoice"/>
+    </record>
+
     <record id="action_orders_upselling" model="ir.actions.act_window">
         <field name="name">Orders to Upsell</field>
         <field name="res_model">sale.order</field>
@@ -1232,6 +1321,15 @@
             if records:
                 action = records.with_context(hide_default_template=True).action_quotation_send()
         </field>
+    </record>
+
+    <record id="model_sale_order_action_close_invoicing" model="ir.actions.server">
+        <field name="name">Close Invoicing</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_close_invoicing()</field>
     </record>
 
     <record id="mail_followers_edit_action_from_sale" model="ir.actions.act_window">

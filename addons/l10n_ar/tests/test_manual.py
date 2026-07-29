@@ -36,9 +36,9 @@ class TestArManual(common.TestArCommon):
         self.assertEqual(invoice.sequence_number, 1)
 
     def test_02_fiscal_position(self):
-        # ADHOC SA > IVA Responsable Inscripto > Without Fiscal Positon
+        # ADHOC SA > IVA Responsable Inscripto > Domestic
         invoice = self._create_invoice_ar(partner_id=self.partner)
-        self.assertFalse(invoice.fiscal_position_id, 'Fiscal position should be set to empty')
+        self.assertEqual(invoice.fiscal_position_id, self.env.company.domestic_fiscal_position_id)
 
         # Consumidor Final > IVA Responsable Inscripto > Without Fiscal Positon
         invoice = self._create_invoice_ar(partner_id=self.partner_cf)
@@ -346,13 +346,54 @@ class TestArManual(common.TestArCommon):
             partner.l10n_latam_identification_type_id = self.env.ref("l10n_ar.it_dni")
             partner.vat = "test"
 
-        with self.assertRaisesRegex(ValidationError, 'Invalid length for "CUIL"'):
+        with self.assertRaisesRegex(ValidationError, 'Only numbers allowed for "CUIL"'):
             partner.l10n_latam_identification_type_id = self.env.ref("l10n_ar.it_CUIL")
             partner.vat = "1234567890a"
 
         partner.l10n_latam_identification_type_id = self.env.ref("l10n_latam_base.it_pass")
         partner.vat = "A12345678"
         self.assertEqual(partner.vat, "A12345678")
+
+    def test_l10n_ar_get_invoice_totals_for_report_refund_with_same_code(self):
+        """Test _l10n_ar_get_invoice_totals_for_report for refund invoices with ARCA codes that can be used for both invoice and refund"""
+        # Create a credit note with document type 60 that can be used as both invoice and refund
+        doc_60_lp_a = self.env.ref('l10n_ar.dc_a_cvl')
+
+        credit_note = self._create_invoice_ar(
+            ref='test_credit_note_refund: Credit note with document type 60 for refund test',
+            move_type='out_refund',
+            partner_id=self.res_partner_adhoc,
+            company_id=self.company_ri,
+            invoice_date="2021-03-20",
+            l10n_latam_document_type_id=doc_60_lp_a,
+        )
+
+        # Verify this is considered a refund invoice with special ARCA code
+        self.assertTrue(credit_note._l10n_ar_is_refund_invoice())
+
+        # Test the _l10n_ar_get_invoice_totals_for_report method
+        self._assert_tax_totals_summary(credit_note._l10n_ar_get_invoice_totals_for_report(), {
+            'same_tax_base': True,
+            'currency_id': self.currency.id,
+            'base_amount_currency': -100.0,
+            'tax_amount_currency': -21.0,
+            'total_amount_currency': -121.0,
+            'subtotals': [
+                {
+                    'name': "Untaxed Amount",
+                    'base_amount_currency': -100.0,
+                    'tax_amount_currency': -21.0,
+                    'tax_groups': [
+                        {
+                            'id': self.tax_21.tax_group_id.id,
+                            'base_amount_currency': -100.0,
+                            'tax_amount_currency': -21.0,
+                            'display_base_amount_currency': -100.0,
+                        },
+                    ],
+                },
+            ],
+        })
 
     def test_create_debit_note_for_credit_note(self):
         """

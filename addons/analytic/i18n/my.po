@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * analytic
 #
-# Oakarmin Iron <oakarminiron@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Oakarmin Iron <oakarminiron@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:51+0000\n"
-"Last-Translator: Oakarmin Iron <oakarminiron@gmail.com>\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2025-11-16 15:29+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/analytic/"
 "my/>\n"
 "Language: my\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: analytic
 #. odoo-python
@@ -46,8 +46,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
 
 #. module: analytic
@@ -198,6 +198,7 @@ msgid "Analytic Mixin"
 msgstr ""
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr ""
@@ -214,7 +215,6 @@ msgstr ""
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -393,7 +393,7 @@ msgstr "ဖန်တီးသူ"
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_line__create_date
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_plan__create_date
 msgid "Created on"
-msgstr "ဖန်တီးသည့်အချိန်"
+msgstr "တည်ဆောက်သည့်အချိန်"
 
 #. module: analytic
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_account__credit
@@ -801,7 +801,7 @@ msgstr "မှီငြမ်းချက်"
 #. module: analytic
 #: model:account.analytic.account,name:analytic.analytic_rd_department
 msgid "Research & Development"
-msgstr "သုသေသန နှင့် တိုးတက်မှူ"
+msgstr ""
 
 #. module: analytic
 #: model_terms:ir.actions.act_window,help:analytic.account_analytic_line_action
@@ -875,7 +875,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_distribution_model__sequence
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_plan__sequence
 msgid "Sequence"
-msgstr "စီးကွင့်"
+msgstr "Sequence"
 
 #. module: analytic
 #: model:account.analytic.account,name:analytic.analytic_spark
@@ -938,7 +938,7 @@ msgstr "အသုံးပြုသူ"
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "Visible to all"
-msgstr "အားလုံးမြင်နိုင်သည်"
+msgstr ""
 
 #. module: analytic
 #. odoo-python

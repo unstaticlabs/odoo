@@ -5,7 +5,6 @@ from odoo.fields import Command, Domain
 from xmlrpc.client import MAXINT
 
 from odoo.tools import SQL
-from odoo.tools.misc import str2bool
 
 
 class AccountBankStatementLine(models.Model):
@@ -280,7 +279,7 @@ class AccountBankStatementLine(models.Model):
                                       f'{st_line._origin.id:0>10}'
 
     @api.depends('journal_id', 'currency_id', 'amount', 'foreign_currency_id', 'amount_currency',
-                 'move_id.checked',
+                 'move_id.review_state',
                  'move_id.line_ids.account_id', 'move_id.line_ids.amount_currency',
                  'move_id.line_ids.amount_residual_currency', 'move_id.line_ids.currency_id',
                  'move_id.line_ids.matched_debit_ids', 'move_id.line_ids.matched_credit_ids')
@@ -293,12 +292,8 @@ class AccountBankStatementLine(models.Model):
             _liquidity_lines, suspense_lines, _other_lines = st_line._seek_for_lines()
 
             # Compute residual amount
-            if not st_line.checked:
-                st_line.amount_residual = -st_line.amount_currency if st_line.foreign_currency_id else -st_line.amount
-            elif suspense_lines.account_id.reconcile:
-                st_line.amount_residual = sum(suspense_lines.mapped('amount_residual_currency'))
-            else:
-                st_line.amount_residual = sum(suspense_lines.mapped('amount_currency'))
+            transaction_amount_residual, _company_amount_residual = st_line._get_statement_line_residual_amounts()
+            st_line.amount_residual = transaction_amount_residual
 
             # Compute is_reconciled
             if not st_line.id:
@@ -466,7 +461,7 @@ class AccountBankStatementLine(models.Model):
 
         for st_line in self:
             st_line.with_context(force_delete=True, skip_readonly_check=True).write({
-                'checked': True,
+                'review_state': 'reviewed',
                 'line_ids': [Command.clear()] + [
                     Command.create(line_vals) for line_vals in st_line._prepare_move_line_default_vals()],
             })
@@ -485,9 +480,9 @@ class AccountBankStatementLine(models.Model):
         self.ensure_one()
         if not self.partner_id:
             return self.env['res.partner.bank']
-        if str2bool(self.env['ir.config_parameter'].sudo().get_param("account.skip_create_bank_account_on_reconcile")):
+        if self.env['ir.config_parameter'].sudo().get_bool("account.skip_create_bank_account_on_reconcile"):
             return self.env['res.partner.bank'].search([
-                ('acc_number', '=', self.account_number),
+                ('account_number', '=', self.account_number),
                 ('partner_id', '=', self.partner_id.id),
                 ('company_id', 'in', [False, self.company_id.id]),
             ], limit=1)
@@ -544,6 +539,29 @@ class AccountBankStatementLine(models.Model):
         ).statement_id
         if not statement.is_complete:
             return statement
+
+    def _get_statement_line_residual_amounts(self):
+        """Retrieve the residual amount for this line in terms of the transaction and company currency,
+
+        :return: (
+            transaction_amount_residual,
+            company_amount_residual,
+        )
+        """
+        self.ensure_one()
+        liquidity_lines, suspense_lines, _other_lines = self._seek_for_lines()
+
+        if self.review_state in ('todo', 'anomaly'):
+            transaction_amount_residual = -self.amount_currency if self.foreign_currency_id else -self.amount
+            company_amount_residual = -sum(liquidity_lines.mapped('balance'))
+        elif suspense_lines.account_id.reconcile:
+            transaction_amount_residual = sum(suspense_lines.mapped('amount_residual_currency'))
+            company_amount_residual = sum(suspense_lines.mapped('amount_residual'))
+        else:
+            transaction_amount_residual = sum(suspense_lines.mapped('amount_currency'))
+            company_amount_residual = sum(suspense_lines.mapped('balance'))
+
+        return (transaction_amount_residual, company_amount_residual)
 
     def _get_accounting_amounts_and_currencies(self):
         """ Retrieve the transaction amount, journal amount and the company amount with their corresponding currencies

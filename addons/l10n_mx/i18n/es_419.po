@@ -8,22 +8,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.1alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 19:08+0000\n"
-"PO-Revision-Date: 2026-02-21 10:10+0000\n"
+"POT-Creation-Date: 2026-02-04 19:22+0000\n"
+"PO-Revision-Date: 2026-03-07 13:21+0000\n"
 "Last-Translator: \"Patricia Gutiérrez (pagc)\" <pagc@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
-"odoo-19-l10n/l10n_mx/es_419/>\n"
+"odoo-s19-2-l10n/l10n_mx/es_419/>\n"
 "Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.14.3\n"
-
-#. module: l10n_mx
-#: model:ir.model.fields,field_description:l10n_mx.field_res_bank__l10n_mx_edi_code
-msgid "ABM Code"
-msgstr "Código ABM"
+"X-Generator: Weblate 5.16.1\n"
 
 #. module: l10n_mx
 #: model:ir.model,name:l10n_mx.model_account_account
@@ -41,22 +36,6 @@ msgid "Activity"
 msgstr "Actividad"
 
 #. module: l10n_mx
-#: model:ir.model,name:l10n_mx.model_res_bank
-msgid "Bank"
-msgstr "Banco"
-
-#. module: l10n_mx
-#: model:ir.model,name:l10n_mx.model_res_partner_bank
-msgid "Bank Accounts"
-msgstr "Cuentas bancarias"
-
-#. module: l10n_mx
-#: model:ir.model.fields,field_description:l10n_mx.field_account_setup_bank_manual_config__l10n_mx_edi_clabe
-#: model:ir.model.fields,field_description:l10n_mx.field_res_partner_bank__l10n_mx_edi_clabe
-msgid "CLABE"
-msgstr "CLABE"
-
-#. module: l10n_mx
 #. odoo-python
 #: code:addons/l10n_mx/models/template_mx.py:0
 msgid "Cash"
@@ -64,8 +43,8 @@ msgstr "Efectivo"
 
 #. module: l10n_mx
 #: model:ir.model,name:l10n_mx.model_res_company
-msgid "Companies"
-msgstr "Empresas"
+msgid "Company"
+msgstr "Empresa"
 
 #. module: l10n_mx
 #: model:ir.model,name:l10n_mx.model_res_config_settings
@@ -87,17 +66,15 @@ msgstr "Cuota"
 #: model:ir.model.fields,field_description:l10n_mx.field_account_chart_template__display_name
 #: model:ir.model.fields,field_description:l10n_mx.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:l10n_mx.field_account_tax__display_name
-#: model:ir.model.fields,field_description:l10n_mx.field_res_bank__display_name
 #: model:ir.model.fields,field_description:l10n_mx.field_res_company__display_name
 #: model:ir.model.fields,field_description:l10n_mx.field_res_config_settings__display_name
-#: model:ir.model.fields,field_description:l10n_mx.field_res_partner_bank__display_name
 msgid "Display Name"
 msgstr "Nombre para mostrar"
 
 #. module: l10n_mx
 #: model:ir.model,name:l10n_mx.model_account_tax
 msgid "ETA tax codes mixin"
-msgstr "Mixin de códigos de impuestos ETA"
+msgstr "Mixin de los códigos de impuestos ETA"
 
 #. module: l10n_mx
 #. odoo-python
@@ -121,21 +98,12 @@ msgid "Factor Type"
 msgstr "Tipo de factor"
 
 #. module: l10n_mx
-#: model:ir.model.fields,field_description:l10n_mx.field_account_setup_bank_manual_config__fiscal_country_codes
-#: model:ir.model.fields,field_description:l10n_mx.field_res_bank__fiscal_country_codes
-#: model:ir.model.fields,field_description:l10n_mx.field_res_partner_bank__fiscal_country_codes
-msgid "Fiscal Country Codes"
-msgstr "Códigos fiscales de países"
-
-#. module: l10n_mx
 #: model:ir.model.fields,field_description:l10n_mx.field_account_account__id
 #: model:ir.model.fields,field_description:l10n_mx.field_account_chart_template__id
 #: model:ir.model.fields,field_description:l10n_mx.field_account_move_line__id
 #: model:ir.model.fields,field_description:l10n_mx.field_account_tax__id
-#: model:ir.model.fields,field_description:l10n_mx.field_res_bank__id
 #: model:ir.model.fields,field_description:l10n_mx.field_res_company__id
 #: model:ir.model.fields,field_description:l10n_mx.field_res_config_settings__id
-#: model:ir.model.fields,field_description:l10n_mx.field_res_partner_bank__id
 msgid "ID"
 msgstr "ID"
 
@@ -157,12 +125,12 @@ msgstr "IVA"
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_imp
 msgid "Importation 16% - Creditable"
-msgstr "Importación 16% - Acreditable"
+msgstr "Importación 16% - acreditable"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_imp_nc
 msgid "Importation 16% - Non-Creditable"
-msgstr "Importación 16% - No acreditable"
+msgstr "Importación 16% - no acreditable"
 
 #. module: l10n_mx
 #: model:ir.model.fields,field_description:l10n_mx.field_res_config_settings__l10n_mx_account_income_return_discount_id
@@ -187,12 +155,12 @@ msgstr "Importaciones intangibles 16%"
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_imp_int
 msgid "Intangible Imports 16% - Creditable"
-msgstr "Importaciones intangibles 16% - Acreditables"
+msgstr "Importaciones intangibles 16% - acreditables"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_imp_int_nc
 msgid "Intangible Imports 16% - Non-Creditable"
-msgstr "Importaciones intangibles 16% - No acreditables"
+msgstr "Importaciones intangibles 16% - no acreditables"
 
 #. module: l10n_mx
 #: model:uom.uom,name:l10n_mx.product_uom_job
@@ -227,17 +195,17 @@ msgstr "Sin objeto fiscal"
 #. odoo-python
 #: code:addons/l10n_mx/models/template_mx.py:0
 msgid "Other Income"
-msgstr "Otros ingresos"
+msgstr "Otros Ingresos"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16
 msgid "Paid 16% - Creditable"
-msgstr "Pagado al 16% - Acreditable"
+msgstr "Pagado al 16% - acreditable"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_n
 msgid "Paid 8 % N. - Creditable"
-msgstr "Pagado al 8 % N. - Acreditable"
+msgstr "Pagado al 8 % N. - acreditable"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_n_nc
@@ -247,12 +215,12 @@ msgstr "Pagado al 8 % N. - No acreditable"
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_n_wnc
 msgid "Paid 8 % Northern"
-msgstr "Impuesto Norte 8% IVA pagado"
+msgstr "Pagado al 8 % del norte"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_s
 msgid "Paid 8 % S. - Creditable"
-msgstr "Pagado al 8 % S. - Acreditable"
+msgstr "Pagado al 8 % S. - acreditable"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_s_nc
@@ -262,7 +230,7 @@ msgstr "Pagado al 8 % S. - No acreditable"
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_s_wnc
 msgid "Paid 8 % Southern"
-msgstr "Impuesto Sur 8% IVA pagado"
+msgstr "Pagado al 8 % del sur"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_r
@@ -272,12 +240,12 @@ msgstr "Reembolsos 16%"
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_n_r
 msgid "Refunds 8 % Northern"
-msgstr "Reembolsos norte 8%"
+msgstr "Reembolsos 8 % del norte"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_8_s_r
 msgid "Refunds 8 % Southern"
-msgstr "Reembolsos sur 8%"
+msgstr "Reembolsos 8 % del sur"
 
 #. module: l10n_mx
 #: model:account.report.column,name:l10n_mx.diot_report_paid_16_imp_r
@@ -305,25 +273,6 @@ msgid "Service Unit"
 msgstr "Unidad de servicio"
 
 #. module: l10n_mx
-#: model:ir.model.fields,help:l10n_mx.field_account_setup_bank_manual_config__l10n_mx_edi_clabe
-#: model:ir.model.fields,help:l10n_mx.field_res_partner_bank__l10n_mx_edi_clabe
-msgid ""
-"Standardized banking cipher for Mexico. More info wikipedia.org/wiki/CLABE"
-msgstr ""
-"Cifra bancaria estandarizada para México. Más información en "
-"es.wikipedia.org/wiki/CLABE"
-
-#. module: l10n_mx
 #: model:ir.model.fields.selection,name:l10n_mx.selection__account_tax__l10n_mx_factor_type__tasa
 msgid "Tasa"
 msgstr "Tasa"
-
-#. module: l10n_mx
-#: model:ir.model.fields,help:l10n_mx.field_res_bank__l10n_mx_edi_code
-msgid ""
-"Three-digit number assigned by the ABM to identify banking institutions (ABM "
-"is an acronym for Asociación de Bancos de México)"
-msgstr ""
-"Número de tres dígitos asignado por la ABM para identificar a las "
-"instituciones bancarias "
-"(ABM es el acrónimo de Asociación de Bancos de México)."

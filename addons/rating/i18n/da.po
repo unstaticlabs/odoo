@@ -13,10 +13,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:02+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-23 13:41+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/rating/"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/rating/"
 "da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -206,8 +206,8 @@ msgstr "Billede-URL"
 #. odoo-python
 #: code:addons/rating/controllers/main.py:0
 msgid ""
-"Incorrect rating: should be %(rating_unhappy)d, %(rating_neutral)d or %"
-"(rating_happy)d (received %(rate)d)"
+"Incorrect rating: should be %(rating_unhappy)d, %(rating_neutral)d or "
+"%(rating_happy)d (received %(rate)d)"
 msgstr ""
 "Forkert bedømmelse: bør være %(rating_unhappy)d, %(rating_neutral)d eller %"
 "(rating_happy)d (modtaget %(rate)d)"
@@ -473,9 +473,9 @@ msgstr "Bedømmelse:"
 #: model:ir.model.fields,field_description:rating.field_mail_blacklist__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_blacklist__rating_ids
-#: model:ir.model.fields,field_description:rating.field_mail_thread_cc__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_main_attachment__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_phone__rating_ids
+#: model:ir.model.fields,field_description:rating.field_mail_thread_subject_suggested__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_tracking_duration_mixin__rating_ids
 #: model:ir.model.fields,field_description:rating.field_maintenance_equipment__rating_ids
 #: model:ir.model.fields,field_description:rating.field_maintenance_request__rating_ids
@@ -601,39 +601,3 @@ msgstr "for"
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_kanban
 msgid "on"
 msgstr "den"
-
-#~ msgid "Date"
-#~ msgstr "Dato"
-
-#~ msgid "Dissatisfied"
-#~ msgstr "Utilfreds"
-
-#~ msgid "Go back to the Homepage"
-#~ msgstr "Gå tilbage til Hjemmesiden"
-
-#~ msgid "Group By"
-#~ msgstr "Sortér efter"
-
-#~ msgid "Last 30 days"
-#~ msgstr "Seneste 30 dage"
-
-#~ msgid "Last 7 days"
-#~ msgstr "Seneste 7 dage"
-
-#~ msgid "No Rating yet"
-#~ msgstr "Ingen bedømmelse endnu"
-
-#~ msgid "Okay"
-#~ msgstr "Okay"
-
-#~ msgid "Rating Value (/5)"
-#~ msgstr "Bedømmelses Værdi (/5)"
-
-#~ msgid "Satisfied"
-#~ msgstr "Tilfreds"
-
-#~ msgid "Thank you, we appreciate your feedback!"
-#~ msgstr "Tak, vi værdsætter din tilbagemelding!"
-
-#~ msgid "Today"
-#~ msgstr "I dag"

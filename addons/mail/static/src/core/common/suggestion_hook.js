@@ -4,7 +4,7 @@ import {
     generatePartnerMentionElement,
     generateRoleMentionElement,
     generateSpecialMentionElement,
-    generateThreadMentionElement,
+    generateChannelMentionElement,
 } from "@mail/utils/common/format";
 import { status, useComponent, useEffect, useState } from "@odoo/owl";
 import { ConnectionAbortedError } from "@web/core/network/rpc";
@@ -50,7 +50,7 @@ export class UseSuggestion {
                 if (this.search.position === undefined || !this.search.delimiter) {
                     return; // nothing else to fetch
                 }
-                if (!this.composer.store.self_partner) {
+                if (!this.composer.store.self_user) {
                     return; // guests cannot access fetch suggestion method
                 }
                 if (
@@ -230,8 +230,8 @@ export class UseSuggestion {
             this.composer.mentionedPartners.add({ id: option.partner.id });
         } else if (option.role) {
             this.composer.mentionedRoles.add(option.role);
-        } else if (option.thread) {
-            this.composer.mentionedChannels.add({ model: "discuss.channel", id: option.thread.id });
+        } else if (option.channel) {
+            this.composer.mentionedChannels.add(option.channel.id);
         } else if (option.cannedResponse) {
             this.composer.cannedResponses.push(option.cannedResponse);
         }
@@ -355,12 +355,12 @@ export function mapSuggestionsToOptions(type, suggestions, { thread } = {}) {
                     };
                 }),
             };
-        case "Thread":
+        case "discuss.channel":
             return {
-                optionTemplate: "mail.Composer.suggestionThread",
+                optionTemplate: "mail.Composer.suggestionChannel",
                 options: suggestions.map((suggestion) => ({
                     label: suggestion.fullNameWithParent,
-                    thread: suggestion,
+                    channel: suggestion,
                     classList,
                 })),
             };
@@ -411,8 +411,8 @@ export function makeMentionFromOption(option, { thread } = {}) {
         inlineElement = generateSpecialMentionElement(option.label);
     } else if (option.role) {
         inlineElement = generateRoleMentionElement(option.role);
-    } else if (option.thread) {
-        inlineElement = generateThreadMentionElement(option.thread);
+    } else if (option.channel) {
+        inlineElement = generateChannelMentionElement(option.channel);
     } else {
         inlineElement = document.createTextNode(option.label);
     }

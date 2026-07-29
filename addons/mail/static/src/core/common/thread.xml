@@ -4,7 +4,7 @@
 <t t-name="mail.Thread">
     <div class="o-mail-Thread position-relative flex-grow-1 d-flex flex-column overflow-auto o-scrollbar-thin bg-inherit" t-att-class="{ 'pb-5': env.inChatter?.aside, 'o-pb-3_5': !env.inChatter?.aside, 'ps-2 pe-3': env.inDiscussApp and !ui.isSmall, 'o-focused': props.thread.isFocused }" t-att-data-transient="props.thread.isTransient" t-ref="messages" tabindex="-1" t-on-focusin="onFocusin" t-on-focusout="onFocusout">
         <t t-if="!props.thread.isEmpty or props.thread.loadOlder or props.thread.hasLoadingFailed" name="content">
-            <div class="d-flex flex-column position-relative flex-grow-1 bg-inherit" t-att-class="{'justify-content-end': !env.inChatter and props.thread.model !== 'mail.box'}">
+            <div class="o-mail-Thread-content d-flex flex-column position-relative flex-grow-1 bg-inherit" t-att-class="{'justify-content-end': !env.inChatter and props.thread.model !== 'mail.box'}">
                 <span class="position-absolute w-100 invisible" t-att-class="props.order === 'asc' ? 'bottom-0' : 'top-0'" t-ref="present-treshold" t-att-style="`height: Min(${PRESENT_THRESHOLD}px, 100%)`"/>
                 <t t-set="currentDay" t-value="0"/>
                 <t t-if="props.order === 'asc'">
@@ -20,23 +20,23 @@
                         <DateSection date="msg.dateDay" className="'pt-2 px-2'"/>
                         <t t-set="currentDay" t-value="msg.dateDay"/>
                     </t>
-                    <div t-if="msg.threadAsFirstUnread?.eq(props.thread) and (prevMsg or props.thread.markedAsUnread)" class="o-mail-Thread-newMessage d-flex align-items-center fw-bold z-1 px-2">
+                    <div t-if="msg.threadAsFirstUnread?.eq(props.thread) and (prevMsg or channel?.markedAsUnread)" class="o-mail-Thread-newMessage d-flex align-items-center fw-bold z-1 px-2">
                         <div class="o-mail-Thread-newMessageLine flex-grow-1 border border-danger rounded-start-3 opacity-100 shadow-sm my-1"/><span class="o-ps-1_5 pe-1 bg-danger o-text-white rounded text-uppercase shadow-sm o-xxsmaller">New</span>
                     </div>
-                    <NotificationMessage t-if="msg.isNotification and !msg.notificationHidden" message="msg" thread="props.thread" registerMessageRef="registerMessageRef" />
+                    <NotificationMessage t-if="msg.isNotification and !msg.notificationHidden" message="msg" messageRefs="messageRefs" thread="props.thread"/>
                     <Message
                         t-elif="!msg.isNotification"
                         asCard="props.thread.model === 'mail.box'"
                         className="getMessageClassName(msg)"
-                        isInChatWindow="props.isInChatWindow"
                         message="msg"
+                        messageSelection="messageSelection"
+                        messageRefs="messageRefs"
                         previousMessage="prevMsg"
-                        registerMessageRef="registerMessageRef"
                         squashed="isSquashed(msg, prevMsg)"
                         onParentMessageClick.bind="() => this.onParentMessageClick(msg.parent_id)"
                         thread="props.thread"
                         isFirstMessage="msg_first"
-                        hasActions="props.messageActions and !msg.eq(props.thread.from_message_id)"
+                        hasActions="!msg.eq(channel?.from_message_id)"
                         showDates="props.showDates"
                     />
                 </t>
@@ -104,11 +104,11 @@
 <t t-name="mail.Thread.startMessage">
     <div class="pt-4" t-att-class="{ 'px-3': env.inChatWindow, 'px-2': env.inDiscussApp or env.inMeetingChat }">
         <div class="d-flex align-items-center gap-2" t-att-class="{
-            'mt-2 mb-1': !props.thread.parent_channel_id,
-            'mt-1': props.thread.parent_channel_id,
+            'mt-2 mb-1': !channel?.parent_channel_id,
+            'mt-1': channel?.parent_channel_id,
         }">
             <div class="o-mail-Thread-avatar d-inline" t-att-class="{'o-mail-Thread-avatarChatWindow': env.inChatWindow }">
-                <img t-if="!props.thread.parent_channel_id" class="rounded-3 object-fit-cover" t-att-src="props.thread?.avatarUrl" alt="Thread Image"/>
+                <img t-if="!channel?.parent_channel_id" class="rounded-3 object-fit-cover" t-att-src="channel.avatarUrl" alt="Thread Image"/>
                 <i t-else="" class="fa fa-comments-o text-muted" role="presentation"/>
             </div>
             <div role="heading" aria-level="1" class="text-break" t-att-class="{ 'fs-1': !env.inChatWindow, 'fs-3': env.inChatWindow }" t-esc="startMessageTitle"/>

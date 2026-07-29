@@ -5,15 +5,15 @@
 # Translators:
 # Martin Trigaux, 2019
 # Cécile Collart <cco@odoo.com>, 2019
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Manon Rondou (ronm)" <ronm@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 22:57+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-10-15 07:20+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
 "Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
 "payment_paypal/fr/>\n"
 "Language: fr\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_paypal
 #: model_terms:ir.ui.view,arch_db:payment_paypal.payment_provider_form
@@ -185,41 +185,3 @@ msgstr "ID Webhook"
 #: code:addons/payment_paypal/models/payment_provider.py:0
 msgid "You must have an HTTPS connection to generate a webhook."
 msgstr "Vous devez disposer d'une connexion HTTPS pour générer un webhook."
-
-#~ msgid ""
-#~ "<br/><br/>\n"
-#~ "                Thanks,<br/>\n"
-#~ "                <b>The Odoo Team</b>"
-#~ msgstr ""
-#~ "<br/><br/>\n"
-#~ "                Merci,<br/>\n"
-#~ "                <b>L' équipe d'Odoo</b>"
-
-#~ msgid ""
-#~ "Hello,\n"
-#~ "                <br/><br/>\n"
-#~ "                You have received a payment through PayPal.<br/>\n"
-#~ "                Kindly follow the instructions given by PayPal to create "
-#~ "your account.<br/>\n"
-#~ "                Then, help us complete your Paypal credentials in Odoo."
-#~ "<br/><br/>"
-#~ msgstr ""
-#~ "Bonjour,\n"
-#~ "                <br/><br/>\n"
-#~ "                 Vous avez reçu un paiement via PayPal.<br/>\n"
-#~ "                 Veuillez suivre les instructions données par PayPal pour "
-#~ "créer votre compte.<br/>\n"
-#~ "                 Ensuite, aidez-nous à compléter vos identifiants Paypal "
-#~ "dans Odoo.<br/><br/>"
-
-#~ msgid "Merchant Account ID"
-#~ msgstr "Identifiant du compte marchand"
-
-#~ msgid "Paypal"
-#~ msgstr "Paypal"
-
-#~ msgid "Paypal Instant Payment Notification"
-#~ msgstr "Notification Instantanée de Paiement Paypal"
-
-#~ msgid "Use IPN"
-#~ msgstr "Utiliser la Notification Instantanée de Paiement"

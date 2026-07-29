@@ -1,6 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import unittest
 from unittest.mock import MagicMock, patch
 
 from werkzeug.exceptions import Forbidden
@@ -215,7 +214,7 @@ class StripeTest(StripeCommon, PaymentHttpCommon):
         if country := self.env['res.country'].search([('code', 'in', list(const.SUPPORTED_COUNTRIES))], limit=1):
             self.env.company.country_id = country
         else:
-            raise unittest.SkipTest("Unable to find a country supported by both odoo and stripe")
+            self.skipTest("Unable to find a country supported by both odoo and stripe")
 
         with patch.object(
             type(self.env['payment.provider']), '_stripe_fetch_or_create_connected_account',

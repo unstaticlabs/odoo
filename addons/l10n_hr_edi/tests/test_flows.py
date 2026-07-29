@@ -231,6 +231,7 @@ class TestHrEdiFlowsMocked(TestL10nHrEdiCommon, TestAccountMoveSendCommon, Patch
 
     def test_20_receive_invoice(self):
         self.setup_partner_as_hr(self.env.company.partner_id)
+        self.modify_demo_bank_account()
 
         # 1. Fetch inbound invoices
 

@@ -6,13 +6,13 @@
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 19:13+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-11-08 21:57+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
 "odoo-19/website_customer/sr_Latn/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -76,6 +76,16 @@ msgstr "Sve industrije"
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
 msgstr "Arhivirano"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
@@ -276,6 +286,11 @@ msgid "Partners"
 msgstr "Partneri"
 
 #. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_customer
 #. odoo-python
 #: code:addons/website_customer/models/website.py:0
 #: model_terms:ir.ui.view,arch_db:website_customer.references_block
@@ -367,43 +382,3 @@ msgstr "Website oznake"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "Mapa sveta"
-
-#~ msgid "References Page"
-#~ msgstr "Stranica partnera"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Kompletna URL adresa za pristup dokumentima putem website-a."
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "Implementirao/la"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Poslednja izmena dana"
-
-#~ msgid "No result found"
-#~ msgstr "Nema pronađenih rezultata"
-
-#~ msgid "Our References"
-#~ msgstr "Naše reference"
-
-#~ msgid "References by Country"
-#~ msgstr "Reference po zemljama"
-
-#~ msgid "References by Industries"
-#~ msgstr "Reference po industrijama"
-
-#~ msgid "References by Tag"
-#~ msgstr "Reference po oznakama"
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "Milioni širom sveta im veruju"
-
-#~ msgid "reference(s))"
-#~ msgstr "referenca(e))"

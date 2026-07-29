@@ -1,21 +1,20 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import ast
-import json
 
 from collections import defaultdict
-from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.addons.mail.tools.discuss import Store
-from odoo.addons.rating.models import rating_data
 from odoo.exceptions import UserError
 from odoo.fields import Command, Domain
-from odoo.tools import get_lang, float_utils, formatLang, SQL, LazyTranslate
+from odoo.tools import get_lang, SQL, LazyTranslate
 from odoo.tools.misc import unquote
 from odoo.tools.translate import _
 from .project_update import STATUS_COLOR
 from .project_task import CLOSED_STATES
+from markupsafe import Markup
+from werkzeug.urls import url_encode
 
 _lt = LazyTranslate(__name__)
 
@@ -80,6 +79,12 @@ class ProjectProject(models.Model):
         for project in self:
             project.is_favorite = project in favorite_project_ids
 
+    def _compute_sql_is_favorite(self, table):
+        return SQL(
+            "%s IN (SELECT project_id FROM project_favorite_user_rel WHERE user_id = %s)",
+            table.id, self.env.uid,
+        )
+
     def _set_favorite_user_ids(self, is_favorite):
         self_sudo = self.sudo() # To allow project users to set projects as favorite
         if is_favorite:
@@ -92,6 +97,8 @@ class ProjectProject(models.Model):
     active = fields.Boolean(default=True, copy=False, export_string_translation=False)
     sequence = fields.Integer(default=10, export_string_translation=False)
     partner_id = fields.Many2one('res.partner', string='Customer', bypass_search_access=True, tracking=True, domain="['|', ('company_id', '=?', company_id), ('company_id', '=', False)]", index='btree_not_null')
+    partner_phone = fields.Char(related='partner_id.phone', readonly=False, export_string_translation=False)
+    partner_email = fields.Char(related='partner_id.email', readonly=False, export_string_translation=False)
     company_id = fields.Many2one('res.company', string='Company', compute="_compute_company_id", inverse="_inverse_company_id", store=True, readonly=False)
     currency_id = fields.Many2one('res.currency', compute="_compute_currency_id", string="Currency", readonly=True, export_string_translation=False)
     analytic_account_balance = fields.Monetary(related="account_id.balance")
@@ -100,8 +107,8 @@ class ProjectProject(models.Model):
     favorite_user_ids = fields.Many2many(
         'res.users', 'project_favorite_user_rel', 'project_id', 'user_id',
         string='Members', export_string_translation=False, copy=False)
-    is_favorite = fields.Boolean(compute='_compute_is_favorite', readonly=False, search='_search_is_favorite',
-        compute_sudo=True, string='Show Project on Dashboard', export_string_translation=False)
+    is_favorite = fields.Boolean(compute='_compute_is_favorite', readonly=False, search='_search_is_favorite', compute_sql='_compute_sql_is_favorite',
+        compute_sudo=True, string='Show Project on Dashboard', export_string_translation=False, copy=True)
     label_tasks = fields.Char(string='Use Tasks as', default=lambda s: s.env._('Tasks'), translate=True,
         help="Name used to refer to the tasks of your project e.g. tasks, tickets, sprints, etc...")
     tasks = fields.One2many('project.task', 'project_id', string="Task Activities")
@@ -159,6 +166,9 @@ class ProjectProject(models.Model):
         tracking=True, index=True, copy=False, default=_default_stage_id, group_expand='_read_group_expand_full')
     stage_id_color = fields.Integer(string='Stage Color', related="stage_id.color", export_string_translation=False)
     duration_tracking = fields.Json(groups="project.group_project_stages")
+    rotting_days = fields.Integer(groups="project.group_project_stages")
+    is_rotting = fields.Boolean(groups="project.group_project_stages")
+    date_last_stage_update = fields.Datetime(string='Last Stage Update', index=True, default=fields.Datetime.now)
 
     update_ids = fields.One2many('project.update', 'project_id', export_string_translation=False)
     update_count = fields.Integer(compute='_compute_total_update_ids', export_string_translation=False)
@@ -173,15 +183,17 @@ class ProjectProject(models.Model):
     ], default='to_define', compute='_compute_last_update_status', store=True, readonly=False, required=True, export_string_translation=False)
     last_update_color = fields.Integer(compute='_compute_last_update_color', export_string_translation=False)
     milestone_ids = fields.One2many('project.milestone', 'project_id', copy=True, export_string_translation=False)
-    milestone_count = fields.Integer(compute='_compute_milestone_count', groups='project.group_project_milestone', export_string_translation=False)
-    milestone_count_reached = fields.Integer(compute='_compute_milestone_reached_count', groups='project.group_project_milestone', export_string_translation=False)
+    milestone_count = fields.Integer(compute='_compute_milestone_count', export_string_translation=False)
+    milestone_count_reached = fields.Integer(compute='_compute_milestone_reached_count', export_string_translation=False)
     is_milestone_exceeded = fields.Boolean(compute="_compute_is_milestone_exceeded", search='_search_is_milestone_exceeded', export_string_translation=False)
-    milestone_progress = fields.Integer("Milestones Reached", compute='_compute_milestone_reached_count', groups="project.group_project_milestone", export_string_translation=False)
+    milestone_progress = fields.Integer("Milestones Reached", compute='_compute_milestone_reached_count', export_string_translation=False)
     next_milestone_id = fields.Many2one('project.milestone', compute='_compute_next_milestone_id', groups="project.group_project_milestone", export_string_translation=False)
     can_mark_milestone_as_done = fields.Boolean(compute='_compute_next_milestone_id', groups="project.group_project_milestone", export_string_translation=False)
     is_milestone_deadline_exceeded = fields.Boolean(compute='_compute_next_milestone_id', groups="project.group_project_milestone", export_string_translation=False)
+    next_milestone_status = fields.Char(compute='_compute_next_milestone_info', compute_sudo=True, export_string_translation=False)
     is_template = fields.Boolean(copy=False, export_string_translation=False)
     show_ratings = fields.Boolean(compute='_compute_show_ratings', export_string_translation=False)
+    google_map_iframe = fields.Html(compute='_compute_google_map_iframe', sanitize=False, export_string_translation=False)
 
     _project_date_greater = models.Constraint(
         'check(date >= date_start)',
@@ -197,6 +209,34 @@ class ProjectProject(models.Model):
                 order=f"sequence asc, {self.env['project.project.stage']._order}",
                 limit=1,
             ).id
+
+    @api.depends('next_milestone_id')
+    def _compute_next_milestone_info(self):
+        for project in self:
+            if milestone := project.next_milestone_id:
+                if milestone.is_deadline_exceeded:
+                    project.next_milestone_status = 'off_track'
+                elif milestone.can_be_marked_as_done:
+                    project.next_milestone_status = 'next_track'
+                else:
+                    project.next_milestone_status = 'on_track'
+            else:
+                project.next_milestone_status = False
+
+    @api.depends('partner_id')
+    def _compute_google_map_iframe(self):
+        for project in self:
+            address = project.partner_id._display_address(without_company=True).replace('\n', ' ').strip()
+            if not address:
+                project.google_map_iframe = False
+                continue
+            query_params = url_encode({'q': address, 'output': 'embed'})
+            project.google_map_iframe = Markup("""
+                <iframe
+                    loading="lazy"
+                    src="https://www.google.com/maps?{query_params}">
+                </iframe>
+            """).format(query_params=query_params)
 
     @api.depends('milestone_ids', 'milestone_ids.is_reached', 'milestone_ids.deadline')
     def _compute_next_milestone_id(self):
@@ -582,6 +622,15 @@ class ProjectProject(models.Model):
         # sudo is needed to update the user settings for all users using the projects to duplicate
         self.env['res.users.settings.embedded.action'].sudo().create(new_embedded_actions_config_vals_list)
 
+    def _get_rotting_depends_fields(self):
+        return super()._get_rotting_depends_fields() + ['is_template', 'stage_id.fold']
+
+    def _get_rotting_domain(self):
+        return super()._get_rotting_domain() & Domain([
+            ('is_template', '=', False),
+            ('stage_id.fold', '=', False),
+        ])
+
     @api.model
     def name_create(self, name):
         res = super().name_create(name)
@@ -678,6 +727,9 @@ class ProjectProject(models.Model):
             elif (date_end_update and no_current_date_begin and not date_start_update):
                 del vals['date']
 
+        if 'stage_id' in vals:
+            vals['date_last_stage_update'] = fields.Datetime.now()
+
         res = super().write(vals) if vals else True
 
         if 'allow_task_dependencies' in vals and not vals.get('allow_task_dependencies'):
@@ -721,16 +773,6 @@ class ProjectProject(models.Model):
         self._check_project_group_with_field('allow_task_dependencies', 'project.group_project_task_dependencies')
         self._check_project_group_with_field('allow_milestones', 'project.group_project_milestone')
         self._check_project_group_with_field('allow_recurring_tasks', 'project.group_project_recurring_tasks')
-
-    def _order_field_to_sql(self, alias, field_name, direction, nulls, query):
-        if field_name == 'is_favorite':
-            sql_field = SQL(
-                "%s IN (SELECT project_id FROM project_favorite_user_rel WHERE user_id = %s)",
-                SQL.identifier(alias, 'id'), self.env.uid,
-            )
-            return SQL("%s %s %s", sql_field, direction, nulls)
-
-        return super()._order_field_to_sql(alias, field_name, direction, nulls, query)
 
     def message_subscribe(self, partner_ids=None, subtype_ids=None):
         """
@@ -847,7 +889,6 @@ class ProjectProject(models.Model):
             res['stage_id'] = (project.stage_id.mail_template_id, {
                 'auto_delete_keep_log': False,
                 'subtype_id': self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'),
-                'email_layout_xmlid': 'mail.mail_notification_light',
             })
         return res
 
@@ -900,10 +941,20 @@ class ProjectProject(models.Model):
 
     def project_update_all_action(self):
         action = self.env['ir.actions.act_window']._for_xml_id('project.project_update_all_action')
-        action['display_name'] = _("%(name)s Dashboard", name=self.name)
+        action['display_name'] = _("%(name)s Updates", name=self.name)
         return action
 
     def action_open_share_project_wizard(self):
+        if self.privacy_visibility in ['followers', 'employees'] or self.is_template:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'type': 'danger',
+                    'message': self.env._("Sharing is not available for this project visibility setting."),
+                },
+            }
+
         template = self.env.ref('project.mail_template_project_sharing', raise_if_not_found=False)
 
         local_context = self.env.context | {
@@ -978,18 +1029,20 @@ class ProjectProject(models.Model):
         action['display_name'] = _("%(name)s's Milestones", name=self.name)
         return action
 
-    def action_view_tasks_from_project_milestone(self):
-        action = self.env['ir.actions.act_window']._for_xml_id('project.project_milestone_action_view_tasks')
-        action['display_name'] = _("Tasks")
-        action['domain'] = [('milestone_id', 'in', self.milestone_ids.ids)]
-        return action
+    def action_open_project_form(self):
+        self.ensure_one()
+        return {
+            'tag': "project_top_menu_overview",
+            'type': 'ir.actions.client',
+            'name': self.env._('Project Overview'),
+            'res_model': 'project.project',
+            'view_mode': 'form',
+            'res_id': self.id,
+        }
 
     # ---------------------------------------------
     #  PROJECT UPDATES
     # ---------------------------------------------
-
-    def action_profitability_items(self, section_name, domain=None, res_id=False):
-        return {}
 
     def get_last_update_or_default(self):
         self.ensure_one()
@@ -998,177 +1051,6 @@ class ProjectProject(models.Model):
             'status': labels.get(self.last_update_status, _('Set Status')),
             'color': self.last_update_color,
         }
-
-    def get_panel_data(self):
-        self.ensure_one()
-        if not self.env.user.has_group('project.group_project_user'):
-            return {}
-        show_profitability = self._show_profitability()
-        panel_data = {
-            'user': self._get_user_values(),
-            'buttons': sorted(self._get_stat_buttons(), key=lambda k: k['sequence']),
-            'currency_id': self.currency_id.id,
-            'show_project_profitability_helper': show_profitability and self._show_profitability_helper(),
-            'show_milestones': self.allow_milestones,
-        }
-        if self.allow_milestones:
-            panel_data['milestones'] = self._get_milestones()
-        if show_profitability:
-            profitability_items = self.with_context(active_test=False)._get_profitability_items()
-            if self._get_profitability_sequence_per_invoice_type() and profitability_items and 'revenues' in profitability_items and 'costs' in profitability_items:  # sort the data values
-                profitability_items['revenues']['data'] = sorted(profitability_items['revenues']['data'], key=lambda k: k['sequence'])
-                profitability_items['costs']['data'] = sorted(profitability_items['costs']['data'], key=lambda k: k['sequence'])
-            panel_data['profitability_items'] = profitability_items
-            panel_data['profitability_labels'] = self._get_profitability_labels()
-        return panel_data
-
-    def get_milestones(self):
-        if self.env.user.has_group('project.group_project_user'):
-            return self._get_milestones()
-        return {}
-
-    def _get_profitability_labels(self):
-        return {}
-
-    def _get_profitability_sequence_per_invoice_type(self):
-        return {}
-
-    def _get_already_included_profitability_invoice_line_ids(self):
-        # To be extended to avoid account.move.line overlap between
-        # profitability reports.
-        return []
-
-    def _get_user_values(self):
-        return {
-            'is_project_user': self.env.user.has_group('project.group_project_user'),
-        }
-
-    def _show_profitability(self):
-        self.ensure_one()
-        return True
-
-    def _show_profitability_helper(self):
-        return self.env.user.has_group('analytic.group_analytic_accounting')
-
-    def _get_profitability_aal_domain(self):
-        return [('account_id', 'in', self.account_id.ids)]
-
-    def _get_profitability_items(self, with_action=True):
-        return self._get_items_from_aal(with_action)
-
-    def _get_items_from_aal(self, with_action=True):
-        return {
-            'revenues': {'data': [], 'total': {'invoiced': 0.0, 'to_invoice': 0.0}},
-            'costs': {'data': [], 'total': {'billed': 0.0, 'to_bill': 0.0}},
-        }
-
-    def _get_milestones(self):
-        self.ensure_one()
-        return {
-            'data': self.milestone_ids._get_data_list(),
-        }
-
-    def _get_stat_buttons(self):
-        self.ensure_one()
-        closed_task_count = self.task_count - self.open_task_count
-        if self.task_count:
-            number = self.env._(
-                "%(closed_task_count)s / %(task_count)s (%(closed_rate)s%%)",
-                closed_task_count=closed_task_count,
-                task_count=self.task_count,
-                closed_rate=round(100 * closed_task_count / self.task_count),
-            )
-        else:
-            number = self.env._(
-                "%(closed_task_count)s / %(task_count)s",
-                closed_task_count=closed_task_count,
-                task_count=self.task_count,
-            )
-        buttons = [{
-            'icon': 'check',
-            'text': self.label_tasks,
-            'number': number,
-            'action_type': 'object',
-            'action': 'action_view_tasks',
-            'show': True,
-            'sequence': 1,
-        }]
-        if self.rating_count != 0:
-            if self.rating_avg >= rating_data.RATING_AVG_TOP:
-                icon = 'smile-o text-success'
-            elif self.rating_avg >= rating_data.RATING_AVG_OK:
-                icon = 'meh-o text-warning'
-            else:
-                icon = 'frown-o text-danger'
-            buttons.append({
-                'icon': icon,
-                'text': self.env._('Average Rating'),
-                'number': f'{int(self.rating_avg) if self.rating_avg.is_integer() else round(self.rating_avg, 1)} / 5',
-                'action_type': 'object',
-                'action': 'action_view_all_rating',
-                'show': self.show_ratings,
-                'sequence': 15,
-            })
-        if self.env.user.has_group('project.group_project_user'):
-            buttons.append({
-                'icon': 'area-chart',
-                'text': self.env._('Burndown Chart'),
-                'action_type': 'action',
-                'action': 'project.action_project_task_burndown_chart_report',
-                'additional_context': json.dumps({
-                    'active_id': self.id,
-                    'stage_name_and_sequence_per_id': {
-                        stage.id: {
-                            'sequence': stage.sequence,
-                            'name': stage.name
-                        } for stage in self.type_ids
-                    },
-                }),
-                'show': True,
-                'sequence': 60,
-            })
-        return buttons
-
-    def _get_profitability_values(self):
-        if not self.env.user.has_group('project.group_project_manager'):
-            return {}, False
-        profitability_items = self._get_profitability_items(False)
-        if profitability_items and 'revenues' in profitability_items and 'costs' in profitability_items:  # sort the data values
-            profitability_items['revenues']['data'] = sorted(profitability_items['revenues']['data'], key=lambda k: k['sequence'])
-            profitability_items['costs']['data'] = sorted(profitability_items['costs']['data'], key=lambda k: k['sequence'])
-        costs = sum(profitability_items['costs']['total'].values())
-        revenues = sum(profitability_items['revenues']['total'].values())
-        margin = revenues + costs
-        to_bill_to_invoice = profitability_items['costs']['total']['to_bill'] + profitability_items['revenues']['total']['to_invoice']
-        billed_invoiced = profitability_items['costs']['total']['billed'] + profitability_items['revenues']['total']['invoiced']
-        expected_percentage, to_bill_to_invoice_percentage, billed_invoiced_percentage = 0, 0, 0
-        if revenues:
-            expected_percentage = formatLang(self.env, (margin / revenues) * 100, digits=0)
-        if profitability_items['revenues']['total']['to_invoice']:
-            to_bill_to_invoice_percentage = formatLang(self.env, (to_bill_to_invoice / profitability_items['revenues']['total']['to_invoice']) * 100, digits=0)
-        if profitability_items['revenues']['total']['invoiced']:
-            billed_invoiced_percentage = formatLang(self.env, (billed_invoiced / profitability_items['revenues']['total']['invoiced']) * 100, digits=0)
-        profitability_values_dict = {
-            'account_id': self.account_id,
-            'costs': profitability_items['costs'],
-            'revenues': profitability_items['revenues'],
-            'expected_percentage': expected_percentage,
-            'to_bill_to_invoice_percentage': to_bill_to_invoice_percentage,
-            'billed_invoiced_percentage': billed_invoiced_percentage,
-            'total': {
-                'costs': costs,
-                'revenues': revenues,
-                'margin': margin,
-                'margin_percentage': formatLang(self.env,
-                                                not float_utils.float_is_zero(costs, precision_digits=2) and (margin / -costs) * 100 or 0.0,
-                                                digits=0),
-            },
-            'labels': self._get_profitability_labels(),
-        }
-        show_profitability = bool(profitability_values_dict.get('account_id')
-            and (profitability_values_dict.get('costs') or profitability_values_dict.get('revenues'))
-        )
-        return profitability_values_dict, show_profitability
 
     # ---------------------------------------------------
     #  Business Methods
@@ -1209,6 +1091,14 @@ class ProjectProject(models.Model):
             **super()._get_account_node_context(plan),
             'default_company_id': unquote('company_id'),
         }
+
+    def _get_default_task_stage(self):
+        self.ensure_one()
+        return self.env['project.task.type'].search(
+            [('project_ids', '=', self.id)],
+            order="fold, sequence, id",
+            limit=1,
+        )
 
     # ---------------------------------------------------
     # Privacy
@@ -1287,14 +1177,10 @@ class ProjectProject(models.Model):
         for partner, tasks in dict_tasks_per_partner.items():
             tasks.message_subscribe(dict_partner_ids_to_subscribe_per_partner[partner])
 
-    def _thread_to_store(self, store: Store, fields, *, request_list=None):
-        super()._thread_to_store(store, fields, request_list=request_list)
-        if request_list and "followers" in request_list:
-            store.add(
-                self,
-                {"collaborator_ids": Store.Many(self.sudo().collaborator_ids.partner_id, [])},
-                as_thread=True,
-            )
+    def _store_thread_fields(self, res: Store.FieldList, *, request_list):
+        super()._store_thread_fields(res, request_list=request_list)
+        if "followers" in request_list:
+            res.many("collaborator_ids", [], value=lambda p: p.sudo().collaborator_ids.partner_id)
 
     @api.depends('task_count', 'open_task_count')
     def _compute_task_completion_percentage(self):
@@ -1448,15 +1334,12 @@ class ProjectProject(models.Model):
             for key, value in self.env.context.items()
             if key.startswith('default_') and key.removeprefix('default_') in self._get_template_default_context_whitelist()
         } | values
-        project = self.with_context(copy_from_template=True, copy_from_project_template=True).copy(default=default)
+        context = {
+            'copy_from_template': True,
+            'copy_from_project_template': self.id,
+        }
+        if role_to_users_mapping is not None:
+            context['role_to_users_mapping'] = {entry.role_id.id: entry.user_ids.ids for entry in role_to_users_mapping if entry.user_ids}
+        project = self.with_context(**context).copy(default=default)
         project.message_post(body=self.env._("Project created from template %(name)s.", name=self.name))
-
-        # Tasks dispatching using project roles
-        if role_to_users_mapping and (mapping := role_to_users_mapping.filtered(lambda entry: entry.user_ids)):
-            for new_task in project.task_ids:
-                for entry in mapping:
-                    if entry.role_id in new_task.role_ids:
-                        new_task.user_ids |= entry.user_ids
-
-        project.task_ids.role_ids = False
         return project

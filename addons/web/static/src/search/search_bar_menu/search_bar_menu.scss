@@ -22,7 +22,6 @@ $o-search-bar-menu-max-width: calc(100vw - #{map-get($spacers, 3) * 2 });
         }
 
         i {
-            display: block !important;
             visibility: var(--show-on-hover, hidden);
         }
     }

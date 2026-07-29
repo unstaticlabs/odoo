@@ -24,27 +24,28 @@
 # Sagi Ahiel, 2022
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2023
 # Roy Sayag, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# bar gold <bar@laylinetech.com>, 2025, 2026.
-# noa eldar <noaeldar@laylinetech.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# diego gurwicz <diegog@dnghub.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
+# bar gold <bar@laylinetech.com>, 2025.
+# noa eldar <noaeldar@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:35+0000\n"
-"PO-Revision-Date: 2026-07-07 17:11+0000\n"
-"Last-Translator: diego gurwicz <diegog@dnghub.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/crm/he/>\n"
+"POT-Creation-Date: 2026-06-19 17:36+0000\n"
+"PO-Revision-Date: 2026-01-15 23:09+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-1/crm/he/"
+">\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_all_assigned_month_count
@@ -138,11 +139,6 @@ msgstr "<i class=\"fa fa-briefcase\" title=\"שם ההזדמנות\"/>"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
-msgid "<i class=\"fa fa-building\" title=\"Company\"/>"
-msgstr "<i class=\"fa fa-building\" title=\"חברה\"/>"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
 msgid "<i class=\"fa fa-envelope\" title=\"Contact Email\"/>"
 msgstr "<i class=\"fa fa-envelope\" title=\"אימייל ליצירת קשר\"/>"
 
@@ -212,6 +208,11 @@ msgstr ""
 "invisible=\"not partner_phone_update\"/>"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "<span class=\"me-1\"> of </span>"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid ""
 "<span class=\"o_stat_text\" invisible=\"duplicate_lead_count &lt; "
@@ -232,8 +233,8 @@ msgid ""
 "invisible=\"use_leads\">Opportunities</span>"
 msgstr ""
 "<span class=\"o_stat_text\" invisible=\"not use_leads\">לידים</span>\n"
-"                        <span class=\"o_stat_text\" invisible=\"use_leads\">"
-"הזדמנויות</span>"
+"                        <span class=\"o_stat_text\" "
+"invisible=\"use_leads\">הזדמנויות</span>"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lost_reason_view_form
@@ -241,29 +242,34 @@ msgid "<span class=\"o_stat_text\"> Leads</span>"
 msgstr "<span class=\"o_stat_text\"> לידים </span>"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
+msgid "<span class=\"o_stat_text\">Opportunities</span>"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid ""
 "<span class=\"opacity-50 p-2 text-nowrap d-none d-sm-block\"> at </span>"
-msgstr "<span class=\"opacity-50 p-2 text-nowrap d-none d-sm-block\"> ב </span>"
+msgstr ""
+"<span class=\"opacity-50 p-2 text-nowrap d-none d-sm-block\"> ב </span>"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "<span class=\"opacity-50 p-2\"> %</span>"
-msgstr "<span class=\"opacity-50 p-2\"> %</span>"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-msgid "<span> leads assigned the last 30 days out of a maximum of </span>"
-msgstr "<span> לידים שהוקצו במהלך 30 הימים האחרונים מתוך מקסימום של </span>"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
 msgid ""
-"<span> leads assigned this month\n"
-"                            on a maximum of </span>"
+"<span> leads assigned this month</span>\n"
+"                            <span invisible=\"not show_assignment_max\"> on "
+"a maximum of </span>"
 msgstr ""
-"<span> לידים שהוקצו החודש\n"
-"                            מתוך מקסימום של </span>"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "<span> leads per 30 days </span>"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
@@ -283,16 +289,14 @@ msgid ""
 "                                <span invisible=\"not "
 "crm_use_auto_assignment\">\n"
 "                                    All sales teams will use this setting by "
-"default unless\n"
-"                                    specified otherwise.\n"
+"default.\n"
 "                                </span>"
 msgstr ""
-"<span>הקצה לידים באופן תקופתי לפי עדיפויות ומסננים.</span><br/>\n"
-"                                <span invisible=\"not "
-"crm_use_auto_assignment\">\n"
-"                             כל צוותי המכירות ישתמשו בהגדרה זו כברירת מחדל "
-"אלא אם צוין אחרת.\n"
-"                                </span>"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "<span>days</span>"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
@@ -302,112 +306,29 @@ msgstr "<span>לתוך זה.</span>"
 #. module: crm
 #: model:mail.template,body_html:crm.mail_template_demo_crm_lead
 msgid ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
-"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
-"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-"align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-"style=\"padding: 24px; background-color: white; color: #454748; border-"
-"collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"100%\" style=\"background-color: white; padding: 0; border-"
-"collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <span style=\"font-size: 10px;\">Your Lead/Opportunity</"
-"span><br/>\n"
-"                    <span style=\"font-size: 20px; font-weight: bold;\" t-"
-"out=\"object.name or ''\">Interest in your products</span>\n"
-"                </td><td valign=\"middle\" align=\"right\">\n"
-"                    <img t-attf-src=\"/logo.png?"
-"company={{ object.company_id.id }}\" style=\"padding: 0px; margin: 0px; "
-"height: 48px;\" t-att-alt=\"object.company_id.name\"/>\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                    <hr width=\"100%\" style=\"background-"
-"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-"size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;\"/>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-"0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr>\n"
-"                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
-"                        <div>\n"
-"                            Hi <t t-out=\"object.partner_id and "
-"object.partner_id.name or ''\">Acme Corporation</t>,<br/><br/>\n"
-"                            Welcome to <t t-out=\"object.company_id.name or "
-"''\">My Company (San Francisco)</t>.\n"
-"                            It's great to meet you! Now that you're on "
-"board, you'll discover what <t t-out=\"object.company_id.name or ''\">My "
-"Company (San Francisco)</t> has to offer. My name is <t t-"
-"out=\"object.user_id.name or ''\">Marc Demo</t> and I'll help you get the "
-"most out of Odoo. Could we plan a quick demo soon?<br/>\n"
-"                            Feel free to reach out at any time!<br/><br/>\n"
-"                            Best,<br/>\n"
-"                            <t t-if=\"object.user_id\">\n"
-"                                <b><t t-out=\"object.user_id.name or "
-"''\">Marc Demo</t></b>\n"
-"                                <br/>Email: <t t-out=\"object.user_id.email "
-"or ''\">mark.brown23@example.com</t>\n"
-"                                <br/>Phone: <t t-out=\"object.user_id.phone "
-"or ''\">+1 650-123-4567</t>\n"
-"                            </t>\n"
-"                            <t t-else=\"\">\n"
-"                                <t t-out=\"object.company_id.name or ''\">My "
-"Company (San Francisco)</t>\n"
-"                            </t>\n"
-"                        </div>\n"
-"                    </td>\n"
-"                </tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px; padding: 0 8px 0 8px; "
-"font-size:11px;\">\n"
-"            <hr width=\"100%\" style=\"background-"
-"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
-"size:0px;min-height:1px;line-height:0; margin: 16px 0px 4px 0px;\"/>\n"
-"            <b t-out=\"object.company_id.name or ''\">My Company (San "
-"Francisco)</b><br/>\n"
-"            <div style=\"color: #999999;\">\n"
-"                <t t-out=\"object.company_id.phone or ''\">+1 650-123-4567</"
+"<t>\n"
+"Hi <t t-out=\"object.partner_id and object.partner_id.name or ''\">Acme "
+"Corporation</t>,<br/><br/>\n"
+"Welcome to <t t-out=\"object.company_id.name or ''\">My Company (San "
+"Francisco)</t>.\n"
+"It's great to meet you! Now that you're on board, you'll discover what <t t-"
+"out=\"object.company_id.name or ''\">My Company (San Francisco)</t> has to "
+"offer. My name is <t t-out=\"object.user_id.name or ''\">Marc Demo</t> and "
+"I'll help you get the most out of Odoo. Could we plan a quick demo soon?<br/"
+">\n"
+"Feel free to reach out at any time!<br/><br/>\n"
+"Best,<br/>\n"
+"<t t-if=\"object.user_id\">\n"
+"    <b><t t-out=\"object.user_id.name or ''\">Marc Demo</t></b>\n"
+"    <br/>Email: <t t-out=\"object.user_id.email or "
+"''\">mark.brown23@example.com</t>\n"
+"    <br/>Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</t>\n"
+"</t>\n"
+"<t t-else=\"\">\n"
+"    <t t-out=\"object.company_id.name or ''\">My Company (San Francisco)</"
 "t>\n"
-"                <t t-if=\"object.company_id.email\">\n"
-"                    | <a t-attf-href=\"'mailto:%s' % "
-"{{ object.company_id.email }}\" style=\"text-decoration:none; color: "
-"#999999;\" t-out=\"object.company_id.email or ''\">info@yourcompany.com</a>\n"
-"                </t>\n"
-"                <t t-if=\"object.company_id.website\">\n"
-"                    | <a t-attf-href=\"'%s' % {{ object.company_id.website }}"
-"\" style=\"text-decoration:none; color: #999999;\" t-"
-"out=\"object.company_id.website or ''\">http://www.example.com</a>\n"
-"                </t>\n"
-"            </div>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
-"</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    Powered by <a target=\"_blank\" href=\"https://www.odoo.com?"
-"utm_source=db&amp;utm_medium=email\" t-attf-style=\"color: "
-"{{object.company_id.email_secondary_color or '#875A7B'}};;\">Odoo</a>\n"
-"</td></tr>\n"
-"</table>\n"
-"        "
+"</t>\n"
+"        </t>"
 msgstr ""
 
 #. module: crm
@@ -438,18 +359,6 @@ msgstr ""
 #: code:addons/crm/models/crm_lead.py:0
 msgid "A lead in a Won stage cannot be lost. Move it to another stage first."
 msgstr "ליד שנמצא בשלב \"ניצח\" לא ניתן לסמן כהפסד. העבר אותו קודם לשלב אחר."
-
-#. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_lead.py:0
-msgid "A new lead has been created and is not assigned to any team."
-msgstr "נוצר ליד חדש והוא לא משויך לאף צוות."
-
-#. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_lead.py:0
-msgid "A new lead has been created for the team \"%(team_name)s\"."
-msgstr "נוצר ליד חדש עבור הצוות \"%(team_name)s\"."
 
 #. module: crm
 #. odoo-javascript
@@ -522,11 +431,6 @@ msgstr ""
 "האינטראקציות עם הלידים."
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-msgid "Activities of"
-msgstr "הפעילויות של"
-
-#. module: crm
 #: model:ir.model,name:crm.model_mail_activity
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 msgid "Activity"
@@ -543,6 +447,7 @@ msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_lead__activity_plans_ids
 #: model:ir.ui.menu,name:crm.mail_activity_plan_menu_config_lead
 msgid "Activity Plans"
 msgstr "תוכניות פעילות"
@@ -582,11 +487,6 @@ msgid ""
 msgstr ""
 "באמצעות תוכניות פעילות ניתן לשייך בקלות סדרת פעילויות מוגדרות מראש\n"
 "(כגון \"תהליך הכנה לדמו\", \"שלב ההכשרה\" וכו')"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-msgid "Activity type"
-msgstr "סוג פעילות"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
@@ -673,9 +573,9 @@ msgid "All set. Let’s <b>Schedule</b> it."
 msgstr "מוכן. ניתן <b>לתזמן</b> את זה."
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
-msgid "Analysis"
-msgstr "ניתוח"
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__unlimited
+msgid "Always in rotation"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner_mass__deduplicate
@@ -690,47 +590,27 @@ msgstr "החל מניעת כפילויות"
 #: model_terms:ir.ui.view,arch_db:crm.crm_lost_reason_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_recurring_plan_view_search
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
 msgid "Archived"
 msgstr "בארכיון"
 
 #. module: crm
 #. odoo-python
-#: code:addons/crm/models/crm_team.py:0
+#: code:addons/crm/models/crm_lead.py:0
 msgid ""
 "As you are a member of no Sales Team, you are showed the Pipeline of the "
-"<b>first team by default.</b>\n"
-"                                        To work with the CRM, you should <a "
-"name=\"%d\" type=\"action\" tabindex=\"-1\">join a team.</a>"
+"<b>first team by default.</b>"
 msgstr ""
-"מכיוון שאינך חבר באף צוות מכירות, מוצגת לך ברירת המחדל של הצינור (Pipeline) "
-"של <b>הצוות הראשון.</b>\n"
-"                                        כדי לעבוד עם מערכת ה-CRM, עליך <a "
-"name=\"%d\" type=\"action\" tabindex=\"-1\">להצטרף לצוות.</a>"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_team.py:0
-msgid ""
-"As you are a member of no Sales Team, you are showed the Pipeline of the "
-"<b>first team by default.</b>\n"
-"                                        To work with the CRM, you should "
-"join a team."
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.xml:0
+msgid "Ask your Team Leader to get access"
 msgstr ""
-"מכיוון שאינך חבר באף צוות מכירות, מוצגת לך ברירת המחדל של הצינור (Pipeline) "
-"של<b>הצוות הראשון.</b>\n"
-"                                       כדי לעבוד עם מערכת ה-CRM, עליך להצטרף "
-"לצוות."
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
 msgid "Assign Leads"
 msgstr "הקצאת לידים"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
-msgid "Assign opportunities to"
-msgstr "שייך הזדמנויות ל"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
@@ -807,6 +687,11 @@ msgid "Auto Assignment Next Execution Date"
 msgstr "שיוך אוטומטי עבור תאריך הביצוע הבא"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team_member__assignment_rules
+msgid "Auto-Assignment Rules"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__automated_probability
 msgid "Automated Probability"
 msgstr "הסתברות אוטומטית"
@@ -857,13 +742,13 @@ msgstr "ניתוח נתוני פעילויות ניהול קשרי לקוחות"
 
 #. module: crm
 #: model:ir.model,name:crm.model_crm_recurring_plan
-msgid "CRM Recurring revenue plans"
-msgstr "לוח בקרה להכנסות חוזרות עבור"
+msgid "CRM Recurring Revenue Plan"
+msgstr ""
 
 #. module: crm
 #: model:ir.model,name:crm.model_crm_stage
-msgid "CRM Stages"
-msgstr "שלבי ניהול קשרי לקוחות"
+msgid "CRM Stage"
+msgstr ""
 
 #. module: crm
 #: model:ir.actions.server,name:crm.ir_cron_crm_lead_assign_ir_actions_server
@@ -887,18 +772,6 @@ msgstr "קמפיין"
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
 msgid "Campaign:"
 msgstr "קמפיין:"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner_mass
-msgid "Cancel"
-msgstr "בטל"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-msgid "Capacity"
-msgstr "קיבולת"
 
 #. module: crm
 #. odoo-python
@@ -1009,7 +882,6 @@ msgstr "אינדקס צבעים"
 #: model:ir.model.fields,field_description:crm.field_crm_lead__company_id
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
-#: model_terms:ir.ui.view,arch_db:crm.quick_create_opportunity_form
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner
@@ -1116,11 +988,6 @@ msgid "Contact:"
 msgstr "איש קשר:"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
-msgid "Contacts"
-msgstr "איש קשר"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner__name
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner_mass__name
 msgid "Conversion Action"
@@ -1155,6 +1022,12 @@ msgid "Convert Lead to Opportunity (not in mass)"
 msgstr "המר ליד להזדמנות (לא בכמויות)"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Convert into an Opportunity to see it in your Pipeline"
+msgstr ""
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_case_tree_view_leads
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_lead2opportunity_partner_mass
 msgid "Convert to Opportunities"
 msgstr "המר להזדמנויות"
@@ -1243,6 +1116,12 @@ msgid "Create a Recurring Plan"
 msgstr "צור תוכנית חוזרת"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Create a landing page"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__lead_mining_in_pipeline
 msgid "Create a lead mining request directly from the opportunity pipeline."
 msgstr "צור בקשה לכריית לידים ישירות מצינור ההזדמנות."
@@ -1262,8 +1141,6 @@ msgid "Create a new lead"
 msgstr "צור ליד חדש"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/crm_team.py:0
 #: model:ir.model,website_form_label:crm.model_crm_lead
 msgid "Create an Opportunity"
 msgstr "צור הזדמנות"
@@ -1320,16 +1197,6 @@ msgid "Creation Date"
 msgstr "תאריך יצירה"
 
 #. module: crm
-#: model:ir.actions.server,name:crm.action_opportunity_forecast
-msgid "Crm: Forecast"
-msgstr "צפה בתחזית CRM"
-
-#. module: crm
-#: model:ir.actions.server,name:crm.action_your_pipeline
-msgid "Crm: My Pipeline"
-msgstr "ניהול קשרי לקוחות: צינור הפעילות שלי"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__company_currency
 msgid "Currency"
 msgstr "מטבע"
@@ -1346,11 +1213,6 @@ msgstr "הודעה מותאמת אישית להודעות שגיאה"
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Customer"
 msgstr "לקוח"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__commercial_partner_id
-msgid "Customer Company"
-msgstr "חברת הלקוח"
 
 #. module: crm
 #: model:ir.ui.menu,name:crm.res_partner_menu_customer
@@ -1461,12 +1323,6 @@ msgid "Digest"
 msgstr "תמצית"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_lost_view_form
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_pls_update_view_form
-msgid "Discard"
-msgstr "בטל"
-
-#. module: crm
 #: model:ir.model.fields,field_description:crm.field_calendar_event__display_name
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__display_name
 #: model:ir.model.fields,field_description:crm.field_crm_lead2opportunity_partner__display_name
@@ -1493,16 +1349,21 @@ msgid "Display Name"
 msgstr "שם לתצוגה"
 
 #. module: crm
-#. odoo-python
-#: code:addons/crm/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "אין לך גישה, דלג על נתונים אלה עבור תקציר דוא\"ל של המשתמשים"
+#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
+msgid "Display your partners on a dedicated website page."
+msgstr ""
 
 #. module: crm
 #. odoo-python
 #: code:addons/crm/models/crm_stage.py:0
 msgid "Do you really want to update this stage?"
 msgstr "האם אתה בטוח שברצונך לעדכן שלב זה?"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Do you want to install the \"%(module_name)s\" App?"
+msgstr ""
 
 #. module: crm
 #. odoo-javascript
@@ -1567,19 +1428,15 @@ msgid "Email Domain Criterion"
 msgstr "קריטריון דומיין אימייל"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Email Marketing"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__email_state
 msgid "Email Quality"
 msgstr "איכות דוא\"ל"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__email_cc
-msgid "Email cc"
-msgstr "עותק דוא\"ל"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
-msgid "Email cc:"
-msgstr "עותק אימייל (cc):"
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_team__alias_domain
@@ -1631,6 +1488,11 @@ msgstr ""
 #: model:ir.model.fields,help:crm.field_crm_lead__date_deadline
 msgid "Estimate of the date on which the opportunity will be won."
 msgstr "הערכת זמן לחאריך בו נזכה בהזדמנות."
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
+msgid "Every"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_all_assigned_month_exceeded
@@ -1687,6 +1549,12 @@ msgstr "שדות נוספים..."
 
 #. module: crm
 #. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Failed to install \"%(module_name)s\""
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 #: model:ir.model.fields,field_description:crm.field_crm_lead_scoring_frequency_field__field_id
 msgid "Field"
@@ -1708,6 +1576,11 @@ msgstr "שדה המשמש לאחסון מספר טלפון מאומת. עוזר 
 #: model:ir.model,name:crm.model_crm_lead_scoring_frequency_field
 msgid "Fields that can be used for predictive lead scoring computation"
 msgstr "שדות שניתן להשתמש בהם לצורך חישוב ציון לידים חזוי"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Fold by Default"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_stage__fold
@@ -1772,10 +1645,21 @@ msgstr "מ- %(source_name)s: %(source_subject)s"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Future Activities"
 msgstr "פעילויות עתידיות"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.xml:0
+msgid "Generate"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Generate leads from Outlook & Gmail"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__module_crm_iap_mine
@@ -1793,9 +1677,9 @@ msgid "Get Lost Reason"
 msgstr "קבל סיבת הפסד"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-msgid "Give your team the requirements to move an opportunity to this stage."
-msgstr "תן לצוות שלך את הדרישות כדי להעביר הזדמנות לשלב זה."
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "Give priority if"
+msgstr ""
 
 #. module: crm
 #. odoo-python
@@ -1944,6 +1828,29 @@ msgid "Import Template for Leads & Opportunities"
 msgstr "ייבוא תבנית עבור לידים והזדמנויות"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Import leads from CSV"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Import leads from a CSV or Excel file"
+msgstr ""
+
+#. module: crm
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__limited
+msgid "In rotation, with a limit"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/webclient/share_target/crm_share_target_item.xml:0
+msgid "In sales team"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_opportunity_report_view_search
 msgid "Inactive"
 msgstr "לא פעיל"
@@ -1965,6 +1872,12 @@ msgstr ""
 "מספר מופיע ברשימה השחורה כאשר במודל יש גם שדה נייד וגם טלפון."
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Installing \"%(module_name)s\""
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,help:crm.field_res_config_settings__crm_auto_assignment_interval_type
 msgid "Interval type between each cron run (e.g. each 2 days or each 2 hours)"
 msgstr "סוג מרווח בין כל מסלול (למשל כל יומיים או כל שעתיים)"
@@ -1982,11 +1895,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:crm.field_crm_lead__message_is_follower
 msgid "Is Follower"
 msgstr "עוקב"
-
-#. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_lead__is_partner_visible
-msgid "Is Partner Visible"
-msgstr "האם השותף גלוי"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__won_status
@@ -2017,6 +1925,16 @@ msgstr "תפקיד"
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
 msgid "Job Position:"
 msgstr "משרה:"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Keep current team"
+msgstr ""
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Keep current user"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_digest_digest__kpi_crm_lead_created_value
@@ -2102,12 +2020,13 @@ msgstr "עדכון אחרון ב"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Late Activities"
 msgstr "פעילויות באיחור"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/webclient/share_target/crm_share_target_item.js:0
 #: model:ir.model,name:crm.model_crm_lead
 #: model:ir.model.fields.selection,name:crm.selection__crm_activity_report__lead_type__lead
 #: model:ir.model.fields.selection,name:crm.selection__crm_lead__type__lead
@@ -2131,11 +2050,6 @@ msgstr "הקצאת ליד"
 #: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
 msgid "Lead Assignment"
 msgstr "שיוך לידים"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-msgid "Lead Assignment Filter"
-msgstr "מסנן שיוך לידים"
 
 #. module: crm
 #. odoo-python
@@ -2162,11 +2076,6 @@ msgstr "יצירת לידים"
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 msgid "Lead Mining"
 msgstr "כריית לידים"
-
-#. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
-msgid "Lead Priority Filter"
-msgstr "מסנן עדיפות לידים"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__lead_properties_definition
@@ -2199,6 +2108,12 @@ msgid "Lead Scoring Starting Date in String"
 msgstr "ציון ליד תאריך תחילה במחרוזת"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Lead Sourcing"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_tree
 msgid "Lead Tags"
@@ -2222,6 +2137,11 @@ msgstr "הקצאה אוטומטית של לידים/הזדמנויות מוגב�
 #: model:mail.message.subtype,description:crm.mt_lead_create
 msgid "Lead/Opportunity created"
 msgstr "נוצר ליד/הזדמנות"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_creation_message
+msgid "Lead/Opportunity created<br/>"
+msgstr ""
 
 #. module: crm
 #. odoo-python
@@ -2291,6 +2211,12 @@ msgstr "יצירת לידים"
 #: model_terms:ir.actions.act_window,help:crm.crm_lead_all_leads
 msgid "Leads are the qualification step before the creation of an opportunity."
 msgstr "לידים הם שלב מקדים של בדיקה לפני יצירת הזדמנות."
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/wizard/crm_merge_opportunities.py:0
+msgid "Leads merged"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_activity
@@ -2459,6 +2385,12 @@ msgid "MRR"
 msgstr "הכנסה חודשית חוזרת (MRR)"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Mail plugins"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 msgid ""
 "Make and receive calls from Odoo with Ringover's dialer. Track calls, SMS "
@@ -2475,11 +2407,9 @@ msgstr "צור תוכנית חוזרת"
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 msgid ""
-"Manage members or partners. Members get grades and pricelists, partners "
+"Manage members or partners. Members get levels and pricelists, partners "
 "allow lead assignment and commission plans."
 msgstr ""
-"נהל חברים או שותפים. לחברים ניתן להגדיר דרגות ורשימות מחיר, ולשותפים ניתן "
-"להגדיר שיוך לידים ותוכניות עמלה."
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_res_config_settings__crm_auto_assignment_action
@@ -2587,12 +2517,12 @@ msgid "Membership / Partnership"
 msgstr "חברות / שותפות"
 
 #. module: crm
-#: model:ir.actions.act_window,name:crm.action_merge_opportunities
 #: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
 msgid "Merge"
 msgstr "מזג"
 
 #. module: crm
+#: model:ir.actions.act_window,name:crm.action_merge_opportunities
 #: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
 msgid "Merge Leads/Opportunities"
 msgstr "מזג לידים/ הזדמנויות"
@@ -2864,6 +2794,11 @@ msgid "Number of Actions"
 msgstr "מספר פעולות"
 
 #. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team__opportunity_count
+msgid "Number of assigned opportunities"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__message_has_error_counter
 msgid "Number of errors"
 msgstr "מספר השגיאות"
@@ -2929,6 +2864,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Ongoing"
 msgstr "מתמשך"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "Only assign if"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
@@ -3075,6 +3015,11 @@ msgstr ""
 "אליו. אם מוגדר, הדבר יבטל את יצירת הרשומות החדשות לחלוטין."
 
 #. module: crm
+#: model:ir.model.fields.selection,name:crm.selection__crm_team_member__assignment_rules__opt-out
+msgid "Out of rotation"
+msgstr ""
+
+#. module: crm
 #: model:crm.recurring.plan,name:crm.crm_recurring_plan_over_3_years
 msgid "Over 3 years"
 msgstr "מעל 3 שנים"
@@ -3131,9 +3076,14 @@ msgid "Partner is blacklisted"
 msgstr "לקוח/ספק ברשימה השחורה"
 
 #. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_team_member__assignment_optout
-msgid "Pause assignment"
-msgstr "השהה הקצאה"
+#: model:ir.model.fields,field_description:crm.field_res_config_settings__module_website_partnership
+msgid "Partners Website Page"
+msgstr ""
+
+#. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_team__assignment_optout
+msgid "Pause auto assignment"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields.selection,name:crm.selection__crm_activity_report__won_status__pending
@@ -3145,7 +3095,7 @@ msgstr "ממתין"
 #. odoo-python
 #: code:addons/crm/models/crm_lead.py:0
 msgid "Phew, that took some effort — but you nailed it. Good job!"
-msgstr "אוף, זה דרש קצת מאמץ — אבל הצלחת בגדול. כל הכבוד!"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__phone
@@ -3253,7 +3203,7 @@ msgstr "ציון ליד חזוי: חשב מחדש הסתברויות אוטומ�
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team_member__assignment_domain_preferred
 msgid "Preference assignment Domain"
-msgstr "דומיין שיוך לפי העדפה"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__priority
@@ -3320,6 +3270,12 @@ msgid "Qualified"
 msgstr "מעוניין"
 
 #. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Qualify leads with a Survey"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__rating_ids
 msgid "Ratings"
 msgstr "דירוגים"
@@ -3328,7 +3284,13 @@ msgstr "דירוגים"
 #. odoo-javascript
 #: code:addons/crm/static/src/js/tours/crm.js:0
 msgid "Ready to boost your sales? Let's have a look at your <b>Pipeline</b>."
-msgstr "מוכן להגדיל את המכירות שלך? בואו נסתכל על <b>רשימת ההזדמנויות שלכם</b>."
+msgstr ""
+"מוכן להגדיל את המכירות שלך? בואו נסתכל על <b>רשימת ההזדמנויות שלכם</b>."
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Reassign To"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_team__alias_force_thread_id
@@ -3358,6 +3320,11 @@ msgid "Recurring Revenues"
 msgstr "הכנסות חוזרות"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Reference"
+msgstr ""
+
+#. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__referred
 msgid "Referred By"
 msgstr "הופנה ע\"י"
@@ -3375,7 +3342,6 @@ msgstr "לקוח קשור"
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__crm_auto_assignment_interval_number
-#: model_terms:ir.ui.view,arch_db:crm.res_config_settings_view_form
 msgid "Repeat every"
 msgstr "חזור כל"
 
@@ -3420,7 +3386,12 @@ msgstr "צילצול טלפון VOIP"
 #: model:ir.model.fields,field_description:crm.field_crm_lead__is_rotting
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Rotting"
-msgstr "מתיישן"
+msgstr ""
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Rotting in"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_res_config_settings__crm_use_auto_assignment
@@ -3519,20 +3490,43 @@ msgstr "חפש הזדמנויות"
 
 #. module: crm
 #. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Search in our directory of 580M+ entities"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "See AI-computed chances details"
-msgstr "הצגת פרטי הסיכויים המחושבים על ידי AI"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_lost_view_form
 msgid "Select a Lost Reason..."
-msgstr "בחר סיבת אובדן..."
+msgstr ""
 
 #. module: crm
 #. odoo-python
 #: code:addons/crm/models/crm_lead.py:0
 msgid "Select at least two Leads/Opportunities from the list to merge them."
 msgstr "בחר לפחות שני לידים/הזדמנויות מהרשימה כדי למזג אותם."
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "Select or create a contact..."
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Send a Survey"
+msgstr ""
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Send an email and get leads from replies"
+msgstr ""
 
 #. module: crm
 #: model:ir.actions.act_window,name:crm.action_lead_mail_compose
@@ -3567,9 +3561,9 @@ msgid "Settings"
 msgstr "הגדרות"
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-msgid "Shared with all teams"
-msgstr "משותף עם כל הצוותים"
+#: model:ir.model.fields,field_description:crm.field_crm_team__show_assignment_max
+msgid "Show Assignment Max"
+msgstr ""
 
 #. module: crm
 #: model:res.groups,name:crm.group_use_lead
@@ -3583,7 +3577,6 @@ msgstr "הצג תפריט הכנסות חוזרות"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Show all opportunities for which the next action date is before today"
 msgstr "הצג את כל ההזדמנויות שעבורן תאריך הפעולה הבא הוא עד היום"
@@ -3609,9 +3602,15 @@ msgid "Show only opportunity"
 msgstr "הצג רק הזדמנות"
 
 #. module: crm
-#: model:ir.model.fields,field_description:crm.field_crm_team__assignment_optout
-msgid "Skip auto assignment"
-msgstr "דלג על הקצאה אוטומטית"
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "Show to all teams"
+msgstr ""
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/wizard/crm_merge_opportunities.py:0
+msgid "Something went wrong, please try again later"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_lead__source_id
@@ -3625,7 +3624,7 @@ msgstr "מקור"
 #. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "Source is"
-msgstr "המקור הוא"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_merge_summary
@@ -3743,7 +3742,7 @@ msgstr "תת סוג"
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "Switch to AI-computed probabilities"
-msgstr "מעבר להסתברויות מחושבות על ידי AI"
+msgstr ""
 
 #. module: crm
 #: model:ir.model,name:crm.model_ir_config_parameter
@@ -3760,7 +3759,7 @@ msgstr "תגית"
 #. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "Tagged as"
-msgstr "מתויג כ"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__tag_ids
@@ -3807,7 +3806,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/crm/models/crm_lead.py:0
 msgid "The lead %s cannot be won and lost at the same time."
-msgstr "הליד %s אינו יכול להיות זכייה ואובדן בו זמנית."
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_team__alias_model_id
@@ -3928,8 +3927,6 @@ msgid ""
 "This new lead created by %(creation_source)s was automatically assigned to "
 "team leader %(user_name)s"
 msgstr ""
-"ליד חדש זה שנוצר על ידי %(creation_source)s שויך אוטומטית לראש הצוות %"
-"(user_name)s"
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
@@ -4000,6 +3997,12 @@ msgid "Tip: Turn a selection of opportunities into a map"
 msgstr "טיפ: הפוך מבחר הזדמנויות למפה"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_list_simplified
+#: model_terms:ir.ui.view,arch_db:crm.merge_opportunity_form
+msgid "Title"
+msgstr ""
+
+#. module: crm
 #. odoo-python
 #: code:addons/crm/models/crm_lead.py:0
 msgid ""
@@ -4010,8 +4013,21 @@ msgstr ""
 "(max_length)s."
 
 #. module: crm
+#. odoo-python
+#: code:addons/crm/models/crm_lead.py:0
+msgid ""
+"To work with the CRM, you should <a name=\"%d\" type=\"action\" "
+"tabindex=\"-1\">join a team.</a>"
+msgstr ""
+
+#. module: crm
+#. odoo-python
+#: code:addons/crm/models/crm_lead.py:0
+msgid "To work with the CRM, you should join a team."
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_leads_filter
-#: model_terms:ir.ui.view,arch_db:crm.view_crm_case_my_activities_filter
 #: model_terms:ir.ui.view,arch_db:crm.view_crm_case_opportunities_filter
 msgid "Today Activities"
 msgstr "פעילויות היום"
@@ -4025,13 +4041,13 @@ msgstr "יקר מדי"
 #. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "Top Negatives"
-msgstr "השליליים המובילים"
+msgstr ""
 
 #. module: crm
 #. odoo-javascript
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "Top Positives"
-msgstr "החיוביים המובילים"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_activity_report_view_search
@@ -4051,6 +4067,12 @@ msgstr ""
 #: model_terms:digest.tip,tip_description:crm.digest_tip_crm_0
 msgid "Try sending an email"
 msgstr "נסה לשלוח דוא\"ל"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/components/lead_generation_dropdown/lead_generation_dropdown.js:0
+msgid "Turn visitors into leads via a form"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,field_description:crm.field_crm_activity_report__lead_type
@@ -4078,6 +4100,11 @@ msgstr "סוג:"
 #: model:ir.model,name:crm.model_utm_campaign
 msgid "UTM Campaign"
 msgstr "קמפיין UTM"
+
+#. module: crm
+#: model:ir.model.fields,field_description:crm.field_crm_lead__utm_reference
+msgid "UTM Reference"
+msgstr ""
 
 #. module: crm
 #: model:ir.model.fields,help:crm.field_crm_lead__user_company_ids
@@ -4283,9 +4310,20 @@ msgid "Welcome Demo"
 msgstr "ברוך הבא להדגמה"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "What are the requirements to move an opportunity to this stage?"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_lost_view_form
 msgid "What went wrong?"
 msgstr "מה השתבש?"
+
+#. module: crm
+#. odoo-javascript
+#: code:addons/crm/static/src/views/crm_kanban/crm_column_progress.js:0
+msgid "Without activities scheduled"
+msgstr ""
 
 #. module: crm
 #: model:crm.stage,name:crm.stage_lead4
@@ -4408,9 +4446,14 @@ msgid "alias"
 msgstr "כינוי"
 
 #. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_team_member_view_form
+msgid "assigned)"
+msgstr ""
+
+#. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "at"
-msgstr "בשעה"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
@@ -4419,14 +4462,19 @@ msgid "e.g. \"Monthly\""
 msgstr "לדוגמה: \"חודשי\""
 
 #. module: crm
-#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
-msgid "e.g. Negotiation"
-msgstr "למשל: משא ומתן"
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "e.g. (555) 555-0199"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "e.g. Product Pricing"
 msgstr "למשל: תמחור מוצרים"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_stage_form
+msgid "e.g. Qualification"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.crm_lost_reason_view_form
@@ -4437,6 +4485,11 @@ msgstr "למשל: יקר מדי"
 #: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
 msgid "e.g. https://www.odoo.com"
 msgstr "למשל: https://www.odoo.com"
+
+#. module: crm
+#: model_terms:ir.ui.view,arch_db:crm.crm_lead_view_form
+msgid "e.g. john.doe@email.com"
+msgstr ""
 
 #. module: crm
 #: model_terms:ir.ui.view,arch_db:crm.sales_team_form_view_in_crm
@@ -4551,297 +4604,3 @@ msgstr "כתובת אימייל תקינה"
 #: code:addons/crm/static/src/views/crm_form/crm_pls_tooltip_button.xml:0
 msgid "valid phone number"
 msgstr "מספר טלפון תקין"
-
-#~ msgid ""
-#~ "For a sales team, there is nothing worse than being dry on leads. "
-#~ "Fortunately, in just a few clicks, you can generate leads specifically "
-#~ "targeted to your needs: company size, industry, etc. To help you test the "
-#~ "feature, we offer you 200 credits for free."
-#~ msgstr ""
-#~ "עבור צוות מכירות, אין דבר גרוע יותר מלהיות חסרי לידים. למרבה המזל, בכמה "
-#~ "לחיצות בלבד תוכלו ליצור לידים ממוקדים במיוחד לצרכים שלכם: גודל החברה, "
-#~ "התעשייה וכו '. בכדי לעזור לכם לבדוק את התכונה, אנו מציעים לכם 200 נקודות "
-#~ "זיכוי בחינם."
-
-#~ msgid "# Meetings"
-#~ msgstr "# פגישות"
-
-#~ msgid "# Opportunities"
-#~ msgstr "# הזדמנויות"
-
-#~ msgid "# Overdue Opportunities"
-#~ msgstr "# הזדמנויות שעבר זמנן"
-
-#~ msgid "%s and %s"
-#~ msgstr "%sו- %s"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-star\" aria-label=\"Opportunities\" role=\"img\" "
-#~ "title=\"Opportunities\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-star\" aria-label=\"Opportunities\" role=\"img\" "
-#~ "title=\"Opportunities\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-gear\" role=\"img\" title=\"Switch to automatic "
-#~ "probability\" aria-label=\"Switch to automatic probability\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-gear\" role=\"img\" title=\"Switch to automatic "
-#~ "probability\" aria-label=\"Switch to automatic probability\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
-#~ "title=\"By saving this change, the customer email will also be updated.\" "
-#~ "attrs=\"{'invisible': [('partner_email_update', '=', False)]}\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
-#~ "title=\"By saving this change, the customer email will also be updated.\" "
-#~ "attrs=\"{'invisible': [('partner_email_update', '=', False)]}\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
-#~ "title=\"By saving this change, the customer phone number will also be "
-#~ "updated.\" attrs=\"{'invisible': [('partner_phone_update', '=', False)]}"
-#~ "\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-exclamation-triangle text-warning oe_edit_only\" "
-#~ "title=\"By saving this change, the customer phone number will also be "
-#~ "updated.\" attrs=\"{'invisible': [('partner_phone_update', '=', False)]}"
-#~ "\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('calendar_event_count', '&lt;', 2)]}\"> Meetings</span>\n"
-#~ "                                    <span class=\"o_stat_text\" "
-#~ "attrs=\"{'invisible': [('calendar_event_count', '&gt;', 1)]}\"> Meeting</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('calendar_event_count', '&lt;', 2)]}\">פגישות</span>\n"
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('calendar_event_count', '&gt;', 1)]}\">פְּגִישָׁה</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('duplicate_lead_count', '&lt;', 2)]}\">Similar Leads</span>\n"
-#~ "                                    <span class=\"o_stat_text\" "
-#~ "attrs=\"{'invisible': [('duplicate_lead_count', '&gt;', 1)]}\">Similar "
-#~ "Lead</span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('duplicate_lead_count', '&lt;', 2)]}\">לידים דומים</span>\n"
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('duplicate_lead_count', '&gt;', 1)]}\">ליד דומה</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('use_leads', '=', "
-#~ "False)]}\">Leads</span>\n"
-#~ "                        <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('use_leads', '=', True)]}\">Opportunities</span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('use_leads', '=', "
-#~ "False)]}\">לידים</span>\n"
-#~ "                        <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('use_leads', '=', True)]}\">הזדמנויות</span>"
-
-#~ msgid ""
-#~ "<span class=\"oe_grey p-2\" groups=\"crm.group_use_recurring_revenues\"> "
-#~ "+ </span>\n"
-#~ "                                        <span class=\"oe_grey p-2\" "
-#~ "groups=\"!crm.group_use_recurring_revenues\"> at </span>"
-#~ msgstr ""
-#~ "<span class=\"oe_grey p-2\" "
-#~ "groups=\"crm.group_use_recurring_revenues\">+</span>\n"
-#~ "<span class=\"oe_grey p-2\" groups=\"!"
-#~ "crm.group_use_recurring_revenues\">ב-</span>"
-
-#~ msgid "<span class=\"oe_inline\"> (max) </span>"
-#~ msgstr "<span class=\"oe_inline\">(מקס)</span>"
-
-#~ msgid "<span class=\"oe_inline\"> / </span>"
-#~ msgstr "<span class=\"oe_inline\">/</span>"
-
-#~ msgid "Activities Done Target"
-#~ msgstr "יעד פעילויות שבוצעו"
-
-#~ msgid "Add next %s"
-#~ msgstr "הוסף טקסט %s"
-
-#~ msgid "Alias domain"
-#~ msgstr "כינוי תחום"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "אל תכלול טלפון נייד מהרשימה שחורה"
-
-#~ msgid "Call for Demo"
-#~ msgstr "התקשר להדגמה"
-
-#~ msgid "Configure a custom domain"
-#~ msgstr "הגדר שם דומיין"
-
-#~ msgid "Customer Email"
-#~ msgstr "דוא\"ל לקוח"
-
-#~ msgid "Do not link to a customer"
-#~ msgstr "אל תקשר ללקוח"
-
-#~ msgid "Email: Welcome Demo"
-#~ msgstr "ברוך הבא לתצוגת המערכת"
-
-#~ msgid "Extended Filters"
-#~ msgstr "מסננים מורחבים"
-
-#~ msgid "Extra Information"
-#~ msgstr "מידע נוסף"
-
-#~ msgid "Follow-up Quote"
-#~ msgstr "מעקב הצעת מחיר"
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid ""
-#~ "If set, this Sales Team will be used for sales and assignments related to "
-#~ "this partner"
-#~ msgstr "אם מוגדר, צוות מכירות זה ישמש למכירות ושיוכים הקשורים ללקוח/ספק זה"
-
-#~ msgid "Include archived"
-#~ msgstr "כולל בארכיון"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "מציין אם מספר טלפון המופיע ברשימה השחורה הוא מספר טלפון. עוזר להבחין איזה "
-#~ "מספר מופיע ברשימה השחורה כאשר במודל יש גם שדה נייד וגם טלפון."
-
-#~ msgid "Internal Notes"
-#~ msgstr "הערות פנימיות"
-
-#~ msgid "Kanban State"
-#~ msgstr "מצב קנבן "
-
-#~ msgid "Last Action:"
-#~ msgstr "פעולה אחרונה:"
-
-#~ msgid "Lead assigned to this member those last 30 days"
-#~ msgstr "ליד שהוקצה למשתמש זה ב-30 הימים האחרונים"
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "ליד/הזדמנות"
-
-#~ msgid ""
-#~ "Leads team allocation should be done for at least 0.2 or maximum 30 work "
-#~ "days, not %.2f."
-#~ msgstr ""
-#~ "הקצאת צוות לידים צריכה להיעשות לפחות 0.2 או מקסימום 30 ימי עבודה, %.2fלא ."
-
-#~ msgid "Make Quote"
-#~ msgstr "צור הצעת מחיר"
-
-#~ msgid "Mark Won"
-#~ msgstr "סמן כהצלחה"
-
-#~ msgid "Mobile"
-#~ msgstr "נייד"
-
-#~ msgid "Mobile:"
-#~ msgstr "נייד:"
-
-#~ msgid "New Opportunities"
-#~ msgstr "הזדמנויות חדשות"
-
-#~ msgid "Next activity is planned"
-#~ msgstr "הפעולה הבאה  מתוכננת "
-
-#~ msgid "Next activity late"
-#~ msgstr "הפעולה הבאה מאחרת"
-
-#~ msgid "No data yet!"
-#~ msgstr "אין מידע עדיין"
-
-#~ msgid "No next activity planned"
-#~ msgstr "לא תוכננה הפעילות הבאה"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Open Opportunity"
-#~ msgstr "הזדמנות פתוחה"
-
-#~ msgid "Opportunities Revenues"
-#~ msgstr "הכנסות מהזדמנויות"
-
-#~ msgid "Organization / Contact"
-#~ msgstr "איש קשר בארגון"
-
-#~ msgid "Overdue Opportunities Revenues"
-#~ msgstr "הכנסות מהזדמנויות באיחור"
-
-#~ msgid "Overdue Opportunity"
-#~ msgstr "הזדמנות באיחור"
-
-#~ msgid "Owner"
-#~ msgstr "אחראי"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "נייד"
-
-#~ msgid ""
-#~ "Please select more than one element (lead or opportunity) from the list "
-#~ "view."
-#~ msgstr "אנא בחר יותר מאלמנט אחד (ליד או הזדמנות) מתצוגת הרשימה."
-
-#~ msgid "Reschedule"
-#~ msgstr "מתוזמן מחדש"
-
-#~ msgid "Select Leads/Opportunities"
-#~ msgstr "בחר לידים/ הזדמנויות"
-
-#~ msgid "Snooze 7d"
-#~ msgstr "נִמנוּם 7 דק'"
-
-#~ msgid ""
-#~ "Specific team that uses this stage. Other teams will not be able to see "
-#~ "or use this stage."
-#~ msgstr ""
-#~ "צוות מסוים המשתמש בשלב זה. צוותים אחרים לא יוכלו לראות או להשתמש בשלב זה."
-
-#~ msgid "Start scheduling activities on your opportunities"
-#~ msgstr "התחל לתזמן פעילויות על ההזדמנויות שלך"
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "הבעלים של רשומות שנוצרו עם קבלת דוא\"ל בכינוי זה. אם שדה זה לא מוגדר, "
-#~ "המערכת תנסה למצוא את הבעלים הנכון על סמך כתובת השולח (מ), או שתשתמש "
-#~ "בחשבון מנהל המערכת אם לא נמצא משתמש מערכת עבור אותה כתובת."
-
-#~ msgid "Title"
-#~ msgstr "תואר"
-
-#~ msgid "Tracking"
-#~ msgstr "מעקב"
-
-#~ msgid "Unassigned Lead"
-#~ msgstr "ליד לא משויך"
-
-#~ msgid "Use the top left <i>Create</i> button, or send an email to"
-#~ msgstr "השתמש בכפתור <i>היצירה</i> השמאלי העליון, או שלח אימייל אל"
-
-#~ msgid ""
-#~ "Use the top left Create button, or configure an email alias to test the "
-#~ "email gateway."
-#~ msgstr ""
-#~ "השתמש בלחצן היצירה השמאלי העליון, או הגדר כינוי דוא\"ל כדי לבדוק את שער "
-#~ "הדוא\"ל."
-
-#~ msgid "Won in Opportunities Target"
-#~ msgstr "זכה ביעד הזדמנויות"
-
-#~ msgid "Yeah! Deal of the last 7 days for the team."
-#~ msgstr "כן! עסקה של 7 הימים האחרונים לצוות."

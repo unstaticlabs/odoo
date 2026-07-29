@@ -13,8 +13,9 @@ class ResPartner(models.Model):
     """ Update partner to add a field about notification preferences. Add a generic opt-out field that can be used
        to restrict usage of automatic email templates. """
     _name = 'res.partner'
-    _inherit = ['res.partner', 'mail.activity.mixin', 'mail.thread.blacklist']
+    _inherit = ['mail.thread.blacklist', 'res.partner', 'mail.activity.mixin']
     _mail_flat_thread = False
+    _mail_post_access = 'read'
 
     # override to add and order tracking
     name = fields.Char(tracking=1)
@@ -79,6 +80,15 @@ class ResPartner(models.Model):
     # ------------------------------------------------------------
     # MESSAGING
     # ------------------------------------------------------------
+
+    def _update_address(self, vals):
+        if (
+            not self.env.context.get('tracking_disable')
+            and not self.env.context.get('mail_notrack')
+            and any(fname in vals for fname in self._address_fields())
+        ):
+            self._track_prepare({'contact_address_inline'})
+        return super()._update_address(vals)
 
     def _mail_get_partners(self, introspect_fields=False):
         return dict((partner.id, partner) for partner in self)
@@ -253,59 +263,50 @@ class ResPartner(models.Model):
         self.ensure_one()
         return limited_field_access_token(self, "id", scope="mail.message_mention")
 
-    def _get_store_mention_fields(self):
-        return [Store.Attr("mention_token", lambda p: p._get_mention_token())]
+    def _store_avatar_fields(self, res: Store.FieldList):
+        res.attr("avatar_128_access_token", lambda p: p._get_avatar_128_access_token())
+        res.attr("write_date")
 
-    def _get_store_avatar_card_fields(self, target):
-        fields = [
-            "im_status",
-            "name",
-            "partner_share",
-        ]
-        if target.is_internal(self.env):
-            fields.extend(["email", "phone"])
-        return fields
+    def _store_im_status_fields(self, res: Store.FieldList):
+        res.attr("im_status")
+        res.attr("im_status_access_token", lambda p: p._get_im_status_access_token())
+        res.one("main_user_id", "_store_im_status_fields")
 
-    def _field_store_repr(self, field_name):
-        if field_name == "avatar_128":
-            return [
-                Store.Attr("avatar_128_access_token", lambda p: p._get_avatar_128_access_token()),
-                "write_date",
-            ]
-        if field_name == "im_status":
-            return [
-                "im_status",
-                Store.Attr("im_status_access_token", lambda p: p._get_im_status_access_token()),
-            ]
-        return [field_name]
+    def _store_mention_fields(self, res: Store.FieldList):
+        res.attr("mention_token", lambda p: p._get_mention_token())
 
-    def _to_store_defaults(self, target: Store.Target):
-        res = [
-            "active",
-            "avatar_128",
-            "im_status",
-            "is_company",
-            # sudo: res.partner - to access portal user of another company in chatter
-            Store.One("main_user_id", ["partner_id", "share"], sudo=True),
-            "name",
-        ]
-        if target.is_internal(self.env):
-            res.append("email")
-        return res
+    def _store_avatar_card_fields(self, res: Store.FieldList):
+        res.extend(["name", "partner_share"])
+        self._store_avatar_fields(res)
+        self._store_im_status_fields(res)
+        if res.is_for_internal_users():
+            res.extend(["email", "phone", "tz"])
+
+    def _store_partner_fields(self, res: Store.FieldList):
+        res.extend(["active", "is_company", "name"])
+        self._store_avatar_fields(res)
+        self._store_im_status_fields(res)
+        # sudo: to access portal user of another company in chatter
+        res.one("main_user_id", "_store_main_user_fields", sudo=True)
+        if res.is_for_internal_users():
+            res.extend(["email", "tz"])
 
     @api.readonly
     @api.model
     def get_mention_suggestions(self, search, limit=8):
         """ Return 'limit'-first partners' such that the name or email matches a 'search' string.
             Prioritize partners that are also (internal) users, and then extend the research to all partners.
-            The return format is a list of partner data (as per returned by `_to_store()`).
         """
-        domain = self._get_mention_suggestions_domain(search)
-        partners = self._search_mention_suggestions(domain, limit)
-        store = Store().add(partners, extra_fields=partners._get_store_mention_fields())
+        store = Store().add(
+            self._search_mention_suggestions(self._get_mention_suggestions_domain(search), limit),
+            lambda res: (
+                res.from_method("_store_partner_fields"),
+                res.from_method("_store_mention_fields"),
+            ),
+        )
         try:
             roles = self.env["res.role"].search([("name", "ilike", search)], limit=8)
-            store.add(roles, "name")
+            store.add(roles, ["name", "user_ids_count"])
         except AccessError:
             pass
         return store.get_result()
@@ -336,9 +337,3 @@ class ResPartner(models.Model):
             query = self._search(Domain('id', 'not in', partners.ids) & domain, limit=remaining_limit)
             partners |= self.browse(query)
         return partners
-
-    @api.model
-    def _get_current_persona(self):
-        if not self.env.user or self.env.user._is_public():
-            return (self.env["res.partner"], self.env["mail.guest"]._get_guest_from_context())
-        return (self.env.user.partner_id, self.env["mail.guest"])

@@ -5,16 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 09:56+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2026-06-06 13:59+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_management/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -71,11 +71,17 @@ msgid "Archived"
 msgstr "Archivado"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Compañías"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -152,14 +158,6 @@ msgid "Display Type"
 msgstr "Tipo de pantalla"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"No tiene acceso, salte esta información para el resumen del correo "
-"electrónico del usuario"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -172,6 +170,18 @@ msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr ""
 "Indica el orden de secuencia al mostrar una lista de líneas de presupuesto "
 "de venta."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -268,8 +278,8 @@ msgstr "Línea opcional"
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
-msgstr "Sección de productos opcionales"
+msgid "Optional Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__parent_id
@@ -339,6 +349,12 @@ msgstr "Plantillas de presupuesto"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
 msgstr "Validez del presupuesto"
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
@@ -425,6 +441,8 @@ msgstr ""
 "codificación de los pedidos de venta sea más fácil y sin errores."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr "Subsección"
@@ -523,8 +541,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -538,8 +556,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -569,138 +587,3 @@ msgstr "días"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "p. ej. Paquete estándar de consultoría"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Su plantilla no puede contener productos de varias compañías."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Su plantilla contiene productos de la compañía %(product_company)s, "
-#~ "mientras que su plantilla pertenece a la compañía %(template_company)s.\n"
-#~ " Cambie la compañía de su plantilla o elimine los productos de otras "
-#~ "compañías."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "Escritorio para 4 personas"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Opciones</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Pago</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>Firma</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Agregar al carrito"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Añadir a las líneas de pedido"
-
-#~ msgid "Category"
-#~ msgstr "Categoría"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "La conversión entre las unidades de medidas sólo pueden ocurrir si "
-#~ "pertenecen a la misma categoría. La conversión se basará en los ratios "
-#~ "establecidos."
-
-#~ msgid "Disc.%"
-#~ msgstr "Desc.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Descuento (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Da el orden de secuencia al mostrar una lista de productos opcionales."
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar por"
-
-#~ msgid "Line"
-#~ msgstr "Línea"
-
-#~ msgid "Office Chair"
-#~ msgstr "Silla de oficina"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Confirmación en línea"
-
-#~ msgid "Optional Products"
-#~ msgstr "Productos opcionales"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Líneas de productos opcionales"
-
-#~ msgid "Options"
-#~ msgstr "Opciones"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Presente en la cita"
-
-#~ msgid "Quantity:"
-#~ msgstr "Cantidad:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Constructor de presupuestos"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Opción de plantilla de presupuesto"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "El presupuesto expira después de"
-
-#~ msgid "Remove"
-#~ msgstr "Eliminar"
-
-#~ msgid "Sale Options"
-#~ msgstr "Opciones de venta"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Referencia del pedido de venta"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Líneas de la plantilla de pedido de venta"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Este campo se verificará si el producto de la línea de opción ya está "
-#~ "presente en la cotización."
-
-#~ msgid "Unit Price"
-#~ msgstr "Precio unitario"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Precio unitario:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Unidad de medida"
-
-#~ msgid "UoM"
-#~ msgstr "UdM"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "No puede añadir opciones a un pedido confirmado."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Su presupuesto contiene productos de la compañía %(product_company)s, "
-#~ "mientras que el mismo pertenece a la compañía %(quote_company)s.\n"
-#~ " Cambie la compañía de su presupuesto o elimine los productos de otras "
-#~ "compañías (%(bad_products)s)."

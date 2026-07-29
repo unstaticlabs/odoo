@@ -3,11 +3,13 @@
 import datetime
 import logging
 import re
+import time
 import traceback
 from collections import defaultdict
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
+
 from odoo import _, api, exceptions, fields, models
 from odoo.exceptions import LockError, MissingError
 from odoo.fields import Domain
@@ -25,6 +27,13 @@ DOMAIN_FIELDS_RE = re.compile(r"""
     (?:[^,]*?,){2}          # anything with two commas (to ensure that we are inside a triplet)
     [^,]*?[()[\]]           # anything except a comma followed by a closing bracket or another opening bracket
 """, re.VERBOSE)
+
+
+def job_log_level(status, duration):
+    return (logging.ERROR if status != 'done'
+        else logging.WARNING if duration > 1
+        else logging.INFO if duration > .1
+        else logging.DEBUG)
 
 
 def _get_domain_fields(env, model, domain):
@@ -489,7 +498,7 @@ class BaseAutomation(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        base_automations = super(BaseAutomation, self).create(vals_list)
+        base_automations = super().create(vals_list)
         self._update_cron()
         self._update_registry()
         if base_automations._has_trigger_onchange():
@@ -499,11 +508,12 @@ class BaseAutomation(models.Model):
 
     def write(self, vals: dict):
         clear_templates = self._has_trigger_onchange()
-        res = super(BaseAutomation, self).write(vals)
+        res = super().write(vals)
         if set(vals).intersection(self.CRITICAL_FIELDS):
             self._update_cron()
             self._update_registry()
-            if clear_templates or self._has_trigger_onchange():
+            clear_templates |= self._has_trigger_onchange()
+            if clear_templates and any(self._ids):
                 # Invalidate templates cache to update on_change attributes if needed
                 self.env.registry.clear_cache('templates')
         elif set(vals).intersection(self.RANGE_FIELDS):
@@ -512,7 +522,7 @@ class BaseAutomation(models.Model):
 
     def unlink(self):
         clear_templates = self._has_trigger_onchange()
-        res = super(BaseAutomation, self).unlink()
+        res = super().unlink()
         self._update_cron()
         self._update_registry()
         if clear_templates:
@@ -725,7 +735,7 @@ class BaseAutomation(models.Model):
             interval_type = 'hours'
         return interval, interval_type
 
-    def _filter_pre(self, records, feedback=False):
+    def _filter_pre(self, records, feedback=False, changed_fields=()):
         """ Filter the records that satisfy the precondition of automation ``self``. """
         self_sudo = self.sudo()
         if self_sudo.filter_pre_domain and records:
@@ -737,14 +747,13 @@ class BaseAutomation(models.Model):
             # keep computed fields depending on the currently changed field
             # as-is so they are recomputed after the value is set
             # see `test_computation_sequence`
-            changed_fields = self.env.context.get('changed_fields', ())
             to_compute = {
                 dep: comp
                 for f in changed_fields
                 for dep in self.env.registry.get_dependent_fields(f)
                 if (comp := self.env.records_to_compute(dep))
             }
-            records = records.with_context(changed_fields=()).sudo().filtered_domain(domain).sudo(records.env.su)
+            records = records.sudo().filtered_domain(domain).with_env(records.env)
             for dep, comp in to_compute.items():
                 self.env.add_to_compute(dep, comp)
         return records
@@ -775,7 +784,7 @@ class BaseAutomation(models.Model):
                 'name': self.sudo().name,
             }
 
-    def _process(self, records, domain_post=None):
+    def _process(self, records, domain_post=None, trigger=''):
         """ Process automation ``self`` on the ``records`` that have not been done yet. """
         # filter out the records on which self has already been done
         automation_done = self.env.context.get('__action_done', {})
@@ -814,15 +823,32 @@ class BaseAutomation(models.Model):
             }
             for record in records
         ]
+        stopwatches = self.env.cr.cache.setdefault('base_automation_stopwatches', {})
+        last_stopwatches = self.env.cr.cache.setdefault('base_automation_last_stopwatches', [])
 
         # execute server actions
         for action in self.sudo().action_server_ids:
-            for ctx in contexts:
-                try:
+            last_stopwatches.append((self.id, time.monotonic()))
+            record_no = 0
+            try:
+                for record_no, ctx in enumerate(contexts, start=1):
                     action.with_context(**ctx).run()
-                except Exception as e:
-                    self._add_postmortem(e)
-                    raise
+                status = 'done'
+            except Exception as e:
+                self._add_postmortem(e)
+                status = 'failed'
+                raise
+            except BaseException:
+                status = 'aborted'
+                raise
+            finally:
+                # log the action duration; also store it for dumpstacks
+                duration = time.monotonic() - last_stopwatches.pop()[1]
+                stopwatches[self.id] = stopwatches.get(self.id, 0) + duration
+                level = job_log_level(status, duration)
+                _logger.log(level, "%s %r (%s) %s (%s; %s/%s records; duration %.3fs)",
+                    self._description, self.sudo().name, self.id,
+                    status, trigger, record_no, len(records), duration)
 
     def _check_trigger_fields(self, record):
         """ Return whether any of the trigger fields has been modified on ``record``. """
@@ -868,11 +894,7 @@ class BaseAutomation(models.Model):
                 records = create.origin(self.with_env(automations.env), vals_list, **kw)
                 # check postconditions, and execute actions on the records that satisfy them
                 for automation in automations.with_context(old_values=None):
-                    _logger.debug(
-                        "Processing automation rule %s (#%s) on %s records (create)",
-                        automation.sudo().name, automation.sudo().id, len(records),
-                    )
-                    automation._process(automation._filter_post(records, feedback=True))
+                    automation._process(automation._filter_post(records, feedback=True), trigger='create')
                 return records.with_env(self.env)
 
             return create
@@ -896,12 +918,8 @@ class BaseAutomation(models.Model):
                 write.origin(self.with_env(automations.env), vals, **kw)
                 # check postconditions, and execute actions on the records that satisfy them
                 for automation in automations.with_context(old_values=old_values):
-                    _logger.debug(
-                        "Processing automation rule %s (#%s) on %s records (write)",
-                        automation.sudo().name, automation.sudo().id, len(records),
-                    )
                     records, domain_post = automation._filter_post_export_domain(pre[automation], feedback=True)
-                    automation._process(records, domain_post=domain_post)
+                    automation._process(records, domain_post=domain_post, trigger='write')
                 return True
 
             return write
@@ -925,7 +943,7 @@ class BaseAutomation(models.Model):
                 # check preconditions on records
                 # changed fields are all fields computed by the function
                 changed_fields = [f for f in records._fields.values() if f.compute == field.compute]
-                pre = {a: a.with_context(changed_fields=changed_fields)._filter_pre(records) for a in automations}
+                pre = {a: a._filter_pre(records, changed_fields=changed_fields) for a in automations}
                 # read old values before the update
                 old_values = {
                     record.id: {fname: record[fname] for fname in stored_fnames}
@@ -935,12 +953,8 @@ class BaseAutomation(models.Model):
                 _compute_field_value.origin(self, field)
                 # check postconditions, and execute automations on the records that satisfy them
                 for automation in automations.with_context(old_values=old_values):
-                    _logger.debug(
-                        "Processing automation rule %s (#%s) on %s records (_compute_field_value)",
-                        automation.sudo().name, automation.sudo().id, len(records),
-                    )
                     records, domain_post = automation._filter_post_export_domain(pre[automation], feedback=True)
-                    automation._process(records, domain_post=domain_post)
+                    automation._process(records, domain_post=domain_post, trigger='_compute_field_value')
                 return True
 
             return _compute_field_value
@@ -953,11 +967,7 @@ class BaseAutomation(models.Model):
                 records = self.with_env(automations.env)
                 # check conditions, and execute actions on the records that satisfy them
                 for automation in automations:
-                    _logger.debug(
-                        "Processing automation rule %s (#%s) on %s records (unlink)",
-                        automation.sudo().name, automation.sudo().id, len(records),
-                    )
-                    automation._process(automation._filter_post(records, feedback=True))
+                    automation._process(automation._filter_post(records, feedback=True), trigger='unlink')
                 # call original method
                 return unlink.origin(self, **kwargs)
 
@@ -1016,11 +1026,7 @@ class BaseAutomation(models.Model):
                 automations = self.env['base.automation']._get_actions(self, [mail_trigger])
                 for automation in automations.with_context(old_values=None):
                     records = automation._filter_pre(self, feedback=True)
-                    _logger.debug(
-                        "Processing automation rule %s (#%s) on %s records (_message_post)",
-                        automation.sudo().name, automation.sudo().id, len(records),
-                    )
-                    automation._process(records)
+                    automation._process(records, trigger='_message_post')
 
                 return message
             return _message_post
@@ -1119,7 +1125,7 @@ class BaseAutomation(models.Model):
             # use the calendar information from the record
             # _get_calendar can be overwritten and cannot be optimized
             time_domain = Domain.TRUE if is_date_automation_last else Domain(date_field.name, '!=', False)
-            if (date_field.store or date_field.search):
+            if date_field._description_searchable:
                 records = Model.search(time_domain & domain)
             else:
                 records = Model.search(domain).filtered_domain(time_domain)
@@ -1162,7 +1168,7 @@ class BaseAutomation(models.Model):
             if is_date_automation_last:
                 time_domain |= Domain(date_field.name, '=', False) & Domain('create_date', '>=', relative_last_run) & Domain('create_date', '<', relative_until)
 
-        if (date_field.store or date_field.search):
+        if date_field._description_searchable:
             return Model.search(time_domain & domain)
         else:
             return Model.search(domain).filtered_domain(time_domain)
@@ -1191,7 +1197,7 @@ class BaseAutomation(models.Model):
             # run the automation on the records
             try:
                 for record in records:
-                    automation._process(record)
+                    automation._process(record, trigger='time-based')
                 self.env.flush_all()
             except Exception as e:
                 self.env.cr.rollback()

@@ -8,16 +8,16 @@
 # Mads Søndergaard, 2023
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 11:53+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-23 13:30+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_payment/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -74,11 +74,6 @@ msgid "<b>Payment Method:</b>"
 msgstr "<b>Betalingsform:</b>"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">Land ...</option>"
-
-#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_input
 msgid ""
 "<small class=\"text-danger d-none\" id=\"warning_message_id\">Please enter "
@@ -127,6 +122,27 @@ msgid "<span class=\"s_donation_currency pe-1\">$</span>50"
 msgstr "50<span class=\"s_donation_currency pe-1\">kr.</span>"
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Country</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span>Enable a payment provider to accept online payments.</span>"
 msgstr ""
@@ -137,7 +153,7 @@ msgid "<span>or</span>"
 msgstr ""
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "<strong>Warning</strong> The currency is missing or incorrect."
 msgstr "<strong>Advarsel</strong> Valutaen mangler eller er ugyldig."
 
@@ -151,16 +167,6 @@ msgstr "Der er modtaget en donation på din hjemmeside"
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "A year of cultural awakening."
 msgstr "Et år med fokus på kulturel bevidsthed."
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate"
-msgstr "Aktivér"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate Stripe"
-msgstr "Aktivér Stripe"
 
 #. module: website_payment
 #. odoo-javascript
@@ -224,19 +230,20 @@ msgid "Configure Payment Methods"
 msgstr ""
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect Stripe"
+msgstr ""
+
+#. module: website_payment
 #. odoo-javascript
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Country"
 msgstr "Land"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Country\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"Land\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -294,9 +301,8 @@ msgid "Donate Now"
 msgstr "Donér nu"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation"
 msgstr "Donation"
@@ -305,6 +311,11 @@ msgstr "Donation"
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation Button"
 msgstr "Donationsknap"
+
+#. module: website_payment
+#: model:ir.model.fields,field_description:website_payment.field_payment_transaction__donation_log_message
+msgid "Donation Log Message"
+msgstr ""
 
 #. module: website_payment
 #. odoo-python
@@ -334,15 +345,6 @@ msgstr "Notifikation om donation"
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Email"
 msgstr "E-mail"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Email\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"E-mail\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. odoo-python
@@ -425,15 +427,6 @@ msgid "Name"
 msgstr "Navn"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Name\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-"Navn\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-
-#. module: website_payment
 #. odoo-python
 #: code:addons/website_payment/controllers/portal.py:0
 msgid "Name is required."
@@ -462,6 +455,11 @@ msgid "One year in high school."
 msgstr "Et år i gymnasiet."
 
 #. module: website_payment
+#: model:ir.model,name:website_payment.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 msgid "Payment Details"
 msgstr "Betalingsoplysninger"
@@ -477,31 +475,19 @@ msgid "Payment Transaction"
 msgstr "Betalingstransaktion"
 
 #. module: website_payment
-#. odoo-python
-#: code:addons/website_payment/models/payment_transaction.py:0
-msgid "Payment received from donation with following details:"
-msgstr "Betaling modtaget ved donation med følgende oplysninger:"
-
-#. module: website_payment
-#: model:ir.model,name:website_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Payments"
 msgstr "Betalinger"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please enter a valid email address."
 msgstr "Indtast venligst en gyldig e-mailadresse."
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please provide a name."
 msgstr "Angiv venligst et navn."
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "Please select a country."
-msgstr "Vælg venligst et land."
 
 #. module: website_payment
 #. odoo-javascript
@@ -569,7 +555,7 @@ msgid "The minimum donation amount is %(amount)s"
 msgstr "Det mindste donationsbeløb er %(amount)s"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "There is nothing to pay."
 msgstr "Der er ikke noget at betale."
 
@@ -582,8 +568,8 @@ msgstr ""
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid ""
-"Visa, Mastercard, Maestro, Google Pay, Apple Pay, etc. as well as recurring "
-"charges."
+"Visa, Mastercard, Maestro, UPI, Netbanking, PayNow, Klarna, etc., as well as "
+"recurring charges."
 msgstr ""
 
 #. module: website_payment
@@ -605,58 +591,3 @@ msgstr "Din kommentar"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "made on"
 msgstr "lavet den"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Kunne ikke finde nogen passende betalingsmulighed.</strong><br/>\n"
-#~ "                                Hvis du mener at dette er en fejl, bedes "
-#~ "du venligst kontakte hjemmesidens administrator."
-
-#~ msgid "Activate Payments"
-#~ msgstr "Aktivér betalinger"
-
-#~ msgid "Add new pre-filled option"
-#~ msgstr "Tilføj ny forudfyldt valgmulighed"
-
-#~ msgid "Configure %s"
-#~ msgstr "Konfigurér %s"
-
-#~ msgid "First Provider Label"
-#~ msgstr "Første udbyderetiket"
-
-#~ msgid "Is Stripe Supported Country"
-#~ msgstr "Er et land, der understøtter Stripe"
-
-#~ msgid "Other than Paypal"
-#~ msgstr "Andet end Paypal"
-
-#~ msgid "Paypal Only"
-#~ msgstr "Kun Paypal"
-
-#~ msgid "Providers State"
-#~ msgstr "Udbyderens stat"
-
-#~ msgid "Server Error"
-#~ msgstr "Server fejl"
-
-#~ msgid "Shop - Payment"
-#~ msgstr "Butik – Betaling"
-
-#~ msgid ""
-#~ "Support most payment methods; Visa, Mastercard, Maestro, Google Pay, "
-#~ "Apple Pay, etc. as well as recurring charges."
-#~ msgstr ""
-#~ "Understøtter de fleste betalingsformer; Visa, Mastercard, Maestro, Google "
-#~ "Pay, Apple Pay osv. samt tilbagevendende opkrævninger."
-
-#~ msgid "Validation Error"
-#~ msgstr "Fejl ved godkendelse"
-
-#~ msgid "View Alternatives"
-#~ msgstr "Se alternativer"
-
-#~ msgid "View other providers"
-#~ msgstr "Se andre udbydere"

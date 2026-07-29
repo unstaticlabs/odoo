@@ -7,13 +7,13 @@
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 04:11+0000\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2025-11-15 14:15+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
 "odoo-19/repair/sr_Latn/>\n"
@@ -23,18 +23,12 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "%(name)s Sequence repair"
-msgstr ""
-
-#. module: repair
-#. odoo-python
-#: code:addons/repair/models/repair.py:0
-msgid "%(product)s: Insufficient Quantity To Repair"
 msgstr ""
 
 #. module: repair
@@ -61,11 +55,6 @@ msgid ""
 "* The 'Under Repair' status is used when the repair is ongoing.\n"
 "* The 'Repaired' status is set when repairing is completed.\n"
 "* The 'Cancelled' status is used when user cancel repair order."
-msgstr ""
-
-#. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "<br/>You can still confirm the repair of"
 msgstr ""
 
 #. module: repair
@@ -144,13 +133,6 @@ msgid "<strong>Status:</strong>"
 msgstr ""
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid ""
-"? , but get ready to have fun taking inventory to fix the negative stock "
-"quantity!"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_needaction
 msgid "Action Needed"
 msgstr "Potrebna akcija"
@@ -164,6 +146,11 @@ msgstr "Aktivnosti"
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Dekoracija izuzeć́a aktivnosti"
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__activity_state
@@ -280,6 +267,11 @@ msgid "BoM Components"
 msgstr ""
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__can_create_sale_or_invoice
+msgid "Can Create Sale Or Invoice"
+msgstr ""
+
+#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_warehouse.py:0
 msgid "Can't find any production location."
@@ -287,8 +279,8 @@ msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Cancel Repair"
-msgstr "Otkazi Popravku"
+msgid "Cancel"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields.selection,name:repair.selection__repair_order__state__cancel
@@ -360,11 +352,6 @@ msgid "Confirmed"
 msgstr "Potvrđeno"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Create Quotation"
-msgstr ""
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 #: model:ir.actions.server,name:repair.action_create_repair_order
@@ -385,14 +372,12 @@ msgstr "Kreiraj po narudžbini"
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_uid
 msgid "Created by"
 msgstr "Kreirao"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__create_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__create_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__create_date
 msgid "Created on"
 msgstr "Kreirano"
 
@@ -429,6 +414,7 @@ msgid "Details"
 msgstr "Detalji"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__display_name
 #: model:ir.model.fields,field_description:repair.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:repair.field_product_product__display_name
 #: model:ir.model.fields,field_description:repair.field_product_template__display_name
@@ -444,7 +430,6 @@ msgstr "Detalji"
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__display_name
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__display_name
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__display_name
 msgid "Display Name"
 msgstr "Naziv za prikaz"
 
@@ -485,13 +470,6 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Font awesome ikonica npr. fa-tasks"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid ""
-"For some of the parts, there is a difference between the initial demand and "
-"the actual quantity that was used. Are you sure you want to confirm ?"
-msgstr ""
-
-#. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Future Activities"
 msgstr "Buduće aktivnosti"
@@ -507,6 +485,7 @@ msgid "Has Uncomplete Moves"
 msgstr ""
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_account_move__id
 #: model:ir.model.fields,field_description:repair.field_account_move_line__id
 #: model:ir.model.fields,field_description:repair.field_product_product__id
 #: model:ir.model.fields,field_description:repair.field_product_template__id
@@ -522,7 +501,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:repair.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:repair.field_stock_traceability_report__id
 #: model:ir.model.fields,field_description:repair.field_stock_warehouse__id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__id
 msgid "ID"
 msgstr "ID"
 
@@ -593,6 +571,22 @@ msgid "Inventory Moves"
 msgstr ""
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_ids
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoice"
+msgstr ""
+
+#. module: repair
+#: model:ir.model.fields,field_description:repair.field_repair_order__invoice_count
+msgid "Invoice Count"
+msgstr ""
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Invoices"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__message_is_follower
 msgid "Is Follower"
 msgstr "Je Pratilac"
@@ -608,9 +602,14 @@ msgid "John Doe"
 msgstr ""
 
 #. module: repair
+#: model:ir.model,name:repair.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: repair
 #: model:ir.model,name:repair.model_account_move_line
 msgid "Journal Item"
-msgstr "Stavka izveštaja"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -625,14 +624,12 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_uid
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_uid
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_uid
 msgid "Last Updated by"
 msgstr "Poslednje izmenio/la"
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__write_date
 #: model:ir.model.fields,field_description:repair.field_repair_tags__write_date
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__write_date
 msgid "Last Updated on"
 msgstr "Poslednje ažuriranje dana"
 
@@ -653,11 +650,6 @@ msgid ""
 "Latest parts availability status for this RO. If green, then the RO's "
 "readiness status is ready."
 msgstr ""
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__location_id
-msgid "Location"
-msgstr "Lokacija"
 
 #. module: repair
 #: model:ir.model,name:repair.model_stock_lot
@@ -794,6 +786,11 @@ msgid "Open"
 msgstr "Otvori"
 
 #. module: repair
+#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
+msgid "Operation Category"
+msgstr ""
+
+#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_type_id
 msgid "Operation Type"
 msgstr ""
@@ -826,11 +823,6 @@ msgid "Pending"
 msgstr "U toku"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
-msgid "Picked"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_ids
 msgid "Picking Product"
 msgstr ""
@@ -859,7 +851,6 @@ msgstr "Prioritet"
 #. module: repair
 #: model:ir.model,name:repair.model_product_template
 #: model:ir.model.fields,field_description:repair.field_repair_order__picking_product_id
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_id
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Product"
 msgstr "Proizvod"
@@ -943,17 +934,15 @@ msgid "Properties"
 msgstr "Osobine"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quant_ids
-msgid "Quant"
-msgstr ""
-
-#. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__quantity
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_tree
 msgid "Quantity"
 msgstr "Količina"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Quote"
+msgstr ""
 
 #. module: repair
 #: model_terms:ir.ui.view,arch_db:repair.report_repairorder
@@ -1009,7 +998,6 @@ msgstr ""
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_stock_move__repair_id
 #: model:ir.model.fields,field_description:repair.field_stock_picking__repair_ids
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__repair_id
 #: model:ir.model.fields.selection,name:repair.selection__stock_picking_type__code__repair_operation
 msgid "Repair"
 msgstr ""
@@ -1033,8 +1021,11 @@ msgstr ""
 #. module: repair
 #: model:ir.actions.report,name:repair.action_report_repair_order
 #: model:ir.model,name:repair.model_repair_order
+#: model:ir.model.fields,field_description:repair.field_account_bank_statement_line__repair_order_id
+#: model:ir.model.fields,field_description:repair.field_account_move__repair_order_id
 #: model:ir.model.fields,field_description:repair.field_sale_order__repair_order_ids
 #: model:ir.model.fields.selection,name:repair.selection__product_template__service_tracking__repair
+#: model_terms:ir.ui.view,arch_db:repair.view_account_move_form_inherit_repair
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
 #: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form_filter
 msgid "Repair Order"
@@ -1093,7 +1084,7 @@ msgstr ""
 
 #. module: repair
 #: model:ir.model,name:repair.model_repair_tags
-msgid "Repair Tags"
+msgid "Repair Tag"
 msgstr ""
 
 #. module: repair
@@ -1151,6 +1142,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:repair.stock_repair_type_kanban
 msgid "Reporting"
 msgstr "Izveštavanje"
+
+#. module: repair
+#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+msgid "Reserved"
+msgstr ""
 
 #. module: repair
 #: model:ir.model.fields,field_description:repair.field_repair_order__user_id
@@ -1402,11 +1398,6 @@ msgid "Type"
 msgstr "Vrsta"
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr ""
-
-#. module: repair
 #: model:ir.model.fields,help:repair.field_repair_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Zabeležen tip aktivnosti izuzeća."
@@ -1423,8 +1414,7 @@ msgid "Under Warranty"
 msgstr ""
 
 #. module: repair
-#: model:ir.model.fields,field_description:repair.field_repair_order__product_uom
-#: model:ir.model.fields,field_description:repair.field_stock_warn_insufficient_qty_repair__product_uom_name
+#: model:ir.model.fields,field_description:repair.field_repair_order__uom_id
 msgid "Unit"
 msgstr "Jedinica"
 
@@ -1434,7 +1424,7 @@ msgid "Units"
 msgstr "Kom"
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.view_repair_order_form
+#: model:ir.actions.server,name:repair.action_unreserve
 msgid "Unreserve"
 msgstr ""
 
@@ -1447,11 +1437,6 @@ msgstr "Hitno"
 #: model:ir.model,name:repair.model_stock_warehouse
 msgid "Warehouse"
 msgstr "Magacin"
-
-#. module: repair
-#: model:ir.model,name:repair.model_stock_warn_insufficient_qty_repair
-msgid "Warn Insufficient Repair Quantity"
-msgstr ""
 
 #. module: repair
 #. odoo-python
@@ -1492,6 +1477,12 @@ msgstr ""
 
 #. module: repair
 #. odoo-python
+#: code:addons/repair/models/account_move.py:0
+msgid "You can only have one invoice linked to a repair order."
+msgstr ""
+
+#. module: repair
+#. odoo-python
 #: code:addons/repair/models/repair.py:0
 msgid "You cannot cancel a Repair Order that's already been completed"
 msgstr ""
@@ -1517,11 +1508,6 @@ msgid ""
 msgstr ""
 
 #. module: repair
-#: model_terms:ir.ui.view,arch_db:repair.stock_warn_insufficient_qty_repair_form_view
-msgid "from location"
-msgstr ""
-
-#. module: repair
 #. odoo-python
 #: code:addons/repair/models/stock_picking.py:0
 msgid "id"
@@ -1532,216 +1518,3 @@ msgstr ""
 #: code:addons/repair/models/sale_order.py:0
 msgid "sale_order_id"
 msgstr ""
-
-#~ msgid "Category"
-#~ msgstr "Kategorija"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Do konverzije između mernih jedinica može doć́i samo ako pripadaju istoj "
-#~ "kategoriji. Konverzija će se izvršiti na osnovu odnosa."
-
-#~ msgid "Done"
-#~ msgstr "Završeno"
-
-#~ msgid "Group By"
-#~ msgstr "Grupiši po"
-
-#~ msgid "Product Unit of Measure"
-#~ msgstr "Jedinica mere proizvoda"
-
-#~ msgid "Return"
-#~ msgstr "Vrati"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Prikaži sve zapise koji imaju datum sledeće aktivnosti pre današnjeg "
-#~ "datuma"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Jedinica Mere"
-
-#~ msgid "(update)"
-#~ msgstr "(ažuriraj)"
-
-#~ msgid "<strong>Printing Date:</strong>"
-#~ msgstr "<strong>Datum štampanja:</strong>"
-
-#~ msgid "<strong>Product to Repair:</strong>"
-#~ msgstr "<strong>Proizvod za popravku:</strong>"
-
-#~ msgid "<strong>Total Without Taxes</strong>"
-#~ msgstr "<strong>Ukupno pre poreza</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Ukupno</strong>"
-
-#~ msgid "After Repair"
-#~ msgstr "Nakon Popravke"
-
-#~ msgid "Before Repair"
-#~ msgstr "Pre POpravke"
-
-#~ msgid "Cancel"
-#~ msgstr "Otkaži"
-
-#~ msgid "Create Invoice"
-#~ msgstr "Kreiraj Fakturu"
-
-#~ msgid "Create invoices"
-#~ msgstr "Kreiranje računa"
-
-#~ msgid "Currency"
-#~ msgstr "Valuta"
-
-#~ msgid "Delivery Address"
-#~ msgstr "Adresa Dostave"
-
-#~ msgid "Dest. Location"
-#~ msgstr "Odredišna lokacija"
-
-#~ msgid "Do you really want to create the invoice(s)?"
-#~ msgstr "Da li stvarno zelis da kreiras fakturu(e) ?"
-
-#~ msgid "Draft"
-#~ msgstr "Priprema"
-
-#~ msgid "Extra Info"
-#~ msgstr "Dodatne Informacije"
-
-#~ msgid "Fees"
-#~ msgstr "Porezi"
-
-#~ msgid "Group by partner invoice address"
-#~ msgstr "Grupisano po adresama faktura partnera"
-
-#~ msgid "History"
-#~ msgstr "Istorija"
-
-#~ msgid "Invoice"
-#~ msgstr "Faktura"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Red računa"
-
-#~ msgid "Invoice Method"
-#~ msgstr "Metod Fakturisanja"
-
-#~ msgid "Invoice State"
-#~ msgstr "Stanje fakture"
-
-#~ msgid "Invoice address:"
-#~ msgstr "Adresa za račun"
-
-#~ msgid "Invoice and shipping address:"
-#~ msgstr "Adresa za račun i dostavu"
-
-#~ msgid "Invoiced"
-#~ msgstr "Fakturisano"
-
-#~ msgid "Invoicing Address"
-#~ msgstr "Adresa Fakturisanja"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Sadržaj dnevnika"
-
-#~ msgid "No Invoice"
-#~ msgstr "Ne Fakturisi"
-
-#~ msgid "No account defined for product \"%s\"."
-#~ msgstr "Ni jedan nalog nije kreiran za proizvod \"%s\" ."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Broj poruka koje zahtevaju akciju"
-
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgid "Pricelist"
-#~ msgstr "Cenovnik"
-
-#~ msgid "Pricelist of the selected partner."
-#~ msgstr "Cenovnik označenog partnera"
-
-#~ msgid "Quotation"
-#~ msgstr "Ponuda"
-
-#~ msgid "Quotation / Order"
-#~ msgstr "Ponude / Nalozi"
-
-#~ msgid "Quotation Notes"
-#~ msgstr "Kotacija napomene"
-
-#~ msgid "Quotations"
-#~ msgstr "Ponude"
-
-#~ msgid "Ready To Repair"
-#~ msgstr "Spremno za Popravku"
-
-#~ msgid "Ready to Repair"
-#~ msgstr "Spremno za Popravku"
-
-#~ msgid "Repair Line"
-#~ msgstr "Linija Popravke"
-
-#~ msgid "Repair Order #:"
-#~ msgstr "Nalog za popravku #:"
-
-#~ msgid "Repair Order Reference"
-#~ msgstr "Referenca zahteva za popravku"
-
-#~ msgid "Repair Quotation #:"
-#~ msgstr "Ponuda za popravku #:"
-
-#~ msgid ""
-#~ "Selecting 'Before Repair' or 'After Repair' will allow you to generate "
-#~ "invoice before or after the repair is done respectively. 'No invoice' "
-#~ "means you don't want to generate invoice for this repair order."
-#~ msgstr ""
-#~ "Odabirom 'Pre popravke' ili 'Posle popravke' će vam omogućiti kreiranje "
-#~ "fakture pre odnosno posle popravke. 'Bez fakture' označava da se za ovaj "
-#~ "nalog ne pravi faktura."
-
-#~ msgid "Send Quotation"
-#~ msgstr "Pošalji Ponudu"
-
-#~ msgid "Source Location"
-#~ msgstr "Lokacija izvora"
-
-#~ msgid "Subtotal"
-#~ msgstr "Ukupno"
-
-#~ msgid "Tax"
-#~ msgstr "Porez"
-
-#~ msgid "Taxes"
-#~ msgstr "Porezi"
-
-#~ msgid "The name of the Repair Order must be unique!"
-#~ msgstr "Naziv naloga za popravku mora biti jedinstven!"
-
-#~ msgid "To be Invoiced"
-#~ msgstr "Da bude Fakturisano"
-
-#~ msgid "Total"
-#~ msgstr "Ukupno"
-
-#~ msgid "Total amount"
-#~ msgstr "Ukupni iznos"
-
-#~ msgid "Unit Price"
-#~ msgstr "Jedinična cena"
-
-#~ msgid "Untaxed Amount"
-#~ msgstr "Neoporezovani iznos"
-
-#~ msgid "Untaxed amount"
-#~ msgstr "Iznos bez Poreza"
-
-#~ msgid "UoM"
-#~ msgstr "JM"
-
-#~ msgid "Warranty Expiration"
-#~ msgstr "Datum isteka garancije"

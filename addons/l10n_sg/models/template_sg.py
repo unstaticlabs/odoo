@@ -31,7 +31,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'sg_purchase_tax_tx8_9',
                 'expense_account_id': 'account_account_819',
                 'income_account_id': 'account_account_803',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'account_account_699',
             },
         }

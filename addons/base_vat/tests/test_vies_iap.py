@@ -6,10 +6,9 @@ from unittest.mock import patch, Mock
 from odoo.exceptions import UserError
 from odoo.tools import hash_sign
 
-from odoo.tests.common import HttpCase, tagged
+from odoo.tests.common import HttpCase
 
 
-@tagged('post_install', '-at_install')
 class TestViesIAP(HttpCase):
     @classmethod
     def setUpClass(cls):

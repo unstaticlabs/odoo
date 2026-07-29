@@ -4,7 +4,7 @@
     <t t-name="point_of_sale.ProductCard">
         <article tabindex="0"
             role="button"
-            t-attf-class="{{props.class}} {{props.color ? `o_colorlist_item_color_transparent_${props.color}` : ''}} product position-relative btn btn-light d-flex align-items-stretch p-0 rounded-3 text-start cursor-pointer {{ props.imgUrl ? 'd-flex align-items-stretch' : ''}}"
+            t-attf-class="{{props.class}} {{props.color ? `o_colorlist_item_color_transparent_${props.color}` : ''}} product position-relative btn btn-light d-flex align-items-stretch p-0 rounded-3 text-start cursor-pointer {{ props.imgUrl ? 'd-flex align-items-stretch' : ''}} {{ props.available ? '' : 'opacity-50' }}"
             t-on-keypress="(event) => event.code === 'Space' ? props.onClick(event) : ()=>{}"
             t-on-click.stop="props.onClick"
             t-att-data-product-id="props.productId"
@@ -16,7 +16,7 @@
                 t-att-class="{'d-flex' : !props.isComboPopup, 'my-1': !(props.isComboPopup and !props.imageUrl)}">
                 <div class="overflow-hidden lh-sm product-name"
                     t-att-class="{
-                        'no-image d-flex justify-content-center align-items-center text-center': !props.imageUrl,
+                        'no-image d-flex text-center w-100 flex-column': !props.imageUrl,
                         'mt-1': props.isComboPopup and !props.imageUrl
                     }"
                     t-attf-id="article_product_{{props.productId}}"
@@ -26,7 +26,7 @@
                     class="product-cart-qty position-absolute bottom-0 end-0 m-1 px-2 rounded bg-black text-white fs-5 fw-bolder"
                     t-att-class="{'text-danger': this.productQty lt 0}"/>
             </div>
-            <span t-if="props.comboExtraPrice" style="font-size: 0.75rem;" class="price-extra px-2 py-0 rounded-pill text-bg-info position-absolute top-0 end-0 mt-1 me-1">
+            <span t-if="props.comboExtraPrice" style="font-size: 0.75rem;" class="price-extra px-2 py-0 rounded-1 text-bg-info position-absolute top-0 end-0 mt-1 me-1">
                 <t t-esc="props.comboExtraPrice"/>
             </span>
             <t t-slot="quantityButtons" />

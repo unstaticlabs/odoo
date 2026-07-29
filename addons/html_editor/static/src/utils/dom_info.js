@@ -261,7 +261,28 @@ export function isVisibleTextNode(testedNode) {
  * @param {Node} node
  * @returns {boolean}
  */
-const selfClosingElementTags = ["BR", "IMG", "INPUT", "HR"];
+// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+export const selfClosingHtmlTags = [
+    "AREA",
+    "BASE",
+    "BR",
+    "COL",
+    "EMBED",
+    "HR",
+    "IMG",
+    "INPUT",
+    "KEYGEN",
+    "LINK",
+    "META",
+    "PARAM",
+    "SOURCE",
+    "TRACK",
+    "WBR",
+    "V:IMAGE",
+    "V:FILL",
+];
+export const selfClosingXmlTags = [];
+export const selfClosingElementTags = [...selfClosingHtmlTags, ...selfClosingXmlTags];
 export function isSelfClosingElement(node) {
     return node && selfClosingElementTags.includes(node.nodeName);
 }
@@ -349,6 +370,7 @@ export function isIconElement(node) {
 // @todo @phoenix: move the specific part in a proper plugin.
 export function isMediaElement(node) {
     return (
+        node.nodeName === "IMG" ||
         isIconElement(node) ||
         (node.classList &&
             (node.classList.contains("o_file_box") ||
@@ -923,6 +945,19 @@ export function isContentEditableAncestor(node) {
     return node.isContentEditable && node.matches("[contenteditable]");
 }
 
+const QWEB_STYLE_ATTRS = ["t-att-class", "t-attf-class", "t-att-style", "t-attf-style"];
+
+/**
+ * @param {Node} node
+ * @returns {boolean}
+ */
+export function isStylable(node) {
+    if (!isElement(node) && node.parentNode) {
+        node = node.parentNode;
+    }
+    return !QWEB_STYLE_ATTRS.some((att) => node.hasAttribute(att));
+}
+
 /**
  * Checks if all classes in node are present in node2 (subset check)
  */
@@ -1002,3 +1037,60 @@ export function isRedundantElement(node) {
 
 // Selector for QWeb-specific attributes
 export const PROTECTED_QWEB_SELECTOR = "[t-esc], [t-raw], [t-out], [t-field]";
+
+/**
+ * Returns the bounding rect of the iframe containing the given document.
+ * If the document is not inside an iframe, returns `{ top: 0, left: 0 }`.
+ *
+ * @param {Document} document
+ * @returns {{ top: number, left: number } | DOMRect}
+ */
+function getIframeBoundingRect(document) {
+    let frameRect = { top: 0, left: 0 };
+    let frameElement;
+    try {
+        frameElement = document.defaultView.frameElement;
+    } catch {
+        // We don't access the frameElement if we don't have access to it.
+        // (i.e. iframe origin or sandbox restriction)
+    }
+    if (frameElement) {
+        frameRect = frameElement.getBoundingClientRect();
+    }
+    return frameRect;
+}
+
+/**
+ * Returns an element's bounding rect adjusted by its iframe's offset.
+ *
+ * @param {Element} el
+ * @returns {DOMRect} Adjusted rectangle
+ */
+export function getIframeAdjustedBoundingRect(el) {
+    const frameRect = getIframeBoundingRect(el.ownerDocument);
+    let rect = el.getBoundingClientRect();
+    rect = {
+        top: rect.top + frameRect.top,
+        bottom: rect.bottom + frameRect.top,
+        left: rect.left + frameRect.left,
+        right: rect.right + frameRect.left,
+        width: rect.width,
+        height: rect.height,
+    };
+    return rect;
+}
+
+/**
+ * Computes client (viewport) coordinates for an event, adjusted to account
+ * for an iframe offset if the event originates from within one.
+ *
+ * @param {MouseEvent | PointerEvent} ev - The event object
+ * @returns {{ clientX: number, clientY: number }} Adjusted coordinates
+ */
+export function getIframeAdjustedClientCoords(ev) {
+    let { clientX, clientY, target } = ev;
+    const frameRect = getIframeBoundingRect(target.ownerDocument);
+    clientX += frameRect.left;
+    clientY += frameRect.top;
+    return { clientX, clientY };
+}

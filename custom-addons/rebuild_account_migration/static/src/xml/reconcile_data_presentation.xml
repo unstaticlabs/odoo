@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t
+        t-name="rebuild_account_migration.ReconcileDataPresentation"
+        t-inherit="account_reconcile_oca.ReconcileDataWidget"
+        t-inherit-mode="primary">
+        <xpath
+            expr="//tr[contains(@t-att-class, 'o_reconcile_widget_line')]"
+            position="attributes">
+            <attribute name="t-on-click"/>
+            <attribute name="t-att-class">
+                'o_reconcile_widget_line ' + reconcile_line.kind
+            </attribute>
+        </xpath>
+        <xpath expr="//thead/th[last()]" position="replace"/>
+        <xpath
+            expr="//tbody//td[button[hasclass('fa-trash-o')]]"
+            position="replace"/>
+    </t>
+</templates>

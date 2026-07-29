@@ -1,7 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
 import os
-import pytz
+from datetime import UTC
+from zoneinfo import ZoneInfo
 
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.fields import Domain
@@ -153,8 +154,8 @@ class EventRegistration(models.Model):
             if not registration.company_name and registration.partner_id:
                 registration.company_name = registration._synchronize_partner_values(
                     registration.partner_id,
-                    fnames={'company_name'},
-                ).get('company_name') or False
+                    fnames={'parent_name'},
+                ).get('parent_name') or False
 
     @api.depends('state')
     def _compute_date_closed(self):
@@ -364,7 +365,7 @@ class EventRegistration(models.Model):
             return
 
         # either trigger the cron, either run schedulers immediately (scaling choice)
-        async_scheduler = self.env['ir.config_parameter'].sudo().get_param('event.event_mail_async')
+        async_scheduler = self.env['ir.config_parameter'].sudo().get_bool('event.event_mail_async')
         if async_scheduler or self.env.context.get('import_file'):
             self.env.ref('event.event_mail_scheduler')._trigger()
             self.env.ref('mail.ir_cron_mail_scheduler_action')._trigger()
@@ -446,8 +447,8 @@ class EventRegistration(models.Model):
 
         is_date_closed_today = False
         if self.date_closed:
-            event_tz = pytz.timezone(self.event_id.date_tz)
-            now = fields.Datetime.now(pytz.UTC).astimezone(event_tz)
+            event_tz = ZoneInfo(self.event_id.date_tz)
+            now = fields.Datetime.now().replace(tzinfo=UTC).astimezone(event_tz)
             closed_date = self.date_closed.astimezone(event_tz)
             is_date_closed_today = now.date() == closed_date.date()
 

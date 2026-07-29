@@ -1,9 +1,10 @@
-import { fields } from "@mail/core/common/record";
 import { Store } from "@mail/core/common/store_service";
+import { fields } from "@mail/model/export";
 import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 
 import { patch } from "@web/core/utils/patch";
+import { registry } from "@web/core/registry";
 
 const unread_store = (() => {
     if (!window.idbKeyval) {
@@ -42,9 +43,6 @@ const StorePatch = {
             },
             eager: true,
         });
-        this.inbox = fields.One("Thread");
-        this.starred = fields.One("Thread");
-        this.history = fields.One("Thread");
     },
     computeGlobalCounter() {
         return this.inbox?.counter ?? 0;
@@ -67,9 +65,9 @@ const StorePatch = {
             id: "inbox",
             model: "mail.box",
         };
-        this.starred = {
-            display_name: _t("Starred messages"),
-            id: "starred",
+        this.bookmarkBox = {
+            display_name: _t("Bookmarks"),
+            id: "bookmark",
             model: "mail.box",
         };
         this.history = {
@@ -146,7 +144,7 @@ const StorePatch = {
                 break;
             }
             case "RELOAD_CHATTER": {
-                const thread = this.Thread.insert({
+                const thread = this["mail.thread"].insert({
                     model: data.payload.model,
                     id: data.payload.id,
                 });
@@ -155,11 +153,11 @@ const StorePatch = {
             }
         }
     },
-    async unstarAll() {
+    async removeAllBookmarks() {
         // apply the change immediately for faster feedback
-        this.store.starred.counter = 0;
-        this.store.starred.messages = [];
-        await this.env.services.orm.call("mail.message", "unstar_all");
+        this.store.bookmarkBox.counter = 0;
+        this.store.bookmarkBox.messages = [];
+        await this.store.fetchStoreData("remove_all_bookmarks", undefined, { readonly: false });
     },
     handleClickOnLink(ev, thread) {
         const model = ev.target.dataset.oeModel;
@@ -183,3 +181,8 @@ const StorePatch = {
     onLinkFollowed(fromThread) {},
 };
 patch(Store.prototype, StorePatch);
+
+registry.category("actions").add("mail.store_insert", function storeInsertAction(env, action) {
+    env.services["mail.store"].insert(action.params.store_values);
+    return action.params.next_action;
+});

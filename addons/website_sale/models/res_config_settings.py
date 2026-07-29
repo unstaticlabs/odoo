@@ -24,8 +24,6 @@ class ResConfigSettings(models.TransientModel):
         string="Google Merchant Center",
         implied_group='website_sale.group_product_feed',
         group='base.group_user',
-        related='website_id.enabled_gmc_src',
-        readonly=False,
     )
 
     # Modules
@@ -52,16 +50,13 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
     )
     salesteam_id = fields.Many2one(related='website_id.salesteam_id', readonly=False)
-    website_sale_prevent_zero_price_sale = fields.Boolean(
-        string="Prevent Sale of Zero Priced Product",
-        related='website_id.prevent_zero_price_sale',
+    prevent_sale = fields.Boolean(related='website_id.prevent_sale', readonly=False)
+    prevent_sale_for = fields.Selection(related='website_id.prevent_sale_for', readonly=False)
+    prevent_sale_for_categories = fields.Many2many(
+        related='website_id.prevent_sale_for_categories',
         readonly=False,
     )
-    website_sale_contact_us_button_url = fields.Char(
-        string="Button Url",
-        related='website_id.contact_us_button_url',
-        readonly=False,
-    )
+    contact_us_link_url = fields.Char(related='website_id.contact_us_link_url', readonly=False)
     show_line_subtotals_tax_selection = fields.Selection(
         related='website_id.show_line_subtotals_tax_selection',
         readonly=False,
@@ -123,13 +118,6 @@ class ResConfigSettings(models.TransientModel):
             ):
                 website._populate_product_feeds()
 
-            # Due to an earlier oversight, the GMC feature flag was implemented as website-specific,
-            # even though a group-based feature flag is global. This has been corrected in future
-            # versions, but fixing it here would require a model change, which cannot be backported.
-            # This line serves as a workaround to ensure that all websites share the same setting,
-            # providing consistent behavior across versions.
-            self.env['website'].sudo().search_fetch([], []).enabled_gmc_src = self.group_gmc_feed
-
     # === ACTION METHODS === #
 
     def action_view_delivery_provider_modules(self):
@@ -145,13 +133,6 @@ class ResConfigSettings(models.TransientModel):
             'view_mode': 'form',
             'res_id': self.env['ir.model.data']._xmlid_to_res_id("website_sale.mail_template_sale_cart_recovery"),
         }
-
-    def action_open_extra_info(self):
-        self.ensure_one()
-        # Add the "edit" parameter in the url to tell the controller
-        # that we want to edit even if we are not in a payment flow
-        return self.env["website"].get_client_action(
-            '/shop/extra_info?open_editor=true', mode_edit=True, website_id=self.website_id.id)
 
     @api.readonly
     def action_open_sale_mail_templates(self):

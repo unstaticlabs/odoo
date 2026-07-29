@@ -14,16 +14,16 @@
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
 # NoaFarkash, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:00+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-12-20 09:33+0000\n"
+"Last-Translator: or balmas <or@laylinetech.com>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "base_import/he/>\n"
 "Language: he\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -145,12 +145,6 @@ msgstr "אבל, אתה יכול גם להשתמש בקבצי .csv"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "בטל"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr ""
@@ -165,8 +159,8 @@ msgstr "עמודה %(column)s מכילה ערכים שגויים (ערך: %(valu
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr "עמודה %(column)s מכילה ערכים שגויים. שגיאה בשורה %(line)d: %(error)s"
 
 #. module: base_import
@@ -256,6 +250,12 @@ msgid "Delay after each batch"
 msgstr ""
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -311,8 +311,8 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 
 #. module: base_import
@@ -338,12 +338,6 @@ msgstr "מומלץ קבצי אקסל כי הפורמט אוטומטי."
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "מזהה חיצוני"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr ""
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -379,8 +373,8 @@ msgstr "גודל הקובץ חורג מהמקסימום המוגדר (%s ביי�
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "קובץ כדי לבדוק ו / או לייבא, בינארי גולמי (לא base64)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -853,7 +847,8 @@ msgstr "עקוב אחר ההיסטוריה במהלך הייבוא"
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
-msgstr "לא ניתן לטעון את הקובץ \"{extension}\": דרוש מודול פייתון \"{modname}\""
+msgstr ""
+"לא ניתן לטעון את הקובץ \"{extension}\": דרוש מודול פייתון \"{modname}\""
 
 #. module: base_import
 #. odoo-python
@@ -992,39 +987,3 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "קוד שגיאה לא ידוע %s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "עמודה %s מכילה ערכים שגויים (ערך: %s)"
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "עמודה %s מכילה ערכים שגויים. שגיאה בשורה %d: %s"
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "שגיאת ניתוח תאריך [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "זמן הייבוא הסתיים. נסה שוב. אם אתה עדיין נתקל בבעיה זו, הקובץ עשוי להיות "
-#~ "גדול מדי לתצורת המערכת, נסה לפצל אותו (ייבא פחות רשומות בקובץ)."
-
-#~ msgid "Imported file"
-#~ msgstr "קובץ מיובא"
-
-#~ msgid "Load File"
-#~ msgstr "טען קובץ"
-
-#~ msgid "Upload File"
-#~ msgstr "טען קובץ"
-
-#~ msgid "Upload an Excel or CSV file to import"
-#~ msgstr "העלה קובץ אקסל או CSV לייבוא"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr ""
-#~ "אינך יכול לייבא תמונות דרך כתובת אתר האינטרנט, פנה למנהל המערכת שלך או "
-#~ "לתמיכה כדי להבין את הסיבה."

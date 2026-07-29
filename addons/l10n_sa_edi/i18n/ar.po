@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.4a1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 18:08+0000\n"
-"PO-Revision-Date: 2026-06-27 19:10+0000\n"
+"POT-Creation-Date: 2026-07-17 18:24+0000\n"
+"PO-Revision-Date: 2026-01-17 12:51+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19-l10n/"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-1-l10n/"
 "l10n_sa_edi/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -170,11 +170,6 @@ msgid "<i class=\"fa fa-warning me-2\"/> Warning"
 msgstr "تحذير <i class=\"fa fa-warning me-2\"/> "
 
 #. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.address_form_fields
-msgid "<option value=\"\">Select Scheme...</option>"
-msgstr ""
-
-#. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
 msgid "<span class=\"o_form_label\">Production</span> - Live environment"
 msgstr ""
@@ -204,11 +199,6 @@ msgstr "وضع الواجهة البرمجية للتطلبيق"
 #: model:ir.model,name:l10n_sa_edi.model_account_chart_template
 msgid "Account Chart Template"
 msgstr ""
-
-#. module: l10n_sa_edi
-#: model:ir.model,name:l10n_sa_edi.model_account_move_send
-msgid "Account Move Send"
-msgstr "إرسال حركة الحساب"
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields,help:l10n_sa_edi.field_res_company__l10n_sa_edi_additional_identification_number
@@ -254,11 +244,6 @@ msgid "CCSID certificate"
 msgstr "شهادة CCSID"
 
 #. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.l10n_sa_edi_otp_wizard_view_form
-msgid "Cancel"
-msgstr "إلغاء"
-
-#. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_certificate_certificate
 msgid "Certificate"
 msgstr "الشهادة"
@@ -301,8 +286,8 @@ msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_res_company
-msgid "Companies"
-msgstr "الشركات "
+msgid "Company"
+msgstr ""
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -384,11 +369,6 @@ msgid "Created on"
 msgstr "أنشئ في"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_tax__l10n_sa_is_retention
-msgid "Determines whether or not a tax counts as a Withholding Tax"
-msgstr "يحدد ما إذا كانت الضريبة تُحسب كضريبة احتجاز أم لا"
-
-#. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_chart_template__display_name
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_edi_format__display_name
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_account_edi_xml_ubl_21_zatca__display_name
@@ -414,7 +394,7 @@ msgstr "اﺳﻢ اﻟﺤﻲ"
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.sa_partner_address_form
 msgid "District..."
-msgstr "المنطقة..."
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.view_account_journal_form
@@ -582,11 +562,6 @@ msgid "Is Production"
 msgstr "الانتاج"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_tax__l10n_sa_is_retention
-msgid "Is Retention"
-msgstr "احتفاظ"
-
-#. module: l10n_sa_edi
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/account_journal.py:0
 msgid "JSON response from ZATCA could not be decoded"
@@ -676,13 +651,18 @@ msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__mls
-msgid "MLSD License"
-msgstr "رخصة وزارة الموارد البشرية و التنمية الاجتماعية"
+msgid "MHRSD License"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__sag
+msgid "MISA License"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__mom
-msgid "Momra License"
-msgstr "رخصة وزارة الشؤون البلدية و القروية والإسكان"
+msgid "MOMRAH License"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__nat
@@ -915,11 +895,6 @@ msgid "Request ZATCA OTP"
 msgstr "طلب كلمة السر لمرة واحدة لزاتكا"
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__sag
-msgid "Sagia License"
-msgstr "رخصة وزارة الاستثمار"
-
-#. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_company__l10n_sa_api_mode__sandbox
 msgid "Sandbox"
 msgstr "Sandbox"
@@ -928,6 +903,11 @@ msgstr "Sandbox"
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
 msgid "Saudi Arabia Electronic Invoicing"
 msgstr "الفوترة الإلكترونية في المملكة العربية السعودية"
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.address_form_fields
+msgid "Select Scheme..."
+msgstr ""
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -941,10 +921,9 @@ msgid "Set whether the system should use the Production API"
 msgstr "قم بإعداد ما إذا كان على النظام استخدام الواجهة البرمجية للإنتاج أم لا"
 
 #. module: l10n_sa_edi
-#. odoo-python
-#: code:addons/l10n_sa_edi/models/account_move.py:0
-msgid "Simplified Tax Invoice"
-msgstr "الفاتورة الضريبية المبسطة"
+#: model:ir.model,name:l10n_sa_edi.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_company__l10n_sa_api_mode__preprod
@@ -1077,15 +1056,6 @@ msgstr "التاريخ الذي تنتهي فيه مدة صلاحية الشها
 #: model:ir.model.fields,help:l10n_sa_edi.field_res_company__l10n_sa_private_key_id
 msgid "The private key used to generate the CSR and obtain certificates"
 msgstr "المفتاح الخاص المستخدَم لإنشاء CSR والحصول على الشهادات"
-
-#. module: l10n_sa_edi
-#. odoo-python
-#: code:addons/l10n_sa_edi/models/account_tax.py:0
-msgid ""
-"The tax is unable to be set as Retention as the Amount is greater than or "
-"equal to 0."
-msgstr ""
-"لا يمكن تعيين الضريبة على أنها ضريبة احتجاز لأن المبلغ أكبر من أو يساوي 0."
 
 #. module: l10n_sa_edi
 #. odoo-python
@@ -1349,27 +1319,3 @@ msgstr "urn:oasis:names:specification:ubl:signature:Invoice"
 #~ msgid ""
 #~ "- Please set the Invoice Date to be either less than or equal to today."
 #~ msgstr "- يرجى تعيين تاريخ الفاتورة بحيث يكون قبل أو في نفس اليوم."
-
-#~ msgid "Please check the details below and onboard the journal again:"
-#~ msgstr "يُرجى التحقق من التفاصيل أدناه لتهيئة دفتر اليومية مجدداً:"
-
-#~ msgid ""
-#~ "\n"
-#~ "                Please set the Identification Scheme as National ID and "
-#~ "Identification Number as the respective\n"
-#~ "                number on the Customer, as the Tax Exemption Reason is "
-#~ "set either as VATEX-SA-HEA or VATEX-SA-EDU\n"
-#~ "            "
-#~ msgstr ""
-#~ "\n"
-#~ "                يرجى تعيين نوع الهوية إلى 'الهوية الوطنية' ورقم الهوية "
-#~ "بالرقم الخاص بالعميل،\n"
-#~ "                حيث أن سبب الإعفاء الضريبي المحدد هو إما VATEX-SA-HEA أو "
-#~ "VATEX-SA-EDU\n"
-#~ "            "
-
-#~ msgid ""
-#~ "VATEX-SA-29-7 Life insurance services mentioned in Article 29 of the VAT."
-#~ msgstr ""
-#~ "VATEX-SA-29-7 خدمات التأمين على الحياة المذكورة في القانون 29 لضريبة "
-#~ "القيمة المضافة."

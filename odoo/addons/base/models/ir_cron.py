@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextvars
 import copy
+import enum
 import logging
 import os
 import threading
@@ -15,10 +16,10 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, sql_db
 from odoo.exceptions import LockError, UserError
-from odoo.http import serialize_exception
+from odoo.http.dispatcher import serialize_exception
 from odoo.modules import Manifest
 from odoo.modules.registry import Registry
-from odoo.tools import SQL
+from odoo.tools import SQL, config
 from odoo.tools.constants import GC_UNLINK_LIMIT
 
 if typing.TYPE_CHECKING:
@@ -58,7 +59,7 @@ _intervalTypes = {
 }
 
 
-class CompletionStatus:  # inherit from enum.StrEnum in 3.11
+class CompletionStatus(enum.StrEnum):
     FULLY_DONE = 'fully done'
     PARTIALLY_DONE = 'partially done'
     FAILED = 'failed'
@@ -98,7 +99,7 @@ class IrCron(models.Model):
     # See also odoo.cron
     _name = 'ir.cron'
     _order = 'cron_name, id'
-    _description = 'Scheduled Actions'
+    _description = 'Scheduled Action'
     _allow_sudo_commands = False
 
     _inherits = {'ir.actions.server': 'ir_actions_server_id'}
@@ -722,7 +723,7 @@ class IrCron(models.Model):
     def toggle(self, model, domain):
         # Prevent deactivated cron jobs from being re-enabled through side effects on
         # neutralized databases.
-        if self.env['ir.config_parameter'].sudo().get_param('database.is_neutralized'):
+        if self.env['ir.config_parameter'].sudo().get_bool('database.is_neutralized'):
             return True
 
         active = bool(self.env[model].search_count(domain))
@@ -796,7 +797,7 @@ class IrCron(models.Model):
         The ODOO_NOTIFY_CRON_CHANGES environment variable allows to force the notifydb on both
         IrCron modification and on trigger creation (regardless of call_at)
         """
-        with sql_db.db_connect('postgres').cursor() as cr:
+        with sql_db.db_connect(config['db_system']).cursor() as cr:
             cr.execute(SQL("SELECT %s('cron_trigger', %s)", SQL.identifier(ODOO_NOTIFY_FUNCTION), self.env.cr.dbname))
         _logger.debug("cron workers notified")
 
@@ -896,7 +897,7 @@ class IrCron(models.Model):
 
 class IrCronTrigger(models.Model):
     _name = 'ir.cron.trigger'
-    _description = 'Triggered actions'
+    _description = 'Triggered Action'
     _rec_name = 'cron_id'
     _allow_sudo_commands = False
 
@@ -917,7 +918,7 @@ class IrCronTrigger(models.Model):
 
 class IrCronProgress(models.Model):
     _name = 'ir.cron.progress'
-    _description = 'Progress of Scheduled Actions'
+    _description = 'Progress of Scheduled Action'
     _rec_name = 'cron_id'
 
     cron_id = fields.Many2one("ir.cron", required=True, index=True, ondelete='cascade')

@@ -14,10 +14,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:43+0000\n"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:42+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Latvian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Latvian <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/lv/>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
@@ -29,16 +29,20 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
+#, fuzzy
 msgid ""
 "#%(number)s - Installment of <strong>%(amount)s</strong> due on <strong "
 "class=\"text-primary\">%(date)s</strong>"
 msgstr ""
+"#%(number)s — maksājuma daļa <strong>%(amount)s</strong> ar apmaksas termiņu "
+"<strong class=\"text-primary\">%(date)s</strong>"
 
 #. module: account_payment
 #. odoo-javascript
 #: code:addons/account_payment/static/src/interactions/portal_my_invoices_payment_list.js:0
+#, fuzzy
 msgid "%s day(s) overdue"
-msgstr ""
+msgstr "%s diena(s) nokavēts"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_success
@@ -89,8 +93,9 @@ msgstr "<i class=\"fa fa-fw fa-check-circle\"/> Gaida"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_page_inherit_payment
+#, fuzzy
 msgid "<i class=\"fa fa-fw fa-check-circle\"/> Processing Payment"
-msgstr ""
+msgstr "<i class=\"fa fa-fw fa-check-circle\"/> Apstrādā maksājumu"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
@@ -99,18 +104,23 @@ msgstr "<span class=\"d-none d-md-inline\"> Gaida</span>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "<strong>Full Amount</strong><br/>"
-msgstr ""
+msgstr "<strong>Pilna summa</strong><br/>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid ""
 "<strong>Installment</strong>\n"
 "                                        <br/>"
 msgstr ""
+"<strong>Maksājuma daļa</strong>\n"
+"                                        <br/>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.payment_refund_wizard_view_form
+#, fuzzy
 msgid ""
 "<strong>Warning!</strong> There is a refund pending for this payment.\n"
 "                        Wait a moment for it to be processed. If the refund "
@@ -118,19 +128,28 @@ msgid ""
 "                        few minutes, please check your payment provider "
 "configuration."
 msgstr ""
+"<strong>Brīdinājums!</strong> Šim maksājumam tiek apstrādāta atmaksa.\n"
+"                        Lūdzu, uzgaidiet brīdi, līdz tā tiks pabeigta. Ja "
+"pēc dažām minūtēm atmaksa joprojām ir gaidīšanas statusā,\n"
+"                        pārbaudiet maksājumu pakalpojuma sniedzēja "
+"konfigurāciju."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
+#, fuzzy
 msgid "A discount will be applied if the customer pays before %s included."
-msgstr ""
+msgstr "Atlaide tiks piemērota, ja klients veiks apmaksu līdz %s (ieskaitot)."
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid ""
 "A payment has already been made on this invoice, please make sure to not pay "
 "twice."
 msgstr ""
+"Šim rēķinam jau ir veikts maksājums. Lūdzu, pārliecinieties, ka maksājums "
+"netiek veikts divreiz."
 
 #. module: account_payment
 #. odoo-python
@@ -141,14 +160,21 @@ msgstr "Maksājums darījums ar atsauci %s jau pastāv."
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_payment.py:0
+#, fuzzy
 msgid "A token is required to create a new payment transaction."
+msgstr "Lai izveidotu jaunu maksājuma darījumu, ir nepieciešams tokens."
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
 msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
+#, fuzzy
 msgid "Amount"
-msgstr ""
+msgstr "Summa"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__amount_available_for_refund
@@ -157,7 +183,13 @@ msgstr "Summa pieejama atmaksai"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
+#, fuzzy
 msgid "Amount Due"
+msgstr "Kavētā summa"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
 msgstr ""
 
 #. module: account_payment
@@ -183,8 +215,9 @@ msgstr "Autorizētie darījumi"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Bankas izraksta rinda"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -220,8 +253,9 @@ msgstr "Valūta"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__discount_date
+#, fuzzy
 msgid "Discount Date"
-msgstr ""
+msgstr "Atlaides datums"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__display_name
@@ -241,8 +275,9 @@ msgstr "Parādīt vārdu"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__display_open_installments
+#, fuzzy
 msgid "Display Open Installments"
-msgstr ""
+msgstr "Rādīt neapmaksātās daļas"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_success
@@ -255,18 +290,21 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__epd_info
+#, fuzzy
 msgid "Early Payment Discount Information"
-msgstr ""
+msgstr "Agrīna maksājuma atlaides informācija"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "Early Payment Discount of"
-msgstr ""
+msgstr "Agrīna maksājuma atlaide"
 
 #. module: account_payment
 #: model:ir.model.fields.selection,name:account_payment.selection__payment_refund_wizard__support_refund__full_only
+#, fuzzy
 msgid "Full Only"
-msgstr ""
+msgstr "Tikai pilna summa"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_payment_link_wizard
@@ -280,13 +318,15 @@ msgstr "Maksājuma saites izveide"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__has_eligible_epd
+#, fuzzy
 msgid "Has Eligible Epd"
-msgstr ""
+msgstr "Iespējama atlaide par priekšlaicīgu apmaksu"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__has_pending_refund
+#, fuzzy
 msgid "Has a pending refund"
-msgstr ""
+msgstr "Atmaksa gaidīšanā"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__id
@@ -307,10 +347,12 @@ msgstr "ID"
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
+#, fuzzy
 msgid ""
 "Impossible to pay all the overdue invoices if they don't share the same "
 "currency."
 msgstr ""
+"Nav iespējams apmaksāt visus nokavētos rēķinus, ja tiem ir dažādas valūtas."
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_method_line__payment_provider_state
@@ -338,8 +380,9 @@ msgstr "Rēķini"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_overdue_invoice
+#, fuzzy
 msgid "Invoices &amp; Bills"
-msgstr ""
+msgstr "Rēķini"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__invoices_count
@@ -347,7 +390,7 @@ msgid "Invoices Count"
 msgstr "Rēķinu skaits"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr ""
 
@@ -402,6 +445,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -421,14 +471,16 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields.selection,name:account_payment.selection__payment_refund_wizard__support_refund__partial
+#, fuzzy
 msgid "Partial"
-msgstr ""
+msgstr "Daļējs"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_register
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "Pay"
-msgstr ""
+msgstr "Maksāt"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment_paid
@@ -457,6 +509,7 @@ msgid "Pay overdue"
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -474,7 +527,17 @@ msgstr "Maksājumu žurnāls"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Apmakses Metode"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "Maksājuma metodes līnija"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Maksājumu metodes"
@@ -514,15 +577,16 @@ msgid "Payment Transactions"
 msgstr "Maksājumu darījumi"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Maksājumi"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr ""
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Cenrāži"
 
 #. module: account_payment
 #. odoo-python
@@ -533,8 +597,9 @@ msgstr "Sniedzējs"
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
+#, fuzzy
 msgid "Reference"
-msgstr ""
+msgstr "Atsauksme"
 
 #. module: account_payment
 #. odoo-python
@@ -675,8 +740,9 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "This invoice has already been paid."
-msgstr ""
+msgstr "Šis rēķins jau ir apmaksāts."
 
 #. module: account_payment
 #. odoo-python
@@ -730,10 +796,13 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/payment_provider.py:0
+#, fuzzy
 msgid ""
 "You cannot uninstall this module as payments using this payment method "
 "already exist."
 msgstr ""
+"Jūs nevarat atinstalēt šo moduli, jo maksājumi izmantojot šo maksājumu "
+"metodi jau pastāv."
 
 #. module: account_payment
 #. odoo-python
@@ -757,7 +826,13 @@ msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "has been applied."
+msgstr "tika pielietots."
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
 msgstr ""
 
 #. module: account_payment
@@ -765,20 +840,8 @@ msgstr ""
 msgid "overdue"
 msgstr ""
 
-#~ msgid "Activate Stripe"
-#~ msgstr "Aktivizēt Stripe"
-
-#~ msgid "Code"
-#~ msgstr "Kods"
-
-#~ msgid "Companies"
-#~ msgstr "Uzņēmumi"
-
-#~ msgid "Online Payments"
-#~ msgstr "Tiešsaistes maksājumi"
-
-#~ msgid "Pay with"
-#~ msgstr "Apmaksāt ar"
-
-#~ msgid "Register Payment"
-#~ msgstr "Reģistrēt maksājumu"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

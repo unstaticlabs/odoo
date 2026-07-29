@@ -14,21 +14,20 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 07:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"spreadsheet_dashboard/uz/>\n"
+"POT-Creation-Date: 2026-04-03 18:38+0000\n"
+"PO-Revision-Date: 2025-10-08 18:39+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: spreadsheet_dashboard
 #. odoo-python
 #: code:addons/spreadsheet_dashboard/models/spreadsheet_dashboard.py:0
+#: code:addons/spreadsheet_dashboard/models/spreadsheet_dashboard_group.py:0
 #, fuzzy
 msgid "%s (copy)"
 msgstr "%s (nusxa)"
@@ -39,6 +38,11 @@ msgstr "%s (nusxa)"
 #, fuzzy
 msgid "(no result)"
 msgstr "(natija yo‘q)"
+
+#. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
+msgid "Access Groups"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard_share__access_token
@@ -67,6 +71,11 @@ msgid "BACK"
 msgstr "ORQAGA"
 
 #. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
+msgid "Choose a dashboard section..."
+msgstr ""
+
+#. module: spreadsheet_dashboard
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard/static/src/bundle/dashboard_action/mobile_search_panel/mobile_search_panel.js:0
 #, fuzzy
@@ -75,6 +84,7 @@ msgstr "Boshqaruv panelini tanlang..."
 
 #. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__company_ids
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
 #, fuzzy
 msgid "Companies"
 msgstr "Kompaniyalar"
@@ -111,15 +121,20 @@ msgstr "Yaratilgan sana"
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard_group__dashboard_ids
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard_share__dashboard_id
 #: model:res.groups.privilege,name:spreadsheet_dashboard.res_groups_privilege_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_search
 #, fuzzy
 msgid "Dashboard"
 msgstr "Boshqaruv paneli"
 
 #. module: spreadsheet_dashboard
-#: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__dashboard_group_id
-#, fuzzy
-msgid "Dashboard Group"
-msgstr "Boshqaruv panellari guruhi"
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
+msgid "Dashboard Section"
+msgstr ""
+
+#. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
+msgid "Dashboard name"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #. odoo-javascript
@@ -136,10 +151,10 @@ msgid "Dashboards"
 msgstr "Boshqaruv panellari"
 
 #. module: spreadsheet_dashboard
-#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_list
-#, fuzzy
-msgid "Data"
-msgstr "Ma'lumotlar"
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard/static/src/bundle/dashboard_action/dashboard_search_bar_menu/dashboard_search_bar_menu.xml:0
+msgid "Discard"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__display_name
@@ -167,6 +182,12 @@ msgstr "SEVIMLILAR"
 #, fuzzy
 msgid "Favorite Users"
 msgstr "Sevimli foydalanuvchilar"
+
+#. module: spreadsheet_dashboard
+#. odoo-javascript
+#: code:addons/spreadsheet_dashboard/static/src/bundle/dashboard_action/dashboard_search_bar_menu/dashboard_search_bar_menu.xml:0
+msgid "Filter"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #. odoo-javascript
@@ -313,6 +334,11 @@ msgid "Open record"
 msgstr "Yozuvni ochish"
 
 #. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_search
+msgid "Published"
+msgstr ""
+
+#. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard_group__published_dashboard_ids
 #, fuzzy
 msgid "Published Dashboard"
@@ -337,6 +363,18 @@ msgstr "Sotuvlar"
 #, fuzzy
 msgid "Search..."
 msgstr "Qidirish..."
+
+#. module: spreadsheet_dashboard
+#: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__dashboard_group_id
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_search
+msgid "Section"
+msgstr ""
+
+#. module: spreadsheet_dashboard
+#: model:ir.actions.act_window,name:spreadsheet_dashboard.spreadsheet_dashboard_group_action_configuration_sections
+#: model:ir.ui.menu,name:spreadsheet_dashboard.spreadsheet_dashboard_group_menu_configuration_sections
+msgid "Sections"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #. odoo-javascript
@@ -381,15 +419,10 @@ msgstr "Elektron jadval fayli nomi"
 #. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__spreadsheet_binary_data
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard_share__spreadsheet_binary_data
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
 #, fuzzy
 msgid "Spreadsheet file"
 msgstr "Elektron jadval fayli"
-
-#. module: spreadsheet_dashboard
-#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_container_view_form
-#, fuzzy
-msgid "Spreadsheets"
-msgstr "Elektron jadvallar"
 
 #. module: spreadsheet_dashboard
 #: model:ir.model.fields,field_description:spreadsheet_dashboard.field_spreadsheet_dashboard__thumbnail
@@ -417,6 +450,11 @@ msgstr "URL manzil"
 msgid "Users who have favorited this dashboard"
 msgstr ""
 "Ushbu boshqaruv panelini sevimlilar ro‘yxatiga qo‘shgan foydalanuvchilar"
+
+#. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_list
+msgid "View"
+msgstr ""
 
 #. module: spreadsheet_dashboard
 #: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
@@ -457,6 +495,11 @@ msgstr "Ushbu boshqaruv paneliga kirishga ruxsatingiz yo‘q."
 #: code:addons/spreadsheet_dashboard/controllers/share.py:0
 msgid ""
 "You don't have the rights to export data. Please contact an Administrator."
+msgstr ""
+
+#. module: spreadsheet_dashboard
+#: model_terms:ir.ui.view,arch_db:spreadsheet_dashboard.spreadsheet_dashboard_view_form
+msgid "e.g. Sales operations"
 msgstr ""
 
 #. module: spreadsheet_dashboard

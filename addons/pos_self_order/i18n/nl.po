@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * pos_self_order
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-15 14:58+0000\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-07-15 12:39+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_self_order/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -76,6 +76,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -101,18 +105,23 @@ msgstr ""
 "                        <t t-else=\"\">Hallo,</t>\n"
 "                    </div>\n"
 "                    <br/>\n"
-"                    <div>Je bestelling <t t-out=\"object.tracking_number\">"
-"...</t> voor een bedrag van <t t-out=\"format_amount"
-"(object.amount_total,object.currency_id)\">€ xx,xx</t> is bevestigd. <span t-"
-"if=\"object.preset_time or client.street\">De bestelling zal klaar zijn</"
-"span> <span t-if=\"object.preset_time\"> om <t t-out=\"format_time"
-"(time=object.preset_time, tz=tz, time_format='short', lang_code=lg)\">12:00</"
-"t></span> <span t-if=\"client.street\"> bij <t t-out=\"street\">straat</t>, "
-"<t t-out=\"state\">provincie</t>, <t t-out=\"client.zip or ''\">postcode</t>"
-", <t t-out=\"city\">stad</t>, <t t-out=\"country\">land</t></span></div>\n"
+"                    <div>Je bestelling <t t-"
+"out=\"object.tracking_number\">...</t> voor een bedrag van <t t-"
+"out=\"format_amount(object.amount_total,object.currency_id)\">€ xx,xx</t> is "
+"bevestigd. <span t-if=\"object.preset_time or client.street\">De bestelling "
+"zal klaar zijn</span> <span t-if=\"object.preset_time\">om <t t-"
+"out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
+"lang_code=lg)\">12:00</t></span> <span t-if=\"client.street\">op deze "
+"locatie: <t t-out=\"street\">straat</t>, <t t-out=\"state\">provincie</t>, "
+"<t t-out=\"client.zip or ''\">postcode</t>, <t t-out=\"city\">stad</t>, <t t-"
+"out=\"country\">land</t></span></div>\n"
 "                    <br/>\n"
 "                    <div>Bedankt,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>In de bijlage vind je de bon</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Naam van de winkel</t>\n"
 "                </div>\n"
 "            "
@@ -142,6 +151,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -159,15 +172,19 @@ msgstr ""
 "                        <t t-else=\"\">Hallo,</t>\n"
 "                    </div>\n"
 "                    <br/>\n"
-"                    <div>Je bestelling <t t-out=\"object.tracking_number\">"
-"...</t> voor een bedrag van <t t-out=\"format_amount"
-"(object.amount_total,object.currency_id)\">€ xx,xx</t> is bevestigd. <span t-"
-"if=\"object.preset_time\">De bestelling zal klaar zijn om <t t-"
-"out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
+"                    <div>Je bestelling <t t-"
+"out=\"object.tracking_number\">...</t> voor een bedrag van <t t-"
+"out=\"format_amount(object.amount_total,object.currency_id)\">€ xx,xx</t> is "
+"bevestigd. <span t-if=\"object.preset_time\">De bestelling zal klaar zijn om "
+"<t t-out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
 "lang_code=lg)\">12:00</t></span></div>\n"
 "                    <br/>\n"
 "                    <div>Bedankt,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>In de bijlage vind je je bon.</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Naam van de winkel</t>\n"
 "                </div>\n"
 "            "
@@ -210,6 +227,12 @@ msgstr "Afbeeldingen toevoegen"
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Add to cart"
 msgstr "Toevoegen aan winkelmandje"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Afternoon"
+msgstr "Middag"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -282,7 +305,8 @@ msgstr "Achtergrond"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Cancel"
 msgstr "Annuleren"
@@ -339,12 +363,6 @@ msgstr "Kies wanneer de klant betaalt"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Choose your time"
-msgstr "Kies je tijd"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "City"
 msgstr "Plaats"
 
@@ -352,7 +370,7 @@ msgstr "Plaats"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/category_list_popup/category_list_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
-#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_propup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Close"
 msgstr "Afsluiten"
@@ -363,6 +381,13 @@ msgid "Close Session"
 msgstr "Sessie sluiten"
 
 #. module: pos_self_order
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_config__self_ordering_primary_color
+#: model:ir.model.fields,field_description:pos_self_order.field_res_config_settings__pos_self_ordering_primary_color
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "Color"
+msgstr "Kleur"
+
+#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
@@ -371,13 +396,19 @@ msgstr "Combinatie"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__combo_id
-msgid "Combo reference"
+msgid "Combo Reference"
 msgstr "Combinatiereferentie"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_config_settings
 msgid "Config Settings"
 msgstr "Configuratie-instellingen"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+msgid "Confirm"
+msgstr "Bevestigen"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -398,18 +429,6 @@ msgstr "Contact"
 #: code:addons/pos_self_order/static/src/app/components/timeout_popup/timeout_popup.xml:0
 msgid "Continue"
 msgstr "Doorgaan"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Continue with table"
-msgstr "Ga verder met tafel"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Could you please confirm your table number?"
-msgstr "Kun je je tafelnummer bevestigen?"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_country
@@ -486,9 +505,8 @@ msgid "Default language for the kiosk mode"
 msgstr "Standaardtaal voor de kioskmodus"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__delivery
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Delivery"
 msgstr "Levering"
 
@@ -505,6 +523,7 @@ msgstr "Uitschakelen"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/language_popup/language_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Discard"
@@ -518,8 +537,10 @@ msgstr "Negeren"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__display_name
@@ -531,7 +552,7 @@ msgstr "Negeren"
 #: model:ir.model.fields,field_description:pos_self_order.field_restaurant_floor__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_restaurant_table__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -549,6 +570,12 @@ msgstr "QR-codes downloaden"
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Download your receipt here"
 msgstr "Download je bon hier"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
+msgid "E.g: Don't use food color, Extra spicy"
+msgstr "Bv.: Gebruik geen kleurstof, Extra pikant"
 
 #. module: pos_self_order
 #. odoo-python
@@ -587,8 +614,8 @@ msgstr "E-mail configuratie"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_mail_template
-msgid "Email Templates"
-msgstr "E-mailsjablonen"
+msgid "Email Template"
+msgstr "E-mailsjabloon"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -620,6 +647,12 @@ msgstr "Voer je tracenummer in"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Evening"
+msgstr "Avond"
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 msgid "Extra:"
 msgstr "Extra:"
@@ -643,6 +676,12 @@ msgstr "Volg de instructies op de terminal"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
 msgid "Free Metal / Wood Stands"
 msgstr "Gratis metalen/houten standaards"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Full Day"
+msgstr "Hele dag"
 
 #. module: pos_self_order
 #. odoo-python
@@ -712,8 +751,10 @@ msgstr "Hoe te gebruiken"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__id
@@ -820,9 +861,9 @@ msgstr "Kiosk"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Kiosk T"
-msgstr "Kiosk T"
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Kiosk Order"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__name
@@ -859,11 +900,6 @@ msgstr "Laat je klanten bestellen via hun mobiel of een kiosk."
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__light
 msgid "Light"
 msgstr "Licht"
-
-#. module: pos_self_order
-#: model:ir.model.fields,field_description:pos_self_order.field_pos_category__pos_config_ids
-msgid "Linked PoS Configurations"
-msgstr "Gekoppelde kassaconfiguraties"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -916,6 +952,12 @@ msgstr "Mobiele zelfbediening en kiosk"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Morning"
+msgstr "Ochtend"
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/landing_page/landing_page.xml:0
 msgid "My Order"
 msgstr "Mijn order"
@@ -926,18 +968,6 @@ msgstr "Mijn order"
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
 msgid "My Orders"
 msgstr "Mijn orders"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NEW"
-msgstr "NIEUW"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NOTE"
-msgstr "NOTITIE"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1032,7 +1062,6 @@ msgstr "Kiosk openen"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/stand_number_page/stand_number_page.js:0
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
 msgid "Order"
 msgstr "Order"
 
@@ -1041,6 +1070,12 @@ msgstr "Order"
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Order Now"
 msgstr "Bestel nu"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "Order for"
+msgstr "Bestelling voor"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1087,8 +1122,8 @@ msgstr "Betalen na"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
-msgid "Personalize the Kiosk background"
-msgstr "Personaliseer de achtergrond van de kiosk"
+msgid "Personalize the Interface"
+msgstr "Personaliseer de interface"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -1106,8 +1141,7 @@ msgid "Phone"
 msgstr "Telefoon"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Pickup At Counter"
 msgstr "Ophalen bij balie"
 
@@ -1116,6 +1150,18 @@ msgstr "Ophalen bij balie"
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__counter
 msgid "Pickup zone"
 msgstr "Ophaalzone"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a table for your order."
+msgstr "Kies een tafel voor je bestelling."
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a time slot for your order."
+msgstr "Kies een tijdslot voor je bestelling."
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_load_mixin
@@ -1133,19 +1179,29 @@ msgid "Point of Sale Configuration"
 msgstr "Kassa-instellingen"
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassaorderregels"
+#: model:ir.model,name:pos_self_order.model_pos_order
+msgid "Point of Sale Order"
+msgstr "Kassaorder"
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassaorders"
+#: model:ir.model,name:pos_self_order.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr "Kassaorderregel"
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr "Kassa Kassabon-generator"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Kassa betaalmethodes"
+msgid "Point of Sale Payment Method"
+msgstr "Kassa Betaalmethode"
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_product_template_snooze
+msgid "Point of Sale Product Snooze"
+msgstr "Kassa Product snoozen"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_session
@@ -1312,18 +1368,13 @@ msgstr "Kijk wat je hebt gemist"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Select"
-msgstr "Selecteren"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "Select a country"
 msgstr "Selecteer een land"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a hour"
 msgstr "Selecteer een uur"
 
@@ -1335,7 +1386,7 @@ msgstr "Selecteer een provincie"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a table"
 msgstr "Selecteer een tafel"
 
@@ -1357,8 +1408,10 @@ msgid "Selection"
 msgstr "Selectie"
 
 #. module: pos_self_order
+#. odoo-javascript
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
 msgid "Self Order"
 msgstr "Zelfbediening"
 
@@ -1420,12 +1473,6 @@ msgstr "Zelfbestelling mobiel"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Self-Order T"
-msgstr "Zelfbestelling T"
-
-#. module: pos_self_order
-#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Self-Order T %s"
 msgstr "Zelfbediening T %s"
@@ -1439,8 +1486,8 @@ msgstr "Zelfbediening:"
 #. module: pos_self_order
 #: model:mail.template,description:pos_self_order.delivery_email_template
 #: model:mail.template,description:pos_self_order.takeout_email_template
-msgid "Sent to customers"
-msgstr "Verzonden naar klanten"
+msgid "Sent to customers with the receipt in attachment"
+msgstr "Verzonden naar klanten met het ticket in bijlage"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__sequence
@@ -1454,8 +1501,7 @@ msgid "Service at"
 msgstr "Dienst bij"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Service at Table"
 msgstr "Dienst aan tafel"
 
@@ -1515,7 +1561,12 @@ msgstr "Tafelnummer"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Table Tracker %s"
+msgstr ""
+
+#. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Table Tracker:"
 msgstr "Tafeltracker:"
 
@@ -1523,12 +1574,6 @@ msgstr "Tafeltracker:"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__self_ordering_table_id
 msgid "Table reference"
 msgstr "Tafelverwijzing"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Table selection"
-msgstr "Tafelselectie"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
@@ -1554,7 +1599,6 @@ msgstr "Btw:"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
 msgid "Thanks a lot!"
 msgstr "Hartelijk bedankt!"
@@ -1586,6 +1630,25 @@ msgstr "Deze combinatie bestaat niet."
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Today"
+msgstr "Vandaag"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Tommorrow"
+msgstr "Morgen"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+msgid "Tomorrow"
+msgstr "Morgen"
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.xml:0
 msgid "Total"
 msgstr "Totaal"
@@ -1606,12 +1669,6 @@ msgstr "URL"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid "URL:"
 msgstr "URL:"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/pages/product_list_page/product_list_page.xml:0
-msgid "Unavailable"
-msgstr "Onbeschikbaar"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1704,14 +1761,6 @@ msgid "You are not authorized to remove this order"
 msgstr "Je bent niet bevoegd om deze bestelling te verwijderen"
 
 #. module: pos_self_order
-#. odoo-python
-#: code:addons/pos_self_order/models/pos_config.py:0
-#: code:addons/pos_self_order/models/res_config_settings.py:0
-msgid "You cannot add cash payment methods in kiosk mode."
-msgstr ""
-"Je kunt geen betaalmethoden met contant geld toevoegen in de kioskmodus."
-
-#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/services/self_order_service.js:0
 msgid "You're not authorized to perform this action"
@@ -1772,6 +1821,12 @@ msgstr "aan de toog"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "by cash"
+msgstr "contant"
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "close"
 msgstr "sluiten"
@@ -1828,156 +1883,12 @@ msgstr "per extra eenheid"
 msgid "x"
 msgstr "x"
 
-#~ msgid ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"client\" t-value=\"object.partner_id\"/>\n"
-#~ "                    <t t-set=\"client_name\" t-value=\"client.name\"/>\n"
-#~ "                    <t t-set=\"street\" t-value=\"client.street or ''\"/"
-#~ ">\n"
-#~ "                    <t t-set=\"state\" t-value=\"client.state_id.name or "
-#~ "''\"/>\n"
-#~ "                    <t t-set=\"city\" t-value=\"client.city or ''\"/>\n"
-#~ "                    <t t-set=\"country\" t-value=\"client.country_id.name "
-#~ "or ''\"/>\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-"
-#~ "value=\"object.company_id.partner_id.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hello <t t-"
-#~ "out=\"client_name\">Client name</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hello,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Your order <t t-"
-#~ "out=\"object.tracking_number\">...</t> amounting in <t t-"
-#~ "out=\"format_amount(object.amount_total,object.currency_id)\">$xx.xx</t> "
-#~ "has been confirmed. <span t-if=\"object.preset_time or client.street\">It "
-#~ "will be ready</span> <span t-if=\"object.preset_time\">at <t t-"
-#~ "out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00 pm</t></span> <span t-if=\"client.street\">at <t t-"
-#~ "out=\"street\">street</t>, <t t-out=\"state\">state</t>, <t t-"
-#~ "out=\"client.zip or ''\">zip</t>, <t t-out=\"city\">city</t>, <t t-"
-#~ "out=\"country\">country</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Thank you,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>Attached, you will find your receipt</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Store name</t>\n"
-#~ "                </div>\n"
-#~ "            "
+#~ msgid "You cannot add cash payment methods in kiosk mode."
 #~ msgstr ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"client\" t-value=\"object.partner_id\"/>\n"
-#~ "                    <t t-set=\"client_name\" t-value=\"client.name\"/>\n"
-#~ "                    <t t-set=\"street\" t-value=\"client.street or ''\"/"
-#~ ">\n"
-#~ "                    <t t-set=\"state\" t-value=\"client.state_id.name or "
-#~ "''\"/>\n"
-#~ "                    <t t-set=\"city\" t-value=\"client.city or ''\"/>\n"
-#~ "                    <t t-set=\"country\" t-value=\"client.country_id.name "
-#~ "or ''\"/>\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-"
-#~ "value=\"object.company_id.partner_id.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hallo <t t-"
-#~ "out=\"client_name\">Naam van de klant</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hallo,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Je bestelling <t t-"
-#~ "out=\"object.tracking_number\">...</t> voor een bedrag van <t t-"
-#~ "out=\"format_amount(object.amount_total,object.currency_id)\">€ xx,xx</t> "
-#~ "is bevestigd. <span t-if=\"object.preset_time or client.street\">De "
-#~ "bestelling zal klaar zijn</span> <span t-if=\"object.preset_time\">om <t "
-#~ "t-out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00</t></span> <span t-if=\"client.street\">op deze "
-#~ "locatie: <t t-out=\"street\">straat</t>, <t t-out=\"state\">provincie</"
-#~ "t>, <t t-out=\"client.zip or ''\">postcode</t>, <t t-out=\"city\">stad</"
-#~ "t>, <t t-out=\"country\">land</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Bedankt,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>In de bijlage vind je de bon</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Naam van de winkel</t>\n"
-#~ "                </div>\n"
-#~ "            "
+#~ "Je kunt geen betaalmethoden met contant geld toevoegen in de kioskmodus."
 
-#~ msgid ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-"
-#~ "value=\"object.company_id.partner_id.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hello <t t-"
-#~ "out=\"client_name\">Client name</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hello,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Your order <t t-"
-#~ "out=\"object.tracking_number\">...</t> amounting in <t t-"
-#~ "out=\"format_amount(object.amount_total,object.currency_id)\">$xx.xx</t> "
-#~ "has been confirmed. <span t-if=\"object.preset_time\">It will be ready at "
-#~ "<t t-out=\"format_time(time=object.preset_time, tz=tz, "
-#~ "time_format='short', lang_code=lg)\">12:00 pm</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Thank you,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>Attached, you will find your receipt</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Store name</t>\n"
-#~ "                </div>\n"
-#~ "            "
-#~ msgstr ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-"
-#~ "value=\"object.company_id.partner_id.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hallo <t t-"
-#~ "out=\"client_name\">Naam van de klant</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hallo,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Je bestelling <t t-"
-#~ "out=\"object.tracking_number\">...</t> voor een bedrag van <t t-"
-#~ "out=\"format_amount(object.amount_total,object.currency_id)\">€ xx,xx</t> "
-#~ "is bevestigd. <span t-if=\"object.preset_time\">De bestelling zal klaar "
-#~ "zijn om <t t-out=\"format_time(time=object.preset_time, tz=tz, "
-#~ "time_format='short', lang_code=lg)\">12:00</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Bedankt,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>In de bijlage vind je je bon.</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Naam van de winkel</t>\n"
-#~ "                </div>\n"
-#~ "            "
-
-#~ msgid "Sent to customers with the receipt in attachment"
-#~ msgstr "Verzonden naar klanten met het ticket in bijlage"
+#~ msgid "Unavailable"
+#~ msgstr "Onbeschikbaar"
 
 #~ msgid "Choose your"
 #~ msgstr "Kies je"
@@ -1987,167 +1898,3 @@ msgstr "x"
 
 #~ msgid "Select your address"
 #~ msgstr "Selecteer je adres"
-
-#~ msgid ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"client\" t-value=\"object.partner_id\"/>\n"
-#~ "                    <t t-set=\"client_name\" t-value=\"client.name\"/>\n"
-#~ "                    <t t-set=\"street\" t-value=\"client.street or ''\"/"
-#~ ">\n"
-#~ "                    <t t-set=\"state\" t-value=\"client.state_id.name or "
-#~ "''\"/>\n"
-#~ "                    <t t-set=\"city\" t-value=\"client.city or ''\"/>\n"
-#~ "                    <t t-set=\"country\" t-value=\"client.country_id.name "
-#~ "or ''\"/>\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-value=\"object.env.user.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hello <t t-"
-#~ "out=\"client_name\">Client name</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hello,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Your order <t t-"
-#~ "out=\"object.tracking_number\">...</t> amounting in <t t-"
-#~ "out=\"object.amount_total\">$xx.xx</t> has been confirmed. <span t-"
-#~ "if=\"object.preset_time or client.street\">It will be ready</span> <span "
-#~ "t-if=\"object.preset_time\">at <t t-"
-#~ "out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00 pm</t></span> <span t-if=\"client.street\">at <t t-"
-#~ "out=\"street\">street</t>, <t t-out=\"state\">state</t>, <t t-"
-#~ "out=\"client.zip or ''\">zip</t>, <t t-out=\"city\">city</t>, <t t-"
-#~ "out=\"country\">country</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Thank you,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>Attached, you will find your receipt</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Store name</t>\n"
-#~ "                </div>\n"
-#~ "            "
-#~ msgstr ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"client\" t-value=\"object.partner_id\"/>\n"
-#~ "                    <t t-set=\"client_name\" t-value=\"client.name\"/>\n"
-#~ "                    <t t-set=\"street\" t-value=\"client.street or ''\"/"
-#~ ">\n"
-#~ "                    <t t-set=\"state\" t-value=\"client.state_id.name or "
-#~ "''\"/>\n"
-#~ "                    <t t-set=\"city\" t-value=\"client.city or ''\"/>\n"
-#~ "                    <t t-set=\"country\" t-value=\"client.country_id.name "
-#~ "or ''\"/>\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-value=\"object.env.user.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hallo <t t-"
-#~ "out=\"client_name\">naam van de klant</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hallo,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Je bestelling <t t-"
-#~ "out=\"object.tracking_number\">...</t> ter waarde van <t t-"
-#~ "out=\"object.amount_total\">€ xx,xx</t> is bevestigd. <span t-"
-#~ "if=\"object.preset_time or client.street\">Ze zal klaarstaan</span> <span "
-#~ "t-if=\"object.preset_time\">om <t t-"
-#~ "out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00 uur</t></span> <span t-if=\"client.street\">op het "
-#~ "volgende adres <t t-out=\"street\">straat</t>, <t t-"
-#~ "out=\"state\">provincie</t>, <t t-out=\"client.zip or ''\">postcode</t>, "
-#~ "<t t-out=\"city\">stad</t>, <t t-out=\"country\">land</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Bedankt,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>In de bijlage vind je je aankoopbewijs.</"
-#~ "div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Winkelnaam</t>\n"
-#~ "                </div>\n"
-#~ "            "
-
-#~ msgid ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-value=\"object.env.user.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Hello <t t-"
-#~ "out=\"client_name\">Client name</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hello,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Your order <t t-"
-#~ "out=\"object.tracking_number\">...</t> amounting in <t t-"
-#~ "out=\"object.amount_total\">$xx.xx</t> has been confirmed. <span t-"
-#~ "if=\"object.preset_time\">It will be ready at <t t-"
-#~ "out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00 pm</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Thank you,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>Attached, you will find your receipt</div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Store name</t>\n"
-#~ "                </div>\n"
-#~ "            "
-#~ msgstr ""
-#~ "<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
-#~ "                    <t t-set=\"store_name\" t-"
-#~ "value=\"object.config_id.name\"/>\n"
-#~ "                    <t t-set=\"tz\" t-value=\"object.env.user.tz\"/>\n"
-#~ "                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
-#~ "user.lang\"/>\n"
-#~ "                    <div>\n"
-#~ "                        <t t-if=\"client_name\">Beste <t t-"
-#~ "out=\"client_name\">naam van de klant</t>,</t>\n"
-#~ "                        <t t-else=\"\">Hallo,</t>\n"
-#~ "                    </div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Je bestelling <t t-"
-#~ "out=\"object.tracking_number\">...</t> ter waarde van <t t-"
-#~ "out=\"object.amount_total\">€ xx,xx</t> is bevestigd. <span t-"
-#~ "if=\"object.preset_time\">Ze zal klaarstaan om <t t-"
-#~ "out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
-#~ "lang_code=lg)\">12:00 uur</t></span></div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div>Bedankt,</div>\n"
-#~ "                    <br/>\n"
-#~ "                    <div t-if=\"object.state == 'paid'\">\n"
-#~ "                        <div>In de bijlage vind je jouw aankoopbewijs.</"
-#~ "div>\n"
-#~ "                        <br/>\n"
-#~ "                    </div>\n"
-#~ "                    <t t-out=\"store_name\">Naam van de winkel</t>\n"
-#~ "                </div>\n"
-#~ "            "
-
-#~ msgid "/ Tracker number:"
-#~ msgstr "/ Trackernummer:"
-
-#~ msgid "Connection lost, please try again later"
-#~ msgstr "Verbinding verloren, probeer het laten opnieuw"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "Fiscale positie"
-
-#~ msgid "Self Ordering Enabled"
-#~ msgstr "Zelfbestelling ingeschakeld"
-
-#~ msgid "Your order has been cancelled"
-#~ msgstr "Je order werd geannuleerd"
-
-#~ msgid "Your order status has been changed"
-#~ msgstr "De status van je order is gewijzigd"

@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Abe Manyo, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Abe Manyo (abem)" <abem@odoo.com>, 2025.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-08 09:20+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-07-08 10:30+0000\n"
 "Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "rating/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,8 @@ msgstr ""
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_external_page_invalid_partner
 msgid "\" or someone from the same company can give it a rating."
-msgstr "\" atau seseorang dari perusahaan yang sama dapat memberikannya rating."
+msgstr ""
+"\" atau seseorang dari perusahaan yang sama dapat memberikannya rating."
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_parent_mixin__rating_count
@@ -206,11 +207,11 @@ msgstr "URL Gambar"
 #. odoo-python
 #: code:addons/rating/controllers/main.py:0
 msgid ""
-"Incorrect rating: should be %(rating_unhappy)d, %(rating_neutral)d or %"
-"(rating_happy)d (received %(rate)d)"
+"Incorrect rating: should be %(rating_unhappy)d, %(rating_neutral)d or "
+"%(rating_happy)d (received %(rate)d)"
 msgstr ""
-"Rating tidak tepat: harus %(rating_unhappy)d, %(rating_neutral)d atau %"
-"(rating_happy)d (menerima %(rate)d)"
+"Rating tidak tepat: harus %(rating_unhappy)d, %(rating_neutral)d atau "
+"%(rating_happy)d (menerima %(rate)d)"
 
 #. module: rating
 #. odoo-python
@@ -473,9 +474,9 @@ msgstr "Rating:"
 #: model:ir.model.fields,field_description:rating.field_mail_blacklist__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_blacklist__rating_ids
-#: model:ir.model.fields,field_description:rating.field_mail_thread_cc__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_main_attachment__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_thread_phone__rating_ids
+#: model:ir.model.fields,field_description:rating.field_mail_thread_subject_suggested__rating_ids
 #: model:ir.model.fields,field_description:rating.field_mail_tracking_duration_mixin__rating_ids
 #: model:ir.model.fields,field_description:rating.field_maintenance_equipment__rating_ids
 #: model:ir.model.fields,field_description:rating.field_maintenance_request__rating_ids
@@ -599,21 +600,3 @@ msgstr "untuk"
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_kanban
 msgid "on"
 msgstr "pada"
-
-#~ msgid "Date"
-#~ msgstr "Tanggal"
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "Last 30 days"
-#~ msgstr "30 hari terakhir"
-
-#~ msgid "Last 7 days"
-#~ msgstr "7 hari terakhir"
-
-#~ msgid "Okay"
-#~ msgstr "Okay"
-
-#~ msgid "Today"
-#~ msgstr "Hari Ini"

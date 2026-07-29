@@ -131,20 +131,12 @@
 
     <template id="report_invoice_document" inherit_id="account.report_invoice_document" primary="True">
 
-        <t t-set="o" position="after">
+        <t t-call="web.external_layout" position="before">
             <t t-set="custom_header" t-value="'l10n_cl.custom_header'"/>
         </t>
 
         <!-- remove default partner address -->
-        <xpath expr="//div[@name='address_not_same_as_shipping']" position="replace">
-            <div name="address_not_same_as_shipping"/>
-        </xpath>
-        <xpath expr="//div[@name='address_same_as_shipping']" position="replace">
-            <div name="address_same_as_shipping"/>
-        </xpath>
-        <xpath expr="//div[@name='no_shipping']" position="replace">
-            <div name="no_shipping"/>
-        </xpath>
+        <t t-set="address" position="replace" />
 
         <xpath expr="//t[@t-set='layout_document_title']" position="replace"/>
 
@@ -247,7 +239,7 @@
             </t>
             <t t-if="subtotal_amounts['vat_amount'] != 0.0">
                 <tr>
-                    <td>VAT <t t-esc="subtotal_amounts['vat_percent']"/>%</td>
+                    <td>VAT <t t-out="subtotal_amounts['vat_percent']"/>%</td>
                     <td class="text-end" t-out="subtotal_amounts['vat_amount']"
                         t-options="{'widget': 'monetary', 'display_currency': subtotal_amounts['main_currency']}"/></tr>
             </t>

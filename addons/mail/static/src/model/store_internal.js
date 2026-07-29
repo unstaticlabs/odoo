@@ -4,9 +4,14 @@
 import { htmlEscape, markup, toRaw } from "@odoo/owl";
 import { RecordInternal } from "./record_internal";
 import { deserializeDate, deserializeDateTime } from "@web/core/l10n/dates";
-import { IS_DELETED_SYM, IS_DELETING_SYM, isCommand, isMany } from "./misc";
+import { IS_DELETED_SYM, isCommandList, isMany, normalizeManyCommands } from "./misc";
+import { browser } from "@web/core/browser/browser";
+import { parseRawValue } from "@mail/utils/common/local_storage";
 
 const Markup = markup().constructor;
+
+/** @typedef {string} LocalStorageKey */
+/** @typedef {string} FieldName */
 
 export class StoreInternal extends RecordInternal {
     /** @type {Map<import("./record").Record, Map<string, true>>} */
@@ -27,6 +32,47 @@ export class StoreInternal extends RecordInternal {
     RHD_QUEUE = new Map(); // record-hard-deletes
     ERRORS = [];
     UPDATE = 0;
+    /**
+     * Map of local storage keys of fields synced with local storage to the record and field name.
+     *
+     * @type {Map<LocalStorageKey, Map<Record, FieldName>>}
+     */
+    localStorageKeyToRecordFields = new Map();
+
+    constructor() {
+        super(...arguments);
+        this.onStorage = this.onStorage.bind(this);
+        browser.addEventListener("storage", this.onStorage);
+    }
+    /**
+     * Indicates whether the current update cycle was triggered by a
+     * `storage` event. Used to prevent writing back to the local
+     * storage and creating a feedback loop.
+     */
+    isUpdatingFromStorageEvent = false;
+    onStorage(ev) {
+        const entryMap = this.localStorageKeyToRecordFields.get(ev.key);
+        if (!entryMap) {
+            return;
+        }
+        this.isUpdatingFromStorageEvent = true;
+        try {
+            for (const [record, fieldName] of entryMap.entries()) {
+                if (ev.newValue === null) {
+                    record._proxy[fieldName] = record._.fieldsDefault.get(fieldName);
+                } else {
+                    const parsed = parseRawValue(ev.newValue);
+                    if (!parsed) {
+                        record._proxy[fieldName] = record._.fieldsDefault.get(fieldName);
+                    } else {
+                        record._proxy[fieldName] = parsed.value;
+                    }
+                }
+            }
+        } finally {
+            this.isUpdatingFromStorageEvent = false;
+        }
+    }
 
     /**
      * @param {"compute"|"sort"|"onAdd"|"onDelete"|"onUpdate"|"hard_delete"} type
@@ -121,7 +167,6 @@ export class StoreInternal extends RecordInternal {
             case "hard_delete": {
                 /** @type {import("./record").Record} */
                 const [record] = params;
-                record._[IS_DELETING_SYM] = true;
                 record._proxy[IS_DELETED_SYM] = true;
                 delete record.Model.records[record.localId];
                 if (!this.RHD_QUEUE.has(record)) {
@@ -198,10 +243,24 @@ export class StoreInternal extends RecordInternal {
             Object.getOwnPropertySymbols(vals).map((sym) => [sym, vals[sym]])
         );
         for (const [fieldName, value] of fieldEntries) {
+            const valueNormalized = isMany(record.Model, fieldName)
+                ? normalizeManyCommands(value)
+                : value;
+            if (record.Model._.fieldsLocalStorage.has(fieldName)) {
+                // should immediately write in local storage, for immediately correct next compute
+                if (!this.isUpdatingFromStorageEvent) {
+                    const lse = record._.fieldsLocalStorage.get(fieldName);
+                    if (value === record._.fieldsDefault.get(fieldName)) {
+                        lse.remove();
+                    } else {
+                        lse.set(value);
+                    }
+                }
+            }
             if (!record.Model._.fields.get(fieldName) || record.Model._.fieldsAttr.get(fieldName)) {
-                this.updateAttr(record, fieldName, value);
+                this.updateAttr(record, fieldName, valueNormalized);
             } else {
-                this.updateRelation(record, fieldName, value);
+                this.updateRelation(record, fieldName, valueNormalized);
             }
         }
     }
@@ -224,38 +283,27 @@ export class StoreInternal extends RecordInternal {
      * @param {any} value
      */
     updateRelationMany(recordList, value) {
-        if (isCommand(value)) {
-            for (const [cmd, cmdData] of value) {
-                if (Array.isArray(cmdData)) {
-                    for (const item of cmdData) {
-                        if (cmd === "ADD") {
-                            recordList.add(item);
-                        } else if (cmd === "ADD.noinv") {
-                            recordList._.addNoinv(recordList, item);
-                        } else if (cmd === "DELETE.noinv") {
-                            recordList._.deleteNoinv(recordList, item);
-                        } else {
-                            recordList.delete(item);
-                        }
-                    }
-                } else {
-                    if (cmd === "ADD") {
-                        recordList.add(cmdData);
-                    } else if (cmd === "ADD.noinv") {
-                        recordList._.addNoinv(recordList, cmdData);
-                    } else if (cmd === "DELETE.noinv") {
-                        recordList._.deleteNoinv(recordList, cmdData);
-                    } else {
-                        recordList.delete(cmdData);
-                    }
+        for (const [cmd, cmdData] of value) {
+            if (cmd === "REPLACE") {
+                recordList._.assign(recordList, cmdData);
+                continue;
+            }
+            for (const item of cmdData) {
+                switch (cmd) {
+                    case "ADD":
+                        recordList.add(item);
+                        break;
+                    case "ADD.noinv":
+                        recordList._.addNoinv(recordList, item);
+                        break;
+                    case "DELETE":
+                        recordList.delete(item);
+                        break;
+                    case "DELETE.noinv":
+                        recordList._.deleteNoinv(recordList, item);
+                        break;
                 }
             }
-        } else if ([null, false, undefined].includes(value)) {
-            recordList.clear();
-        } else if (!Array.isArray(value)) {
-            recordList._.assign(recordList, [value]);
-        } else {
-            recordList._.assign(recordList, value);
         }
     }
     /**
@@ -264,9 +312,9 @@ export class StoreInternal extends RecordInternal {
      * @returns {boolean} whether the value has changed
      */
     updateRelationOne(recordList, value) {
-        if (isCommand(value)) {
+        if (isCommandList(value)) {
             const [cmd, cmdData] = value.at(-1);
-            if (cmd === "ADD") {
+            if (["ADD", "REPLACE"].includes(cmd)) {
                 recordList.add(cmdData);
             } else if (cmd === "ADD.noinv") {
                 recordList._.addNoinv(recordList, cmdData);

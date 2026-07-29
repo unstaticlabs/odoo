@@ -1,0 +1,49 @@
+site_name: USL Odoo User Guide
+site_description: User-facing documentation for the USL Odoo fork.
+docs_dir: docs/users
+site_dir: artifacts/user-docs/site
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+plugins:
+  - search
+nav:
+  - Home: README.md
+  - Tutorial:
+      - Guided Accounting Tour: tutorials/accounting-application.md
+  - How-To Guides:
+      - Process a Supplier Bill: how-to/process-vendor-bill.md
+      - Process an Expense: how-to/process-expense.md
+      - Group Expenses into a Batch: guides/expense-batches.md
+      - Create and Collect a Customer Invoice: how-to/process-customer-invoice.md
+      - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
+      - Manage Bank Matching Rules: how-to/manage-bank-matching-rules.md
+      - Reconcile a Non-Bank Account: how-to/reconcile-clearing-account.md
+      - Investigate a Report Value: how-to/investigate-report-value.md
+      - Analyze Analytic Performance: how-to/analyze-analytic-performance.md
+      - Review Accounting Hygiene: how-to/review-accounting-hygiene.md
+      - Prepare a Declaration: how-to/prepare-declaration.md
+      - Prepare Electronic-Invoice Reception: how-to/prepare-electronic-invoice-reception.md
+      - Activate Electronic-Invoice Reception: how-to/activate-electronic-invoice-reception.md
+      - Run a Monthly Review: how-to/run-monthly-review.md
+      - Export Reports and FEC: how-to/export-reports-and-fec.md
+      - Provide Accountant Access: how-to/provide-accountant-access.md
+  - Reference:
+      - Menus and Screens: reference/menus-and-screens.md
+      - Reports and Filters: reference/reports-and-filters.md
+      - Statuses: reference/statuses.md
+      - Roles and Permissions: reference/roles-and-permissions.md
+      - Configuration: reference/configuration.md
+      - French Declarations: reference/declarations.md
+  - Explanation:
+      - Posting and Evidence: explanation/posting-and-evidence.md
+      - Reconciliation and Residuals: explanation/reconciliation.md
+      - Analytical Accounting: explanation/analytical-accounting.md
+      - VAT and Declarations: explanation/vat-and-declarations.md
+      - Closing and Lock Dates: explanation/closing-and-locks.md

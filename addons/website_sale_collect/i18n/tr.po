@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * website_sale_collect
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 06:07+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-21 14:46+0000\n"
 "Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "website_sale_collect/tr/>\n"
@@ -19,13 +19,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/sale_order.py:0
 msgid "%(available_qty)s/%(line_qty)s available at this location"
 msgstr "%(available_qty)s/%(line_qty)s bu konumda mevcuttur"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<i class=\"fa fa-fw fa-heart\"/> In wishlist"
+msgstr ""
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid ""
+"<i class=\"fa fa-fw fa-heart-o\" role=\"presentation\" aria-label=\"Add to "
+"Wishlist\"/>\n"
+"                                    Wishlist"
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:payment.provider,pending_msg:website_sale_collect.payment_provider_on_site
@@ -37,9 +50,19 @@ msgstr ""
 "mağazaya gelin."
 
 #. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<span class=\"small\">|</span>"
+msgstr ""
+
+#. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.payment_confirmation_status
 msgid "<span class=\"text-muted\"> (In-store pickup)</span>"
 msgstr "<span class=\"text-muted\"> (Mağazadan teslim alma)</span>"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "Add to Wishlist"
+msgstr ""
 
 #. module: website_sale_collect
 #. odoo-javascript
@@ -88,6 +111,11 @@ msgid "Delivery"
 msgstr "Teslimat"
 
 #. module: website_sale_collect
+#: model:ir.model,name:website_sale_collect.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/res_config_settings.py:0
 msgid "Delivery Methods"
@@ -132,13 +160,6 @@ msgstr "Mağaza İçi Teslimat Yöntemi"
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 msgid "Not available"
 msgstr "Mevcut değil"
-
-#. module: website_sale_collect
-#. odoo-javascript
-#: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
-#: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "Only"
-msgstr "Yalnız"
 
 #. module: website_sale_collect
 #: model:ir.model.fields,field_description:website_sale_collect.field_stock_warehouse__opening_hours
@@ -224,9 +245,10 @@ msgid "Select store"
 msgstr "Mağaza seçiniz"
 
 #. module: website_sale_collect
-#: model:ir.model,name:website_sale_collect.model_delivery_carrier
-msgid "Shipping Methods"
-msgstr "Gönderim Yöntemleri"
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.xml:0
+msgid "Selected country:"
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -264,6 +286,12 @@ msgstr "Teslimat yöntemi ve depo aynı şirketi paylaşmalıdır"
 msgid "The delivery method must have at least one warehouse to be published."
 msgstr ""
 "Teslimat yönteminin yayınlanması için en az bir depoya sahip olması gerekir."
+
+#. module: website_sale_collect
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "This address may require to recompute taxes."
+msgstr ""
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -313,8 +341,8 @@ msgstr "Ödemeniz işleme alınmıştır."
 #. odoo-javascript
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 #: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "available"
-msgstr "mevcut"
+msgid "in stock"
+msgstr ""
 
 #. module: website_sale_collect
 #. odoo-python

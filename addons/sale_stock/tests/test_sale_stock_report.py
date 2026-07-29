@@ -11,6 +11,7 @@ from odoo.addons.stock.tests.test_report import TestReportsCommon
 from odoo.addons.sale.tests.common import TestSaleCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSaleStockReports(TestReportsCommon):
     def test_report_forecast_1_sale_order_replenishment(self):
         """ Create and confirm two sale orders: one for the next week and one
@@ -24,7 +25,7 @@ class TestSaleStockReports(TestReportsCommon):
         # Put some quantity in stock.
         quant_vals = {
             'product_id': self.product.id,
-            'product_uom_id': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'quantity': 5,
             'reserved_quantity': 0,

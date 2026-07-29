@@ -4,9 +4,10 @@
 from odoo import exceptions
 from odoo.addons.crm.tests.common import TestCrmCommon
 from odoo.addons.crm_iap_mine.tests.common import MockIAPReveal
-from odoo.tests.common import users
+from odoo.tests.common import tagged, users
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadMine(TestCrmCommon, MockIAPReveal):
 
     @classmethod
@@ -71,7 +72,7 @@ class TestLeadMine(TestCrmCommon, MockIAPReveal):
         self.assertEqual(len(self._new_leads), 3, 'Number of leads should match mine request')
 
         for base_name in ['Heinrich', 'Rivil', 'LidGen']:
-            lead = self._new_leads.filtered(lambda lead: lead.name == '%s GmbH' % base_name)
+            lead = self._new_leads.filtered(lambda lead: lead.name == f"{base_name} GmbH's opportunity")
             self.assertTrue(bool(lead))
 
             # mine information
@@ -107,9 +108,8 @@ class TestLeadMine(TestCrmCommon, MockIAPReveal):
         self.assertEqual(mine_request.state, 'done')
 
         self.assertEqual(len(self._new_leads), 3, 'Number of leads should match mine request')
-
         for base_name in ['Heinrich', 'Rivil', 'LidGen']:
-            lead = self._new_leads.filtered(lambda lead: lead.name == '%s GmbH' % base_name)
+            lead = self._new_leads.filtered(lambda lead: lead.name == f"{base_name} GmbH's opportunity")
             self.assertTrue(bool(lead))
 
             # mine information

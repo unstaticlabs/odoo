@@ -12,7 +12,6 @@
             <field name="default_code">FURN_5555</field>
             <field name="name">Cable Management Box</field>
             <field name="is_storable" eval="True"/>
-            <field name="weight">0.01</field>
             <field name="categ_id" ref="product.product_category_office"/>
             <field name="lst_price">100.0</field>
             <field name="standard_price">70.0</field>
@@ -69,7 +68,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_27'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 15.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -88,7 +87,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_6'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 180.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -107,7 +106,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_delivery_02'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 45.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -126,7 +125,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_5'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 75.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -145,7 +144,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_3'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 16.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -164,7 +163,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_3'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 40.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -183,7 +182,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_6'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 50.0,
                 'picking_type_id': ref('stock.picking_type_out'),
                 'location_id': ref('stock.stock_location_stock'),
@@ -200,7 +199,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('stock.product_cable_management_box'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 50.0,
                 'picking_type_id': ref('stock.picking_type_in'),
                 'location_id': ref('stock.stock_location_suppliers'),
@@ -218,7 +217,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_delivery_01'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 35.0,
                 'picking_type_id': ref('stock.picking_type_in'),
                 'location_id': ref('stock.stock_location_suppliers'),
@@ -235,7 +234,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_22'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 125.0,
                 'picking_type_id': ref('stock.picking_type_in'),
                 'location_id': ref('stock.stock_location_suppliers'),
@@ -252,7 +251,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_product_10'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 120.0,
                 'picking_type_id': ref('stock.picking_type_in'),
                 'location_id': ref('stock.stock_location_suppliers'),
@@ -269,7 +268,7 @@
             <field name="state">draft</field>
             <field name="move_ids" model="stock.move" eval="[(0, 0, {
                 'product_id': ref('product.product_delivery_02'),
-                'product_uom': ref('uom.product_uom_unit'),
+                'uom_id': ref('uom.product_uom_unit'),
                 'product_uom_qty': 50.0,
                 'picking_type_id': ref('stock.picking_type_in'),
                 'location_id': ref('stock.stock_location_suppliers'),

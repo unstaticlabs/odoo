@@ -1,9 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.addons.calendar.models.calendar_recurrence import MAX_RECURRENT_EVENT
-from odoo.tests import common
+from odoo.tests import tagged, common
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestRecurrentEvent(common.TransactionCase):
 
     def setUp(self):
@@ -15,6 +15,7 @@ class TestRecurrentEvent(common.TransactionCase):
         # In order to test recurrent meetings in Odoo, I create meetings with different recurrence using different test cases.
         # I create a recurrent meeting with daily recurrence and fixed amount of time.
         self.CalendarEvent.create({
+            'end_type': 'count',
             'count': 5,
             'start': '2011-04-13 11:04:00',
             'stop': '2011-04-13 12:04:00',
@@ -81,7 +82,7 @@ class TestRecurrentEvent(common.TransactionCase):
                 )
 
         # Edit the max recurrence years
-        self.env['ir.config_parameter'].sudo().set_param('calendar.max_recurrence_years', 5)
+        self.env['ir.config_parameter'].sudo().set_int('calendar.max_recurrence_years', 5)
         for rrule_type, name, expected_count in (
             ('daily', 'Custom Daily Meeting', 720),
             ('monthly', 'Custom Monthly Meeting', 60),
@@ -95,34 +96,3 @@ class TestRecurrentEvent(common.TransactionCase):
                     expected_count,
                     f'Recurrent {rrule_type} meetings should be created and not exceed {expected_count}!',
                 )
-
-        # Weekly 'forever' must honor the limit too (instead of always hitting the
-        # 720 hard cap), and the number of occurrences scales with the number of
-        # selected weekdays and inversely with the interval. The counts are exact:
-        # the start (2026-04-01) is a Wednesday and a 2-year horizon is 365 // 7 * 2
-        # = 104 weeks.
-        self.env['ir.config_parameter'].sudo().set_param('calendar.max_recurrence_years', 2)
-
-        def weekly_count(name, **additional_values):
-            event = self.CalendarEvent.create(dict(values, name=name, rrule_type='weekly', **additional_values))
-            return len(event.recurrence_id.calendar_event_ids)
-
-        # One weekday: one occurrence per week over the 104-week horizon.
-        self.assertEqual(weekly_count('Weekly One Day', wed=True), 104,
-                         "weekly forever should respect max_recurrence_years (104 weeks), not the 720 cap")
-        # Three weekdays: three per week, minus the Monday preceding the Wednesday start.
-        self.assertEqual(weekly_count('Weekly Three Days', mon=True, wed=True, fri=True), 311,
-                         "weekly count must scale with the number of selected weekdays")
-        # interval=2: every other week.
-        self.assertEqual(weekly_count('Weekly Interval Two', wed=True, interval=2), 52,
-                         "weekly count must scale inversely with the interval")
-
-        # Other side of the `min`: a 5-year, 7-weekday horizon would generate ~1820
-        # occurrences, so the clamp holds it at the hard cap, minus the 3 first-week
-        # occurrences that precede the Wednesday start.
-        self.env['ir.config_parameter'].sudo().set_param('calendar.max_recurrence_years', 5)
-        capped = weekly_count('Weekly Capped', mon=True, tue=True, wed=True,
-                              thu=True, fri=True, sat=True, sun=True)
-        self.assertEqual(capped, MAX_RECURRENT_EVENT - 3,
-                         "weekly forever must clamp to the hard cap when the year-scaled "
-                         "count would exceed it")

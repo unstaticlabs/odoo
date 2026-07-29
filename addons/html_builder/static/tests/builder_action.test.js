@@ -2,14 +2,13 @@ import {
     addBuilderAction,
     addBuilderOption,
     setupHTMLBuilder,
-    addLegacyBuilderOption,
 } from "@html_builder/../tests/helpers";
 import { Builder } from "@html_builder/builder";
 import { BuilderAction } from "@html_builder/core/builder_action";
 import { SavePlugin } from "@html_builder/core/save_plugin";
 import { BaseOptionComponent } from "@html_builder/core/utils";
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { advanceTime, animationFrame, Deferred, tick } from "@odoo/hoot-dom";
+import { advanceTime, animationFrame, tick } from "@odoo/hoot-dom";
 import { useState, xml } from "@odoo/owl";
 import {
     contains,
@@ -55,21 +54,6 @@ test("apply is called if clean is not defined", async () => {
     expect.verifySteps(["apply"]); // clean
 });
 
-test("check Legacy Builder Option is supported", async () => {
-    addLegacyBuilderOption({
-        selector: ".s_test",
-        template: xml`<BuilderButton action="'testAction'">Click</BuilderButton>`,
-    });
-    await setupHTMLBuilder(`<section class="s_test">Test</section>`);
-    await contains(":iframe .s_test").click();
-    await contains("[data-action-id='testAction']").click();
-    expect("[data-action-id='testAction']").toHaveClass("active");
-    expect.verifySteps(["apply", "apply"]); // preview, apply
-    await contains("[data-action-id='testAction']").click();
-    expect("[data-action-id='testAction']").not.toHaveClass("active");
-    expect.verifySteps(["apply"]); // clean
-});
-
 test("custom action and shorthand action: clean actions are independent, apply is called on custom action if clean is not defined", async () => {
     addBuilderOption(
         class extends BaseOptionComponent {
@@ -88,8 +72,9 @@ test("custom action and shorthand action: clean actions are independent, apply i
 });
 
 test("Prepare is triggered on props updated", async () => {
-    const newPropDeferred = new Deferred();
-    let prepareDeferred = new Promise((r) => r());
+    const newPropDeferred = Promise.withResolvers();
+    let prepareDeferred = Promise.withResolvers();
+    prepareDeferred.resolve();
     class TestOption extends BaseOptionComponent {
         static template = xml`<BuilderCheckbox action="'customAction'" actionParam="state.param"/>`;
         static selector = ".test-options-target";
@@ -97,7 +82,7 @@ test("Prepare is triggered on props updated", async () => {
         setup() {
             super.setup();
             this.state = useState({ param: "old param" });
-            newPropDeferred.then(() => {
+            newPropDeferred.promise.then(() => {
                 this.state.param = "new param";
             });
         }
@@ -105,7 +90,7 @@ test("Prepare is triggered on props updated", async () => {
     class CustomAction extends BuilderAction {
         static id = "customAction";
         async prepare() {
-            await prepareDeferred;
+            await prepareDeferred.promise;
             expect.step("prepare");
         }
         apply() {}
@@ -117,7 +102,7 @@ test("Prepare is triggered on props updated", async () => {
     await setupHTMLBuilder(`<section class="test-options-target">Homepage</section>`);
     await contains(":iframe .test-options-target").click();
     expect.verifySteps(["prepare"]);
-    prepareDeferred = new Deferred();
+    prepareDeferred = Promise.withResolvers();
     // Update prop
     newPropDeferred.resolve();
     await animationFrame();
@@ -296,13 +281,13 @@ test("reload action: apply, clean save and reload are called in the right order 
             }
             async apply({ editingElement }) {
                 expect.step("apply sync");
-                await applyDef;
+                await applyDef.promise;
                 expect.step("apply async");
                 editingElement.dataset.applied = "true";
             }
             async clean({ editingElement }) {
                 expect.step("clean sync");
-                await cleanDef;
+                await cleanDef.promise;
                 expect.step("clean async");
                 editingElement.dataset.applied = "false";
             }
@@ -319,21 +304,21 @@ test("reload action: apply, clean save and reload are called in the right order 
     await contains(":iframe .test-options-target").click();
 
     // Apply
-    reloadDef = new Deferred();
-    applyDef = new Deferred();
+    reloadDef = Promise.withResolvers();
+    applyDef = Promise.withResolvers();
     await contains("[data-action-id='testReload']").click();
     expect.verifySteps(["apply sync"]);
     applyDef.resolve();
-    await reloadDef;
+    await reloadDef.promise;
     expect.verifySteps(["apply async", "save sync", "save async", "reload"]);
 
     // Clean
-    reloadDef = new Deferred();
-    cleanDef = new Deferred();
+    reloadDef = Promise.withResolvers();
+    cleanDef = Promise.withResolvers();
     await contains("[data-action-id='testReload']").click();
     expect.verifySteps(["clean sync"]);
     cleanDef.resolve();
-    await reloadDef;
+    await reloadDef.promise;
     expect.verifySteps(["clean async", "save sync", "save async", "reload"]);
 });
 

@@ -19,6 +19,7 @@ class IrUiMenu(models.Model):
     _order = "sequence,id"
     _parent_store = True
     _allow_sudo_commands = False
+    _clear_cache_name = 'default'
 
     name = fields.Char(string='Menu', required=True, translate=True)
     active = fields.Boolean(default=True)
@@ -64,11 +65,6 @@ class IrUiMenu(models.Model):
                 return base64.encodebytes(icon_file.read())
         except FileNotFoundError:
             return False
-
-    @api.constrains('parent_id')
-    def _check_parent_id(self):
-        if self._has_cycle():
-            raise ValidationError(self.env._('Error! You cannot create recursive menus.'))
 
     @api.model
     @tools.ormcache('frozenset(self.env.user._get_group_ids())', 'debug')
@@ -150,14 +146,12 @@ class IrUiMenu(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self.env.registry.clear_cache()
         for values in vals_list:
             if 'web_icon' in values:
                 values['web_icon_data'] = self._compute_web_icon_data(values.get('web_icon'))
         return super().create(vals_list)
 
     def write(self, vals):
-        self.env.registry.clear_cache()
         if 'web_icon' in vals:
             vals['web_icon_data'] = self._compute_web_icon_data(vals.get('web_icon'))
         return super().write(vals)
@@ -184,8 +178,7 @@ class IrUiMenu(models.Model):
         direct_children = self.with_context(active_test=False).search([('parent_id', 'in', self.ids)])
         direct_children.write({'parent_id': False})
 
-        self.env.registry.clear_cache()
-        return super(IrUiMenu, self).unlink()
+        return super().unlink()
 
     def copy(self, default=None):
         new_menus = super().copy(default=default)
@@ -259,12 +252,12 @@ class IrUiMenu(models.Model):
         visible_menus = visible_menus.filtered(lambda menu: menu.id in app_info)
 
         xmlids = visible_menus._get_menuitems_xmlids()
-        icon_attachments = self.env['ir.attachment'].sudo().search_read(
+        icon_attachments = self.env['ir.attachment'].sudo().search_fetch(
             domain=[('res_model', '=', 'ir.ui.menu'),
                     ('res_id', 'in', visible_menus._ids),
                     ('res_field', '=', 'web_icon_data')],
-            fields=['res_id', 'datas', 'mimetype'])
-        icon_attachments_res_id = {attachment['res_id']: attachment for attachment in icon_attachments}
+            field_names=['res_id', 'datas', 'mimetype'])
+        icon_attachments_res_id = {attachment.res_id: attachment for attachment in icon_attachments}
 
         menus_dict = {}
         action_ids_by_type = defaultdict(list)
@@ -288,8 +281,8 @@ class IrUiMenu(models.Model):
                 'action_model': action_model,
                 'action_id': action_id,
                 'web_icon': menu.web_icon,
-                'web_icon_data': attachment['datas'].decode() if attachment else False,
-                'web_icon_data_mimetype': attachment['mimetype'] if attachment else False,
+                'web_icon_data': attachment.datas.decode() if attachment else False,
+                'web_icon_data_mimetype': attachment.mimetype if attachment else False,
                 'xmlid': xmlids.get(menu_id, ""),
             }
 

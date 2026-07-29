@@ -13,14 +13,14 @@
 # krnkris, 2022
 # Tamás Németh <ntomasz81@gmail.com>, 2022
 # gezza <geza.nagy@oregional.hu>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 01:52+0000\n"
+"PO-Revision-Date: 2025-11-08 21:52+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense/hu/>\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -79,6 +79,11 @@ msgstr ""
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
 msgstr ""
 
 #. module: hr_expense
@@ -139,6 +144,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Főkönyvi számla"
@@ -173,6 +188,11 @@ msgstr "Tevékenységek"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Tevékenység kivétel dekoráció"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -250,7 +270,9 @@ msgstr ""
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
 msgstr ""
 
 #. module: hr_expense
@@ -372,14 +394,6 @@ msgid "Can Reset"
 msgstr ""
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Visszavonás"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -408,10 +422,6 @@ msgstr "Kommunikáció"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Vállalatok"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -496,7 +506,6 @@ msgstr "Árfolyam"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Tisztelt"
 
@@ -580,12 +589,6 @@ msgid "Domain"
 msgstr "Tartomány"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Töltse le alkalmazásunkat!"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -597,6 +600,12 @@ msgstr "Piszkozat"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Költség duplikálása"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -631,6 +640,18 @@ msgid "Employee Expenses"
 msgstr "Alkalmazottak költségei"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -638,6 +659,8 @@ msgid ""
 msgstr ""
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -672,7 +695,6 @@ msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Költség jóváhagyója"
 
@@ -782,11 +804,6 @@ msgid "Expense split"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -820,11 +837,6 @@ msgid "Expenses Report"
 msgstr "Költségelszámolás"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -836,6 +848,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Csoport tagjainak költségelszámolásai"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr ""
@@ -924,14 +937,14 @@ msgid "Guideline"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "Van üzenet"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1098,6 +1111,11 @@ msgid "Label Currency Rate"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1239,13 +1257,6 @@ msgstr "Név"
 #. odoo-python
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
-msgstr ""
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
 msgstr ""
 
 #. module: hr_expense
@@ -1453,6 +1464,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Fizetési mód"
@@ -1478,11 +1494,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr ""
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Fizetések"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1679,6 +1690,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "SMS kézbesítési hiba"
@@ -1706,10 +1722,10 @@ msgid "Scan"
 msgstr "Szkennelés"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "to report"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1790,11 +1806,6 @@ msgid "Split Possible"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1820,6 +1831,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Beküldés"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1893,6 +1910,11 @@ msgstr "Adók"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "Csapat jóváhagyó"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -1978,9 +2000,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
 
 #. module: hr_expense
@@ -2100,9 +2121,9 @@ msgid "Untaxed Amount"
 msgstr "Nettó összeg"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
 msgstr ""
 
 #. module: hr_expense
@@ -2138,11 +2159,6 @@ msgstr "Beszállító"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Költség megjelenítése"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2191,12 +2207,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Varázsló"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2296,6 +2306,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2323,14 +2338,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
-msgstr ""
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
 msgstr ""
 
 #. module: hr_expense
@@ -2405,192 +2412,3 @@ msgstr ""
 
 #~ msgid "2023-08-11"
 #~ msgstr "2023-08-11"
-
-#~ msgid "View Attachments"
-#~ msgstr "Mellékletek megtekintése"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Könyvelés beállítások"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Dátum:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Leírás:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Alkalmazott:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Által fizetve:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Összesen</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Által jóváhagyva:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Összes költség jelentés"
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple Alkalmazás áruház"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Számla hivatkozás"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Költségként elszámolható"
-
-#~ msgid "Categories"
-#~ msgstr "Kategóriák"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr ""
-#~ "Elismert tisztesség és alkalmazkodás,<br/>(Dátum és aláírás).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "A mértékegységek közötti átváltás csak akkor valósul meg, ha ugyanabba a "
-#~ "kategóriába tartoznak. Az átváltás az arányszámok alapján történik."
-
-#~ msgid "Date"
-#~ msgstr "Dátum"
-
-#~ msgid "Done"
-#~ msgstr "Kész"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Alkalmazott otthoni címe"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Költségek naplói"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Költségtételek"
-
-#~ msgid "Expense Report"
-#~ msgstr "Költség kiadás jelentés"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Költség kiadás összegzés"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Költség kiadások"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Költség kiadások elemzése"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Jóváhagyandó költség kiadások"
-
-#~ msgid "Expense Sheet"
-#~ msgstr "Költségkiadás táblázat"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Költség kiadás elfogadva"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Költség kiadás fizetve"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Költség kiadás elutasítva"
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Jóváhagyandó költség kiadások"
-
-#~ msgid "Former Employees"
-#~ msgstr "Valamikori alkalmazottak"
-
-#~ msgid "General Information"
-#~ msgstr "Általános információk"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play áruház"
-
-#~ msgid "Group By"
-#~ msgstr "Csoportosítás"
-
-#~ msgid "Internal Note"
-#~ msgstr "Belső jegyzet"
-
-#~ msgid "My Reports"
-#~ msgstr "Jelentéseim"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Új költségjelentés"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr ""
-#~ "Nem található otthoni cím a következő alkalmazotthoz %s , kérem hozzon "
-#~ "létre egyet."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Üzenetek száma, melyek műveletet igényelnek"
-
-#~ msgid "Or"
-#~ msgstr "Vagy"
-
-#~ msgid "Others"
-#~ msgstr "Egyebek"
-
-#~ msgid "Partial"
-#~ msgstr "Részleges"
-
-#~ msgid "Price"
-#~ msgstr "Ár"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Ár a vállalat által használt pénznemben"
-
-#~ msgid "Qty"
-#~ msgstr "Menny."
-
-#~ msgid "Ref."
-#~ msgstr "Hiv."
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Elutasított költségek kiadások"
-
-#~ msgid "Register Payment"
-#~ msgstr "Kiegyenlítés rögzítése"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Visszaállítás piszkozat állapotba"
-
-#~ msgid "Sample"
-#~ msgstr "Minta"
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Állítsa be a domén álneveket"
-
-#~ msgid "Sheet"
-#~ msgstr "Táblázat"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Az összes olyan rekord megjelenítése, melynél a következő művelet dátuma "
-#~ "a mai nap előtti"
-
-#~ msgid "To Report"
-#~ msgstr "Jelentendő"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mértékegység"
-
-#~ msgid "User"
-#~ msgstr "Felhasználó"
-
-#~ msgid "View Report"
-#~ msgstr "Jelentés megtekintése"
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr "Csak jóváhagyott költsége(k) tudnak főkönyvi bejegyzést generálni."
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Nem jelentheti ugyanazt a sort kétszer!"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "pl.: debreceni utazás"

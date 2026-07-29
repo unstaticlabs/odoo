@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * pos_self_order
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:05+0000\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-04-28 14:40+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/pos_self_order/zh_Hans/>\n"
+"projects/odoo-s19-2/pos_self_order/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_self_order
 #: model:ir.actions.report,print_report_name:pos_self_order.report_self_order_qr_codes_page
@@ -78,6 +78,10 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
@@ -108,10 +112,42 @@ msgid ""
 "                    <br/>\n"
 "                    <div>Thank you,</div>\n"
 "                    <br/>\n"
+"                    <div t-if=\"object.state == 'paid'\">\n"
+"                        <div>Attached, you will find your receipt</div>\n"
+"                        <br/>\n"
+"                    </div>\n"
 "                    <t t-out=\"store_name\">Store name</t>\n"
 "                </div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0; padding: 0; font-size: 14px;\">\n"
+"                    <t t-set=\"store_name\" t-"
+"value=\"object.config_id.name\"/>\n"
+"                   <t t-set=\"tz\" t-"
+"value=\"object.company_id.partner_id.tz\"/>\n"
+"                    <t t-set=\"lg\" t-value=\"object.partner_id.lang or "
+"user.lang\"/> \n"
+"                   <div>\n"
+"                        <t t-if=\"client_name\"> 您好<t t-"
+"out=\"client_name\">客户名称</t>,</t>\n"
+"                        <t t-else=\"\">您好，</t>\n"
+"                    </div>\n"
+"                   <br/>\n"
+"                    <div> 您的订单<t t-out=\"object.tracking_number\">...</"
+"t> 金额为<t t-out=\"format_amount(object.amount_total,object.currency_id)"
+"\">$xx.xx</t> 已确认。<span t-if=\"object.preset_time\">订单将于<t t-"
+"out=\"format_time(time=object.preset_time, tz=tz, time_format='short', "
+"lang_code=lg)\">下午 12:00</t></span></div>\n"
+"                    <br/> \n"
+"                   <div> 准备就绪。</div>\n"
+"                    <br/>\n"
+"                   <div t-if=\"object.state == 'paid'\">\n"
+"                        <div> 随信附上您的收据</div>\n"
+"                        <br/>\n"
+"                   </div>\n"
+"                    <t t-out=\"store_name\"> 商店名称</t>\n"
+"                </div>\n"
+"            "
 
 #. module: pos_self_order
 #: model:ir.model.fields,help:pos_self_order.field_pos_config__self_ordering_default_user_id
@@ -149,6 +185,12 @@ msgstr "添加图片"
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Add to cart"
 msgstr "加入购物车"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Afternoon"
+msgstr "下午"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -221,7 +263,8 @@ msgstr "背景"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
 msgid "Cancel"
 msgstr "取消"
@@ -278,12 +321,6 @@ msgstr "选择客户付款时间"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Choose your time"
-msgstr "选择时间"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "City"
 msgstr "城市"
 
@@ -291,7 +328,7 @@ msgstr "城市"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/category_list_popup/category_list_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
-#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_propup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/product_info_popup/product_info_popup.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Close"
 msgstr "关闭"
@@ -302,6 +339,13 @@ msgid "Close Session"
 msgstr "关闭会话"
 
 #. module: pos_self_order
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_config__self_ordering_primary_color
+#: model:ir.model.fields,field_description:pos_self_order.field_res_config_settings__pos_self_ordering_primary_color
+#: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
+msgid "Color"
+msgstr "颜色"
+
+#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
@@ -310,7 +354,7 @@ msgstr "组合"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__combo_id
-msgid "Combo reference"
+msgid "Combo Reference"
 msgstr "组合参考"
 
 #. module: pos_self_order
@@ -320,9 +364,15 @@ msgstr "配置设置"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.xml:0
+msgid "Confirm"
+msgstr "确认"
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
 msgid "Connection restored"
-msgstr ""
+msgstr "恢复连接"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_partner
@@ -337,18 +387,6 @@ msgstr "联系人"
 #: code:addons/pos_self_order/static/src/app/components/timeout_popup/timeout_popup.xml:0
 msgid "Continue"
 msgstr "继续"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Continue with table"
-msgstr "继续就餐"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Could you please confirm your table number?"
-msgstr "请确认您的桌号。"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_res_country
@@ -423,9 +461,8 @@ msgid "Default language for the kiosk mode"
 msgstr "自助机模式的默认语言"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__delivery
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Delivery"
 msgstr "发货"
 
@@ -442,6 +479,7 @@ msgstr "禁用"
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/language_popup/language_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 #: code:addons/pos_self_order/static/src/app/pages/product_page/product_page.xml:0
 msgid "Discard"
@@ -455,8 +493,10 @@ msgstr "丢弃"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__display_name
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__display_name
@@ -474,7 +514,7 @@ msgstr "显示名称"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/network_connectionLost_popup/network_connectionLost_popup.xml:0
 msgid "Do not refresh the page."
-msgstr ""
+msgstr "不要刷新页面。"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -486,6 +526,12 @@ msgstr "下载二维码"
 #: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
 msgid "Download your receipt here"
 msgstr "在这里下载您的收据"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.xml:0
+msgid "E.g: Don't use food color, Extra spicy"
+msgstr "例如：不要使用食用色素，特别辣"
 
 #. module: pos_self_order
 #. odoo-python
@@ -502,8 +548,8 @@ msgid ""
 "the generated URL, as shown in the example below:."
 msgstr ""
 "平面图中的每张桌子都会根据您的配置分配一个唯一的 QR 代码。出于安全考虑，\n"
-"                    在生成的 URL 中，POS名称和台面名称都已加密，如下例所示："
-"。"
+"                    在生成的 URL 中，POS名称和台面名称都已加密，如下例所"
+"示：。"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_preset
@@ -523,8 +569,8 @@ msgstr "邮件确认"
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_mail_template
-msgid "Email Templates"
-msgstr "Email Templates"
+msgid "Email Template"
+msgstr "邮件模板"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -553,6 +599,12 @@ msgstr "输入您的追踪链接编号"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Evening"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/combo_page/combo_page.xml:0
 msgid "Extra:"
 msgstr ""
@@ -573,6 +625,12 @@ msgstr "按照终端上的指示操作"
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
 msgid "Free Metal / Wood Stands"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Full Day"
 msgstr ""
 
 #. module: pos_self_order
@@ -610,7 +668,8 @@ msgstr "有收据纸"
 msgid ""
 "Hey, looks like you forgot to create products or add them to pos_config. "
 "Please add them before using the Self Order"
-msgstr "嘿，看来您忘记创建产品或将其添加到 pos_config。请在使用自助终端前添加它们"
+msgstr ""
+"嘿，看来您忘记创建产品或将其添加到 pos_config。请在使用自助终端前添加它们"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -641,8 +700,10 @@ msgstr "如何使用"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_load_mixin__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_preset__id
+#: model:ir.model.fields,field_description:pos_self_order.field_pos_product_template_snooze__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__id
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_self_order.field_product_product__id
@@ -746,8 +807,8 @@ msgstr "考勤机"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Kiosk T"
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Kiosk Order"
 msgstr ""
 
 #. module: pos_self_order
@@ -785,11 +846,6 @@ msgstr "让客户使用手机或自助终端下单。"
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_self_order_custom_link__style__light
 msgid "Light"
 msgstr "明亮"
-
-#. module: pos_self_order
-#: model:ir.model.fields,field_description:pos_self_order.field_pos_category__pos_config_ids
-msgid "Linked PoS Configurations"
-msgstr "已关联的销售点配置"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -840,6 +896,12 @@ msgstr "移动自助点餐和自助机"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Morning"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/landing_page/landing_page.xml:0
 msgid "My Order"
 msgstr "我的订单"
@@ -850,18 +912,6 @@ msgstr "我的订单"
 #: code:addons/pos_self_order/static/src/app/pages/order_history_page/order_history_page.xml:0
 msgid "My Orders"
 msgstr "我的订单"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NEW"
-msgstr "新建"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "NOTE"
-msgstr "备注"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -954,7 +1004,6 @@ msgstr "开放式考勤机网址"
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.js:0
 #: code:addons/pos_self_order/static/src/app/pages/stand_number_page/stand_number_page.js:0
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
 msgid "Order"
 msgstr "订单"
 
@@ -963,6 +1012,12 @@ msgstr "订单"
 #: code:addons/pos_self_order/models/pos_config.py:0
 msgid "Order Now"
 msgstr "现在下单"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "Order for"
+msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1009,8 +1064,8 @@ msgstr "之后支付"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
-msgid "Personalize the Kiosk background"
-msgstr "个性化自助服务机背景"
+msgid "Personalize the Interface"
+msgstr ""
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.res_config_settings_view_form_menu
@@ -1026,8 +1081,7 @@ msgid "Phone"
 msgstr "电话"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Pickup At Counter"
 msgstr "柜台取件"
 
@@ -1036,6 +1090,18 @@ msgstr "柜台取件"
 #: model:ir.model.fields.selection,name:pos_self_order.selection__pos_preset__service_at__counter
 msgid "Pickup zone"
 msgstr "取货区"
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a table for your order."
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
+msgid "Please choose a time slot for your order."
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_load_mixin
@@ -1053,19 +1119,29 @@ msgid "Point of Sale Configuration"
 msgstr "POS配置"
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "POS订单明细"
+#: model:ir.model,name:pos_self_order.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_self_order
-#: model:ir.model,name:pos_self_order.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "POS订单"
+#: model:ir.model,name:pos_self_order.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "POS付款方式"
+msgid "Point of Sale Payment Method"
+msgstr ""
+
+#. module: pos_self_order
+#: model:ir.model,name:pos_self_order.model_pos_product_template_snooze
+msgid "Point of Sale Product Snooze"
+msgstr ""
 
 #. module: pos_self_order
 #: model:ir.model,name:pos_self_order.model_pos_session
@@ -1231,18 +1307,13 @@ msgstr ""
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
-msgid "Select"
-msgstr "选择"
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "Select a country"
 msgstr "选择国家/地区"
 
 #. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a hour"
 msgstr "选择小时"
 
@@ -1254,7 +1325,7 @@ msgstr "选择省/州"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
+#: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Select a table"
 msgstr "选择一张餐桌"
 
@@ -1275,8 +1346,10 @@ msgid "Selection"
 msgstr "选择"
 
 #. module: pos_self_order
+#. odoo-javascript
 #. odoo-python
 #: code:addons/pos_self_order/models/pos_config.py:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
 msgid "Self Order"
 msgstr "自助订单"
 
@@ -1338,12 +1411,6 @@ msgstr ""
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/store/order_change_receipt_template.xml:0
-msgid "Self-Order T"
-msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/pages/cart_page/cart_page.js:0
 msgid "Self-Order T %s"
 msgstr ""
@@ -1357,8 +1424,8 @@ msgstr "自助终端："
 #. module: pos_self_order
 #: model:mail.template,description:pos_self_order.delivery_email_template
 #: model:mail.template,description:pos_self_order.takeout_email_template
-msgid "Sent to customers"
-msgstr ""
+msgid "Sent to customers with the receipt in attachment"
+msgstr "已传送至客户，收据以附件形式附上"
 
 #. module: pos_self_order
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_self_order_custom_link__sequence
@@ -1372,8 +1439,7 @@ msgid "Service at"
 msgstr "服务地点"
 
 #. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Service at Table"
 msgstr "餐桌服务"
 
@@ -1433,7 +1499,12 @@ msgstr "桌子编号"
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml:0
+#: code:addons/pos_self_order/static/src/overrides/utils/printer/generate_printer_data.js:0
+msgid "Table Tracker %s"
+msgstr ""
+
+#. module: pos_self_order
+#: model_terms:ir.ui.view,arch_db:pos_self_order.pos_order_receipt_header
 msgid "Table Tracker:"
 msgstr "跟踪表"
 
@@ -1441,12 +1512,6 @@ msgstr "跟踪表"
 #: model:ir.model.fields,field_description:pos_self_order.field_pos_order__self_ordering_table_id
 msgid "Table reference"
 msgstr ""
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
-msgid "Table selection"
-msgstr "表格选择"
 
 #. module: pos_self_order
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
@@ -1472,7 +1537,6 @@ msgstr "税额："
 
 #. module: pos_self_order
 #. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/components/popup_table/popup_table.xml:0
 #: code:addons/pos_self_order/static/src/app/components/slots_popup/slots_popup.xml:0
 msgid "Thanks a lot!"
 msgstr "非常感谢！"
@@ -1504,6 +1568,25 @@ msgstr "此组合不存在。"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Today"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/models/pos_preset.js:0
+msgid "Tommorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/components/pills_selection_popup/pills_selection_popup.js:0
+msgid "Tomorrow"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/order_widget/order_widget.xml:0
 msgid "Total"
 msgstr "总计"
@@ -1524,12 +1607,6 @@ msgstr "网址"
 #: model_terms:ir.ui.view,arch_db:pos_self_order.qr_codes_page
 msgid "URL:"
 msgstr "网址："
-
-#. module: pos_self_order
-#. odoo-javascript
-#: code:addons/pos_self_order/static/src/app/pages/product_list_page/product_list_page.xml:0
-msgid "Unavailable"
-msgstr "不可用"
 
 #. module: pos_self_order
 #. odoo-javascript
@@ -1622,13 +1699,6 @@ msgid "You are not authorized to remove this order"
 msgstr "您无权删除此订单"
 
 #. module: pos_self_order
-#. odoo-python
-#: code:addons/pos_self_order/models/pos_config.py:0
-#: code:addons/pos_self_order/models/res_config_settings.py:0
-msgid "You cannot add cash payment methods in kiosk mode."
-msgstr "您无法在自助终端模式下添加现金支付方式。"
-
-#. module: pos_self_order
 #. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/services/self_order_service.js:0
 msgid "You're not authorized to perform this action"
@@ -1689,6 +1759,12 @@ msgstr "在柜台"
 
 #. module: pos_self_order
 #. odoo-javascript
+#: code:addons/pos_self_order/static/src/app/pages/confirmation_page/confirmation_page.xml:0
+msgid "by cash"
+msgstr ""
+
+#. module: pos_self_order
+#. odoo-javascript
 #: code:addons/pos_self_order/static/src/app/components/preset_info_popup/preset_info_popup.xml:0
 msgid "close"
 msgstr "关闭"
@@ -1745,8 +1821,8 @@ msgstr ""
 msgid "x"
 msgstr ""
 
-#~ msgid "Sent to customers with the receipt in attachment"
-#~ msgstr "已传送至客户，收据以附件形式附上"
+#~ msgid "You cannot add cash payment methods in kiosk mode."
+#~ msgstr "您无法在自助终端模式下添加现金支付方式。"
 
 #~ msgid "Choose your"
 #~ msgstr "选择"
@@ -1756,21 +1832,3 @@ msgstr ""
 
 #~ msgid "Select your address"
 #~ msgstr "选择您的地址"
-
-#~ msgid "/ Tracker number:"
-#~ msgstr "/ 追踪号码："
-
-#~ msgid "Connection lost, please try again later"
-#~ msgstr "连接中断，请稍后重试"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "应税设定"
-
-#~ msgid "Self Ordering Enabled"
-#~ msgstr "已启用自助终端"
-
-#~ msgid "Your order has been cancelled"
-#~ msgstr "您的订单已取消"
-
-#~ msgid "Your order status has been changed"
-#~ msgstr "您的订单状态已更改"

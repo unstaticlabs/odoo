@@ -15,16 +15,16 @@
 # Martin Trigaux, 2022
 # Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 06:38+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2026-06-20 15:22+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_management/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -80,11 +80,17 @@ msgid "Archived"
 msgstr "Arkistoitu"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Yritykset"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -161,13 +167,6 @@ msgid "Display Type"
 msgstr "Näyttötyyppi"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr ""
-"Ei pääsyoikeutta, jätä nämä tiedot pois käyttäjän yhteenvetosähköpostista"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -178,6 +177,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "Antaa sekvenssijärjestyksen, kun myyntitarjousrivien lista näytetään."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -271,8 +282,8 @@ msgstr "Valinnainen rivi"
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
-msgstr "Valinnaisten tuotteiden osio"
+msgid "Optional Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__parent_id
@@ -344,6 +355,12 @@ msgid "Quotation Validity"
 msgstr "Tarjouksen voimassaolo"
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
+
+#. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
 msgid "Remove one"
 msgstr "Poista yksi"
@@ -407,14 +424,14 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__sequence
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__sequence
 msgid "Sequence"
-msgstr "Sekvenssi"
+msgstr "Järjestys"
 
 #. module: sale_management
 #. odoo-javascript
 #: code:addons/sale_management/static/src/fields/sale_order_line_field/sale_order_line_field.xml:0
 #: code:addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.xml:0
 msgid "Set Optional"
-msgstr "Aseta valinnaiseksi"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale1_management_0
@@ -423,12 +440,14 @@ msgid ""
 "to help sales configure a product with different options: colors, size, "
 "capacity, etc. Make sale orders encoding easier and error-proof."
 msgstr ""
-"Aiheuttaako monimutkainen tuotekuvasto ongelmia? Kokeile "
-"Tuotekonfiguraattoria helpottaaksesi tuottevaihtoehtojen määrittämistä: "
-"väri, koko, kapasiteetti, jne. Tee myyntitilausten koodaamisesta helppoa ja "
+"Ongelmia monimutkaisen tuoteluettelon kanssa? Kokeile Tuotekonfiguraattoria, "
+"joka auttaa myyntitiimiä tuotteen eri vaihtoehtojen määrittämisessä: väri, "
+"koko, kapasiteetti jne. Tee myyntitilausten koodauksesta helppoa ja "
 "virheetöntä."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr "Alakohta"
@@ -441,7 +460,7 @@ msgstr "Ehdot & edellytykset"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__note
 msgid "Terms and conditions"
-msgstr "Käyttöehdot"
+msgstr "Ehdot ja edellytykset"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -455,7 +474,8 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__prepayment_percent
 msgid "The percentage of the amount needed to be paid to confirm quotations."
-msgstr "Prosenttiosuus määrästä, joka on maksettava tarjousten vahvistamiseksi."
+msgstr ""
+"Prosenttiosuus määrästä, joka on maksettava tarjousten vahvistamiseksi."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__mail_template_id
@@ -488,7 +508,7 @@ msgstr "Yksikkö"
 #: code:addons/sale_management/static/src/fields/sale_order_line_field/sale_order_line_field.xml:0
 #: code:addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.xml:0
 msgid "Unset Optional"
-msgstr "Poista valinnaisuus"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.actions.act_window,help:sale_management.sale_order_template_action
@@ -525,30 +545,22 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
-"Mallipohjasi kuuluu yritykselle %(template_company)s mutta sisältää "
-"yrityksen (%(product_company)s) tuotteita, joita %(template_company)s ei voi "
-"käyttää.\n"
-"Vaihda mallipohjan yritys tai poista tuotteet toisilta yrityksiltä."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
-"Mallipohjasi kuuluu yritykselle %(template_company)s mutta sisältää muiden "
-"yritysten (%(product_company)s) tuotteita, joita %(template_company)s ei voi "
-"käyttää.\n"
-"Vaihda mallipohjan yritys tai poista tuotteet toisilta yrityksiltä."
 
 #. module: sale_management
 #. odoo-python
@@ -558,9 +570,6 @@ msgid ""
 "between companies. Please restrict the template access, or remove those "
 "products."
 msgstr ""
-"Mallipohjasi ei voi sisältää tiettyjen yritysten tuotteita, jos sitä "
-"käytetään useassa yrityksessä. Rajoita mallipohjan käyttöä tai poista "
-"kyseiset tuotteet."
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -571,134 +580,3 @@ msgstr "päivää"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "esim. vakiokonsultointipaketti"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Malli ei voi sisältää useiden yritysten tuotteita."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Mallipohjasi sisältää yrityksen %(product_company)s tuotteita, vaikka se "
-#~ "kuuluu yritykselle %(template_company)s.\n"
-#~ " Vaihda mallipohjasi yritys tai poista muiden yritysten tuotteet."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "4 Hengen pöytä"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Vaihtoehdot</span>"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Maksu</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>Allekirjoitus</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Lisää ostoskoriin"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Lisää tilauslinjoihin"
-
-#~ msgid "Category"
-#~ msgstr "Kategoria"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Yksiköiden välinen muunnos onnistuu vain saman ryhmän (kategorian) "
-#~ "sisällä. Konversio tehdään käyttäen kertoimena suhdetta."
-
-#~ msgid "Disc.%"
-#~ msgstr "Ale%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Alennus (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Antaa sekvenssijärjestyksen, kun näyttöön tulee valinnaisia tuotteita."
-
-#~ msgid "Group By"
-#~ msgstr "Ryhmittely"
-
-#~ msgid "Line"
-#~ msgstr "Rivi"
-
-#~ msgid "Office Chair"
-#~ msgstr "Toimistotuoli"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Online-vahvistus"
-
-#~ msgid "Optional Products"
-#~ msgstr "Lisätuotteet"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Lisätuotelinjat"
-
-#~ msgid "Options"
-#~ msgstr "Vaihtoehdot"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Esitä tarjouksessa"
-
-#~ msgid "Quantity:"
-#~ msgstr "Määrä:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Tarjousrakentaja"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Tarjouspohja vaihtoehto"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Tarjouksen vanhenemisaika"
-
-#~ msgid "Remove"
-#~ msgstr "Poista"
-
-#~ msgid "Sale Options"
-#~ msgstr "Myynnin vaihtoehdot"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Myyntitilausviite"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Myyntitarjouspohjan rivit"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr "Tämä kenttä tarkistetaan, jos optiorivin tuote on jo tarjouksessa."
-
-#~ msgid "Unit Price"
-#~ msgstr "Yksikköhinta"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Yksikköhinta:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mittayksikkö"
-
-#~ msgid "UoM"
-#~ msgstr "Yksikkö"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Et voi lisätä vaihtoehtoja vahvistettuun tilaukseen."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Tarjous sisältää tuotteita yrityksestä %(product_company)s, kun taas "
-#~ "tarjouksesi kuuluu yritykselle %(quote_company)s. \n"
-#~ "Vaihda tarjouksesi yritystä tai poista tuotteet muilta yrityksiltä (%"
-#~ "(bad_products)s)."

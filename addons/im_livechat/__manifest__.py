@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Live Chat',
-    'version': '1.0',
     'sequence': 210,
     'summary': 'Chat with your website visitors',
     'category': 'Website/Live Chat',
@@ -24,15 +22,16 @@ Help your customers with this chat, and analyse their feedback.
         "data/im_livechat_channel_data.xml",
         "data/im_livechat_chatbot_data.xml",
         'data/digest_data.xml',
+        'data/utm_data.xml',
         'views/chatbot_script_answer_views.xml',
         'views/chatbot_script_step_views.xml',
         'views/chatbot_script_views.xml',
         "views/discuss_channel_views.xml",
         "views/res_partner_views.xml",
-        "views/im_livechat_conversation_tag_views.xml",
         "views/im_livechat_channel_views.xml",
         "views/im_livechat_channel_templates.xml",
         "views/im_livechat_chatbot_templates.xml",
+        "views/im_livechat_channel_config_views.xml",
         "views/im_livechat_expertise_views.xml",
         "views/im_livechat_channel_member_history_views.xml",
         "views/res_users_views.xml",
@@ -71,8 +70,7 @@ Help your customers with this chat, and analyse their feedback.
         "demo/im_livechat_channel/im_livechat_support_bot_session_6.xml",
         "demo/im_livechat_channel/im_livechat_support_bot_session_7.xml",
     ],
-    'depends': ["mail", "rating", "digest", "utm"],
-    'installable': True,
+    'depends': ["mail", "rating", "digest", "utm", "phone_validation"],
     'application': True,
     'assets': {
         'web.assets_frontend': [
@@ -84,7 +82,6 @@ Help your customers with this chat, and analyse their feedback.
         'web.assets_backend': [
             'im_livechat/static/src/js/colors_reset_button/*',
             'im_livechat/static/src/js/im_livechat_chatbot_steps_one2many.js',
-            'im_livechat/static/src/js/im_livechat_chatbot_script_answers_m2m.js',
             'im_livechat/static/src/views/**/*',
             ('remove', 'im_livechat/static/src/views/lazy/**/*'),
             'im_livechat/static/src/scss/im_livechat_history.scss',
@@ -104,9 +101,6 @@ Help your customers with this chat, and analyse their feedback.
             'im_livechat/static/tests/**/*',
             ('remove', 'im_livechat/static/tests/embed/**/*'),
             ('remove', 'im_livechat/static/tests/tours/**/*'),
-        ],
-        'im_livechat.qunit_embed_suite': [
-            'im_livechat/static/tests/embed/**/*',
         ],
         'web.assets_tests': [
             'im_livechat/static/tests/tours/**/*',
@@ -135,9 +129,8 @@ Help your customers with this chat, and analyse their feedback.
             ('include', 'web._assets_bootstrap_backend'),
             'web/static/src/scss/bootstrap_overridden.scss',
             'web/static/src/scss/ui.scss',
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
+            ('include', 'web.icons_fonts'),
             'web/static/src/scss/animation.scss',
-            'web/static/lib/odoo_ui_icons/style.css',
             'web/static/src/webclient/webclient.scss',
             ('include', 'web._assets_core'),
             'web/static/src/views/fields/formatters.js',
@@ -181,7 +174,6 @@ Help your customers with this chat, and analyse their feedback.
             'web_tour/static/src/tour_utils.js',
             "web/static/tests/legacy/helpers/cleanup.js",
             "web/static/tests/legacy/helpers/utils.js",
-            "web/static/tests/legacy/utils.js",
             "im_livechat/static/tests/tours/support/*",
         ],
         'im_livechat.embed_assets_unit_tests': [
@@ -191,6 +183,10 @@ Help your customers with this chat, and analyse their feedback.
         "mail.assets_public": [
             "im_livechat/static/src/core/common/**/*",
             "im_livechat/static/src/core/public_web/**/*",
+        ],
+        "portal.assets_chatter_helpers": [
+            "im_livechat/static/src/core/common/**/*",
+            ("remove", "im_livechat/static/src/core/common/**/*.scss"),
         ],
     },
     'author': 'Odoo S.A.',

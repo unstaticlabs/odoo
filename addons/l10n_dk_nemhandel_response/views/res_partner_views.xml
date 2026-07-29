@@ -3,7 +3,7 @@
     <record id="res_partner_form_l10n_dk_nemhandel_response" model="ir.ui.view">
         <field name="name">res.partner.form.l10n.dk.nemhandel.response</field>
             <field name="model">res.partner</field>
-            <field name="inherit_id" ref="l10n_dk_nemhandel.res_partner_form_l10n_dk_nemhandel"/>
+            <field name="inherit_id" ref="l10n_dk.view_partner_form_inherit_l10n_dk"/>
             <field name="arch" type="xml">
             <data>
                 <xpath expr="//field[@name='nemhandel_verification_state']/.." position="replace">

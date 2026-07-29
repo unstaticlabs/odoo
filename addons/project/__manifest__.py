@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -7,7 +6,7 @@
     'website': 'https://www.odoo.com/app/project',
     'category': 'Services/Project',
     'sequence': 45,
-    'summary': 'Organize and plan your projects',
+    'summary': 'Manage tasks and collaborate on projects',
     'depends': [
         'analytic',
         'base_setup',
@@ -24,6 +23,7 @@
         'security/ir.model.access.csv',
         'security/ir.model.access.xml',
         'data/digest_data.xml',
+        'data/portal_entry_data.xml',
         'report/project_task_burndown_chart_report_views.xml',
         'views/account_analytic_account_views.xml',
         'views/digest_digest_views.xml',
@@ -63,7 +63,6 @@
         'data/mail_template_demo.xml',
         'data/project_demo.xml',
     ],
-    'installable': True,
     'application': True,
     'post_init_hook': '_project_post_init',
     'uninstall_hook': '_project_uninstall_hook',
@@ -78,8 +77,10 @@
             'project/static/src/js/tours/project.js',
             'project/static/src/scss/project_dashboard.scss',
             'project/static/src/scss/project_form.scss',
+            'project/static/src/scss/project_update_controller.scss',
             'project/static/src/scss/project_widgets.scss',
             'project/static/src/xml/**/*',
+            'project/static/src/webclient/**/*',
             ('remove', 'project/static/src/views/project_task_activity/**'),
             ('remove', 'project/static/src/views/project_task_graph/**'),
             ('remove', 'project/static/src/views/project_task_pivot/**'),
@@ -87,11 +88,7 @@
             ('remove', 'project/static/src/views/project_task_analysis_graph/**'),
             ('remove', 'project/static/src/views/project_task_analysis_pivot/**'),
             ('remove', 'project/static/src/views/burndown_chart/**'),
-            ('remove', 'project/static/src/**/*.dark.scss'),
             ('remove', 'project/static/src/views/project_project_activity/**'),
-        ],
-        "web.assets_web_dark": [
-            'project/static/src/**/*.dark.scss',
         ],
         'web.assets_backend_lazy': [
             'project/static/src/views/project_task_model_mixin',
@@ -126,20 +123,19 @@
             'web/static/lib/bootstrap/scss/_maps.scss',
             ('include', 'web._assets_bootstrap_backend'),
 
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/lib/odoo_ui_icons/*',
+            ('include', 'web.icons_fonts'),
             'web/static/src/webclient/navbar/navbar.scss',
             'web/static/src/scss/animation.scss',
             'web/static/src/core/color_picker/color_picker.scss',
             'web/static/src/scss/mimetypes.scss',
             'web/static/src/scss/ui.scss',
             'web/static/src/views/fields/translation_dialog.scss',
-            'web/static/src/scss/fontawesome_overridden.scss',
 
             'web/static/src/module_loader.js',
             'web/static/src/session.js',
 
             'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
             'web/static/lib/owl/owl.js',
             'web/static/lib/owl/odoo_module.js',
             'web/static/lib/jquery/jquery.js',
@@ -217,7 +213,6 @@
             'web/static/lib/hoot-dom/**/*',
 
             ('include', 'html_editor.assets_editor'),
-            'html_editor/static/src/others/dynamic_placeholder_plugin.js',
             'html_editor/static/src/backend/**/*',
             'html_editor/static/src/fields/**/*',
             'html_editor/static/src/scss/html_editor.common.scss',
@@ -239,7 +234,7 @@
             'project/static/src/views/project_relational_model.js',
 
             ('include', 'portal.assets_chatter_helpers'),
-            'portal/static/src/chatter/core/**/*',
+            'portal/static/src/chatter/portal_project/**/*',
             'project/static/src/project_sharing/**/*',
             'web/static/src/start.js',
         ],

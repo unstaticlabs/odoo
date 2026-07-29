@@ -14,7 +14,7 @@ import { isMacOS } from "@web/core/browser/feature_detection";
  * @typedef {{
  *  bus: EventBus;
  *  debug: string;
- *  services: import("services").Services;
+ *  services: import("services").ServiceFactories;
  *  readonly isSmall: boolean;
  * }} OdooEnv
  */

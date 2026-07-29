@@ -15,16 +15,12 @@ class SaleOrderLine(models.Model):
     qty_delivered_method = fields.Selection(selection_add=[('stock_move', 'Stock Moves')])
     route_ids = fields.Many2many('stock.route', string='Routes', domain=[('sale_selectable', '=', True)], ondelete='restrict')
     move_ids = fields.One2many('stock.move', 'sale_line_id', string='Stock Moves')
-    virtual_available_at_date = fields.Float(compute='_compute_qty_at_date', digits='Product Unit')
-    scheduled_date = fields.Datetime(compute='_compute_qty_at_date')
     forecast_expected_date = fields.Datetime(compute='_compute_qty_at_date')
     free_qty_today = fields.Float(compute='_compute_qty_at_date', digits='Product Unit')
-    qty_available_today = fields.Float(compute='_compute_qty_at_date')
     warehouse_id = fields.Many2one('stock.warehouse', compute='_compute_warehouse_id', store=True)
     qty_to_deliver = fields.Float(compute='_compute_qty_to_deliver', digits='Product Unit')
     is_mto = fields.Boolean(compute='_compute_is_mto')
     display_qty_widget = fields.Boolean(compute='_compute_qty_to_deliver')
-    is_storable = fields.Boolean(related='product_id.is_storable')
     customer_lead = fields.Float(
         compute='_compute_customer_lead', store=True, readonly=False, precompute=True,
         inverse='_inverse_customer_lead')
@@ -110,7 +106,7 @@ class SaleOrderLine(models.Model):
             line.qty_available_today = 0
             line.free_qty_today = 0
             for move in moves:
-                line.qty_available_today += move.product_uom._compute_quantity(move.quantity, line.product_uom_id)
+                line.qty_available_today += move.uom_id._compute_quantity(move.quantity, line.product_uom_id)
                 line.free_qty_today += move.product_id.uom_id._compute_quantity(move.forecast_availability, line.product_uom_id)
             line.scheduled_date = line.order_id.commitment_date or line._expected_date()
             line.virtual_available_at_date = False
@@ -180,21 +176,12 @@ class SaleOrderLine(models.Model):
             else:
                 line.is_mto = False
 
-    @api.depends('product_id')
-    def _compute_qty_delivered_method(self):
-        """ Stock module compute delivered qty for product [('type', '=', 'consu')]
-            For SO line coming from expense, no picking should be generate: we don't manage stock for
-            those lines, even if the product is a storable.
-        """
-        super(SaleOrderLine, self)._compute_qty_delivered_method()
+    def _get_consu_qty_delivered_method(self):
+        return 'stock_move'
 
-        for line in self:
-            if not line.is_expense and line.product_id.type == 'consu':
-                line.qty_delivered_method = 'stock_move'
-
-    @api.depends('move_ids.state', 'move_ids.location_dest_usage', 'move_ids.quantity', 'move_ids.product_uom')
+    @api.depends('move_ids.state', 'move_ids.location_dest_usage', 'move_ids.quantity', 'move_ids.uom_id')
     def _compute_qty_delivered(self):
-        super(SaleOrderLine, self)._compute_qty_delivered()
+        super()._compute_qty_delivered()
 
     def _prepare_qty_delivered(self):
         delivered_qties = super()._prepare_qty_delivered()
@@ -205,12 +192,13 @@ class SaleOrderLine(models.Model):
                 for move in outgoing_moves:
                     if move.state != 'done':
                         continue
-                    qty += move.product_uom._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
+                    qty += move.uom_id._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
                 for move in incoming_moves:
                     if move.state != 'done' or (not move.origin_returned_move_id and line.product_uom_qty > 0 and not move.picking_id.return_id):
                         continue
-                    qty -= move.product_uom._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
-                delivered_qties[line] = qty
+                    qty -= move.uom_id._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
+
+                delivered_qties[line] += qty
         return delivered_qties
 
     def _compute_invoice_status(self):
@@ -223,6 +211,7 @@ class SaleOrderLine(models.Model):
                 at_least_one_done = at_least_one_done or move.state == 'done'
             return at_least_one_done
         super()._compute_invoice_status()
+        precision = self.env['decimal.precision'].precision_get('Product Unit')
         for line in self:
             # We handle the following specific situation: a physical product is partially delivered,
             # but we would like to set its invoice status to 'Fully Invoiced'. The use case is for
@@ -235,7 +224,7 @@ class SaleOrderLine(models.Model):
                 and line.product_id.invoice_policy == 'delivery'
                 and line.move_ids
                 and check_moves_state(line.move_ids)
-                and not float_is_zero(line.qty_delivered, precision_rounding=line.product_uom_id.rounding)
+                and not float_is_zero(line.qty_delivered, precision_digits=precision)
             ):
                 line.invoice_status = 'invoiced'
 
@@ -263,11 +252,11 @@ class SaleOrderLine(models.Model):
             if line.move_ids.filtered(lambda m: m.state != 'cancel'):
                 line.product_updatable = False
 
-    @api.depends('product_id')
+    @api.depends('product_id', 'company_id')
     def _compute_customer_lead(self):
         super()._compute_customer_lead() # Reset customer_lead when the product is modified
         for line in self:
-            line.customer_lead = line.product_id.sale_delay
+            line.customer_lead = line.product_id.with_company(line.company_id).sale_delay
 
     def _inverse_customer_lead(self):
         for line in self:
@@ -314,10 +303,10 @@ class SaleOrderLine(models.Model):
         outgoing_moves, incoming_moves = self._get_outgoing_incoming_moves(strict=False)
         for move in outgoing_moves:
             qty_to_compute = move.quantity if move.state == 'done' else move.product_uom_qty
-            qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
+            qty += move.uom_id._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
         for move in incoming_moves:
             qty_to_compute = move.quantity if move.state == 'done' else move.product_uom_qty
-            qty -= move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
+            qty -= move.uom_id._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
         return qty
 
     def _get_outgoing_incoming_moves(self, strict=True):
@@ -452,7 +441,4 @@ class SaleOrderLine(models.Model):
         return res
 
     def has_valued_move_ids(self):
-        return (
-            any(move.state not in ('cancel', 'draft') for move in self.move_ids)
-            or super().has_valued_move_ids()  # TODO: remove in master
-        )
+        return any(move.state not in ('cancel', 'draft') for move in self.move_ids)

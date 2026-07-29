@@ -11,8 +11,8 @@ import {
 } from "@html_editor/utils/dom_info";
 import { describe, expect, test } from "@odoo/hoot";
 import { insertTestHtml } from "../_helpers/editor";
-import { isBlock } from "../../src/utils/blocks";
 import { unformat } from "../_helpers/format";
+import { isBlock } from "../../src/utils/blocks";
 
 const base64Img =
     "data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA\n        AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO\n            9TXL0Y4OHwAAAABJRU5ErkJggg==";

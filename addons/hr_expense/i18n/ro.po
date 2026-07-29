@@ -5,22 +5,23 @@
 # Translators:
 # Hongu Cosmin <cosmin513@gmail.com>, 2022
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
-# Dorin Hongu <dhongu@gmail.com>, 2023, 2025, 2026.
+# Dorin Hongu <dhongu@gmail.com>, 2023, 2025.
 # Cozmin Candea <office@terrabit.ro>, 2023
 # Martin Trigaux, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Ioan Muntean <imuntean@information-systems.ro>, 2025, 2026.
-# Adrian Cocos <adrian.cocos@capps.ai>, 2025, 2026.
-# Alin Ilie <alin.ilie@logit-solutions.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Ioan Muntean <imuntean@information-systems.ro>, 2025.
+# Adrian Cocos <adrian.cocos@capps.ai>, 2025.
+# Alin Ilie <alin.ilie@logit-solutions.com>, 2025.
+# MAHAMADASIF ANSARI <maan@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 12:10+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-04-23 11:49+0000\n"
+"Last-Translator: MAHAMADASIF ANSARI <maan@odoo.com>\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_expense/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +29,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -86,6 +87,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
 msgstr "(incl)"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -146,6 +152,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr "<span>Suma totală nu se potrivește cu suma inițială.</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Cont"
@@ -180,6 +196,11 @@ msgstr "Activități"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Activitate Excepție Decorare"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -257,8 +278,10 @@ msgstr "A apărut o eroare în timpul încărcării"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "O cheltuială de aceeași categorie, sumă și dată există deja."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -381,14 +404,6 @@ msgid "Can Reset"
 msgstr "Se poate reseta"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Anulează"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -417,10 +432,6 @@ msgstr "Comunicare"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Companii"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -508,7 +519,6 @@ msgstr "Cursul Valutar"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Dragă"
 
@@ -595,12 +605,6 @@ msgid "Domain"
 msgstr "Domeniu"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Descărcați aplicația noastră"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -612,6 +616,12 @@ msgstr "Ciornă"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Duplicare cheltuială"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -648,6 +658,18 @@ msgid "Employee Expenses"
 msgstr "Cheltuielile angajaților"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -657,6 +679,8 @@ msgstr ""
 "cheltuielilor dvs."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -691,7 +715,6 @@ msgstr "Duplicare aprobare cheltuieli"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Aprobator de cheltuieli"
 
@@ -801,11 +824,6 @@ msgid "Expense split"
 msgstr "Repartizarea cheltuielilor"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr "Cheltuială de aprobat"
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -839,11 +857,6 @@ msgid "Expenses Report"
 msgstr "Raportul cheltuielilor"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -855,6 +868,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Cheltuielile membrilor echipei tale"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr "Cheltuieli de aprobat"
@@ -945,14 +959,14 @@ msgid "Guideline"
 msgstr "Ghid"
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "Are mesaj"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1119,6 +1133,11 @@ msgid "Label Currency Rate"
 msgstr "Etichetă Curs valutar"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1265,13 +1284,6 @@ msgstr "Nume"
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
 msgstr "Noi intrări de cheltuieli"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -1486,6 +1498,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Metodă de plată"
@@ -1511,11 +1528,6 @@ msgstr "Metode de plată"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr "Metode de plată disponibile pentru cheltuielile plătite de companie"
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Plăți"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1717,6 +1729,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Restaurants, business lunches, etc."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Eroare livrare SMS"
@@ -1745,10 +1762,10 @@ msgid "Scan"
 msgstr "Scanare"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Scanați acest cod QR pentru a obține aplicația Odoo:"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1839,11 +1856,6 @@ msgid "Split Possible"
 msgstr "Defalacare posibilă"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Avertisment de actualizare a prețului standard"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1869,6 +1881,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Trimite"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1944,10 +1962,15 @@ msgid "Team Approver"
 msgstr "Aprobator de echipă"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "The account %(name)s (%(code)s) is archived. Activate it to continue"
-msgstr "Contul %(nume)s (%(cod)s) este arhivat. Activați-l pentru a continua"
+msgstr "Contul %(name)s (%(code)s) este arhivat. Activați-l pentru a continua"
 
 #. module: hr_expense
 #. odoo-python
@@ -2036,13 +2059,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"Există cheltuieli nesolicitate legate de această categorie. Actualizarea "
-"costului categoriei va modifica valoarea cheltuielilor. Asigurați-vă că "
-"aceasta este ceea ce doriți să faceți."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2161,10 +2180,10 @@ msgid "Untaxed Amount"
 msgstr "Valoare fără taxe"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
-msgstr "Cheltuieli fără titlu %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -2199,11 +2218,6 @@ msgstr "Furnizor"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Vizualizați cheltuielile"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr "Vizualizare cheltuieli"
 
 #. module: hr_expense
 #. odoo-python
@@ -2257,12 +2271,6 @@ msgstr "Dacă taxa este definită pentru un produs selectat"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Asistent"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr "Nu puteți trimite o cheltuială fără o categorie."
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2370,6 +2378,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr "Nu puteți împărți o cheltuială care a fost deja înregistrată."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2398,16 +2411,6 @@ msgstr "Nu aveți drepturile necesare pentru a crea înregistrări contabile."
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Trebuie să adăugați o metodă de plată manuală în jurnal (%s)"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Trebuie să aveți cel puțin o categorie care poate fi trecută pe cheltuieli "
-"în baza de date pentru a continua!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2493,300 +2496,3 @@ msgstr "cu aceeași chitanță există deja."
 
 #~ msgid "2023-08-11"
 #~ msgstr "2023-08-11"
-
-#~ msgid ""
-#~ "New expenses are awaiting your approval.\n"
-#~ "                You can review them by following this link"
-#~ msgstr ""
-#~ "Noile cheltuieli așteaptă aprobarea dumneavoastră.\n"
-#~ "                Le puteți consulta accesând acest link"
-
-#~ msgid "View Attachments"
-#~ msgstr "Vizualizați atașamentele"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Setări contabilitate"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Ar trebui să instalați mai întâi o localizare fiscală."
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Data:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Descriere:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Angajat:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Plată de către:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Total</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Validat de:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Toate rapoartele de cheltuieli"
-
-#~ msgid "All Reports"
-#~ msgstr "Toate rapoartele"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr ""
-#~ "Un raport de cheltuieli trebuie să conțină numai linii de la aceeași "
-#~ "companie."
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple App Store"
-
-#~ msgid "Approve Report"
-#~ msgstr "Aprobați raportul"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Referință factură"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Poate fi cheltuit"
-
-#~ msgid "Categories"
-#~ msgstr "Categorii"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Certificat onest și conform, <br/>(Data și semnătura).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Conversia între Unitățile de Măsura pot avea loc numai dacă ele aparțin "
-#~ "aceleiași categorii. Conversia va fi făcută pe baza proporțiilor."
-
-#~ msgid "Create Report"
-#~ msgstr "Creați un raport"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Creați un nou raport de cheltuieli"
-
-#~ msgid "Date"
-#~ msgstr "Dată"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Ați încercat aplicația mobilă?"
-
-#~ msgid "Done"
-#~ msgstr "Efectuat"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Adresa de domiciliu a angajaților"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Jurnal cheltuieli"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Linii cheltuieli"
-
-#~ msgid "Expense Report"
-#~ msgstr "Raport de cheltuieli"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Rezumatul raportului de cheltuieli"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Rapoarte de cheltuieli"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Analiza rapoartelor de cheltuieli"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Rapoarte de cheltuieli de aprobat"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Raportul de cheltuieli aprobat"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Raport de cheltuieli plătit"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Raportul cheltuielilor refuzat"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Rapoartele de cheltuieli regrupează toate cheltuielile efectuate în "
-#~ "timpul unui anumit eveniment."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Rapoarte de cheltuieli de aprobat"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Cheltuieli după dată"
-
-#~ msgid "Former Employees"
-#~ msgstr "Foști angajați"
-
-#~ msgid "General Information"
-#~ msgstr "Informații generale"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play Store"
-
-#~ msgid "Group By"
-#~ msgstr "Grupează după"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Manipulați liniile cu diferite valute"
-
-#~ msgid "Internal Note"
-#~ msgstr "Nota interna"
-
-#~ msgid "My Reports"
-#~ msgstr "Rapoartele mele"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Noul raport de cheltuieli"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr ""
-#~ "Nu a fost găsită nicio adresă de domiciliu pentru angajat %s, vă rugăm să "
-#~ "configurați una."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Nu a fost găsit niciun raport de cheltuieli. Să creăm una!"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Nu s-au găsit rapoarte de cheltuieli. Să creăm unul!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Număr de mesaje ce necesită intervenție"
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr ""
-#~ "Doar ofițerii resurse umane sau angajatul în cauză pot reseta la ciornă."
-
-#~ msgid "Or"
-#~ msgstr "Sau"
-
-#~ msgid "Others"
-#~ msgstr "Altele"
-
-#~ msgid "Partial"
-#~ msgstr "Parțial"
-
-#~ msgid "Payment Status"
-#~ msgstr "Stare plată"
-
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Preț în moneda companiei"
-
-#~ msgid "Qty"
-#~ msgstr "Cant"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Motiv pentru a refuza cheltuielile"
-
-#~ msgid "Ref."
-#~ msgstr "Ref."
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "Referința este modificabilă de către utilizatorul actual"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Cheltuieli refuzate"
-
-#~ msgid "Register Payment"
-#~ msgstr "Înregistrează Plată"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Rambursați cheltuielile în fișe de plată"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Resetare la Ciornă"
-
-#~ msgid "Sample"
-#~ msgstr "Probă"
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Configurați aliasul domeniului"
-
-#~ msgid "Sheet"
-#~ msgstr "Foaie"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Afișați toate înregistrările care au data următoarei acțiuni în trecut"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Faceți fotografii cu chitanțele dvs. și lăsați Odoo<br> să creeze automat "
-#~ "cheltuielile pentru dvs."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Jurnalul trebuie stabilit pe cheltuiala înregistrată"
-
-#~ msgid "To Report"
-#~ msgstr "A raporta"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Unitatea de măsură"
-
-#~ msgid "UoM Category"
-#~ msgstr "Categorie UoM"
-
-#~ msgid "User"
-#~ msgstr "Operator"
-
-#~ msgid "View Report"
-#~ msgstr "Vizualizează raportul"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr ""
-#~ "Pierdeți timp înregistrându-vă chitanțele? Să încercăm un mod mai bun."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr ""
-#~ "Nu sunteți autorizat să editați referința acestui raport de cheltuieli."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Nu sunteți autorizat să editați acest raport de cheltuieli."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr ""
-#~ "Puteți genera înregistrări contabile numai pentru cheltuiala(le) aprobată."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "Nu puteți adăuga cheltuielile unui alt angajat."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "Nu puteți șterge o cheltuială postată sau plătită."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr ""
-#~ "Nu puteți raporta cheltuielile pentru diferiți angajați în același raport."
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Nu puteți raporta de două ori aceeași linie!"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "de exemplu. Excursie la NY"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "să fie rambursat"
-
-#~ msgid "under validation"
-#~ msgstr "sub validare"

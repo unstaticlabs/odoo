@@ -11,16 +11,17 @@
 # Jussi Lehto <jussi@gulfeo.com>, 2022
 # Mikko Salmela <salmemik@gmail.com>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-15 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 20:52+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-22 17:41+0000\n"
+"PO-Revision-Date: 2026-06-13 12:38+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_sale/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -64,16 +65,6 @@ msgstr ""
 "tapahtumalipputuotteessa."
 
 #. module: website_event_sale
-#. odoo-python
-#: code:addons/website_event_sale/models/product_pricelist.py:0
-msgid ""
-"A pricelist item with a positive min. quantity will not be applied to the "
-"event tickets products."
-msgstr ""
-"Hinnaston kohdetta, jolle on asetettu vähimmäismäärä, ei voida käyttää "
-"tapahtumalipputuotteessa."
-
-#. module: website_event_sale
 #: model_terms:ir.ui.view,arch_db:website_event_sale.registration_attendee_details
 msgid "Confirm Registration"
 msgstr "Vahvista ilmoittautuminen"
@@ -101,6 +92,7 @@ msgstr "Tapahtuman alaotsikko"
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_event_event_ticket
+#, fuzzy
 msgid "Event Ticket"
 msgstr "Tapahtuman lippu"
 
@@ -175,7 +167,8 @@ msgstr "Myyntitilausrivi"
 #. odoo-python
 #: code:addons/website_event_sale/models/sale_order.py:0
 msgid "Sorry, The %(ticket)s tickets for the %(event)s event are sold out."
-msgstr "Pahoittelemme, liput %(ticket)s tapahtumaan %(event)s on myyty loppuun."
+msgstr ""
+"Pahoittelemme, liput %(ticket)s tapahtumaan %(event)s on myyty loppuun."
 
 #. module: website_event_sale
 #. odoo-python
@@ -221,45 +214,3 @@ msgstr "Et voi lisätä ostoskorissa olevien lippujen määrää manuaalisesti"
 #: model_terms:ir.ui.view,arch_db:website_event_sale.modal_ticket_registration
 msgid "to"
 msgstr "-"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-ban me-2\"/>\n"
-#~ "                                            Unpublished"
-#~ msgstr ""
-#~ "<i class=\"fa fa-ban me-2\"/>\n"
-#~ "                                            Ei julkaistu"
-
-#~ msgid ""
-#~ "<small class=\"o_wevent_participating text-bg-success\">\n"
-#~ "                                            <i class=\"fa fa-check me-2\"/"
-#~ ">\n"
-#~ "                                            Registered\n"
-#~ "                                        </small>"
-#~ msgstr ""
-#~ "<small class=\"o_wevent_participating text-bg-success\">\n"
-#~ "                                            <i class=\"fa fa-check me-2\"/"
-#~ ">\n"
-#~ "                                            Ilmoittautunut\n"
-#~ "                                        </small>"
-
-#~ msgid "Go to Event"
-#~ msgstr "Mene tapahtumaan"
-
-#~ msgid ""
-#~ "Sorry, only %(remaining_seats)d seats are still available for the %"
-#~ "(ticket)s ticket for the %(event)s event."
-#~ msgstr ""
-#~ "Pahoittelemme, mutta vain %(remaining_seats)d lipputyypin %(ticket)s "
-#~ "paikkaa on vapaana tapahtumaan %(event)s."
-
-#~ msgid "We are looking forward to meeting you at the following"
-#~ msgstr "Odotamme ilolla näkevämme teidät seuraavassa tapahtumassa"
-
-#~ msgid "Website"
-#~ msgstr "Verkkosivu"
-
-#~ msgid "event"
-#~ msgstr "tapahtuma"
-
-#~ msgid "events"
-#~ msgstr "tapahtumat"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 18:05+0000\n"
+"POT-Creation-Date: 2026-05-08 18:14+0000\n"
 "PO-Revision-Date: 2024-04-09 02:44+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -24,8 +24,8 @@ msgstr ""
 
 #. module: l10n_my_ubl_pint
 #: model:ir.model,name:l10n_my_ubl_pint.model_res_company
-msgid "Companies"
-msgstr "Syarikat"
+msgid "Company"
+msgstr ""
 
 #. module: l10n_my_ubl_pint
 #: model:ir.model,name:l10n_my_ubl_pint.model_base_document_layout

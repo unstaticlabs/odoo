@@ -5,15 +5,14 @@
 # Translators:
 # Martin Trigaux, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 17:39+0000\n"
-"PO-Revision-Date: 2026-07-01 05:35+0000\n"
-"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 13:42+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "stock_picking_batch/ar/>\n"
 "Language: ar\n"
@@ -22,13 +21,18 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "%s was removed from the batch, no quantity processed"
 msgstr "تمت إزالة %s من الدفعة ولم تتم معالجة أي كمية"
+
+#. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-calendar text-primary me-2\" title=\"Calendar\"/>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
@@ -61,7 +65,7 @@ msgstr "<span class=\"o_stat_text\">الحركات</span>"
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
 msgid "<span class=\"o_stat_text\">Packages</span>"
-msgstr "<span class=\"o_stat_text\">الطرود</span>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
@@ -134,6 +138,11 @@ msgstr "الأنشطة"
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "زخرفة استثناء النشاط"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__activity_state
@@ -282,8 +291,8 @@ msgstr "الشحنة المجمعة"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking_to_batch
-msgid "Batch Transfer Lines"
-msgstr "بنود النقل على دفعات"
+msgid "Batch Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_picking_batch_action
@@ -343,9 +352,7 @@ msgid "Calendar View"
 msgstr "أداة عرض التقويم"
 
 #. module: stock_picking_batch
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_add_to_wave_form
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
-#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_to_batch_form
 msgid "Cancel"
 msgstr "إلغاء"
 
@@ -742,6 +749,11 @@ msgid "Next Activity Type"
 msgstr "نوع النشاط التالي"
 
 #. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__0
+msgid "Normal"
+msgstr ""
+
+#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__message_needaction_counter
 msgid "Number of Actions"
 msgstr "عدد الإجراءات"
@@ -760,6 +772,17 @@ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء"
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "عدد الرسائل الحادث بها خطأ في التسليم"
+
+#. module: stock_picking_batch
+#. odoo-python
+#: code:addons/stock_picking_batch/models/stock_move.py:0
+msgid "Open: Stock Move"
+msgstr ""
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
+msgid "Operation Category"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_id
@@ -781,7 +804,7 @@ msgstr "معرف الطرد"
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
 msgid "Packages"
-msgstr "الطرود"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.action_picking_tree_wave
@@ -832,6 +855,11 @@ msgstr "طباعة"
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
 msgid "Print Labels"
 msgstr "طباعة بطاقات العناوين"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__priority
+msgid "Priority"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_type__wave_group_by_product
@@ -1129,14 +1157,6 @@ msgid "The selected transfers should belong to the same operation type"
 msgstr "يجب أن تنتمي عميات النقل المحددة إلى نفس نوع العملية"
 
 #. module: stock_picking_batch
-#. odoo-python
-#: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
-msgid ""
-"The sequence '%(sequence)s' is misconfigured. Its prefix should end with a "
-"'/' separator."
-msgstr ""
-
-#. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__is_wave
 msgid "This batch is a wave"
 msgstr "هذه الشحنة هي عملية جمع العمليات من شحنات مختلفة"
@@ -1154,6 +1174,7 @@ msgstr "أنشطة اليوم"
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_picking
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfer"
 msgstr "تحويل"
 
@@ -1168,6 +1189,11 @@ msgid "Transfer Name"
 msgstr "اسم الشحنة"
 
 #. module: stock_picking_batch
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.view_stock_move_operations
+msgid "Transfer:"
+msgstr ""
+
+#. module: stock_picking_batch
 #. odoo-python
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 msgid "Transferred by"
@@ -1176,13 +1202,9 @@ msgstr "تم النقل بواسطة"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_ids
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
+#: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_kanban
 msgid "Transfers"
 msgstr "التحويلات"
-
-#. module: stock_picking_batch
-#: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__picking_type_code
-msgid "Type of Operation"
-msgstr "نوع العملية"
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__activity_exception_decoration
@@ -1199,6 +1221,11 @@ msgstr "المسؤول غير المعين من %s"
 #: model:ir.actions.server,name:stock_picking_batch.action_unreserve_batch_picking
 msgid "Unreserve"
 msgstr "إلغاء الحجز"
+
+#. module: stock_picking_batch
+#: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_batch__priority__1
+msgid "Urgent"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -1228,8 +1255,8 @@ msgstr "عملية جمع العمليات من شحنات مختلفة"
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_add_to_wave
-msgid "Wave Transfer Lines"
-msgstr "بنود عملية جمع العمليات من شحنات مختلفة"
+msgid "Wave Transfer Line"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.action_picking_tree_wave
@@ -1308,78 +1335,3 @@ msgstr "shipping_weight"
 
 #~ msgid "2023-08-20"
 #~ msgstr "2023-08-20"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">Group by</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label fw-bold\" attrs=\"{'invisible':[('auto_batch', "
-#~ "'=', False)]}\">التجميع حسب</span>"
-
-#~ msgid "Clear quantities"
-#~ msgstr "مسح الكميات "
-
-#~ msgid "Create a new batch transfer"
-#~ msgstr "إنشاء عملية نقل على دفعات جديدة "
-
-#~ msgid "Group By"
-#~ msgstr "التجميع حسب "
-
-#~ msgid "Maximum lines per batch"
-#~ msgstr "الحد الأقصى للبنود لكل دفعة "
-
-#~ msgid "Maximum transfers per batch"
-#~ msgstr "الحد الأقصى للتحويلات لكل دفعة "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء "
-
-#~ msgid ""
-#~ "Please add 'Done' quantities to the batch picking to create a new pack."
-#~ msgstr "يرجى إضافة الكميات \"المنتهية\" إلى انتقاء الدفعة لإنشاء طرد جديد. "
-
-#~ msgid "Set quantities"
-#~ msgstr "تعيين الكميات "
-
-#~ msgid "Show Clear Qty Button"
-#~ msgstr "إظهار زر مسح الكميات "
-
-#~ msgid "Show Set Qty Button"
-#~ msgstr "إظهار زر تعيين الكميات "
-
-#~ msgid "Show Validate Button"
-#~ msgstr "إظهار زر التصديق "
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "عرض كافة السجلات المُعين لها تاريخ إجراء تالي يسبق تاريخ اليوم الجاري"
-
-#~ msgid "Stock Package Destination"
-#~ msgstr "وجهة طرد المخزون "
-
-#~ msgid ""
-#~ "The following transfers cannot be added to batch transfer %s. Please "
-#~ "check their states and operation types, if they aren't immediate "
-#~ "transfers.\n"
-#~ "\n"
-#~ "Incompatibilities: %s"
-#~ msgstr ""
-#~ "عمليات النقل التالية لا يمكن إضافتها إلى عملية النقل على دفعات %s. يرجى "
-#~ "التحقق من حالاتها وأنواع العمليات، إذا لم تكن عمليات نقل مباشرة. \n"
-#~ "\n"
-#~ "أوجه التعارض: %s "
-
-#~ msgid ""
-#~ "The goal of the batch transfer is to group operations that may\n"
-#~ "            (needs to) be done together in order to increase their "
-#~ "efficiency.\n"
-#~ "            It may also be useful to assign jobs (one person = one batch) "
-#~ "or\n"
-#~ "            help the timing management of operations (tasks to be done at "
-#~ "1pm)."
-#~ msgstr ""
-#~ "الهدف من النقل المجمع هو تجميع العمليات التي\n"
-#~ "            قد تحتاج إلى إجرائها معاً لزيادة الكفاءة.\n"
-#~ "            قد تكون مفيدة أيضاً لتعيين الوظائف (شخص واحد = دفعة واحدة) أو\n"
-#~ "            المساعدة في إدارة أوقات العمليات (المهام التي يجب إنجازها "
-#~ "الساعة 1 مساءً). "

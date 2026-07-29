@@ -78,7 +78,8 @@ class AccountEdiXmlUbl_21Zatca(models.AbstractModel):
 
         # Always ignore withholding taxes in the UBL
         def total_grouping_function(base_line, tax_data):
-            if tax_data and tax_data['tax'].l10n_sa_is_retention:
+            tax = tax_data and tax_data['tax']
+            if tax and tax.amount < 0:
                 return None
             return True
 
@@ -86,7 +87,7 @@ class AccountEdiXmlUbl_21Zatca(models.AbstractModel):
             tax = tax_data and tax_data['tax']
 
             # Ignore withholding taxes
-            if tax and tax.l10n_sa_is_retention:
+            if tax and tax.amount < 0:
                 return None
             return {
                 'tax_category_code': self._get_tax_category_code(vals['customer'].commercial_partner_id, vals['supplier'], tax),
@@ -237,8 +238,6 @@ class AccountEdiXmlUbl_21Zatca(models.AbstractModel):
 
     def _get_address_node(self, vals):
         partner = vals['partner']
-        country = partner['country' if partner._name == 'res.bank' else 'country_id']
-        state = partner['state' if partner._name == 'res.bank' else 'state_id']
         building_number = partner.l10n_sa_edi_building_number if partner._name == 'res.partner' else ''
         edi_plot_identification = partner.l10n_sa_edi_plot_identification if partner._name == 'res.partner' else ''
 
@@ -249,12 +248,12 @@ class AccountEdiXmlUbl_21Zatca(models.AbstractModel):
             'cbc:CitySubdivisionName': {'_text': partner.street2},
             'cbc:CityName': {'_text': partner.city},
             'cbc:PostalZone': {'_text': partner.zip},
-            'cbc:CountrySubentity': {'_text': state.name},
-            'cbc:CountrySubentityCode': {'_text': state.code},
+            'cbc:CountrySubentity': {'_text': partner.state_id.name},
+            'cbc:CountrySubentityCode': {'_text': partner.state_id.code},
             'cac:AddressLine': None,
             'cac:Country': {
-                'cbc:IdentificationCode': {'_text': country.code},
-                'cbc:Name': {'_text': country.name},
+                'cbc:IdentificationCode': {'_text': partner.country_id.code},
+                'cbc:Name': {'_text': partner.country_id.name},
             }
         }
 
@@ -262,7 +261,7 @@ class AccountEdiXmlUbl_21Zatca(models.AbstractModel):
         """ Override to include/update values specific to ZATCA's UBL 2.1 specs """
         identification_number = partner.l10n_sa_edi_additional_identification_number
         vat = re.sub(r'[^a-zA-Z0-9]', '', partner.vat or "")
-        if partner.country_code != "SA" and vat:
+        if partner.country_code != "SA":
             identification_number = vat
         elif partner.l10n_sa_edi_additional_identification_scheme == 'TIN':
             # according to ZATCA, the TIN number is always the first 10 digits of the VAT number

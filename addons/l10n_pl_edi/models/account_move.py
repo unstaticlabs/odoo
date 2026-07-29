@@ -150,7 +150,7 @@ class AccountMove(models.Model):
             return vat_number
 
         def get_address(partner):
-            return re.sub(r'\n+', r' ', partner._display_address(True))
+            return re.sub(r'\n+', r' ', partner.with_context(without_country_name=True)._display_address(True))
 
         def get_tags(code):
             return self.env['account.account.tag']._get_tax_tags(code, self.env.ref('base.pl').id)
@@ -300,7 +300,7 @@ class AccountMove(models.Model):
     def _l10n_pl_edi_generate_qr_link(self):
         self.ensure_one()
         if self.l10n_pl_edi_attachment_file:
-            mode = self.env['ir.config_parameter'].sudo().get_param('l10n_pl_edi_ksef.mode', 'prod')
+            mode = self.env['ir.config_parameter'].sudo().get_str('l10n_pl_edi_ksef.mode', 'prod')
             base_link = "https://qr.ksef.mf.gov.pl/invoice/" if mode == 'prod' else "https://qr-test.ksef.mf.gov.pl/invoice/"
             return (
                 f"{base_link}"

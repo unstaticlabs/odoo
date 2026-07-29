@@ -11,6 +11,7 @@ from odoo.tests import tagged
 from odoo.tests.common import BaseCase
 from odoo.tools import misc
 from odoo.tools.mail import (
+    html_remove_xpath,
     is_html_empty, html2plaintext, html_to_inner_content, html_sanitize, append_content_to_html, plaintext2html,
     email_domain_normalize, email_normalize, email_re,
     email_split, email_split_and_format, email_split_and_format_normalize, email_split_tuples,
@@ -24,6 +25,7 @@ from . import mail_examples
 
 
 @tagged('mail_sanitize')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSanitizer(BaseCase):
     """ Test the html sanitizer that filters html to remove unwanted attributes """
 
@@ -77,8 +79,8 @@ class TestSanitizer(BaseCase):
         self.assertNotIn('alert(1)', html_result)
 
     def test_evil_malicious_code(self):
-        # taken from https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet#Tests
         cases = [
+            # payloads taken from https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet#Tests
             ("<IMG SRC=javascript:alert('XSS')>"),  # no quotes and semicolons
             ("<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>"),  # UTF-8 Unicode encoding
             ("<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>"),  # hex encoding
@@ -111,6 +113,12 @@ class TestSanitizer(BaseCase):
             ("<META HTTP-EQUIV=\"Link\" Content=\"<http://ha.ckers.org/xss.css>; REL=stylesheet\">"),  # remote style sheet 3
             ("<STYLE>BODY{-moz-binding:url(\"http://ha.ckers.org/xssmoz.xml#xss\")}</STYLE>"),  # remote style sheet 4
             ("<IMG STYLE=\"xss:expr/*XSS*/ession(alert('XSS'))\">"),  # style attribute using a comment to break up expression
+
+            # custom payloads
+            ("<a href=j\u0000avascript:alert(1)>Hello</a>"),  # unicode control character in the scheme
+            ("<a href=j\u0020avascript:alert(1)>Hello</a>"),  # unicode control character in the scheme
+            ("<a href=j\u001bavascript:alert(1)>Hello</a>"),  # unicode control character in the scheme
+            ("<a href=j\x1bavascript:alert(1)>Hello</a>"),  # ascii control character in the scheme
         ]
         for content in cases:
             html = html_sanitize(content)
@@ -397,8 +405,56 @@ class TestSanitizer(BaseCase):
 
 
 @tagged('mail_sanitize')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHtmlTools(BaseCase):
     """ Test some of our generic utility functions about html """
+
+    def test_html_remove_xpath(self):
+        cases = [
+            (   # base case with one element to remove
+                '<div>This is a <b>very</b> big deal.</div>',
+                '//b',
+                '<div>This is a \nbig deal.</div>',
+            ),
+            (   # preserve markup
+                Markup('<div>This is a <b>very</b> big deal.</div>'),
+                '//b',
+                Markup('<div>This is a \nbig deal.</div>'),
+            ),
+            (   # missing root
+                'This is a <b>very</b> big deal.',
+                '//b',
+                '<div>This is a \nbig deal.</div>'
+            ),
+            (   # indented removal with complex xpath
+                'This is a <b>very <i>big</i>, important</b><span class="fa fa-money-bag delete"> and lucrative</span> deal.',
+                '//b | //i | //*[hasclass("delete")]',
+                '<div>This is a \ndeal.</div>'
+            ),
+            (   # removing the root
+                '<span>Remove root</span>',
+                '//span',
+                '<div></div>',
+            ),
+            (   # removing the root that is automatically added
+                'Remove root',
+                '//div',
+                '<div>Remove root</div>',
+            ),
+            (   # concatenation injection of nodes (should be safely escaped)
+                Markup('<div><<span/>script<span/>><<span/>/script</span>></div>'),
+                '//span',
+                Markup('<div>&lt;\nscript\n&gt;&lt;\n/script&gt;</div>'),
+            ),
+            (   # concatenation injection of strings
+                '<a>htt<span/>ps://www.example.com</a>',
+                '//span',
+                '<a>htt\nps://www.example.com</a>',
+            ),
+        ]
+        for input_str, xpath, output_str in cases:
+            with self.subTest(input=input_str):
+                self.assertEqual(html_remove_xpath(input_str, xpath), output_str)
 
     def test_plaintext2html(self):
         cases = [
@@ -546,6 +602,7 @@ class TestHtmlTools(BaseCase):
 
 
 @tagged('mail_tools')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestEmailTools(BaseCase):
     """ Test some of our generic utility functions for emails """
 
@@ -928,6 +985,7 @@ class TestEmailTools(BaseCase):
                 )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailTools(BaseCase):
     """ Test mail utility methods. """
 

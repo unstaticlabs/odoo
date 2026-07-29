@@ -1,7 +1,8 @@
 import {
     assertCssVariable,
     assertSvgColors,
-    changeOption,
+    changeBackgroundShape,
+    changeImageShape,
     clickOnElement,
     clickOnSnippet,
     goBackToBlocks,
@@ -46,23 +47,21 @@ registerWebsitePreviewTour(
             groupName: "People",
         }),
         ...clickOnSnippet(".s_company_team"),
-        changeOption("Team", "toggleBgShape"),
-        clickOnElement("rainy shape", "[data-action-value='html_builder/Rainy/01_001']"),
+        ...changeBackgroundShape("html_builder/Rainy/01_001"),
         // Ensure shape is transformed so it generates a dynamic SVG URL. It is
         // required because the bug only occurs when the shape is URL-based.
         clickOnElement("flip shape horizontal option", "[data-action-id='flipShape'] .oi-arrows-h"),
         clickOnElement("any image in the snippet", ":iframe .s_company_team img"),
-        changeOption("Image", "[data-label='Shape'] .dropdown-toggle"),
-        clickOnElement("solid square 3 shape", "[data-action-value$='/solid_square_3']"),
+        ...changeImageShape("html_builder/solid/solid_square_3"),
         clickOnElement(
             "custom snippet save button",
             "[data-container-title='Team'] .oe_snippet_save"
         ),
-        clickOnElement("save confirmation button", ".modal-dialog button:contains('Save')"),
         ...goToTheme(),
+        clickOnElement("color option", "[data-label='Colors'] button"),
         clickOnElement(
             "color picker of theme preset 1",
-            "[data-container-title='Colors'] .o_we_color_preview"
+            ".hb-sliding-panel-content .o_we_color_preview"
         ),
         {
             content: "Set theme color to #" + TEST_COLOR_HEX,
@@ -70,8 +69,13 @@ registerWebsitePreviewTour(
             run: "edit " + TEST_COLOR_HEX,
         },
         {
+            content: "Press enter to save color",
+            trigger: ":iframe",
+            run: "press Enter",
+        },
+        {
             content: "Wait for no loading",
-            trigger: "body:not(:has(.o_we_ui_loading))",
+            trigger: "body:not(:has(.o_we_ui_loading)) :iframe body:not(:has(.o_loading_screen))",
         },
         verifyShapeColorsUpdated(":iframe .s_company_team"),
         clickOnElement("any image in the snippet", ":iframe .s_company_team img[data-shape]"),

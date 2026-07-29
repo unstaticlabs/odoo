@@ -13,8 +13,8 @@ from . import mail_render_mixin
 from . import mail_composer_mixin
 from . import mail_thread
 from . import mail_thread_blacklist
-from . import mail_thread_cc
 from . import mail_thread_main_attachment
+from . import mail_thread_subject_suggested
 from . import mail_tracking_duration_mixin
 from . import template_reset_mixin
 
@@ -36,6 +36,9 @@ from . import mail_message_subtype
 from . import mail_message_translation
 from . import mail_message
 from . import mail_mail
+from . import mail_poll
+from . import mail_poll_option
+from . import mail_poll_vote
 from . import mail_presence
 from . import mail_push
 from . import mail_push_device
@@ -63,6 +66,7 @@ from . import ir_ui_menu
 from . import ir_ui_view
 from . import ir_qweb
 from . import ir_websocket
+from . import kpi_provider
 from . import res_company
 from . import res_config_settings
 from . import res_role

@@ -3,7 +3,7 @@
     'name': 'France - Accounting',
     'website': 'https://www.odoo.com/documentation/latest/applications/finance/fiscal_localizations/france.html',
     'icon': '/account/static/description/l10n.png',
-    'version': '2.4',
+    'version': '2.2',
     'countries': ['fr'],
     'category': 'Accounting/Localizations/Account Charts',
     'description': """
@@ -29,7 +29,6 @@ configuration of their taxes and fiscal positions manually.
 **Credits:** Sistheo, Zeekom, CrysaLEAD, Akretion and Camptocamp.
 """,
     'depends': [
-        'base_iban',
         'base_vat',
         'account',
         'account_edi_ubl_cii',
@@ -43,7 +42,6 @@ configuration of their taxes and fiscal positions manually.
         'views/report_invoice.xml',
         'wizard/account_fr_fec_export_wizard_view.xml',
         'security/ir.model.access.csv',
-        'data/res.bank.csv',
     ],
     'demo': [
         'data/l10n_fr_account_demo.xml',

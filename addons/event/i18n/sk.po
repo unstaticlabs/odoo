@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * event
+# 	* event
 #
 # Translators:
 # gebri <gebri@inmail.sk>, 2022
@@ -12,23 +12,21 @@
 # Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
 # Damian Brencic <brencicdamian12313@gmail.com>, 2023
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2023
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 11:27+0000\n"
-"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/event/sk/>"
-"\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2022-09-22 05:45+0000\n"
+"Last-Translator: Rastislav Brencic <rastislav.brencic@azet.sk>, 2023\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_question__event_count
@@ -1534,8 +1532,9 @@ msgstr "Popis lístka, ktorý chcete oznámiť svojim zákazníkom."
 msgid ""
 "A slot cannot be scheduled outside of its event time range.\n"
 "\n"
-"Event:\t\t%(event_start)s - %(event_end)s\n"
-"Slot:\t\t%(slot_name)s"
+"Event:\t%(event_start_date)s, %(event_start_time)s - %(event_end_date)s, %"
+"(event_end_time)s\n"
+"Slot:\t%(slot_name)s"
 msgstr ""
 
 #. module: event
@@ -1598,6 +1597,12 @@ msgid "Activity Exception Decoration"
 msgstr "Označenie výnimky v aktivite"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_event_event__activity_plans_ids
+#: model:ir.model.fields,field_description:event.field_event_registration__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__activity_state
 #: model:ir.model.fields,field_description:event.field_event_registration__activity_state
 msgid "Activity State"
@@ -1637,6 +1642,17 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_type_form
 msgid "Add some internal notes (to do lists, contact info, ...)"
+msgstr ""
+
+#. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid ""
+"Adding these slots will automatically adjust the event's time range to "
+"include them.\n"
+"\n"
+"From:\t%(start)s - %(end)s\n"
+"To:\t\t%(new_start)s - %(new_end)s\n"
 msgstr ""
 
 #. module: event
@@ -2007,7 +2023,7 @@ msgstr "Kampaň"
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_event_registration_tree
 msgid "Cancel"
-msgstr "Zrušiť"
+msgstr "Zrušené"
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_event_registration_form
@@ -2157,6 +2173,12 @@ msgid "Confirm attendance?"
 msgstr ""
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Confirmation"
+msgstr ""
+
+#. module: event
 #: model:ir.model,name:event.model_res_partner
 msgid "Contact"
 msgstr "Kontakt"
@@ -2195,7 +2217,7 @@ msgstr "Vytvorte scénu udalosti"
 #. module: event
 #: model_terms:ir.actions.act_window,help:event.event_tag_category_action_tree
 msgid "Create an Event Tag Category"
-msgstr "Vytvorte kategóriu štítku udalosti"
+msgstr "Vytvorte kategóriu značky udalosti"
 
 #. module: event
 #: model_terms:ir.actions.act_window,help:event.action_event_type
@@ -2299,6 +2321,11 @@ msgid "Design Fair Los Angeles"
 msgstr "Veľtrh dizajnu v Los Angeles"
 
 #. module: event
+#: model:ir.model,name:event.model_digest_digest
+msgid "Digest"
+msgstr ""
+
+#. module: event
 #: model:event.event,subtitle:event.event_4
 msgid "Discover how to grow a sustainable business with our experts."
 msgstr "Zistite, ako rozvíjať udržateľné podnikanie s našimi odborníkmi."
@@ -2309,6 +2336,7 @@ msgid "Discover more"
 msgstr "Objavte viac"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:event.field_event_event__display_name
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__display_name
 #: model:ir.model.fields,field_description:event.field_event_mail__display_name
@@ -2381,8 +2409,8 @@ msgstr "Email"
 
 #. module: event
 #: model:ir.model,name:event.model_mail_template
-msgid "Email Templates"
-msgstr "Emailové šablóny"
+msgid "Email Template"
+msgstr ""
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
@@ -2441,6 +2469,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:event.field_event_registration__event_id
 #: model:ir.model.fields,field_description:event.field_event_registration_answer__event_id
 #: model:ir.model.fields,field_description:event.field_event_slot__event_id
+#: model_terms:ir.ui.view,arch_db:event.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:event.event_event_view_activity
 #: model_terms:ir.ui.view,arch_db:event.event_question_view_search
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
@@ -2465,7 +2494,7 @@ msgstr "Kategória eventu"
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.event_tag_view_form
 msgid "Event Category Tag"
-msgstr "Štítok kategórie eventu"
+msgstr "Tag kategórie eventu"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_registration__event_end_date
@@ -2584,12 +2613,12 @@ msgstr "Dátum začatia udalosti"
 #. module: event
 #: model:ir.model,name:event.model_event_tag
 msgid "Event Tag"
-msgstr "Štítok eventu"
+msgstr "Tag eventu"
 
 #. module: event
 #: model:ir.model,name:event.model_event_tag_category
 msgid "Event Tag Category"
-msgstr "Kategória štítku eventu"
+msgstr "Kategória tagového eventu"
 
 #. module: event
 #: model:ir.actions.act_window,name:event.event_tag_category_action_tree
@@ -3007,6 +3036,7 @@ msgid "How to Fold (4)"
 msgstr ""
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__id
 #: model:ir.model.fields,field_description:event.field_event_event__id
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__id
 #: model:ir.model.fields,field_description:event.field_event_mail__id
@@ -3258,6 +3288,11 @@ msgid "Key"
 msgstr ""
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations_value
+msgid "Kpi Nbr Of Registrations Value"
+msgstr ""
+
+#. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__lang
 msgid "Language"
 msgstr ""
@@ -3495,7 +3530,7 @@ msgstr "Médium"
 #: model:ir.model.fields,field_description:event.field_event_event__message_has_error
 #: model:ir.model.fields,field_description:event.field_event_registration__message_has_error
 msgid "Message Delivery error"
-msgstr "Chyba doručenia správy"
+msgstr "Chyba zobrazovania správ"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__message_ids
@@ -3548,13 +3583,16 @@ msgid "Name"
 msgstr "Meno"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.xml:0
 #: model:event.stage,name:event.event_stage_new
 msgid "New"
 msgstr "Nové"
 
 #. module: event
 #. odoo-javascript
-#: code:addons/event/static/src/views/event_slot_calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/list/event_slot_list_controller.js:0
 msgid "New Slot"
 msgstr ""
 
@@ -4005,6 +4043,7 @@ msgid "Registration statistics"
 msgstr ""
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__registration_ids
 msgid "Registrations"
 msgstr "Registrácie"
@@ -4139,6 +4178,12 @@ msgid "Select Attendee"
 msgstr ""
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_multi_selection_buttons.xml:0
+msgid "Select days to add slots"
+msgstr ""
+
+#. module: event
 #: model_terms:ir.ui.view,arch_db:event.event_registration_answer_view_tree
 msgid "Selected answer"
 msgstr ""
@@ -4264,6 +4309,7 @@ msgstr ""
 #: code:addons/event/models/event_event.py:0
 #: model:ir.actions.act_window,name:event.event_slot_action_from_event
 #: model:ir.model.fields,field_description:event.field_event_event__event_slot_ids
+#: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_calendar
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_tree
 msgid "Slots"
@@ -4405,7 +4451,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:event.field_event_type__tag_ids
 #: model_terms:ir.ui.view,arch_db:event.event_tag_category_view_form
 msgid "Tags"
-msgstr "Štítky"
+msgstr "Tagy"
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_registration_search
@@ -4861,6 +4907,12 @@ msgid "Upcoming/Running"
 msgstr ""
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Update Event"
+msgstr ""
+
+#. module: event
 #. odoo-python
 #: code:addons/event/models/event_event.py:0
 msgid "Update the limit of registrations?"
@@ -5180,204 +5232,3 @@ msgstr ""
 
 #~ msgid "5-10"
 #~ msgstr "5-10"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check fa-3x\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-#~ msgstr "<i class=\"fa fa-level-up fa-rotate-90\" title=\"Confirmed\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus fa-3x\" role=\"img\" aria-label=\"Attended "
-#~ "button\" title=\"Confirm Attendance\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-user-plus\" role=\"img\" aria-label=\"Attended button\" "
-#~ "title=\"Confirm Attendance\"/>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" states=\"done\">Attended</span>\n"
-#~ "                                    <span class=\"text-muted\" "
-#~ "states=\"cancel\">Canceled</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" states=\"done\">Zúčastnení</span>\n"
-#~ "                                    <span class=\"text-muted\" "
-#~ "states=\"cancel\">Zrušení</span>"
-
-#~ msgid "After the event"
-#~ msgstr "Po udalosti"
-
-#~ msgid ""
-#~ "Autoconfirm Registrations. Registrations will automatically be confirmed "
-#~ "upon creation."
-#~ msgstr ""
-#~ "Automaticky potvrdzovať registrácie. Registrácie budú automaticky "
-#~ "potvrdené po vytvorení."
-
-#~ msgid "Autoconfirmation"
-#~ msgstr "Automatické potvrdenie"
-
-#~ msgid "Automatically Confirm Registrations"
-#~ msgstr "Automaticky potvrdzovať registrácie"
-
-#~ msgid "Before the event"
-#~ msgstr "Pred podujatím"
-
-#~ msgid "Booked By"
-#~ msgstr "Rezervoval"
-
-#~ msgid "Community Chat Rooms"
-#~ msgstr "Komunitné chatovacie miestnosti"
-
-#~ msgid "Confirm"
-#~ msgstr "Potvrdiť"
-
-#~ msgid "Confirm Attendance"
-#~ msgstr "Potvrďte účasť"
-
-#~ msgid "Confirm Registration"
-#~ msgstr "Potvrďte registráciu"
-
-#~ msgid "Confirmed"
-#~ msgstr "Potvrdené"
-
-#~ msgid "Customer"
-#~ msgstr "Zákazník"
-
-#~ msgid "Customer Email"
-#~ msgstr "E-mail zákazníka"
-
-#~ msgid "Discussion Rooms"
-#~ msgstr "Diskusné miestnosti"
-
-#~ msgid "Done"
-#~ msgstr "Hotové"
-
-#~ msgid "End Date Located"
-#~ msgstr "Dátum ukončenia sa nachádza"
-
-#~ msgid "Event Ticket For"
-#~ msgstr "Eventová vstupenka na"
-
-#~ msgid "Expected"
-#~ msgstr "Očakávané"
-
-#~ msgid "Expected Attendees"
-#~ msgstr "Očakávaní účastníci"
-
-#~ msgid "Expected attendees"
-#~ msgstr "Očakávaní návštevníci"
-
-#~ msgid "Foldable Badge"
-#~ msgstr "Skladací odznak"
-
-#~ msgid "Foldable Badge Example"
-#~ msgstr "Príklad skladacieho odznaku"
-
-#~ msgid "For any additional information, please contact us at"
-#~ msgstr "Pre akékoľvek ďalšie informácie, prosím kontaktujte nás na"
-
-#~ msgid ""
-#~ "For each event you can define a maximum registration of seats(number of "
-#~ "attendees), above this numbers the registrations are not accepted."
-#~ msgstr ""
-#~ "Pre každú udalosť môžete definovať maximálnu registráciu sedadiel(počet "
-#~ "účastníkov), nad tieto čísla nie sú registrácie akceptované."
-
-#~ msgid "Fully ended"
-#~ msgstr "Úplne ukončené"
-
-#~ msgid "Green Kanban Label"
-#~ msgstr "Zelená značka Kanban"
-
-#~ msgid "Grey Kanban Label"
-#~ msgstr "Šedá značka Kanban"
-
-#~ msgid "Group By"
-#~ msgstr "Zoskupiť podľa"
-
-#~ msgid "Kanban Blocked Explanation"
-#~ msgstr "Vysvetlenie zablokovaného kanbanu"
-
-#~ msgid "Kanban Ongoing Explanation"
-#~ msgstr "Priebežné vysvetlenie kanbanu"
-
-#~ msgid "Kanban State Label"
-#~ msgstr "Kanban značka štádia"
-
-#~ msgid "Kanban Valid Explanation"
-#~ msgstr "Platné vysvetlenie Kanbanu"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobilný telefón"
-
-#~ msgid "None"
-#~ msgstr "Žiadne"
-
-#~ msgid "Number of Expected Attendees"
-#~ msgstr "Počet očakávaných účastníkov"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet správ, ktoré vyžadujú akciu"
-
-#~ msgid "Red Kanban Label"
-#~ msgstr "Červená značka Kanban"
-
-#~ msgid "Set To Unconfirmed"
-#~ msgstr "Nastaviť na nepotvrdené"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Zobraz všetky záznamy, ktorých následná aktivita je pred dnešným dňom"
-
-#~ msgid "Stage Description and Tooltips"
-#~ msgstr "Popis fázy a popisy"
-
-#~ msgid "Start Date Located"
-#~ msgstr "Počiatočný dátum nájdený"
-
-#~ msgid "Task in progress. Click to block or set as done."
-#~ msgstr ""
-#~ "Úloha prebieha. Kliknutím zablokujete alebo nastavíte ako dokončené."
-
-#~ msgid "Task is blocked. Click to unblock or set as done."
-#~ msgstr "Úloha pripravená na ďalšiu fázu"
-
-#~ msgid "This step is done. Click to block or set in progress."
-#~ msgstr "Tento krok je vykonaný. Kliknutím zablokujete alebo nastavujete."
-
-#~ msgid ""
-#~ "You can also add a description to help your coworkers understand the "
-#~ "meaning and purpose of the stage."
-#~ msgstr ""
-#~ "Taktiež môžte pridať popis, ktorý pomôže vašim spolupracovníkom pochopiť "
-#~ "zmysel a účel štádia."
-
-#~ msgid "events@odoo.com"
-#~ msgstr "events@odoo.com"
-
-#~ msgid "events@yourcompany.com"
-#~ msgstr "eventy@vasafirma.com"
-
-#~ msgid "reserved +"
-#~ msgstr "rezervované +"
-
-#~ msgid "unconfirmed"
-#~ msgstr "nepotvrdený"

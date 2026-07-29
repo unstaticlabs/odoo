@@ -3,22 +3,19 @@
 # * hr_skills
 #
 # Odoo Translation Bot <c3p@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-02 00:28+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Kabyle <https://translate.odoo.com/projects/odoo-19/hr_skills/"
-"kab/>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
 "Language: kab\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_skills
 #. odoo-python
@@ -50,12 +47,10 @@ msgid "ADD"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__active
-#, fuzzy
 msgid "Active"
-msgstr "Urmid"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_adaptability
@@ -114,9 +109,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_type_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_skill_type_view_search
-#, fuzzy
 msgid "Archived"
-msgstr "Yettwaɣbeṛ"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_ngh_armidale_city_public_school
@@ -135,9 +129,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__avatar_128
-#, fuzzy
 msgid "Avatar 128"
-msgstr "Avatat 128"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_chs_avoca_primary_school
@@ -222,27 +215,30 @@ msgstr ""
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_job_skill_view_form
-#, fuzzy
 msgid "Category"
-msgstr "Taggayt"
+msgstr ""
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_file
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_file
+#: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 msgid "Certificate"
 msgstr ""
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_filename
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_filename
 msgid "Certificate Filename"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.actions.act_window,name:hr_skills.hr_employee_certification_report_action
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__is_certification
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
@@ -251,22 +247,9 @@ msgid "Certification"
 msgstr ""
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-msgid "Certification Level"
-msgstr ""
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-msgid "Certification Type"
-msgstr ""
-
-#. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_certifications
 #: model:ir.actions.act_window,name:hr_skills.action_hr_employee_skill_certification
 #: model:ir.ui.menu,name:hr_skills.hr_certification_menu
-#: model:ir.ui.menu,name:hr_skills.hr_employee_certification_report_menu
-#: model:mail.activity.type,name:hr_skills.mail_activity_data_upload_certification
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
 msgid "Certifications"
@@ -311,9 +294,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__color
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__color
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__color
-#, fuzzy
 msgid "Color"
-msgstr "Ini"
+msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_cv_wizard_view_form
@@ -327,12 +309,11 @@ msgid "Communication"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__company_id
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__company_id
-#, fuzzy
 msgid "Company"
-msgstr "Takebbwanit"
+msgstr ""
 
 #. module: hr_skills
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_fpi_hubbarddean
@@ -401,9 +382,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__create_uid
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_level__create_uid
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__create_uid
-#, fuzzy
 msgid "Created by"
-msgstr "Yerna-t"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__create_date
@@ -414,9 +394,8 @@ msgstr "Yerna-t"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__create_date
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_level__create_date
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__create_date
-#, fuzzy
 msgid "Created on"
-msgstr "Yerna di"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_creativity
@@ -447,8 +426,6 @@ msgid "Current Job Skill"
 msgstr ""
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_pivot
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_graph
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_pivot
 msgid "Current Level"
@@ -489,9 +466,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_history_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_resume_line_list_view
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
-#, fuzzy
 msgid "Date"
-msgstr "Azemz"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__date_end
@@ -500,9 +476,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__date_start
-#, fuzzy
 msgid "Date Start"
-msgstr "Azemz n Tezwara"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_chs_davis_plc
@@ -547,21 +522,17 @@ msgid "Demo Company Name"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__department_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
-#, fuzzy
 msgid "Department"
-msgstr "Agezdu"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__description
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
-#, fuzzy
 msgid "Description"
-msgstr "Aglam"
+msgstr ""
 
 #. module: hr_skills
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_admin_white_inc
@@ -579,12 +550,6 @@ msgid "Digital advertising"
 msgstr ""
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_cv_wizard_view_form
-#, fuzzy
-msgid "Discard"
-msgstr "Sefsex"
-
-#. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_certification_page
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_certification_page
 msgid "Display Certification Page"
@@ -592,7 +557,6 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_name
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__display_name
@@ -608,9 +572,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_report_hr_skills_report_employee_cv__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_resource_resource__display_name
-#, fuzzy
 msgid "Display Name"
-msgstr "Isem n Ubeqqeḍ"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__display_warning_message
@@ -632,9 +595,8 @@ msgstr ""
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__duration
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
-#, fuzzy
 msgid "Duration"
-msgstr "Timirt"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line.type,name:hr_skills.resume_type_education
@@ -658,23 +620,15 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_employee
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__employee_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__employee_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form_inherit
-#, fuzzy
 msgid "Employee"
-msgstr "Amaris"
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_employee_certification_report
-msgid "Employee Certification Report"
 msgstr ""
 
 #. module: hr_skills
@@ -755,11 +709,6 @@ msgid "Experience -"
 msgstr ""
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-msgid "Expired Certification"
-msgstr ""
-
-#. module: hr_skills
 #: model:ir.model.fields.selection,name:hr_skills.selection__hr_resume_line__course_type__external
 msgid "External"
 msgstr ""
@@ -818,9 +767,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
-#, fuzzy
 msgid "From"
-msgstr "Si"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jgo_galilee_catholic_school
@@ -905,7 +853,6 @@ msgid "Harrington Park Public School"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__has_department_manager_access
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__has_department_manager_access
 msgid "Has Department Manager Access"
 msgstr ""
@@ -952,7 +899,6 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__id
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__id
@@ -968,9 +914,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__id
 #: model:ir.model.fields,field_description:hr_skills.field_report_hr_skills_report_employee_cv__id
 #: model:ir.model.fields,field_description:hr_skills.field_resource_resource__id
-#, fuzzy
 msgid "ID"
-msgstr "Asulay"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_it
@@ -1086,9 +1031,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_job
-#, fuzzy
 msgid "Job Position"
-msgstr "Tadekkwant n Umahil"
+msgstr ""
 
 #. module: hr_skills
 #: model_terms:hr.resume.line,description:hr_skills.employee_resume_line_admin_4
@@ -1115,9 +1059,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
-#, fuzzy
 msgid "Jobs"
-msgstr "Tadekkwant n umahil"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_fme_johnson_shaw_and_carroll
@@ -1157,9 +1100,8 @@ msgstr ""
 #. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_lang
 #: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_main_panel
-#, fuzzy
 msgid "Languages"
-msgstr "Tutlayin"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__write_uid
@@ -1170,9 +1112,8 @@ msgstr "Tutlayin"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__write_uid
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_level__write_uid
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__write_uid
-#, fuzzy
 msgid "Last Updated by"
-msgstr "Aleqqem aneggaru sɣuṛ"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__write_date
@@ -1183,9 +1124,8 @@ msgstr "Aleqqem aneggaru sɣuṛ"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__write_date
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_level__write_date
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__write_date
-#, fuzzy
 msgid "Last Updated on"
-msgstr "Aleqqem aneggaru di"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jep_lawson_public_school
@@ -1213,7 +1153,6 @@ msgid "Leinster School"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__level_progress
 msgid "Level Progress"
@@ -1260,9 +1199,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.report_employee_cv_company
-#, fuzzy
 msgid "Logo"
-msgstr "Alugu"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_stw_lynchhodges
@@ -1306,9 +1244,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_marketing
-#, fuzzy
 msgid "Marketing"
-msgstr "Tasnezzit"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jgo_martin_stanley_and_duncan
@@ -1375,9 +1312,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_level__name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__name
-#, fuzzy
 msgid "Name"
-msgstr "Isem"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jth_narellan_public_school
@@ -1396,9 +1332,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
-#, fuzzy
 msgid "New"
-msgstr "Amaynut"
+msgstr ""
 
 #. module: hr_skills
 #. odoo-javascript
@@ -1436,9 +1371,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_type_certifications_odoo
-#, fuzzy
 msgid "Odoo"
-msgstr "Odoo"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_line_admin_4
@@ -1460,9 +1394,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_skills/report/hr_employee_cv_report.py:0
 #: code:addons/hr_skills/static/src/views/skills_list_renderer.js:0
-#, fuzzy
 msgid "Other"
-msgstr "Ayen-nniḍen"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line.type,name:hr_skills.resume_type_experience
@@ -1562,9 +1495,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_cv_wizard_view_form
-#, fuzzy
 msgid "Print"
-msgstr "Siggez"
+msgstr ""
 
 #. module: hr_skills
 #. odoo-python
@@ -1679,22 +1611,19 @@ msgid "React"
 msgstr ""
 
 #. module: hr_skills
+#: model:ir.model,name:hr_skills.model_resource_resource
+msgid "Resource"
+msgstr ""
+
+#. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_resourcefulness
 msgid "Resourcefulness"
 msgstr ""
 
 #. module: hr_skills
-#: model:ir.model,name:hr_skills.model_resource_resource
-#, fuzzy
-msgid "Resources"
-msgstr "Tiɣbula"
-
-#. module: hr_skills
 #: model:ir.ui.menu,name:hr_skills.menu_human_resources_configuration_resume
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
 msgid "Resume"
 msgstr ""
@@ -1854,9 +1783,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line_type__sequence
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill__sequence
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__sequence
-#, fuzzy
 msgid "Sequence"
-msgstr "Agzum"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_mit_seymour_p12_college
@@ -1876,7 +1804,6 @@ msgstr ""
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__skill_ids
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_id
@@ -1897,7 +1824,6 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_level
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_level_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__skill_level_id
@@ -1914,7 +1840,6 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_type
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_type_id
@@ -1938,6 +1863,11 @@ msgid "Skill Types"
 msgstr ""
 
 #. module: hr_skills
+#: model:ir.model,name:hr_skills.model_hr_job_skill
+msgid "Skill for job position"
+msgstr ""
+
+#. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_individual_skill_mixin
 msgid "Skill level"
 msgstr ""
@@ -1956,7 +1886,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_job__job_skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_resource_resource__employee_skill_ids
-#: model:ir.ui.menu,name:hr_skills.hr_employee_skill_report_menu
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_type_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_job_skill_view_form
@@ -1986,11 +1915,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/hr_skills/static/src/fields/skills_one2many/skills_one2many.js:0
 msgid "Skills Report"
-msgstr ""
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_job_skill
-msgid "Skills for job positions"
 msgstr ""
 
 #. module: hr_skills
@@ -2164,13 +2088,6 @@ msgid "There are no skills defined in the library."
 msgstr ""
 
 #. module: hr_skills
-#: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_certification_report_action
-msgid ""
-"This report will give you an overview of the certification per Employee.\n"
-"                Create them in configuration and add them on the Employee."
-msgstr ""
-
-#. module: hr_skills
 #: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_skill_report_action
 msgid ""
 "This report will give you an overview of the skills per Employee.\n"
@@ -2195,18 +2112,16 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
-#, fuzzy
 msgid "Title"
-msgstr "Tineɣremt"
+msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
-#, fuzzy
 msgid "To"
-msgstr "Ɣer"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jgo_tottenham_central_school
@@ -2220,9 +2135,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model:hr.resume.line.type,name:hr_skills.resume_type_training
-#, fuzzy
 msgid "Training"
-msgstr "Asileɣ"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.actions.act_window,name:hr_skills.hr_resume_lines_training_action
@@ -2254,9 +2168,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__line_type_id
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_resume_line_list_view
-#, fuzzy
 msgid "Type"
-msgstr "Tawsit"
+msgstr ""
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_resume_line_type
@@ -2285,8 +2198,9 @@ msgid "Update Skills"
 msgstr ""
 
 #. module: hr_skills
-#: model:mail.activity.type,summary:hr_skills.mail_activity_data_upload_certification
-msgid "Upload a certification"
+#. odoo-python
+#: code:addons/hr_skills/models/hr_employee.py:0
+msgid "Upload a document for a missing certification"
 msgstr ""
 
 #. module: hr_skills
@@ -2423,9 +2337,8 @@ msgstr ""
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
-#, fuzzy
 msgid "hours"
-msgstr "Isragen"
+msgstr ""
 
 #. module: hr_skills
 #. odoo-javascript

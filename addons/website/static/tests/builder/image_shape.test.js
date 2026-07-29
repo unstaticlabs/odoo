@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { queryFirst, setInputRange } from "@odoo/hoot-dom";
+import { click, describe, expect, test } from "@odoo/hoot";
+import { queryFirst, advanceTime, animationFrame, setInputRange } from "@odoo/hoot-dom";
 import { contains, onRpc } from "@web/../tests/web_test_helpers";
 import { Plugin } from "@html_editor/plugin";
 import {
@@ -13,6 +13,17 @@ import { dummyCORSSrc, setupCORSProtectedImg } from "@html_builder/../tests/help
 
 defineWebsiteModels();
 
+const selectImageShape = async (shape) => {
+    await contains("[data-label='Media'] ~ [data-label='Shape'] button.o-hb-btn").click();
+    // Wait for the panel to be opened
+    await advanceTime(200);
+    await animationFrame();
+    await contains(`[data-action-value='${shape}']`).click();
+    // Wait for the panel to be closed
+    await advanceTime(200);
+    await animationFrame();
+};
+
 test("Should set a shape on an image", async () => {
     const { getEditor, waitSidebarUpdated } = await setupWebsiteBuilder(`
         <div class="test-options-target">
@@ -23,8 +34,7 @@ test("Should set a shape on an image", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     // ensure the shape action has been applied
     await editor.shared.operation.next(() => {});
 
@@ -60,8 +70,7 @@ test("Should remove all shape related dataset items when removing the shape", as
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
 
     await contains(
@@ -86,16 +95,14 @@ test("Changing the shape, from the one that has an animation speed to the one th
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/composition/composition_line_2']").click();
+    await selectImageShape("html_builder/composition/composition_line_2");
     await waitSidebarUpdated();
 
     await setInputRange("[data-action-id='setImageShapeSpeed'] input", 1.2);
     await waitSidebarUpdated();
     expect(":iframe .test-options-target img").toHaveAttribute("data-shape-animation-speed", "1.2");
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
 
     expect(":iframe .test-options-target img").not.toHaveAttribute("data-shape-animation-speed");
@@ -112,19 +119,17 @@ test("Changing the shape from the one that has a transform option to the one tha
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_triangle']").click();
+    await selectImageShape("html_builder/geometric/geo_triangle");
     await waitSidebarUpdated();
 
-    await contains(`[data-action-id='flipImageShape'][title='Horizontal mirror']`).click();
+    await contains(`[data-action-id='flipImageShape'][title='Horizontal flip']`).click();
     await waitSidebarUpdated();
     await contains(`[data-action-id='rotateImageShape'][title="Rotate left"]`).click();
     await waitSidebarUpdated();
     expect(":iframe .test-options-target img").toHaveAttribute("data-shape-flip", "x");
     expect(":iframe .test-options-target img").toHaveAttribute("data-shape-rotate", "270");
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
 
     expect(":iframe .test-options-target img").not.toHaveAttribute("data-shape-flip");
@@ -201,8 +206,8 @@ test("Should set a shape on a GIF", async () => {
     await waitSidebarUpdated();
 
     // Select and apply a shape.
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
+    // Wait for the editor to process the change.
     await waitSidebarUpdated();
 
     const gif = queryFirst(":iframe .test-options-target img");
@@ -250,8 +255,7 @@ test("Should change the shape color of an image", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/pattern/pattern_wave_4']").click();
+    await selectImageShape("html_builder/pattern/pattern_wave_4");
     await waitSidebarUpdated();
 
     expect(`[data-label="Colors"] .o_we_color_preview`).toHaveCount(4);
@@ -308,8 +312,7 @@ test("Should change the shape color of an image with a class color", async () =>
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/pattern/pattern_wave_4']").click();
+    await selectImageShape("html_builder/pattern/pattern_wave_4");
     await waitSidebarUpdated();
 
     expect(`[data-label="Colors"] .o_we_color_preview`).toHaveCount(4);
@@ -363,8 +366,7 @@ test("Should not show transform action on shape that cannot bet transformed", as
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
     expect(`[data-action-id="flipImageShape"]`).not.toHaveCount();
     expect(`[data-action-id="rotateImageShape"]`).not.toHaveCount();
@@ -380,8 +382,7 @@ describe("flip shape axis", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         await waitSidebarUpdated();
 
         expect(`:iframe .test-options-target img`).toHaveAttribute(
@@ -405,8 +406,7 @@ describe("flip shape axis", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         await waitSidebarUpdated();
 
         expect(`:iframe .test-options-target img`).toHaveAttribute(
@@ -431,8 +431,7 @@ describe("flip shape axis", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         await waitSidebarUpdated();
 
         expect(`:iframe .test-options-target img`).toHaveAttribute(
@@ -456,8 +455,7 @@ describe("flip shape axis", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         await waitSidebarUpdated();
 
         expect(`:iframe .test-options-target img`).toHaveAttribute(
@@ -483,8 +481,7 @@ describe("rotate shape", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         // ensure the shape action has been applied
         await waitSidebarUpdated();
 
@@ -508,8 +505,7 @@ describe("rotate shape", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         await waitSidebarUpdated();
 
         expect(`:iframe .test-options-target img`).toHaveAttribute(
@@ -534,8 +530,7 @@ describe("rotate shape", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+        await selectImageShape("html_builder/geometric/geo_tetris");
         // ensure the shape action has been applied
         await waitSidebarUpdated();
 
@@ -560,8 +555,7 @@ test("Should not show animate speed if the shape is not animated", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+    await selectImageShape("html_builder/geometric/geo_tetris");
     await waitSidebarUpdated();
     expect(`[data-action-id="setImageShapeSpeed"]`).not.toHaveCount();
 });
@@ -575,14 +569,14 @@ test("Should change the speed of an animated shape", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/pattern/pattern_wave_4']").click();
+    await selectImageShape("html_builder/pattern/pattern_wave_4");
     // ensure the shape action has been applied
     await waitSidebarUpdated();
 
     const originalSrc = queryFirst(":iframe .test-options-target img").src;
 
     await setInputRange(`[data-action-id="setImageShapeSpeed"] input`, 2);
+
     // ensure the shape action has been applied
     await editor.shared.operation.next(() => {});
 
@@ -599,8 +593,7 @@ describe("toggle ratio", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/pattern/pattern_wave_4']").click();
+        await selectImageShape("html_builder/pattern/pattern_wave_4");
         await waitSidebarUpdated();
 
         expect(`[data-action-id="toggleImageShapeRatio"]`).not.toHaveCount();
@@ -614,8 +607,7 @@ describe("toggle ratio", () => {
         await contains(":iframe .test-options-target img").click();
         await waitSidebarUpdated();
 
-        await contains("[data-label='Shape'] .dropdown").click();
-        await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+        await selectImageShape("html_builder/geometric/geo_shuriken");
         // ensure the shape action has been applied
         await waitSidebarUpdated();
         const croppedSrc = queryFirst(":iframe .test-options-target img").src;
@@ -636,14 +628,117 @@ test("Should reset crop when removing shape with ratio", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
-    expect(`:iframe .test-options-target img`).toHaveAttribute("data-aspect-ratio");
+    expect(`:iframe .test-options-target img`).toHaveAttribute("data-aspect-ratio", "1/1");
     // Remove the shape.
     await contains("[data-action-id='setImageShape']").click();
     await waitSidebarUpdated();
     expect(`:iframe .test-options-target img`).not.toHaveAttribute("data-aspect-ratio");
+});
+
+test("Should set the correct aspect ratio to the pill shape", async () => {
+    onRpcImg("/html_builder/static/image_shapes/geometric_round/geo_round_pill.svg");
+
+    const { waitSidebarUpdated } = await setupWebsiteBuilder(`
+        <div class="test-options-target">
+            ${testImg}
+        </div>
+    `);
+
+    await contains(":iframe .test-options-target img").click();
+    await waitSidebarUpdated();
+
+    await selectImageShape("html_builder/geometric_round/geo_round_pill");
+    await waitSidebarUpdated();
+
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/2");
+
+    const stretchCheckbox = queryFirst(
+        "[data-action-id='toggleImageShapeRatio'] input[type='checkbox']"
+    );
+    expect(stretchCheckbox).not.toBeChecked();
+    await contains(stretchCheckbox).click();
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "0/0");
+});
+
+test("Should not keep the aspect ratio when changing shape", async () => {
+    onRpcImg("/html_builder/static/image_shapes/geometric_round/geo_round_pill.svg");
+    onRpcImg("/html_builder/static/image_shapes/panel/panel_trio_in_r.svg");
+    const { waitSidebarUpdated } = await setupWebsiteBuilder(`
+        <div class="test-options-target">
+            ${testImg}
+        </div>
+    `);
+
+    await contains(":iframe .test-options-target img").click();
+    await waitSidebarUpdated();
+
+    await selectImageShape("html_builder/geometric_round/geo_round_pill");
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/2");
+
+    await selectImageShape("html_builder/geometric/geo_shuriken");
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/1");
+
+    await selectImageShape("html_builder/panel/panel_trio_in_r");
+    await waitSidebarUpdated();
+    // Aspect ratio should be removed when changing to a shape which has not
+    // togglable ratio if the current shape has togglable ratio and the default
+    // aspect ratio is applied
+    expect(":iframe .test-options-target img").not.toHaveAttribute("data-aspect-ratio");
+
+    await selectImageShape("html_builder/geometric/geo_shuriken");
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/1");
+
+    const stretchCheckbox = queryFirst(
+        "[data-action-id='toggleImageShapeRatio'] input[type='checkbox']"
+    );
+    expect(stretchCheckbox).not.toBeChecked();
+    await contains(stretchCheckbox).click();
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "0/0");
+
+    await selectImageShape("html_builder/panel/panel_trio_in_r");
+    await waitSidebarUpdated();
+    // Since the default aspect ratio was not applied, the aspect ratio should
+    // stay unchanged.
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "0/0");
+});
+
+test("Should set default aspect ratio when changing image", async () => {
+    onRpcImg("/html_builder/static/image_shapes/geometric_round/geo_round_pill.svg");
+    onRpc("ir.attachment", "search_read", () => [
+        {
+            name: "s_text_image_default_image.webp",
+            mimetype: "image/webp",
+            public: true,
+            access_token: false,
+            image_src: "/web/image/website.s_text_image_default_image",
+        },
+    ]);
+    const { waitSidebarUpdated } = await setupWebsiteBuilder(`
+        <div class="test-options-target">
+            ${testImg}
+        </div>
+    `);
+
+    await contains(":iframe .test-options-target img").click();
+    await waitSidebarUpdated();
+
+    await selectImageShape("html_builder/geometric_round/geo_round_pill");
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/2");
+
+    await contains("button[data-action-id='replaceMedia']").click();
+    // We use "click" instead of contains.click because contains wait for the image to be visible.
+    // In this test we don't want to wait ~800ms for the image to be visible but we can still click on it
+    await click(".o_existing_attachment_cell .o_button_area");
+    await waitSidebarUpdated();
+    expect(":iframe .test-options-target img").toHaveAttribute("data-aspect-ratio", "1/2");
 });
 
 test("Should have the correct active shape in the image shape selector", async () => {
@@ -655,10 +750,13 @@ test("Should have the correct active shape in the image shape selector", async (
 
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_tetris']").click();
+
+    await selectImageShape("html_builder/geometric/geo_tetris");
     await waitSidebarUpdated();
-    await contains("[data-label='Shape'] .dropdown").click();
+
+    // Open the image shape selector
+    await contains("[data-label='Media'] ~ [data-label='Shape'] button.o-hb-btn").click();
+    await waitSidebarUpdated();
     expect("[data-action-value='html_builder/geometric/geo_tetris']").toHaveClass("active");
 });
 
@@ -677,8 +775,7 @@ test("Should keep colors when changing speed and vice versa", async () => {
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/pattern/pattern_wave_4']").click();
+    await selectImageShape("html_builder/pattern/pattern_wave_4");
     await waitSidebarUpdated();
 
     const imgSelector = ":iframe .test-options-target img";
@@ -788,7 +885,7 @@ test("Be able to add and remove shape from custom groups", async () => {
     `);
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
-    await contains("[data-label='Shape'] .dropdown").click();
+    await contains("[data-label='Media'] ~ [data-label='Shape'] button.o-hb-btn").click();
     expect(".o_pager_container").toHaveText(/Custom/);
     expect("button.o-hb-select-pager-tab[data-group-id='extra']").toHaveCount(1);
     expect("[data-action-value='html_builder/geometric/geo_shuriken']").toHaveCount(1);
@@ -799,7 +896,9 @@ test("Be able to add and remove shape from custom groups", async () => {
         "data-shape",
         "html_builder/geometric/geo_shuriken"
     );
-    expect("div[data-label='Shape'] .dropdown").toHaveText("Custom Shuriken");
+    expect(
+        "[data-label='Media'] ~ [data-label='Shape'] button.o-hb-btn:not([data-action-id])"
+    ).toHaveText("Custom Shuriken");
 });
 
 test("Should reset shape transformation with reset button and when switching shape", async () => {
@@ -835,7 +934,7 @@ test("Should reset shape transformation with reset button and when switching sha
     expect(imgSelector).toHaveAttribute("data-shape-flip", "x");
     expect(imgSelector).toHaveAttribute("data-shape-rotate", "90");
 
-    await contains("[data-label='Shape'] .dropdown").click();
+    await contains("[data-label='Media'] ~ [data-label='Shape'] button.o-hb-btn").click();
     await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
     await waitSidebarUpdated();
 
@@ -871,8 +970,7 @@ test("Check that the stretch option does not appear when applying a shape on a s
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
     // The stretch option should not be visible as it works with a canvas
     // transformation that is not compatible with a svg.
@@ -898,8 +996,7 @@ test("Replacing a shaped image by an svg should also apply the shape on the svg"
     await contains(":iframe .test-options-target img").click();
     await waitSidebarUpdated();
 
-    await contains("[data-label='Shape'] .dropdown").click();
-    await contains("[data-action-value='html_builder/geometric/geo_shuriken']").click();
+    await selectImageShape("html_builder/geometric/geo_shuriken");
     await waitSidebarUpdated();
 
     await contains("[data-action-id=replaceMedia]").click();

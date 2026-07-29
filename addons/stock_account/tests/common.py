@@ -1,7 +1,6 @@
 import re
 from dateutil.relativedelta import relativedelta
 
-
 from odoo import Command, fields
 from odoo.tools.misc import clean_context
 from odoo.tests import Form
@@ -95,6 +94,7 @@ class TestStockValuationCommon(BaseCommon):
             (fields.Date.to_string(date_3), 3),
         ]
         self.other_currency = self.setup_other_currency('EUR', rates=rates)
+        return self.other_currency
 
     def _use_multi_warehouses(self):
         self.other_warehouse = self.env['stock.warehouse'].create({
@@ -158,7 +158,7 @@ class TestStockValuationCommon(BaseCommon):
             'product_id': product.id,
             'location_id': kwargs.get('location_id', self.supplier_location.id),
             'location_dest_id': kwargs.get('location_dest_id', default_dest),
-            'product_uom': kwargs.get('uom_id', self.uom.id),
+            'uom_id': kwargs.get('uom_id', self.uom.id),
             'product_uom_qty': quantity,
             'picking_type_id': kwargs.get('picking_type_id', default_picking_type),
         }
@@ -244,7 +244,7 @@ class TestStockValuationCommon(BaseCommon):
             'product_id': product.id,
             'location_id': kwargs.get('location_id', default_src),
             'location_dest_id': kwargs.get('location_dest_id', self.customer_location.id),
-            'product_uom': kwargs.get('uom_id', self.uom.id),
+            'uom_id': kwargs.get('uom_id', self.uom.id),
             'product_uom_qty': quantity,
             'picking_type_id': kwargs.get('picking_type_id', default_picking_type),
         })
@@ -305,7 +305,7 @@ class TestStockValuationCommon(BaseCommon):
         self.env['stock.move.line'].create({
             'move_id': move.id,
             'product_id': move.product_id.id,
-            'product_uom_id': move.product_uom.id,
+            'uom_id': move.uom_id.id,
             'location_id': move.location_id.id,
             'location_dest_id': move.location_dest_id.id,
         } | kwargs)

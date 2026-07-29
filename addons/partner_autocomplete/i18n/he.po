@@ -9,16 +9,15 @@
 # Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
 # Martin Trigaux, 2022
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
-# Yoram Lavi <yoram@digitale.co.il>, 2026.
-# or balmas <or@laylinetech.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 13:26+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:17+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
@@ -30,19 +29,22 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:iap.service,description:partner_autocomplete.iap_service_partner_autocomplete
+#, fuzzy
 msgid "Automatically enrich your contact base with corporate data."
 msgstr "העשר באופן אוטומטי את בסיס אנשי הקשר שלך בנתונים ארגוניים."
 
 #. module: partner_autocomplete
 #. odoo-javascript
 #: code:addons/partner_autocomplete/static/src/xml/partner_autocomplete.xml:0
+#, fuzzy
 msgid "Buy more credits"
-msgstr ""
+msgstr "קנה עוד קרדיטים "
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "חברות"
+#, fuzzy
+msgid "Company"
+msgstr "חברה"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -56,8 +58,9 @@ msgstr "איש קשר"
 
 #. module: partner_autocomplete
 #: model:ir.model,website_form_label:partner_autocomplete.model_res_partner
+#, fuzzy
 msgid "Create a Customer"
-msgstr ""
+msgstr "יצירת לקוח"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_iap_autocomplete_api__display_name
@@ -142,35 +145,12 @@ msgstr ""
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/iap_autocomplete_api.py:0
+#, fuzzy
 msgid "Test mode"
-msgstr ""
+msgstr "מצב בדיקה "
 
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr ""
-
-#~ msgid "Additional info"
-#~ msgstr "מידע נוסף"
-
-#~ msgid "Company database ID"
-#~ msgstr "מזהה בסיס נתונים של החברה"
-
-#~ msgid "Created by"
-#~ msgstr "נוצר על-ידי"
-
-#~ msgid "Created on"
-#~ msgstr "נוצר ב-"
-
-#~ msgid "Last Updated by"
-#~ msgstr "עודכן לאחרונה על-ידי"
-
-#~ msgid "Last Updated on"
-#~ msgstr "עדכון אחרון ב"
-
-#~ msgid "Partner"
-#~ msgstr "לקוח/ספק"
-
-#~ msgid "Placeholder"
-#~ msgstr "שומר מקום"

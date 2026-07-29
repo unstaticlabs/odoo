@@ -1,4 +1,3 @@
-import { browser } from "@web/core/browser/browser";
 import { session } from "@web/session";
 
 const ODOO_DOMAIN_REGEX = new RegExp(`^https?://${session.db}\\.odoo\\.com(/.*)?$`);
@@ -55,6 +54,10 @@ export function getVideoUrl(platform, videoId, params) {
         case "instagram":
             url = new URL(`https://www.instagram.com/p/${videoId}/embed`);
             break;
+        case "facebook":
+            url = new URL(`https://www.facebook.com/plugins/video.php`);
+            params.href = `https://www.facebook.com/facebook/videos/${videoId}/`;
+            break;
         default:
             throw new Error(`Unsupported platform: ${platform}`);
     }
@@ -94,27 +97,4 @@ export function isAbsoluteURLInCurrentDomain(url, env = null) {
         // one, is always a bad practice anyway.
         ODOO_DOMAIN_REGEX.test(urlObj.origin)
     );
-}
-
-export function scrollAndHighlightHeading(
-    content,
-    headingId = browser?.location?.hash?.replace?.(/^#/, "")
-) {
-    if (content && headingId) {
-        // Wait until the browser has rendered the editor before
-        // scrolling. The timeout value of 500 is a little arbitrary,
-        // but it should be enough to prevent an irritating case where
-        // a Youtube video is in the document and loads while the
-        // autoscroll is happening, and stops it.
-        setTimeout(() => {
-            const heading = content.querySelector(`[data-heading-link-id="${headingId}"]`);
-            if (heading) {
-                heading.scrollIntoView({ behavior: "smooth" });
-                heading.classList.add("o-highlight-heading");
-                setTimeout(() => {
-                    heading.classList.remove("o-highlight-heading");
-                }, 2000);
-            }
-        }, 500);
-    }
 }

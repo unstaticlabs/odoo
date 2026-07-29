@@ -3,10 +3,11 @@
 from unittest.mock import patch, DEFAULT
 from odoo import Command
 from odoo.exceptions import UserError
-from odoo.tests import Form, tagged
+from odoo.tests import tagged, Form
 from odoo.tests.common import TransactionCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestCarrierPropagation(TransactionCase):
 
     @classmethod
@@ -149,7 +150,7 @@ class TestCarrierPropagation(TransactionCase):
     def test_route_based_on_carrier_delivery(self):
         """
             Check that the route on the sale order line is selected as per the first priority even if route on shipping mehod is present
-            Also, Check that the route on the shipping method is selected if there is no route selected on sale order line
+            Also, Check that the route on the delivery method is selected if there is no route selected on sale order line
         """
         route1 = self.env['stock.route'].create({
             'name': 'Route1',
@@ -324,7 +325,6 @@ class TestCarrierPropagation(TransactionCase):
         self.assertEqual(ship.carrier_tracking_ref, "123")
 
 
-@tagged('post_install', '-at_install')
 class TestCarrierPropagationPostInstall(TestCarrierPropagation):
 
     def test_carrier_propagation_two_step_incoming_multi_so(self):

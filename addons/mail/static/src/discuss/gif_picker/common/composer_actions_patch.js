@@ -3,19 +3,20 @@ import {
     pickerOnClick,
     pickerSetup,
 } from "@mail/core/common/composer_actions";
+import { markup } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { markEventHandled } from "@web/core/utils/misc";
 import { useGifPicker } from "./gif_picker";
 
 registerComposerAction("add-gif", {
     condition: ({ composer, owner, store }) =>
-        (store.hasGifPickerFeature || store.self.main_user_id?.is_admin) &&
+        (store.hasGifPickerFeature || store.self_user?.is_admin) &&
         !owner.env.inChatter &&
         !composer.message,
     isPicker: true,
     pickerName: _t("GIF"),
     icon: "oi oi-gif-picker",
-    name: _t("Add GIFs"),
+    name: _t("Send GIF"),
     onSelected({ owner }, ev) {
         pickerOnClick(owner, this, ev);
         markEventHandled(ev, "Composer.onClickAddGif");
@@ -25,7 +26,16 @@ registerComposerAction("add-gif", {
             useGifPicker(
                 undefined,
                 {
-                    onSelect: (gif) => owner.sendGifMessage(gif),
+                    onSelect: async (gif) => {
+                        const gifUrl = gif.media_formats.tinygif.url;
+                        const href = encodeURI(gifUrl);
+                        await owner._sendMessage(
+                            markup`<a href="${href}" target="_blank" rel="noreferrer noopener">${gifUrl}</a>`,
+                            {
+                                parentId: owner.props.composer.replyToMessage?.id,
+                            }
+                        );
+                    },
                     onClose: () => owner.setActivePicker(null),
                 },
                 { arrow: false }

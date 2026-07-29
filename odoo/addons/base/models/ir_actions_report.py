@@ -5,29 +5,33 @@ import json
 import logging
 import os
 import re
-import requests
 import subprocess
 import tempfile
 import typing
 import unittest
 from ast import literal_eval
 from collections import OrderedDict
-from contextlib import closing, ExitStack
+from contextlib import ExitStack, closing
 from itertools import islice
 from urllib.parse import urlparse
 
 import lxml.html
-from PIL import Image, ImageFile
+import requests
 from lxml import etree
 from markupsafe import Markup
+from PIL import Image, ImageFile
 
-from odoo import api, fields, models, modules, tools, _
-from odoo.exceptions import UserError, AccessError, RedirectWarning, ValidationError
+from odoo import _, api, fields, models, modules, tools
+from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.service import security
-from odoo.http import request, root
+from odoo.http import request
+from odoo.http.session import session_store, update_session_token
 from odoo.tools import config, is_html_empty, parse_version, split_every
-from odoo.tools.barcode import check_barcode_encoding, createBarcodeDrawing, get_barcode_font
+from odoo.tools.barcode import (
+    check_barcode_encoding,
+    createBarcodeDrawing,
+    get_barcode_font,
+)
 from odoo.tools.misc import find_in_path
 from odoo.tools.pdf import PdfFileReader, PdfFileWriter, PdfReadError
 from odoo.tools.safe_eval import safe_eval, time
@@ -85,7 +89,7 @@ class WkhtmlInfo(typing.NamedTuple):
     wkhtmltoimage_version: tuple[str, ...] | None
 
 
-@functools.lru_cache(1)
+@functools.cache
 def _wkhtml() -> WkhtmlInfo:
     state = 'install'
     bin_path = 'wkhtmltopdf'
@@ -295,7 +299,7 @@ class IrActionsReport(models.Model):
         return self.env.ref('web.minimal_layout', raise_if_not_found=False)
 
     def _get_report_url(self, layout=None):
-        report_url = self.env['ir.config_parameter'].sudo().get_param('report.url')
+        report_url = self.env['ir.config_parameter'].sudo().get_str('report.url')
         return report_url or (layout or self._get_layout() or self).get_base_url()
 
     @api.model
@@ -372,8 +376,8 @@ class IrActionsReport(models.Model):
                 command_args.extend(['--disable-smart-shrinking'])
 
         # Add extra time to allow the page to render
-        delay = self.env['ir.config_parameter'].sudo().get_param('report.print_delay', '1000')
-        command_args.extend(['--javascript-delay', delay])
+        delay = self.env['ir.config_parameter'].sudo().get_int('report.print_delay') or 1000
+        command_args.extend(['--javascript-delay', str(delay)])
 
         if landscape:
             command_args.extend(['--orientation', 'landscape'])
@@ -544,57 +548,47 @@ class IrActionsReport(models.Model):
 
         files_command_args = []
 
-        def delete_file(file_path):
-            try:
-                os.unlink(file_path)
-            except OSError:
-                _logger.error('Error when trying to remove file %s', file_path)
-
         with ExitStack() as stack:
 
             # Passing the cookie to wkhtmltopdf in order to resolve internal links.
             if request and request.db:
                 # Create a temporary session which will not create device logs
-                temp_session = root.session_store.new()
+                temp_session = session_store().new()
                 temp_session.update({
                     **request.session,
                     'debug': '',
                     '_trace_disable': True,
                 })
                 if temp_session.uid:
-                    temp_session.session_token = security.compute_session_token(temp_session, self.env)
-                root.session_store.save(temp_session)
-                stack.callback(root.session_store.delete, temp_session)
+                    update_session_token(temp_session, self.env)
+                session_store().save(temp_session)
+                stack.callback(session_store().delete, temp_session)
 
                 base_url = self._get_report_url()
                 domain = urlparse(base_url).hostname
                 cookie = f'session_id={temp_session.sid}; HttpOnly; domain={domain}; path=/;'
-                cookie_jar_file_fd, cookie_jar_file_path = tempfile.mkstemp(suffix='.txt', prefix='report.cookie_jar.tmp.')
-                stack.callback(delete_file, cookie_jar_file_path)
-                with closing(os.fdopen(cookie_jar_file_fd, 'wb')) as cookie_jar_file:
+                cookie_jar_file = stack.enter_context(tempfile.NamedTemporaryFile(suffix='.txt', prefix='report.cookie_jar.tmp.', delete_on_close=False))
+                with closing(cookie_jar_file):
                     cookie_jar_file.write(cookie.encode())
-                command_args.extend(['--cookie-jar', cookie_jar_file_path])
+                command_args.extend(['--cookie-jar', cookie_jar_file.name])
 
             if header:
-                head_file_fd, head_file_path = tempfile.mkstemp(suffix='.html', prefix='report.header.tmp.')
-                stack.callback(delete_file, head_file_path)
-                with closing(os.fdopen(head_file_fd, 'wb')) as head_file:
+                head_file = stack.enter_context(tempfile.NamedTemporaryFile(suffix='.html', prefix='report.header.tmp.', delete_on_close=False))
+                with closing(head_file):
                     head_file.write(header.encode())
-                files_command_args.extend(['--header-html', head_file_path])
+                files_command_args.extend(['--header-html', head_file.name])
             if footer:
-                foot_file_fd, foot_file_path = tempfile.mkstemp(suffix='.html', prefix='report.footer.tmp.')
-                stack.callback(delete_file, foot_file_path)
-                with closing(os.fdopen(foot_file_fd, 'wb')) as foot_file:
+                foot_file = stack.enter_context(tempfile.NamedTemporaryFile(suffix='.html', prefix='report.footer.tmp.', delete_on_close=False))
+                with closing(foot_file):
                     foot_file.write(footer.encode())
-                files_command_args.extend(['--footer-html', foot_file_path])
+                files_command_args.extend(['--footer-html', foot_file.name])
 
             paths = []
             body_idx = 0
             for body_idx, body in enumerate(bodies):
                 prefix = f'report.body.tmp.{body_idx}.'
-                body_file_fd, body_file_path = tempfile.mkstemp(suffix='.html', prefix=prefix)
-                stack.callback(delete_file, body_file_path)
-                with closing(os.fdopen(body_file_fd, 'wb')) as body_file:
+                body_file = stack.enter_context(tempfile.NamedTemporaryFile(suffix='.html', prefix=prefix, delete_on_close=False))
+                with closing(body_file):
                     # HACK: wkhtmltopdf doesn't like big table at all and the
                     #       processing time become exponential with the number
                     #       of rows (like 1H for 250k rows).
@@ -608,11 +602,11 @@ class IrActionsReport(models.Model):
                         tree = lxml.html.fromstring(body)
                         _split_table(tree, 500)
                         body_file.write(lxml.html.tostring(tree))
-                paths.append(body_file_path)
+                paths.append(body_file.name)
 
-            pdf_report_fd, pdf_report_path = tempfile.mkstemp(suffix='.pdf', prefix='report.tmp.')
-            stack.callback(delete_file, pdf_report_path)
-            os.close(pdf_report_fd)
+            pdf_report = stack.enter_context(tempfile.NamedTemporaryFile(suffix='.pdf', prefix='report.tmp.', delete_on_close=False))
+            pdf_report.close()
+            pdf_report_path = pdf_report.name
 
             process = _run_wkhtmltopdf(command_args + files_command_args + paths + [pdf_report_path])
             err = process.stderr
@@ -784,7 +778,7 @@ class IrActionsReport(models.Model):
             context_timestamp=lambda t: fields.Datetime.context_timestamp(self.with_context(tz=user.tz), t),
             user=user,
             res_company=self.env.company,
-            web_base_url=self.env['ir.config_parameter'].sudo().get_param('web.base.url', default=''),
+            web_base_url=self.env['ir.config_parameter'].sudo().get_str('web.base.url'),
         )
         return view_obj._render_template(template, values).encode()
 

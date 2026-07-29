@@ -38,8 +38,8 @@ declare module "plugins" {
     import { ImageCropShared } from "@html_editor/main/media/image_crop_plugin";
     import { delete_image_overrides, image_name_predicates, ImageShared } from "@html_editor/main/media/image_plugin";
     import { ImagePostProcessShared, on_image_updated_handlers, process_image_post_handlers, process_image_warmup_handlers } from "@html_editor/main/media/image_post_process_plugin";
-    import { closest_savable_providers, ImageSaveShared } from "@html_editor/main/media/image_save_plugin";
-    import { after_save_media_dialog_handlers, media_dialog_extra_tabs, MediaShared, on_added_media_handlers, on_image_saved_handlers, on_media_dialog_saved_handlers, on_replaced_media_handlers } from "@html_editor/main/media/media_plugin";
+    import { closest_savable_providers, ImageSaveShared, on_image_saved_handlers } from "@html_editor/main/media/image_save_plugin";
+    import { after_save_media_dialog_handlers, media_dialog_extra_tabs, MediaShared, on_added_media_handlers, on_media_dialog_saved_handlers, on_replaced_media_handlers } from "@html_editor/main/media/media_plugin";
     import { move_node_blacklist_selectors, move_node_whitelist_selectors, set_movable_element_handlers, unset_movable_element_handlers } from "@html_editor/main/movenode_plugin";
     import { layout_geometry_change_handlers } from "@html_editor/main/position_plugin";
     import { power_buttons, power_buttons_visibility_predicates } from "@html_editor/main/power_buttons_plugin";
@@ -53,11 +53,9 @@ declare module "plugins" {
     import { DynamicPlaceholderShared } from "@html_editor/others/dynamic_placeholder_plugin";
     import { EmbeddedComponentShared, mount_component_handlers, post_mount_component_handlers } from "@html_editor/others/embedded_component_plugin";
 
-    import { _t } from "@web/core/l10n/translation.js";
-
     /* Misc */
     export interface CSSSelector extends String {}
-    export type TranslatedString = ReturnType<typeof _t>
+    export interface LazyTranslatedString extends String {}
 
     /** Plugin */
     export type PluginConstructor = (typeof Plugin) & {

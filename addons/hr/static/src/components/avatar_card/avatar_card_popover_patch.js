@@ -12,16 +12,16 @@ export const patchAvatarCardPopover = {
         this.userInfoTemplate = "hr.avatarCardUserInfos";
     },
     get email() {
-        return this.employeeId?.work_email || super.email;
+        return this.employee?.work_email || super.email;
     },
     get phone() {
-        return this.employeeId?.work_phone || super.phone;
+        return this.employee?.work_phone || super.phone;
     },
-    get employeeId() {
+    get employee() {
         return this.partner?.employee_id;
     },
     get employeeCompany() {
-        return this.employeeId?.company_id;
+        return this.employee?.company_id;
     },
     get showViewProfileBtn() {
         return super.showViewProfileBtn && !this.canActivateEmployeeCompany;
@@ -37,14 +37,14 @@ export const patchAvatarCardPopover = {
         return user.allowedCompanies.map((c) => c.id).includes(this.employeeCompany.id);
     },
     async getProfileAction() {
-        if (!this.employeeId) {
+        if (!this.employee) {
             return super.getProfileAction(...arguments);
         }
         const activeCompanyIds = user.activeCompanies.map((c) => c.id);
         if (!activeCompanyIds.includes(this.employeeCompany.id)) {
             return super.getProfileAction(...arguments);
         }
-        return this.orm.call("hr.employee", "get_formview_action", [this.employeeId.id]);
+        return this.orm.call("hr.employee", "get_formview_action", [this.employee.id]);
     },
     async onClickViewEmployeeProfile() {
         const activeCompanyIds = user.activeCompanies.map((c) => c.id);

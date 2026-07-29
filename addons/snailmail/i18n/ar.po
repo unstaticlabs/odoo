@@ -6,13 +6,13 @@
 # Mustafa J. Kadhem <safi2266@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 04:04+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 13:42+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/snailmail/"
 "ar/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -115,10 +115,6 @@ msgstr "اللون"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "الشركات"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "الشركة"
@@ -289,8 +285,8 @@ msgstr "الرسالة"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "إشعارات الرسائل"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -412,11 +408,6 @@ msgstr "البريد التقليدي"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "لون البريد العادي"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "غلاف البريد العادي للقراءة فقط"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -585,12 +576,12 @@ msgstr ""
 "يُستخدم لوضع الرسائل المنشأة في فئات\n"
 "'البريد الإلكتروني': يتم إنشاؤها عن طريق البريد الوارد. على سبيل المثال: "
 "بوابة البريد\n"
-"'تعليق': يتم إنشاؤه من خلال مدخلات المستخدمين. على سبيل المثال: من خلال تطبيق "
-"المناقشة أو الإنشاء\n"
+"'تعليق': يتم إنشاؤه من خلال مدخلات المستخدمين. على سبيل المثال: من خلال "
+"تطبيق المناقشة أو الإنشاء\n"
 "'email_outgoing': يتم إنشاؤها عن طريق المراسلات\n"
 "'إشعار': يتم إنشاؤه عن طريق النظام. على سبيل المثال: رسائل التتبع\n"
-"'auto_comment': يتم إنشاؤه عن طريق آلية الإشعارات التلقائية. على سبيل المثال: "
-"الإقرار\n"
+"'auto_comment': يتم إنشاؤه عن طريق آلية الإشعارات التلقائية. على سبيل "
+"المثال: الإقرار\n"
 "'user_notification': يتم إنشاؤها لمستلم محدد"
 
 #. module: snailmail
@@ -613,8 +604,8 @@ msgid ""
 "You don't have an IAP account registered for this service.<br>Please go to "
 "<a href=%s target=\"new\">iap.odoo.com</a> to claim your free credits."
 msgstr ""
-"لا تملك حساب وكيل مدرك للهوية مسجل لهذه الخدمة.<br>يرجى الذهاب إلى <a href=%s "
-"target=\"new\">iap.odoo.com</a> للحصول على رصيدك المجاني."
+"لا تملك حساب وكيل مدرك للهوية مسجل لهذه الخدمة.<br>يرجى الذهاب إلى <a "
+"href=%s target=\"new\">iap.odoo.com</a> للحصول على رصيدك المجاني."
 
 #. module: snailmail
 #. odoo-python
@@ -630,101 +621,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "الرمز البريدي"
-
-#~ msgid "Address"
-#~ msgstr "العنوان"
-
-#~ msgid "An unknown error occurred. Please contact our"
-#~ msgstr "حدث خطأ غير معروف، يرجى التواصل مع "
-
-#~ msgid "Buy credits"
-#~ msgstr "شراء رصيد"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "إلغاء الرسالة "
-
-#~ msgid "Cancel letter"
-#~ msgstr "إلغاء الرسالة "
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "إلغاء الإشعار بالفشل"
-
-#~ msgid "Canceled"
-#~ msgstr "تم الإلغاء "
-
-#~ msgid "Close"
-#~ msgstr "إغلاق "
-
-#~ msgid "Failed letter"
-#~ msgstr "الرسالة الفاشلة "
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "خطأ تنسيق عند إرسال رسالة عادية "
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "نوع الرسالة: خيار بريد إلكتروني يعني وجود رسالة بريد إلكتروني، إشعار يعني "
-#~ "وجود رسالة من النظام، تعليق يعني رسائل أخرى مثل ردود المستخدمين "
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "لم تتمكن خدمتنا من قراءة رسالتك بسبب التنسيق.<br/>\n"
-#~ "                يرجى تعديل تنسيق القالب أو تحديث الإعدادات لإضافة \n"
-#~ "                صفحة غلاف فارغة تلقائياً لكافة الرسائل. "
-
-#~ msgid "Partner"
-#~ msgstr "الشريك"
-
-#~ msgid "Re-send letter"
-#~ msgstr "إعادة إرسال الرسالة "
-
-#~ msgid "Street 2..."
-#~ msgstr "الشارع 2..."
-
-#~ msgid "Street..."
-#~ msgstr "الشارع..."
-
-#~ msgid ""
-#~ "The country to which you want to send the letter is not supported by our "
-#~ "service."
-#~ msgstr "لا تدعم خدمتنا الدولة التي ترغب في إرسال هذه الرسالة إليها. "
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "عنوان العميل غير مكتمل. قم بتحديث العنوان هنا ثم إعادة إرسال الرسالة. "
-
-#~ msgid ""
-#~ "The letter could not be sent due to insufficient credits on your IAP "
-#~ "account."
-#~ msgstr ""
-#~ "تعذر إرسال الرسالة بعدم وجود الرصيد الكافي في حساب الوكيل المدرك للهوية "
-#~ "الخاص بك. "
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "تحديث التهيئة ثم إعادة الإرسال "
-
-#~ msgid "Update address and re-send"
-#~ msgstr "تحديث العنوان ثم إعادة الإرسال "
-
-#~ msgid "Update address of partner"
-#~ msgstr "تحديث عنوان الشريك "
-
-#~ msgid "You need credits on your IAP account to send a letter."
-#~ msgstr "تحتاج إلى رصيد في حساب الوكيل المدرك للهوية الخاص بك لإرسال رسالة. "
-
-#~ msgid "ZIP"
-#~ msgstr "الرمز البريدي"
-
-#~ msgid "for further assistance."
-#~ msgstr "للمزيد من الدعم. "
-
-#~ msgid "support"
-#~ msgstr "الدعم "

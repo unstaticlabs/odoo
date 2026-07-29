@@ -21,7 +21,6 @@ export class DynamicSnippetCarousel extends DynamicSnippet {
         return Object.assign(renderOptions, {
             interval: parseInt(this.el.dataset.carouselInterval),
             rowPerSlide: parseInt(uiUtils.isSmall() ? 1 : this.el.dataset.rowPerSlide || 1),
-            arrowPosition: this.el.dataset.arrowPosition || "",
             scrollMode: scrollMode,
         });
     }

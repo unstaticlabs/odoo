@@ -12,18 +12,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-02 00:16+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
-"portal_rating/ro/>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Foldi Robert <foldirobert@nexterp.ro>, 2022\n"
+"Language-Team: Romanian (https://app.transifex.com/odoo/teams/41243/ro/)\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
-"20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?"
+"2:1));\n"
 
 #. module: portal_rating
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_rating_view_form
@@ -56,7 +54,7 @@ msgstr "Închide"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_rating_view_form
 msgid "Comment"
 msgstr "Comentariu"
@@ -73,7 +71,7 @@ msgstr "Comentat în"
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Delete"
 msgstr "Șterge"
 
@@ -92,7 +90,7 @@ msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Edit"
 msgstr "Editare"
 
@@ -105,14 +103,14 @@ msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/composer_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/composer_patch.xml:0
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "Empty star"
 msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/composer_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/composer_patch.xml:0
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "Full star"
 msgstr ""
@@ -166,7 +164,7 @@ msgstr ""
 
 #. module: portal_rating
 #. odoo-javascript
-#: code:addons/portal_rating/static/src/chatter/frontend/message_patch.xml:0
+#: code:addons/portal_rating/static/src/chatter/portal/message_patch.xml:0
 msgid "Published on"
 msgstr "Publicat în"
 
@@ -230,36 +228,3 @@ msgstr ""
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 msgid "stars"
 msgstr "stele"
-
-#~ msgid "Cancel"
-#~ msgstr "Anulează"
-
-#~ msgid "I don't like it"
-#~ msgstr "Nu-mi place"
-
-#~ msgid "I hate it"
-#~ msgstr "Urăsc asta"
-
-#~ msgid "I like it"
-#~ msgstr "Îmi place"
-
-#~ msgid "I love it"
-#~ msgstr "Îmi place"
-
-#~ msgid "It's okay"
-#~ msgstr "Este O.K."
-
-#~ msgid "Loading..."
-#~ msgstr "Se încarcă..."
-
-#~ msgid "Post comment"
-#~ msgstr "Postare Comentariu"
-
-#~ msgid "Update comment"
-#~ msgstr "Actualizare comentariu"
-
-#~ msgid "Write your comment"
-#~ msgstr "Scrie comentariul tău"
-
-#~ msgid "avatar"
-#~ msgstr "avatar"

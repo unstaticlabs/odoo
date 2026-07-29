@@ -16,14 +16,14 @@
 # Naglis Jonaitis, 2023
 # Arunas V. <arunas@devoro.com>, 2023
 # Martin Trigaux, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 21:45+0000\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2025-11-16 15:05+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "analytic/lt/>\n"
@@ -32,9 +32,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: analytic
 #. odoo-python
@@ -62,11 +62,11 @@ msgstr "<span class=\"o_stat_text\">Bendroji marža</span>"
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
-"Turite turėti 'Projekto' planą, o jo ID turi būti nustatytas kaip "
-"`analytic.project_plan` sistemos kintamuosiuose."
+"Turite turėti 'Projekto' planą, o jo ID turi būti nustatytas kaip `analytic."
+"project_plan` sistemos kintamuosiuose."
 
 #. module: analytic
 #. odoo-javascript
@@ -216,6 +216,7 @@ msgid "Analytic Mixin"
 msgstr "Analitinė papildymo dalis"
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr "Analitikos Planas"
@@ -232,7 +233,6 @@ msgstr "Analitinio plano taikymo sritys"
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -727,7 +727,8 @@ msgstr "Žinučių su pristatymo klaida skaičius"
 #. odoo-python
 #: code:addons/analytic/models/analytic_mixin.py:0
 msgid "One or more lines require a 100% analytic distribution."
-msgstr "Vienai ar kelioms eilutėms reikalingas 100 % analitinis pasiskirstymas."
+msgstr ""
+"Vienai ar kelioms eilutėms reikalingas 100 % analitinis pasiskirstymas."
 
 #. module: analytic
 #: model:account.analytic.account,name:analytic.analytic_internal
@@ -1017,44 +1018,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "e.g. Project XYZ"
 msgstr "pvz.: Projektas XYZ"
-
-#~ msgid "Deco Addict"
-#~ msgstr "Deco Addict"
-
-#~ msgid "Add a line"
-#~ msgstr "Pridėti eilutę"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Konvertavimas galimas tik tarp tai pačiai grupei priklausančių matavimo "
-#~ "vienetų. Konvertuojant kiekiai bus paskaičiuoti pagal santykį."
-
-#~ msgid "Editing"
-#~ msgstr "Redagavimas"
-
-#~ msgid "Group By..."
-#~ msgstr "Grupuoti pagal..."
-
-#~ msgid "Loading..."
-#~ msgstr "Vykdoma..."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Žinučių, kurioms reikia jūsų veiksmo, skaičius"
-
-#~ msgid "OK"
-#~ msgstr "Gerai"
-
-#~ msgid ""
-#~ "The selected account belongs to another company than the one you're "
-#~ "trying to create an analytic item for"
-#~ msgstr ""
-#~ "Pasirinkta paskyra priklauso kitai įmonei, o ne tai, kuriai bandote "
-#~ "sukurti analitinį elementą"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mato vienetas"
-
-#~ msgid "View"
-#~ msgstr "Peržiūrėti"

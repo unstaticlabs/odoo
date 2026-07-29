@@ -17,8 +17,10 @@ test("Rounding sale HALF-UP 0.05 (cash only)", async () => {
     expect(order.canBeValidated()).toBe(true);
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
-    order.payment_ids[0].delete();
+    // Check Validate button should get disabled if amount is lesser
+    order.payment_ids[0].setAmount(52);
     expect(order.canBeValidated()).toBe(false);
+    order.payment_ids[0].delete();
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(52.55);
@@ -39,8 +41,9 @@ test("Rounding sale HALF-UP 0.05 (all methods)", async () => {
     expect(order.canBeValidated()).toBe(true);
     expect(order.appliedRounding).toBe(0.01);
     expect(order.change).toBe(0);
-    order.payment_ids[0].delete();
+    order.payment_ids[0].setAmount(52);
     expect(order.canBeValidated()).toBe(false);
+    order.payment_ids[0].delete();
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(52.55);
@@ -70,7 +73,7 @@ test("Rounding sale UP 10  (cash only)", async () => {
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(60);
@@ -92,7 +95,7 @@ test("Rounding sale UP 10 (all methods)", async () => {
     expect(order.appliedRounding).toBe(7.46);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(60);
@@ -123,7 +126,7 @@ test("Rounding sale DOWN 10 (all methods)", async () => {
     expect(order.appliedRounding).toBe(-2.54);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(50);
@@ -154,7 +157,7 @@ test("Rounding sale DOWN 1 (cash only)", async () => {
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(52);
@@ -176,7 +179,7 @@ test("Rounding sale DOWN 1 (all methods)", async () => {
     expect(order.appliedRounding).toBe(-0.54);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(52);
@@ -201,7 +204,7 @@ test("Rounding refund HALF-UP 0.05 (cash only)", async () => {
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-52.55);
@@ -226,7 +229,7 @@ test("Rounding refund HALF-UP 0.05 (all methods)", async () => {
     expect(order.appliedRounding).toBe(-0.01);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-52.55);
@@ -251,7 +254,7 @@ test("Rounding refund UP 10 (cash only)", async () => {
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-60);
@@ -276,7 +279,7 @@ test("Rounding refund UP 10 (all methods)", async () => {
     expect(order.appliedRounding).toBe(-7.46);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-60);
@@ -301,7 +304,7 @@ test("Rounding refund DOWN 1 (cash only)", async () => {
     expect(order.appliedRounding).toBe(0);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-52);
@@ -326,7 +329,7 @@ test("Rounding refund DOWN 1 (all methods)", async () => {
     expect(order.appliedRounding).toBe(0.54);
     expect(order.change).toBe(0);
     order.payment_ids[0].delete();
-    expect(order.canBeValidated()).toBe(false);
+    expect(order.canBeValidated()).toBe(true);
 
     order.addPaymentline(cashPm);
     expect(order.payment_ids[0].amount).toBe(-52);

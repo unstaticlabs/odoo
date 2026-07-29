@@ -1,7 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from datetime import timedelta
-
-import pytz
+import datetime
 
 from odoo import api, fields, models, _
 from odoo.fields import Domain
@@ -19,24 +17,24 @@ class ReportPoint_Of_SaleReport_Saledetails(models.AbstractModel):
         else:
             # start by default today 00:00:00
             user_tz = self.env.tz
-            today = user_tz.localize(fields.Datetime.from_string(fields.Date.context_today(self)))
-            date_start = today.astimezone(pytz.timezone('UTC')).replace(tzinfo=None)
+            today = fields.Datetime.from_string(fields.Date.context_today(self)).replace(tzinfo=user_tz)
+            date_start = today.astimezone(datetime.UTC).replace(tzinfo=None)
 
         if date_stop:
             date_stop = fields.Datetime.from_string(date_stop)
             # avoid a date_stop smaller than date_start
-            if (date_stop < date_start):
-                date_stop = date_start + timedelta(days=1, seconds=-1)
+            if date_stop < date_start:
+                date_stop = date_start + datetime.timedelta(days=1, seconds=-1)
         else:
             # stop by default today 23:59:59
-            date_stop = date_start + timedelta(days=1, seconds=-1)
+            date_stop = date_start + datetime.timedelta(days=1, seconds=-1)
 
         return date_start, date_stop
 
     def _get_domain(self, date_start=False, date_stop=False, config_ids=False, session_ids=False):
         domain = Domain('state', 'in', ['paid', 'done'])
 
-        if (session_ids):
+        if session_ids:
             domain &= Domain('session_id', 'in', session_ids)
         else:
             date_start, date_stop = self._get_date_start_and_date_stop(date_start, date_stop)
@@ -98,6 +96,8 @@ class ReportPoint_Of_SaleReport_Saledetails(models.AbstractModel):
             currency = order.session_id.currency_id
 
             for line in order.lines:
+                if order.config_id.module_pos_discount and line.product_id.id == order.config_id.discount_product_id.id:
+                    continue
                 if not line.order_id.is_refund:
                     products_sold, taxes = self._get_products_and_taxes_dict(line, products_sold, taxes, currency)
                 else:
@@ -305,6 +305,7 @@ class ReportPoint_Of_SaleReport_Saledetails(models.AbstractModel):
             'position': True if user_currency.position == 'after' else False,
             'total_paid': user_currency.round(total),
             'precision': user_currency.decimal_places,
+            'user_currency': user_currency,
         }
 
         order_sessions = orders.mapped('session_id')
@@ -345,7 +346,6 @@ class ReportPoint_Of_SaleReport_Saledetails(models.AbstractModel):
                     payments_per_method[payment['id']]['total'] += payment['total']
                 else:
                     payments_per_method[payment['id']] = {
-                        'id': payment['id'],
                         'name': method_name,
                         'total': payment['total'],
                     }

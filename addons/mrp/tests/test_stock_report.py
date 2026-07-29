@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 from odoo.addons.stock.tests.test_report import TestReportsCommon
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMrpStockReports(TestReportsCommon):
     def test_report_forecast_1_mo_count(self):
         """ Creates and configures a product who could be produce and could be a component.
@@ -34,7 +35,7 @@ class TestMrpStockReports(TestReportsCommon):
         bom_chococake = self.env['mrp.bom'].create({
             'product_id': product_chococake.id,
             'product_tmpl_id': product_chococake.product_tmpl_id.id,
-            'product_uom_id': product_chococake.uom_id.id,
+            'uom_id': product_chococake.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -46,7 +47,7 @@ class TestMrpStockReports(TestReportsCommon):
         bom_double_chococake = self.env['mrp.bom'].create({
             'product_id': product_double_chococake.id,
             'product_tmpl_id': product_double_chococake.product_tmpl_id.id,
-            'product_uom_id': product_double_chococake.uom_id.id,
+            'uom_id': product_double_chococake.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -133,7 +134,7 @@ class TestMrpStockReports(TestReportsCommon):
         bom = self.env['mrp.bom'].create({
             'product_id': product_apple_pie.id,
             'product_tmpl_id': product_apple_pie.product_tmpl_id.id,
-            'product_uom_id': product_apple_pie.uom_id.id,
+            'uom_id': product_apple_pie.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -235,7 +236,7 @@ class TestMrpStockReports(TestReportsCommon):
             'product_tmpl_id': superkit.product_tmpl_id.id,
             'product_qty': 1,
             'type': 'phantom',
-            'product_uom_id': superkit.uom_id.id,
+            'uom_id': superkit.uom_id.id,
             'bom_line_ids': [
                 (0, 0, {'product_id': compo01.id, 'product_qty': 6}),
                 (0, 0, {'product_id': compo02.id, 'product_qty': 6}),
@@ -359,7 +360,7 @@ class TestMrpStockReports(TestReportsCommon):
         self.env['mrp.bom'].create({
             'product_id': product_chococake.id,
             'product_tmpl_id': product_chococake.product_tmpl_id.id,
-            'product_uom_id': product_chococake.uom_id.id,
+            'uom_id': product_chococake.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -428,7 +429,7 @@ class TestMrpStockReports(TestReportsCommon):
         bom = self.env['mrp.bom'].create({
             'product_id': final_product.id,
             'product_tmpl_id': final_product.product_tmpl_id.id,
-            'product_uom_id': final_product.uom_id.id,
+            'uom_id': final_product.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -703,7 +704,7 @@ class TestMrpStockReports(TestReportsCommon):
         self.env['mrp.bom'].create({
             'product_id': self.product.id,
             'product_tmpl_id': self.product.product_tmpl_id.id,
-            'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+            'uom_id': self.env.ref('uom.product_uom_dozen').id,
             'product_qty': 1.0,
             'bom_line_ids': [Command.create({
                 'product_id': self.product1.id,
@@ -727,7 +728,7 @@ class TestMrpStockReports(TestReportsCommon):
         mo_no_bom = self.env['mrp.production'].create({
             'name': 'MO without BoM',
             'product_id': self.product.id,
-            'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+            'uom_id': self.env.ref('uom.product_uom_dozen').id,
             'product_qty': 1.0,
             'bom_id': False,
             'move_raw_ids': [Command.create({

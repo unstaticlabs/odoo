@@ -2,10 +2,10 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { Many2XAutocomplete } from "@web/views/fields/relational_utils";
 import {
-    Many2ManyTagsFieldColorEditable,
-    many2ManyTagsFieldColorEditable,
+    Many2ManyTagsField,
+    many2ManyTagsField,
 } from "@web/views/fields/many2many_tags/many2many_tags_field";
-import { roundPrecision } from "@web/core/utils/numbers";
+import { roundDecimals } from "@web/core/utils/numbers";
 import { onWillUpdateProps } from "@odoo/owl";
 
 export function getProductRelatedModel() {
@@ -42,7 +42,8 @@ export class Many2XUomTagsAutocomplete extends Many2XAutocomplete {
         if (props.productModel && props.productId) {
             const context = { "active_test" : false };
             const product = await this.orm.searchRead(props.productModel, [["id", "=", props.productId]], ["uom_id"], { context });
-            this.referenceUnit = (await this.orm.searchRead("uom.uom", [["id", "=", product[0].uom_id[0]]], ["name", "factor", "parent_path", "rounding"]))[0];
+            this.referenceUnit = (await this.orm.searchRead("uom.uom", [["id", "=", product[0].uom_id[0]]], ["name", "factor", "parent_path"]))[0];
+            this.roundingDigits = await this.orm.call("decimal.precision", "precision_get", ["Product Unit"]);
         }
     }
 
@@ -58,14 +59,14 @@ export class Many2XUomTagsAutocomplete extends Many2XAutocomplete {
             return uom1Path[0] === uom2Path[0];
         };
         records = records.map((record) => {
-            let relativeInfo = this.referenceUnit && this.referenceUnit.id !== record.id ? `${roundPrecision((this.props.productQuantity || 1) * record.factor / this.referenceUnit.factor, this.referenceUnit.rounding)} ${this.referenceUnit.name}` : "";
+            let relativeInfo = this.referenceUnit && this.referenceUnit.id !== record.id ? `${roundDecimals((this.props.productQuantity || 1) * record.factor / this.referenceUnit.factor, this.roundingDigits)} ${this.referenceUnit.name}` : "";
             if (
                 this.referenceUnit &&
                 record.id !== this.referenceUnit.id &&
                 hasCommonReference(record, this.referenceUnit) &&
                 record.relative_uom_id
             ) {
-                relativeInfo = `${roundPrecision((this.props.productQuantity || 1) * record.relative_factor, this.referenceUnit.rounding)} ${record.relative_uom_id[1]}`;
+                relativeInfo = `${roundDecimals((this.props.productQuantity || 1) * record.relative_factor, this.roundingDigits)} ${record.relative_uom_id[1]}`;
             }
             return {
                 ...record,
@@ -79,22 +80,22 @@ export class Many2XUomTagsAutocomplete extends Many2XAutocomplete {
     }
 }
 
-export class Many2ManyUomTagsField extends Many2ManyTagsFieldColorEditable {
+export class Many2ManyUomTagsField extends Many2ManyTagsField {
     static template = "uom.Many2ManyUomTagsField";
     static components = {
-        ...Many2ManyTagsFieldColorEditable.components,
+        ...Many2ManyTagsField.components,
         Many2XAutocomplete: Many2XUomTagsAutocomplete,
     };
     static props = {
-        ...Many2ManyTagsFieldColorEditable.props,
+        ...Many2ManyTagsField.props,
         productField: { type: String, optional: true },
         quantityField: { type: String, optional: true },
-    }
+    };
     static defaultProps = {
-        ...Many2ManyTagsFieldColorEditable.defaultProps,
+        ...Many2ManyTagsField.defaultProps,
         productField: "product_id",
         quantityField: "product_uom_qty",
-    }
+    };
 
     async setup() {
         super.setup();
@@ -103,26 +104,26 @@ export class Many2ManyUomTagsField extends Many2ManyTagsFieldColorEditable {
 }
 
 export const many2ManyUomTagsField = {
-    ...many2ManyTagsFieldColorEditable,
+    ...many2ManyTagsField,
     component: Many2ManyUomTagsField,
     additionalClasses: ['o_field_many2many_tags'],
     supportedOptions: [
-        ...(many2ManyTagsFieldColorEditable.supportedOptions || []),
+        ...many2ManyTagsField.supportedOptions.filter((option) => option.name !== "color_field"),
         {
             label: _t("Product Field Name"),
             name: "product_field",
             type: "field",
-            availableTypes: ["many2one"]
+            availableTypes: ["many2one"],
         },
         {
             label: _t("Quantity Field Name"),
             name: "quantity_field",
             type: "field",
-            availableTypes: ["many2one"]
-        }
+            availableTypes: ["many2one"],
+        },
     ],
     extractProps({ options }) {
-        const props = many2ManyTagsFieldColorEditable.extractProps(...arguments);
+        const props = many2ManyTagsField.extractProps(...arguments);
         props.productField = options.product_field;
         props.quantityField = options.quantity_field;
         return props;

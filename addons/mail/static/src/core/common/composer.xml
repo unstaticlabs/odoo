@@ -8,7 +8,7 @@
     <t t-set="normal" t-value="props.mode === 'normal'"/>
     <t t-set="extended" t-value="props.mode === 'extended'"/>
     <t t-set="actionsContainerClass" t-value="'o-mail-Composer-actions d-flex o-rounded-bubble'"/>
-    <div t-ref="root">
+    <div class="d-print-none" t-ref="root">
         <div class="o-mail-Composer d-grid flex-shrink-0 pt-0 position-relative"
                 t-att-class="{
                     'pb-2': extended and !props.composer.message,
@@ -22,6 +22,7 @@
                     'o-chatWindow mx-2 my-1': env.inChatWindow,
                     'mb-2': env.inChatWindow and !props.composer.message,
                     'o-discussApp pt-1 ps-2 pe-4 o-pb-2_5': env.inDiscussApp,
+                    'o-disabled': props.disabled,
                 }" t-attf-class="{{ props.className }}">
             <FileUploader t-if="allowUpload" multiUpload="isMultiUpload" onUploaded.bind="(data) => { attachmentUploader.uploadData(data) }">
                 <t t-set-slot="toggler">
@@ -39,7 +40,7 @@
                     <span t-if="props.composer.replyToMessage.thread?.notEq(props.composer.thread)">
                         on: <b><t t-esc="props.composer.replyToMessage.thread.displayName"/></b>
                     </span>
-                    <i class="fa fa-lg fa-times-circle rounded-circle p-0 ms-1 cursor-pointer" title="Stop replying" t-on-click="() => (props.composer.replyToMessage = undefined)"/>
+                    <i class="fa fa-lg fa-times-circle rounded-circle p-0 ms-1 cursor-pointer" title="Discard" t-on-click="() => (props.composer.replyToMessage = undefined)"/>
                 </div>
                 <span t-if="props.composer.message and ui.isSmall" class="px-1" t-on-click="onClickCancelOrSaveEditText">
                     <button class="btn btn-sm btn-secondary rounded-pill border border-secondary ps-1 pe-2 py-0 mb-1" t-att-data-type="EDIT_CLICK_TYPE.CANCEL">
@@ -86,7 +87,7 @@
                                 t-on-input="(ev) => this.onInput(ev)"
                                 t-att-placeholder="placeholder"
                                 t-att-readOnly="!state.active or props.composer.restoredFromFullComposer"
-                                t-att-disabled="props.composer.restoredFromFullComposer"
+                                t-att-disabled="props.disabled or props.composer.restoredFromFullComposer"
                                 tabindex="0"
                             />
                             <!--
@@ -119,7 +120,7 @@
                     </div>
                     <div t-ref="picker-target"/>
                 </div>
-                <div t-else="" class="d-flex align-items-center gap-1 w-100 pe-2">
+                <div t-else="" class="d-flex align-items-center gap-1 w-100 pe-1">
                     <div class="pt-1" t-att-class="{ 'mt-2': !props.composer.message }">
                         <span t-if="props.composer.message and !ui.isSmall" class="text-muted px-1 small" t-out="CANCEL_OR_SAVE_EDIT_TEXT" t-on-click="onClickCancelOrSaveEditText" />
                         <t t-elif="!props.composer.message and !props.composer.restoredFromFullComposer">
@@ -149,7 +150,7 @@
         t-att-disabled="isSendButtonDisabled"
         t-att-aria-label="SEND_TEXT"
     >
-        <t t-if="thread and thread.model !== 'discuss.channel'" t-out="SEND_TEXT"/>
+        <t t-if="thread and !thread.channel" t-out="SEND_TEXT"/>
         <t t-else=""><i class="fa fa-fw fa-lg fa-paper-plane-o"/></t>
     </button>
 </t>
@@ -163,7 +164,7 @@
 </t>
 
 <t t-name="mail.Composer.moreActions">
-    <div class="o-mail-Composer-bg" t-attf-class="{{ actionsContainerClass }}" t-ref="more-actions">
+    <button class="btn btn-link p-0 d-flex border-0" t-att-disabled="areAllActionsDisabled" t-ref="more-actions">
         <div class="o-mail-Composer-mainActions d-flex flex-grow-1 align-items-baseline">
             <t t-set="moreName">More Actions</t>
             <ActionList inline="true" actions="[{
@@ -174,11 +175,11 @@
                 'tags': [],
             }]"/>
         </div>
-    </div>
+    </button>
 </t>
 
 <t t-name="mail.Composer.extraActions">
-    <div class="me-2 o-mail-Composer-extraActions" t-attf-class="{{ actionsContainerClass }}" t-ref="extra-actions">
+    <div class="o-mail-Composer-extraActions" t-attf-class="{{ actionsContainerClass }}" t-ref="extra-actions">
         <div class="o-mail-Composer-mainActions d-flex flex-grow-1 align-items-baseline">
             <ActionList actions="partitionedActions.other" inline="true"/>
         </div>
@@ -196,9 +197,9 @@
 
     <t t-name="mail.Composer.suggestionPartner">
         <t t-set="partner" t-value="option.partner"/>
-        <ImStatus t-if="partner" persona="partner"/>
         <t t-set="title" t-value="partner.name"/>
         <t t-if="partner.email" t-set="title" t-value="`${title} (${partner.email})`"/>
+        <DiscussAvatar t-if="partner" persona="partner" size="24"/>
         <strong class="o-mail-Composer-suggestionPartner-name px-2 py-1 align-self-center flex-shrink-0 text-truncate" t-att-class="{'o-has-email': partner.email, 'mw-100': !partner.email}" t-att-title="title">
             <t t-esc="partner.name"/>
             <t t-if="option.thread and partner.name !== option.thread.getPersonaName(partner)">
@@ -211,19 +212,19 @@
     <t t-name="mail.Composer.suggestionRole">
         <strong class="px-2 py-1 align-self-center flex-shrink-0 text-truncate" t-esc="option.label"/>
         <em class="text-600 text-truncate align-self-center">
-            <t t-if="option.thread?.channel_type === 'channel'">Notify users with this role who have permission to view this channel</t>
+            <t t-if="option.thread?.channel?.channel_type === 'channel'">Notify users with this role who have permission to view this channel</t>
             <t t-else="">Notify users with this role</t>
         </em>
     </t>
 
-    <t t-name="mail.Composer.suggestionThread">
+    <t t-name="mail.Composer.suggestionChannel">
         <strong class="px-2 py-1 align-self-center flex-shrink-0 text-truncate">
-            <i t-attf-class="fa #{option.thread.parent_channel_id ? 'fa-comments-o' : 'fa-hashtag'} me-2"/>
-            <t t-if="option.thread.parent_channel_id">
-                <t t-esc="option.thread.parent_channel_id.displayName"/>
+            <i t-attf-class="fa #{option.channel?.parent_channel_id ? 'fa-comments-o' : 'fa-hashtag'} me-2"/>
+            <t t-if="option.channel.parent_channel_id">
+                <t t-esc="option.channel.parent_channel_id.displayName"/>
                 <i class="oi oi-chevron-right o-xsmaller mx-1"/>
             </t>
-            <t t-esc="option.thread.displayName"/>
+            <t t-esc="option.channel.displayName"/>
         </strong>
     </t>
 

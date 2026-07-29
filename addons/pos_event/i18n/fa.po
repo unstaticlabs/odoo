@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * pos_event
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:03+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"PO-Revision-Date: 2025-11-08 19:14+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
 "pos_event/fa/>\n"
 "Language: fa\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_event
 #. odoo-javascript
@@ -49,6 +49,11 @@ msgid "<span class=\"o_stat_text\">PoS Order</span>"
 msgstr ""
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "<span class=\"o_stat_text\">PoS Sales</span>"
+msgstr ""
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/screens/product_screen/product_screen.js:0
 msgid "All slots are booked out for this event."
@@ -69,16 +74,16 @@ msgstr "شرکت‌کنندگان"
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Cancel"
-msgstr "لغو"
+msgid "Confirm"
+msgstr "تأیید"
 
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Confirm"
-msgstr "تأیید"
+msgid "Discard"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model.fields,field_description:pos_event.field_event_event__display_name
@@ -97,11 +102,9 @@ msgstr "نام نمایش داده شده"
 
 #. module: pos_event
 #. odoo-javascript
-#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
-#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.js:0
 msgid "Error"
-msgstr "خطا"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model,name:pos_event.model_event_event
@@ -129,8 +132,6 @@ msgid "Event Registration Answer"
 msgstr ""
 
 #. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
 #: model:ir.model.fields,field_description:pos_event.field_pos_order_line__event_registration_ids
 msgid "Event Registrations"
 msgstr "ثبت‌ نام‌های رویداد"
@@ -198,6 +199,13 @@ msgstr ""
 
 #. module: pos_event
 #. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
+#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
+msgid "Oh snap !"
+msgstr ""
+
+#. module: pos_event
+#. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 msgid "Please fill in all required fields"
 msgstr ""
@@ -224,36 +232,29 @@ msgid "PoS Order Line"
 msgstr "خط سفارش فروش نقطه‌ای"
 
 #. module: pos_event
+#: model:ir.model.fields,field_description:pos_event.field_event_event__pos_price_total
+msgid "PoS Total (Tax Included)"
+msgstr ""
+
+#. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr "پیکربندی پایانه فروش"
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "سطرهای سفارش پایانه فروش"
+#: model:ir.model,name:pos_event.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "سفارشات پایانه فروش"
+#: model:ir.model,name:pos_event.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_session
 msgid "Point of Sale Session"
 msgstr "جلسه پایانه فروش"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Badge"
-msgstr "چاپ نشان"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Full Page Ticket"
-msgstr ""
 
 #. module: pos_event
 #. odoo-javascript
@@ -306,9 +307,13 @@ msgid "Tickets"
 msgstr "تیکت ها"
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "Total sales for this event from PoS"
+msgstr ""
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "Unlimited"
 msgstr "نامحدود"
 
@@ -327,9 +332,14 @@ msgstr "برای"
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "left"
 msgstr "چپ"
+
+#. module: pos_event
+#. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
+msgid "seats"
+msgstr ""
 
 #. module: pos_event
 #. odoo-javascript

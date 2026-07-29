@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Niyas Raphy, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 20:50+0000\n"
+"POT-Creation-Date: 2026-04-17 18:39+0000\n"
+"PO-Revision-Date: 2026-06-13 13:05+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_stock/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +37,9 @@ msgstr ""
 #. module: sale_stock
 #. odoo-javascript
 #: code:addons/sale_stock/static/src/sale_stock_forecasted/forecasted_details.xml:0
+#, fuzzy
 msgid "1 Quotation"
-msgstr ""
+msgstr "عرض سعر واحد"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.sale_order_portal_content_inherit_sale_stock
@@ -92,14 +93,8 @@ msgstr "<strong>مرجع العميل</strong>"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.report_saleorder_document_inherit_sale_stock
 msgid "<strong>Incoterm</strong>"
 msgstr "<strong>شرط التجارة الدولي</strong>"
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order_line__is_storable
-msgid "A storable product is a product for which you manage stock."
-msgstr "المنتج القابل للتخزين هو المنتج الذي تقوم بإدارة المخزون من أجله."
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order_line__qty_delivered_method
@@ -139,8 +134,9 @@ msgstr "تطبيق مسارات محددة"
 
 #. module: sale_stock
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__direct
-msgid "As soon as possible"
-msgstr "في أقرب وقت ممكن"
+#, fuzzy
+msgid "As soon as possible, with back orders"
+msgstr "في أقرب وقت ممكن، مع الطلبات المتأخرة"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -161,25 +157,15 @@ msgid "Available in stock"
 msgstr "متوفر في المخزون"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__delivery_status
-msgid ""
-"Blue: Not Delivered/Started\n"
-"            Orange: Partially Delivered\n"
-"            Green: Fully Delivered"
-msgstr ""
-"أزرق: لم يتم التسليم/بدء التشغيل\n"
-"            برتقالي: تم التوصيل جزئياً\n"
-"            أخضر: تم التوصيل بالكامل"
-
-#. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_stock_rules_report__so_route_ids
 msgid "Choose to apply SO lines specific routes."
 msgstr "اختر هذا الخيار لتطبيق المسارات المعينة على بنود أوامر البيع."
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_res_company
-msgid "Companies"
-msgstr "الشركات"
+#, fuzzy
+msgid "Company"
+msgstr "الشركة "
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__effective_date
@@ -220,11 +206,6 @@ msgstr "التوصيل"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_count
 msgid "Delivery Orders"
 msgstr "أوامر التوصيل"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_status
-msgid "Delivery Status"
-msgstr "حالة التوصيل"
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__expected_date
@@ -309,11 +290,6 @@ msgid "Expected Delivery"
 msgstr "التوصيل المتوقع"
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.view_order_form_inherit_sale_stock
-msgid "Expected:"
-msgstr "المتوقع:"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__forecast_expected_date
 msgid "Forecast Expected Date"
 msgstr "التنبؤ بالتاريخ المتوقع"
@@ -328,11 +304,6 @@ msgstr "المخزون المتوقع"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__free_qty_today
 msgid "Free Qty Today"
 msgstr "الكمية المجانية اليوم"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__full
-msgid "Fully Delivered"
-msgstr "تم التوصيل بالكامل"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -371,29 +342,9 @@ msgid "ID"
 msgstr "المُعرف"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
-msgid ""
-"If you deliver all products at once, the delivery order will be scheduled "
-"based on the greatest product lead time. Otherwise, it will be based on the "
-"shortest."
-msgstr ""
-"إذا قمت بتوصيل كافة المنتجات دفعةً واحدة، ستتم جدولة عملية التوصيل بناءً على "
-"مهلة التوصيل الأعلى للمنتجات. وإلا ستكون مبنية على الأقصر."
-
-#. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.exception_on_so
 msgid "Impacted Transfer(s):"
 msgstr "الشحنة (الشحنات) المتأثرة:"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm
-msgid "Incoterm"
-msgstr "شرط تجاري"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm_location
-msgid "Incoterm Location"
-msgstr "موقع شروط التجارة الدولية"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
@@ -401,28 +352,20 @@ msgid "Incoterm details"
 msgstr "تفاصيل الشروط التجارية"
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.sale_order_portal_content_inherit_sale_stock
-msgid "Incoterm:"
-msgstr "الشرط التجاري:"
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__incoterm
-msgid ""
-"International Commercial Terms are a series of predefined commercial terms "
-"used in international transactions."
-msgstr ""
-"الشروط التجارية الدولية هي مجموعة من الشروط والأحكام مسبقة الإعداد، وتستخدم "
-"عادة في المعاملات الدولية."
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "مسارات المخزون"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_mto
 msgid "Is Mto"
 msgstr "الإنتاج حسب الطلب"
+
+#. module: sale_stock
+#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
+#, fuzzy
+msgid "It specifies goods to be deliver partially or all at once"
+msgstr "تحدد البضائع التى يتم توصيلها جزئياً أو دفعة واحدة"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__json_popover
@@ -516,7 +459,6 @@ msgid "Not Available"
 msgstr "غير متاح"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__pending
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Not Delivered"
 msgstr "لم يتم توصيلها"
@@ -541,15 +483,9 @@ msgid "On"
 msgstr "في"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__partial
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Partially Delivered"
 msgstr "تم التوصيل جزئياً"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__default_picking_policy
-msgid "Picking Policy"
-msgstr "سياسة الاستلام"
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_product_template
@@ -560,11 +496,6 @@ msgstr "المنتج"
 #: model:ir.model,name:sale_stock.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
 msgstr "تحركات المنتج (بنود حركة المخزون)"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_available_today
-msgid "Qty Available Today"
-msgstr "الكمية المتوفرة اليوم"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_to_deliver
@@ -594,8 +525,9 @@ msgstr ""
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_reference
+#, fuzzy
 msgid "Reference between stock documents"
-msgstr ""
+msgstr "المرجع بين مستندات المخزون"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__stock_reference_ids
@@ -695,11 +627,6 @@ msgid "Schedule deliveries earlier to avoid delays"
 msgstr "قم بتحديد مواعيد مبكرة للتوصيل لتفادي التأخير"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__scheduled_date
-msgid "Scheduled Date"
-msgstr "التاريخ المجدول"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__security_lead
 msgid "Security Lead Time"
 msgstr "مهلة الأمان"
@@ -715,27 +642,17 @@ msgid "Selectable on Sales Order Line"
 msgstr "قابل للاختيار في بند أمر البيع"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__one
-msgid "Ship all products at once"
-msgstr "شحن كافة المنتجات دفعة واحدة"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__direct
-msgid "Ship products as soon as available, with back orders"
-msgstr "شحن كل منتج على حدة عند توافره، مع الطلبات المؤجلة"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__picking_policy
 msgid "Shipping Policy"
 msgstr "سياسة الشحن"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
+#, fuzzy
 msgid "Shipping Status"
-msgstr ""
+msgstr "حالة الشحن"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__started
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Started"
 msgstr "بدأ"
@@ -788,8 +705,8 @@ msgid ""
 "document."
 msgstr ""
 "لقد تم تغيير عنوات التوصيل في أمر البيع<br/>\n"
-"                        من <strong>\"%(old_address)s\"</strong> إلى <strong>"
-"\"%(new_address)s\"</strong>،\n"
+"                        من <strong>\"%(old_address)s\"</strong> إلى "
+"<strong>\"%(new_address)s\"</strong>،\n"
 "                        عليك تحديث الشريك في هذا المستند."
 
 #. module: sale_stock
@@ -819,11 +736,6 @@ msgid "This product is replenished on demand."
 msgstr "يتم تجديد هذا المنتج في المخزون حسب الطلب."
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_storable
-msgid "Track Inventory"
-msgstr "تتبُع المخزون"
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_picking
 msgid "Transfer"
 msgstr "تحويل"
@@ -850,11 +762,6 @@ msgid "View Forecast"
 msgstr "عرض التنبؤات"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__virtual_available_at_date
-msgid "Virtual Available At Date"
-msgstr "متوفر إلكترونياً بتاريخ"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_report__warehouse_id
@@ -871,11 +778,6 @@ msgstr "تحذير!"
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__one
 msgid "When all products are ready"
 msgstr "عندما تكون كافة المنتجات جاهزة"
-
-#. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.res_config_settings_view_form_stock
-msgid "When to start shipping"
-msgstr "موعد بدء الشحن"
 
 #. module: sale_stock
 #. odoo-python
@@ -925,71 +827,3 @@ msgstr "سيكون متأخراً."
 
 #~ msgid "Stock Valuation"
 #~ msgstr "تقييم المخزون"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Preparation</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>التحضير</b> "
-
-#~ msgid "<i class=\"fa fa-fw fa-times\"/> <b>Cancelled</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-times\"/> <b>تم الإلغاء</b> "
-
-#~ msgid "<i class=\"fa fa-fw fa-truck\"/> <b>Shipped</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-truck\"/> <b>تم الشحن</b> "
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('display_delivery_alert', '=', False)]}\">\n"
-#~ "                    Some deliveries are already done. Returns can be "
-#~ "created from the Delivery Orders.\n"
-#~ "                </span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('display_delivery_alert', '=', False)]}\">\n"
-#~ "                    بعض التوصيلات منتهية بالفعل. يمكن إنشاء طلبات الإرجاع "
-#~ "من أوامر التوصيل.\n"
-#~ "                </span>"
-
-#~ msgid "<strong>Customer Reference:</strong>"
-#~ msgstr "<strong>مرجع العميل:</strong>"
-
-#~ msgid "<strong>Delivery Orders</strong>"
-#~ msgstr "<strong>أوامر التوصيل</strong>"
-
-#~ msgid "<strong>Incoterm: </strong>"
-#~ msgstr "<strong>شروط التجارة الدولية: </strong>"
-
-#~ msgid "<strong>Incoterm:</strong>"
-#~ msgstr "<strong>شرط التجارة الدولي:</strong> "
-
-#~ msgid "Delivery Alert"
-#~ msgstr "تنبيه التوصيل "
-
-#~ msgid "Display incoterms on Sales Order and related invoices"
-#~ msgstr "عرض الشروط التجارية على أمر المبيعات والفواتير المرتبطة به"
-
-#~ msgid "Incoterms"
-#~ msgstr "الشروط التجارية"
-
-#~ msgid "Inventory"
-#~ msgstr "المخزون "
-
-#~ msgid "Procurement Group"
-#~ msgstr "مجموعة الشراء "
-
-#~ msgid "Route"
-#~ msgstr "المسار"
-
-#~ msgid "Sale Order"
-#~ msgstr "أمر البيع"
-
-#~ msgid "Sales Order Cancel"
-#~ msgstr "إلغاء أمر البيع "
-
-#~ msgid ""
-#~ "The delivery address has been changed on the Sales Order<br/>\n"
-#~ "                        From <strong>\"%s\"</strong> To <strong>\"%s\"</"
-#~ "strong>,\n"
-#~ "                        You should probably update the partner on this "
-#~ "document."
-#~ msgstr ""
-#~ "لقد تم تغيير عنوات التوصيل في أمر البيع<br/>\n"
-#~ "                        من <strong>\"%s\"</strong> إلى <strong>\"%s\"</"
-#~ "strong>،\n"
-#~ "                        عليك تحديث الشريك في هذا المستند. "

@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 22:52+0000\n"
-"Last-Translator: Deleted User <noreply+31@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:35+0000\n"
+"PO-Revision-Date: 2026-06-13 17:54+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_adyen/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
@@ -47,6 +47,12 @@ msgid "Adyen Latest Response"
 msgstr "Phản hồi Adyen gần nhất"
 
 #. module: pos_adyen
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_merchant_account
+#, fuzzy
+msgid "Adyen Merchant Account"
+msgstr "Tài khoản người bán Adyen"
+
+#. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "Adyen Terminal Identifier"
 msgstr "Định danh thiết bị đầu cuối Adyen"
@@ -71,7 +77,8 @@ msgstr "Yêu cầu tiền tip từ khách hàng"
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
 msgid "Authentication failed. Please check your Adyen credentials."
-msgstr "Xác minh không thành công. Vui lòng kiểm tra thông tin đăng nhập Adyen."
+msgstr ""
+"Xác minh không thành công. Vui lòng kiểm tra thông tin đăng nhập Adyen."
 
 #. module: pos_adyen
 #. odoo-javascript
@@ -86,8 +93,8 @@ msgstr ""
 #. module: pos_adyen
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
-msgid "Cannot process transactions with negative amount."
-msgstr "Không thể xử lý giao dịch có số tiền âm."
+msgid "Cannot refund non-Adyen transactions via Adyen."
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_res_config_settings
@@ -106,18 +113,24 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Tên hiển thị"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_event_url
+#, fuzzy
 msgid "Event URL"
-msgstr ""
+msgstr "URL sự kiện"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__id
 msgid "ID"
@@ -126,8 +139,9 @@ msgstr "ID"
 #. module: pos_adyen
 #. odoo-python
 #: code:addons/pos_adyen/models/pos_payment_method.py:0
+#, fuzzy
 msgid "Invalid Adyen request"
-msgstr ""
+msgstr "Yêu cầu Adyen không hợp lệ"
 
 #. module: pos_adyen
 #. odoo-javascript
@@ -150,9 +164,19 @@ msgid "Point of Sale Configuration"
 msgstr "Cấu hình POS"
 
 #. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr ""
+
+#. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Phương thức thanh toán POS"
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__pos_adyen_ask_customer_for_tip
@@ -167,22 +191,35 @@ msgstr "Chạy giao dịch trong môi trường kiểm thử."
 #. module: pos_adyen
 #. odoo-python
 #: code:addons/pos_adyen/models/pos_payment_method.py:0
+#, fuzzy
 msgid ""
 "Terminal %(terminal)s is already used in company %(company)s on payment "
 "method %(payment_method)s."
 msgstr ""
+"Thiết bị đầu cuối %(terminal)s đã được sử dụng tại công ty %(company)s trong "
+"phương thức thanh toán %(payment_method)s."
 
 #. module: pos_adyen
 #. odoo-python
 #: code:addons/pos_adyen/models/pos_payment_method.py:0
+#, fuzzy
 msgid ""
 "Terminal %(terminal)s is already used on payment method %(payment_method)s."
 msgstr ""
+"Thiết bị đầu cuối %(terminal)s đã được sử dụng trong phương thức thanh toán %"
+"(payment_method)s."
+
+#. module: pos_adyen
+#: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_merchant_account
+#, fuzzy
+msgid "The POS merchant account code used in Adyen"
+msgstr "Mã tài khoản người bán POS sử dụng trong Adyen"
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_event_url
+#, fuzzy
 msgid "This URL needs to be pasted on Adyen's portal terminal settings."
-msgstr ""
+msgstr "URL này cần được dán vào cài đặt cổng thông tin của Adyen."
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_api_key
@@ -197,18 +234,3 @@ msgstr ""
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "[Terminal model]-[Serial number], for example: P400Plus-123456789"
 msgstr "[Mẫu thiết bị đầu cuối]-[Số sê-ri], ví dụ: P400Plus-123456789"
-
-#~ msgid "Adyen Latest Diagnosis"
-#~ msgstr "Chẩn đoán Adyen gần nhất"
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "Phiên POS"
-
-#~ msgid "Terminal %s is already used in company %s on payment method %s."
-#~ msgstr ""
-#~ "Thiết bị đầu cuối %s đã được sử dụng tại công ty %s trong phương thức "
-#~ "thanh toán %s."
-
-#~ msgid "Terminal %s is already used on payment method %s."
-#~ msgstr ""
-#~ "Thiết bị đầu cuối %s đã được sử dụng trong phương thức thanh toán %s."

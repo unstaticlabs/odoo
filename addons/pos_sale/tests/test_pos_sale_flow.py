@@ -701,7 +701,9 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         self.start_tour("/pos/ui/%d" % self.main_pos_config.id, 'PoSDownPaymentLinesPerTax', login="accountman")
 
         # We check the content of the invoice to make sure Product A/B/C only appears only once
-        invoice_pdf_content = str(self.env['pos.order'].search([]).account_move._get_invoice_legal_documents('pdf', allow_fallback=True).get('content'))
+        legal_documents = self.env['pos.order'].search([]).account_move._get_invoice_legal_documents('pdf', allow_fallback=True)
+        self.assertEqual(len(legal_documents), 1)
+        invoice_pdf_content = str(legal_documents[0]['content'])
         self.assertEqual(invoice_pdf_content.count('Product A'), 1)
         self.assertEqual(invoice_pdf_content.count('Product B'), 1)
         self.assertEqual(invoice_pdf_content.count('Product C'), 1)
@@ -921,7 +923,6 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         route_mto.rule_ids.procure_method = 'mts_else_mto'
         self.partner_test = self.env['res.partner'].create({
             'name': 'Partner Test A',
-            'is_company': True,
             'street': '77 Santa Barbara Rd',
             'city': 'Pleasant Hill',
             'country_id': self.env.ref('base.nl').id,
@@ -1828,6 +1829,7 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         })
         provider = self.env['payment.provider'].create({
             'name': 'Test',
+            'code': 'none',
         })
         transaction = self.env['payment.transaction'].create({
             'provider_id': provider.id,
@@ -2299,6 +2301,20 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         self.main_pos_config.open_ui()
         self.start_pos_tour('test_settle_so_custom_attribute_value', login="accountman")
 
+    def test_ensure_downpayment_product_in_multiple_company(self):
+        if self.env['ir.module.module']._get('pos_hr').state != 'installed':
+            self.skipTest("pos_hr module is required for this test")
+
+        branch = self.env['res.company'].create({
+            'name': 'Branch 1',
+            'parent_id': self.env.company.id,
+            'chart_template': self.env.company.chart_template,
+        })
+        self.env["pos.config"].with_company(branch).create({
+            "name": "Branch Point of Sale"
+        })
+        self.env['pos.config']._ensure_downpayment_product()
+
     def test_settle_so_archived_attribute(self):
         attr = self.env['product.attribute'].create({
             'name': 'Archived Size',
@@ -2515,7 +2531,7 @@ class TestPoSSalePayment(TestPointOfSaleHttpCommon, PaymentCommon):
         via a payment transaction with the automatic invoicing setting enabled.
         """
         self.product_a.available_in_pos = True
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', 'True')
         self.partner_a.email = "test.customer@example.com"
         sale_order = self.env['sale.order'].sudo().create({
             'partner_id': self.partner_a.id,

@@ -31,6 +31,9 @@ function countLines(el) {
 registerWebsitePreviewTour(
     "text_highlights",
     {
+        // Remove this key to make the tour fail with error:
+        // "The highlight svgs are not correctly applied to text lines"
+        undeterministicTour_doNotCopy: true,
         url: "/",
         edition: true,
     },

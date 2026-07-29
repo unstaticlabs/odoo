@@ -15,16 +15,14 @@ msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:18+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"account_edi_ubl_cii/uz/>\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -96,17 +94,6 @@ msgstr "AE - QQS teskari yuk"
 #, fuzzy
 msgid "AS2 exchange"
 msgstr "AS2 almashish"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
-#, fuzzy
-msgid "Account Move Send"
-msgstr "Hisob harakatini yuborish"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9923
@@ -681,8 +668,9 @@ msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0246
+#, fuzzy
 msgid "German Electronic Business Address"
-msgstr ""
+msgstr "Fransiya FRCTC elektron manzili"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__xrechnung
@@ -931,6 +919,12 @@ msgid "Malta VAT"
 msgstr "Malta QQS"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Missing '_title' for multi-level constraints."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9940
 #, fuzzy
 msgid "Monaco VAT"
@@ -968,8 +962,9 @@ msgstr "Niderlandiya QQS"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0244
+#, fuzzy
 msgid "Nigeria Tax Identification"
-msgstr ""
+msgstr "BAA soliq identifikatsiya raqami (STIR)"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0192
@@ -994,6 +989,12 @@ msgstr "O.F.T.P. (ODETTE fayllarni uzatish protokoli)"
 #, fuzzy
 msgid "Odoo"
 msgstr "Odoo"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Other Errors:"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.view_partner_property_form
@@ -1127,8 +1128,9 @@ msgstr "SIA obyekt identifikatorlari"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__0245
+#, fuzzy
 msgid "SK Tax identification number (DIČ)"
-msgstr ""
+msgstr "BAA soliq identifikatsiya raqami (STIR)"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9951
@@ -1137,10 +1139,20 @@ msgid "San Marino VAT"
 msgstr "San-Marino QQS"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9948
 #, fuzzy
 msgid "Serbia VAT"
 msgstr "Serbiya QQS"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__ubl_sg
@@ -1213,6 +1225,11 @@ msgstr "'%(tax_name)s' solig‘i noto‘g‘ri: %(error_message)s"
 #, fuzzy
 msgid "Tax Category Code"
 msgstr "Soliq toifasi kodi"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason
+msgid "Tax Exemption Reason"
+msgstr ""
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason_code
@@ -2336,6 +2353,22 @@ msgid "Z - Zero rated goods"
 msgstr "Z - Nol stavkali tovarlar"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
+"customer '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
+"company '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_partner__invoice_edi_format
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_users__invoice_edi_format
 #, fuzzy
@@ -2375,10 +2408,3 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #, fuzzy
 #~ msgid "Articles 226 items 11 to 15 Directive 2006/112/EN"
 #~ msgstr "2006/112/EN direktivasining 226-moddasi 11-15-bandlari"
-
-#, fuzzy
-#~ msgid ""
-#~ "No gross price, net price nor line subtotal amount found for line in xml"
-#~ msgstr ""
-#~ "XML faylida satr uchun yalpi narx, sof narx yoki satr jami summasi "
-#~ "topilmadi"

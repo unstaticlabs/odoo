@@ -16,13 +16,13 @@
 # Anna, 2023
 # JanaAvalah, 2023
 # Leaanika Randmets, 2023
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 18:23+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-05 10:24+0000\n"
 "Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "base_import/et/>\n"
@@ -31,7 +31,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -148,12 +148,6 @@ msgstr "Aga võite kasutada ka .csv faile"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "Tühista"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr "Klõpsa “Jätka”, et importi jätkata, alates reast %s."
@@ -168,8 +162,8 @@ msgstr "Veerg %(column)s sisaldab valesid väärtusi (väärtus: %(value)s)"
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr ""
 "Veeg %(column)s sisaldab valesid väärtusi. Viga real %(line)d: %(error)s"
 
@@ -259,6 +253,12 @@ msgid "Delay after each batch"
 msgstr "Viivitus peale igat partiid"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -314,8 +314,8 @@ msgstr "Viga kirjete importimisel: Teksti eraldaja peab olema üksik sümbol."
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "Viga kirjete importimisel: kõik read peaksid olema sama pikkusega, kuid "
 "pealkirjarida sisaldab %(title_row_entries)d kirjet, samas kui esimene rida "
@@ -344,12 +344,6 @@ msgstr "Soovitatud on Exceli failid, kuna vormindamine on automaatne."
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "Väline ID"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "Väli '%(field)s' ei aktsepteeri kuupäeva/aja väärtusi."
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -385,8 +379,8 @@ msgstr "Faili suurus ületab määratud maksimumi (%s baiti)"
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "Kontrollimist ja/või importimist vajav fail, raw binary (mitte base64)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -536,8 +530,8 @@ msgid ""
 "Invalid cell format at row %(row)s, column %(col)s: %(cell_value)s, with "
 "format: %(cell_format)s, as (%(format_type)s) formats are not supported."
 msgstr ""
-"Vale lahtrivorming reas %(row)s, veerus %(col)s: %(cell_value)s, formaadis: %"
-"(cell_format)s, kui (%(format_type)s) vormingud ei ole toetatud."
+"Vale lahtrivorming reas %(row)s, veerus %(col)s: %(cell_value)s, formaadis: "
+"%(cell_format)s, kui (%(format_type)s) vormingud ei ole toetatud."
 
 #. module: base_import
 #. odoo-python
@@ -865,8 +859,8 @@ msgstr "Jälgi impordi käigus ajalugu"
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"Faili \"{extension}\" laadimine ei õnnestu: nõuab Pythoni moodulit \""
-"{modname}\""
+"Faili \"{extension}\" laadimine ei õnnestu: nõuab Pythoni moodulit "
+"\"{modname}\""
 
 #. module: base_import
 #. odoo-python
@@ -1018,40 +1012,3 @@ msgstr "sekundid"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "tundmatu veakood %s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "Veerg %s sisaldab mittekorrektseid väärtusi (väärtus: %s)"
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "Veeg %s sisaldab mittekorrektseid väärtusi. Viga real %d: %s"
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "Viga kuupäeva liigendamisel [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "Import aegus, palun proovge uuesti. Kui probleem siiski jätkub, võib fail "
-#~ "olla liiga suur. Proovige see osadeks jagada (importige faili kohta vähem "
-#~ "kirjeid)."
-
-#~ msgid "Imported file"
-#~ msgstr "Imporditud fail"
-
-#~ msgid "Load File"
-#~ msgstr "Lae fail"
-
-#~ msgid "Upload File"
-#~ msgstr "Laadi fail üles"
-
-#~ msgid "Upload an Excel or CSV file to import"
-#~ msgstr "Lae importimiseks üles Exceli või CSV-fail"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr ""
-#~ "Pilte ei saa URL-i kaudu importida, probleemi lahendamiseks pöörduge "
-#~ "administraatori või tugiteenuste poole."

@@ -6,31 +6,35 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.overtime_leave_type = cls.env['hr.leave.type'].create({
+        cls.overtime_work_entry_type = cls.env['hr.work.entry.type'].create({
             'name': 'Overtime Type',
-            'requires_allocation': 'yes',
+            'code': 'overtime_test',
+            'requires_allocation': True,
             'leave_validation_type': 'no_validation',
             'request_unit': 'hour',
-            'time_type': 'leave',
+            'count_as': 'absence',
         })
-        cls.leave_type = cls.env['hr.leave.type'].create({
+        cls.leave_type = cls.env['hr.work.entry.type'].create({
             'name': 'Test Leave Type 2025 Scenarios',
-            'requires_allocation': 'yes',
+            'code': 'overlapping_allocations_test',
+            'requires_allocation': True,
             'leave_validation_type': 'no_validation',
             'request_unit': 'day',
+            'unit_of_measure': 'day',
+            'count_as': 'absence'
         })
 
         cls.alloc_a, cls.alloc_b = cls.env['hr.leave.allocation'].create([
             {
                 'employee_id': cls.employee_emp.id,
-                'holiday_status_id': cls.leave_type.id,
+                'work_entry_type_id': cls.leave_type.id,
                 'date_from': '2024-01-01',
                 'date_to': '2025-12-31',
                 'number_of_days': 10,
             },
             {
                 'employee_id': cls.employee_emp.id,
-                'holiday_status_id': cls.leave_type.id,
+                'work_entry_type_id': cls.leave_type.id,
                 'date_from': '2025-01-01',
                 'date_to': '2026-12-31',
                 'number_of_days': 10,
@@ -42,21 +46,21 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
             {
                 'name': 'Overtime',
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'date_from': '2025-12-01',
                 'number_of_days': '1.875',
             },
             {
                 'name': 'Overtime',
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'date_from': '2026-01-01',
                 'number_of_days': '12.6875',
             },
             {
                 'name': 'Overtime',
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'date_from': '2026-02-01',
                 'number_of_days': '1.5',
             },
@@ -65,28 +69,25 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
         self.env['hr.leave'].create([
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'request_date_from': '2025-12-02',
                 'request_date_to': '2025-12-02',
-                'request_unit_hours': True,
                 'request_hour_from': 8,
                 'request_hour_to': 17,
             },
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'request_date_from': '2026-01-02',
                 'request_date_to': '2026-01-02',
-                'request_unit_hours': True,
                 'request_hour_from': 8,
                 'request_hour_to': 17,
             },
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.overtime_leave_type.id,
+                'work_entry_type_id': self.overtime_work_entry_type.id,
                 'request_date_from': '2026-02-02',
                 'request_date_to': '2026-02-02',
-                'request_unit_hours': True,
                 'request_hour_from': 8,
                 'request_hour_to': 17,
             },
@@ -96,7 +97,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
 
         domain = [
             ('employee_id', '=', self.employee_emp.id),
-            ('leave_type', '=', self.overtime_leave_type.id),
+            ('work_entry_type_id', '=', self.overtime_work_entry_type.id),
         ]
         leave_balance = self.env['hr.leave.employee.type.report'].search(domain)
 
@@ -125,7 +126,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
         self.env['hr.leave'].create([
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.leave_type.id,
+                'work_entry_type_id': self.leave_type.id,
                 'request_date_from': '2026-01-01',
                 'request_date_to': '2026-01-01',
             },
@@ -133,7 +134,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
 
         domain = [
             ('employee_id', '=', self.employee_emp.id),
-            ('leave_type', '=', self.leave_type.id),
+            ('work_entry_type_id', '=', self.leave_type.id),
         ]
         leave_balance = self.env['hr.leave.employee.type.report'].search(domain)
 
@@ -165,7 +166,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
         self.env['hr.leave'].create([
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.leave_type.id,
+                'work_entry_type_id': self.leave_type.id,
                 'request_date_from': '2024-01-01',
                 'request_date_to': '2024-01-01',
             },
@@ -177,7 +178,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
         self.env['hr.leave'].create([
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.leave_type.id,
+                'work_entry_type_id': self.leave_type.id,
                 'request_date_from': '2025-01-01',
                 'request_date_to': '2025-01-01',
             },
@@ -189,7 +190,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
         self.env['hr.leave'].create([
             {
                 'employee_id': self.employee_emp.id,
-                'holiday_status_id': self.leave_type.id,
+                'work_entry_type_id': self.leave_type.id,
                 'request_date_from': '2025-01-02',
                 'request_date_to': '2025-01-16',
             },
@@ -199,7 +200,7 @@ class TestHrLeaveReport(TestHrHolidaysCommon):
 
         domain = [
             ('employee_id', '=', self.employee_emp.id),
-            ('leave_type', '=', self.leave_type.id),
+            ('work_entry_type_id', '=', self.leave_type.id),
         ]
         leave_balance = self.env['hr.leave.employee.type.report'].search(domain)
 

@@ -58,7 +58,7 @@ class ResPartner(models.Model):
     def _compute_application_statistics_hook(self):
         data_list = super()._compute_application_statistics_hook()
         for partner in self.filtered('meeting_count'):
-            stat_info = {'iconClass': 'fa-calendar', 'value': partner.meeting_count, 'label': _('Meetings'), 'tagClass': 'o_tag_color_3'}
+            stat_info = {'iconClass': 'fa-calendar', 'value': partner.meeting_count, 'label': _('Meetings')}
             data_list[partner.id].append(stat_info)
         return data_list
 
@@ -70,7 +70,7 @@ class ResPartner(models.Model):
             - calendar_model.js (calendar.CalendarModel)
         """
         attendees_details = []
-        meetings = self.env['calendar.event'].browse(meeting_ids)
+        meetings = self.env['calendar.event'].browse(filter(None, meeting_ids))
         for attendee in meetings.attendee_ids:
             if attendee.partner_id not in self:
                 continue

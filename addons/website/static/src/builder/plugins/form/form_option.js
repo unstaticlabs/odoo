@@ -1,8 +1,9 @@
 import { BaseOptionComponent, useDomState } from "@html_builder/core/utils";
-import { getModelName, getParsedDataFor } from "./utils";
+import { getModelName } from "./utils";
 import { FormActionFieldsOption } from "./form_action_fields_option";
 import { session } from "@web/session";
 import { selectElements } from "@html_editor/utils/dom_traversal";
+import { getParsedDataFor } from "@website/js/utils";
 
 export class FormOption extends BaseOptionComponent {
     static template = "website.s_website_form_form_option";
@@ -48,8 +49,8 @@ export class FormOption extends BaseOptionComponent {
         this.showEndMessage = false;
         // Get the email_to value from the data-for attribute if it exists. We
         // use it if there is no value on the email_to input.
-        const formId = el.id;
-        const dataForValues = getParsedDataFor(formId, el.ownerDocument);
+        this.formId = el.id;
+        const dataForValues = getParsedDataFor(this.formId, el.ownerDocument);
         if (dataForValues) {
             this.dataForEmailTo = dataForValues["email_to"];
         }

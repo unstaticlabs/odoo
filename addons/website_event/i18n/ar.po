@@ -7,18 +7,18 @@
 # Mustafa J. Kadhem <safi2266@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 03:46+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2026-05-23 17:14+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_website_visitor__event_registration_count
@@ -126,24 +126,6 @@ msgid "<i class=\"fa fa-clock-o me-2\" role=\"presentation\"/>8:15 PM"
 msgstr ""
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-discord text-discord\" aria-label=\"Discord\" "
-"title=\"Discord\"/>"
-msgstr ""
-"<i class=\"fa fa-discord text-discord\" aria-label=\"Discord\" "
-"title=\"Discord \"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-facebook text-facebook\" aria-label=\"Facebook\" "
-"title=\"Facebook\"/>"
-msgstr ""
-"<i class=\"fa fa-facebook text-facebook\" aria-label=\"Facebook\" "
-"title=\"Facebook \"/>"
-
-#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_configure_tickets_button
 msgid ""
 "<i class=\"fa fa-gear me-1\" role=\"img\" aria-label=\"Configure\" "
@@ -153,36 +135,9 @@ msgstr ""
 "title=\"تهيئة تذاكر الفعالية \"/><em>تهيئة التذاكر</em>"
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-github text-github\" aria-label=\"Github\" title=\"Github\"/"
-">"
-msgstr ""
-"<i class=\"fa fa-github text-github\" aria-label=\"Github\" title=\"Github "
-"\"/>"
-
-#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 msgstr "<i class=\"fa fa-globe me-1\" title=\"الموقع الإلكتروني \"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-"title=\"Instagram\"/>"
-msgstr ""
-"<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-"title=\"إنستغرام \"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn \"/>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -200,29 +155,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "<i class=\"fa fa-map-marker\" title=\"Location\"/> Online event"
 msgstr "<i class=\"fa fa-map-marker\" title=\"Location\"/> فعالية عبر الإنترنت"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-tiktok text-tiktok\" aria-label=\"TikTok\" title=\"TikTok\"/"
-">"
-msgstr ""
-"<i class=\"fa fa-tiktok text-tiktok\" aria-label=\"TikTok\" "
-"title=\"TikTok\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-msgstr "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
-msgid ""
-"<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-"title=\"Youtube\"/>"
-msgstr ""
-"<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-"title=\"يوتيوب \"/>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.navbar
@@ -252,15 +184,6 @@ msgstr "<small class=\"text-muted\">إضافة إلى التقويم:</small>"
 #: model_terms:ir.ui.view,arch_db:website_event.modal_slot_registration
 msgid "<small>Next</small><i class=\"fa fa-caret-right ms-2\"/>"
 msgstr "<small>التالي</small><i class=\"fa fa-caret-right ms-2\"/>"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid ""
-"<span class=\"badge text-bg-secondary text-uppercase "
-"o_wevent_badge\">Speaker</span>"
-msgstr ""
-"<span class=\"badge text-bg-secondary text-uppercase o_wevent_badge\">"
-"المتحدث</span>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -540,8 +463,7 @@ msgid "All"
 msgstr "الكل"
 
 #. module: website_event
-#. odoo-python
-#: code:addons/website_event/controllers/main.py:0
+#: model_terms:ir.ui.view,arch_db:website_event.event_location
 msgid "All Countries"
 msgstr "كافة الدول"
 
@@ -554,11 +476,6 @@ msgid "All Events"
 msgstr "كافة الفعاليات"
 
 #. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.event_location
-msgid "All countries"
-msgstr "كافة الدول"
-
-#. module: website_event
 #: model:event.question,title:website_event.event_question_allergies
 msgid "Allergies"
 msgstr "الحساسية"
@@ -567,19 +484,6 @@ msgstr "الحساسية"
 #: model:ir.model.fields,help:website_event.field_event_event__website_menu
 msgid "Allows to display and manage event-specific menus on website."
 msgstr "يتيح لك عرض وإدارة القوائم الخاصة بالفعالية في الموقع الإلكتروني."
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid ""
-"At just 13 years old, John DOE was already starting to develop his first "
-"business applications for customers. After mastering civil engineering, he "
-"founded TinyERP. This was the first phase of OpenERP which would later "
-"became Odoo, the most installed open-source business software worldwide."
-msgstr ""
-"بعمر 13 فقط، كان جون دو قد بدأ بتطوير تطبيقات الأعمال الأولى الخاصة به بالفعل "
-"للعملاء. بعد حصوله على شهادة في في الهندسة المدنية، قام بتأسيس TinyERP، وكانت "
-"تلك المرحلة الأولى لـOpenERP والذي تمت تسميته أودو (Odoo) بعد ذلك، وهو أكثر "
-"تطبيقات الأعمال تثبيتاً في العالم بأسره."
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
@@ -602,6 +506,20 @@ msgid "Author"
 msgstr "الكاتب"
 
 #. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__publish_on
+#: model:ir.model.fields,field_description:website_event.field_event_tag__publish_on
+#: model:ir.model.fields,field_description:website_event.field_event_tag_category__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event
+#: model:ir.model.fields,help:website_event.field_event_event__publish_on
+#: model:ir.model.fields,help:website_event.field_event_tag__publish_on
+#: model:ir.model.fields,help:website_event.field_event_tag_category__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.navbar
 msgid "Back to All Events"
 msgstr "العودة إلى كافة الفعاليات"
@@ -616,6 +534,11 @@ msgstr "العودة إلى {{0}}"
 #: model:event.question.answer,name:website_event.event_question_about_2_answer_1
 msgid "Blog Post"
 msgstr "منشور المدونة"
+
+#. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_event
 #. odoo-python
@@ -635,12 +558,6 @@ msgstr "روابط التقويم"
 #: model:ir.model.fields,field_description:website_event.field_event_tag_category__can_publish
 msgid "Can Publish"
 msgstr "بإمكانه النشر"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.modal_ticket_registration
-#: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
-msgid "Cancel"
-msgstr "إلغاء"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
@@ -679,11 +596,6 @@ msgstr "المجتمع"
 #: model:ir.model.fields.selection,name:website_event.selection__website_event_menu__menu_type__community
 msgid "Community Menu"
 msgstr "قائمة المجتمع"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "Company"
-msgstr "الشركة"
 
 #. module: website_event
 #. odoo-python
@@ -784,6 +696,12 @@ msgstr ""
 #: code:addons/website_event/static/src/website_builder/event_searchbar_option_plugin.js:0
 msgid "Description"
 msgstr "الوصف"
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.modal_ticket_registration
+#: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
+msgid "Discard"
+msgstr ""
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_event_event__display_name
@@ -940,10 +858,22 @@ msgid "Event published"
 msgstr "تم نشر الفعالية"
 
 #. module: website_event
+#: model:mail.message.subtype,description:website_event.mt_event_scheduled
+#: model:mail.message.subtype,name:website_event.mt_event_scheduled
+msgid "Event scheduled"
+msgstr ""
+
+#. module: website_event
 #: model:mail.message.subtype,description:website_event.mt_event_unpublished
 #: model:mail.message.subtype,name:website_event.mt_event_unpublished
 msgid "Event unpublished"
 msgstr "الفعالية غير منشورة"
+
+#. module: website_event
+#: model:mail.message.subtype,description:website_event.mt_event_unscheduled
+#: model:mail.message.subtype,name:website_event.mt_event_unscheduled
+msgid "Event unscheduled"
+msgstr ""
 
 #. module: website_event
 #. odoo-javascript
@@ -1125,6 +1055,19 @@ msgid "ID"
 msgstr "المُعرف"
 
 #. module: website_event
+#. odoo-javascript
+#: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
+msgid ""
+"If enabled, online events will be included when user filters by country."
+msgstr ""
+
+#. module: website_event
+#. odoo-javascript
+#: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
+msgid "Include online"
+msgstr ""
+
+#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.s_dynamic_snippet_events_single_aside_preview_data
 #: model_terms:ir.ui.view,arch_db:website_event.s_dynamic_snippet_events_single_offset_preview_data
 #: model_terms:ir.ui.view,arch_db:website_event.s_event_upcoming_snippet_card_preview_data
@@ -1174,16 +1117,6 @@ msgstr "يشارك"
 #: model:ir.model.fields,field_description:website_event.field_event_tag_category__is_published
 msgid "Is Published"
 msgstr "تم نشره"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "John DOE"
-msgstr "جون دو"
-
-#. module: website_event
-#: model_terms:ir.ui.view,arch_db:website_event.s_speaker_bio
-msgid "John Doe's avatar"
-msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_ticket_access
@@ -1423,10 +1356,23 @@ msgid "Publish"
 msgstr "نشر"
 
 #. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
 #: model_terms:ir.ui.view,arch_db:website_event.event_event_view_search
 #: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
 msgid "Published"
 msgstr "تم النشر"
+
+#. module: website_event
+#: model:ir.model.fields,field_description:website_event.field_event_event__published_date
+#: model:ir.model.fields,field_description:website_event.field_event_tag__published_date
+#: model:ir.model.fields,field_description:website_event.field_event_tag_category__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_event
 #. odoo-javascript
@@ -1607,10 +1553,21 @@ msgid "Sample"
 msgstr "عينة"
 
 #. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_pages_kanban_view
+#: model_terms:ir.ui.view,arch_db:website_event.event_pages_tree_view
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_event
 #. odoo-python
 #: code:addons/website_event/models/event_event.py:0
 #: model_terms:ir.ui.view,arch_db:website_event.event_time
 msgid "Scheduled Events"
+msgstr ""
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.events_list
+msgid "Scheduled for"
 msgstr ""
 
 #. module: website_event
@@ -1803,6 +1760,11 @@ msgstr "الأعلى"
 #: code:addons/website_event/static/src/website_builder/events_list_page_option.xml:0
 msgid "Top Bar Filter"
 msgstr "عامل تصفية الشريط العلوي"
+
+#. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.event_event_view_form
+msgid "Unschedule"
+msgstr ""
 
 #. module: website_event
 #. odoo-python
@@ -2032,6 +1994,11 @@ msgid "date_end"
 msgstr "date_end"
 
 #. module: website_event
+#: model_terms:ir.ui.view,arch_db:website_event.index_topbar
+msgid "events"
+msgstr ""
+
+#. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_dates
 msgid "iCal"
 msgstr "iCal"
@@ -2050,188 +2017,3 @@ msgstr "w-100"
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "w-100 py-sm-3 mt-sm-2"
 msgstr "w-100 py-sm-3 mt-sm-2"
-
-#~ msgid "(Ref:"
-#~ msgstr "(المرجع: "
-
-#~ msgid ""
-#~ ")\n"
-#~ "                                <i class=\"fa fa-long-arrow-down d-block "
-#~ "text-muted mx-3 my-2\" style=\"font-size: 1.5rem\"/>"
-#~ msgstr ""
-#~ ")\n"
-#~ "                                <i class=\"fa fa-long-arrow-down d-block "
-#~ "text-muted mx-3 my-2\" style=\"font-size: 1.5rem\"/>"
-
-#~ msgid "<b>Drag and Drop</b> this snippet below the event title."
-#~ msgstr "<b>قم بسحب وإفلات</b> هذه القصاصة أسفل عنوان الفعالية. "
-
-#~ msgid ""
-#~ "<font style=\"font-size: 62px;\" "
-#~ "class=\"o_default_snippet_text\">Introduction</font>"
-#~ msgstr ""
-#~ "<font style=\"font-size: 62px;\" "
-#~ "class=\"o_default_snippet_text\">المقدمة</font> "
-
-#~ msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to Google Calendar"
-#~ msgstr "<i class=\"fa fa-fw fa-calendar\"/> إضافة إلى تقويم Google "
-
-#~ msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to iCal/Outlook"
-#~ msgstr "<i class=\"fa fa-fw fa-calendar\"/> إضافة إلى iCal أو Outlook "
-
-#~ msgid ""
-#~ "<i class=\"fa fa-long-arrow-left me-2\"/>\n"
-#~ "                            <span>All Events</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-long-arrow-left me-2\"/>\n"
-#~ "                            <span>كافة الفعاليات</span> "
-
-#~ msgid ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-
-#~ msgid ""
-#~ "<span class=\"py-2 o_wevent_registration_title text-start\">Tickets</span>"
-#~ msgstr ""
-#~ "<span class=\"py-2 o_wevent_registration_title text-start\">التذاكر</"
-#~ "span> "
-
-#~ msgid "<span class=\"text-dark fw-bold align-middle px-2\">Qty</span>"
-#~ msgstr "<span class=\"text-dark fw-bold align-middle px-2\">الكمية</span> "
-
-#~ msgid ""
-#~ "<span itemprop=\"availability\" content=\"http://schema.org/SoldOut\" "
-#~ "class=\"text-danger\">\n"
-#~ "                                    <i class=\"fa fa-ban me-2\"/>Sold "
-#~ "Out\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span itemprop=\"availability\" content=\"http://schema.org/SoldOut\" "
-#~ "class=\"text-danger\">\n"
-#~ "                                    <i class=\"fa fa-ban me-2\"/>نفدت "
-#~ "الكمية\n"
-#~ "                                </span>"
-
-#~ msgid ""
-#~ "<span>Tickets</span>\n"
-#~ "                        <span class=\"btn p-0 close d-none\">×</span>"
-#~ msgstr ""
-#~ "<span>التذاكر</span>\n"
-#~ "                        <span class=\"btn p-0 close d-none\">×</span> "
-
-#~ msgid "Add to Calendar"
-#~ msgstr "إضافة إلى التقويم "
-
-#~ msgid "Cards"
-#~ msgstr "البطاقات"
-
-#~ msgid "Date &amp; Time"
-#~ msgstr "الوقت والتاريخ "
-
-#~ msgid "Email"
-#~ msgstr "البريد الإلكتروني"
-
-#~ msgid "End -"
-#~ msgstr "النهاية -"
-
-#~ msgid "Event Location"
-#~ msgstr "موقع الفعالية"
-
-#~ msgid "Event Name"
-#~ msgstr "اسم الفعالية"
-
-#~ msgid "Event not found!"
-#~ msgstr "لم يتم العثور على الفعالية! "
-
-#~ msgid "Events Page"
-#~ msgstr "صفحة الفعاليات"
-
-#~ msgid "Extra Register Button"
-#~ msgstr "زر تسجيل إضافي "
-
-#~ msgid "Fold Tickets Details"
-#~ msgstr "طي تفاصيل التذاكر "
-
-#~ msgid "Get the direction"
-#~ msgstr "احصل على الاتجاهات "
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgid "Location Menu"
-#~ msgstr "قائمة الموقع "
-
-#~ msgid "Location Menus"
-#~ msgstr "قوائم الموقع "
-
-#~ msgid "No events found."
-#~ msgstr "لم يتم العثور على فعاليات. "
-
-#~ msgid "Phone"
-#~ msgstr "رقم الهاتف"
-
-#~ msgid "Please select at least one ticket."
-#~ msgstr "يرجى تحديد تذكرة واحدة على الأقل. "
-
-#~ msgid "Questions"
-#~ msgstr "الأسئلة"
-
-#~ msgid "Ref:"
-#~ msgstr "المرجع: "
-
-#~ msgid "Register Button"
-#~ msgstr "زر التسجيل "
-
-#~ msgid "Registrations are <b>closed</b>"
-#~ msgstr "تم <b>إغلاق</b> التسجيلات "
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "قصر إمكانية النشر على هذا الموقع الإلكتروني. "
-
-#~ msgid "Return to the event list."
-#~ msgstr "العودة إلى قائمة الفعاليات."
-
-#~ msgid "SHARE"
-#~ msgstr "مشاركة "
-
-#~ msgid "Search an event..."
-#~ msgstr "البحث عن فعالية... "
-
-#~ msgid "Sorry, the requested event is not available anymore."
-#~ msgstr "عذراً، لم تعد الفعالية المطلوبة متوفرة. "
-
-#~ msgid "Start -"
-#~ msgstr "البداية -"
-
-#~ msgid "Start → End"
-#~ msgstr "النهاية → البداية "
-
-#~ msgid "Templates"
-#~ msgstr "القوالب "
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "رابطURL الكامل للوصول إلى المستند من خلال الموقع الإلكتروني. "
-
-#~ msgid "Ticket Sales starting on"
-#~ msgstr "تبدأ مبيعات التذاكر في "
-
-#~ msgid "Tickets for this Event are <b>Sold Out</b>"
-#~ msgstr "<b>نفدت كمية</b> التذاكر لهذه الفعالية "
-
-#~ msgid "Toggle navigation"
-#~ msgstr "تنقل التبديل "
-
-#~ msgid "Use the top button '<b>+ New</b>' to create an event."
-#~ msgstr "استخدم الزر العلوي '<b>+ جديد</b>' لإنشاء فعالية. "
-
-#~ msgid "Which field are you working in"
-#~ msgstr "ما مجال عملك؟"
-
-#~ msgid "e.g. \"Conference for Architects\""
-#~ msgstr "مثال: \"مؤتمر للمهندسين المعماريين\" "
-
-#~ msgid "iCal/Outlook"
-#~ msgstr "iCal/Outlook"

@@ -8,6 +8,7 @@ class BaseDocumentLayout(models.TransientModel):
     qr_code = fields.Boolean(related='company_id.qr_code', readonly=False)
     vat = fields.Char(related='company_id.vat', readonly=False,)
     account_number = fields.Char(compute='_compute_account_number', inverse='_inverse_account_number',)
+    country_code = fields.Char(related="company_id.account_fiscal_country_id.code")
 
     def document_layout_save(self):
         """Save layout and onboarding step progress, return super() result"""
@@ -53,7 +54,7 @@ class BaseDocumentLayout(models.TransientModel):
     def _compute_account_number(self):
         for record in self:
             if record.partner_id.bank_ids:
-                record.account_number = record.partner_id.bank_ids[0].acc_number or ''
+                record.account_number = record.partner_id.bank_ids[0].account_number or ''
             else:
                 record.account_number = ''
 
@@ -66,9 +67,9 @@ class BaseDocumentLayout(models.TransientModel):
         for record in self:
             if record.partner_id.bank_ids and record.account_number:
                 bank = record.partner_id.bank_ids[0]
-                if bank.acc_number != record.account_number:
+                if bank.account_number != record.account_number:
                     bank.allow_out_payment = False
-                    bank.acc_number = record.account_number
+                    bank.account_number = record.account_number
                     bank.allow_out_payment = True
             elif record.account_number:
                 record.partner_id.bank_ids += self.env['res.partner.bank']._find_or_create_bank_account(

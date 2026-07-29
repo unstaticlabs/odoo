@@ -1,4 +1,4 @@
-function createNewSalesOrder() {
+export function createNewSalesOrder() {
     return [
         {
             trigger: '.o_sale_order',
@@ -10,7 +10,7 @@ function createNewSalesOrder() {
     ]
 }
 
-function selectCustomer(customerName) {
+export function selectCustomer(customerName) {
     return [
         {
             content: `Select customer ${customerName}`,
@@ -24,11 +24,25 @@ function selectCustomer(customerName) {
     ];
 }
 
-function addProduct(productName, rowNumber=1) {
+export function selectPricelist(pricelistName) {
+    return [
+        {
+            content: `Select pricelist ${pricelistName}`,
+            trigger: '.o_field_widget[name=pricelist_id] input',
+            run: `edit ${pricelistName}`,
+        },
+        {
+            trigger: `ul.ui-autocomplete > li > a:contains("${pricelistName}")`,
+            run: 'click',
+        },
+    ];
+}
+
+export function addProduct(productName, rowNumber=1) {
     return [
         {
             content: `Add product ${productName}`,
-            trigger: 'a:contains("Add a product")',
+            trigger: 'button:contains("Add a product")',
             run: 'click',
         },
         {
@@ -46,12 +60,12 @@ function addProduct(productName, rowNumber=1) {
     ];
 }
 
-function clickSomewhereElse() {
+export function clickSomewhereElse() {
     return [
         // TODO find a way for onchange to finish first ?
         {
             content: 'click somewhere else to exit cell focus',
-            trigger: 'a[name=order_lines]',  // click on notebook tab to stop the sol edit mode.
+            trigger: 'button[name=order_lines]',  // click on notebook tab to stop the sol edit mode.
             run: 'click',
         },
         {
@@ -61,7 +75,7 @@ function clickSomewhereElse() {
     ]
 }
 
-function checkSOLDescriptionContains(productName, text) {
+export function checkSOLDescriptionContains(productName, text) {
     // TODO in the future: look directly into the textarea value
     let trigger = '.o_field_product_label_section_and_note_cell';
     if (productName) {
@@ -73,25 +87,15 @@ function checkSOLDescriptionContains(productName, text) {
     return { trigger };
 }
 
-function editLineMatching(productName, text) {
+export function editLineMatching(productName, text) {
     let base_step = checkSOLDescriptionContains(productName, text);
     base_step['run'] = 'click';
     return base_step;
 }
 
-function editConfiguration() {
+export function editConfiguration() {
     return {
         trigger: '[name=product_template_id] button.fa-pencil',
         run: 'click',
     }
 }
-
-export default {
-    createNewSalesOrder,
-    selectCustomer,
-    addProduct,
-    checkSOLDescriptionContains,
-    editLineMatching,
-    editConfiguration,
-    clickSomewhereElse,
-};

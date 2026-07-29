@@ -35,7 +35,7 @@ export const accountTourSteps = {
 }
 
 registry.category("web_tour.tours").add('account_tour', {
-    url: "/odoo",
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps ) #245680
     steps: () => [
     ...accountTourSteps.goToAccountMenu(markup(_t('Send invoices to your customers in no time with the <b>Invoicing app</b>.'))),
     ...accountTourSteps.onboarding(),
@@ -64,7 +64,7 @@ registry.category("web_tour.tours").add('account_tour', {
         run: "click",
     },
     {
-        trigger: `.o_form_view_container${accountTourSteps.draftInvoiceSelector} div[name=invoice_line_ids] .o_field_x2many_list_row_add a`,
+        trigger: `.o_form_view_container${accountTourSteps.draftInvoiceSelector} div[name=invoice_line_ids] .o_field_x2many_list_row_add button`,
         content: _t("Add a line to your invoice"),
         run: "click",
     },

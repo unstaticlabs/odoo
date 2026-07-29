@@ -1,5 +1,4 @@
 import { registry } from "@web/core/registry";
-import { inputFiles } from "@web/../tests/utils";
 
 registry.category("web_tour.tours").add("mail_attachment_removal_tour", {
     steps: () => [
@@ -23,7 +22,7 @@ registry.category("web_tour.tours").add("mail_attachment_removal_tour", {
     {
         content: "add one extra file in composer",
         trigger: ".o_field_mail_composer_attachment_selector button",
-        async run() {
+        async run({ inputFiles }) {
             const files = [new File(["hello, world"], "file1.txt", { type: "text/plain" })];
             await inputFiles(".o_field_mail_composer_attachment_selector .o_input_file", files);
         },

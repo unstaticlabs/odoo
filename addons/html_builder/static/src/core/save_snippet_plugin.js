@@ -3,6 +3,7 @@ import { Plugin } from "@html_editor/plugin";
 import { withSequence } from "@html_editor/utils/resource";
 import { markup } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
+import { BLOCKQUOTE_PARENT_HANDLERS } from "@html_builder/core/utils";
 
 /**
  * @typedef {CSSSelector[]} submit_button_selectors
@@ -22,7 +23,7 @@ export class SaveSnippetPlugin extends Plugin {
     };
 
     setup() {
-        this.savableSelector = "[data-snippet], a.btn";
+        this.savableSelector = `[data-snippet], a.btn, ${BLOCKQUOTE_PARENT_HANDLERS}`;
         this.unsavableSelector = [
             ".o_no_save",
             ...this.getResource("submit_button_selectors"),
@@ -77,6 +78,13 @@ export class SaveSnippetPlugin extends Plugin {
     }
 
     async saveSnippet(el) {
+        // When saving a parent handler, save the child snippet instead
+        if (el.matches(BLOCKQUOTE_PARENT_HANDLERS)) {
+            const childBlockquote = el.querySelector(".s_blockquote");
+            if (childBlockquote) {
+                el = childBlockquote;
+            }
+        }
         const cleanForSaveHandlers = [
             ...this.getResource("clean_for_save_handlers"),
             ({ root }) => escapeTextNodes(root),
@@ -88,6 +96,9 @@ export class SaveSnippetPlugin extends Plugin {
         );
         this.dependencies.disableSnippets.disableUndroppableSnippets();
         if (savedName) {
+            if (this.delegateTo("custom_snippets_notification_handlers", savedName)) {
+                return;
+            }
             const message = _t(
                 "Saved as %s. Find it in your snippets.",
                 markup`<strong>${savedName}</strong>`

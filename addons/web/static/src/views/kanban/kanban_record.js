@@ -2,7 +2,6 @@ import { _t } from "@web/core/l10n/translation";
 import { browser } from "@web/core/browser/browser";
 import { ColorList } from "@web/core/colorlist/colorlist";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
-import { hasTouch } from "@web/core/browser/feature_detection";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
@@ -14,7 +13,7 @@ import { fileTypeMagicWordMap } from "@web/views/fields/image/image_field";
 import { ViewButton } from "@web/views/view_button/view_button";
 import { useViewCompiler } from "@web/views/view_compiler";
 import { Widget } from "@web/views/widgets/widget";
-import { getFormattedValue } from "../utils";
+import { TOUCH_SELECTION_THRESHOLD, getFormattedValue } from "../utils";
 import { KANBAN_CARD_ATTRIBUTE, KANBAN_MENU_ATTRIBUTE } from "./kanban_arch_parser";
 import { KanbanCompiler } from "./kanban_compiler";
 import { KanbanCoverImageDialog } from "./kanban_cover_image_dialog";
@@ -182,11 +181,12 @@ export class KanbanRecord extends Component {
     static template = "web.KanbanRecord";
 
     setup() {
-        this.LONG_TOUCH_THRESHOLD = this.props.canResequence ? 600 : 400;
+        this.LONG_TOUCH_THRESHOLD = this.props.canResequence ? 600 : TOUCH_SELECTION_THRESHOLD;
         this.evaluateBooleanExpr = evaluateBooleanExpr;
         this.action = useService("action");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
+        this.offlineService = useService("offline");
 
         const { Compiler, archInfo } = this.props;
         const ViewCompiler = Compiler || KanbanCompiler;
@@ -203,7 +203,6 @@ export class KanbanRecord extends Component {
             Object.assign(this.dataState.record, getFormattedRecord(record))
         );
         this.rootRef = useRef("root");
-        this.hasTouch = hasTouch();
 
         this.longTouchTimer = null;
         this.touchStartMs = 0;
@@ -268,6 +267,13 @@ export class KanbanRecord extends Component {
         }
         if (this.props.record.selected) {
             classes.push("o_record_selected");
+        }
+        if (
+            this.offlineService.offline &&
+            !this.props.record.model.useSampleModel &&
+            !this.offlineService.isAvailableOffline(this.env.config.actionId, "form", record.resId)
+        ) {
+            classes.push("o_disabled_offline");
         }
         classes.push(archInfo.cardClassName);
         return classes.join(" ");

@@ -64,7 +64,7 @@
                                         <field name="tax_ids" widget="many2many_tax_tags" invisible="account_type == 'off_balance'" options="{'no_quick_create': True}"/>
                                         <field name="tag_ids" widget="many2many_tags" domain="[('applicability', '=', 'accounts')]" context="{'default_applicability': 'accounts'}" options="{'no_create_edit': True}"/>
                                     </group>
-                                    <group>
+                                    <group name="technical_settings">
                                         <field name="internal_group" invisible="1" readonly="1"/>
                                         <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency" string="Currency" placeholder="Any currency"/>
                                         <field name="active" widget="boolean_toggle"/>
@@ -110,6 +110,22 @@
                     <field name="tag_ids" domain="[('applicability', '=', 'accounts')]" optional="hide" widget="many2many_tags"/>
                     <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                     <field name="company_ids" widget="many2many_tags" readonly="True" groups="base.group_multi_company"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_account_list_from_entry" model="ir.ui.view">
+            <!-- View displayed when you click on "Search more..." from a journal entry -->
+            <field name="name">account.account.list</field>
+            <field name="model">account.account</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="code" string="Code"/>
+                    <field name="name"/>
+                    <field name="description" width="240px"/>
+                    <field name="account_type" widget="account_type_selection"/>
+                    <field name="tax_ids" optional="hide" widget="many2many_tax_tags"/>
+                    <field name="tag_ids" domain="[('applicability', '=', 'accounts')]" optional="hide" widget="many2many_tags"/>
                 </list>
             </field>
         </record>

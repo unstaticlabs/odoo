@@ -14,12 +14,7 @@ import {
 } from "@mail/../tests/mail_test_helpers";
 import { Composer } from "@mail/core/common/composer";
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import {
-    asyncStep,
-    getService,
-    patchWithCleanup,
-    waitForSteps,
-} from "@web/../tests/web_test_helpers";
+import { getService, patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
 defineMailModels();
@@ -39,14 +34,14 @@ test('do not send typing notification on typing "/" command', async () => {
     let testEnded = false;
     onRpcBefore("/discuss/channel/notify_typing", () => {
         if (!testEnded) {
-            asyncStep("notify_typing");
+            expect.step("notify_typing");
         }
     });
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "/");
     await contains(".o-mail-Composer button[title='Send']:enabled");
-    await waitForSteps([]); // No rpc done
+    await expect.waitForSteps([]); // No rpc done
     testEnded = true;
 });
 
@@ -56,7 +51,7 @@ test('do not send typing notification on typing after selecting suggestion from 
     let testEnded = false;
     onRpcBefore("/discuss/channel/notify_typing", () => {
         if (!testEnded) {
-            asyncStep("notify_typing");
+            expect.step("notify_typing");
         }
     });
     await start();
@@ -65,7 +60,7 @@ test('do not send typing notification on typing after selecting suggestion from 
     await click(":nth-child(1 of .o-mail-Composer-suggestion)");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
     await insertText(".o-mail-Composer-input", " is user?");
-    await waitForSteps([]); // No rpc done"
+    await expect.waitForSteps([]); // No rpc done"
     testEnded = true;
 });
 
@@ -75,15 +70,15 @@ test("send is_typing on adding emoji", async () => {
     let testEnded = false;
     onRpcBefore("/discuss/channel/notify_typing", () => {
         if (!testEnded) {
-            asyncStep("notify_typing");
+            expect.step("notify_typing");
         }
     });
     await start();
     await openDiscuss(channelId);
     await click("button[title='Add Emojis']");
     await insertText("input[placeholder='Search emoji']", "Santa Claus");
-    await click(".o-Emoji", { text: "🎅" });
-    await waitForSteps(["notify_typing"]);
+    await click(".o-Emoji:text('🎅')");
+    await expect.waitForSteps(["notify_typing"]);
     testEnded = true;
 });
 
@@ -97,10 +92,10 @@ test("add an emoji after a command", async () => {
     await openDiscuss(channelId);
     await contains(".o-mail-Composer-input", { value: "" });
     await insertText(".o-mail-Composer-input", "/");
-    await click(":nth-child(1 of .o-mail-Composer-suggestion)");
+    await click(":nth-child(3 of .o-mail-Composer-suggestion)");
     await contains(".o-mail-Composer-input", { value: "/who " });
     await click("button[title='Add Emojis']");
-    await click(".o-Emoji", { text: "😊" });
+    await click(".o-Emoji:text('😊')");
     await contains(".o-mail-Composer-input", { value: "/who 😊" });
 });
 
@@ -122,10 +117,10 @@ test("html composer: send a message in a channel", async () => {
         editable: document.querySelector(".o-mail-Composer-html.odoo-editor-editable"),
     };
     await htmlInsertText(editor, "Hello");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "Hello" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('Hello')");
     await click(".o-mail-Composer button[title='Send']:enabled");
     await click(".o-mail-Message[data-persistent]:contains(Hello)");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable", { textContent: "" });
 });
 
 test.tags("html composer");

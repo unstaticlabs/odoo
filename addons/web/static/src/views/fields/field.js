@@ -8,6 +8,7 @@ import { X2M_TYPES, getClassNameFromDecoration } from "@web/views/utils";
 import { getTooltipInfo } from "./field_tooltip";
 
 import { Component, xml } from "@odoo/owl";
+import { useService } from "@web/core/utils/hooks";
 
 const isSmall = utils.isSmall;
 
@@ -355,6 +356,7 @@ export class Field extends Component {
     };
 
     setup() {
+        this.offlineService = useService("offline");
         if (this.props.fieldInfo) {
             this.field = this.props.fieldInfo.field;
         } else {
@@ -409,7 +411,8 @@ export class Field extends Component {
 
     get fieldComponentProps() {
         const record = this.props.record;
-        let readonly = this.props.readonly || false;
+        // disable edition in offline mode
+        let readonly = this.props.readonly || this.offlineService.offline || false;
 
         let propsFromNode = {};
         if (this.props.fieldInfo) {

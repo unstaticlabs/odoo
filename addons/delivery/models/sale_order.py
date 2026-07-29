@@ -103,8 +103,7 @@ class SaleOrder(models.Model):
         :rtype: dict
         """
         self.ensure_one()
-        if zip_code:
-            assert country  # country is required if zip_code is provided.
+        if country:
             partner_address = self.env['res.partner'].new({
                 'active': False,
                 'country_id': country.id,
@@ -130,7 +129,7 @@ class SaleOrder(models.Model):
             name = _('Update shipping cost')
             carrier = self.carrier_id
         else:
-            name = _('Add a shipping method')
+            name = _('Add a delivery method')
             shipping_partner_id = self.with_company(self.company_id).partner_shipping_id
             carrier_property = (
                 shipping_partner_id.property_delivery_carrier_id.filtered("active")

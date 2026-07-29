@@ -35,7 +35,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'income_account_id': 'l10n_ph_account_430400',
                 'expense_account_id': 'l10n_ph_account_620000',
                 'transfer_account_id': 'l10n_ph_account_100201',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_ph_account_110300',
             },
         }

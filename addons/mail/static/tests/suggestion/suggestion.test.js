@@ -15,16 +15,18 @@ import {
 import { beforeEach, expect, describe, test } from "@odoo/hoot";
 import { Deferred, tick } from "@odoo/hoot-mock";
 import {
-    asyncStep,
     Command,
     getService,
     onRpc,
     patchWithCleanup,
     serverState,
+    withUser,
 } from "@web/../tests/web_test_helpers";
 
-import { Composer } from "@mail/core/common/composer";
+import { Composer, MENTION_AMOUNT_WARNING } from "@mail/core/common/composer";
 import { press } from "@odoo/hoot-dom";
+import { rpc } from "@web/core/network/rpc";
+import { range } from "@web/core/utils/numbers";
 
 describe.current.tags("desktop");
 defineMailModels();
@@ -119,9 +121,9 @@ test("[text composer] can @user in restricted (group_public_id) channels", async
     await openDiscuss(channelId);
     await contains(".o-discuss-ChannelMemberList"); // wait for auto-open of this panel
     await click("button[title='Invite People']");
-    await contains(".o-discuss-ChannelInvitation-invitationBox", {
-        text: 'Access restricted to group "Custom Channel Group"',
-    });
+    await contains(
+        ".o-discuss-ChannelInvitation-invitationBox:text('Access restricted to group \"Custom Channel Group\"')"
+    );
     await insertText(".o-mail-Composer-input", "@");
     await contains(".o-mail-Composer-suggestion strong", { count: 2 });
 });
@@ -151,9 +153,9 @@ test("can @user in restricted (group_public_id) channels", async () => {
     await openDiscuss(channelId);
     await contains(".o-discuss-ChannelMemberList"); // wait for auto-open of this panel
     await click("button[title='Invite People']");
-    await contains(".o-discuss-ChannelInvitation-invitationBox", {
-        text: 'Access restricted to group "Custom Channel Group"',
-    });
+    await contains(
+        ".o-discuss-ChannelInvitation-invitationBox:text('Access restricted to group \"Custom Channel Group\"')"
+    );
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -234,9 +236,9 @@ test('[text composer] display partner mention suggestions on typing "@" in chatt
     await startServer();
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion strong:text('Mitchell Admin')");
 });
 
 test.tags("html composer");
@@ -246,27 +248,27 @@ test('display partner mention suggestions on typing "@" in chatter', async () =>
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
         editable: document.querySelector(".o-mail-Composer-html.odoo-editor-editable"),
     };
     await htmlInsertText(editor, "@");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion strong:text('Mitchell Admin')");
 });
 
 test("[text composer] Do not fetch if search more specific and fetch had no result", async () => {
     await startServer();
     onRpc("res.partner", "get_mention_suggestions", () => {
-        asyncStep("get_mention_suggestions");
+        expect.step("get_mention_suggestions");
     });
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@");
     await contains(".o-mail-Composer-suggestion", { count: 3 }); // Mitchell Admin, Hermit, Public user
-    await contains(".o-mail-Composer-suggestion", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion:has(:text('Mitchell Admin'))");
     await expect.waitForSteps(["get_mention_suggestions"]);
     await insertText(".o-mail-Composer-input", "x");
     await contains(".o-mail-Composer-suggestion", { count: 0 });
@@ -279,13 +281,13 @@ test.tags("html composer");
 test("Do not fetch if search more specific and fetch had no result", async () => {
     await startServer();
     onRpc("res.partner", "get_mention_suggestions", () => {
-        asyncStep("get_mention_suggestions");
+        expect.step("get_mention_suggestions");
     });
     await start();
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -294,7 +296,7 @@ test("Do not fetch if search more specific and fetch had no result", async () =>
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
     await contains(".o-mail-Composer-suggestion", { count: 3 }); // Mitchell Admin, Hermit, Public user
-    await contains(".o-mail-Composer-suggestion", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion:has(:text('Mitchell Admin'))");
     await expect.waitForSteps(["get_mention_suggestions"]);
     await htmlInsertText(editor, "x");
     await contains(".o-mail-Composer-suggestion", { count: 0 });
@@ -319,7 +321,7 @@ test("[text composer] show other channel member in @ mention", async () => {
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "@");
-    await contains(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
+    await contains(".o-mail-Composer-suggestion strong:text('TestPartner')");
 });
 
 test.tags("html composer");
@@ -347,7 +349,7 @@ test("show other channel member in @ mention", async () => {
     };
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
-    await contains(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
+    await contains(".o-mail-Composer-suggestion strong:text('TestPartner')");
 });
 
 test("[text composer] select @ mention insert mention text in composer", async () => {
@@ -366,7 +368,7 @@ test("[text composer] select @ mention insert mention text in composer", async (
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "@");
-    await click(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
+    await click(".o-mail-Composer-suggestion strong:text('TestPartner')");
     await contains(".o-mail-Composer-input", { value: "@TestPartner " });
 });
 
@@ -395,8 +397,8 @@ test("select @ mention insert mention text in composer", async () => {
     };
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
-    await click(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "@TestPartner" });
+    await click(".o-mail-Composer-suggestion strong:text('TestPartner')");
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('@TestPartner')");
 });
 
 test("[text composer] select @ mention closes suggestions", async () => {
@@ -415,7 +417,7 @@ test("[text composer] select @ mention closes suggestions", async () => {
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "@");
-    await click(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
+    await click(".o-mail-Composer-suggestion strong:text('TestPartner')");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
 });
 
@@ -444,7 +446,7 @@ test("select @ mention closes suggestions", async () => {
     };
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
-    await click(".o-mail-Composer-suggestion strong", { text: "TestPartner" });
+    await click(".o-mail-Composer-suggestion strong:text('TestPartner')");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
 });
 
@@ -520,10 +522,10 @@ test("mention a channel", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "#");
     await click(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "#General" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('#General')");
 });
 
 test("[text composer] mention a channel thread", async () => {
@@ -544,18 +546,18 @@ test("[text composer] mention a channel thread", async () => {
     await contains(".o-mail-Composer-input", { value: "" });
     await insertText(".o-mail-Composer-input", "#");
     await contains(".o-mail-Composer-suggestion", { count: 2 });
-    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag)", { text: "General" });
-    await contains(".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o)", {
-        text: "GeneralThreadOne",
-    });
+    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag):text('General')");
+    await contains(
+        ".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o):text('GeneralThreadOne')"
+    );
     await click(".o-mail-Composer-suggestion:eq(1)");
     await contains(".o-mail-Composer-input", { value: "#General > ThreadOne " });
     await press("Enter");
-    await contains(".o-mail-Message a.o_channel_redirect:has(i.fa-comments-o)", {
-        text: "General > ThreadOne",
-    });
-    await click("a.o_channel_redirect", { text: "General > ThreadOne" });
-    await contains(".o-mail-DiscussSidebar-item.o-active", { text: "ThreadOne" });
+    await contains(
+        ".o-mail-Message a.o_channel_redirect:has(i.fa-comments-o):text('General > ThreadOne')"
+    );
+    await click("a.o_channel_redirect:text('General > ThreadOne')");
+    await contains(".o-mail-DiscussSidebar-item.o-active:text('ThreadOne')");
 });
 
 test.tags("html composer");
@@ -582,41 +584,37 @@ test("mention a channel thread", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "#");
     await contains(".o-mail-Composer-suggestion", { count: 2 });
-    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag)", { text: "General" });
-    await contains(".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o)", {
-        text: "GeneralThreadOne",
-    });
+    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag):text('General')");
+    await contains(
+        ".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o):text('GeneralThreadOne')"
+    );
     await click(".o-mail-Composer-suggestion:eq(0)");
     await contains(
-        ".o-mail-Composer-html.odoo-editor-editable a.o_channel_redirect:has(i.fa-hashtag)",
-        { text: "General" }
+        ".o-mail-Composer-html.odoo-editor-editable a.o_channel_redirect:has(i.fa-hashtag):text('General')"
     );
     await press("Enter");
-    await contains(".o-mail-Message a.o_channel_redirect", {
-        text: "General",
-    });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Message a.o_channel_redirect:text('General')");
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "#");
     await contains(".o-mail-Composer-suggestion", { count: 2 });
-    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag)", { text: "General" });
-    await contains(".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o)", {
-        text: "GeneralThreadOne",
-    });
+    await contains(".o-mail-Composer-suggestion:eq(0):has(i.fa-hashtag):text('General')");
+    await contains(
+        ".o-mail-Composer-suggestion:eq(1):has(i.fa-comments-o):text('GeneralThreadOne')"
+    );
     await click(".o-mail-Composer-suggestion:eq(1)");
     await contains(
-        ".o-mail-Composer-html.odoo-editor-editable a.o_channel_redirect:has(i.fa-comments-o)",
-        { text: "General > ThreadOne" }
+        ".o-mail-Composer-html.odoo-editor-editable a.o_channel_redirect:has(i.fa-comments-o):text('General > ThreadOne')"
     );
     await press("Enter");
-    await contains(".o-mail-Message a.o_channel_redirect:has(i.fa-comments-o)", {
-        text: "General > ThreadOne",
-    });
-    await click("a.o_channel_redirect", { text: "General > ThreadOne" });
-    await contains(".o-mail-DiscussSidebar-item.o-active", { text: "ThreadOne" });
+    await contains(
+        ".o-mail-Message a.o_channel_redirect:has(i.fa-comments-o):text('General > ThreadOne')"
+    );
+    await click("a.o_channel_redirect:text('General > ThreadOne')");
+    await contains(".o-mail-DiscussSidebar-item.o-active:text('ThreadOne')");
 });
 
 test("[text composer] Channel suggestions do not crash after rpc returns", async () => {
@@ -624,7 +622,7 @@ test("[text composer] Channel suggestions do not crash after rpc returns", async
     const channelId = pyEnv["discuss.channel"].create({ name: "general" });
     const deferred = new Deferred();
     onRpc("discuss.channel", "get_mention_suggestions", () => {
-        asyncStep("get_mention_suggestions");
+        expect.step("get_mention_suggestions");
         deferred.resolve();
     });
     await start();
@@ -643,7 +641,7 @@ test("Channel suggestions do not crash after rpc returns", async () => {
     const channelId = pyEnv["discuss.channel"].create({ name: "general" });
     const deferred = new Deferred();
     onRpc("discuss.channel", "get_mention_suggestions", () => {
-        asyncStep("get_mention_suggestions");
+        expect.step("get_mention_suggestions");
         deferred.resolve();
     });
     await start();
@@ -674,7 +672,7 @@ test("[text composer] Suggestions are shown after delimiter was used in text (@)
     await insertText(".o-mail-Composer-input", "NonExistingUser");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
     await insertText(".o-mail-Composer-input", " @");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion strong:text('Mitchell Admin')");
 });
 
 test.tags("html composer");
@@ -696,7 +694,7 @@ test("Suggestions are shown after delimiter was used in text (@)", async () => {
     await htmlInsertText(editor, "NonExistingUser");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
     await htmlInsertText(editor, " @");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Mitchell Admin" });
+    await contains(".o-mail-Composer-suggestion strong:text('Mitchell Admin')");
 });
 
 test("[text composer] Suggestions are shown after delimiter was used in text (#)", async () => {
@@ -709,7 +707,7 @@ test("[text composer] Suggestions are shown after delimiter was used in text (#)
     await insertText(".o-mail-Composer-input", "NonExistingChannel");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
     await insertText(".o-mail-Composer-input", " #");
-    await contains(".o-mail-Composer-suggestion strong", { text: "General" });
+    await contains(".o-mail-Composer-suggestion strong:text('General')");
 });
 
 test.tags("html composer");
@@ -731,7 +729,7 @@ test("Suggestions are shown after delimiter was used in text (#)", async () => {
     await htmlInsertText(editor, "NonExistingChannel");
     await contains(".o-mail-Composer-suggestion strong", { count: 0 });
     await htmlInsertText(editor, " #");
-    await contains(".o-mail-Composer-suggestion strong", { text: "General" });
+    await contains(".o-mail-Composer-suggestion strong:text('General')");
 });
 
 test("[text composer] display partner mention when typing more than 2 words if they match", async () => {
@@ -752,14 +750,14 @@ test("[text composer] display partner mention when typing more than 2 words if t
     ]);
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@My ");
     await contains(".o-mail-Composer-suggestion strong", { count: 3 });
     await insertText(".o-mail-Composer-input", "Test ");
     await contains(".o-mail-Composer-suggestion strong", { count: 2 });
     await insertText(".o-mail-Composer-input", "Partner");
     await contains(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-suggestion strong", { text: "My Test Partner" });
+    await contains(".o-mail-Composer-suggestion strong:text('My Test Partner')");
 });
 
 test.tags("html composer");
@@ -783,7 +781,7 @@ test("display partner mention when typing more than 2 words if they match", asyn
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -796,7 +794,7 @@ test("display partner mention when typing more than 2 words if they match", asyn
     await contains(".o-mail-Composer-suggestion strong", { count: 2 });
     await htmlInsertText(editor, "Partner");
     await contains(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-suggestion strong", { text: "My Test Partner" });
+    await contains(".o-mail-Composer-suggestion strong:text('My Test Partner')");
 });
 
 test("[text composer] Internal user should be displayed first", async () => {
@@ -824,12 +822,12 @@ test("[text composer] Internal user should be displayed first", async () => {
     ]);
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@Person ");
-    await contains(":nth-child(1 of .o-mail-Composer-suggestion) strong", { text: "Person D" });
-    await contains(":nth-child(2 of .o-mail-Composer-suggestion) strong", { text: "Person B" });
-    await contains(":nth-child(3 of .o-mail-Composer-suggestion) strong", { text: "Person C" });
-    await contains(":nth-child(4 of .o-mail-Composer-suggestion) strong", { text: "Person A" });
+    await contains(" .o-mail-Composer-suggestion:eq(0) strong:text('Person D')");
+    await contains(" .o-mail-Composer-suggestion:eq(1) strong:text('Person B')");
+    await contains(" .o-mail-Composer-suggestion:eq(2) strong:text('Person C')");
+    await contains(" .o-mail-Composer-suggestion:eq(3) strong:text('Person A')");
 });
 
 test.tags("html composer");
@@ -860,7 +858,7 @@ test("Internal user should be displayed first", async () => {
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -868,13 +866,13 @@ test("Internal user should be displayed first", async () => {
     };
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@Person ");
-    await contains(":nth-child(1 of .o-mail-Composer-suggestion) strong", { text: "Person D" });
-    await contains(":nth-child(2 of .o-mail-Composer-suggestion) strong", { text: "Person B" });
-    await contains(":nth-child(3 of .o-mail-Composer-suggestion) strong", { text: "Person C" });
-    await contains(":nth-child(4 of .o-mail-Composer-suggestion) strong", { text: "Person A" });
+    await contains(".o-mail-Composer-suggestion:eq(0) strong:text('Person D')");
+    await contains(".o-mail-Composer-suggestion:eq(1) strong:text('Person B')");
+    await contains(".o-mail-Composer-suggestion:eq(2) strong:text('Person C')");
+    await contains(".o-mail-Composer-suggestion:eq(3) strong:text('Person A')");
 });
 
-test("[text composer] Current user that is a follower should be considered as such", async () => {
+test("[text composer] Current user is last suggested partner", async () => {
     const pyEnv = await startServer();
     const userId = pyEnv["res.users"].create({});
     pyEnv["res.partner"].create([
@@ -891,21 +889,19 @@ test("[text composer] Current user that is a follower should be considered as su
     ]);
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@");
     await contains(".o-mail-Composer-suggestion", { count: 5 });
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Mitchell Admin",
-        before: [".o-mail-Composer-suggestion", { text: "Person B(b@test.com)" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Person B (b@test.com)'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Mitchell Admin'))"],
     });
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Person B(b@test.com)",
-        before: [".o-mail-Composer-suggestion", { text: "Person A(a@test.com)" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Person B (b@test.com)'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Person A (a@test.com)'))"],
     });
 });
 
 test.tags("html composer");
-test("Current user that is a follower should be considered as such", async () => {
+test("Current user is last suggested partner", async () => {
     const pyEnv = await startServer();
     const userId = pyEnv["res.users"].create({});
     pyEnv["res.partner"].create([
@@ -924,7 +920,7 @@ test("Current user that is a follower should be considered as such", async () =>
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -933,13 +929,11 @@ test("Current user that is a follower should be considered as such", async () =>
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
     await contains(".o-mail-Composer-suggestion", { count: 5 });
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Mitchell Admin",
-        before: [".o-mail-Composer-suggestion", { text: "Person B(b@test.com)" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Person B (b@test.com)'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Mitchell Admin'))"],
     });
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Person B(b@test.com)",
-        before: [".o-mail-Composer-suggestion", { text: "Person A(a@test.com)" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Person B (b@test.com)'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Person A (a@test.com)'))"],
     });
 });
 
@@ -981,10 +975,10 @@ test("Mention with @everyone", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@ever");
     await click(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "@everyone" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('@everyone')");
     await press("Enter");
     await contains(".o-mail-Message-bubble.o-orange");
     await contains(".o-mail-Message a:contains('@everyone')");
@@ -995,16 +989,14 @@ test("[text composer] Suggestions that begin with the search term should have pr
     pyEnv["res.partner"].create([{ name: "Party Partner" }, { name: "Best Partner" }]);
     await start();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await insertText(".o-mail-Composer-input", "@");
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Best Partner",
-        before: [".o-mail-Composer-suggestion", { text: "Party Partner" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Best Partner'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Party Partner'))"],
     });
     await insertText(".o-mail-Composer-input", "part");
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Party Partner",
-        before: [".o-mail-Composer-suggestion", { text: "Best Partner" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Party Partner'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Best Partner'))"],
     });
 });
 
@@ -1016,7 +1008,7 @@ test("Suggestions that begin with the search term should have priority", async (
     const composerService = getService("mail.composer");
     composerService.setHtmlComposer();
     await openFormView("res.partner", serverState.partnerId);
-    await click("button", { text: "Send message" });
+    await click("button:text('Send message')");
     await contains(".o-mail-Composer-html.odoo-editor-editable");
     const editor = {
         document,
@@ -1024,14 +1016,12 @@ test("Suggestions that begin with the search term should have priority", async (
     };
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@");
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Best Partner",
-        before: [".o-mail-Composer-suggestion", { text: "Party Partner" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Best Partner'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Party Partner'))"],
     });
     await htmlInsertText(editor, "part");
-    await contains(".o-mail-Composer-suggestion", {
-        text: "Party Partner",
-        before: [".o-mail-Composer-suggestion", { text: "Best Partner" }],
+    await contains(".o-mail-Composer-suggestion:has(:text('Party Partner'))", {
+        before: [".o-mail-Composer-suggestion:has(:text('Best Partner'))"],
     });
 });
 
@@ -1076,9 +1066,7 @@ test("[text composer] Mention with @-role", async () => {
     await click(".o-mail-Composer-suggestion");
     await contains(".o-mail-Composer-input", { value: "@rd-Discuss " });
     await press("Enter");
-    await contains(".o-mail-Message a.o-discuss-mention", {
-        text: "@rd-Discuss",
-    });
+    await contains(".o-mail-Message a.o-discuss-mention:text('@rd-Discuss')");
 });
 
 test.tags("html composer");
@@ -1126,14 +1114,12 @@ test("Mention with @-role", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@discuss");
     await click(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "@rd-Discuss" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('@rd-Discuss')");
     await press("Enter");
-    await contains(".o-mail-Message a.o-discuss-mention", {
-        text: "@rd-Discuss",
-    });
+    await contains(".o-mail-Message a.o-discuss-mention:text('@rd-Discuss')");
 });
 
 test("[text composer] Mention with @-role send correct role id", async () => {
@@ -1163,7 +1149,7 @@ test("[text composer] Mention with @-role send correct role id", async () => {
         ],
     });
     onRpcBefore("/mail/message/post", (args) => {
-        asyncStep("message_post");
+        expect.step("message_post");
         expect(args.post_data.role_ids).toEqual([roleId1]);
     });
     await start();
@@ -1175,7 +1161,7 @@ test("[text composer] Mention with @-role send correct role id", async () => {
     await click(".o-mail-Composer-suggestion");
     await contains(".o-mail-Composer-input", { value: "@rd-Discuss " });
     await press("Enter");
-    await contains(".o-mail-Message a.o-discuss-mention", { text: "@rd-Discuss" });
+    await contains(".o-mail-Message a.o-discuss-mention:text('@rd-Discuss')");
     await expect.waitForSteps(["message_post"]);
 });
 
@@ -1207,7 +1193,7 @@ test("Mention with @-role send correct role id", async () => {
         ],
     });
     onRpcBefore("/mail/message/post", (args) => {
-        asyncStep("message_post");
+        expect.step("message_post");
         expect(args.post_data.role_ids).toEqual([roleId1]);
     });
     await start();
@@ -1222,12 +1208,12 @@ test("Mention with @-role send correct role id", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     await htmlInsertText(editor, "@discuss");
     await click(".o-mail-Composer-suggestion");
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "@rd-Discuss" });
+    await contains(".o-mail-Composer-html.odoo-editor-editable:text('@rd-Discuss')");
     await press("Enter");
-    await contains(".o-mail-Message a.o-discuss-mention", { text: "@rd-Discuss" });
+    await contains(".o-mail-Message a.o-discuss-mention:text('@rd-Discuss')");
     await expect.waitForSteps(["message_post"]);
 });
 
@@ -1266,8 +1252,8 @@ test("[text composer] Mention with @-role trigger one RPC only", async () => {
     await openDiscuss(channelId);
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Message", { text: "message fetched" });
-    await contains(".o-discuss-ChannelMember", { text: "Discuss guru" });
+    await contains(".o-mail-Message:has(:text('message fetched'))");
+    await contains(".o-discuss-ChannelMember:text('Discuss guru')");
     await contains(".o-mail-Composer-input", { value: "" });
     onRpc("/*", (request) => {
         const route = new URL(request.url).pathname;
@@ -1276,8 +1262,8 @@ test("[text composer] Mention with @-role trigger one RPC only", async () => {
         }
     });
     await insertText(".o-mail-Composer-input", "@discuss");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Discuss guru" });
-    await contains(".o-mail-Composer-suggestion strong", { text: "rd-Discuss" });
+    await contains(".o-mail-Composer-suggestion strong:text('Discuss guru')");
+    await contains(".o-mail-Composer-suggestion strong:text('rd-Discuss')");
     await expect.waitForSteps([
         "/web/dataset/call_kw/res.partner/get_mention_suggestions_from_channel",
     ]);
@@ -1327,9 +1313,9 @@ test("Mention with @-role trigger one RPC only", async () => {
     await focus(".o-mail-Composer-html.odoo-editor-editable");
     await contains(".o-mail-Composer-suggestionList");
     await contains(".o-mail-Composer-suggestionList .o-open", { count: 0 });
-    await contains(".o-mail-Message", { text: "message fetched" });
-    await contains(".o-discuss-ChannelMember", { text: "Discuss guru" });
-    await contains(".o-mail-Composer-html.odoo-editor-editable", { text: "" });
+    await contains(".o-mail-Message:has(:text('message fetched'))");
+    await contains(".o-discuss-ChannelMember:text('Discuss guru')");
+    await contains(".o-mail-Composer-html.odoo-editor-editable");
     onRpc("/*", (request) => {
         const route = new URL(request.url).pathname;
         if (route !== "/discuss/channel/notify_typing") {
@@ -1337,11 +1323,59 @@ test("Mention with @-role trigger one RPC only", async () => {
         }
     });
     await htmlInsertText(editor, "@discuss");
-    await contains(".o-mail-Composer-suggestion strong", { text: "Discuss guru" });
-    await contains(".o-mail-Composer-suggestion strong", { text: "rd-Discuss" });
+    await contains(".o-mail-Composer-suggestion strong:text('Discuss guru')");
+    await contains(".o-mail-Composer-suggestion strong:text('rd-Discuss')");
     await expect.waitForSteps([
         "/web/dataset/call_kw/res.partner/get_mention_suggestions_from_channel",
     ]);
+});
+
+test("Mentioning @everyone with more than 50 members shows warning dialog", async () => {
+    const pyEnv = await startServer();
+    const partnerIds = pyEnv["res.partner"].create(
+        range(MENTION_AMOUNT_WARNING + 1).map(() => ({ name: "" }))
+    );
+    const channelId = pyEnv["discuss.channel"].create({
+        name: "General",
+        channel_type: "channel",
+        channel_member_ids: partnerIds.map((id) => Command.create({ partner_id: id })),
+    });
+    await start();
+    await openDiscuss(channelId);
+    await insertText(".o-mail-Composer-input", "@everyone");
+    await click(".o-mail-Composer-suggestion:contains(Everyone)");
+    await contains(".o-mail-Composer-input", { value: "@everyone " });
+    await click(".o-mail-Composer button[title='Send']:enabled");
+    await contains(
+        '.modal-body:text("You\'re about to notify 51 people with @everyone. Do you want to continue?")'
+    );
+    await click(".modal-footer button:text('Discard')");
+    await contains(".modal", { count: 0 });
+    await contains(".o-mail-Composer-input", { value: "@everyone " });
+    await click(".o-mail-Composer button[title='Send']:enabled");
+    await click(".modal-footer button:text('Send Message')");
+    await contains(".o-mail-Message a.o-discuss-mention:text('@everyone')");
+});
+
+test("Mentioning @-role with more than 50 users shows warning dialog", async () => {
+    const pyEnv = await startServer();
+    const roleId = pyEnv["res.role"].create({ name: "VIPs" });
+    pyEnv["res.users"].create(
+        range(MENTION_AMOUNT_WARNING + 1).map(() => ({ role_ids: [roleId] }))
+    );
+    const channelId = pyEnv["discuss.channel"].create({ name: "General", channel_type: "channel" });
+    pyEnv["res.role"]._applyComputesAndValidate();
+    await start();
+    await openDiscuss(channelId);
+    await insertText(".o-mail-Composer-input", "@VIPs");
+    await click(".o-mail-Composer-suggestion:contains(VIPs)");
+    await contains(".o-mail-Composer-input", { value: "@VIPs " });
+    await click(".o-mail-Composer button[title='Send']:enabled");
+    await contains(
+        '.modal-body:text("You\'re about to notify 51 people with @VIPs. Do you want to continue?")'
+    );
+    await click(".modal-footer button:text('Send Message')");
+    await contains(".o-mail-Message a.o-discuss-mention:text('@VIPs')");
 });
 
 test("[text composer] should send notifications to users with names containing HTML entities", async () => {
@@ -1403,4 +1437,59 @@ test("should send notifications to users with names containing HTML entities", a
     await contains(".o-mail-MessageNotificationPopover span", {
         text: `${partnerRaw.name} (${partnerRaw.email})`,
     });
+});
+
+test("Recent message authors should be displayed before other partners", async () => {
+    const pyEnv = await startServer();
+    const [partnerA, partnerB, partnerC, partnerD] = pyEnv["res.partner"].create([
+        { name: "Person A" },
+        { name: "Person B" },
+        { name: "Person C" },
+        { name: "Person D" },
+    ]);
+    const [, userB] = pyEnv["res.users"].create([
+        { partner_id: partnerA },
+        { partner_id: partnerB },
+        { partner_id: partnerC },
+        { partner_id: partnerD },
+    ]);
+    const channelId = pyEnv["discuss.channel"].create({
+        name: "general",
+        channel_type: "channel",
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId }),
+            Command.create({ partner_id: partnerA }),
+            Command.create({ partner_id: partnerB }),
+            Command.create({ partner_id: partnerC }),
+            Command.create({ partner_id: partnerD }),
+        ],
+    });
+    pyEnv["mail.message"].create({
+        author_id: partnerD,
+        body: "older",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    await start();
+    await openDiscuss(channelId);
+    await contains(".o-mail-Message", { count: 1 });
+    await insertText(".o-mail-Composer-input", "@Person ");
+    await contains(".o-mail-Composer-suggestion:eq(0) strong:text('Person D')");
+    await contains(".o-mail-Composer-suggestion:eq(1) strong:text('Person A')");
+    await contains(".o-mail-Composer-suggestion:eq(2) strong:text('Person B')");
+    await contains(".o-mail-Composer-suggestion:eq(3) strong:text('Person C')");
+    await withUser(userB, () =>
+        rpc("/mail/message/post", {
+            post_data: { body: "newer", message_type: "comment", subtype_xmlid: "mail.mt_comment" },
+            thread_id: channelId,
+            thread_model: "discuss.channel",
+        })
+    );
+    await contains(".o-mail-Message", { count: 2 });
+    // Edit the search term to re-trigger the local sort with updated messages.
+    await press("Backspace");
+    await contains(".o-mail-Composer-suggestion:eq(0) strong:text('Person B')");
+    await contains(".o-mail-Composer-suggestion:eq(1) strong:text('Person D')");
+    await contains(".o-mail-Composer-suggestion:eq(2) strong:text('Person A')");
+    await contains(".o-mail-Composer-suggestion:eq(3) strong:text('Person C')");
 });

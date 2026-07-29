@@ -14,15 +14,15 @@
 # Anton Vassilev, 2023
 # Albena Mincheva <albena_vicheva@abv.bg>, 2023
 # Maria Boyadjieva <marabo2000@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:18+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-19/"
 "website_forum/bg/>\n"
 "Language: bg\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -2330,11 +2330,6 @@ msgid "Left 10 answers with score of 10 or more"
 msgstr "Останали 10 отговора с резултат 10 или повече"
 
 #. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr ""
-
-#. module: website_forum
 #. odoo-javascript
 #: code:addons/website_forum/static/src/xml/public_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:website_forum.post_display
@@ -3331,6 +3326,20 @@ msgid "The accepted answer is deleted"
 msgstr ""
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3435,10 +3444,10 @@ msgid ""
 "                    As a moderator you can either <b>Accept</b> or "
 "<b>Reject</b> this post."
 msgstr ""
-"Тази публикация в момента чака потвърждение от модератор и не е "
-"публикувана.<br/>\n"
-"                   Като модератор, Вие можете или да <b>Приемете</b> или <b>"
-"Откажете</b> този публикация."
+"Тази публикация в момента чака потвърждение от модератор и не е публикувана."
+"<br/>\n"
+"                   Като модератор, Вие можете или да <b>Приемете</b> или "
+"<b>Откажете</b> този публикация."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -3714,6 +3723,13 @@ msgid "Website / Forum"
 msgstr "Уебсайт / форум"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3721,7 +3737,9 @@ msgid "Website Messages"
 msgstr "Съобщения в уебсайт"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "URL адрес на уебсайт"
 
@@ -4175,7 +4193,8 @@ msgstr ""
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "what's the best way to use Odoo for a specific business need,"
-msgstr "какъв е най-добрият начин да използвате Odoo за конкретни бизнес нужди,"
+msgstr ""
+"какъв е най-добрият начин да използвате Odoo за конкретни бизнес нужди,"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.author_box
@@ -4201,164 +4220,3 @@ msgstr "биографията Ви може да се вижда като из�
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "Вашият имейл..."
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Оскърбително]</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Отговор]</b>"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Сигнализиран\n"
-#~ "                </small>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>От </span>"
-
-#~ msgid "All Tags"
-#~ msgstr "Всички маркери"
-
-#~ msgid "Allow Bump"
-#~ msgstr "Позволете изскачане"
-
-#~ msgid "Answer"
-#~ msgstr "Отговор"
-
-#~ msgid "Back"
-#~ msgstr "Назад"
-
-#~ msgid "Bumped on"
-#~ msgstr "Изскочил на"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "Отметнете това поле, за да се покаже изскачащ прозорец за публикации, по-"
-#~ "стари от 10 дни, които не са получили никакъв отговор. Изскачащото меню "
-#~ "ще Ви предложи да го споделите в социалните мрежи. Когато се сподели, "
-#~ "въпросът изскача в най-горната част на форума."
-
-#~ msgid "Close Post"
-#~ msgstr "Затворете пубикация"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Коментирайте тази публикация..."
-
-#~ msgid "Comments"
-#~ msgstr "Коментари"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Преобразувайте всички отговори в коментари и обратно"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "Преобразувайте като коментар"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Преобразувайте собствените си отговори в коментари и обратно"
-
-#~ msgid "Following"
-#~ msgstr "Следващ"
-
-#~ msgid "Group By"
-#~ msgstr "Групиране по"
-
-#~ msgid "Karma"
-#~ msgstr "Карма"
-
-#~ msgid "Last activity date"
-#~ msgstr "Дата на последна активност"
-
-#~ msgid "Menu"
-#~ msgstr "Меню"
-
-#~ msgid "More"
-#~ msgstr "Повече"
-
-#~ msgid "Most answered"
-#~ msgstr "Най-много получили отговор"
-
-#~ msgid "Most voted"
-#~ msgstr "Най-гласувани"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "Преместете този въпрос в горната част на списъка, като го споделите в "
-#~ "социалните мрежи."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Брой съобщения, които изискват внимание"
-
-#~ msgid "Our forums"
-#~ msgstr "Нашите форуми"
-
-#~ msgid "People"
-#~ msgstr "Хора"
-
-#~ msgid "Post Comment"
-#~ msgstr "Коментар по публикация"
-
-#~ msgid "Register"
-#~ msgstr "Регистрирайте"
-
-#~ msgid "Return to the question list."
-#~ msgstr "Върнете се в списъка с въпроси."
-
-#~ msgid "Show"
-#~ msgstr "Покажете"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr ""
-#~ "За съжаление трябва да сте регистрани в системата, за да изпълните това "
-#~ "действие"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr ""
-#~ "За съжаление трябва да сте регистрирани в системата, за да сигнализирате "
-#~ "публикация"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr ""
-#~ "За съжаление трябва да сте регистрирани в системата, за да имате право да "
-#~ "гласувате"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr ""
-#~ "За съжаление анонимните потребители не могат да избират правилен отговор."
-
-#~ msgid "Teaser"
-#~ msgstr "Тийзър"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "Техническо поле, което позволява изскачането на въпрос. Писането в това "
-#~ "поле ще задейства писането в write_date и следователно ще накара "
-#~ "публикацията да изскочи. Прякото писане в write_date понастоящем не се "
-#~ "поддържа и това поле се явява временно решение."
-
-#~ msgid "Trending"
-#~ msgstr "Тенденции"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "Прекратете връзката с всички коментари"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "Прекратете връзката със собствените си коментари"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Чакащ за потвърждение"
-
-#~ msgid "Waiting post"
-#~ msgstr "Чакаща публикация"

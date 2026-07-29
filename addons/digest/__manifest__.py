@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'KPI Digests',
@@ -22,8 +21,8 @@ Send KPI Digests periodically
         'views/digest_views.xml',
         'views/digest_templates.xml',
         'views/res_config_settings_views.xml',
+        'wizard/digest_test_views.xml',
     ],
-    'installable': True,
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

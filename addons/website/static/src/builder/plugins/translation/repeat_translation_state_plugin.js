@@ -2,6 +2,7 @@ import { Plugin } from "@html_editor/plugin";
 import { selectElements } from "@html_editor/utils/dom_traversal";
 import { withSequence } from "@html_editor/utils/resource";
 import { unwrapContents } from "@html_editor/utils/dom";
+import { registry } from "@web/core/registry";
 
 /**
  * @typedef {import("plugins").CSSSelector[]} force_background_translation_state_selectors
@@ -9,7 +10,7 @@ import { unwrapContents } from "@html_editor/utils/dom";
  * hiding the span's color showing the translation state
  */
 
-export class RepeatTranslationStatePlugin extends Plugin {
+class RepeatTranslationStatePlugin extends Plugin {
     static id = "translateStateInButton";
     static dependencies = ["selection"];
 
@@ -43,3 +44,7 @@ export class RepeatTranslationStatePlugin extends Plugin {
         },
     };
 }
+
+registry
+    .category("translation-plugins")
+    .add(RepeatTranslationStatePlugin.id, RepeatTranslationStatePlugin);

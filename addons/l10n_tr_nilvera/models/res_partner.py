@@ -27,15 +27,6 @@ class ResPartner(models.Model):
         readonly=True,
         tracking=True,
     )
-    l10n_tr_nilvera_customer_alias_id = fields.Many2one(
-        comodel_name='l10n_tr.nilvera.alias',
-        string="Alias",
-        compute='_compute_nilvera_customer_alias_id',
-        domain="[('partner_id', '=', id)]",
-        copy=False,
-        store=True,
-        readonly=False,
-    )
 
     # This field is only used technically for optimisation purposes. It's needed for _check_nilvera_customer.
     l10n_tr_nilvera_customer_alias_ids = fields.One2many(
@@ -43,10 +34,20 @@ class ResPartner(models.Model):
         inverse_name="partner_id",
     )
 
-    @api.depends('l10n_tr_nilvera_customer_alias_ids')
-    def _compute_nilvera_customer_alias_id(self):
-        for record in self:
-            record.l10n_tr_nilvera_customer_alias_id = record.l10n_tr_nilvera_customer_alias_ids[:1]
+    @api.depends('invoice_edi_format')
+    def _compute_is_company(self):
+        # Any partner that has the ubl_tr invoicing format set will be categorized as follows
+        # A company has a 10-digit or less Tax ID (VKN) & an individual contact has an 11-digit or more Tax ID (TCKN)
+        l10n_tr_partners = self.env['res.partner']
+        for partner in self:
+            if partner.invoice_edi_format != "ubl_tr":
+                continue
+            partner.is_company = False
+            if not partner._is_vat_void(partner.vat) and partner.vat.isdigit() and len(partner.vat) <= 10:
+                partner.is_company = True
+            l10n_tr_partners += partner
+
+        super(ResPartner, self - l10n_tr_partners)._compute_is_company()
 
     def _send_user_notification(self, type, message, action_button=None):
         self.env.user._bus_send(
@@ -93,14 +94,13 @@ class ResPartner(models.Model):
         if not self.vat:
             return
 
-        with _get_nilvera_client(self.env.company.sudo()) as client:
+        with _get_nilvera_client(self.env._, self.env.company.sudo()) as client:
             response = client.request("GET", "/general/GlobalCompany/Check/TaxNumber/" + urllib.parse.quote(self.vat), handle_response=False)
             if response.status_code == 200:
                 query_result = response.json()
 
                 if not query_result:
                     self.l10n_tr_nilvera_customer_status = 'earchive'
-                    self.l10n_tr_nilvera_customer_alias_id = False
                 else:
                     self.l10n_tr_nilvera_customer_status = 'einvoice'
 
@@ -111,18 +111,15 @@ class ResPartner(models.Model):
                     aliases_to_add = aliases - set(persisted_aliases.mapped('name'))
                     # Find aliases to remove (in database but not in query result).
                     aliases_to_remove = set(persisted_aliases.mapped('name')) - aliases
-
-                    newly_persisted_aliases = self.env['l10n_tr.nilvera.alias'].create([{
+                    # Create new aliases.
+                    self.env['l10n_tr.nilvera.alias'].create([{
                         'name': alias_name,
                         'partner_id': self.id,
                     } for alias_name in aliases_to_add])
+                    # Remove aliases from database that are not in query result.
                     to_keep = persisted_aliases.filtered(lambda a: a.name not in aliases_to_remove)
                     (persisted_aliases - to_keep).unlink()
 
-                    # If no alias was previously selected, automatically select the first alias.
-                    remaining_aliases = newly_persisted_aliases | to_keep
-                    if not self.l10n_tr_nilvera_customer_alias_id and remaining_aliases:
-                        self.l10n_tr_nilvera_customer_alias_id = remaining_aliases[0]
                 # commit the result of each request because in the case of a bulk verify the
                 # server can timeout and all progress will be undone
                 self.env.cr.commit()

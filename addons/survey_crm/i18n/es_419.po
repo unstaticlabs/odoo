@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * survey_crm
 #
-# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025, 2026.
-# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025, 2026.
+# "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025.
+# "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-01 06:24+0000\n"
-"Last-Translator: \"Patricia Gutiérrez (pagc)\" <pagc@odoo.com>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-10-30 17:22+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
 "odoo-19/survey_crm/es_419/>\n"
 "Language: es_419\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: survey_crm
 #. odoo-python
@@ -127,11 +127,6 @@ msgid "Create Leads"
 msgstr "Crear leads"
 
 #. module: survey_crm
-#: model:ir.model,website_form_label:survey_crm.model_crm_lead
-msgid "Create an Opportunity"
-msgstr "Crear una oportunidad"
-
-#. module: survey_crm
 #. odoo-python
 #: code:addons/survey_crm/models/templates/survey_survey.py:0
 msgid "Create leads when key answers are chosen"
@@ -143,8 +138,6 @@ msgid "Creates a lead when participants choose this answer"
 msgstr "Crea un lead cuando los participantes eligen esta respuesta"
 
 #. module: survey_crm
-#: model:ir.model.fields,field_description:survey_crm.field_crm_lead__display_name
-#: model:ir.model.fields,field_description:survey_crm.field_crm_team__display_name
 #: model:ir.model.fields,field_description:survey_crm.field_survey_question__display_name
 #: model:ir.model.fields,field_description:survey_crm.field_survey_question_answer__display_name
 #: model:ir.model.fields,field_description:survey_crm.field_survey_survey__display_name
@@ -175,8 +168,6 @@ msgid "How is your company named?"
 msgstr "¿Cómo se llama tu empresa?"
 
 #. module: survey_crm
-#: model:ir.model.fields,field_description:survey_crm.field_crm_lead__id
-#: model:ir.model.fields,field_description:survey_crm.field_crm_team__id
 #: model:ir.model.fields,field_description:survey_crm.field_survey_question__id
 #: model:ir.model.fields,field_description:survey_crm.field_survey_question_answer__id
 #: model:ir.model.fields,field_description:survey_crm.field_survey_survey__id
@@ -191,8 +182,6 @@ msgid "Improving efficiency"
 msgstr "Mejorando la eficiencia"
 
 #. module: survey_crm
-#: model:ir.model,name:survey_crm.model_crm_lead
-#: model:ir.model.fields,field_description:survey_crm.field_survey_survey__lead_ids
 #: model:ir.model.fields,field_description:survey_crm.field_survey_user_input__lead_id
 msgid "Lead"
 msgstr "Lead"
@@ -281,11 +270,6 @@ msgid "Reducing costs"
 msgstr "Reducir costos"
 
 #. module: survey_crm
-#: model:ir.model,name:survey_crm.model_crm_team
-msgid "Sales Team"
-msgstr "Equipo de ventas"
-
-#. module: survey_crm
 #: model_terms:ir.ui.view,arch_db:survey_crm.survey_survey_view_form
 msgid "Select a Sales team"
 msgstr "Selecciona un equipo de ventas"
@@ -303,7 +287,6 @@ msgstr "Omitida"
 
 #. module: survey_crm
 #: model:ir.model,name:survey_crm.model_survey_survey
-#: model:ir.model.fields,field_description:survey_crm.field_crm_lead__origin_survey_id
 msgid "Survey"
 msgstr "Encuesta"
 
@@ -326,11 +309,6 @@ msgstr "Tipo de encuesta"
 #: model:ir.model,name:survey_crm.model_survey_user_input
 msgid "Survey User Input"
 msgstr "Encuesta de opinión de los usuarios"
-
-#. module: survey_crm
-#: model:ir.model.fields,field_description:survey_crm.field_crm_team__origin_survey_ids
-msgid "Survey opportunities related to the sales team"
-msgstr "Oportunidades de la encuesta relacionadas con el equipo de ventas"
 
 #. module: survey_crm
 #: model_terms:survey.survey,description_done:survey_crm.lead_qualification_survey

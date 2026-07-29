@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * sale_loyalty
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 19:49+0000\n"
+"POT-Creation-Date: 2026-06-19 17:37+0000\n"
+"PO-Revision-Date: 2026-06-23 09:30+0000\n"
 "Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_loyalty/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -111,12 +111,6 @@ msgstr "Erstellt von"
 #: model:ir.model.fields,field_description:sale_loyalty.field_sale_order_coupon_points__create_date
 msgid "Created on"
 msgstr "Erstellt am"
-
-#. module: sale_loyalty
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_coupon_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:sale_loyalty.sale_loyalty_reward_wizard_view_form
-msgid "Discard"
-msgstr "Verwerfen"
 
 #. module: sale_loyalty
 #. odoo-python
@@ -493,7 +487,8 @@ msgstr "Es gibt keine anzuwendenden Rabatte"
 #. module: sale_loyalty
 #: model:ir.model.fields,help:sale_loyalty.field_sale_loyalty_reward_wizard__reward_product_ids
 msgid "These are the products that can be claimed with this rule."
-msgstr "Dies sind die Produkte, die mit dieser Regel beansprucht werden können."
+msgstr ""
+"Dies sind die Produkte, die mit dieser Regel beansprucht werden können."
 
 #. module: sale_loyalty
 #. odoo-python
@@ -590,6 +585,16 @@ msgstr "Verwendet:"
 #. module: sale_loyalty
 #. odoo-python
 #: code:addons/sale_loyalty/models/sale_order.py:0
+msgid ""
+"You don't have enough coupon points to proceed. Please check your applied "
+"rewards and coupon balance. "
+msgstr ""
+"Sie haben nicht genügend Gutscheinpunkte, um fortzufahren. Prüfen Sie Ihre "
+"eingelösten Prämien und Ihr Gutschein-Guthaben. "
+
+#. module: sale_loyalty
+#. odoo-python
+#: code:addons/sale_loyalty/models/sale_order.py:0
 msgid "You don't have the required product quantities on your sales order."
 msgstr ""
 "Sie haben nicht die erforderlichen Produktmengen in Ihrem Verkaufsauftrag."
@@ -614,6 +619,3 @@ msgstr "order_id"
 #~ msgstr ""
 #~ "Ein Minimum von %(amount)s%(currency)s sollte gekauft werden, um die "
 #~ "Belohnung zu erhalten"
-
-#~ msgid "Free Product - %(product)s"
-#~ msgstr "Gratisprodukt - %(product)s"

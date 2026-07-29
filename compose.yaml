@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-odoo19}
+name: ${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-2}
 
 services:
   db:
@@ -17,7 +17,25 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  accounting-source-db:
+    profiles: ["accounting-compat"]
+    image: ${ACCOUNTING_SOURCE_POSTGRES_IMAGE:-pgvector/pgvector:pg16-bookworm}
+    restart: "no"
+    environment:
+      POSTGRES_DB: ${ACCOUNTING_SOURCE_POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${ACCOUNTING_SOURCE_POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${ACCOUNTING_SOURCE_POSTGRES_PASSWORD:-odoo}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - accounting-source-postgres-data:/var/lib/postgresql/data
+
   odoo:
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
     build:
       context: .
       dockerfile: Dockerfile
@@ -37,10 +55,15 @@ services:
       ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
-      ODOO_HTTP_PORT: ${ODOO_HTTP_PORT:-8069}
-      ODOO_GEVENT_PORT: ${ODOO_GEVENT_PORT:-8072}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+      ODOO_HTTP_PORT: 8069
+      ODOO_GEVENT_PORT: 8072
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
-      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons}
+      ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
     ports:
       - "${ODOO_HTTP_PORT:-8069}:8069"
       - "${ODOO_GEVENT_PORT:-8072}:8072"
@@ -53,13 +76,53 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
 
   init-db:
     profiles: ["init"]
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
+      ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
+      ODOO_MAX_CRON_THREADS: 0
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+    command:
+      - odoo
+      - --config=/etc/odoo/odoo.conf
+      - --database=${ODOO_INIT_DB:-odoo_dev}
+      - --init=${ODOO_INIT_MODULES:-rebuild_account_migration}
+      - --without-demo=true
+      - --stop-after-init
+    restart: "no"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ./usl-online-dump:/mnt/accounting-source:ro
+
+  test:
+    profiles: ["test"]
     build:
       context: .
       dockerfile: Dockerfile
-      target: base
+      target: test
       args:
         PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.12-slim-bookworm}
     depends_on:
@@ -75,18 +138,18 @@ services:
       ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
-      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons}
-    command:
-      - odoo
-      - --config=/etc/odoo/odoo.conf
-      - --database=${ODOO_INIT_DB:-odoo19}
-      - --init=${ODOO_INIT_MODULES:-base}
-      - --without-demo=true
-      - --stop-after-init
+      ODOO_MAX_CRON_THREADS: 0
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
     restart: "no"
     volumes:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
 
   devcontainer:
     profiles: ["devcontainer"]
@@ -110,8 +173,12 @@ services:
       ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-admin}
       ODOO_DATA_DIR: /var/lib/odoo
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
-      ODOO_ADDONS_PATH: /workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons
+      ODOO_MAX_CRON_THREADS: 0
+      ODOO_ADDONS_PATH: /workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons
       ODOO_DEV_MODE: ${ODOO_DEV_MODE:-reload,xml,qweb}
+      USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/workspace/odoo/docs/users}
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
     command: sleep infinity
     volumes:
       - .:/workspace/odoo:cached
@@ -119,5 +186,6 @@ services:
       - odoo-data:/var/lib/odoo
 volumes:
   postgres-data:
+  accounting-source-postgres-data:
   odoo-data:
   odoo-dev-home:

@@ -7,15 +7,14 @@
 # Jeffery CHEN <jeffery9@gmail.com>, 2019
 # inspur qiuguodong <qiuguodong@inspur.com>, 2019
 # Felix Yuen <fyu@odoo.com>, 2019
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 06:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-09-16 15:27+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/payment_paypal/zh_Hans/>\n"
 "Language: zh_CN\n"
@@ -23,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_paypal
 #: model_terms:ir.ui.view,arch_db:payment_paypal.payment_provider_form
@@ -172,9 +171,8 @@ msgstr "该支付提供商的技术代码。"
 #. module: payment_paypal
 #. odoo-python
 #: code:addons/payment_paypal/controllers/main.py:0
-#, fuzzy
 msgid "Unable to verify the payment data"
-msgstr "无法验证付款数据"
+msgstr ""
 
 #. module: payment_paypal
 #: model_terms:ir.ui.view,arch_db:payment_paypal.payment_provider_form
@@ -186,45 +184,3 @@ msgstr "网络钩子识别码"
 #: code:addons/payment_paypal/models/payment_provider.py:0
 msgid "You must have an HTTPS connection to generate a webhook."
 msgstr "必须使用 HTTPS 连接才能生成网络钩子。"
-
-#~ msgid ""
-#~ "<br/><br/>\n"
-#~ "                Thanks,<br/>\n"
-#~ "                <b>The Odoo Team</b>"
-#~ msgstr ""
-#~ "<br/><br/>\n"
-#~ "                谢谢，<br/>\n"
-#~ "                <b>Odoo团队</b>"
-
-#~ msgid ""
-#~ "Hello,\n"
-#~ "                <br/><br/>\n"
-#~ "                You have received a payment through PayPal.<br/>\n"
-#~ "                Kindly follow the instructions given by PayPal to create "
-#~ "your account.<br/>\n"
-#~ "                Then, help us complete your Paypal credentials in Odoo."
-#~ "<br/><br/>"
-#~ msgstr ""
-#~ "你好，\n"
-#~ "                <br/><br/>\n"
-#~ "               您已通过PayPal收到付款。<br/>\n"
-#~ "                请按照PayPal提供的说明创建您的帐户。<br/>\n"
-#~ "                然后，帮助我们在Odoo中完成您的Paypal凭证。<br/><br/>"
-
-#~ msgid "Merchant Account ID"
-#~ msgstr "商家帐户ID"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "PDT身份令牌"
-
-#~ msgid "Paypal"
-#~ msgstr "Paypal"
-
-#~ msgid "Paypal Instant Payment Notification"
-#~ msgstr "Paypal 即时支付提醒"
-
-#~ msgid "Set Paypal credentials"
-#~ msgstr "设置Paypal凭据"
-
-#~ msgid "Use IPN"
-#~ msgstr "使用 IPN"

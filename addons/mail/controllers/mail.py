@@ -9,7 +9,8 @@ from werkzeug.urls import url_encode
 
 from odoo import _, http
 from odoo.exceptions import AccessError
-from odoo.http import STATIC_CACHE, Response, request
+from odoo.http import Response, request
+from odoo.http.stream import STATIC_CACHE
 from odoo.tools import consteq
 from odoo.tools.misc import file_open
 

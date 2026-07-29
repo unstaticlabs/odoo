@@ -77,8 +77,10 @@ patch(ProductScreen.prototype, {
         const res = this.pos.findTable(buffer);
         this.state.isValidBuffer = Boolean(res);
     },
-    async clickNew() {
-        await this.pos.syncAllOrders({ orders: [this.pos.getOrder()] });
-        this.pos.showDefault();
+    async addProductToOrder(product) {
+        const allocation = this.autoCourseAllocation(product);
+        const result = await super.addProductToOrder(product);
+        this.cleanAutoCourseAllocation(result, allocation);
+        return result;
     },
 });

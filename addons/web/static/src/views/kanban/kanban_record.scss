@@ -7,7 +7,7 @@
     position: relative;
     display: flex;
     align-items: stretch;
-    min-width: 150px;
+    min-width: var(--KanbanRecord-min-width, 150px);
     margin: 0 0 (-$border-width);
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -16,6 +16,10 @@
 
     &:first-of-type {
         margin-top: 1px;
+    }
+
+    &:has(.ribbon) {
+        min-height: var(--Ribbon-wrapper-width);
     }
 
     // do not break wrap inside buttons
@@ -49,7 +53,7 @@
     &:where(:not(.row)) {
         flex-flow: column;
 
-        main {
+        .o_record_main {
             flex-grow: 1;
         }
 
@@ -58,7 +62,7 @@
         }
     }
 
-    > main {
+    > .o_record_main {
         display: flex;
         flex-flow: column;
         min-width: 0;
@@ -69,7 +73,7 @@
         }
     }
 
-    > footer, > main > footer {
+    > footer, > .o_record_main > footer {
         display: flex;
         align-items: center;
         column-gap: var(--Card-Footer-gap, #{map-get($spacers, 2)});

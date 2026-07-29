@@ -1,7 +1,11 @@
 import { registries, chartHelpers } from "@odoo/o-spreadsheet";
 import { _t } from "@web/core/l10n/translation";
 import { OdooChart } from "./odoo_chart";
-import { onOdooChartItemHover, onOdooChartItemClick } from "./odoo_chart_helpers";
+import {
+    onOdooChartItemHover,
+    onOdooChartItemClick,
+    changeTypeToSpreadsheetChart,
+} from "./odoo_chart_helpers";
 
 const { chartRegistry } = registries;
 
@@ -46,7 +50,6 @@ chartRegistry.add("odoo_pyramid", {
 });
 
 function createOdooChartRuntime(chart, getters) {
-    const background = chart.background || "#FFFFFF";
     const { datasets, labels } = chart.dataSource.getData();
 
     const pyramidDatasets = [];
@@ -83,12 +86,16 @@ function createOdooChartRuntime(chart, getters) {
                 title: getChartTitle(definition, getters),
                 legend: getBarChartLegend(definition, chartData),
                 tooltip: getPyramidChartTooltip(definition, chartData),
-                chartShowValuesPlugin: getPyramidChartShowValues(definition, chartData),
+                chartShowValuesPlugin: getPyramidChartShowValues(
+                    changeTypeToSpreadsheetChart(definition),
+                    chartData
+                ),
+                background: { color: chart.background },
             },
             onHover: onOdooChartItemHover(),
             onClick: onOdooChartItemClick(getters, chart),
         },
     };
 
-    return { background, chartJsConfig: config };
+    return { chartJsConfig: config };
 }

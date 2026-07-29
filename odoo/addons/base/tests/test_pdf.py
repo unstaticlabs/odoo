@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests.common import TransactionCase
+from odoo.addons.base.tests.files import PDF_RAW, KIDS_PDF_RAW
+from odoo.tests.common import tagged, TransactionCase
 from odoo.tools import pdf
-from odoo.tools.misc import file_open
 from odoo.tools.pdf import reshape_text
 import io
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPdf(TransactionCase):
     """ Tests on pdf. """
 
     def setUp(self):
         super().setUp()
-        self.file = file_open('base/tests/minimal.pdf', 'rb').read()
+        self.file = PDF_RAW
         self.minimal_reader_buffer = io.BytesIO(self.file)
         self.minimal_pdf_reader = pdf.OdooPdfFileReader(self.minimal_reader_buffer)
 
@@ -68,9 +69,9 @@ class TestPdf(TransactionCase):
         self.assertEqual(len(attachments), 2)
 
     def test_odoo_pdf_file_reader_with_nested_attachments(self):
-        with file_open('base/tests/multi_kids_embedded.pdf', 'rb') as file:
-            pdf_reader = pdf.OdooPdfFileReader(file, strict=False)
-            attachments = list(pdf_reader.getAttachments())
+        reader_buffer = io.BytesIO(KIDS_PDF_RAW)
+        pdf_reader = pdf.OdooPdfFileReader(reader_buffer, strict=False)
+        attachments = list(pdf_reader.getAttachments())
         self.assertEqual(len(attachments), 2)
 
     def test_merge_pdf(self):
@@ -84,7 +85,7 @@ class TestPdf(TransactionCase):
         merged_reader_buffer.close()
 
     def test_branded_file_writer(self):
-        # It's not easy to create a PDF with PyPDF2, so instead we copy minimal.pdf with our custom pdf writer
+        # It's not easy to create a PDF with PyPDF2, so instead we copy PDF with our custom pdf writer
         pdf_writer = pdf.PdfFileWriter()  # BrandedFileWriter
         pdf_writer.cloneReaderDocumentRoot(self.minimal_pdf_reader)
         writer_buffer = io.BytesIO()

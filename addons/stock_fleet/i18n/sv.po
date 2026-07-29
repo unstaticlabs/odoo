@@ -2,16 +2,17 @@
 # This file contains the translation of the following modules:
 # * stock_fleet
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 23:55+0000\n"
-"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-13 18:36+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_fleet/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -37,6 +38,21 @@ msgstr "%(volume_capacity)s %(volume_uom)s"
 #: code:addons/stock_fleet/models/fleet_vehicle_model.py:0
 msgid "%(weight_capacity)s %(weight_uom)s"
 msgstr "%(weight_capacity)s %(weight_uom)s"
+
+#. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-cubes text-primary me-2\" title=\"Location\"/>"
+msgstr ""
+
+#. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-long-arrow-right mx-2\" title=\"Arrow\"/>"
+msgstr ""
+
+#. module: stock_fleet
+#: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_kanban
+msgid "<i class=\"fa fa-truck text-primary me-2\" title=\"Vehicle\"/>"
+msgstr ""
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.view_picking_type_form
@@ -99,6 +115,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__display_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_warehouse__display_name
+#, fuzzy
 msgid "Display Name"
 msgstr "Visningsnamn"
 
@@ -152,6 +169,7 @@ msgstr "Grafvisning"
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__id
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_warehouse__id
+#, fuzzy
 msgid "ID"
 msgstr "ID"
 
@@ -173,7 +191,7 @@ msgstr ""
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity
 msgid "Max Weight"
-msgstr "Maxvikt"
+msgstr "Max Vikt"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -192,8 +210,9 @@ msgstr ""
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_picking_type
+#, fuzzy
 msgid "Picking Type"
-msgstr "Plockningstyp"
+msgstr "Plocktyp"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -227,8 +246,9 @@ msgstr ""
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
+#, fuzzy
 msgid "Third Party Provider"
-msgstr ""
+msgstr "Extern leverantör"
 
 #. module: stock_fleet
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_filter
@@ -300,6 +320,7 @@ msgstr "Måttenhet för volym etikett"
 
 #. module: stock_fleet
 #: model:ir.model,name:stock_fleet.model_stock_warehouse
+#, fuzzy
 msgid "Warehouse"
 msgstr "Lagerlokal"
 
@@ -310,14 +331,15 @@ msgstr "Vikt"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__used_weight_percentage
+#, fuzzy
 msgid "Weight %"
-msgstr ""
+msgstr "Vikt %"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_fleet_vehicle_model_category__weight_capacity_uom_name
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking_batch__weight_uom_name
 msgid "Weight unit of measure label"
-msgstr "Etikett för måttenheten vikt"
+msgstr "Vikt måttenhet etikett"
 
 #. module: stock_fleet
 #: model:ir.model.fields,field_description:stock_fleet.field_stock_picking__zip
@@ -328,6 +350,3 @@ msgstr "Postnummer"
 #: model_terms:ir.ui.view,arch_db:stock_fleet.stock_picking_batch_form
 msgid "semi-truck"
 msgstr ""
-
-#~ msgid "Inventory Locations"
-#~ msgstr "Inventeringsställe"

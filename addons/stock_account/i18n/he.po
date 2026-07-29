@@ -16,17 +16,18 @@
 # Roy Sayag, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
 # hed shefer <hed@laylinetech.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 10:46+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:54+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
@@ -34,7 +35,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -173,8 +174,8 @@ msgstr "שורת חשבון אנליטית"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "תכניות אנליטיות"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -221,6 +222,12 @@ msgid "Bacon"
 msgstr "בייקון"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -245,10 +252,6 @@ msgstr "מקור עלות המכר"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "חברות"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -536,9 +539,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "מזהה / סיבה להתאמת מלאי"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "איתורי מלאי"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -814,8 +823,8 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "אנליסטים כמותיים"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1183,220 +1192,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "units"
 msgstr "יחידות"
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "ידני: הרישומים החשבונאיים להערכת המלאי אינם מתפרסמים באופן אוטומטי.\n"
-#~ "אוטומטי: רישום חשבונאי נוצר באופן אוטומטי כדי להעריך את המלאי כאשר מוצר "
-#~ "נכנס או עוזב את החברה.\n"
-#~ "        "
-
-#~ msgid " Product cost updated from %(previous)s to %(new_cost)s."
-#~ msgstr " עלות המוצר התעדכנה מ %(previous)s ל %(new_cost)s."
-
-#~ msgid ""
-#~ "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
-#~ msgstr "%(user)s שינה את המחיר מ %(previous)s ל %(new_price)s - %(product)s"
-
-#~ msgid "Account Move"
-#~ msgstr "תנועת חשבון"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "מאפייני חשבון מלאי"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "רשומות חשבונאיות"
-
-#~ msgid "Automated"
-#~ msgstr "אוטומטי"
-
-#~ msgid "Cancel"
-#~ msgstr "בטל"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "לא ניתן למצוא חשבון קלט מלאי עבור המוצר %s. עליך להגדיר אחד בקטגוריה של "
-#~ "המוצר, או  במיקום, לפני עיבוד פעולה זו."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "לא ניתן למצוא חשבון פלט מלאי עבור המוצר %s. עליך להגדיר אחד בקטגוריה של "
-#~ "המוצר,או במיקום, לפני עיבוד פעולה זו."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "שינוי שיטת העלות שלך הוא שינוי חשוב שישפיע על הערכת שווי המלאי שלך. האם "
-#~ "אתה בטוח שברצונך לבצע שינוי זה?"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "שגיאת תצורה. אנא הגדר את חשבון ההפרש במחיר במוצר או בקטגוריה שלו כדי לבצע "
-#~ "את הפעולה."
-
-#~ msgid "Costing method change for product category %s: from %s to %s."
-#~ msgstr "שינוי שיטת תמחיר עבור קטגוריית מוצרים %s: מ %s ל %s."
-
-#~ msgid "Counterpart Account"
-#~ msgstr "חשבון העמית"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "יחידת מידה ברירת מחדל המשמשת לביצוע כל פעולות המלאי."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "עקב שינוי קטגוריית המוצר (מ-%s ל %s), שיטת התמחור השתנתה עבור תבנית מוצר "
-#~ "%s: מ %s ל %s."
-
-#~ msgid "Group by..."
-#~ msgstr "קבץ לפי..."
-
-#~ msgid "Incoming"
-#~ msgstr "נכנס"
-
-#~ msgid "Invoice Line"
-#~ msgstr "שורת חשבונית"
-
-#~ msgid "Journal"
-#~ msgstr "יומן"
-
-#~ msgid "Linked To"
-#~ msgstr "מקושר ל"
-
-#~ msgid "New value"
-#~ msgstr "ערך חדש"
-
-#~ msgid "Other Info"
-#~ msgstr "מידע נוסף"
-
-#~ msgid "Outgoing"
-#~ msgstr " יוצא"
-
-#~ msgid "Product Template"
-#~ msgstr "תבנית מוצר "
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "ערך מוצר שונה באופן ידני (מ %s ל %s)"
-
-#~ msgid "Quantity"
-#~ msgstr "כמות"
-
-#~ msgid "Reason"
-#~ msgstr "סיבה"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "כמות שנותרה"
-
-#~ msgid "Return Picking"
-#~ msgstr "החזר ליקוט"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "חשבון מלאי נכנס"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "חשבון מלאי יוצא"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "היסטורית כמות מלאי "
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "חשבון הערכת שווי מלאי (נכנס)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "חשבון הערכת שווי מלאי (יוצא)"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "שכבת הערכת שווי מלאי"
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "שורות התנועה אינן נמצאות במצב עקבי: חלקן נכנסות ואחרות עוזבות את החברה."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "שורות התנועה אינן נמצאות במצב עקבי: הן מבצעות תנועה בין חברתית בצעד בודד "
-#~ "בזמן שהם צריכות לעבור דרך מיקום מעבר בין חברתי."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "שורות התנועה אין במצב עקבי: הן אינן חולקות את אותו מקור או יעד חברה."
-
-#~ msgid "Unit Value"
-#~ msgstr "ערך יחידה"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "ממשמש עבור הערכת מלאי בזמן אמת. כאשר מוגדר מיקום וירטואלי (סוג שאינו "
-#~ "פנימי), חשבון זה משמש להחזיק את ערך המוצרים המועברים ממיקום פנימי למיקום "
-#~ "זה, במקום בחשבון המלאי הכללי שנקבע עבור המוצר. אין לכך השפעה על מיקומים "
-#~ "פנימיים."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "משמש עבור הערכת מלאי בזמן אמת. כאשר הוא מוגדר במיקום וירטואלי (סוג שאינו "
-#~ "פנימי), חשבון זה ישמש לשמירה על ערך המוצרים שמועברים מחוץ למיקום זה "
-#~ "ולמיקומו הפנימי, במקום בחשבון הפלט הכללי של המלאי שמוגדר למוצר. אין לכך "
-#~ "השפעה על מיקומים פנימיים."
-
-#~ msgid "Valuation method change for product category %s: from %s to %s."
-#~ msgstr "שינוי שיטת הערכת שווי עבור קטגוריית מוצרים %s: מ %s ל %s."
-
-#~ msgid "Warning"
-#~ msgstr "אזהרה"
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "אין תיעוד ביומן המלאי המוגדר בקטגוריית המוצרים שלך, בדוק אם התקנת טבלת "
-#~ "חשבונות."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "אין לך חשבון הערכה של מלאי המוגדר בקטגוריית המוצרים שלך. עליך להגדיר אחד "
-#~ "לפני עיבוד פעולה זו."
-
-#~ msgid "by"
-#~ msgstr "על ידי"
-
-#~ msgid "for"
-#~ msgstr "ל"

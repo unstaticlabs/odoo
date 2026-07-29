@@ -1,85 +1,37 @@
-import { fields } from "@mail/core/common/record";
+import { fields } from "@mail/model/export";
 import { Thread } from "@mail/core/common/thread_model";
+import { convertBrToLineBreak } from "@mail/utils/common/format";
 
-import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { url } from "@web/core/utils/urls";
 
 patch(Thread.prototype, {
     setup() {
         super.setup();
+        this.country_id = fields.One("res.country");
         this.livechat_end_dt = fields.Datetime();
-        this.livechat_lang_id = fields.One("res.lang");
-        this.livechat_operator_id = fields.One("res.partner");
-        this.livechat_conversation_tag_ids = fields.Many("im_livechat.conversation.tag");
-        this.chatbot = fields.One("Chatbot");
+        this.livechat_note = fields.Html();
+        /** @type {string|undefined} */
+        this.livechatNoteText = fields.Attr(undefined, {
+            compute() {
+                if (this.livechat_note !== undefined) {
+                    return convertBrToLineBreak(this.livechat_note || "");
+                }
+                return this.livechatNoteText;
+            },
+        });
+        /** @type {"no_answer"|"no_agent"|"no_failure"|"escalated"|undefined} */
+        this.livechat_outcome = undefined;
         this.livechatVisitorMember = fields.One("discuss.channel.member", {
             compute() {
-                if (this.channel_type !== "livechat") {
+                if (this.channel?.channel_type !== "livechat") {
                     return;
                 }
-                // For livechat threads, the correspondent is the first
-                // channel member that is not the operator.
-                const orderedChannelMembers = [...this.channel_member_ids].sort(
-                    (a, b) => a.id - b.id
-                );
-                const isFirstMemberOperator = orderedChannelMembers[0]?.partner_id?.eq(
-                    this.livechat_operator_id
-                );
-                const visitor = isFirstMemberOperator
-                    ? orderedChannelMembers[1]
-                    : orderedChannelMembers[0];
-                return visitor;
+                return [...this.channel.channel_member_ids]
+                    .sort((a, b) => a.id - b.id)
+                    .find((member) => member.livechat_member_type === "visitor");
             },
         });
-        /** @type {true|undefined} */
-        this.open_chat_window = fields.Attr(undefined, {
-            /** @this {import("models").Thread} */
-            onUpdate() {
-                if (this.open_chat_window) {
-                    this.open_chat_window = undefined;
-                    this.openChatWindow({ focus: true });
-                }
-            },
-        });
-    },
-    get autoOpenChatWindowOnNewMessage() {
-        return (
-            (this.channel_type === "livechat" &&
-                !this.store.chatHub.compact &&
-                this.self_member_id) ||
-            super.autoOpenChatWindowOnNewMessage
-        );
-    },
-    get showCorrespondentCountry() {
-        if (this.channel_type === "livechat") {
-            return (
-                this.correspondent?.livechat_member_type === "visitor" &&
-                Boolean(this.correspondentCountry)
-            );
-        }
-        return super.showCorrespondentCountry;
-    },
-    get typesAllowingCalls() {
-        return super.typesAllowingCalls.concat(["livechat"]);
-    },
-
-    get isChatChannel() {
-        return this.channel_type === "livechat" || super.isChatChannel;
-    },
-
-    get allowDescription() {
-        return this.channel_type === "livechat" || super.allowDescription;
-    },
-
-    get composerDisabled() {
-        return this.channel_type === "livechat" && this.livechat_end_dt;
-    },
-
-    get composerDisabledText() {
-        return this.channel_type === "livechat" && this.livechat_end_dt
-            ? _t("This livechat conversation has ended.")
-            : "";
     },
 
     get transcriptUrl() {
@@ -91,7 +43,7 @@ patch(Thread.prototype, {
      * @param {import("models").Persona} persona
      */
     getPersonaName(persona) {
-        if (this.channel_type === "livechat" && persona?.user_livechat_username) {
+        if (this.channel?.channel_type === "livechat" && persona?.user_livechat_username) {
             return persona.user_livechat_username;
         }
         return super.getPersonaName(persona);

@@ -4,8 +4,7 @@ import itertools
 import random
 from collections import defaultdict
 from functools import partial
-
-from pytz import timezone
+from zoneinfo import ZoneInfo
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -165,6 +164,13 @@ class SaleOrder(models.Model):
         ).coupon_id.sudo().unlink()
         # Add/remove the points to our coupons
         for coupon, change in self.filtered(lambda s: s.state != 'sale')._get_point_changes().items():
+            if change < 0 and abs(change) > coupon.points:
+                raise ValidationError(
+                    _(
+                        "You don't have enough coupon points to proceed. Please check your applied"
+                        " rewards and coupon balance. "
+                    )
+                )
             coupon.points += change
         res = super().action_confirm()
         # Prioritize any action from super()
@@ -692,7 +698,8 @@ class SaleOrder(models.Model):
         self.ensure_one()
         return (
             self.company_id.partner_id.tz
-            or self.env['ir.config_parameter'].sudo().get_param('loyalty.timezone', 'UTC')
+            or self.env['ir.config_parameter'].sudo().get_str('loyalty.timezone')
+            or 'UTC'
         )
 
     def _get_confirmed_tx_create_date(self):
@@ -708,7 +715,7 @@ class SaleOrder(models.Model):
         if confirmed_txs_dates:
             # If order is getting confirmed, use the earliest finalized transaction's create date
             tx_date = min(confirmed_txs_dates)
-            return tx_date.astimezone(timezone(order_tz)).date()
+            return tx_date.astimezone(ZoneInfo(order_tz)).date()
         return fields.Date.context_today(self.with_context(tz=order_tz))
 
     def _get_applicable_program_points(self, domain=None):
@@ -1541,7 +1548,7 @@ class SaleOrder(models.Model):
         super()._validate_order()
         if self.amount_total or not self.reward_amount:
             return
-        auto_invoice = self.env['ir.config_parameter'].get_param('sale.automatic_invoice')
+        auto_invoice = self.env['ir.config_parameter'].get_bool('sale.automatic_invoice')
         if str2bool(auto_invoice):
             # create an invoice for order with zero total amount and automatic invoice enabled
             self._force_lines_to_invoice_policy_order()
@@ -1555,11 +1562,11 @@ class SaleOrder(models.Model):
                 default_template_param = (
                     self.env['ir.config_parameter']
                     .sudo()
-                    .get_param('sale.default_invoice_email_template', False)
+                    .get_int('sale.default_invoice_email_template')
                 )
 
                 if default_template_param:
-                    mail_template = self.env['mail.template'].sudo().browse(int(default_template_param))
+                    mail_template = self.env['mail.template'].sudo().browse(default_template_param)
                     if mail_template.exists():
                         send_context['mail_template'] = mail_template
 

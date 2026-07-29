@@ -184,8 +184,12 @@ class TestPortalTimesheet(TestProjectSharingCommon):
         self.project_portal.collaborator_ids = [
             Command.create({"partner_id": self.partner_portal.id}),
         ]
+
+        def store_fields(res: Store.FieldList):
+            res.from_method("_store_thread_fields", request_list=["followers"])
+
         store = Store()
-        self.project_portal.with_user(user)._thread_to_store(store, [], request_list=["followers"])
+        store.add(self.project_portal.with_user(user), store_fields, as_thread=True)
         self.assertEqual(
             store.get_result()["mail.thread"][0]["collaborator_ids"],
             [self.partner_portal.id],

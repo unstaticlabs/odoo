@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from markupsafe import Markup
@@ -10,7 +9,7 @@ from odoo.addons.im_livechat.tests.common import TestGetOperatorCommon
 from odoo.tools import html2plaintext
 
 
-@tests.tagged('post_install', '-at_install', 'is_tour')
+@tests.tagged("is_tour")
 class TestLivechatChatbotUICommon(TestGetOperatorCommon, TestWebsiteLivechatCommon, ChatbotCase):
     def setUp(self):
         super().setUp()
@@ -71,7 +70,6 @@ class TestLivechatChatbotUICommon(TestGetOperatorCommon, TestWebsiteLivechatComm
         self.start_tour("/contactus", "website_livechat.chatbot_redirect")
 
 
-@tests.tagged("post_install", "-at_install")
 class TestLivechatChatbotUI(TestLivechatChatbotUICommon):
 
     def _check_complete_chatbot_flow_result(self):
@@ -101,6 +99,11 @@ class TestLivechatChatbotUI(TestLivechatChatbotUICommon):
             ("'No, you won't get my email!' does not look like a valid email. Can you please try again?", operator, False),
             ("okfine@fakeemail.com", False, False),
             ("Your email is validated, thank you!", operator, False),
+            ("Can you give us your phone number please?", operator, False),
+            ("123456", False, False),
+            ("'123456' does not look like a valid phone number. Can you please try again?", operator, False),
+            ("+919876543210", False, False),
+            ("Your phone number is validated. thank you!", operator, False),
             ("Would you mind providing your website address?", operator, False),
             ("https://www.fakeaddress.com", False, False),
             ("Great, do you want to leave any feedback for us to improve?", operator, False),
@@ -128,7 +131,7 @@ class TestLivechatChatbotUI(TestLivechatChatbotUICommon):
             ("I will transfer you to a human.", operator, False),
             (
                 'invited <a href="#" data-oe-model="res.partner" data-oe-id="'
-                f'{operator_member.partner_id.id}">@El Deboulonnator</a> to the channel',
+                f'{operator_member.partner_id.id}">@El Deboulonnator</a> to the conversation',
                 self.chatbot_script.operator_partner_id,
                 False,
             ),
@@ -396,7 +399,6 @@ class TestLivechatChatbotUI(TestLivechatChatbotUICommon):
         self.start_tour("/", "website_livechat.chatbot_restart_on_feedback_tour")
 
 
-@tests.tagged("post_install", "-at_install")
 class TestLivechatChatbotUIMoblie(TestLivechatChatbotUICommon):
     browser_size = '375x667'
 

@@ -5,15 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:56+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:04+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
@@ -27,8 +28,9 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:iap.service,description:partner_autocomplete.iap_service_partner_autocomplete
+#, fuzzy
 msgid "Automatically enrich your contact base with corporate data."
-msgstr ""
+msgstr "Автоматично доповнюйте базу контактів даними про компанії."
 
 #. module: partner_autocomplete
 #. odoo-javascript
@@ -38,8 +40,9 @@ msgstr "Отримати більше кредитів"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "Компанії"
+#, fuzzy
+msgid "Company"
+msgstr "Компанія"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -72,8 +75,9 @@ msgstr "Залучення виконано"
 
 #. module: partner_autocomplete
 #: model:iap.service,unit_name:partner_autocomplete.iap_service_partner_autocomplete
+#, fuzzy
 msgid "Enrichments"
-msgstr ""
+msgstr "Заповнення"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_ir_http
@@ -120,8 +124,9 @@ msgstr "Недостатньо кредитів для автозавершен�
 #. module: partner_autocomplete
 #. odoo-javascript
 #: code:addons/partner_autocomplete/static/src/xml/partner_autocomplete.xml:0
+#, fuzzy
 msgid "Search Worldwide 🌎"
-msgstr ""
+msgstr "Пошук по всьому світу 🌎"
 
 #. module: partner_autocomplete
 #. odoo-javascript
@@ -145,41 +150,6 @@ msgstr "Тестовий режим"
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/res_partner.py:0
+#, fuzzy
 msgid "Unable to enrich company (no credit was consumed)."
-msgstr ""
-
-#~ msgid "Additional info"
-#~ msgstr "Додаткова інформація"
-
-#~ msgid "Company auto-completed by Odoo Partner Autocomplete Service"
-#~ msgstr "Компанія автоматично заповнена службою автозаповнення Odoo Partner"
-
-#~ msgid "Company database ID"
-#~ msgstr "ID бази даних компанії"
-
-#~ msgid "Created by"
-#~ msgstr "Створив"
-
-#~ msgid "Created on"
-#~ msgstr "Створено"
-
-#~ msgid "Is synched"
-#~ msgstr "Синхронізовано"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Востаннє оновив"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Останнє оновлення"
-
-#~ msgid "Partner"
-#~ msgstr "Партнер"
-
-#~ msgid "Partner Autocomplete Sync"
-#~ msgstr "Синхронізація автозаповнення партнера"
-
-#~ msgid "Partner created by Odoo Partner Autocomplete Service"
-#~ msgstr "Партнер, створений послугою автозаповнення партнера Odoo"
-
-#~ msgid "Placeholder"
-#~ msgstr "Заповнювач"
+msgstr "Не вдалося отримати компанію (кредит не був використаний)."

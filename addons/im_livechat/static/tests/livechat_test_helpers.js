@@ -11,6 +11,7 @@ import {
 import { DiscussChannel } from "./mock_server/mock_models/discuss_channel";
 import { DiscussChannelMember } from "./mock_server/mock_models/discuss_channel_member";
 import { LivechatChannel } from "./mock_server/mock_models/im_livechat_channel";
+import { LivechatChannelMemberHistory } from "./mock_server/mock_models/im_livechat_channel_member_history";
 import { LivechatChannelRule } from "./mock_server/mock_models/livechat_channel_rule";
 import { Im_LivechatExpertise } from "./mock_server/mock_models/im_livechat_expertise";
 import { ResGroupsPrivilege } from "./mock_server/mock_models/res_groups_privilege";
@@ -28,6 +29,7 @@ export const livechatModels = {
     DiscussChannel,
     DiscussChannelMember,
     LivechatChannel,
+    LivechatChannelMemberHistory,
     LivechatChannelRule,
     Im_LivechatExpertise,
     IrWebSocket,

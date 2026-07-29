@@ -6,15 +6,15 @@
 # Martin Trigaux, 2022
 # Niyas Raphy, 2023
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 22:07+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-10-13 12:16+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "website_slides_survey/ar/>\n"
 "Language: ar\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_slides_survey
 #: model:ir.model.fields,field_description:website_slides_survey.field_slide_channel__members_certified_count
@@ -57,12 +57,11 @@ msgid ""
 "''\">Basics of Gardening</t>.<br/><br/>\n"
 "        Don't hesitate to enroll again!\n"
 "        </p><div style=\"margin: 16px 0px 16px 0px;\">\n"
-"            <a t-att-"
-"href=\"(object.slide_partner_id.channel_id.website_absolute_url)\" t-attf-"
-"style=\"background-color: {{user.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
-"{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; "
-"font-size:13px;\">\n"
+"            <a t-att-href=\"(object.slide_partner_id.channel_id."
+"website_absolute_url)\" t-attf-style=\"background-color: {{user.company_id."
+"email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-"
+"decoration: none; color: {{user.company_id.email_primary_color or "
+"'#FFFFFF'}}; border-radius: 5px; font-size:13px;\">\n"
 "                Enroll now\n"
 "            </a>\n"
 "        </div>\n"
@@ -73,19 +72,18 @@ msgid ""
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        عزيزي <t t-out=\"object.partner_id.name or 'participant' or ''\">"
-"المشارك</t><br/><br/>\n"
+"        عزيزي <t t-out=\"object.partner_id.name or 'participant' or "
+"''\">المشارك</t><br/><br/>\n"
 "        للأسف، لم تنجح في اختبار الشهادة ولم تعد عضواً في الدورة: <t t-"
 "out=\"object.slide_partner_id.channel_id.name or ''\">مبادئ العناية "
 "بالحديقة</t>.<br/><br/>\n"
 "        لا تتردد في التسجيل مجدداً!\n"
 "        </p><div style=\"margin: 16px 0px 16px 0px;\">\n"
-"            <a t-att-href=\""
-"(object.slide_partner_id.channel_id.website_absolute_url)\" t-attf-"
-"style=\"background-color: {{user.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; "
-"font-size:13px;\">\n"
+"            <a t-att-href=\"(object.slide_partner_id.channel_id."
+"website_absolute_url)\" t-attf-style=\"background-color: {{user.company_id."
+"email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-"
+"decoration: none; color: {{user.company_id.email_primary_color or "
+"'#FFFFFF'}}; border-radius: 5px; font-size:13px;\">\n"
 "                سجل الآن\n"
 "            </a>\n"
 "        </div>\n"
@@ -560,6 +558,11 @@ msgid "Shelf"
 msgstr "رف"
 
 #. module: website_slides_survey
+#: model:ir.model,name:website_slides_survey.model_slide_slide
+msgid "Slide"
+msgstr ""
+
+#. module: website_slides_survey
 #: model:ir.model,name:website_slides_survey.model_slide_slide_partner
 msgid "Slide / Partner decorated m2m"
 msgstr "الشريحة / m2m المزين للشريك"
@@ -573,11 +576,6 @@ msgstr "نوع الشريحة"
 #: model:ir.model.fields,help:website_slides_survey.field_survey_user_input__slide_partner_id
 msgid "Slide membership information for the logged in user"
 msgstr "معلومات عضوية الشريحة للمستخدم المسجل دخوله"
-
-#. module: website_slides_survey
-#: model:ir.model,name:website_slides_survey.model_slide_slide
-msgid "Slides"
-msgstr "الشرائح"
 
 #. module: website_slides_survey
 #: model:ir.model.fields,field_description:website_slides_survey.field_survey_user_input__slide_partner_id
@@ -724,38 +722,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_slides_survey.user_profile_content
 msgid "You have not taken any certification yet."
 msgstr "لم تخضع لأي اختبار شهادة بعد."
-
-#~ msgid "- %s (Courses - %s)"
-#~ msgstr "- %s (الدورات - %s) "
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('nbr_certification', "
-#~ "'&gt;', 0)]}\">Finished</span>\n"
-#~ "                <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('nbr_certification', '=', 0)]}\">Certified</span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('nbr_certification', "
-#~ "'&gt;', 0)]}\">تم الإكمال</span>\n"
-#~ "                <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('nbr_certification', '=', 0)]}\">معتمد</span>"
-
-#~ msgid "<span class=\"text-muted\">Certified</span>"
-#~ msgstr "<span class=\"text-muted\">معتمد</span> "
-
-#~ msgid "<span class=\"text-muted\">Finished</span>"
-#~ msgstr "<span class=\"text-muted\">تم الإكمال</span>"
-
-#~ msgid ""
-#~ "Any Survey listed below is currently used as a Course Certification and "
-#~ "cannot be deleted:\n"
-#~ "%s"
-#~ msgstr ""
-#~ "أي استطلاع مدرج أدناه مُستخدَم حالياً كاختبار شهادة الدورة ولا يمكن حذفه:\n"
-#~ "%s "
-
-#~ msgid ""
-#~ "You can create your certification from here or use an existing one. Once "
-#~ "your certification is created, you can still edit it in backend."
-#~ msgstr ""
-#~ "بإمكانك إنشاء شهادتك من هنا أو استخدام واحدة موجودة بالفعل. بمجرد أن قد "
-#~ "تم إنشاء شهادتك، سيكون بإمكانك تحريرها في الواجهة الخلفية. "

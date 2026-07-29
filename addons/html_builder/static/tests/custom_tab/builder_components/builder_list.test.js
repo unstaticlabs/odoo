@@ -1,9 +1,15 @@
-import { addBuilderOption, setupHTMLBuilder } from "@html_builder/../tests/helpers";
+import {
+    addBuilderAction,
+    addBuilderOption,
+    setupHTMLBuilder,
+} from "@html_builder/../tests/helpers";
+import { BuilderAction } from "@html_builder/core/builder_action";
 import { BuilderList } from "@html_builder/core/building_blocks/builder_list";
 import { BaseOptionComponent } from "@html_builder/core/utils";
 import { expect, test, describe } from "@odoo/hoot";
 import { onError, xml } from "@odoo/owl";
 import { contains } from "@web/../tests/web_test_helpers";
+import { press } from "@odoo/hoot-dom";
 
 describe.current.tags("desktop");
 
@@ -199,15 +205,6 @@ test("throws error on wrong properties default value", async () => {
     `);
 });
 
-test("throws error on missing default value with a custom itemShape", async () => {
-    await testBuilderListFaultyProps(`
-        <BuilderList
-            dataAttributeAction="'list'"
-            itemShape="{ a: 'number', b: 'text' }"
-        />
-    `);
-});
-
 test("throws error if itemShape contains reserved key '_id'", async () => {
     await testBuilderListFaultyProps(`
         <BuilderList
@@ -287,10 +284,10 @@ test("do not lose id when adjusting 'selected'", async () => {
     await setupHTMLBuilder(`<div class="test-options-target">b</div>`);
     await contains(":iframe .test-options-target").click();
 
-    await contains(".we-bg-options-container .bl-dropdown-toggle").click();
-    await contains(".o_popover .o-hb-select-dropdown-item").click();
-    await contains(".we-bg-options-container .bl-dropdown-toggle").click();
-    await contains(".o_popover .o-hb-select-dropdown-item").click();
+    await contains(".we-bg-options-container .o-hb-selectMany2X-toggle").click();
+    await contains(".o_select_menu_menu .o-dropdown-item").click();
+    await contains(".we-bg-options-container .o-hb-selectMany2X-toggle").click();
+    await contains(".o_select_menu_menu .o-dropdown-item").click();
     expect(":iframe .test-options-target").toHaveAttribute(
         "data-list",
         JSON.stringify([
@@ -377,8 +374,108 @@ test("can add item with string and integer ids", async () => {
     await contains(":iframe .test-options-target").click();
 
     for (let i = 0; i < 2; i++) {
-        await contains(".we-bg-options-container .bl-dropdown-toggle").click();
-        await contains(".o_popover .o-hb-select-dropdown-item").click();
+        await contains(".we-bg-options-container .o-hb-selectMany2X-toggle").click();
+        await contains(".o_select_menu_menu .o-dropdown-item").click();
     }
-    expect(".we-bg-options-container .bl-dropdown-toggle").toHaveProperty("disabled");
+    expect(".we-bg-options-container .o-hb-selectMany2X-toggle").toHaveProperty("disabled");
+});
+
+test("not editable builder list option", async () => {
+    addBuilderAction({
+        customAction: class extends BuilderAction {
+            static id = "customAction";
+            getValue({ editingElement: fieldEl }) {
+                return JSON.stringify([
+                    {
+                        id: "test_1",
+                        name: "test 1",
+                        display_name: "test 1",
+                        undeletable: true,
+                        selected: true,
+                    },
+                    {
+                        id: "test_2",
+                        name: "test 2",
+                        display_name: "test 2",
+                        undeletable: true,
+                        selected: false,
+                    },
+                ]);
+            }
+        },
+    });
+    addBuilderOption(
+        class extends BaseOptionComponent {
+            static selector = ".test-options-target";
+            static template = xml`
+                <BuilderList
+                    action="'customAction'"
+                    addItemTitle="'Add'"
+                    itemShape="{ display_name: 'text', selected: 'boolean' }"
+                    isEditable="false"/>`;
+            static components = { BuilderList };
+            static props = ["*"];
+            setup() {
+                this.availableRecords = JSON.stringify([
+                    { id: 1, display_name: "A" },
+                    { id: 2, display_name: "B" },
+                ]);
+            }
+        }
+    );
+    await setupHTMLBuilder(`<div class="test-options-target">b</div>`);
+    await contains(":iframe .test-options-target").click();
+    expect(".we-bg-options-container .builder_list_add_item").toHaveCount(0);
+    expect(".we-bg-options-container .o-hb-input-base[disabled]").toHaveCount(2);
+});
+
+test("drops blank textual entries", async () => {
+    addBuilderOption(
+        class extends BaseOptionComponent {
+            static template = xml`
+            <BuilderList
+                dataAttributeAction="'list'"
+                addItemTitle="'Add'"
+                itemShape="{ display_name: 'text' }"
+                default="{ display_name: 'default' }"/>`;
+            static components = { BuilderList };
+            static props = ["*"];
+            static selector = ".test-options-target-a";
+        }
+    );
+    addBuilderOption(
+        class extends BaseOptionComponent {
+            static template = xml`
+            <BuilderList
+                dataAttributeAction="'list'"
+                addItemTitle="'Add'"
+                itemShape="{ display_name: 'text' }"
+                default="{ display_name: 'default' }"
+                forbidLastItemRemoval="true"/>`;
+            static components = { BuilderList };
+            static props = ["*"];
+            static selector = ".test-options-target-b";
+        }
+    );
+    await setupHTMLBuilder(`
+        <div class="test-options-target-a">a</div>
+        <div class="test-options-target-b">b</div>`);
+
+    // forbidLastItemRemoval="false"
+    await contains(":iframe .test-options-target-a").click();
+    await contains(".we-bg-options-container .builder_list_add_item").click();
+    expect(".we-bg-options-container input").toHaveCount(1);
+
+    await contains(".we-bg-options-container input").clear();
+    await press("enter");
+    expect(".we-bg-options-container input").toHaveCount(0);
+
+    // forbidLastItemRemoval="true"
+    await contains(":iframe .test-options-target-b").click();
+    await contains(".we-bg-options-container .builder_list_add_item").click();
+    expect(".we-bg-options-container input").toHaveCount(1);
+
+    await contains(".we-bg-options-container input").clear();
+    await press("enter");
+    expect(".we-bg-options-container input").toHaveCount(1);
 });

@@ -11,10 +11,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 16:08+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 15:30+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_slides_forum/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -185,11 +185,6 @@ msgid ""
 msgstr ""
 "<span class=\"flex-grow-1\">Hvorfor kan andre personer redigere mine svar/"
 "spørgsmål?</span>"
-
-#. module: website_slides_forum
-#: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_breadcrumb
-msgid "<strong>Forum</strong>"
-msgstr "<strong>Forum</strong>"
 
 #. module: website_slides_forum
 #: model:forum.forum,name:website_slides_forum.forum_forum_demo_channel_0
@@ -570,39 +565,3 @@ msgid ""
 msgstr ""
 "dit svar gives sammen med spørgsmålet, og du forventer flere svar: \"Jeg "
 "bruger _____ til ____. Hvad bruger du?\""
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>Hvad slags spørgsmål kan jeg stille her?</b>"
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>Hvad bør jeg undgå i mine svar?</b>"
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>Hvad bør jeg undgå i mine spørgsmål?</b>"
-
-#~ msgid "<b>Why can other people edit my questions/answers?</b>"
-#~ msgstr "<b>Hvorfor kan andre redigere mine spørgsmål/svar?</b>"
-
-#~ msgid "<i class=\"fa fa-home\"/> Course"
-#~ msgstr "<i class=\"fa fa-home\"/> Kursus"
-
-#~ msgid "Courses Discussions"
-#~ msgstr "Kurser diskussioner"
-
-#~ msgid "Description"
-#~ msgstr "Beskrivelse"
-
-#~ msgid "Forum Page"
-#~ msgstr "Forumside"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Skjul intro"
-
-#~ msgid "Register"
-#~ msgstr "Tilmeld"
-
-#~ msgid "Reviews"
-#~ msgstr "Anmeldelser"
-
-#~ msgid "See all Courses"
-#~ msgstr "Se alle kurser"

@@ -7,7 +7,6 @@
     "description": """
         This bridge module allows the user to input Ecpay information in pos for sending their invoices to the Ecpay system
     """,
-    "website": "https://www.odoo.com",
     'author': 'Odoo S.A.',
     "license": "LGPL-3",
     "depends": [
@@ -17,6 +16,9 @@
     "data": [
         "data/res_partner_data.xml",
         "views/pos_order_view.xml",
+        "receipt/ecpay_certificate_receipt.xml",
+        "receipt/ecpay_transaction_receipt.xml",
+        "receipt/pos_order_receipt.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [

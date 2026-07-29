@@ -158,7 +158,7 @@ patch(PosStore.prototype, {
 
             const converted_line = converted_lines.find((l) => l.id === line.id);
             if (
-                newLine.getProduct().tracking !== "none" &&
+                ["lot", "serial"].includes(newLine.getProduct().tracking) &&
                 (this.pickingType.use_create_lots || this.pickingType.use_existing_lots) &&
                 converted_line.lot_names.length > 0
             ) {
@@ -166,6 +166,7 @@ patch(PosStore.prototype, {
                     useLoadedLots = await ask(this.dialog, {
                         title: _t("SN/Lots Loading"),
                         body: _t("Do you want to load the SN/Lots linked to the Sales Order?"),
+                        cancelLabel: _t("Discard"),
                     });
                     userWasAskedAboutLoadedLots = true;
                 }
@@ -272,6 +273,18 @@ patch(PosStore.prototype, {
     },
 
     async downPaymentSO(saleOrder, isPercentage) {
+        if (!this.config.down_payment_product_id && this.config.raw.down_payment_product_id) {
+            await this.data.read("product.product", [this.config.raw.down_payment_product_id]);
+        }
+        if (!this.config.down_payment_product_id) {
+            this.dialog.add(AlertDialog, {
+                title: _t("No down payment product"),
+                body: _t(
+                    "It seems that you didn't configure a down payment product in your point of sale. You can go to your point of sale settings to choose one."
+                ),
+            });
+            return;
+        }
         const colorClassMap = {
             [DECIMAL.value]: "o_colorlist_item_numpad_color_6",
             Backspace: "o_colorlist_item_numpad_color_1",
@@ -302,7 +315,7 @@ patch(PosStore.prototype, {
         }
 
         const amount = parseFloat(payload);
-        await this.addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage);
+        this.addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage);
     },
     async loadDownPaymentProduct() {
         if (!this.config.down_payment_product_id && this.config.raw.down_payment_product_id) {
@@ -315,15 +328,11 @@ patch(PosStore.prototype, {
                     "It seems that you didn't configure a down payment product in your point of sale. You can go to your point of sale configuration to choose one."
                 ),
             });
-            return false;
-        }
-        return true;
-    },
-    async addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage) {
-        const result = await this.loadDownPaymentProduct();
-        if (!result) {
             return;
         }
+    },
+    addDownPaymentProductOrderlineToOrder(saleOrder, amount, isPercentage) {
+        this.loadDownPaymentProduct();
         const saleOrderLines = saleOrder.order_line.filter((soLine) => !soLine.display_type);
         const baseLines = [];
         for (const saleOrderLine of saleOrderLines) {

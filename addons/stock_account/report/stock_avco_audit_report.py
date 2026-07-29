@@ -61,7 +61,7 @@ LEFT JOIN
 LEFT JOIN
     res_company company ON sm.company_id = company.id
 LEFT JOIN
-    uom_uom um ON um.id = sm.product_uom
+    uom_uom um ON um.id = sm.uom_id
 LEFT JOIN
     uom_uom up ON up.id = pt.uom_id
 WHERE

@@ -11,7 +11,7 @@
     </BuilderRow>
 
     <BuilderRow label.translate="Layout">
-        <BuilderSelect applyTo="'.fa'">
+        <BuilderSelect applyTo="'.fa, .social_media_img'">
             <BuilderSelectItem classAction="'rounded shadow-sm'">Square</BuilderSelectItem>
             <BuilderSelectItem classAction="'rounded-empty-circle shadow-sm'">Circle</BuilderSelectItem>
             <BuilderSelectItem classAction="'rounded-circle shadow-sm'">Disk</BuilderSelectItem>
@@ -20,15 +20,31 @@
     </BuilderRow>
 
     <BuilderRow label.translate="Size">
-        <BuilderSelect applyTo="'.fa'">
-            <BuilderSelectItem classAction="''">Small</BuilderSelectItem>
-            <BuilderSelectItem classAction="'fa-2x'">Medium</BuilderSelectItem>
-            <BuilderSelectItem classAction="'fa-3x'">Big</BuilderSelectItem>
+    <BuilderRange
+        withNumberInput="true"
+        action="'resetSocialMediaIconSize'"
+        applyTo="'.fa, .social_media_img'"
+        styleAction="{ mainParam: '--fa-icon-size', extraClass: 'o_sm_custom_size' }"
+        unit="'px'"
+        saveUnit="'rem'"
+        min="40"
+        max="100"
+        step="1"/>
+    </BuilderRow>
+
+    <BuilderRow label.translate="Color" tooltip.translate="Keep the original icon color">
+        <BuilderCheckbox classAction="'no_icon_color'" inverseAction="true"/>
+    </BuilderRow>
+    <BuilderRow label.translate="Link Style">
+        <BuilderSelect dataAttributeAction="'iconUnderline'">
+            <BuilderSelectItem dataAttributeActionValue="''">No Underline</BuilderSelectItem>
+            <BuilderSelectItem dataAttributeActionValue="'hover'">Underline On Hover</BuilderSelectItem>
+            <BuilderSelectItem dataAttributeActionValue="'always'">Always Underline</BuilderSelectItem>
         </BuilderSelect>
     </BuilderRow>
 
-    <BuilderRow label.translate="Color">
-        <BuilderCheckbox classAction="'no_icon_color'" inverseAction="true"/>
+    <BuilderRow label.translate="Background Color">
+        <BuilderColorPicker applyTo="'.fa'" styleAction="'background-color'"/>
     </BuilderRow>
 </t>
 

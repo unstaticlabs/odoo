@@ -40,7 +40,7 @@ class TestUblCiiCommon(AccountTestInvoicingCommon):
             'city': "Ramillies",
             'vat': 'BE0477472701',
             'company_registry': '0477472701',
-            'bank_ids': [Command.create({'acc_number': 'BE90735788866632', 'allow_out_payment': True})],
+            'bank_ids': [Command.create({'account_number': 'BE90735788866632', 'allow_out_payment': True})],
             'country_id': cls.env.ref('base.be').id,
             **kwargs,
         })
@@ -87,7 +87,7 @@ class TestUblCiiCommon(AccountTestInvoicingCommon):
             'city': "Canberra",
             'vat': '53 930 548 027',
             'country_id': cls.env.ref('base.au').id,
-            'bank_ids': [Command.create({'acc_number': '93999574162167', 'allow_out_payment': True})],
+            'bank_ids': [Command.create({'account_number': '93999574162167', 'allow_out_payment': True})],
             **kwargs,
         })
 
@@ -205,7 +205,7 @@ class TestUblCiiBECommon(TestUblCiiCommon):
             'vat': 'BE0202239951',
             'company_registry': '0202239951',
             'country_id': cls.env.ref('base.be').id,
-            'bank_ids': [Command.create({'acc_number': 'BE15001559627230', 'allow_out_payment': True})],
+            'bank_ids': [Command.create({'account_number': 'BE15001559627230', 'allow_out_payment': True})],
         })
         return company
 
@@ -235,6 +235,21 @@ class TestUblCiiFRCommon(TestUblCiiCommon):
     def subfolders(cls):
         subfolder_format, subfolder_document, _subfolder_country = super().subfolders()
         return subfolder_format, subfolder_document, 'fr'
+
+
+class TestUblCiiNOCommon(TestUblCiiCommon):
+
+    @classmethod
+    def _create_company(cls, **create_values):
+        company = super()._create_company(**create_values)
+        company.partner_id.write({
+            'street': "Drammensveien 1",
+            'zip': "0271",
+            'city': "Oslo",
+            'vat': 'NO179728982MVA',
+            'country_id': cls.env.ref('base.no').id,
+        })
+        return company
 
 
 class TestUblBis3Common(TestUblCiiCommon):

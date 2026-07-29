@@ -62,7 +62,8 @@ class Partner extends models.Model {
 
 defineModels([Partner]);
 
-test("toggle datepicker", async () => {
+test.tags("desktop");
+test("toggle datepicker on desktop", async () => {
     await mountView({ type: "form", resModel: "res.partner", resId: 1 });
 
     expect(".o_datetime_picker").toHaveCount(0);
@@ -71,6 +72,19 @@ test("toggle datepicker", async () => {
     expect(".o_datetime_picker").toHaveCount(1);
 
     await fieldInput("char_field").click();
+    expect(".o_datetime_picker").toHaveCount(0);
+});
+
+test.tags("mobile");
+test("toggle datepicker on mobile", async () => {
+    await mountView({ type: "form", resModel: "res.partner", resId: 1 });
+
+    expect(".o_datetime_picker").toHaveCount(0);
+    await contains(".o_field_date button").click();
+    await animationFrame();
+    expect(".o_datetime_picker").toHaveCount(1);
+
+    await contains(".o_bottom_sheet_backdrop").click();
     expect(".o_datetime_picker").toHaveCount(0);
 });
 
@@ -143,7 +157,7 @@ test("open datepicker on Control+Enter", async () => {
     await press(["ctrl", "enter"]);
     await animationFrame();
     assertDateTimePicker({
-        title: "January 1997",
+        title: "Jan 1997",
         date: [
             {
                 cells: [
@@ -160,7 +174,9 @@ test("open datepicker on Control+Enter", async () => {
         ],
     });
 });
-test("toggle datepicker far in the future", async () => {
+
+test.tags("desktop");
+test("toggle datepicker far in the future on desktop", async () => {
     Partner._records[0].date = "9999-12-31";
     await mountView({ type: "form", resModel: "res.partner", resId: 1 });
 
@@ -170,6 +186,19 @@ test("toggle datepicker far in the future", async () => {
 
     // focus another field
     await fieldInput("char_field").click();
+    expect(".o_datetime_picker").toHaveCount(0);
+});
+
+test.tags("mobile");
+test("toggle datepicker far in the future on mobile", async () => {
+    Partner._records[0].date = "9999-12-31";
+    await mountView({ type: "form", resModel: "res.partner", resId: 1 });
+
+    expect(".o_datetime_picker").toHaveCount(0);
+    await contains(".o_field_date button").click();
+    expect(".o_datetime_picker").toHaveCount(1);
+
+    await contains(".o_bottom_sheet_backdrop").click();
     expect(".o_datetime_picker").toHaveCount(0);
 });
 
@@ -447,7 +476,7 @@ test("date field supports internationalization", async () => {
     expect(".o_field_date").toHaveText("3. feb. 2017");
     await contains(".o_field_date button").click();
     expect(".o_field_date input").toHaveValue("02/03/2017");
-    expect(".o_zoom_out strong").toHaveText("februar 2017");
+    expect(".o_zoom_out strong").toHaveText("feb 2017");
 
     await contains(getPickerCell("22")).click();
     await clickSave();

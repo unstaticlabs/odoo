@@ -1,6 +1,5 @@
 {
     'name': 'POS Safaricom',
-    'version': '1.0',
     'category': 'Sales/Point of Sale',
     'summary': 'Integrate your POS with the Safaricom Payment Provider',
     'depends': ['point_of_sale'],
@@ -18,5 +17,4 @@
     },
     "author": "Odoo S.A.",
     'license': 'LGPL-3',
-    'installable': True,
 }

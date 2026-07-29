@@ -181,7 +181,7 @@
         <!-- TODO master: remove this obsolete view. Kept inactive in stable for upgrade safety. -->
         <field name="active" eval="False"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='state'][@widget='label_selection']" position="after">
+            <xpath expr="//field[@name='status_in_payment'][@widget='badge']" position="after">
                 <field name="l10n_fr_pdp_status"
                         widget="badge"
                         decoration-danger="l10n_fr_pdp_status == 'error'"

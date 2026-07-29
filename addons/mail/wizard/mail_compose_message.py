@@ -9,7 +9,7 @@ import json
 from odoo import _, api, fields, models, Command, tools
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tools.mail import is_html_empty, email_normalize, email_split_and_format
+from odoo.tools.mail import is_html_empty, email_normalize, email_split_and_format, html_remove_xpath
 from odoo.tools.misc import clean_context
 from odoo.addons.mail.tools.parser import parse_res_ids
 
@@ -239,10 +239,15 @@ class MailComposeMessage(models.TransientModel):
                     composer.composition_mode == 'comment' and
                     not composer.composition_batch):
                     res_ids = composer._evaluate_res_ids()
-                    if composer.model_is_thread:
-                        subject = self.env[composer.model].browse(res_ids)._message_compute_subject()
+                    if record := res_ids and self.env[composer.model].browse(res_ids[0]):
+                        if isinstance(record, self.env.registry['mail.thread.subject.suggested']):
+                            subject = record._message_get_suggested_subject()
+                        elif composer.model_is_thread:
+                            subject = record._message_compute_subject()
+                        else:
+                            subject = record.display_name
                     else:
-                        subject = self.env[composer.model].browse(res_ids).display_name
+                        subject = ''
                 composer.subject = subject
 
     @api.depends('composition_mode', 'model', 'res_domain', 'res_ids',
@@ -613,7 +618,7 @@ class MailComposeMessage(models.TransientModel):
             elif composer.composition_mode == 'comment' or composer.res_domain:
                 composer.force_send = False
             else:
-                force_send_limit = int(self.env['ir.config_parameter'].sudo().get_param('mail.mail.force.send.limit', 100))
+                force_send_limit = self.env['ir.config_parameter'].sudo().get_int('mail.mail.force.send.limit', 100)
                 res_ids = composer._evaluate_res_ids()
                 composer.force_send = len(res_ids) <= force_send_limit
 
@@ -844,9 +849,7 @@ class MailComposeMessage(models.TransientModel):
         sudo as it is considered as a technical model. """
         mails_sudo = self.env['mail.mail'].sudo()
 
-        batch_size = int(
-            self.env['ir.config_parameter'].sudo().get_param('mail.batch_size')
-        ) or self._batch_size or 50  # be sure to not have 0, as otherwise no iteration is done
+        batch_size = self.env['ir.config_parameter'].sudo().get_int('mail.batch_size') or self._batch_size or 50  # be sure to not have 0, as otherwise no iteration is done
         counter_mails_done = 0
         for res_ids_iter in tools.split_every(batch_size, res_ids):
             prepared_mail_values_filtered = self._manage_mail_values(self._prepare_mail_values(res_ids_iter))
@@ -895,7 +898,9 @@ class MailComposeMessage(models.TransientModel):
             if not mail.recipient_ids and not emails:
                 create_vals_all.append(notif_base_values)
             else:
-                create_vals_all.extend(notif_base_values | {'res_partner_id': partner.id} for partner in mail.recipient_ids)
+                create_vals_all.extend(notif_base_values
+                    | {'res_partner_id': partner.id, 'mail_email_address': partner.email}
+                    for partner in mail.recipient_ids)
                 create_vals_all.extend(notif_base_values | {'mail_email_address': email} for email in emails)
         return create_vals_all
 
@@ -921,9 +926,12 @@ class MailComposeMessage(models.TransientModel):
         if not self.model or not self.model in self.env:
             raise UserError(_('Template creation from composer requires a valid model.'))
         model_id = self.env['ir.model']._get_id(self.model)
+        template_body = self.body
+        if template_body:
+            template_body = html_remove_xpath(template_body, "//*[hasclass('o_mail_reply_container')]")
         values = {
             'name': self.template_name,
-            'body_html': self.body,
+            'body_html': template_body,
             'model_id': model_id,
             'use_default_to': True,
             'user_id': self.env.uid,
@@ -937,8 +945,8 @@ class MailComposeMessage(models.TransientModel):
                 attachments.write({'res_model': template._name, 'res_id': template.id})
                 template.attachment_ids = self.attachment_ids
 
-        # generate the saved template
-        self.write({'template_id': template.id})
+        # save the new cleaned template, keep the original body
+        self.write({'template_id': template.id, 'body': self.body})
         return _reopen(self, self.id, self.model, context={**self.env.context, 'dialog_size': 'large'})
 
     def cancel_save_template(self):
@@ -1097,6 +1105,8 @@ class MailComposeMessage(models.TransientModel):
             values.update(
                 email_add_signature=self.email_add_signature,
                 email_layout_xmlid=self.email_layout_xmlid,
+                force_footer=self.template_id.email_layout_force_footer,
+                force_header=self.template_id.email_layout_force_header,
                 force_send=self.force_send,
                 mail_auto_delete=self.auto_delete,
                 model_description=model_description,

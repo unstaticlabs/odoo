@@ -10,6 +10,7 @@ from odoo import Command
 _logger = logging.getLogger(__name__)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestPerformance(SavepointCaseWithUserDemo):
 
     @classmethod
@@ -165,6 +166,11 @@ class TestPerformance(SavepointCaseWithUserDemo):
             #  on 'value', and none of them are in cache
             records.fetch(['indirect_computed_value'])
 
+            # fetch() has forced the computation of 'indirect_computed_value'
+            for record in records:
+                self.assertIn('value', record._cache)
+                self.assertIn('indirect_computed_value', record._cache)
+
         # Test that new/false records are ignored. We generally make the assumption that
         # new records and real record shouldn't mix together but for the sake of robustness
         # we ignore new/false records in fetch.
@@ -172,9 +178,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         new_record_origin = records.new(origin=real_record)
         new_record_ref = records.new(ref='virtual_')
         new_record = records.new({'name': 'aaa'})
-        # Because the ORM "works" for records.browse([False]).name, fetch should "work" too.
-        false_record = records.browse([False])
-        records = real_record + new_record_origin + new_record_ref + new_record + false_record
+        records = real_record + new_record_origin + new_record_ref + new_record
         with self.assertQueryCount(1):
             records.fetch(['name'])
 
@@ -649,6 +653,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
 
 @tagged('bacon_and_eggs')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestIrPropertyOptimizations(TransactionCase):
 
     def setUp(self):
@@ -718,6 +723,7 @@ class TestIrPropertyOptimizations(TransactionCase):
 
 
 @tagged('mapped_perf')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMapped(TransactionCase):
 
     def test_relational_mapped(self):
@@ -736,6 +742,7 @@ class TestMapped(TransactionCase):
 
 
 @tagged('increment_perf')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestIncrementFieldsSkipLock(TransactionCase):
     """ Test the behavior of the function `increment_fields_skiplock`.
 

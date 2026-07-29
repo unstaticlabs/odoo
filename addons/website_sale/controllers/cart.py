@@ -84,7 +84,7 @@ class Cart(PaymentPortal):
         self,
         product_template_id,
         product_id,
-        quantity=1.0,
+        quantity,
         uom_id=None,
         product_custom_attribute_values=None,
         no_variant_attribute_value_ids=None,
@@ -111,7 +111,8 @@ class Cart(PaymentPortal):
         :rtype: dict
         """
         order_sudo = request.cart or request.website._create_cart()
-        quantity = int(quantity)  # Do not allow float values in ecommerce by default
+        # Do not allow float values in ecommerce by default
+        quantity = (quantity and int(quantity)) or 1
 
         product = request.env['product.product'].browse(product_id).exists()
         if not product or not product._is_add_to_cart_allowed():
@@ -175,9 +176,10 @@ class Cart(PaymentPortal):
                     # Return empty notification since cart update is considered as failed
                     return {
                         'cart_quantity': order_sudo.cart_quantity,
-                        'notification_info': {
-                            'warning': product_values.get('warning', ''),
-                        },
+                        'notifications': [{
+                            'type': 'warning',
+                            'data': {'warning_message': product_values.get('warning', '')},
+                        }],
                         'quantity': 0,
                         'tracking_info': [],
                     }
@@ -209,15 +211,25 @@ class Cart(PaymentPortal):
         positive_added_qty_per_line = {
             line_id: qty for line_id, qty in added_qty_per_line.items() if qty > 0
         }
+        notifications = []
+
+        if notification := self._get_cart_notification_information(
+            order_sudo, positive_added_qty_per_line
+        ):
+            notifications.append({
+                'type': 'item_added',
+                'data': notification,
+            })
+
+        if warning:
+            notifications.append({
+                'type': 'warning',
+                'data': {'warning_message': warning},
+            })
 
         return {
             'cart_quantity': order_sudo.cart_quantity,
-            'notification_info': {
-                **self._get_cart_notification_information(
-                    order_sudo, positive_added_qty_per_line
-                ),
-                'warning': warning,
-            },
+            'notifications': notifications,
             'quantity': values.pop('quantity', 0),
             'tracking_info': self._get_tracking_information(order_sudo, line_ids.values()),
         }
@@ -351,7 +363,7 @@ class Cart(PaymentPortal):
         - Its product is already in the cart.
         - It's a combo parent line.
         - It has an unsellable product.
-        - It has a zero-priced product (if the website blocks them).
+        - Its sale is prevented (zero-priced or in a restricted category).
         - It has an already seen product (duplicate or identical combo).
 
         The dates are represented by labels like "Today", "Yesterday", or "X days ago".
@@ -381,14 +393,17 @@ class Cart(PaymentPortal):
         seen_lines_sudo = SaleOrderLineSudo
         lines_per_order_date = {}
         for line_sudo in previous_orders_lines_sudo:
-            # Ignore lines that are combo parents, unsellable, or zero-priced.
+            # Ignore lines that are combo parents, unsellable, or prevented from sale.
             product_id = line_sudo.product_id.id
             if (
                 line_sudo.linked_line_id.product_type == 'combo'
                 or not line_sudo._is_sellable()
                 or (
-                    request.website.prevent_zero_price_sale
-                    and line_sudo.product_id._get_combination_info_variant()['price'] == 0
+                    request.website.prevent_sale
+                    and request.website._prevent_product_sale(
+                        line_sudo.product_id,
+                        line_sudo.product_id._get_combination_info_variant()['price'] == 0
+                    )
                 )
             ):
                 continue
@@ -420,27 +435,6 @@ class Cart(PaymentPortal):
             ]
         }
 
-    @route(
-        route='/shop/cart/quantity',
-        type='jsonrpc',
-        auth='public',
-        methods=['POST'],
-        website=True
-    )
-    def cart_quantity(self):
-        if 'website_sale_cart_quantity' not in request.session:
-            return request.cart.cart_quantity
-        return request.session['website_sale_cart_quantity']
-
-    @route(
-        route='/shop/cart/clear',
-        type='jsonrpc',
-        auth='public',
-        website=True
-    )
-    def clear_cart(self):
-        request.cart.order_line.unlink()
-
     def _get_cart_notification_information(self, order, added_qty_per_line):
         """ Get the information about the sales order lines to show in the notification.
 
@@ -452,11 +446,12 @@ class Cart(PaymentPortal):
                 'currency_id': int
                 'lines': [{
                     'id': int
-                    'image_url': int
+                    'image_url': str
                     'quantity': float
                     'name': str
+                    'combination_name': str
                     'description': str
-                    'added_qty_price_total': float
+                    'price_total': float
                 }],
             }
         """
@@ -468,7 +463,7 @@ class Cart(PaymentPortal):
         return {
             'currency_id': order.currency_id.id,
             'lines': [
-                { # For the cart_notification
+                {
                     'id': line.id,
                     'image_url': order.website_id.image_url(line.product_id, 'image_128'),
                     'quantity': added_qty_per_line[line.id],

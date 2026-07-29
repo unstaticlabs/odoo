@@ -6,15 +6,15 @@
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
 # Martin Trigaux, 2022
 # Dorin Hongu <dhongu@gmail.com>, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Adrian Cocos <adrian.cocos@capps.ai>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Adrian Cocos <adrian.cocos@capps.ai>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 00:38+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-27 09:02+0000\n"
+"Last-Translator: Adrian Cocos <adrian.cocos@capps.ai>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
 "base_import/ro/>\n"
 "Language: ro\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -142,12 +142,6 @@ msgstr "Dar puteți folosi și fișiere .csv"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "Anulează"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr ""
@@ -163,11 +157,11 @@ msgstr "Coloana %(column)s conține valori incorecte (valoare: %(value)s)"
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr ""
-"Coloana %(column)s conține valori incorecte. Eroare la linia %(line)d: %"
-"(error)s"
+"Coloana %(column)s conține valori incorecte. Eroare la linia %(line)d: "
+"%(error)s"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
@@ -192,8 +186,8 @@ msgstr "Comentarii"
 msgid ""
 "Could not retrieve URL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
 msgstr ""
-"Nu s-a putut prelua URL-ul: %(url)s [%(field_name)s: L%(line_number)d]: %"
-"(error)s"
+"Nu s-a putut prelua URL-ul: %(url)s [%(field_name)s: L%(line_number)d]: "
+"%(error)s"
 
 #. module: base_import
 #. odoo-javascript
@@ -256,6 +250,12 @@ msgid "Delay after each batch"
 msgstr "Întârziere după fiecare lot"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -313,8 +313,8 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "Eroare la importul înregistrărilor: toate rândurile trebuie să aibă aceeași "
 "dimensiune, dar rândul de titlu are %(title_row_entries)d intrări iar primul "
@@ -344,12 +344,6 @@ msgstr "Fișierele Excel sunt recomandate deoarece formatarea este automată."
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "ID extern"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr ""
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -385,8 +379,8 @@ msgstr "Dimensiunea fișierului depășește maximul configurat (%s bytes)"
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "Fișier de verificat si/sau importat, binar prim (nu baza64)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -871,8 +865,8 @@ msgstr "Urmărește istoric în timpul importului"
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"Nu se poate încărca fișierul \"{extension}\": este necesar modulul Python \""
-"{modname}\""
+"Nu se poate încărca fișierul \"{extension}\": este necesar modulul Python "
+"\"{modname}\""
 
 #. module: base_import
 #. odoo-python
@@ -1022,41 +1016,3 @@ msgstr "secunde"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "cod de eroare necunoscut %s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "Coloana %s conține valori incorecte (valoare: %s)"
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "Coloana %s conține valori incorecte. Eroare în linia %d: %s"
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "Eroare procesare Dată  [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "Importul a expirat. Vă rugăm să încercați din nou. Dacă întâmpinați încă "
-#~ "această problemă, fișierul poate fi prea mare pentru configurația "
-#~ "sistemului, încercați să-l împărțiți (importați mai puține înregistrări "
-#~ "pe fișier)."
-
-#~ msgid "Imported file"
-#~ msgstr "Fișier importat"
-
-#~ msgid "Load File"
-#~ msgstr "Încarcă fișier"
-
-#~ msgid "Upload File"
-#~ msgstr "Încarcă fișier"
-
-#~ msgid "Upload an Excel or CSV file to import"
-#~ msgstr "Încarcă un fișier Excel sau CSV pentru import"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr ""
-#~ "Nu puteți importa imagini prin URL, verificați cu administratorul sau cu "
-#~ "suportul pentru motivul acesta."

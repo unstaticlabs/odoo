@@ -7,14 +7,15 @@
 # Boško Stojaković <bluesoft83@gmail.com>, 2018
 # Bole <bole@dajmi5.com>, 2018
 # Malik K, 2018
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 16:11+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:53+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_account/bs/>\n"
 "Language: bs\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_account
 #. odoo-python
@@ -159,7 +160,7 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
+msgid "Analytic Plan"
 msgstr ""
 
 #. module: stock_account
@@ -207,6 +208,12 @@ msgid "Bacon"
 msgstr ""
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -231,10 +238,6 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr ""
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -520,9 +523,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr ""
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Lokacije zalihe"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -798,7 +807,7 @@ msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
+msgid "Quant"
 msgstr ""
 
 #. module: stock_account
@@ -1152,71 +1161,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
 msgid "units"
 msgstr ""
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Svojstva računovodstvene zalihe"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Knjiženja"
-
-#~ msgid "Cancel"
-#~ msgstr "Otkaži"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Stavka fakture"
-
-#~ msgid "Product Template"
-#~ msgstr "Predlog proizvoda"
-
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Preostala kol."
-
-#~ msgid "Return Picking"
-#~ msgstr "Prikupljanje proizvoda povrata"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Konto zaliha (primka)"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Izlazni nalog zaliha"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Konto vrednovanja zalihe (Dolazni)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Konto vrednovanja zalihe (Odlazni)"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Jedinica mjere"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Koristi se za vrednovanje inventure u stvarnom vremenu. Kada je "
-#~ "postavljeno na virtualnu lokaciju (ne internog tipa), ovaj konto će se "
-#~ "koristiti da nosi vrijednost proizvoda koji se kreće iz interne lokacije "
-#~ "u ovu lokaciju, umjesto generisanja konta izlaza zalihe postavljenog na "
-#~ "proizvodu. Ovo ne utiče na interne lokacije."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Koristi se za vrednovanje inventure u stvarnom vremenu. Kada je "
-#~ "postavljeno na virtuelnu lokaciju (ne internog tipa), ovaj konto će se "
-#~ "koristiti za vrijednost proizvoda prenesenih van ove lokacije u neku "
-#~ "internu lokaciju, umjesto opšteg konta izlaza zalihe postavljenog na "
-#~ "proizvodu. Ovo nema efekta za interne lokacije."
-
-#~ msgid "Warning"
-#~ msgstr "Upozorenje"

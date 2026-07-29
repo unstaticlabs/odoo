@@ -1,9 +1,7 @@
-# -*- encoding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Website Test',
-    'version': '1.0',
     'category': 'Hidden',
     'sequence': 9876,
     'summary': 'Website Test, mainly for module install/uninstall tests',
@@ -28,11 +26,10 @@ models which only purpose is to run tests.""",
         'views/test_model_views.xml',
         'data/test_website_data.xml',
     ],
-    'installable': True,
     'assets': {
         'test_website.test_bundle': [
             'http://test.external.link/javascript1.js',
-            '/web/static/src/libs/fontawesome/css/font-awesome.css',
+            ('include', 'web.icons_fonts'),
             'http://test.external.link/style1.css',
             '/web/static/src/module_loader.js',
             'http://test.external.link/javascript2.js',
@@ -41,8 +38,14 @@ models which only purpose is to run tests.""",
         'web.assets_frontend': [
             'test_website/static/src/interactions/**/*',
         ],
+        'website.website_builder_assets': [
+            'test_website/static/src/website_builder/**/*',
+        ],
         'web.assets_tests': [
             'test_website/static/tests/tours/*',
+        ],
+        'web.assets_unit_tests': [
+            'test_website/static/tests/builder/*',
         ],
     },
     'author': 'Odoo S.A.',

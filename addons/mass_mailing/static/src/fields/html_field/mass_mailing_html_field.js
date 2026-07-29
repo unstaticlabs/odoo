@@ -1,10 +1,10 @@
-import { DYNAMIC_PLACEHOLDER_PLUGINS } from "@html_editor/backend/plugin_sets";
+import { DYNAMIC_FIELD_PLUGINS } from "@html_editor/backend/dynamic_field/dynamic_field_plugin";
 import { htmlField, HtmlField } from "@html_editor/fields/html_field";
 import { LocalOverlayContainer } from "@html_editor/local_overlay_container";
 import { MAIN_PLUGINS as MAIN_EDITOR_PLUGINS } from "@html_editor/plugin_sets";
 import { normalizeHTML, parseHTML } from "@html_editor/utils/html";
 import { MassMailingIframe } from "@mass_mailing/iframe/mass_mailing_iframe";
-import { ThemeSelector } from "@mass_mailing/themes/theme_selector/theme_selector";
+import { ThemeSelectorIframe } from "@mass_mailing/themes/theme_selector/theme_selector_iframe";
 import {
     onWillUpdateProps,
     status,
@@ -30,7 +30,7 @@ export class MassMailingHtmlField extends HtmlField {
         ...HtmlField.components,
         LocalOverlayContainer,
         MassMailingIframe,
-        ThemeSelector,
+        ThemeSelectorIframe,
     };
     static props = {
         ...HtmlField.props,
@@ -279,7 +279,7 @@ export class MassMailingHtmlField extends HtmlField {
             onEditorReady: () => this.commitChanges(),
             Plugins: [
                 ...MAIN_EDITOR_PLUGINS,
-                ...DYNAMIC_PLACEHOLDER_PLUGINS,
+                ...DYNAMIC_FIELD_PLUGINS,
                 ...registry.category("basic-editor-plugins").getAll(),
                 PowerButtonsPlugin,
             ].filter((P) => !["banner", "prompt"].includes(P.id)),

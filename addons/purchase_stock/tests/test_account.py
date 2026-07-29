@@ -63,12 +63,12 @@ class TestPurchaseOrderInvoice(PurchaseTestCommon):
 
         today = fields.Date.today()
         tomorrow = today + relativedelta(days=1)
-        self._use_multi_currencies([
-            (fields.Date.to_string(today), 2.0),
-            (fields.Date.to_string(tomorrow), 4.0),
+        other_currency = self._use_multi_currencies([
+            (fields.Date.to_string(today - relativedelta(days=1)), 2.0),
+            (fields.Date.to_string(today), 4.0),
         ])
 
-        po = self._create_purchase(self.product_standard_auto, quantity=10, price_unit=12, currency_id=self.other_currency.id)
+        po = self._create_purchase(self.product_standard_auto, quantity=10, price_unit=12, currency_id=other_currency.id)
         self._receive(po)
         with freeze_time(tomorrow):
             bill = self._create_bill(purchase_order=po)

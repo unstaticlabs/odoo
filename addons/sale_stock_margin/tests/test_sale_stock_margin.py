@@ -57,12 +57,12 @@ class TestSaleStockMargin(TestStockValuationCommon):
         usd = self.env.ref('base.USD')
         self.company_currency = self.env.company.currency_id
         self.other_currency = self.env.ref('base.EUR') if self.company_currency == usd else usd
-        date = fields.Date.today()
+        date = fields.Date.subtract(fields.Date.today(), days=1)
         self.env['res.currency.rate'].create([
             {'currency_id': self.company_currency.id, 'rate': 1, 'name': date},
             {'currency_id': self.other_currency.id, 'rate': 2, 'name': date},
         ])
-        return self.company_currency, self.other_currency
+        return self.company_currency + self.other_currency
 
     #########
     # TESTS #
@@ -247,7 +247,7 @@ class TestSaleStockMargin(TestStockValuationCommon):
         main_company_currency = main_company.currency_id
         new_company_currency = self.env.ref('base.EUR') if main_company_currency == self.env.ref('base.USD') else self.env.ref('base.USD')
 
-        date = fields.Date.today()
+        date = fields.Date.subtract(fields.Date.today(), days=1)
         self.env['res.currency.rate'].create([
             {'currency_id': main_company_currency.id, 'rate': 1, 'name': date, 'company_id': False},
             {'currency_id': new_company_currency.id, 'rate': 3, 'name': date, 'company_id': False},
@@ -278,7 +278,7 @@ class TestSaleStockMargin(TestStockValuationCommon):
             'product_id': product.id,
             'location_id': production_location.id,
             'location_dest_id': incoming_picking_type.default_location_dest_id.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 1,
             'picking_type_id': incoming_picking_type.id,
             'picking_id': picking.id,
@@ -425,6 +425,24 @@ class TestSaleStockMargin(TestStockValuationCommon):
         delivery.button_validate()
         self.assertEqual(sale_order.order_line.filtered(lambda sol: sol.product_id == product2).purchase_price, 10)
 
+    def test_avco_different_uom(self):
+        pack_of_6 = self.ref('uom.product_uom_pack_6')
+        self.product_avco.write({
+                'standard_price': 1,
+                'list_price': 3,
+                'uom_ids': [pack_of_6],
+            })
+        sale_order = self._create_sale_order()
+        sale_order_line = self.env['sale.order.line'].create({
+            'name': 'Sale order',
+            'order_id': sale_order.id,
+            'product_id': self.product_avco.id,
+            'product_uom_qty': 1,
+            'product_uom_id': pack_of_6,
+        })
+        sale_order.action_confirm()
+        self.assertEqual(sale_order_line.margin, 12.0)
+
     def test_avco_does_not_mix_products_on_compute_avg_price(self):
         """
         Ensure that when stock moves are duplicated and their product changed,
@@ -464,24 +482,6 @@ class TestSaleStockMargin(TestStockValuationCommon):
         first_delivery.button_validate()
         self.assertEqual(first_delivery.state, 'done')
         self.assertEqual(sale_order_line.purchase_price, 10)
-
-    def test_avco_different_uom(self):
-        pack_of_6 = self.ref('uom.product_uom_pack_6')
-        self.product_avco.write({
-                'standard_price': 1,
-                'list_price': 3,
-                'uom_ids': [pack_of_6],
-            })
-        sale_order = self._create_sale_order()
-        sale_order_line = self.env['sale.order.line'].create({
-            'name': 'Sale order',
-            'order_id': sale_order.id,
-            'product_id': self.product_avco.id,
-            'product_uom_qty': 1,
-            'product_uom_id': pack_of_6,
-        })
-        sale_order.action_confirm()
-        self.assertEqual(sale_order_line.margin, 12.0)
 
     def test_avco_calc(self):
         """ test purchase_price and margin correct calculation for avco product"""

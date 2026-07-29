@@ -127,6 +127,17 @@ class AccountEdiXmlUbl_Ro(models.AbstractModel):
                 },
             }]
 
+    def _add_invoice_line_item_nodes(self, line_node, vals):
+        super()._add_invoice_line_item_nodes(line_node, vals)
+
+        product = vals['base_line']['product_id']
+        line_node['cac:Item']['cac:CommodityClassification'] = {
+            'cbc:ItemClassificationCode': {
+                '_text': product.cpv_code_id.code,
+                'listID': 'STI',
+            }
+        }
+
     def _ubl_add_line_item_name_description_nodes(self, vals):
         # EXTENDS account.edi.ubl
         super()._ubl_add_line_item_name_description_nodes(vals)
@@ -142,7 +153,7 @@ class AccountEdiXmlUbl_Ro(models.AbstractModel):
         super()._ubl_add_notes_nodes(vals)
         document_node = vals['document_node']
 
-        if note := document_node['cbc:Note'].get('_text'):
+        if note := document_node['cbc:Note']['_text']:
             document_node['cbc:Note']['_text'] = note[:300]
 
     # -------------------------------------------------------------------------
@@ -198,7 +209,7 @@ class AccountEdiXmlUbl_Ro(models.AbstractModel):
         partner_vals = super()._import_retrieve_partner_vals(tree, role)
         if 'peppol_endpoint' in partner_vals:
             # ANAF allows for endpoints to be an address mail, since we don't want to create a new
-            # user with an address mail as a PEPPOL endpoint, we simply remove it in that case.
+            # user with an address mail as a Peppol endpoint, we simply remove it in that case.
             error = self.env['res.partner']._build_error_peppol_endpoint(False, partner_vals['peppol_endpoint'])
             if error:
                 partner_vals['peppol_endpoint'] = False

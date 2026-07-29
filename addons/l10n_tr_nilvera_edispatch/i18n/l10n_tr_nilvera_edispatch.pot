@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 19:09+0000\n"
-"PO-Revision-Date: 2025-12-30 19:09+0000\n"
+"POT-Creation-Date: 2026-03-20 19:13+0000\n"
+"PO-Revision-Date: 2026-03-20 19:13+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -40,6 +40,27 @@ msgid "%s's"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_type_form_inherit_l10n_tr_nilvera_edispatch
+msgid ""
+".\n"
+"                        <br/>Please verify that the prefix is correct."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_type_form_inherit_l10n_tr_nilvera_edispatch
+msgid ""
+".\n"
+"                        <br/>The system will send"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_type_form_inherit_l10n_tr_nilvera_edispatch
+msgid ""
+"<span>Odoo could not detect a GIB e-Dispatch prefix. Please update the "
+"Sequence Prefix.</span>"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #: model:ir.model.constraint,message:l10n_tr_nilvera_edispatch.constraint_l10n_tr_nilvera_trailer_plate_name_uniq
 msgid "A Plate Number with that type already exists."
 msgstr ""
@@ -66,6 +87,12 @@ msgid "Buyer Originator"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid "Cannot send the XML when there are warnings."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch
 msgid "Carrier"
 msgstr ""
@@ -85,8 +112,20 @@ msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
 #. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/account_move_send.py:0
+msgid "Check data on Invoice(s)"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/res_partner.py:0
 msgid "City"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_bank_statement_line__l10n_tr_nilvera_company_einvoice_status
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move__l10n_tr_nilvera_company_einvoice_status
+msgid "Company Nilvera Status"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -139,6 +178,9 @@ msgid "Dispatch Type"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_edi_xml_ubl_tr__display_name
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move__display_name
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move_send__display_name
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_l10n_tr_nilvera_trailer_plate__display_name
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_res_partner__display_name
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__display_name
@@ -159,6 +201,11 @@ msgid "Drivers"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__error
+msgid "Error"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #. odoo-javascript
 #: code:addons/l10n_tr_nilvera_edispatch/static/src/views/list_view/ereceipt_upload.js:0
 msgid "Error occured in reading following XML file(s): %s"
@@ -173,13 +220,18 @@ msgid ""
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking_type__l10n_tr_nilvera_gib_sequence_code
+msgid "GIB Sequence Prefix"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch
 msgid "General Information"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.actions.server,name:l10n_tr_nilvera_edispatch.action_export_l10n_tr_nilvera_edispatch_form
 #: model:ir.actions.server,name:l10n_tr_nilvera_edispatch.action_export_l10n_tr_nilvera_edispatch_list
-#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch
 msgid "Generate GİB e-Dispatch (XML)"
 msgstr ""
 
@@ -207,11 +259,9 @@ msgid "GİB e-Dispatch"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_internal_search_inherit_l10n_tr_nilvera_edispatch
-msgid "GİB e-Dispatch State"
-msgstr ""
-
-#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_edi_xml_ubl_tr__id
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move__id
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move_send__id
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_l10n_tr_nilvera_trailer_plate__id
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_res_partner__id
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__id
@@ -223,6 +273,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
 msgid "Imported E-Receipts"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model,name:l10n_tr_nilvera_edispatch.model_account_move
+msgid "Journal Entry"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -246,19 +301,50 @@ msgid "MATBU"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model:ir.actions.server,name:l10n_tr_nilvera_edispatch.action_mark_l10n_tr_nilvera_edispatch_status
-msgid "Mark as sent (GİB e-Dispatch)"
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_uuid
+msgid "Nilvera Document UUID"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_dispatch_type__sevk
-msgid "Online"
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_edispatch_xml_id
+msgid "Nilvera E-Despatch XML"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_edispatch_xml_file
+msgid "Nilvera E-Despatch XML File"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_send_status
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_internal_search_inherit_l10n_tr_nilvera_edispatch
+msgid "Nilvera Status"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__not_sent
+msgid "Not sent"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
 #. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking_type.py:0
-msgid "Only 3 characters are allowed in the Sequence Prefix by GİB"
+msgid ""
+"Odoo extracts the last 3 letters of the Sequence Prefix as the GIB prefix for e-Dispatch orders.\n"
+"\n"
+"Valid examples:\n"
+"OUT/\n"
+"OUT-\n"
+"WH/OUT\n"
+"WH-OUT\n"
+"WH/OUT/\n"
+"\n"
+"Please update the Sequence Code so the last 3 characters form a valid prefix."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_dispatch_type__sevk
+msgid "Online"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -276,6 +362,14 @@ msgid "Only XML files can be uploaded"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid ""
+"Oops, seems like you're unauthorised to do this. Try another API key with "
+"more rights or contact Nilvera."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #: model:ir.model,name:l10n_tr_nilvera_edispatch.model_stock_picking_type
 msgid "Picking Type"
 msgstr ""
@@ -289,6 +383,14 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_l10n_tr_nilvera_trailer_plate__plate_number_type
 #: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.l10n_tr_nilvera_trailer_plate_view_form
 msgid "Plate Number"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/account_move_send.py:0
+msgid ""
+"Please ensure the e-Dispatch Order field has all related orders before "
+"sending the invoice to Nilvera."
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -325,13 +427,35 @@ msgid "Printed Delivery Note Number of 16 characters is required."
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/res_partner.py:0
+msgid "Reference field must be set to the tax office name"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_seller_supplier_id
 msgid "Seller Supplier"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_dispatch_state__sent
-msgid "Sent"
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch
+msgid "Send GİB e-Dispatch (XML)"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__sent
+msgid "Sent and waiting response"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid "Server error from Nilvera, please try again later."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model,name:l10n_tr_nilvera_edispatch.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -358,9 +482,37 @@ msgid "Street"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__succeed
+msgid "Successful"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch
+msgid "Synchronize with Nilvera"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/res_partner.py:0
 msgid "TCKN/VKN"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid "The dispatch couldn't be sent to the recipient."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid "The dispatch has been successfully sent to Nilvera."
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
+msgid "The dispatch status couldn't be retrieved from Nilvera."
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -378,13 +530,23 @@ msgid ""
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_dispatch_state__to_send
-msgid "To Send"
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_type_form_inherit_l10n_tr_nilvera_edispatch
+msgid "The system detected the E-Dispatch GIB prefix as"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
 #: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_trailer_plate_ids
 msgid "Trailer Plates"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model,name:l10n_tr_nilvera_edispatch.model_account_edi_xml_ubl_tr
+msgid "UBL-TR 1.2"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__unknown
+msgid "Unknown"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -470,8 +632,19 @@ msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
 #. odoo-python
+#: code:addons/l10n_tr_nilvera_edispatch/models/account_move_send.py:0
+msgid "View Invoice(s)"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/res_partner.py:0
 msgid "View Partner"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields.selection,name:l10n_tr_nilvera_edispatch.selection__stock_picking__l10n_tr_nilvera_send_status__waiting
+msgid "Waiting"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -486,8 +659,9 @@ msgid "e-Dispatch"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
-#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_stock_picking__l10n_tr_nilvera_dispatch_state
-msgid "e-Dispatch State"
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_bank_statement_line__l10n_tr_nilvera_edispatch_ids
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_account_move__l10n_tr_nilvera_edispatch_ids
+msgid "e-Dispatch Orders"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
@@ -515,9 +689,20 @@ msgid "e-Receipt(s) Imported Successfully"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_res_partner__l10n_tr_nilvera_edispatch_alias_id
+#: model:ir.model.fields,field_description:l10n_tr_nilvera_edispatch.field_res_users__l10n_tr_nilvera_edispatch_alias_id
+msgid "eDispatch Alias"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
 #. odoo-python
 #: code:addons/l10n_tr_nilvera_edispatch/models/stock_picking.py:0
 msgid "id"
+msgstr ""
+
+#. module: l10n_tr_nilvera_edispatch
+#: model_terms:ir.ui.view,arch_db:l10n_tr_nilvera_edispatch.view_picking_type_form_inherit_l10n_tr_nilvera_edispatch
+msgid "to Nilvera instead of"
 msgstr ""
 
 #. module: l10n_tr_nilvera_edispatch

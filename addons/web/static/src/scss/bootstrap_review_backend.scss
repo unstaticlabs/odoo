@@ -10,6 +10,7 @@
 
 .btn {
     --#{$variable-prefix}btn-disabled-border-color: transparent;
+    --#{$prefix}btn-focus-box-shadow: #{$focus-ring-box-shadow};
 }
 
 // 1. Render buttons defined in '$o-btns-bs-override' and '$o-btns-bs-outline-override'
@@ -277,12 +278,28 @@ $-o-bg-colors-custom: null;
     margin-bottom: var(--alert-margin-bottom, $alert-margin-bottom);
 }
 
+// Checkboxes and Radios - transitions and animations
+// ============================================================================
+.form-check-input {
+    transition: background-color 250ms ease, border-color 200ms ease;
+}
+
+.form-check-input[type="checkbox"]:checked {
+    animation: check-grow 300ms ease-in-out;
+}
+
+@keyframes check-grow {
+    from { background-size: 0 0; }
+    to { background-size: 100% 100%; }
+}
+
 // Switches
 // ============================================================================
 .form-switch {
     .form-check-input:checked {
         background-color: $o-success;
         border-color: $o-success;
+        animation: none;
     }
 
     .form-check-input:focus {

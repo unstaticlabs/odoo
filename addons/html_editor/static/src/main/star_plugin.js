@@ -76,7 +76,7 @@ export class StarPlugin extends Plugin {
     }
 
     addStars({ length }) {
-        const stars = Array.from({ length }, () => '<i class="fa fa-star-o"></i>').join("");
+        const stars = Array(length).fill('<i class="fa fa-star-o"></i>').join("");
         const html = `<span contenteditable="false" class="o_stars">${stars}</span>`;
         this.dependencies.dom.insert(parseHTML(this.document, html));
         this.dependencies.history.addStep();

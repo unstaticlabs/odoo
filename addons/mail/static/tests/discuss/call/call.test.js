@@ -5,6 +5,7 @@ import {
     defineMailModels,
     dragenterFiles,
     dropFiles,
+    insertText,
     listenStoreFetch,
     makeMockRtcNetwork,
     mockGetMedia,
@@ -19,10 +20,12 @@ import {
     waitStoreFetch,
 } from "@mail/../tests/mail_test_helpers";
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
+import { SoundEffects } from "@mail/core/common/sound_effects_service";
 import {
     CROSS_TAB_CLIENT_MESSAGE,
     CROSS_TAB_HOST_MESSAGE,
 } from "@mail/discuss/call/common/rtc_service";
+import { ChannelMember } from "@mail/discuss/core/common/channel_member_model";
 
 import {
     advanceTime,
@@ -32,19 +35,18 @@ import {
     getFixture,
     hover,
     manuallyDispatchProgrammaticEvent,
+    mockDate,
     mockSendBeacon,
     mockUserAgent,
     queryFirst,
     test,
 } from "@odoo/hoot";
 import {
-    asyncStep,
     Command,
     mockService,
     onRpc,
     patchWithCleanup,
     serverState,
-    waitForSteps,
 } from "@web/../tests/web_test_helpers";
 import { browser } from "@web/core/browser/browser";
 
@@ -75,12 +77,8 @@ test("basic rendering", async () => {
     await contains(".o-discuss-CallActionList button[aria-label='Turn camera on']");
     await contains("button[aria-label='Video Settings']");
     await contains(".o-discuss-CallActionList button[aria-label='Share Screen']");
-    await contains("[title='More']");
+    await contains("button[aria-label='Raise Hand']");
     await contains(".o-discuss-CallActionList button[aria-label='Disconnect']");
-    await click("[title='More']");
-    await contains(".o-dropdown-item", { count: 2 });
-    await contains(".o-dropdown-item:contains('Raise Hand')");
-    await contains(".o-dropdown-item:contains('Disable speaker autofocus')");
     await contains(".o-discuss-Call-layoutActions button", { count: 2 });
     await contains(".o-discuss-Call-layoutActions button[title='Picture in Picture']");
     await contains(".o-discuss-Call-layoutActions button[title='Fullscreen']");
@@ -143,7 +141,7 @@ test("show call UI in chat window when in call", async () => {
     pyEnv["discuss.channel"].create({ name: "General" });
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
-    await click(".o-mail-NotificationItem", { text: "General" });
+    await click(".o-mail-NotificationItem:text('General')");
     await contains(".o-mail-ChatWindow");
     await contains(".o-discuss-Call", { count: 0 });
     await click(".o-mail-ChatWindow-header [title='Start Call']");
@@ -160,7 +158,7 @@ test("should disconnect when closing page while in call", async () => {
         if (data instanceof Blob && route === "/mail/rtc/channel/leave_call") {
             const blobText = await data.text();
             const blobData = JSON.parse(blobText);
-            asyncStep(`sendBeacon_leave_call:${blobData.params.channel_id}`);
+            expect.step(`sendBeacon_leave_call:${blobData.params.channel_id}`);
         }
     });
 
@@ -168,7 +166,7 @@ test("should disconnect when closing page while in call", async () => {
     await contains(".o-discuss-Call");
     // simulate page close
     await manuallyDispatchProgrammaticEvent(window, "pagehide");
-    await waitForSteps([`sendBeacon_leave_call:${channelId}`]);
+    await expect.waitForSteps([`sendBeacon_leave_call:${channelId}`]);
 });
 
 test("should display invitations", async () => {
@@ -185,10 +183,10 @@ test("should display invitations", async () => {
     });
     mockService("mail.sound_effects", {
         play(name) {
-            asyncStep(`play - ${name}`);
+            expect.step(`play - ${name}`);
         },
         stop(name) {
-            asyncStep(`stop - ${name}`);
+            expect.step(`stop - ${name}`);
         },
     });
     listenStoreFetch("init_messaging");
@@ -211,7 +209,7 @@ test("should display invitations", async () => {
     );
     await contains(".o-discuss-CallInvitation");
     await contains(".o-discuss-CallInvitation button[title='Join Call']");
-    await waitForSteps(["play - call-invitation"]);
+    await expect.waitForSteps(["play - call-invitation"]);
     // Simulate stop receiving call invitation
 
     pyEnv["bus.bus"]._sendone(
@@ -222,7 +220,7 @@ test("should display invitations", async () => {
         }).get_result()
     );
     await contains(".o-discuss-CallInvitation", { count: 0 });
-    await waitForSteps(["stop - call-invitation"]);
+    await expect.waitForSteps(["stop - call-invitation"]);
 });
 
 test("can share screen", async () => {
@@ -231,11 +229,9 @@ test("can share screen", async () => {
     await start();
     await openDiscuss(channelId);
     await click("[title='Start Call']");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     await contains("video");
     await triggerEvents(".o-discuss-Call-mainCards", ["mousemove"]); // show overlay
-    await click("[title='More']");
     await click("[title='Stop Sharing Screen']");
     await contains("video", { count: 0 });
 });
@@ -288,7 +284,9 @@ test("Camera video stream stays in focus when on/off", async () => {
 });
 
 test("Create a direct message channel when clicking on start a meeting", async () => {
+    mockDate("2026-01-01 10:00:00");
     const pyEnv = await startServer();
+    pyEnv["res.partner"].write([serverState.partnerId], { tz: "Europe/Brussels" });
     const channelId = pyEnv["discuss.channel"].create({ name: "Slytherin" });
     pyEnv["mail.message"].create({
         author_id: serverState.partnerId,
@@ -302,9 +300,14 @@ test("Create a direct message channel when clicking on start a meeting", async (
     await contains(".o-mail-Thread:contains('Welcome to #Slytherin!')");
     await contains(".o-mail-Message");
     await click("button[title='New Meeting']");
-    await contains(".o-mail-DiscussSidebarChannel", { text: "Mitchell Admin" });
+    await contains(".o-mail-DiscussSidebarChannel-itemName:text('Meeting - Jan 1, 2026')");
     await contains(".o-discuss-Call");
     await contains(".o-mail-Meeting .o-mail-ActionPanel:contains('Invite people')");
+    await contains(".o-mail-MeetingSideActions button", { count: 4 });
+    await contains(".o-mail-MeetingSideActions button[title='Picture in Picture']");
+    await contains(".o-mail-MeetingSideActions button[title='Exit Fullscreen']");
+    await contains(".o-mail-MeetingSideActions button[title='Chat']");
+    await contains(".o-mail-MeetingSideActions button[title='Members']");
 });
 
 test("Can share user camera and screen together", async () => {
@@ -313,7 +316,6 @@ test("Can share user camera and screen together", async () => {
     await start();
     await openDiscuss(channelId);
     await click("[title='Start Call']");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     await click("[title='Turn camera on']");
     await contains("video", { count: 2 });
@@ -325,7 +327,6 @@ test("Click on inset card should replace the inset and active stream together", 
     await start();
     await openDiscuss(channelId);
     await click("[title='Start Call']");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     await click("[title='Turn camera on']");
     await contains("video[type='screen']:not(.o-inset)");
@@ -334,31 +335,52 @@ test("Click on inset card should replace the inset and active stream together", 
     await contains("video[type='camera']:not(.o-inset)");
 });
 
+test("Inset card is hidden when sidebar is open", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    await start();
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await click("[title='Turn camera on']");
+    await click("[title='Share Screen']");
+    await contains(".o-discuss-CallParticipantCard.o-inset");
+    await hover(".o-discuss-Call-mainCards");
+    await click(".o-discuss-Call-sidebarToggler");
+    await contains(".o-discuss-Call-sidebar");
+    await contains(".o-discuss-CallParticipantCard.o-inset", { count: 0 });
+    await hover(".o-discuss-Call-mainCards");
+    await click(".o-discuss-Call-sidebarToggler");
+    await contains(".o-discuss-CallParticipantCard.o-inset");
+});
+
 test("join/leave sounds are only played on main tab", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    listenStoreFetch("channels_as_member");
     const env1 = await start({ asTab: true });
     const env2 = await start({ asTab: true });
     patchWithCleanup(env1.services["mail.sound_effects"], {
         play(name) {
-            asyncStep(`tab1 - play - ${name}`);
+            expect.step(`tab1 - play - ${name}`);
         },
     });
     patchWithCleanup(env2.services["mail.sound_effects"], {
         play(name) {
-            asyncStep(`tab2 - play - ${name}`);
+            expect.step(`tab2 - play - ${name}`);
         },
     });
     await openDiscuss(channelId, { target: env1 });
+    await waitStoreFetch("channels_as_member");
     await openDiscuss(channelId, { target: env2 });
+    await waitStoreFetch("channels_as_member");
     await click(`${env1.selector} [title='Start Call']`);
     await contains(`${env1.selector} .o-discuss-Call`);
     await contains(`${env2.selector} .o-discuss-Call`);
-    await waitForSteps(["tab1 - play - call-join"]);
+    await expect.waitForSteps(["tab1 - play - call-join"]);
     await click(`${env1.selector} [title='Disconnect']:not([disabled])`);
     await contains(`${env1.selector} .o-discuss-Call`, { count: 0 });
     await contains(`${env2.selector} .o-discuss-Call`, { count: 0 });
-    await waitForSteps(["tab1 - play - call-leave"]);
+    await expect.waitForSteps(["tab1 - play - call-leave"]);
 });
 
 test("'New Meeting' in mobile", async () => {
@@ -379,17 +401,17 @@ test("'New Meeting' in mobile", async () => {
     await contains(".o-mail-Thread:contains('Welcome to #Slytherin!')");
     await contains(".o-mail-Message");
     await contains("button[title*='Close Chat Window']");
-    await click("button", { text: "Chats" });
+    await click("button:text('Chats')");
     await click("button[title='New Meeting']");
-    await click(".o-discuss-ChannelInvitation-selectable", { text: "Partner 2" });
-    await click("button:not([disabled])", { text: "Invite to Group Chat" });
+    await click(".o-discuss-ChannelInvitation-selectable:has(:text('Partner 2'))");
+    await click("button:not([disabled]):text('Invite to Meeting')");
     await contains(".o-discuss-Call");
     await click("[title='Exit Fullscreen']");
     // dropdown requires an extra delay before click (because handler is registered in useEffect)
     await contains("[title='Open Actions Menu']");
     await click("[title='Open Actions Menu']");
-    await click(".o-dropdown-item", { text: "Members" });
-    await contains(".o-discuss-ChannelMember", { text: "Partner 2" });
+    await click(".o-dropdown-item:text('Members')");
+    await contains(".o-discuss-ChannelMember:text('Partner 2')");
 });
 
 test("Dropzones below fullscreen meeting view are disabled", async () => {
@@ -486,12 +508,10 @@ test("Systray icon shows latest action", async () => {
     await contains(".o-discuss-CallMenu-buttonContent .fa-deaf");
     await click("[title='Turn camera on']");
     await contains(".o-discuss-CallMenu-buttonContent .fa-video-camera");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     await contains(".o-discuss-CallMenu-buttonContent .fa-desktop");
     await triggerEvents(".o-discuss-Call-mainCards", ["mousemove"]); // show overlay
-    await click("[title='More']");
-    await click(".o-dropdown-item:contains('Raise Hand')");
+    await click("[title='Raise Hand']");
     await contains(".o-discuss-CallMenu-buttonContent .fa-hand-paper-o");
 });
 
@@ -520,7 +540,6 @@ test("Systray icon keeps track of earlier actions", async () => {
     await openDiscuss(channelId);
     await click("[title='Start Call']");
     await contains(".o-discuss-CallMenu-buttonContent .fa-microphone");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     // stack: ["share-screen"]
     await contains(".o-discuss-CallMenu-buttonContent .fa-desktop");
@@ -629,7 +648,7 @@ test("expand call participants when joining a call", async () => {
     await contains("img[title='Bob']");
     await contains("img[title='Cathy']");
     await contains("img[title='David']");
-    await contains(".o-mail-DiscussSidebarCallParticipants span", { text: "+2" });
+    await contains(".o-mail-AvatarStack-remainingCount:text('+2')");
     await click("[title='Join Call']");
     await contains(".o-mail-DiscussSidebarCallParticipants img", { count: 10 });
     await contains("img[title='Alice']");
@@ -653,7 +672,7 @@ test("start call when accepting from push notification", async () => {
         })
     );
     await contains(".o-mail-DiscussContent-threadName[title=General]");
-    await contains(`.o-discuss-CallParticipantCard[title='${serverState.partnerName}']`);
+    await contains(`.o-discuss-CallParticipantCard[aria-label='${serverState.partnerName}']`);
 });
 
 test("Clicking sidebar call participant opens avatar card", async () => {
@@ -662,8 +681,8 @@ test("Clicking sidebar call participant opens avatar card", async () => {
     await start();
     await openDiscuss(channelId);
     await click("[title='Start Call']");
-    await click(".o-mail-DiscussSidebarCallParticipants-participant", { text: "Mitchell Admin" });
-    await contains(".o_avatar_card .o_card_user_infos", { text: "Mitchell Admin" });
+    await click(".o-mail-DiscussSidebarCallParticipants-participant:text('Mitchell Admin')");
+    await contains(".o-mail-avatar-card-name:text('Mitchell Admin')");
 });
 
 test("Use saved volume settings", async () => {
@@ -691,9 +710,9 @@ test("Use saved volume settings", async () => {
     await click("[title='Join the Call']");
     await contains(".o-discuss-Call");
     await contains(
-        `.o-discuss-CallParticipantCard[title='${partnerName}'][data-is-context-menu-available]`
+        `.o-discuss-CallParticipantCard[aria-label='${partnerName}'][data-is-context-menu-available]`
     );
-    await hover(`.o-discuss-CallParticipantCard[title='${partnerName}']`);
+    await hover(`.o-discuss-CallParticipantCard[aria-label='${partnerName}']`);
     await click("button[title='Participant options']");
     await contains(".o-discuss-CallContextMenu");
     const rangeInput = queryFirst(".o-discuss-CallContextMenu input[type='range']");
@@ -762,11 +781,11 @@ test("Cross tab calls: tabs can interact with calls remotely", async () => {
 
     broadcastChannel.onmessage = (event) => {
         if (event.data.type === CROSS_TAB_CLIENT_MESSAGE.REQUEST_ACTION) {
-            asyncStep(`is_muted:${event.data.changes["is_muted"]}`);
+            expect.step(`is_muted:${event.data.changes["is_muted"]}`);
         }
     };
     await click("[title='Mute']");
-    await waitForSteps(["is_muted:true"]);
+    await expect.waitForSteps(["is_muted:true"]);
 });
 
 test("automatically cancel incoming call after some time", async () => {
@@ -782,6 +801,28 @@ test("automatically cancel incoming call after some time", async () => {
     await openDiscuss(channelId);
     await contains(".o-discuss-CallInvitation");
     await advanceTime(30_000);
+    await contains(".o-discuss-CallInvitation", { count: 0 });
+});
+
+test("Should not auto-cancel incoming call when camera preview is open", async () => {
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const [memberId] = pyEnv["discuss.channel.member"].search([["channel_id", "=", channelId]]);
+    const rtcSessionId = pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: memberId,
+        channel_id: channelId,
+    });
+    pyEnv["discuss.channel.member"].write([memberId], { rtc_inviting_session_id: rtcSessionId });
+    await start();
+    await openDiscuss(channelId);
+    await contains(".o-discuss-CallInvitation");
+    await advanceTime(ChannelMember.CANCEL_CALL_INVITE_DELAY - 5000);
+    await contains(".o-discuss-CallInvitation");
+    await click(".o-mail-ActionList-button[title='Show camera preview']");
+    await advanceTime(ChannelMember.CANCEL_CALL_INVITE_DELAY - 5000); // Call should not auto-cancel while preview is open
+    await contains(".o-discuss-CallInvitation");
+    await click(".o-mail-ActionList-button[title='Hide camera preview']");
+    await advanceTime(ChannelMember.CANCEL_CALL_INVITE_DELAY); // Timer restarts when the preview closes, and the call should auto-cancel after 30s.
     await contains(".o-discuss-CallInvitation", { count: 0 });
 });
 
@@ -801,10 +842,10 @@ test("should also invite to the call when inviting to the channel", async () => 
     await openDiscuss(channelId);
     await click("[title='Start Call']");
     await contains(".o-discuss-Call");
-    await click(".o-mail-DiscussContent-header button[title='Invite People']");
-    await contains(".o-discuss-ChannelInvitation");
-    await click(".o-discuss-ChannelInvitation-selectable", { text: "TestPartner" });
-    await click(".o-discuss-ChannelInvitation [title='Invite']:enabled");
+    await click("button[title='Invite People']");
+    await contains(".o-discuss-ChannelInvitation:has(:text('Invite people'))");
+    await click(".o-discuss-ChannelInvitation-selectable:has(:text('TestPartner'))");
+    await click("button[title='Invite']:enabled");
     await contains(".o-discuss-CallParticipantCard.o-isInvitation");
 });
 
@@ -827,18 +868,14 @@ test("shows warning on infinite mirror effect (screen-sharing then fullscreen)",
     await start();
     await openDiscuss(channelId);
     await click("[title='Start Call']");
-    await click("[title='More']");
     await click("[title='Share Screen']");
     await contains("video");
     await triggerEvents(".o-discuss-Call-mainCards", ["mousemove"]); // show overlay
     await click("button[title='Fullscreen']");
-    await contains(".o-discuss-CallInfiniteMirroringWarning");
-    await contains(
-        ".o-discuss-CallInfiniteMirroringWarning:contains('To avoid the infinite mirror effect, please share a specific window or tab or another monitor.')"
-    );
-    await contains("button:contains('Stream paused') i.fa-pause-circle-o");
-    await hover(queryFirst("button:contains('Stream paused')"));
-    await contains("button:contains('Resume stream') i.fa-play-circle-o");
+    await contains(".o-discuss-Call-mainCards h1:contains('You are Presenting')");
+    await contains("button:contains('Show My Screen Anyway')");
+    await contains(".o-discuss-CallPresentationBar-container button[aria-label='Stop presenting']");
+    await contains(".o-discuss-CallParticipantCard button[aria-label='Stop Presenting']");
 });
 
 test("single 'join' (without camera) button when last call was audio-only", async () => {
@@ -852,19 +889,20 @@ test("single 'join' (without camera) button when last call was audio-only", asyn
             Command.create({ partner_id: alfredPartnerId }),
         ],
     });
+    const [alfredMemberId] = pyEnv["discuss.channel.member"].search([
+        ["partner_id", "=", alfredPartnerId],
+        ["channel_id", "=", channelId],
+    ]);
     pyEnv["discuss.channel.rtc.session"].create({
-        channel_member_id: pyEnv["discuss.channel.member"].create({
-            channel_id: channelId,
-            partner_id: alfredPartnerId,
-        }),
         channel_id: channelId,
+        channel_member_id: alfredMemberId,
     });
     await start();
     await openDiscuss(channelId);
     await click("button[title='Join Call']");
     await contains(".o-discuss-Call.o-selfInCall");
-    await click("button[title='Disconnect'");
-    await click("button[title='Join Call']", { text: "Join", contains: [".fa-phone"] });
+    await click("button[title='Disconnect']");
+    await click("button[title='Join Call']:text('Join')", { contains: [".fa-phone"] });
 });
 
 test("single 'join' (with camera) button when last call had camera on", async () => {
@@ -878,20 +916,20 @@ test("single 'join' (with camera) button when last call had camera on", async ()
             Command.create({ partner_id: alfredPartnerId }),
         ],
     });
+    const [alfredMemberId] = pyEnv["discuss.channel.member"].search([
+        ["partner_id", "=", alfredPartnerId],
+        ["channel_id", "=", channelId],
+    ]);
     pyEnv["discuss.channel.rtc.session"].create({
-        channel_member_id: pyEnv["discuss.channel.member"].create({
-            channel_id: channelId,
-            partner_id: alfredPartnerId,
-        }),
         channel_id: channelId,
+        channel_member_id: alfredMemberId,
     });
     await start();
     await openDiscuss(channelId);
     await click("button[title='Join Video Call']");
-    await contains(".o-discuss-CallParticipantCard[title='Mitchell Admin'] video");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Mitchell Admin'] video");
     await click("button[title='Disconnect']");
-    await click("button[title='Join Video Call']", {
-        text: "Join",
+    await click("button[title='Join Video Call']:text('Join')", {
         contains: [".fa-video-camera"],
     });
 });
@@ -918,25 +956,23 @@ test("dynamic focus switches to talking participant", async () => {
     const rtc = env.services["discuss.rtc"];
     await openDiscuss(channelId);
     await click("[title='Join Call']");
-    await click(".o-discuss-CallParticipantCard[title='Alice']");
-    await contains(".o-discuss-CallParticipantCard[title='Alice']");
-    await contains(".o-discuss-CallParticipantCard[title='Bob']", {
+    await click(".o-discuss-CallParticipantCard[aria-label='Alice']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Alice']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']", {
         count: 0,
     });
     rtc.updateSessionInfo({ [bobSessionId]: { isTalking: true } });
-    await contains(".o-discuss-CallParticipantCard[title='Bob']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']");
     rtc.updateSessionInfo({ [aliceSessionId]: { isTalking: true } });
-    await contains(".o-discuss-CallParticipantCard[title='Bob']", {
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']", {
         count: 0,
     });
-    await contains(".o-discuss-CallParticipantCard[title='Alice']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Alice']");
     rtc.updateSessionInfo({ [aliceSessionId]: { isTalking: false } });
-    await contains(".o-discuss-CallParticipantCard[title='Bob']");
-    await click("[title='More']");
-    await click(".o-dropdown-item:contains('Disable speaker autofocus')");
-    await contains(".o-dropdown-item", { count: 0 });
-    await click("[title='More']");
-    await contains(".o-dropdown-item:contains('Autofocus speaker')");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']");
+    await click("button[aria-label='Video Settings']");
+    await click(".o-discuss-QuickVideoSettings button:has(:text('Advanced Settings'))");
+    await click("input[title='Auto-focus speaker']:checked");
 });
 
 test("Shows warning badge on mic/camera on non-granted permission in meeting conversations", async () => {
@@ -958,7 +994,7 @@ test("Shows warning badge on mic/camera on non-granted permission in meeting con
     await contains("button[title='Stop camera']");
     await contains("button[title='Stop camera'].o-tag-DANGER");
     await contains("button[title='Stop camera'].o-tag-WARNING_BADGE");
-    await contains(".o-mail-Meeting.o-fullscreen"); // wait for startMeeting (incl. enterFullscreen) to fully settle
+    await contains(".o-mail-Meeting[data-active]"); // wait for startMeeting (incl. enterFullscreen) to fully settle
     await click(".o-mail-DiscussSidebarChannel:text('General')");
     await click("[title='Join Call']");
     await contains("button[title='Turn camera on']");
@@ -985,18 +1021,18 @@ test("should not show context menu on participant card when not in a call", asyn
     ]);
     await start();
     await openDiscuss(channelId);
-    await contains(".o-discuss-CallParticipantCard[title='Awesome Partner']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Awesome Partner']");
     await contains(
-        ".o-discuss-CallParticipantCard[title='Awesome Partner'][data-is-context-menu-available]",
+        ".o-discuss-CallParticipantCard[aria-label='Awesome Partner'][data-is-context-menu-available]",
         { count: 0 }
     );
     await click("[title='Join Call']");
     await contains(
-        ".o-discuss-CallParticipantCard[title='Awesome Partner'][data-is-context-menu-available]"
+        ".o-discuss-CallParticipantCard[aria-label='Awesome Partner'][data-is-context-menu-available]"
     );
-    await hover(".o-discuss-CallParticipantCard[title='Awesome Partner']");
+    await hover(".o-discuss-CallParticipantCard[aria-label='Awesome Partner']");
     await click(
-        ".o-discuss-CallParticipantCard[title='Awesome Partner'] .o-discuss-CallParticipantCard-contextButton"
+        ".o-discuss-CallParticipantCard[aria-label='Awesome Partner'] .o-discuss-CallParticipantCard-contextButton"
     );
     await contains(".o-discuss-CallContextMenu");
 });
@@ -1094,9 +1130,9 @@ test("Show connecting state on cards", async () => {
     const bobRemote = network.makeMockRemote(channelMemberId);
     await openDiscuss(channelId);
     await click("[title='Join Call']");
-    await contains(".o-discuss-CallParticipantCard[title='Bob']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']");
     await bobRemote.updateConnectionState("connecting");
-    await contains(".o-discuss-CallParticipantCard[title='Bob'] .fa-exclamation-triangle");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob'] .fa-exclamation-triangle");
     await bobRemote.updateConnectionState("connected");
     await contains("span[data-connection-state='connected']");
 });
@@ -1113,10 +1149,10 @@ test("Can see raised hands from other call participants", async () => {
     const bobRemote = network.makeMockRemote(channelMemberId);
     await openDiscuss(channelId);
     await click("[title='Join Call']");
-    await contains(".o-discuss-CallParticipantCard[title='Bob']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']");
     await bobRemote.updateConnectionState("connected");
     await bobRemote.updateInfo({ isRaisingHand: true });
-    await contains(".o-discuss-CallParticipantCard[title='Bob'] .fa-hand-paper-o");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob'] .fa-hand-paper-o");
     await contains(".o-discuss-Call-notification:contains('Bob raised their hand')");
 });
 
@@ -1132,10 +1168,10 @@ test("Can see videos from other call participants", async () => {
     const bobRemote = network.makeMockRemote(channelMemberId);
     await openDiscuss(channelId);
     await click("[title='Join Call']");
-    await contains(".o-discuss-CallParticipantCard[title='Bob']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob']");
     await bobRemote.updateConnectionState("connected");
     await bobRemote.updateUpload("screen", createVideoStream().getVideoTracks()[0]);
-    await contains(".o-discuss-CallParticipantCard[title='Bob'] video");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Bob'] video");
 });
 
 test("show all participants on other user stops screen share", async () => {
@@ -1155,7 +1191,7 @@ test("show all participants on other user stops screen share", async () => {
     await streamerRemote.updateUpload("screen", createVideoStream().getVideoTracks()[0]);
     await contains(".o-discuss-CallParticipantCard-avatar", { count: 2 });
     await contains(".o-discuss-CallParticipantCard video");
-    await click(".o-discuss-CallParticipantCard[title='Streamer'] video");
+    await click(".o-discuss-CallParticipantCard[aria-label='Streamer'] video");
     await contains(".o-discuss-CallParticipantCard-avatar");
     await contains(".o-discuss-CallParticipantCard video");
     await streamerRemote.updateUpload("screen", null);
@@ -1209,22 +1245,35 @@ test("auto-focus participant video in one-to-one call in chat window", async () 
         channel_id: channelId,
         partner_id: pyEnv["res.partner"].create({ name: "Batman" }),
     });
+    listenStoreFetch("channels_as_member");
     setupChatHub({ opened: [channelId] });
+    patchWithCleanup(SoundEffects.prototype, {
+        play(name) {
+            expect.step(`play - ${name}`);
+        },
+    });
     const env = await start();
+    // Open messaging menu to force channels_as_member store fetch,
+    // as to not receive wrong outdated rtc_session data that would fail the "Batman video" step at the end
+    await click(".o_menu_systray i[aria-label='Messages']");
+    await waitStoreFetch("channels_as_member");
     const network = await makeMockRtcNetwork({ env, channelId });
     const mockedRemote = network.makeMockRemote(channelMemberId);
     await click("[title='Join Call']");
     await contains(".o-discuss-CallParticipantCard", { count: 2 });
+    await expect.waitForSteps(["play - call-join"]);
     await mockedRemote.updateConnectionState("connected");
     await mockedRemote.updateUpload("camera", createVideoStream().getVideoTracks()[0]);
-    await contains(".o-discuss-CallParticipantCard[title='Batman'] video");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Batman']:has(video)");
     await contains(".o-discuss-CallParticipantCard");
     await mockedRemote.updateUpload("camera", null);
-    await click(".o-discuss-CallParticipantCard[title='Batman']");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Batman']:not(:has(video))");
+    await click(".o-discuss-CallParticipantCard[aria-label='Batman']");
+    await contains(".o-discuss-CallParticipantCard", { count: 2 });
     await click("[title='Fullscreen']");
-    await contains(".o-mail-Meeting");
+    await contains(".o-mail-Meeting[data-active]");
     await mockedRemote.updateUpload("camera", createVideoStream().getVideoTracks()[0]);
-    await contains(".o-discuss-CallParticipantCard[title='Batman'] video");
+    await contains(".o-discuss-CallParticipantCard[aria-label='Batman'] video");
     await contains(".o-discuss-CallParticipantCard", { count: 2 }); // card does not get focused in meeting view
 });
 
@@ -1291,6 +1340,91 @@ test("open conversation from call invitation (discuss app)", async () => {
     await contains(".o-discuss-CallInvitation");
     await click("[title='Join Call']");
     await contains(".o-mail-DiscussContent-threadName[title=General]");
+});
+
+test("Meeting chat panel excludes call notifications for 'New Meeting' channels", async () => {
+    mockDate("2026-01-01 10:00:00");
+    await start();
+    await openDiscuss();
+    await click("[title='New Meeting']");
+    await click("[title='Exit Fullscreen']");
+    await contains(".o-mail-Thread:has(:text('Meeting - Jan 1, 2026'))");
+    await contains(".o-mail-NotificationMessage:text('Mitchell Admin started a call.11:00 AM')");
+    await click("[title='Fullscreen']");
+    await contains(".o-mail-Meeting");
+    await click("[title='Chat']");
+    await contains(".o-mail-ActionPanel-header:text('In call messages')");
+    await contains(".o-mail-Thread:has(:text('Meeting - Jan 1, 2026'))");
+    await contains(".o-mail-NotificationMessage:text('Mitchell Admin started a call.11:00 AM')", {
+        count: 0,
+    });
+});
+
+test("shows a presenter bar when screen-sharing in discuss calls and meetings", async () => {
+    const pyEnv = await startServer();
+    const partnerIds = pyEnv["res.partner"].create([{ name: "Mario" }, { name: "John" }]);
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const memberIds = pyEnv["discuss.channel.member"].create([
+        { channel_id: channelId, partner_id: partnerIds[0] },
+        { channel_id: channelId, partner_id: partnerIds[1] },
+    ]);
+    const env = await start();
+    const network = await makeMockRtcNetwork({ env, channelId });
+    const rtc = env.services["discuss.rtc"];
+    await openDiscuss(channelId);
+    await click("[title='Start Call']");
+    await contains(".o-discuss-Call");
+    const remotes = memberIds.map((memberId) => network.makeMockRemote(memberId));
+    for (const remote of remotes) {
+        await remote.updateConnectionState("connected");
+    }
+    await click("button[title='Share Screen']");
+    rtc.screenAudioTrack = streams.at(-1).getTracks()[0];
+    await contains(".o-discuss-CallPresentationBar");
+    await contains(".o-discuss-CallPresentationBar-presenterLabel:text('You are presenting')");
+    await remotes[0].updateUpload("screen", createVideoStream().getVideoTracks()[0]);
+    await contains(
+        ".o-discuss-CallPresentationBar-presenterLabel:text('You and Mario are presenting')"
+    );
+    await contains(
+        ".o-discuss-CallPresentationBar-presentationAudioContainer input[role='switch']"
+    );
+    await remotes[1].updateUpload("screen", createVideoStream().getVideoTracks()[0]);
+    await contains(
+        ".o-discuss-CallPresentationBar-presenterLabel:text('You, Mario and 1 more are presenting')"
+    );
+    await click("button[aria-label='Stop presenting']");
+    await contains(
+        ".o-discuss-CallPresentationBar-presenterLabel:text('Mario and John are presenting')"
+    );
+    await contains(
+        ".o-discuss-CallPresentationBar-presentationAudioContainer input[role='switch']",
+        { count: 0 }
+    );
+    await contains("button[aria-label='Stop presenting']", { count: 0 });
+    for (const remote of remotes) {
+        await remote.updateUpload("screen", null);
+    }
+    await contains(".o-discuss-CallPresentationBar", { count: 0 });
+});
+
+test("Access to Pinned Messages from Meeting Chat", async () => {
+    await start();
+    await openDiscuss();
+    await click("[title='New Meeting']");
+    await contains(".o-mail-ActionPanel-header:has(:text('Invite People'))");
+    await click("[title='Chat']");
+    await contains(".o-mail-ActionPanel-header:has(:text('In call messages'))");
+    await insertText(".o-mail-Meeting .o-mail-Composer-input", "hey");
+    await click(".o-mail-Meeting .o-mail-Composer button[title='Send']:enabled");
+    await click(".o-mail-Meeting .o-mail-Message [title='Expand']");
+    await click(".dropdown-item:text('Pin')");
+    await click(".modal-footer button:text('Pin Message')");
+    await contains(
+        ".o-mail-ActionPanel-header:has(:text('In call messages')) button[title='Pinned Messages'] .badge:text('1')"
+    );
+    await click(".o-mail-ActionPanel-header button[title='Pinned Messages']");
+    await contains(".o-mail-ActionPanel-header:has(:text('Pinned Messages'))");
 });
 
 test("show warning when blur hardware acceleration is not available", async () => {

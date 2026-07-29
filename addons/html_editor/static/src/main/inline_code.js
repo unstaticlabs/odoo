@@ -20,7 +20,7 @@ export class InlineCodePlugin extends Plugin {
 
         /** Providers */
         feff_providers: (root, cursors) =>
-            [...selectElements(root, ".o_inline_code")].flatMap((code) =>
+            selectElements(root, ".o_inline_code").flatMap((code) =>
                 this.dependencies.feff.surroundWithFeffs(code, cursors)
             ),
         toolbar_namespace_providers: withSequence(70, (targetedNodes) => {

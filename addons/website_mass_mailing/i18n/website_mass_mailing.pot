@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-02-20 18:37+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-02-20 09:02+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -41,6 +41,13 @@ msgid "<i class=\"fa fa-check-circle-o\" role=\"img\"/> Thanks for registering!"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                                        <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "<span class=\"s_website_form_label_content\">Email</span>\n"
@@ -55,10 +62,24 @@ msgid ""
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                                        <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "<span class=\"s_website_form_label_content\">Name</span>\n"
 "                                <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Our mailing lists</span>\n"
+"                                        <span class=\"s_website_form_mark\"> *</span>"
 msgstr ""
 
 #. module: website_mass_mailing
@@ -93,24 +114,15 @@ msgid "Close"
 msgstr ""
 
 #. module: website_mass_mailing
-#: model:ir.model,name:website_mass_mailing.model_res_company
-msgid "Companies"
-msgstr ""
-
-#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social_left
 msgid "Contact"
 msgstr ""
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__display_name
-msgid "Display Name"
-msgstr ""
-
-#. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: code:addons/website_mass_mailing/static/src/website_builder/toggle_thanks_message_traslation_option.xml:0
 msgid "Display Thanks Message"
 msgstr ""
 
@@ -151,11 +163,7 @@ msgid ""
 msgstr ""
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__id
-msgid "ID"
-msgstr ""
-
-#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "John Smith"
 msgstr ""
@@ -181,8 +189,14 @@ msgstr ""
 #. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
 msgid "Newsletter"
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid "Newsletter Aside"
 msgstr ""
 
 #. module: website_mass_mailing
@@ -217,6 +231,18 @@ msgstr ""
 
 #. module: website_mass_mailing
 #. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter block"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter popup"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option_plugin.js:0
 msgid ""
 "No mailing list found, do you want to create a new one? This will save all "
@@ -231,13 +257,14 @@ msgstr ""
 
 #. module: website_mass_mailing
 #. odoo-javascript
-#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
-msgid "Placeholder"
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "Pick one or remove this block."
 msgstr ""
 
 #. module: website_mass_mailing
-#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
-msgid "Popup"
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+msgid "Placeholder"
 msgstr ""
 
 #. module: website_mass_mailing
@@ -252,9 +279,15 @@ msgid "Stay Ahead with weekly insights &amp; updates"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_subscribe_form
 msgid "Subscribe"
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid "Subscribe for updates, offers <br/>and insights!"
 msgstr ""
 
 #. module: website_mass_mailing
@@ -277,6 +310,7 @@ msgid "Template"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "Thank you for subscribing!"
 msgstr ""
@@ -294,6 +328,13 @@ msgid "Thanks for subscribing!"
 msgstr ""
 
 #. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "This block is not linked to an active Newsletter."
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "We send one weekly newsletter per list and always try to keep it "
@@ -307,6 +348,7 @@ msgid "You cannot subscribe to the following list anymore : %s"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "You will now be informed about the latest news."
 msgstr ""
@@ -331,6 +373,7 @@ msgid ""
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "johnsmith@example.com"
 msgstr ""
@@ -357,4 +400,12 @@ msgid ""
 "updates, digest, bulletin, announcements, notifications, communication, "
 "promotional, email, alert, dialog, prompt, subscription, subscribe, mailing-"
 "list, news, grid, image, picture"
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid ""
+"updates, digest, bulletin, announcements, notifications, communication, "
+"promotional, email, subscription, subscribe, mailing-list, news, grid, "
+"image, picture"
 msgstr ""

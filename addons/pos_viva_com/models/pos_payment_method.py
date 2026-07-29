@@ -29,7 +29,6 @@ class PosPaymentMethod(models.Model):
     viva_com_terminal_id = fields.Char(string="Terminal ID", help='[ID of the Viva.com terminal], e.g. 16002169')
     viva_com_bearer_token = fields.Char(default='Bearer Token')
     viva_com_webhook_verification_key = fields.Char()
-    viva_com_latest_response = fields.Json()  # not used anymore, to remove in master
     viva_com_test_mode = fields.Boolean(string="Test mode", help="Run transactions in the test environment.")
     viva_com_webhook_endpoint = fields.Char(compute='_compute_viva_com_webhook_endpoint', readonly=True)
 
@@ -50,11 +49,12 @@ class PosPaymentMethod(models.Model):
         return 'https://www.vivapayments.com'
 
     def _compute_viva_com_webhook_endpoint(self):
-        web_base_url = self.get_base_url()
-        self.viva_com_webhook_endpoint = (
-            f"{web_base_url}/pos_viva_com/notification?company_id={self.company_id.id}"
-            f"&token={self.viva_com_webhook_verification_key}"
-        )
+        for record in self:
+            web_base_url = record.get_base_url()
+            record.viva_com_webhook_endpoint = (
+                f"{web_base_url}/pos_viva_com/notification?company_id={record.company_id.id}"
+                f"&token={record.viva_com_webhook_verification_key}"
+            )
 
     def _is_write_forbidden(self, fields):
         # Allow the modification of these fields even if a pos_session is open
@@ -63,6 +63,10 @@ class PosPaymentMethod(models.Model):
 
     def _get_payment_terminal_selection(self):
         return super()._get_payment_terminal_selection() + [('viva_com', 'Viva.com')]
+
+    @api.model
+    def _allowed_actions_in_self_order(self):
+        return super()._allowed_actions_in_self_order() + ["viva_com_send_payment_request", "viva_com_get_payment_status", "get_latest_viva_com_status"]
 
     def _bearer_token(self, session):
         self.ensure_one()
@@ -200,10 +204,6 @@ class PosPaymentMethod(models.Model):
                     raise UserError(_("Can't create payment method. Please check the data and update it."))
 
         return records
-
-    def get_latest_viva_com_status(self):
-        # Not used anymore, to remove in master
-        return {'error': 'Your POS is out of date, please refresh the page.'}
 
     @api.constrains('use_payment_terminal')
     def _check_viva_com_credentials(self):

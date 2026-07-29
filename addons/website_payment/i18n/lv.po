@@ -13,17 +13,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 13:42+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Latvian <https://translate.odoo.com/projects/odoo-19/"
-"website_payment/lv/>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2022-09-22 05:56+0000\n"
+"Last-Translator: Armīns Jeltajevs <armins.jeltajevs@gmail.com>, 2023\n"
+"Language-Team: Latvian (https://app.transifex.com/odoo/teams/41243/lv/)\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
@@ -65,11 +64,6 @@ msgstr "<b>Maksājuma ID:</b>"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Payment Method:</b>"
 msgstr "<b>Maksājuma metode:</b>"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "<option value=\"\">Country...</option>"
-msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_input
@@ -118,6 +112,27 @@ msgid "<span class=\"s_donation_currency pe-1\">$</span>50"
 msgstr ""
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Country</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                            <span class=\"s_website_form_mark\"> *</span>"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span>Enable a payment provider to accept online payments.</span>"
 msgstr ""
@@ -128,7 +143,7 @@ msgid "<span>or</span>"
 msgstr ""
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "<strong>Warning</strong> The currency is missing or incorrect."
 msgstr "<strong>Brīdinājums</strong> Valūta ir iztrūkstoša vai nepareiza."
 
@@ -142,16 +157,6 @@ msgstr "Jūsu vietnē tika veikts ziedojums"
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "A year of cultural awakening."
 msgstr "Kultūras atmodas gads."
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate"
-msgstr ""
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
-msgid "Activate Stripe"
-msgstr "Aktivizēt Stripe"
 
 #. module: website_payment
 #. odoo-javascript
@@ -215,17 +220,20 @@ msgid "Configure Payment Methods"
 msgstr ""
 
 #. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect"
+msgstr ""
+
+#. module: website_payment
+#: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
+msgid "Connect Stripe"
+msgstr ""
+
+#. module: website_payment
 #. odoo-javascript
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Country"
 msgstr "Valsts"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Country\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
 
 #. module: website_payment
 #. odoo-python
@@ -283,9 +291,8 @@ msgid "Donate Now"
 msgstr "Ziedot tagad"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation"
 msgstr "Ziedojums"
@@ -293,6 +300,11 @@ msgstr "Ziedojums"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.snippets
 msgid "Donation Button"
+msgstr ""
+
+#. module: website_payment
+#: model:ir.model.fields,field_description:website_payment.field_payment_transaction__donation_log_message
+msgid "Donation Log Message"
 msgstr ""
 
 #. module: website_payment
@@ -323,13 +335,6 @@ msgstr "Ziedojuma paziņojums"
 #: code:addons/website_payment/static/src/interactions/payment_form.js:0
 msgid "Email"
 msgstr "E-pasts"
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Email\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
 
 #. module: website_payment
 #. odoo-python
@@ -412,13 +417,6 @@ msgid "Name"
 msgstr "Nosaukums"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid ""
-"Name\n"
-"                    <span class=\"s_website_form_mark\"> *</span>"
-msgstr ""
-
-#. module: website_payment
 #. odoo-python
 #: code:addons/website_payment/controllers/portal.py:0
 msgid "Name is required."
@@ -447,6 +445,11 @@ msgid "One year in high school."
 msgstr "Viens gads vidusskolā."
 
 #. module: website_payment
+#: model:ir.model,name:website_payment.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_information
 msgid "Payment Details"
 msgstr "Maksājuma informācija"
@@ -462,30 +465,18 @@ msgid "Payment Transaction"
 msgstr "Maksājuma darījums"
 
 #. module: website_payment
-#. odoo-python
-#: code:addons/website_payment/models/payment_transaction.py:0
-msgid "Payment received from donation with following details:"
-msgstr "Maksājums saņemts no ziedojuma ar sekojošu informāciju:"
-
-#. module: website_payment
-#: model:ir.model,name:website_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Payments"
 msgstr "Maksājumi"
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please enter a valid email address."
 msgstr ""
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
+#: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please provide a name."
-msgstr ""
-
-#. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_information
-msgid "Please select a country."
 msgstr ""
 
 #. module: website_payment
@@ -554,7 +545,7 @@ msgid "The minimum donation amount is %(amount)s"
 msgstr ""
 
 #. module: website_payment
-#: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
+#: model_terms:ir.ui.view,arch_db:website_payment.donation_page_layout
 msgid "There is nothing to pay."
 msgstr "Nav par ko maksāt."
 
@@ -567,8 +558,8 @@ msgstr ""
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid ""
-"Visa, Mastercard, Maestro, Google Pay, Apple Pay, etc. as well as recurring "
-"charges."
+"Visa, Mastercard, Maestro, UPI, Netbanking, PayNow, Klarna, etc., as well as "
+"recurring charges."
 msgstr ""
 
 #. module: website_payment
@@ -590,82 +581,3 @@ msgstr "Jūsu komentāru"
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "made on"
 msgstr "veikts"
-
-#~ msgid "Activate Payments"
-#~ msgstr "Aktivizēt maksājumus"
-
-#~ msgid "Add new pre-filled option"
-#~ msgstr "Pievienojiet jaunu iepriekš aizpildītu opciju"
-
-#~ msgid "Configure %s"
-#~ msgstr "Konfigurēt %s"
-
-#~ msgid "Connect to Stripe"
-#~ msgstr "Savienot ar Stripe"
-
-#~ msgid ""
-#~ "Country\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "Valsts\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid ""
-#~ "Email\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "E-pasts\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid "Email is invalid"
-#~ msgstr "E-pasts ir nederīgs"
-
-#~ msgid "Field '%s' is mandatory"
-#~ msgstr "Lauks '­%s' ir obligāts"
-
-#~ msgid "Is Stripe Supported Country"
-#~ msgstr "Ir Stripe atbalstīta valsts"
-
-#~ msgid ""
-#~ "Name\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-#~ msgstr ""
-#~ "Vārds\n"
-#~ "                            <span class=\"s_website_form_mark\"> *</span>"
-
-#~ msgid "Other than Paypal"
-#~ msgstr "Izņemot PayPal"
-
-#~ msgid "Paypal Only"
-#~ msgstr "Tikai PayPal"
-
-#~ msgid "Server Error"
-#~ msgstr "Servera kļūda"
-
-#~ msgid "Shop - Payment"
-#~ msgstr "Veikals - Maksājums"
-
-#~ msgid "Some information is missing to process your payment."
-#~ msgstr "Trūkst noteiktas informācijas, lai apstrādāt Jūsu maksājumu."
-
-#~ msgid ""
-#~ "Support most payment methods; Visa, Mastercard, Maestro, Google Pay, "
-#~ "Apple Pay, etc. as well as recurring charges."
-#~ msgstr ""
-#~ "Atbalsta lielāko daļu maksājumu metožu: Visa, Mastercard, Maestro, Google "
-#~ "Pay, Apple Pay, utt. kā arī atkārtotus maksājumus."
-
-#~ msgid "The minimum donation amount is %s%s%s"
-#~ msgstr "Minimālais ziedojuma daudzums ir %s%s%s"
-
-#~ msgid "Validation Error"
-#~ msgstr "Validācijas kļūda"
-
-#~ msgid "View Alternatives"
-#~ msgstr "Skatīt alternatīvas"
-
-#~ msgid "View other providers"
-#~ msgstr "Skatīt citus sniedzējus"
-
-#~ msgid "Website: Donation"
-#~ msgstr "Mājas lapa: Ziedojums"

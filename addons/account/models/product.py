@@ -325,9 +325,7 @@ class ProductProduct(models.Model):
 
             # Get similarity threshold from system parameter, fallback to 0.9 if missing, invalid, or out of range (0, 1].
             try:
-                similarity_threshold = float(
-                    self.env['ir.config_parameter'].sudo().get_param('account.product_name_similarity_threshold', '0.9')
-                )
+                similarity_threshold = self.env['ir.config_parameter'].sudo().get_float('account.product_name_similarity_threshold', 0.9)
                 if similarity_threshold <= 0.0 or similarity_threshold > 1.0:
                     similarity_threshold = 0.9
             except ValueError:

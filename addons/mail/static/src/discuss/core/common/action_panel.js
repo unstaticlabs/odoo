@@ -1,7 +1,8 @@
 import { attClassObjectToString } from "@mail/utils/common/format";
 import { Component, useSubEnv } from "@odoo/owl";
+import { _t } from "@web/core/l10n/translation";
 import { ResizablePanel } from "@web/core/resizable_panel/resizable_panel";
-import { useForwardRefToParent, useService } from "@web/core/utils/hooks";
+import { useBackButton, useForwardRefToParent, useService } from "@web/core/utils/hooks";
 
 /**
  * @typedef {Object} Props
@@ -13,6 +14,7 @@ export class ActionPanel extends Component {
     static template = "mail.ActionPanel";
     static components = { ResizablePanel };
     static props = [
+        "close?",
         "contentRef?",
         "icon?",
         "title?",
@@ -29,6 +31,16 @@ export class ActionPanel extends Component {
         this.ui = useService("ui");
         useForwardRefToParent("contentRef");
         useSubEnv({ inDiscussActionPanel: true });
+        useBackButton(
+            () => this.props.close(),
+            () => this.props.close
+        );
+    }
+
+    get backButtonTitle() {
+        return this.env.hasPreviousActionPanel?.()
+            ? _t("Back to previous panel")
+            : _t("Close panel");
     }
 
     get classNames() {

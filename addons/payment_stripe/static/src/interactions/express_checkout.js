@@ -177,14 +177,11 @@ patch(ExpressCheckout.prototype, {
                         },
                     },
                 ));
-                const recomputedAmount = await this.waitFor(rpc(
-                    this.paymentContext['shippingAddressUpdateRoute'] + '/compute_taxes',
-                ));
-                const { delivery_methods, delivery_discount_minor_amount } = availableCarriersData;
-                if (delivery_methods.length === 0 || recomputedAmount.external_tax_error) {
+                const { delivery_methods, delivery_discount_minor_amount, adjusted_minor_amount } = availableCarriersData;
+                if (availableCarriersData.external_tax_error || delivery_methods.length === 0) {
                     ev.updateWith({status: 'invalid_shipping_address'});
                 } else {
-                    this.paymentContext['minorAmount'] = recomputedAmount;
+                    this.paymentContext['minorAmount'] = adjusted_minor_amount;
                     ev.updateWith({
                         status: 'success',
                         shippingOptions: delivery_methods.map(carrier => ({

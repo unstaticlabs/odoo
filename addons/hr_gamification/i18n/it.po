@@ -5,15 +5,15 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Marianna Ciofani (cima)" <cima@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Marianna Ciofani (cima)" <cima@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:58+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-06 10:21+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
 "Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
 "hr_gamification/it/>\n"
 "Language: it\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -124,12 +124,6 @@ msgstr "Descrizione"
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "Riconoscimento diretto"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr "Annulla"
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -296,34 +290,3 @@ msgstr "Impossibile inviare un riconoscimento a se stessi."
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr "il"
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "I badge sono dei riconoscimenti per un buon lavoro svolto. Assegnane alle "
-#~ "persone che ritieni meritevoli."
-
-#~ msgid "Basic Employee"
-#~ msgstr "Dipendente base"
-
-#~ msgid "Cancel"
-#~ msgstr "Annulla"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "Assegna al dipendente il primo riconoscimento"
-
-#~ msgid "Received Badges"
-#~ msgstr "Badge ricevuti"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "Nome utente legato alla risorsa per gestirne l'accesso."
-
-#~ msgid "Reward Employee"
-#~ msgstr "Premia Dipendenti"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr "Puoi inviare badge solo a impiegati collegati a un utente."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "per ricompensare un dipendente per un buon comportamento"

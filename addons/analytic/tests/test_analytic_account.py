@@ -362,5 +362,5 @@ class TestAnalyticAccount(AnalyticCommon):
         current_project_plan, _other_plans = self.env['account.analytic.plan']._get_all_plans()
         current_project_plan.write({'name': 'Old Project Plan'})
         self.analytic_account_1.write({'company_id': self.company.id})
-        self.env['ir.config_parameter'].set_param('analytic.project_plan', self.analytic_plan_2.id)
+        self.env['ir.config_parameter'].set_int('analytic.project_plan', self.analytic_plan_2.id)
         self.analytic_account_1._check_company_consistency()

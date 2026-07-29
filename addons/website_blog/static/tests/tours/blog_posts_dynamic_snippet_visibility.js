@@ -15,13 +15,13 @@ const blogPostsSnippet = {
     groupName: "Blogs",
 };
 
-const isSnippetVisible = (empty = false) => [
+const isSnippetVisible = (editMode = false) => [
     {
         content: `Check that a dynamic snippet is visible ${
-            empty ? "in edit mode" : "with content"
+            editMode ? "in edit mode" : "with content"
         }`,
-        trigger: `:iframe .s_dynamic_snippet_blog_posts:not(.o_dynamic_snippet_empty):not(.o_dynamic_empty):not(.s_dynamic_empty)${
-            !empty ? " h3:contains('Post Test')" : ""
+        trigger: `:iframe .s_dynamic_snippet_blog_posts${
+            !editMode ? " h3:contains('Post Test')" : ""
         }`,
     },
 ];
@@ -29,8 +29,7 @@ const isSnippetVisible = (empty = false) => [
 const isSnippetHidden = () => [
     {
         content: "Check that a dynamic snippet with no content is hidden",
-        trigger:
-            ":iframe .o_dynamic_snippet_empty:not(:visible), :iframe .o_dynamic_empty:not(:visible), :iframe .s_dynamic_empty:not(:visible)",
+        trigger: ":iframe .s_dynamic_snippet_blog_posts:not(:visible)",
     },
     ...clickOnEditAndWaitEditMode(),
     // A dynamic snippet is always visible in edit mode.
@@ -56,14 +55,6 @@ registerWebsitePreviewTour(
         ...clickOnSave(),
         ...isSnippetVisible(),
     ]
-);
-
-registerWebsitePreviewTour(
-    "blog_posts_dynamic_snippet_visible",
-    {
-        url: "/",
-    },
-    isSnippetVisible
 );
 
 registerWebsitePreviewTour(

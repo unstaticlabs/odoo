@@ -1,7 +1,7 @@
 import { Component, useExternalListener, useRef } from "@odoo/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { _t } from "@web/core/l10n/translation";
-import { useService } from "@web/core/utils/hooks";
+import { useBackButton, useService } from "@web/core/utils/hooks";
 import { browser } from "@web/core/browser/browser";
 
 class MessageSeenIndicatorDialog extends Component {
@@ -22,6 +22,7 @@ class MessageSeenIndicatorDialog extends Component {
             },
             true
         );
+        useBackButton(() => this.props.close());
     }
 }
 
@@ -33,7 +34,7 @@ class MessageSeenIndicatorDialog extends Component {
  */
 export class MessageSeenIndicator extends Component {
     static template = "mail.MessageSeenIndicator";
-    static props = ["message", "thread", "className?"];
+    static props = ["message", "className?"];
 
     setup() {
         super.setup();
@@ -43,18 +44,18 @@ export class MessageSeenIndicator extends Component {
     get summary() {
         if (this.props.message.hasEveryoneSeen) {
             if (
-                this.props.thread.correspondent &&
-                this.props.thread.channel_member_ids.length === 2
+                this.props.message.channel_id.correspondent &&
+                this.props.message.channel_id.channel_member_ids.length === 2
             ) {
-                return _t("Seen by %(user)s", { user: this.props.thread.correspondent.name });
+                return _t("Seen by %(user)s", {
+                    user: this.props.message.channel_id.correspondent.name,
+                });
             }
             return _t("Seen by everyone");
         }
         const seenMembers = this.props.message.channelMemberHaveSeen;
         const [user1, user2, user3] = seenMembers.map((member) => member.name);
         switch (seenMembers.length) {
-            case 0:
-                return _t("Sent");
             case 1:
                 return _t("Seen by %(user)s", { user: user1 });
             case 2:
@@ -78,9 +79,6 @@ export class MessageSeenIndicator extends Component {
     }
 
     openDialog() {
-        if (this.props.message.channelMemberHaveSeen.length === 0) {
-            return;
-        }
         this.dialog.add(MessageSeenIndicatorDialog, { message: this.props.message });
     }
 }

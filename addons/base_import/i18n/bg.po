@@ -9,13 +9,13 @@
 # Martin Trigaux, 2023
 # aleksandar ivanov, 2023
 # Maria Boyadjieva <marabo2000@gmail.com>, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:45+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-12 13:02+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-19/"
 "base_import/bg/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -142,12 +142,6 @@ msgstr "Но, можете да използвате и .csv файлове"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "Отказ"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr ""
@@ -164,11 +158,11 @@ msgstr "Колоната %(column)s съдържа неправилни стой
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr ""
-"Колоната %(column)s съдържа неправилни стойности. Грешка в ред %(line)d: %"
-"(error)s"
+"Колоната %(column)s съдържа неправилни стойности. Грешка в ред %(line)d: "
+"%(error)s"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
@@ -258,6 +252,12 @@ msgid "Delay after each batch"
 msgstr "Забавяне след всяка партида"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -315,8 +315,8 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "Грешка при импортиране на записи: всички редове трябва да са с еднакъв "
 "размер, но заглавният ред има %(title_row_entries)d записа, докато първият "
@@ -347,12 +347,6 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "Външна ИН"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr ""
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -388,8 +382,8 @@ msgstr "Размерът на файла надвишава конфигурир
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "Файл за проверка и/или въвеждане, двоичен ред (не база64)"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -869,8 +863,8 @@ msgstr "Проследете историята в хода на въвежда�
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"Не можете да заредите \"{extension}\" файл: изисква се модур Pyton \""
-"{modname}\""
+"Не можете да заредите \"{extension}\" файл: изисква се модур Pyton "
+"\"{modname}\""
 
 #. module: base_import
 #. odoo-python
@@ -1022,15 +1016,3 @@ msgstr "секунди"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "неизвестен код за грешка %s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "Колоната %s съдържа неправилни стойности (стойност: %s)"
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "Колоната %s съдържа неправилни стойности. Грешка в ред %d: %s"
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "Грешка при разбора на датата [%s:L %d]:%s"
-
-#~ msgid "Load File"
-#~ msgstr "Заредете файл"

@@ -16,7 +16,7 @@ class SaleOrderLine(models.Model):
     timesheet_ids = fields.One2many('account.analytic.line', 'so_line', domain=[('project_id', '!=', False)], string='Timesheets', export_string_translation=False)
 
     @api.depends('remaining_hours_available', 'remaining_hours')
-    @api.depends_context('with_remaining_hours', 'company')
+    @api.depends_context('with_remaining_hours', 'company', 'formatted_display_name')
     def _compute_display_name(self):
         super()._compute_display_name()
         with_remaining_hours = self.env.context.get('with_remaining_hours') and not self.env.context.get('skip_remaining_hours', False)
@@ -39,7 +39,10 @@ class SaleOrderLine(models.Model):
                     elif is_day:
                         remaining_days = company.project_time_mode_id._compute_quantity(line.remaining_hours, encoding_uom, round=False)
                         remaining_time = f' ({remaining_days:.02f} {unit_label})'
-                    name = f'{line.display_name}{remaining_time}'
+                    if self.env.context.get('formatted_display_name'):
+                        name = f'{line.display_name} --{remaining_time}--'
+                    else:
+                        name = f'{line.display_name}{remaining_time}'
                     line.display_name = name
 
     @api.depends('product_id.service_policy')
@@ -59,14 +62,6 @@ class SaleOrderLine(models.Model):
                 remaining_hours = line.product_uom_id._compute_quantity(qty_left, uom_hour, round=False)
             line.remaining_hours = remaining_hours
 
-    @api.depends('product_id')
-    def _compute_qty_delivered_method(self):
-        """ Sale Timesheet module compute delivered qty for product [('type', 'in', ['service']), ('service_type', '=', 'timesheet')] """
-        super()._compute_qty_delivered_method()
-        for line in self:
-            if not line.is_expense and line.product_id.type == 'service' and line.product_id.service_type == 'timesheet':
-                line.qty_delivered_method = 'timesheet'
-
     @api.depends('analytic_line_ids.project_id', 'project_id.pricing_type')
     def _compute_qty_delivered(self):
         super()._compute_qty_delivered()
@@ -77,7 +72,7 @@ class SaleOrderLine(models.Model):
         domain = lines_by_timesheet._timesheet_compute_delivered_quantity_domain()
         mapping = lines_by_timesheet.sudo()._get_delivered_quantity_by_analytic(domain)
         for line in lines_by_timesheet:
-            delivered_qties[line] = mapping.get(line.id or line._origin.id, 0.0)
+            delivered_qties[line] += mapping.get(line.id or line._origin.id, 0.0)
         return delivered_qties
 
     def _timesheet_compute_delivered_quantity_domain(self):
@@ -86,6 +81,13 @@ class SaleOrderLine(models.Model):
         if self.env.context.get('accrual_entry_date'):
             domain += [('date', '<=', self.env.context['accrual_entry_date'])]
         return domain
+
+    @api.model
+    def _get_delivered_quantity_by_analytic_domain(self):
+        """"To make sure we don't consider timesheets while computing delivered quantities
+        from non timesheet AALs (e.g. Services and Materials)"""
+        domain = super()._get_delivered_quantity_by_analytic_domain()
+        return Domain.AND([domain, Domain('project_id', '=', False)])
 
     ###########################################
     # Service : Project and task generation
@@ -164,9 +166,9 @@ class SaleOrderLine(models.Model):
             and sol.invoice_status == 'to invoice')
         domain = Domain(lines_by_timesheet._timesheet_compute_delivered_quantity_domain())
         refund_account_moves = self.order_id.invoice_ids.filtered(lambda am: am.state == 'posted' and am.move_type == 'out_refund').reversed_entry_id
-        timesheet_domain = Domain('timesheet_invoice_id', '=', False) | Domain('timesheet_invoice_id.state', '=', 'cancel') & Domain('timesheet_invoice_id.payment_state', '!=', 'invoicing_legacy')
+        timesheet_domain = Domain('reinvoice_move_id', '=', False) | Domain('reinvoice_move_id.state', '=', 'cancel') & Domain('reinvoice_move_id.payment_state', '!=', 'invoicing_legacy')
         if refund_account_moves:
-            credited_timesheet_domain = Domain('timesheet_invoice_id.state', '=', 'posted') & Domain('timesheet_invoice_id', 'in', refund_account_moves.ids)
+            credited_timesheet_domain = Domain('reinvoice_move_id.state', '=', 'posted') & Domain('reinvoice_move_id', 'in', refund_account_moves.ids)
             timesheet_domain |= credited_timesheet_domain
         domain &= timesheet_domain
         if start_date:
@@ -190,30 +192,22 @@ class SaleOrderLine(models.Model):
 
             if qty_to_invoice:
                 line.qty_to_invoice = qty_to_invoice
-            else:
+            elif start_date or end_date:
                 prev_inv_status = line.invoice_status
                 line.qty_to_invoice = qty_to_invoice
                 line.invoice_status = prev_inv_status
 
-    def _get_action_per_item(self):
-        """ Get action per Sales Order Item
-
-            When the Sales Order Item contains a service product then the action will be View Timesheets.
-
-            :returns: Dict containing id of SOL as key and the action as value
-        """
-        action_per_sol = super()._get_action_per_item()
-        timesheet_action = self.env.ref('sale_timesheet.timesheet_action_from_sales_order_item').id
-        timesheet_ids_per_sol = {}
-        if self.env.user.has_group('hr_timesheet.group_hr_timesheet_user'):
-            timesheet_read_group = self.env['account.analytic.line']._read_group([('so_line', 'in', self.ids), ('project_id', '!=', False)], ['so_line'], ['id:array_agg'])
-            timesheet_ids_per_sol = {so_line.id: ids for so_line, ids in timesheet_read_group}
-        for sol in self:
-            timesheet_ids = timesheet_ids_per_sol.get(sol.id, [])
-            if sol.is_service and len(timesheet_ids) > 0:
-                action_per_sol[sol.id] = timesheet_action, timesheet_ids[0] if len(timesheet_ids) == 1 else False
-        return action_per_sol
-
     @api.model
     def _get_product_service_policy(self):
         return super()._get_product_service_policy() + ['delivered_timesheet']
+
+    def _is_line_reinvoicable(self):
+        """If line is supposed to be delivered based on a timesheet then we skip the expense policy
+        check in super."""
+        if self.product_id.service_type == 'timesheet':
+            return (
+                not self.is_expense
+                and self.product_id.invoice_policy == 'delivery'
+            )
+
+        return super()._is_line_reinvoicable()

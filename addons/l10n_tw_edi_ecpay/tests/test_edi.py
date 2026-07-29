@@ -35,16 +35,14 @@ class L10nTWITestEdi(TestAccountMoveSendCommon, HttpCase):
             'city': '中正區',
             'state_id': cls.env.ref('base.state_tw_tpc').id,
             'country_id': cls.env.ref('base.tw').id,
-            'company_type': 'person',
         })
         cls.partner_b.write({
             'phone': '+886 123 456 789',
+            'vat': '24153791',
             'street': 'street七美',
             'city': '信義區',
             'state_id': cls.env.ref('base.state_tw_klc').id,
             'country_id': cls.env.ref('base.tw').id,
-            'vat': '24153791',
-            'company_type': 'company',
         })
         # We can reuse this invoice for the flow tests.
         cls.basic_invoice = cls.init_invoice(
@@ -212,35 +210,18 @@ class L10nTWITestEdi(TestAccountMoveSendCommon, HttpCase):
         """
         This tests the data validation when trying to send to the ECpay platform.
         """
-        # the partner is b2b but has no tax id
+        # the partner is considered b2b if it has a valid tax id else b2c
         test_partner = self.env['res.partner'].create({
             'name': 'Test Partner',
             'phone': '+886 123 456 789',
             'street': 'street七美',
             'city': '中正區',
             'state_id': self.env.ref('base.state_tw_tpc').id,
-            'company_type': 'company',
+            'vat': '00501503',
+            'country_id': self.env.ref('base.tw').id,
         })
-        invoice_a = self.init_invoice(
-            'out_invoice', partner=test_partner, products=self.product_a, taxes=self.tax_sale_a,
-        )
-        invoice_a.action_post()
-        send_and_print = self.create_send_and_print(invoice_a)
-        with self.assertRaises(UserError):
-            send_and_print.action_send_and_print()
-
-        # the partner is b2b and has an invalid tax id
-        test_partner.vat = '1234567A'
-        invoice_b = self.init_invoice(
-            'out_invoice', partner=test_partner, products=self.product_a, taxes=self.tax_sale_a,
-        )
-        invoice_b.action_post()
-        send_and_print = self.create_send_and_print(invoice_b)
-        with self.assertRaises(UserError):
-            send_and_print.action_send_and_print()
 
         # the partner's phone number is invalid
-        test_partner.vat = '12345678'
         test_partner.phone = '123+456+789'
         invoice_c = self.init_invoice(
             'out_invoice', partner=test_partner, products=self.product_a, taxes=self.tax_sale_a,

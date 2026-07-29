@@ -1,6 +1,7 @@
 import { omit } from "@web/core/utils/objects";
 import { Plugin } from "@html_editor/plugin";
 import { withSequence } from "@html_editor/utils/resource";
+import { selectElements } from "@html_editor/utils/dom_traversal";
 
 /**
  * @typedef { Object } DisableSnippetsShared
@@ -25,7 +26,7 @@ export class DisableSnippetsPlugin extends Plugin {
 
         // TODO only for website ?
         // TODO improve to add case when "+" menu appears (resize event ?)
-        const editableDropdownEls = this.editable.querySelectorAll(".dropdown-menu.o_editable");
+        const editableDropdownEls = this.editable.querySelectorAll(".dropdown-menu.o_savable");
         editableDropdownEls.forEach((dropdownEl) => {
             const dropdownToggleEl = dropdownEl.parentNode.querySelector(".dropdown-toggle");
             this.addDomListener(dropdownToggleEl, "shown.bs.dropdown", this._disableSnippets);
@@ -46,7 +47,7 @@ export class DisableSnippetsPlugin extends Plugin {
      * TODO: trigger the computation in the situation that needs it.
      */
     disableUndroppableSnippets() {
-        const editableAreaEls = this.dependencies.setup_editor_plugin.getEditableAreas();
+        const editableAreaEls = this.dependencies.setup_editor_plugin.getSavableAreas();
         const rootEl = this.dependencies.dropzone.getDropRootElement();
         const dropAreasBySelector = this.getDropAreas(editableAreaEls, rootEl);
 
@@ -55,7 +56,7 @@ export class DisableSnippetsPlugin extends Plugin {
         const checkSanitize = (el, snippetEl) => {
             let forbidSanitize = false;
             // Check if the snippet is sanitized/contains such snippets.
-            for (const el of [snippetEl, ...snippetEl.querySelectorAll("[data-snippet")]) {
+            for (const el of selectElements(snippetEl, "[data-snippet")) {
                 const snippet = this.snippetModel.getOriginalSnippet(el.dataset.snippet);
                 if (snippet && snippet.forbidSanitize) {
                     forbidSanitize = snippet.forbidSanitize;
@@ -103,6 +104,12 @@ export class DisableSnippetsPlugin extends Plugin {
         // Disable the groups containing only disabled snippets.
         if (!areGroupsDisabled) {
             snippetGroups.forEach((snippetGroup) => {
+                // Do not mark uninstalled groups as disabled (unless all
+                // groups are disabled).
+                if (snippetGroup.isInstallable) {
+                    snippetGroup.isDisabled = false;
+                    return;
+                }
                 if (snippetGroup.groupName !== "custom") {
                     snippetGroup.isDisabled = !snippets.find(
                         (snippet) =>

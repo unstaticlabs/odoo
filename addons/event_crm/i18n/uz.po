@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/event_crm/"
-"uz/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-10-08 18:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_count
@@ -51,12 +49,6 @@ msgstr "(yangilangan)"
 #, fuzzy
 msgid "<span class=\"o_stat_text\"> Attendees</span>"
 msgstr "<span class=\"o_stat_text\"> ta ishtirokchi</span>"
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
-#, fuzzy
-msgid "<span class=\"o_stat_text\"> Leads</span>"
-msgstr "<span class=\"o_stat_text\"> Potensial mijozlar</span>"
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__active
@@ -289,12 +281,6 @@ msgstr "Tadbir:"
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
 #, fuzzy
-msgid "Execute Rule"
-msgstr "Qoidani bajarish"
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
-#, fuzzy
 msgid "Execute this rule for all ongoing and future events."
 msgstr ""
 "Ushbu qoidani barcha davom etayotgan va kelajakdagi tadbirlar uchun bajaring."
@@ -425,10 +411,9 @@ msgid "Lead Type"
 msgstr "Potensial mijoz turi"
 
 #. module: event_crm
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_event
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_registration
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_ids
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__lead_ids
+#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
 #: model_terms:ir.ui.view,arch_db:event_crm.event_view_form
 #, fuzzy
 msgid "Leads"
@@ -452,13 +437,6 @@ msgstr "Nomi"
 #, fuzzy
 msgid "New registrations"
 msgstr "Yangi ro‘yxatdan o‘tishlar"
-
-#. module: event_crm
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_event
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_registration
-#, fuzzy
-msgid "No leads found"
-msgstr "Potensial mijozlar topilmadi"
 
 #. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_registration_action_from_lead
@@ -573,6 +551,11 @@ msgid "Rule that created this lead"
 msgstr "Ushbu potensial mijozni yaratgan qoida"
 
 #. module: event_crm
+#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
+msgid "Run Rule"
+msgstr ""
+
+#. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_sales_team_id
 #, fuzzy
 msgid "Sales Team"
@@ -615,8 +598,8 @@ msgid ""
 "The ID of the last processed event.registration, used to know where to "
 "resume."
 msgstr ""
-"Qayerdan davom etishni bilish uchun ishlatilgan oxirgi qayta ishlangan "
-"event.registration ID."
+"Qayerdan davom etishni bilish uchun ishlatilgan oxirgi qayta ishlangan event."
+"registration ID."
 
 #. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_lead_rule_action

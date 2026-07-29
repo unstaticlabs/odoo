@@ -1,7 +1,8 @@
 import { isRecord, STORE_SYM } from "@mail/model/misc";
-import { Component, toRaw } from "@odoo/owl";
+import { Component, toRaw, useComponent, useState } from "@odoo/owl";
 import { DropdownState } from "@web/core/dropdown/dropdown_hooks";
 import { useService } from "@web/core/utils/hooks";
+import { markEventHandled } from "@web/core/utils/misc";
 import { Reactive } from "@web/core/utils/reactive";
 
 export const ACTION_TAGS = Object.freeze({
@@ -19,7 +20,17 @@ export const ACTION_TAGS = Object.freeze({
 /** @typedef {Component|Record} ActionOwner */
 
 /**
+ * @typedef {Object} ActionPanelCloseSpecificParams
+ * @property {Action} nextActiveAction
+ */
+
+/**
  * @typedef {Object} ActionDefinition
+ * @property {(params: Action & ActionPanelCloseSpecificParams) => void} [actionPanelClose]
+ * @property {Component} [actionPanelComponent]
+ * @property {(action: Action) => Object} [actionPanelComponentProps]
+ * @property {(action: Action) => void} [actionPanelOpen]
+ * @property {(action: Action) => string} [actionPanelOuterClass]
  * @property {boolean|(action: Action) => boolean} [badge]
  * @property {string|(action: Action) => string} [badgeIcon]
  * @property {string|(action: Action) => string} [badgeText]
@@ -28,6 +39,7 @@ export const ACTION_TAGS = Object.freeze({
  * @property {Component} [component]
  * @property {boolean|(action: Action) => boolean} [componentCondition=true]
  * @property {(action: Action) => Component<Props, Env>} [componentProps]
+ * @property {boolean|(action: Action) => boolean} [condition=true]
  * @property {boolean|(action: Action) => boolean} [disabledCondition]
  * @property {boolean} [dropdown]
  * @property {Component|(action: Action) => Component} [dropdownComponent]
@@ -43,6 +55,7 @@ export const ACTION_TAGS = Object.freeze({
  * @property {boolean|(action: Action) => boolean} [inlineName=false]
  * @property {boolean|(action: Action) => boolean} [isActive]
  * @property {string|(action: Action) => string} [name]
+ * @property {string|(action: Action) => string} [nameClass]
  * @property {(action: Action, ev: Event) => void} [onSelected]
  * @property {number|(action: Action) => number} [sequence]
  * @property {boolean|(action: Action) => boolean} [sequenceGroup]
@@ -52,17 +65,27 @@ export const ACTION_TAGS = Object.freeze({
  */
 
 export class Action {
+    /** @type {UseActions} */
+    actions;
     /** @type {ActionDefinition}  User-defined explicit definition of this action */
     definition;
     /** @type {ActionOwner} Entity that is using this action */
     owner;
+    /**
+     * When this action opens a popover, must save usePopover() in this attribute, i.e. action.popover = usePopover().
+     * Useful for action that open an action panel in some contexts and popovers in others. See @actionPanel
+     *
+     * @type {import("@web/core/popover/popover_hook").PopoverHookReturnType}
+     */
+    popover = null;
     /** @type {string} Unique id of this action. */
     id;
     /** @type {import("models").Store} */
     store;
 
     /** param `store` is required for actions made with new Action() by hand in components and outside component.setup() */
-    constructor({ owner, id, definition, store }) {
+    constructor({ actions, owner, id, definition, store }) {
+        this.actions = actions;
         this.definition = definition;
         this.id = id;
         this.owner = owner;
@@ -77,7 +100,81 @@ export class Action {
     }
 
     get params() {
-        return { action: this, store: this.store, owner: this.owner };
+        return { actions: this.actions, action: this, store: this.store, owner: this.owner };
+    }
+
+    /** Determines whether this action is a one time effect or can be toggled (on or off). */
+    get actionPanel() {
+        return Boolean(this.definition.actionPanelComponent);
+    }
+
+    /**
+     * Closes the action panel of this action.
+     *
+     * @param {Object} [param0={}]
+     * @param {Action} [param0.nextActiveAction] When action panel is closed by opening another panel,
+     *   this param tells which is the next active action
+     * @param {boolean} [param0.closeAll] When true, all action panels in the stack are closed without returning to a previous panel
+     */
+    actionPanelClose({ nextActiveAction, closeAll = false } = {}) {
+        if (this.actions) {
+            if (closeAll) {
+                this.actions.actionStack = [];
+                this.actions.activeAction = null;
+            } else {
+                this.actions.activeAction = this.actions.actionStack.pop();
+            }
+        }
+        this.definition.actionPanelClose?.call(
+            this,
+            Object.assign(this.params, { nextActiveAction })
+        );
+    }
+
+    /** Optional component that is used as action panel of this component, i.e. when action is active. */
+    get actionPanelComponent() {
+        return this.definition.actionPanelComponent;
+    }
+
+    /** Condition to display the action panel component of this action. */
+    get actionPanelComponentCondition() {
+        return this.isActive && this.actionPanelComponent && this.condition && !this.popover;
+    }
+
+    /** Props to pass to the action panel component of this action. */
+    get actionPanelComponentProps() {
+        return {
+            close: (opts) => this.actionPanelClose(opts),
+            ...(this.definition.actionPanelComponentProps?.call(this, this.params) ?? {}),
+        };
+    }
+
+    /**
+     * Opens action panel of this action.
+     *
+     * @param {object} [param0]
+     * @param {boolean} [param0.keepPrevious] Whether the previous action
+     * should be kept so that closing the current action goes back
+     * to the previous one.
+     * */
+    actionPanelOpen({ keepPrevious } = {}) {
+        if (this.actions) {
+            if (this.actions.activeAction) {
+                if (keepPrevious) {
+                    this.actions.actionStack.push(this.actions.activeAction);
+                } else {
+                    this.actions.activeAction.actionPanelClose({ nextActiveAction: this });
+                }
+            }
+            this.actions.activeAction = this;
+        }
+        this.definition.actionPanelOpen?.call(this, this.params);
+    }
+
+    get actionPanelOuterClass() {
+        return typeof this.definition.actionPanelOuterClass === "function"
+            ? this.definition.actionPanelOuterClass.call(this, this.params)
+            : this.definition.actionPanelOuterClass;
     }
 
     /** @param {Action} action @returns {boolean|undefined} */
@@ -193,7 +290,12 @@ export class Action {
     _dropdown(action) {}
     /** Determines whether this action opens a dropdown on selection. */
     get dropdown() {
-        return this._dropdown(this.params) ?? this.definition.dropdown;
+        return (
+            this._dropdown(this.params) ??
+            (typeof this.definition.dropdown === "function"
+                ? this.definition.dropdown.call(this, this.params)
+                : this.definition.dropdown)
+        );
     }
 
     /** @param {Action} action @returns {Component|undefined} */
@@ -342,6 +444,9 @@ export class Action {
     _isActive(action) {}
     /** States whether this action is currently active. */
     get isActive() {
+        if (this.actions && this.actionPanel) {
+            return this.id === this.actions.activeAction?.id;
+        }
         return (
             this._isActive(this.params) ??
             (typeof this.definition.isActive === "function"
@@ -362,10 +467,27 @@ export class Action {
         );
     }
 
+    /** ClassName on name of this action */
+    get nameClass() {
+        return typeof this.definition.nameClass === "function"
+            ? this.definition.nameClass.call(this, this.params)
+            : this.definition.nameClass;
+    }
+
     /** @param {Action} action @param {Event} ev @returns {true|undefined} */
     _onSelected(action, ev) {}
     /** Action to execute when this action is selected @param {Event} ev */
-    onSelected(ev) {
+    onSelected(ev, { keepPrevious } = {}) {
+        if (ev) {
+            markEventHandled(ev, "Action.onSelected");
+        }
+        if (this.actionPanel) {
+            if (this.isActive) {
+                this.actionPanelClose();
+            } else {
+                this.actionPanelOpen({ keepPrevious });
+            }
+        }
         return (
             this._onSelected(this.params, ev) ??
             this.definition.onSelected?.call(this, this.params, ev)
@@ -440,12 +562,16 @@ export class UseActions extends Reactive {
     transformedActions;
     /** @type {import("models").Store} */
     store;
+    /** @type {Action[]} */
+    actionStack = [];
+    /** @type {Action} */
+    activeAction = null;
 
-    constructor(component, transformedActions, store) {
+    constructor(component, store, transformedActions) {
         super();
         this.component = component;
-        this.transformedActions = transformedActions;
         this.store = store;
+        this.transformedActions = transformedActions;
     }
 
     /**
@@ -465,6 +591,7 @@ export class UseActions extends Reactive {
                 id: `more-action:${id}`,
                 definition: {
                     ...data,
+                    btnAttrs: { "data-available-offline": true },
                     dropdown: true,
                     dropdownState: new DropdownState(),
                     icon: data?.icon ?? "oi oi-ellipsis-v",
@@ -511,4 +638,24 @@ export class UseActions extends Reactive {
             .sort((a1, a2) => a1.sequence - a2.sequence);
         return { quick, group, other };
     }
+}
+
+export function useAction(actionRegistry, UseActionClass, ActionClass, actionClassParams) {
+    const component = useComponent();
+    const actions = useState(new UseActionClass(component, useService("mail.store")));
+    const transformedActions = actionRegistry.getEntries().map(
+        ([id, definition]) =>
+            new ActionClass({
+                actions,
+                owner: component,
+                id,
+                definition,
+                ...actionClassParams,
+            })
+    );
+    for (const action of transformedActions) {
+        action.setup();
+    }
+    actions.transformedActions = transformedActions;
+    return actions;
 }

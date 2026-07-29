@@ -19,7 +19,7 @@ class TestGenericSAEdi(TestGenericLocalization):
     @AccountTestInvoicingCommon.setup_country('sa')
     def setUpClass(cls):
         super().setUpClass()
-        cls.main_pos_config.journal_id._l10n_sa_load_edi_demo_data()
+        cls.main_pos_config.journal_id._l10n_sa_load_edi_test_data()
         cls.company.write({
             'name': 'Generic SA EDI',
             'email': 'info@company.saexample.com',
@@ -29,13 +29,20 @@ class TestGenericSAEdi(TestGenericLocalization):
             'state_id': cls.env['res.country.state'].create({
                 'name': 'Riyadh',
                 'code': 'RYA',
-                'country_id': cls.company.country_id.id
+                'country_id': cls.company.country_id.id,
             }),
             'street': 'Al Amir Mohammed Bin Abdul Aziz Street',
             'city': 'المدينة المنورة',
             'zip': '42317',
             'l10n_sa_edi_building_number': '1234',
         })
+
+    def test_generic_localization(self):
+        self.main_pos_config.l10n_gcc_dual_language_receipt = True
+        order, html = super().test_generic_localization()
+        self.assertTrue(order.company_id.l10n_sa_edi_building_number in html)
+        self.assertTrue("THIS IS NOT A LEGAL DOCUMENT" in html)
+        self.assertTrue("هذا المستند ليس مستنداً قانونياً" in html)
 
 
 @tagged('post_install_l10n', 'post_install', '-at_install')
@@ -86,7 +93,7 @@ class TestSaEdiPos(TestSaEdiCommon):
         # pos.order.line, which is what enables the buggy code path. Without this
         # patch the hasattr() guard would short-circuit and the bug would not be hit.
         with patch(
-            'odoo.addons.point_of_sale.models.pos_order.PosOrderLine._is_settle_or_deposit',
+            'odoo.addons.point_of_sale.models.pos_order_line.PosOrderLine._is_settle_or_deposit',
             new=lambda self: False,
             create=True,
         ):
@@ -174,7 +181,7 @@ class TestUi(TestGenericSAEdi):
                             "price_unit": 20,
                             "discount": 0,
                             "qty": 1,
-                            "price_subtotal": 10,
+                            "price_subtotal": 20,
                             "tax_ids": [Command.link(self.tax_sale_a.id)],
                             "price_subtotal_incl": 23,
                         },
@@ -191,7 +198,7 @@ class TestUi(TestGenericSAEdi):
 
         self.make_payment(order, self.customer_account_payment_method, 23)
         current_session.action_pos_session_closing_control()
-        self.assertEqual(self.partner_a.total_due, 23)
+        self.assertEqual(self.partner_a.invoices_amount_due, 23)
 
         self.main_pos_config.open_ui()
 
@@ -234,7 +241,7 @@ class TestSAZATCAPosInvoice(TestPoSCommon):
 
         # Load ZATCA demo credentials on the invoice journal (used by ZATCA onboarding check)
         journal = cls.config.invoice_journal_id
-        journal._l10n_sa_load_edi_demo_data()
+        journal._l10n_sa_load_edi_test_data()
         PCSID_data = json.loads(journal.l10n_sa_production_csid_json)
         cert = cls.env['certificate.certificate'].create({
             'name': 'PCSID Certificate',

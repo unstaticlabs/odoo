@@ -7,15 +7,15 @@
 # Bole <bole@dajmi5.com>, 2022
 # Martin Trigaux, 2022
 # Karolina Tonković <karolina.tonkovic@storm.hr>, 2022
-# Boris Peko <boris.peko@ecodica.eu>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 07:03+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Croatian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 17:47+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Croatian <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/hr/>\n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
@@ -27,6 +27,7 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:iap.service,description:partner_autocomplete.iap_service_partner_autocomplete
+#, fuzzy
 msgid "Automatically enrich your contact base with corporate data."
 msgstr "Automatski obogatite bazu kontakata korporativnim podacima."
 
@@ -38,13 +39,14 @@ msgstr "Kupi više kredita"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "Tvrtke"
+#, fuzzy
+msgid "Company"
+msgstr "Tvrtka"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfiguracijske postavke"
+msgstr "Postavke"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_partner
@@ -53,8 +55,9 @@ msgstr "Kontakt"
 
 #. module: partner_autocomplete
 #: model:ir.model,website_form_label:partner_autocomplete.model_res_partner
+#, fuzzy
 msgid "Create a Customer"
-msgstr "Kreirajte kupca"
+msgstr "Kreiraj kupca"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_iap_autocomplete_api__display_name
@@ -63,15 +66,17 @@ msgstr "Kreirajte kupca"
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_partner__display_name
 msgid "Display Name"
-msgstr "Naziv za prikaz"
+msgstr "Naziv"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_res_company__iap_enrich_auto_done
+#, fuzzy
 msgid "Enrich Done"
 msgstr "Obogaćivanje dovršeno"
 
 #. module: partner_autocomplete
 #: model:iap.service,unit_name:partner_autocomplete.iap_service_partner_autocomplete
+#, fuzzy
 msgid "Enrichments"
 msgstr "Obogaćivanja"
 
@@ -88,6 +93,7 @@ msgstr "Nedostaje IAP token računa"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_iap_autocomplete_api
+#, fuzzy
 msgid "IAP Partner Autocomplete API"
 msgstr "IAP API za automatsko dovršavanje partnera"
 
@@ -108,6 +114,7 @@ msgstr "nedovoljno kredita"
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/iap_autocomplete_api.py:0
+#, fuzzy
 msgid "No account token"
 msgstr "Nema tokena računa"
 
@@ -120,6 +127,7 @@ msgstr "Nema dovoljno kredita za automatsko popunjavanje partnera"
 #. module: partner_autocomplete
 #. odoo-javascript
 #: code:addons/partner_autocomplete/static/src/xml/partner_autocomplete.xml:0
+#, fuzzy
 msgid "Search Worldwide 🌎"
 msgstr "Pretraži diljem svijeta 🌎"
 
@@ -127,50 +135,27 @@ msgstr "Pretraži diljem svijeta 🌎"
 #. odoo-javascript
 #: code:addons/partner_autocomplete/static/src/js/partner_autocomplete_fieldchar.js:0
 #: code:addons/partner_autocomplete/static/src/js/partner_autocomplete_many2one.js:0
+#, fuzzy
 msgid "Searching Autocomplete..."
 msgstr "Pretraživanje automatskog dovršavanja..."
 
 #. module: partner_autocomplete
 #. odoo-javascript
 #: code:addons/partner_autocomplete/static/src/xml/partner_autocomplete.xml:0
+#, fuzzy
 msgid "Set Your Account Token"
 msgstr "Postavite svoj token računa"
 
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/iap_autocomplete_api.py:0
+#, fuzzy
 msgid "Test mode"
 msgstr "Način rada za testiranje"
 
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/res_partner.py:0
+#, fuzzy
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr "Nije moguće obogatiti tvrtku (nijedan kredit nije potrošen)."
-
-#~ msgid "Additional info"
-#~ msgstr "Dodatni podaci"
-
-#~ msgid "Company database ID"
-#~ msgstr "ID baze tvrtke"
-
-#~ msgid "Created by"
-#~ msgstr "Kreirao"
-
-#~ msgid "Created on"
-#~ msgstr "Kreirano"
-
-#~ msgid "Is synched"
-#~ msgstr "Je sinkronizirano"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Promijenio"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Vrijeme promjene"
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Placeholder"
-#~ msgstr "Rezervirano"

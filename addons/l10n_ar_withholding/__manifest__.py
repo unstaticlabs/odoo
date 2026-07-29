@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Argentina - Payment Withholdings',
-    'version': "1.0",
     'description': """Allows to register withholdings during the payment of an invoice.""",
     'author': 'ADHOC SA',
     'countries': ['ar'],
@@ -23,7 +21,5 @@
         'security/security.xml',
         'data/earnings_table_data.xml',
     ],
-    'installable': True,
-    'post_init_hook': '_l10n_ar_wth_post_init',
     'license': 'LGPL-3',
 }

@@ -1,13 +1,15 @@
 import * as ProductScreen from "@point_of_sale/../tests/pos/tours/utils/product_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
+import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 import { registry } from "@web/core/registry";
 
 registry.category("web_tour.tours").add("test_pos_global_discount_sell_and_refund", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -42,15 +44,35 @@ registry.category("web_tour.tours").add("test_pos_global_discount_sell_and_refun
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
             ...ProductScreen.clickRefund(),
             TicketScreen.selectOrder("001"),
             ProductScreen.clickNumpad("1"),
-            TicketScreen.toRefundTextContains("To Refund: 1"),
+            TicketScreen.toRefundTextContains("1"),
             ProductScreen.clickLine("discount"),
-            ProductScreen.clickNumpad("1"),
-            Dialog.confirm(),
+            Order.hasLine({
+                withClass: ".selected",
+                productName: "Discount",
+                run: "click",
+            }),
+            Dialog.is({ body: "You cannot edit a discount line." }),
+            Dialog.confirm("Ok"),
+            //simulate the click to increase the qty
+            Order.hasLine({
+                withClass: ".selected",
+                productName: "Discount",
+                run: "click",
+            }),
+            Dialog.is({ body: "You cannot edit a discount line." }),
+            Dialog.confirm("Ok"),
+            negateStep(
+                ...Order.hasLine({
+                    withClass: ".selected",
+                    productName: "Discount",
+                    refundQty: "2",
+                })
+            ),
             TicketScreen.confirmRefund(),
             PaymentScreen.isShown(),
             PaymentScreen.clickBack(),
@@ -61,6 +83,6 @@ registry.category("web_tour.tours").add("test_pos_global_discount_sell_and_refun
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
         ].flat(),
 });

@@ -3,11 +3,14 @@ import re
 
 from . import lint_case
 
+from odoo.tests import tagged
+
 from odoo import tools
 
 _logger = logging.getLogger(__name__)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestI18n(lint_case.LintCase):
     PROPS_RE = re.compile(
         r"""
@@ -45,7 +48,7 @@ class TestI18n(lint_case.LintCase):
             (
                 """
             <Component
-                t-esc="some_variable"
+                t-out="some_variable"
                 customProp="'Custom String'"
             />""",
                 [
@@ -55,21 +58,21 @@ class TestI18n(lint_case.LintCase):
             # Exclude directives starting with t-
             (
                 """
-            <Component t-title="'Some String'" t-esc="some_variable"/>
+            <Component t-title="'Some String'" t-out="some_variable"/>
             """,
                 [],
             ),
             # Doesn't catch .translate props
             (
                 """
-            <Component title.translate="'Some String'" t-esc="some_variable"/>
+            <Component title.translate="'Some String'" t-out="some_variable"/>
             """,
                 [],
             ),
             # Include valid cases
             (
                 """
-            <Component title="'Another String'" t-esc="another_variable"/>
+            <Component title="'Another String'" t-out="another_variable"/>
             <Component description="'Description here'" />
             <Component title="'String with an escaped single quote ' inside'"/>
             """,
@@ -82,7 +85,7 @@ class TestI18n(lint_case.LintCase):
             # Exclude attributes starting with t- in between valid attributes
             (
                 """
-            <Component title="'Valid Title'" t-esc="some_variable" t-title="'Should not be caught'" customProp="'Valid Prop'"/>
+            <Component title="'Valid Title'" t-out="some_variable" t-title="'Should not be caught'" customProp="'Valid Prop'"/>
             """,
                 [
                     ("customProp=\"'Valid Prop'\""),

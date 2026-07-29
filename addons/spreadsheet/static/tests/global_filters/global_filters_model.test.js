@@ -2,7 +2,7 @@
 import { describe, expect, test } from "@odoo/hoot";
 import { animationFrame, mockDate, mockTimeZone } from "@odoo/hoot-mock";
 
-import { DispatchResult, Model, helpers, tokenize, constants } from "@odoo/o-spreadsheet";
+import { DispatchResult, Model, helpers, constants, CompiledFormula } from "@odoo/o-spreadsheet";
 import { Domain } from "@web/core/domain";
 import {
     defineSpreadsheetModels,
@@ -57,7 +57,6 @@ import { toRangeData } from "@spreadsheet/../tests/helpers/zones";
 import { GlobalFiltersCoreViewPlugin } from "@spreadsheet/global_filters/plugins/global_filters_core_view_plugin";
 import { waitForDataLoaded } from "@spreadsheet/helpers/model";
 import { PivotUIGlobalFilterPlugin } from "@spreadsheet/pivot/index";
-import { RELATIVE_PERIODS } from "@spreadsheet/global_filters/helpers";
 
 describe.current.tags("headless");
 defineSpreadsheetModels();
@@ -84,7 +83,7 @@ function getFiltersMatchingPivot(model, formula) {
     const pivotUIPlugin = model["handlers"].find(
         (handler) => handler instanceof PivotUIGlobalFilterPlugin
     );
-    return pivotUIPlugin._getFiltersMatchingPivot(sheetId, tokenize(formula));
+    return pivotUIPlugin._getFiltersMatchingPivot(sheetId, CompiledFormula.Compile(formula, sheetId, model.getters));
 }
 
 test("Can add a global filter", async function () {
@@ -1257,7 +1256,7 @@ test("ODOO.FILTER.VALUE formulas are updated when filter label is changed", asyn
     };
     await editGlobalFilter(model, newFilter);
     expect(getCellFormula(model, "A10")).toBe(
-        `=ODOO.FILTER.VALUE("Interprete") & ODOO.FILTER.VALUE("Interprete")`
+        `=ODOO.FILTER.VALUE("Interprete")&ODOO.FILTER.VALUE("Interprete")`
     );
 });
 
@@ -1658,7 +1657,7 @@ test("Export global filters for excel", async function () {
     expect(filterSheet.cells["C2"]).toBe(
         String(model.getters.getFilterDisplayValue(filter.label)[1][0].value)
     );
-    model.exportXLSX(); // should not crash
+    await model.exportXLSX(); // should not crash
 });
 
 test("Export from/to global filters for excel", async function () {
@@ -1713,7 +1712,7 @@ test("Export boolean global filters with undefined value for excel", async funct
     expect(filterSheet.cells["B1"]).toBe("Value");
     expect(filterSheet.cells["B2"]).toBe("");
 
-    model.exportXLSX(); // should not crash
+    await model.exportXLSX(); // should not crash
 });
 
 test("Export relational global filter for excel", async function () {
@@ -1744,7 +1743,7 @@ test("Export relational global filter for excel", async function () {
     expect(filterSheet.cells["A3"]).toBe("test relation ilike");
     expect(filterSheet.cells["B3"]).toBe("hello, world");
 
-    model.exportXLSX(); // should not crash
+    await model.exportXLSX(); // should not crash
 });
 
 test("Date filter automatic default value for years filter", async function () {
@@ -3379,7 +3378,15 @@ test("Default value of date filter", () => {
     expect(result.reasons).toEqual(["InvalidValueTypeCombination"]);
 
     for (const value of [
-        ...Object.keys(RELATIVE_PERIODS),
+        "today",
+        "yesterday",
+        "last_7_days",
+        "last_30_days",
+        "last_90_days",
+        "month_to_date",
+        "last_month",
+        "year_to_date",
+        "last_12_months",
         "this_year",
         "this_month",
         "this_quarter",

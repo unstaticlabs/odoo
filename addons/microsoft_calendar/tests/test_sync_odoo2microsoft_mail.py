@@ -8,9 +8,12 @@ from odoo import Command
 from odoo.addons.mail.tests.common import MailCase
 from odoo.addons.microsoft_calendar.utils.microsoft_calendar import MicrosoftCalendarService
 from odoo.addons.microsoft_calendar.models.res_users import ResUsers
+from odoo.tests import tagged
+
 from odoo.addons.microsoft_calendar.tests.common import TestCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSyncOdoo2MicrosoftMail(TestCommon, MailCase):
     @classmethod
     def setUpClass(cls):
@@ -74,6 +77,8 @@ class TestSyncOdoo2MicrosoftMail(TestCommon, MailCase):
                 if not mail_notified_partners:
                     self.assertNotSentEmail()
                     mock_insert.assert_called_once()
+                    self.assertTrue(mock_insert.call_args[0][0]['isReminderOn'])
+                    self.assertEqual(mock_insert.call_args[0][0]['reminderMinutesBeforeStart'], 15)
                     self.assert_dict_equal(mock_insert.call_args[0][0]['organizer'], {
                         'emailAddress': {'address': organizer.email if organizer else '', 'name': organizer.name if organizer else ''}
                     })

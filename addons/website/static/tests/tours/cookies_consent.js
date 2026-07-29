@@ -44,7 +44,7 @@ registry.category("web_tour.tours").add("cookie_bar_updates_gtag_consent", {
         },
         {
             content: "Toggle the cookie bar",
-            trigger: "button.o_cookies_bar_toggle",
+            trigger: ".o_cookies_bar_toggle",
             run: "click",
         },
         {

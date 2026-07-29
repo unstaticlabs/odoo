@@ -8,7 +8,7 @@ function setFormActionToCreateOpportunity() {
     return [
         {
             content: "Select contact form",
-            trigger: ":iframe #wrap.o_editable section.s_website_form",
+            trigger: ":iframe #wrap.o_savable section.s_website_form",
             run: "click",
         },
         {
@@ -45,6 +45,7 @@ registerWebsitePreviewTour(
 );
 
 registry.category("web_tour.tours").add('website_crm_tour', {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     url: '/contactus',
     steps: () => [{
     content: "Complete name",
@@ -81,11 +82,13 @@ registry.category("web_tour.tours").add('website_crm_tour', {
 }]});
 
 registry.category("web_tour.tours").add('website_crm_catch_logged_partner_info_tour', {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     url: '/contactus',
     steps: () => [
 {
-    content: "Wait the form is patched with values before continue to edit it",
-    trigger: "form#contactus_form input[name=partner_name]:value(yourcompany)",
+    content: "Fill Company Name",
+    trigger: "form#contactus_form input[name=partner_name]",
+    run: "edit Useless Company"
 },
 {
     content: "Complete Subject",

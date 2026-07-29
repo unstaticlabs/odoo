@@ -2,30 +2,29 @@
 
 from re import search
 
-from odoo import http
-from odoo.tests import HttpCase
+from odoo.tests import tagged, HttpCase
 
 from odoo.addons.mail.controllers.thread import ThreadController
 from odoo.addons.project.tests.test_project_sharing import TestProjectSharingCommon
 from odoo.addons.http_routing.tests.common import MockRequest
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestProjectPortalAccess(TestProjectSharingCommon, HttpCase):
     def test_post_chatter_as_portal_user(self):
         self.project_no_collabo.privacy_visibility = 'portal'
         message = self.get_project_share_link()
         share_link = str(message.body.split('href="')[1].split('">')[0])
-        match = search(r"access_token=([^&]+)&amp;pid=([^&]+)&amp;hash=([^&]*)", share_link)
-        access_token, pid, _hash = match.groups()
+        match = search(r"token=([^&]+)&amp;redirect=([^&]+)", share_link)
+        token, redirect = match.groups()
 
         with self.with_user('chell'), MockRequest(self.env, path=share_link):
             ThreadController().mail_message_post(
                 thread_model='project.task',
                 thread_id=self.task_no_collabo.id,
                 post_data={'body': '(-b ±√[b²-4ac]) / 2a'},
-                token=access_token,
-                pid=pid,
-                hash=_hash,
+                token=token,
+                redirect=redirect
             )
 
         self.assertTrue(
@@ -48,7 +47,7 @@ class TestProjectPortalAccess(TestProjectSharingCommon, HttpCase):
             'partner_company_name': 'foo',
             'description': 'Fix this',
             'project_id': self.project_portal.id,
-            'csrf_token': http.Request.csrf_token(self),
+            'csrf_token': self.csrf_token(),
         }
         response = self.url_open('/website/form/project.task', data=ticket_data)
         task = self.env['project.task'].browse(response.json().get('id'))
@@ -57,6 +56,26 @@ class TestProjectPortalAccess(TestProjectSharingCommon, HttpCase):
         # The description should not contain the partner_phone since it was not provided
         self.assertEqual(str(task.description), ('<p>Fix this</p><h4>Other Information</h4>Email : jean@michel.com<br>\n'
             'partner_name : Not Jean Michel<br>\npartner_company_name : foo'))
+
+    def test_portal_task_submission_without_existing_partner_email(self):
+        """
+        Test the creation of a project task via the website form when the
+        provided email does not match any existing partner.
+        """
+        ticket_data = {
+            'name': 'FIX',
+            'partner_name': 'Test demo',
+            'email_from': 'test@demo.com',
+            'description': 'Fix this',
+            'project_id': self.project_portal.id,
+        }
+        response = self.url_open('/website/form/project.task', data=ticket_data)
+        self.assertEqual(response.status_code, 200)
+
+        task = self.env['project.task'].browse(response.json().get('id'))
+        self.assertTrue(task.exists())
+        self.assertEqual(task.name, ticket_data['name'])
+        self.assertEqual(task.email_from, ticket_data['email_from'])
 
     def test_task_submission_does_not_overwrite_existing_partner(self):
         """ Submitting a task via Contact Us with new visitor data should not
@@ -70,7 +89,7 @@ class TestProjectPortalAccess(TestProjectSharingCommon, HttpCase):
             'email_from': 'test_new_visitor@unknown.com',
             'description': 'Hello',
             'project_id': self.project_portal.id,
-            'csrf_token': http.Request.csrf_token(self),
+            'csrf_token': self.csrf_token(),
         }
         response = self.url_open('/website/form/project.task', data=task_data)
         new_task = self.env['project.task'].browse(response.json().get('id'))

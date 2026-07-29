@@ -1,6 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import base64
 import socket
 
 from itertools import product
@@ -76,6 +75,7 @@ class TestMailMCCommon(MailCommon, TestRecipients):
 
 
 @tagged('multi_company')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMultiCompanySetup(TestMailMCCommon, HttpCase):
 
     @users('employee_c2')
@@ -98,7 +98,7 @@ class TestMultiCompanySetup(TestMailMCCommon, HttpCase):
 
         first_attachment = self.env['ir.attachment'].create({
             'company_id': self.user_employee_c2.company_id.id,
-            'datas': base64.b64encode(b'First attachment'),
+            'raw': b'First attachment',
             'mimetype': 'text/plain',
             'name': 'TestAttachmentIDS.txt',
             'res_model': 'mail.compose.message',
@@ -117,7 +117,7 @@ class TestMultiCompanySetup(TestMailMCCommon, HttpCase):
 
         new_attach = self.env['ir.attachment'].create({
             'company_id': self.user_employee_c2.company_id.id,
-            'datas': base64.b64encode(b'Second attachment'),
+            'raw': b'Second attachment',
             'mimetype': 'text/plain',
             'name': 'TestAttachmentIDS.txt',
             'res_model': 'mail.compose.message',
@@ -299,7 +299,7 @@ class TestMultiCompanyControllers(TestMailMCCommon, HttpCase):
             }]]},
         )
         self.assertEqual(len(result["mail.followers"]), 2)
-        self.assertEqual(result["mail.followers"][0]["partner_id"], customer_c3.id)
+        self.assertEqual(result["mail.followers"][1]["partner_id"], customer_c3.id)
         self.assertEqual(result["mail.thread"][0]["followersCount"], 2)
         self.assertTrue(result["mail.thread"][0]["hasWriteAccess"])
         self.assertTrue(result["mail.thread"][0]["hasReadAccess"])
@@ -347,8 +347,8 @@ class TestMultiCompanyControllers(TestMailMCCommon, HttpCase):
             partner_ids=[self.partner_employee_c2.id, customer_c3.id],
         )
         self.authenticate(self.user_employee_c2.login, self.user_employee_c2.login)
-        messages = self.make_jsonrpc_request("/mail/inbox/messages")
-        self.assertEqual(len(messages['data']['mail.message']), 1)
+        messages = self.make_jsonrpc_request("/mail/data", {"fetch_params": ["/mail/inbox/messages"]})
+        self.assertEqual(len(messages["mail.message"]), 1)
 
     def test_redirect_to_records(self):
         """ Test mail/view redirection in MC environment, notably cids being

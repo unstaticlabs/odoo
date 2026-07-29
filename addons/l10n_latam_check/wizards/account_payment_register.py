@@ -40,8 +40,8 @@ class AccountPaymentRegister(models.TransientModel):
         if self.l10n_latam_new_check_ids:
             vals.update({'l10n_latam_new_check_ids': [Command.create({
                 'name': x.name,
-                'bank_id': x.bank_id.id,
                 'issuer_vat': x.issuer_vat,
+                'bank_account_id': x.bank_account_id.id,
                 'payment_date': x.payment_date,
                 'amount': x.amount}) for x in self.l10n_latam_new_check_ids
             ]})

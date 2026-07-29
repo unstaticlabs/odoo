@@ -21,7 +21,7 @@ except ImportError:
 
 
 class TestPartnerPrivate(TransactionCaseWithUserPortal):
-    def test_access_onchange(self):
+    def test_access_portal_onchange(self):
         partner = self.partner_portal.with_user(self.user_portal)
         self.assertEqual(partner.has_access('read'), True)
         self.assertEqual(partner.has_access('write'), False)

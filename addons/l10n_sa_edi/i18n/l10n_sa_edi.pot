@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 18:08+0000\n"
-"PO-Revision-Date: 2026-07-17 18:08+0000\n"
+"POT-Creation-Date: 2026-07-17 18:24+0000\n"
+"PO-Revision-Date: 2026-07-17 18:24+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -149,11 +149,6 @@ msgid "<i class=\"fa fa-warning me-2\"/> Warning"
 msgstr ""
 
 #. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.address_form_fields
-msgid "<option value=\"\">Select Scheme...</option>"
-msgstr ""
-
-#. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
 msgid "<span class=\"o_form_label\">Production</span> - Live environment"
 msgstr ""
@@ -179,11 +174,6 @@ msgstr ""
 #. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_account_chart_template
 msgid "Account Chart Template"
-msgstr ""
-
-#. module: l10n_sa_edi
-#: model:ir.model,name:l10n_sa_edi.model_account_move_send
-msgid "Account Move Send"
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -230,11 +220,6 @@ msgid "CCSID certificate"
 msgstr ""
 
 #. module: l10n_sa_edi
-#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.l10n_sa_edi_otp_wizard_view_form
-msgid "Cancel"
-msgstr ""
-
-#. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_certificate_certificate
 msgid "Certificate"
 msgstr ""
@@ -277,7 +262,7 @@ msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model,name:l10n_sa_edi.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -355,11 +340,6 @@ msgstr ""
 #. module: l10n_sa_edi
 #: model:ir.model.fields,field_description:l10n_sa_edi.field_l10n_sa_edi_otp_wizard__create_date
 msgid "Created on"
-msgstr ""
-
-#. module: l10n_sa_edi
-#: model:ir.model.fields,help:l10n_sa_edi.field_account_tax__l10n_sa_is_retention
-msgid "Determines whether or not a tax counts as a Withholding Tax"
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -550,11 +530,6 @@ msgid "Is Production"
 msgstr ""
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields,field_description:l10n_sa_edi.field_account_tax__l10n_sa_is_retention
-msgid "Is Retention"
-msgstr ""
-
-#. module: l10n_sa_edi
 #. odoo-python
 #: code:addons/l10n_sa_edi/models/account_journal.py:0
 msgid "JSON response from ZATCA could not be decoded"
@@ -644,12 +619,17 @@ msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__mls
-msgid "MLSD License"
+msgid "MHRSD License"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__sag
+msgid "MISA License"
 msgstr ""
 
 #. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__mom
-msgid "Momra License"
+msgid "MOMRAH License"
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -865,11 +845,6 @@ msgid "Request ZATCA OTP"
 msgstr ""
 
 #. module: l10n_sa_edi
-#: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_partner__l10n_sa_edi_additional_identification_scheme__sag
-msgid "Sagia License"
-msgstr ""
-
-#. module: l10n_sa_edi
 #: model:ir.model.fields.selection,name:l10n_sa_edi.selection__res_company__l10n_sa_api_mode__sandbox
 msgid "Sandbox"
 msgstr ""
@@ -877,6 +852,11 @@ msgstr ""
 #. module: l10n_sa_edi
 #: model_terms:ir.ui.view,arch_db:l10n_sa_edi.res_config_settings_view_form
 msgid "Saudi Arabia Electronic Invoicing"
+msgstr ""
+
+#. module: l10n_sa_edi
+#: model_terms:ir.ui.view,arch_db:l10n_sa_edi.address_form_fields
+msgid "Select Scheme..."
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -891,9 +871,8 @@ msgid "Set whether the system should use the Production API"
 msgstr ""
 
 #. module: l10n_sa_edi
-#. odoo-python
-#: code:addons/l10n_sa_edi/models/account_move.py:0
-msgid "Simplified Tax Invoice"
+#: model:ir.model,name:l10n_sa_edi.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
 msgstr ""
 
 #. module: l10n_sa_edi
@@ -1023,14 +1002,6 @@ msgstr ""
 #. module: l10n_sa_edi
 #: model:ir.model.fields,help:l10n_sa_edi.field_res_company__l10n_sa_private_key_id
 msgid "The private key used to generate the CSR and obtain certificates"
-msgstr ""
-
-#. module: l10n_sa_edi
-#. odoo-python
-#: code:addons/l10n_sa_edi/models/account_tax.py:0
-msgid ""
-"The tax is unable to be set as Retention as the Amount is greater than or "
-"equal to 0."
 msgstr ""
 
 #. module: l10n_sa_edi

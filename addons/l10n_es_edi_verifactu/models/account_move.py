@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.tools.sql import column_exists, create_column
 
 
@@ -39,10 +40,6 @@ class AccountMove(models.Model):
     l10n_es_edi_verifactu_qr_code = fields.Char(
         string="Veri*Factu QR Code",
         compute='_compute_l10n_es_edi_verifactu_qr_code',
-    )
-    l10n_es_edi_verifactu_show_cancel_button = fields.Boolean(
-        string="Show Veri*Factu Cancel Button",
-        compute='_compute_l10n_es_edi_verifactu_show_cancel_button',
     )
     l10n_es_edi_verifactu_available_clave_regimens = fields.Char(
         string="Available Veri*Factu Regime Key",
@@ -216,11 +213,6 @@ class AccountMove(models.Model):
             move.l10n_es_edi_verifactu_warning = warning
             move.l10n_es_edi_verifactu_warning_level = warning_level
 
-    @api.depends('l10n_es_edi_verifactu_state')
-    def _compute_l10n_es_edi_verifactu_show_cancel_button(self):
-        for move in self:
-            move.l10n_es_edi_verifactu_show_cancel_button = move.l10n_es_edi_verifactu_state in ('registered_with_errors', 'accepted')
-
     @api.depends('l10n_es_edi_verifactu_state', 'l10n_es_edi_verifactu_document_ids',
                  'l10n_es_edi_verifactu_document_ids.state', 'l10n_es_edi_verifactu_document_ids.json_attachment_id')
     def _compute_show_reset_to_draft_button(self):
@@ -248,6 +240,10 @@ class AccountMove(models.Model):
         }
 
     def l10n_es_edi_verifactu_button_cancel(self):
+        if self.l10n_es_edi_verifactu_state not in ('registered_with_errors', 'accepted'):
+            raise ValidationError(self.env._(
+                "Veri*Factu Cancellation Request is only allowed for the invoice in either 'Registered with Errors' or 'Accepted' Veri*Factu Status."
+            ))
         self._l10n_es_edi_verifactu_mark_for_next_batch(cancellation=True)
 
     def _l10n_es_edi_verifactu_check(self, cancellation=False):

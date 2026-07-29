@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from odoo import api, fields, models, _, Command
 from odoo.fields import Domain
-from odoo.tools import float_is_zero, OrderedSet
+from odoo.tools import OrderedSet
 from odoo.exceptions import UserError
 
 VALUATION_DICT = {
@@ -270,17 +270,6 @@ class StockMove(models.Model):
         else:
             return self.product_id.standard_price
 
-    @api.model
-    def _get_valued_types(self):
-        """Returns a list of `valued_type` as strings. During `action_done`, we'll call
-        `_is_[valued_type]'. If the result of this method is truthy, we'll consider the move to be
-        valued.
-
-        :returns: a list of `valued_type`
-        :rtype: list
-        """
-        return ['in', 'out', 'dropshipped', 'dropshipped_returned']
-
     def _set_value(self, correction_quantity=None):
         """Set the value of the move.
 
@@ -448,7 +437,7 @@ class StockMove(models.Model):
         if self.is_dropship:
             if lot:
                 return sum(self.move_line_ids.filtered(lambda ml: ml.lot_id == lot).mapped('quantity_product_uom'))
-            return self.product_uom._compute_quantity(self.quantity, self.product_id.uom_id)
+            return self.uom_id._compute_quantity(self.quantity, self.product_id.uom_id)
         return 0
 
     def _get_manual_value(self, quantity, at_date=None):
@@ -483,7 +472,7 @@ class StockMove(models.Model):
             origin_move = self.origin_returned_move_id
             origin_valued_qty = origin_move._get_valued_qty()
             return {
-                'value': 0 if self.product_uom.is_zero(origin_valued_qty) else origin_move.value * quantity / origin_valued_qty,
+                'value': 0 if self.uom_id.is_zero(origin_valued_qty) else origin_move.value * quantity / origin_valued_qty,
                 'quantity': quantity,
                 'description': _('Value based on original move %(reference)s', reference=origin_move.reference),
             }
@@ -613,7 +602,7 @@ class StockMove(models.Model):
 
         if self.state != 'done':
             if self.picked:
-                unit_amount = self.product_uom._compute_quantity(
+                unit_amount = self.uom_id._compute_quantity(
                     self.quantity, self.product_id.uom_id)
                 # Falsy in FIFO but since it's an estimation we don't require exact correct cost. Otherwise
                 # we would have to recompute all the analytic estimation at each out.
@@ -655,7 +644,7 @@ class StockMove(models.Model):
         self.ensure_one()
         return self.product_id.is_storable and self.is_valued\
         and (self.location_dest_id.valuation_account_id or self.location_id.valuation_account_id)\
-        and not float_is_zero(self.quantity, precision_rounding=self.product_uom.rounding)\
+        and not self.uom_id.is_zero(self.quantity)\
         and self.product_id.valuation == 'real_time'
 
     def _should_exclude_for_valuation(self):
@@ -680,14 +669,6 @@ class StockMove(models.Model):
             return self.location_dest_id and self.location_dest_id.usage == 'supplier'
         return bool(self.picking_id.return_picking_id)
 
-    def _get_valued_consigned_qty(self):
-        consigned_lines = self.move_line_ids.filtered(lambda l: l._is_consigned_valued_line())
-        consigned_qty = sum(
-            sml.quantity_product_uom * (-1 if sml.location_dest_id._should_be_valued() else 1)
-            for sml in consigned_lines
-        )
-        return consigned_qty
-
     def _get_price_unit_delivery(self):
         """ Computes the unit price for a set of moves, using a weighted average between
         dropshipped and non dropshipped moves.
@@ -708,3 +689,11 @@ class StockMove(models.Model):
         total_value = sum(m._get_value() for m in self)
         total_qty = sum(m._get_valued_qty() for m in self)
         return total_value / total_qty if total_qty else 0
+
+    def _get_valued_consigned_qty(self):
+        consigned_lines = self.move_line_ids.filtered(lambda l: l._is_consigned_valued_line())
+        consigned_qty = sum(
+            sml.quantity_product_uom * (-1 if sml.location_dest_id._should_be_valued() else 1)
+            for sml in consigned_lines
+        )
+        return consigned_qty

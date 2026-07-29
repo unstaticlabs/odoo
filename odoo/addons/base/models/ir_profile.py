@@ -20,7 +20,7 @@ _logger = logging.getLogger(__name__)
 
 class IrProfile(models.Model):
     _name = 'ir.profile'
-    _description = 'Profiling results'
+    _description = 'Profiling Result'
     _log_access = False  # avoid useless foreign key on res_user
     _order = 'session desc, id desc'
     _allow_sudo_commands = False
@@ -39,7 +39,6 @@ class IrProfile(models.Model):
     sql = fields.Text('Sql', prefetch=False)
     sql_count = fields.Integer('Queries Count')
     traces_async = fields.Text('Traces Async', prefetch=False)
-    traces_sync = fields.Text('Traces Sync', prefetch=False)
     others = fields.Text('others', prefetch=False)
     qweb = fields.Text('Qweb', prefetch=False)
     entry_count = fields.Integer('Entry count')
@@ -168,7 +167,7 @@ class IrProfile(models.Model):
         If the profiling is enabled, return until when it is enabled.
         Otherwise return ``None``.
         """
-        limit = self.env['ir.config_parameter'].sudo().get_param('base.profiling_enabled_until', '')
+        limit = self.env['ir.config_parameter'].sudo().get_str('base.profiling_enabled_until')
         return limit if str(fields.Datetime.now()) < limit else None
 
     @api.model
@@ -247,5 +246,5 @@ class BaseEnableProfilingWizard(models.TransientModel):
             record.expiration = fields.Datetime.now() + relativedelta(**{unit: int(quantity)})
 
     def submit(self):
-        self.env['ir.config_parameter'].set_param('base.profiling_enabled_until', self.expiration)
+        self.env['ir.config_parameter'].set_str('base.profiling_enabled_until', self.expiration)
         return False

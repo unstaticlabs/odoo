@@ -146,7 +146,11 @@ class SaleAdvancePaymentInv(models.TransientModel):
 
             AccountTax = self.env['account.tax']
             order_lines = order.order_line.filtered(lambda x: not x.display_type)
-            base_lines = [line._prepare_base_line_for_taxes_computation() for line in order_lines]
+            base_lines = [
+                line._prepare_base_line_for_taxes_computation(
+                    quantity=line.product_uom_qty or line.qty_delivered
+                ) for line in order_lines
+            ]
             AccountTax._add_tax_details_in_base_lines(base_lines, order.company_id)
             AccountTax._round_base_lines_tax_details(base_lines, order.company_id)
 
@@ -170,12 +174,13 @@ class SaleAdvancePaymentInv(models.TransientModel):
             so_lines = order._create_down_payment_lines_from_base_lines(down_payment_base_lines)
 
             # Create the invoice.
-            invoice_values = self.with_context(accounts=[
-                base_line['account_id'] or self._get_down_payment_account(base_line['product_id'])
-                for base_line in down_payment_base_lines
-            ])._prepare_down_payment_invoice_values(
+            invoice_values = self._prepare_down_payment_invoice_values(
                 order=order,
                 so_lines=so_lines,
+                accounts=[
+                    base_line['account_id'] or self._get_down_payment_account(base_line['product_id'])
+                    for base_line in down_payment_base_lines
+                ],
             )
             invoice_sudo = self.env['account.move'].sudo().create(invoice_values)
 
@@ -195,16 +200,15 @@ class SaleAdvancePaymentInv(models.TransientModel):
 
             return invoice
 
-    # TODO: add accounts to method params in master
-    def _prepare_down_payment_invoice_values(self, order, so_lines):
+    def _prepare_down_payment_invoice_values(self, order, so_lines, accounts):
         """ Prepare the values to create a down payment invoice.
 
         :param order:       The current sale order.
         :param so_lines:    The "fake" down payment SO lines created on the sale order.
+        :param accounts:    The down payment accounts to consider, one per so line.
         :return:            The values to create a new invoice.
         """
         self.ensure_one()
-        accounts = self.env.context.get('accounts')
         return {
             **order._prepare_invoice(),
             'invoice_line_ids': [

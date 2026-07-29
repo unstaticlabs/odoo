@@ -7,6 +7,7 @@ import { clamp } from "@web/core/utils/numbers";
 import { rowSize } from "@html_builder/utils/grid_layout_utils";
 import { isEditable, isVisible } from "@html_builder/utils/utils";
 import { DragAndDropMoveHandle } from "./drag_and_drop_move_handle";
+import { selectElements } from "@html_editor/utils/dom_traversal";
 
 /**
  * @typedef {{
@@ -21,6 +22,8 @@ import { DragAndDropMoveHandle } from "./drag_and_drop_move_handle";
  *     marginToAdd: string[];
  *     mousePositionYOnElement: number;
  *     mousePositionXOnElement: number;
+ *     originNextEl: HTMLElement | undefined;
+ *     originPreviousEl: HTMLElement | undefined;
  *     overFirstDropzone: boolean;
  *     overGrid: boolean;
  *     restoreCallbacks?: ReturnType<on_prepare_drag_handlers[0]>[] | null;
@@ -101,7 +104,7 @@ export class DragAndDropPlugin extends Plugin {
     }
 
     cleanForSave({ root }) {
-        [root, ...root.querySelectorAll(".o_draggable")].forEach((el) => {
+        selectElements(root, ".o_draggable").forEach((el) => {
             el.classList.remove("o_draggable");
         });
     }
@@ -246,6 +249,8 @@ export class DragAndDropPlugin extends Plugin {
                 );
                 this.dragState.mousePositionYOnElement = boundedYMousePosition - targetRect.y;
                 this.dragState.mousePositionXOnElement = (x - targetRect.x) * (this.isRtl ? -1 : 1);
+                this.dragState.originPreviousEl = this.overlayTarget.previousElementSibling;
+                this.dragState.originNextEl = this.overlayTarget.nextElementSibling;
 
                 // Stop marking the elements with mutations as dirty and make
                 // some changes on the page to ease the drag and drop.

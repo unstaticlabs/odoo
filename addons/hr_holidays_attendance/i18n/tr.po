@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * hr_holidays_attendance
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.2a1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 07:01+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-03-06 18:36+0000\n"
+"PO-Revision-Date: 2025-11-21 14:47+0000\n"
+"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "hr_holidays_attendance/tr/>\n"
 "Language: tr\n"
@@ -20,11 +20,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_holidays_attendance
 #. odoo-python
-#: code:addons/hr_holidays_attendance/models/hr_leave_type.py:0
+#: code:addons/hr_holidays_attendance/models/hr_work_entry_type.py:0
 msgid "%s hours available"
 msgstr "%s saat kullanılabilir"
 
@@ -103,7 +103,7 @@ msgid "Days"
 msgstr "Gün"
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_employee_view_form_inherit
 msgid "Deduct Extra Hours"
 msgstr "Fazla Mesaileri Düş"
@@ -120,11 +120,6 @@ msgid "Difference"
 msgstr "Fark"
 
 #. module: hr_holidays_attendance
-#: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_manager_view_form
-msgid "Discard"
-msgstr "Sil"
-
-#. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_line__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_rule__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_employee__display_name
@@ -132,7 +127,7 @@ msgstr "Sil"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__display_name
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__display_name
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__display_name
 msgid "Display Name"
@@ -196,7 +191,7 @@ msgstr "Saat"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__id
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__id
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__id
 msgid "ID"
@@ -238,7 +233,7 @@ msgid "New Allocation Request"
 msgstr "Yeni Tahsis İsteği"
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 msgid ""
 "Once a time off of this type is approved, extra hours in attendances will be "
 "deducted."
@@ -323,12 +318,7 @@ msgid "Time Off Taken from Extra Hours:"
 msgstr "Ekstra Saatlerden Alınan İzinler:"
 
 #. module: hr_holidays_attendance
-#: model:ir.model,name:hr_holidays_attendance.model_hr_leave_type
-msgid "Time Off Type"
-msgstr "İzin Türü"
-
-#. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__leave_type_names
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__work_entry_type_names
 msgid "Time Off Types"
 msgstr "İzin Türleri"
 
@@ -348,6 +338,11 @@ msgstr "Toplam Telafi Edilebilir Ekstra Saatler:"
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Total Extra Hours Worked:"
 msgstr "Toplam Ekstra Saat Çalışması:"
+
+#. module: hr_holidays_attendance
+#: model:ir.model,name:hr_holidays_attendance.model_hr_work_entry_type
+msgid "Work Entry Type"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
@@ -391,43 +386,3 @@ msgstr "Bu izni talep etmek için yeterli fazla mesainiz yok"
 #: code:addons/hr_holidays_attendance/static/src/components/accrual_levels/accrual_levels.xml:0
 msgid "every worked hour."
 msgstr "her çalışma saati."
-
-#~ msgid "Total Overtime"
-#~ msgstr "Toplam Fazla Mesai"
-
-#~ msgid "Attendance"
-#~ msgstr "Katılım"
-
-#~ msgid "Calendar"
-#~ msgstr "Takvim"
-
-#~ msgid "Extra Hours"
-#~ msgstr "Fazla Mesailer"
-
-#~ msgid "Frequency Hourly Source"
-#~ msgstr "Saatlik Kaynak Sıklığı"
-
-#~ msgid ""
-#~ "If the source is set to \"Calendar\", the amount of worked hours will be "
-#~ "computed based on the Employee's working schedule. Otherwise, the amount "
-#~ "of worked hours will be based on Attendance records."
-#~ msgstr ""
-#~ "Kaynak “Takvim” olarak ayarlanmışsa, çalışılan saat sayısı Çalışanın "
-#~ "programına göre hesaplanır. Aksi takdirde, bu sayı Devamlılık kayıtlarına "
-#~ "göre hesaplanır."
-
-#~ msgid "Request Overtime"
-#~ msgstr "Fazla Mesai Talebi"
-
-#~ msgid "Source"
-#~ msgstr "Kaynak"
-
-#~ msgid ""
-#~ "The employee does not have enough extra hours to extend this allocation."
-#~ msgstr "Çalışanın bu tahsisatı uzatmak için yeterli fazla mesaisi yoktur."
-
-#~ msgid "The employee does not have enough extra hours to extend this leave."
-#~ msgstr "Çalışanın bu izni uzatmak için yeterli fazla mesaisi yoktur."
-
-#~ msgid "User"
-#~ msgstr "Kullanıcı"

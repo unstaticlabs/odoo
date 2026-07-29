@@ -12,17 +12,14 @@ from odoo.addons.l10n_it_edi.tests.common import TestItEdi
 @tagged('post_install_l10n', 'post_install', '-at_install')
 class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
 
-    def init_invoice(self, partners, company=None, taxes=None):
-        invoices = self.env['account.move']
-        for partner in partners:
-            invoices |= super().init_invoice(
-                "out_invoice",
-                partner=partner,
-                company=company or self.company,
-                amounts=[1000],
-                taxes=taxes or self.default_tax,
-                post=True)
-        return invoices
+    def _create_invoice_it(self, **invoice_args):
+        invoice_args.setdefault('name', 'test line')
+        invoice_args.setdefault('price_unit', 1000.0)
+        invoice_args.setdefault('partner_id', self.italian_partner_a)
+        invoice_args.setdefault('tax_ids', self.default_tax)
+        invoice_args.setdefault('company_id', self.company)
+        invoice_args.setdefault('post', True)
+        return self._create_invoice_one_line(**invoice_args)
 
     def get_attachments(self, res_id):
         return self.env['ir.attachment'].with_company(self.company).search([
@@ -38,7 +35,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
 
     def test_invoice_multi_without_l10n_it_edi_xml_export(self):
         # Prepare
-        invoice1, invoice2 = self.init_invoice(self.italian_partner_a + self.italian_partner_a)
+        invoice1, invoice2 = self._create_invoice_it(), self._create_invoice_it()
         (self.italian_partner_a + self.italian_partner_b).with_company(invoice1.company_id).invoice_edi_format = False
 
         def _get_default_extra_edis(self, move):
@@ -64,7 +61,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
 
     def test_invoice_multi_with_l10n_it_edi_xml_export(self):
         # Prepare
-        invoice1, invoice2 = self.init_invoice(self.italian_partner_a + self.italian_partner_a)
+        invoice1, invoice2 = self._create_invoice_it(), self._create_invoice_it()
         (self.italian_partner_a + self.italian_partner_b).with_company(invoice1.company_id).invoice_edi_format = 'it_edi_xml'
 
         def _get_default_extra_edis(self, move):
@@ -91,11 +88,11 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
     def test_invoice_with_cig_or_cup_or_both(self):
             
             self.italian_partner_a.write({'l10n_it_pa_index': '1234567'})
-            
-            invoice_valid = self.init_invoice(self.italian_partner_a)
-            invoice_cig_only = self.init_invoice(self.italian_partner_a)
-            invoice_cup_only = self.init_invoice(self.italian_partner_a)
-            invoice_cig_cup = self.init_invoice(self.italian_partner_a)
+
+            invoice_valid = self._create_invoice_it()
+            invoice_cig_only = self._create_invoice_it()
+            invoice_cup_only = self._create_invoice_it()
+            invoice_cig_cup = self._create_invoice_it()
 
             invoice_valid.write({
                 'l10n_it_cig': '1234567',
@@ -155,12 +152,8 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
 
         self.proxy_user.edi_mode = 'demo'
 
-        invoice1 = self.init_invoice(self.italian_partner_a)
-        invoice2 = self.init_invoice(
-            self.italian_partner_a,
-            second_company,
-            self.company_data['default_tax_sale']
-        )
+        invoice1 = self._create_invoice_it()
+        invoice2 = self._create_invoice_it(company_id=second_company, tax_ids=self.company_data['default_tax_sale'])
 
         with patch('odoo.addons.l10n_it_edi.models.account_move.AccountMove._l10n_it_edi_upload_single', return_value={}, autospec=True) as mock_check:
             self.env['account.move.send'].with_context(allowed_company_ids=[second_company.id, self.company.id])._generate_and_send_invoices(invoice2 + invoice1, sending_methods=['email'])
@@ -173,7 +166,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
             self.assertEqual(res_invoice2.company_id.l10n_it_edi_proxy_user_id, second_proxy)
 
     def test_l10n_it_edi_send_success(self):
-        invoice = self.init_invoice(self.italian_partner_a)
+        invoice = self._create_invoice_it()
         self.generate_l10n_it_edi_send_attachments(invoice)
         success = {'id_transaction': "SDI ID 1", 'signed': False, 'signed_data': False}
         with patch('odoo.addons.l10n_it_edi.models.account_move.AccountMove._l10n_it_edi_upload_single', return_value=success) as mock_check:
@@ -186,7 +179,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
             self.assertEqual(invoice.l10n_it_edi_transaction, success['id_transaction'])
 
     def test_l10n_it_edi_send_success_with_signed_data_update_attachment(self):
-        invoice = self.init_invoice(self.italian_partner_a)
+        invoice = self._create_invoice_it()
         self.generate_l10n_it_edi_send_attachments(invoice)
         signed_data_result = 'some signed data'
         success = {'id_transaction': "SDI ID 1", 'signed': True, 'signed_data': signed_data_result}
@@ -198,9 +191,13 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
         """
         Ensure that the PA state is fetched from the server even when the SDI validation is passed
         """
-        invoice = self.init_invoice(self.italian_partner_b)
-        self.assertTrue(invoice.l10n_it_partner_is_public_administration)
-        invoice.l10n_it_origin_document_type = 'purchase_order'
+        invoice = self._create_invoice_it(partner_id=self.italian_partner_b, l10n_it_origin_document_type='purchase_order')
+        self.assertRecordValues(invoice, [
+            {
+                'l10n_it_partner_is_public_administration': True,
+                'l10n_it_origin_document_type': 'purchase_order',
+            },
+        ])
         self.generate_l10n_it_edi_send_attachments(invoice)
         success = {
             'id_transaction': "SDI ID 1",
@@ -236,7 +233,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
                 self.assertEqual(update_send_state.call_count, 2)
 
     def test_l10n_it_edi_send_proxy_error(self):
-        invoice = self.init_invoice(self.italian_partner_a)
+        invoice = self._create_invoice_it()
         self.generate_l10n_it_edi_send_attachments(invoice)
         proxy_error = {'error': 'error_code', 'error_description': 'error_description'}
         with patch('odoo.addons.l10n_it_edi.models.account_move.AccountMove._l10n_it_edi_upload_single', return_value=proxy_error) as mock_check:
@@ -250,7 +247,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
             self.assertFalse(invoice.l10n_it_edi_transaction)
 
     def test_l10n_it_edi_send_proxy_exception(self):
-        invoice = self.init_invoice(self.italian_partner_a)
+        invoice = self._create_invoice_it()
         self.generate_l10n_it_edi_send_attachments(invoice)
         with patch('odoo.addons.l10n_it_edi.models.account_move.AccountMove._l10n_it_edi_upload_single', side_effect=AccountEdiProxyError('error_code', message='error_description')) as mock_check:
             attachments_vals = {invoice: {'name': invoice.l10n_it_edi_attachment_name, 'raw': invoice.l10n_it_edi_attachment_file}}
@@ -262,7 +259,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
             self.assertFalse(invoice.l10n_it_edi_transaction)
 
     def test_l10n_it_edi_send_from_cron(self):
-        invoices = self.init_invoice(self.italian_partner_a) | self.init_invoice(self.italian_partner_a)
+        invoices = self._create_invoice_it() + self._create_invoice_it()
         invoices.sending_data = {'author_user_id': self.env.user.id, 'author_partner_id': self.env.user.partner_id.id}
         self.generate_l10n_it_edi_send_attachments(invoices, from_cron=True)
 
@@ -302,7 +299,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
             'city': 'Test town',
             'zip': '32121',
         })
-        invoice = self.init_invoice(partners=self.partner_a, taxes=ref('22v') | ref('23vwo') | ref('enasarcov'))
+        invoice = self._create_invoice_it(tax_ids=ref('22v') | ref('23vwo') | ref('enasarcov'))
         wizard = self.create_send_and_print(invoice, sending_methods=['l10n_it_edi'])
         non_info_alerts = {k: v for k, v in wizard.alerts.items() if v.get('level') != 'info'}
         self.assertFalse(non_info_alerts)
@@ -327,7 +324,7 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
 
     def test_detach_invoice(self):
         # Prepare an invoice
-        invoice = self.init_invoice(self.italian_partner_a)
+        invoice = self._create_invoice_it()
         self.italian_partner_a.with_company(invoice.company_id).invoice_edi_format = 'it_edi_xml'
 
         def _get_default_extra_edis(self, move):
@@ -426,8 +423,8 @@ class TestItAccountMoveSend(TestItEdi, TestAccountMoveSendCommon):
         self.assertTrue('detached' in attachments.name.lower())
 
     def test_invoice_send_email_then_sdi(self):
-        invoice = self.init_invoice(self.partner_a)
-        self.partner_a.with_company(invoice.company_id).invoice_edi_format = False
+        invoice = self._create_invoice_it(partner_id=self.partner_a.id)
+        invoice.partner_id.with_company(invoice.company_id).invoice_edi_format = False
 
         settings_email = {'sending_methods': {'email'}, 'extra_edis': set()}
         self.env['account.move.send']._generate_and_send_invoices(invoice, **settings_email)

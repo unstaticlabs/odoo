@@ -3,12 +3,13 @@
 
 from odoo.fields import Command
 from odoo.addons.mrp_account.tests.common import TestBomPriceCommon
-from odoo.tests import Form
+from odoo.tests import Form, tagged
 from odoo.tests.common import new_test_user
 
 PRICE = 718.75 - 100  # total price minus glass
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMrpValuationStandard(TestBomPriceCommon):
     def _get_production_cost_move_lines(self):
         return self.env['account.move.line'].search([
@@ -152,7 +153,10 @@ class TestMrpValuationStandard(TestBomPriceCommon):
         self.assertEqual(self.glass.total_value, 20)
         self.assertEqual(self.dining_table.total_value, 8.8)
         self._produce(mo)
-        mo.button_mark_done()
+        warning = Form.from_action(self.env, mo.button_mark_done()).save()
+        for warning_line in warning.mrp_consumption_warning_line_ids:
+            self.assertEqual(warning_line.product_expected_qty_uom, 2 * warning_line.product_consumed_qty_uom)
+        warning.action_confirm()
         self.assertEqual(self.glass.total_value, 0)
         self.assertEqual(self.dining_table.total_value, 8.8 * 2)
 
@@ -183,7 +187,10 @@ class TestMrpValuationStandard(TestBomPriceCommon):
         self.assertEqual(self.glass.total_value, 100)
         self.assertEqual(self.dining_table.total_value, PRICE + 100)
         self._produce(mo)
-        mo.button_mark_done()
+        warning = Form.from_action(self.env, mo.button_mark_done()).save()
+        for warning_line in warning.mrp_consumption_warning_line_ids:
+            self.assertEqual(warning_line.product_expected_qty_uom, 2 * warning_line.product_consumed_qty_uom)
+        warning.action_confirm()
         self.assertEqual(self.glass.total_value, 0)
         self.assertEqual(self.dining_table.total_value, 2 * (PRICE + 100))
 
@@ -225,7 +232,10 @@ class TestMrpValuationStandard(TestBomPriceCommon):
         self.assertEqual(self.glass.total_value, 100)
         self.assertEqual(self.dining_table.total_value, 1000)
         self._produce(mo)
-        mo.button_mark_done()
+        warning = Form.from_action(self.env, mo.button_mark_done()).save()
+        for warning_line in warning.mrp_consumption_warning_line_ids:
+            self.assertEqual(warning_line.product_expected_qty_uom, 2 * warning_line.product_consumed_qty_uom)
+        warning.action_confirm()
         self.assertEqual(self.glass.total_value, 0)
         self.assertEqual(self.dining_table.total_value, 2000)
 
@@ -255,7 +265,10 @@ class TestMrpValuationStandard(TestBomPriceCommon):
         self.assertEqual(self.glass.total_value, 15)
         self.assertEqual(self.dining_table.total_value, PRICE + 15)
         self._produce(mo)
-        mo.button_mark_done()
+        warning = Form.from_action(self.env, mo.button_mark_done()).save()
+        for warning_line in warning.mrp_consumption_warning_line_ids:
+            self.assertEqual(warning_line.product_expected_qty_uom, 2 * warning_line.product_consumed_qty_uom)
+        warning.action_confirm()
         self.assertEqual(self.glass.total_value, 0)
         self.assertEqual(self.dining_table.total_value, 2 * PRICE + 30)
 
@@ -290,7 +303,7 @@ class TestMrpValuationStandard(TestBomPriceCommon):
             'move_line_ids': [(0, 0, {
                 'product_id': self.table_head.id,
                 'quantity': 12,
-                'product_uom_id': self.table_head.uom_id.id,
+                'uom_id': self.table_head.uom_id.id,
                 'location_id': self.customer_location.id,
                 'location_dest_id': self.stock_location.id,
             })],

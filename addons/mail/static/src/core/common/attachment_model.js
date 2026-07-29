@@ -1,6 +1,6 @@
-import { fields, Record } from "@mail/core/common/record";
+import { fields, Record } from "@mail/model/export";
 import { assignDefined } from "@mail/utils/common/misc";
-import { generatePdfThumbnail } from "@mail/utils/common/pdf_thumbnail";
+import { generatePdfThumbnail } from "@web/core/utils/pdfjs";
 
 import { FileModelMixin } from "@web/core/file_viewer/file_model";
 import { _t } from "@web/core/l10n/translation";
@@ -9,7 +9,6 @@ import { imageUrl, url } from "@web/core/utils/urls";
 
 export class Attachment extends FileModelMixin(Record) {
     static _name = "ir.attachment";
-    static id = "id";
     static new() {
         /** @type {import("models").Attachment} */
         const attachment = super.new(...arguments);
@@ -22,7 +21,7 @@ export class Attachment extends FileModelMixin(Record) {
     }
 
     composer = fields.One("Composer", { inverse: "attachments" });
-    thread = fields.One("Thread", { inverse: "attachments" });
+    thread = fields.One("mail.thread", { inverse: "attachments" });
     /** @type {string} */
     raw_access_token;
     res_name;
@@ -40,7 +39,7 @@ export class Attachment extends FileModelMixin(Record) {
                 (this.ownership_token ||
                     // If related to a record, must have write access to it
                     ((!this.thread || this.thread.hasWriteAccess) &&
-                        this.store.self.main_user_id?.share === false))
+                        this.store.self_user?.share === false))
             ) {
                 this.setPdfThumbnail();
             }
@@ -70,7 +69,7 @@ export class Attachment extends FileModelMixin(Record) {
     }
 
     get isDeletable() {
-        if (this.message && this.store.self.main_user_id?.share !== false) {
+        if (this.message && this.store.self_user?.share !== false) {
             return this.message.editable;
         }
         return true;

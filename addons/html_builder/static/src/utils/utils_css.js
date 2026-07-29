@@ -267,15 +267,6 @@ export function getBgImageURLFromEl(el) {
     return getBgImageURLFromURL(string);
 }
 /**
- * Generates a string ID.
- *
- * @private
- * @returns {string}
- */
-export function generateHTMLId() {
-    return `o${Math.random().toString(36).substring(2, 15)}`;
-}
-/**
  * Returns the class of the element that matches the specified prefix.
  *
  * @private
@@ -316,7 +307,7 @@ export function isBackgroundImageAttribute(attribute) {
  *
  * TODO: the name of this function is voluntarily bad to reflect the fact that
  * this system should be improved. The combination of o_not_editable,
- * o_editable, getContentEditableAreas, getReadOnlyAreas and other concepts
+ * o_savable, getContentEditableAreas, getReadOnlyAreas and other concepts
  * related to what should be editable or not should be reviewed.
  *
  * @returns {boolean}
@@ -329,7 +320,7 @@ export function shouldEditableMediaBeEditable(mediaEl) {
     // This case is complex and the solution to support it is not
     // perfect: we mark those media with a class and check that they
     // are descendant of a savable.
-    return mediaEl.parentElement && mediaEl.parentElement.closest(".o_editable");
+    return mediaEl.parentElement && mediaEl.parentElement.closest(".o_savable");
 }
 /**
  * Returns the label of a link element.
@@ -413,31 +404,25 @@ export function applyNeededCss(
         el.style.setProperty(cssProp, cssValue, allowImportant ? "important" : "");
         return true;
     }
-    el.style.removeProperty(cssProp);
-    if (
+
+    const isChangeNeeded = () =>
         !areCssValuesEqual(
             computedStyle.getPropertyValue(cssProp),
             cssValue,
             cssProp,
             computedStyle
-        )
-    ) {
-        el.style.setProperty(cssProp, cssValue);
-        // If change had no effect then make it important.
-        if (
-            allowImportant &&
-            !areCssValuesEqual(
-                computedStyle.getPropertyValue(cssProp),
-                cssValue,
-                cssProp,
-                computedStyle
-            )
-        ) {
-            el.style.setProperty(cssProp, cssValue, "important");
-        }
-        return true;
+        );
+    el.style.removeProperty(cssProp);
+    if (!isChangeNeeded()) {
+        return false;
     }
-    return false;
+
+    el.style.setProperty(cssProp, cssValue);
+    // If change had no effect then make it important.
+    if (allowImportant && isChangeNeeded()) {
+        el.style.setProperty(cssProp, cssValue, "important");
+    }
+    return true;
 }
 
 const builderStylesheet = new CSSStyleSheet();

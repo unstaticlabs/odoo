@@ -14,8 +14,6 @@ export const OR_SYM = Symbol("or");
 const AND_SYM = Symbol("and");
 export const IS_RECORD_SYM = Symbol("isRecord");
 export const IS_FIELD_SYM = Symbol("isField");
-/** @deprecated equivalent to IS_DELETED_SYM */
-export const IS_DELETING_SYM = Symbol("isDeleting");
 export const IS_DELETED_SYM = Symbol("isDeleted");
 export const STORE_SYM = Symbol("store");
 
@@ -26,9 +24,44 @@ export function OR(...args) {
     return [OR_SYM, ...args];
 }
 
-export function isCommand(data) {
-    return ["ADD", "DELETE", "ADD.noinv", "DELETE.noinv"].includes(data?.[0]?.[0]);
+export function isCommandList(data) {
+    return Array.isArray(data) && data.length > 0 && data.every((cmd) => isCommand(cmd));
 }
+
+export function isCommand(data) {
+    return ["ADD", "DELETE", "ADD.noinv", "DELETE.noinv", "REPLACE"].includes(data?.[0]);
+}
+
+/**
+ * Normalize a list of many commands.
+ *
+ * @param {Array|Object|null|false|undefined} command Many command. Can
+ * either be:
+ * - A falsy value or an empty array: interpreted as a "clear" command.
+ * - An object: interpreted as a replace.
+ * - A command.
+ * - An array of commands.
+ * - An array of raw values: interpreted as a replace.
+ * @returns {Array<[string, any[]]>} Normalized list of `[mode, value]` arrays.
+ */
+export function normalizeManyCommands(command) {
+    const ensureArrayValue = (cmd) => [cmd[0], Array.isArray(cmd[1]) ? cmd[1] : [cmd[1]]];
+    if (!command || (Array.isArray(command) && command.length === 0)) {
+        return [["REPLACE", []]];
+    }
+    if (isCommandList(command)) {
+        return command.map(ensureArrayValue);
+    }
+    if (isCommand(command)) {
+        return [ensureArrayValue(command)];
+    }
+    const replaceCmdList = ensureArrayValue(["REPLACE", command]);
+    if (replaceCmdList[1].some((val) => isCommand(val))) {
+        throw new Error("Many commands cannot mix raw values and commands");
+    }
+    return [replaceCmdList];
+}
+
 /**
  * @param {typeof import("./record").Record} Model
  * @param {string} fieldName
@@ -204,3 +237,9 @@ export const fields = {
         };
     },
 };
+
+export function makeRecordFieldLocalId(recordLocalId, fieldName) {
+    return `${recordLocalId}:${fieldName}`;
+}
+
+export const technicalKeysOnRecords = ["_", "_proxy", "_proxyInternal", "_raw", "env", "Model"];

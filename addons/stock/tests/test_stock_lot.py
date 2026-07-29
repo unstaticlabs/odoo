@@ -3,10 +3,11 @@
 
 from odoo import Command
 from odoo.addons.stock.tests.common import TestStockCommon
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 from odoo.exceptions import ValidationError
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLotSerial(TestStockCommon):
     @classmethod
     def setUpClass(cls):
@@ -186,7 +187,7 @@ class TestLotSerial(TestStockCommon):
         delivery_picking.is_locked = False
         self.env['stock.move.line'].create({
             'product_id': additional_product.id,
-            'product_uom_id': additional_product.uom_id.id,
+            'uom_id': additional_product.uom_id.id,
             'picking_id': delivery_picking.id,
             'quantity': 3,
             'lot_id': lot.id,
@@ -267,7 +268,11 @@ class TestLotSerial(TestStockCommon):
         picking1.with_company(branch_a)._action_done()
         self.assertTrue(move.move_line_ids.lot_id)
         self.assertEqual(move.state, 'done')
-        sn_form = Form(self.env['stock.lot'].with_company(branch_a))
+        # Creating a new lot with only "Branch X" in the context
+        sn_form = Form(
+            self.env['stock.lot'].with_company(branch_a)
+            .with_context(allowed_company_ids=[branch_a.id])
+        )
         sn_form.name = 'sn_test_2'
         sn_form.product_id = self.productB
         sn = sn_form.save()

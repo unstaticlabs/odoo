@@ -1,12 +1,11 @@
 import { Store } from "@mail/core/common/store_service";
-import { fields, Record } from "@mail/core/common/record";
+import { fields, Record } from "@mail/model/export";
 import { imageUrl } from "@web/core/utils/urls";
 import { debounce } from "@web/core/utils/timing";
 
 const { DateTime } = luxon;
 
 export class ResPartner extends Record {
-    static id = "id";
     static _name = "res.partner";
     static new() {
         const record = super.new(...arguments);
@@ -52,7 +51,7 @@ export class ResPartner extends Record {
     /** @type {ImStatus} */
     im_status = fields.Attr(null, {
         onUpdate() {
-            if (this.eq(this.store.self_partner) && this.im_status === "offline") {
+            if (this.eq(this.store.self_user?.partner_id) && this.im_status === "offline") {
                 this.store.env.services.im_status.updateBusPresence();
             }
         },
@@ -91,25 +90,12 @@ export class ResPartner extends Record {
     });
     /** @type {string|undefined} */
     previousPresencechannel;
+    user_ids = fields.Many("res.users", { inverse: "partner_id" });
     write_date = fields.Datetime();
-
-    /**
-     * @deprecated
-     *
-     * `store.menuThreads` uses this field to filter threads based on search
-     * terms. For each computation, the `menuThread` field is marked as needing a
-     * recompute, which can lead to excessive recursion—sometimes even exceeding the
-     * call stack size. This computation is simple enough that it doesn’t need a
-     * compute and has been replaced by a getter. To override the display name
-     * computation, override the displayName getter.
-     */
-    _computeDisplayName() {
-        return this.name || this.display_name;
-    }
 
     get avatarUrl() {
         const accessTokenParam = {};
-        if (this.store.self.main_user_id?.share !== false) {
+        if (this.store.self_user?.share !== false) {
             accessTokenParam.access_token = this.avatar_128_access_token;
         }
         return imageUrl("res.partner", this.id, "avatar_128", {
@@ -118,13 +104,23 @@ export class ResPartner extends Record {
         });
     }
 
+    /**
+     * ⚠️ This is intentionally a getter and not a field!
+     *
+     * `store.menuThreads` uses this field to filter threads based on search
+     * terms. For each computation, the `menuThread` field is marked as needing a
+     * recompute, which can lead to excessive recursion—sometimes even exceeding the
+     * call stack size. This computation is simple enough that it doesn’t need a
+     * compute and has been replaced by a getter.
+     */
     get displayName() {
-        return this._computeDisplayName();
+        return this.name || this.display_name;
     }
 
     searchChat() {
-        return Object.values(this.store.Thread.records).find(
-            (thread) => thread.channel_type === "chat" && thread.correspondent?.persona.eq(this)
+        return Object.values(this.store["discuss.channel"].records).find(
+            (channel) =>
+                channel.channel_type === "chat" && channel.correspondent?.partner_id?.eq(this)
         );
     }
 

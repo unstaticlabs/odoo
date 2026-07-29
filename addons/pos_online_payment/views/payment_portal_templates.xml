@@ -3,13 +3,15 @@
 
     <!-- Display of /pos/pay (the order of the if conditions matters)-->
     <template id="pay">
-        <t t-call="portal.frontend_layout">
-            <t t-set="page_title">Payment</t>
-            <t t-set="additional_title">
-                <t t-esc="page_title" />
-            </t>
-            <t t-set="no_footer" t-value="1"/>
-            <t t-set="no_header" t-value="1"/>
+        <t t-set="page_title">Payment</t>
+        <t t-set="additional_title">
+            <t t-out="page_title" />
+        </t>
+        <t t-call="portal.frontend_layout"
+            page_title="page_title"
+            additional_title="additional_title"
+            no_footer="1"
+            no_header="1">
 
             <div class="wrap">
                 <div class="d-flex flex-column vh-100">
@@ -53,13 +55,15 @@
 
     <!-- Display of /pos/pay/confirmation -->
     <template id="pay_confirmation">
-        <t t-call="portal.frontend_layout">
-            <t t-set="page_title">Payment Confirmation</t>
-            <t t-set="additional_title">
-                <t t-esc="page_title" />
-            </t>
-            <t t-set="no_footer" t-value="1"/>
-            <t t-set="no_header" t-value="1"/>
+        <t t-set="page_title">Payment Confirmation</t>
+        <t t-set="additional_title">
+            <t t-out="page_title" />
+        </t>
+        <t t-call="portal.frontend_layout"
+            page_title="page_title"
+            additional_title="additional_title"
+            no_footer="1"
+            no_header="1">
 
             <div class="wrap">
                 <div class="container d-flex flex-column vh-100 pb-3">
@@ -93,7 +97,7 @@
                     <div class="row g-2 row-cols-1 justify-content-between">
                         <div t-if="exit_route" class="col col-sm-auto me-auto">
                             <a role="button" t-att-class="'btn btn-lg w-100 ' + ('btn-primary' if state == 'success' else 'btn-light border')"  t-att-href="exit_route">
-                                <t t-esc="'Continue' if state == 'success' else 'Cancel payment'"/>
+                                <t t-out="'Continue' if state == 'success' else 'Cancel payment'"/>
                             </a>
                         </div>
                         <div t-if="pay_route and state != 'success'" class="col col-sm-auto ms-auto">
@@ -106,7 +110,7 @@
                     <div class="row" t-if="state == 'success'">
                         <div class="mb-3 text-muted text-center"> 
                             Processed by 
-                            <t t-esc="provider_name"/>
+                            <t t-out="provider_name"/>
                         </div>
                     </div>
                 </div>

@@ -4,11 +4,12 @@ import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { markup } from "@odoo/owl";
 import { AnchorDialog } from "./anchor_dialog";
-import { getElementsWithOption } from "@html_builder/utils/utils";
+import { getElementsWithOption, getSnippetName } from "@html_builder/utils/utils";
 
-const anchorSelector = ":not(p).oe_structure > *, :not(p)[data-oe-type=html] > *, .accordion-item";
+const anchorSelector =
+    ":not(p).oe_structure > *, :not(p)[data-oe-type=html] > *, .row > *, .s_card, .accordion-item";
 const anchorExclude =
-    ".modal *, .oe_structure .oe_structure *, [data-oe-type=html] .oe_structure *, .s_popup";
+    ".modal *, .oe_structure .oe_structure *, [data-oe-type=html] .oe_structure *, .s_popup, .carousel *, .o_portal_index_card";
 
 /**
  * Anchor titles are usually taken from headings (h1–h6). Here, styled titles
@@ -77,8 +78,7 @@ export class AnchorPlugin extends Plugin {
     }
 
     createAnchor(element) {
-        const titleEls = element.querySelectorAll(TITLE_SELECTOR);
-        const title = titleEls.length > 0 ? titleEls[0].innerText : element.dataset.name;
+        const title = element.querySelector(TITLE_SELECTOR)?.innerText || getSnippetName(element);
         const anchorName = this.formatAnchor(title);
 
         let n = "";

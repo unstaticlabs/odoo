@@ -37,7 +37,7 @@ import odoo
 from odoo.exceptions import UserError
 from .config import config
 from .i18n import format_list
-from .misc import file_open, file_path, get_iso_codes, split_every, OrderedSet, ReadonlyDict, SKIPPED_ELEMENT_TYPES
+from .misc import file_open, file_path, frozendict, get_iso_codes, split_every, OrderedSet, SKIPPED_ELEMENT_TYPES
 
 if typing.TYPE_CHECKING:
     from odoo.api import Environment
@@ -66,7 +66,7 @@ TRANSLATED_ELEMENTS = {
     'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'del', 'dfn', 'em',
     'font', 'i', 'ins', 'kbd', 'keygen', 'mark', 'math', 'meter', 'output',
     'progress', 'q', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub',
-    'sup', 'time', 'u', 'var', 'wbr', 'text', 'select', 'option',
+    'sup', 'time', 'u', 'var', 'wbr', 'text',
 }
 
 # Attributes from QWeb views that must be translated.
@@ -74,7 +74,7 @@ TRANSLATED_ELEMENTS = {
 TRANSLATED_ATTRS = {
     'string', 'add-label', 'help', 'sum', 'avg', 'confirm', 'placeholder', 'alt', 'title', 'aria-label',
     'aria-keyshortcuts', 'aria-placeholder', 'aria-roledescription', 'aria-valuetext',
-    'value_label', 'data-tooltip', 'label', 'confirm-label', 'confirm-title', 'cancel-label',
+    'value_label', 'data-tooltip', 'label', 'confirm-label', 'cancel-label', 'confirm-title',
 }
 
 TRANSLATED_ATTRS.update({f't-attf-{attr}' for attr in TRANSLATED_ATTRS})
@@ -236,11 +236,21 @@ def translate_xml_node(node, callback, parse, serialize):
                     # so that 'result_elem' can be checked by translatable and hastext
                     result_elem.tag = 'span'
                     if translatable(result_elem) and hastext(result_elem):
-                        div = result_elem
-                        if pos:
-                            node[pos-1].tail = div.text
+                        if node.tag.lower() == 'option' and len(result_elem) and result_elem[0].get('data-oe-translation-source-sha'):
+                            # In 'edit_translations' context, a <span> wrapper
+                            # is put in 'result_elem' to let the user translate
+                            # fields in the frontend.
+                            # But <span> can't be inside an <option> element,
+                            # so we put it in an attribute instead.
+                            # In this context, we can skip replacing the node
+                            # content.
+                            node.set('data-oe-translation-span-wrapper', etree.tostring(result_elem[0]))
                         else:
-                            node.text = div.text
+                            div = result_elem
+                            if pos:
+                                node[pos - 1].tail = div.text
+                            else:
+                                node.text = div.text
 
                 # move the content of the <div> element back inside node
                 while len(div) > 0:
@@ -628,12 +638,10 @@ class LazyGettext:
         return self._translate()
 
     def __eq__(self, other):
-        """ Prevent using equal operators
-
-        Prevent direct comparisons with ``self``.
-        One should compare the translation of ``self._source`` as ``str(self) == X``.
-        """
-        raise NotImplementedError()
+        if not isinstance(other, LazyGettext):
+            return False
+        return (self._source == other._source and self._args == other._args and
+                self._module == other._module and self._default_lang == other._default_lang)
 
     def __hash__(self):
         raise NotImplementedError()
@@ -1855,15 +1863,15 @@ class CodeTranslations:
         def filter_func(row):
             return row.get('value') and PYTHON_TRANSLATION_COMMENT in row['comments']
         translations = CodeTranslations._get_code_translations(module_name, lang, filter_func)
-        self.python_translations[(module_name, lang)] = ReadonlyDict(translations)
+        self.python_translations[module_name, lang] = frozendict(translations)
 
     def _load_web_translations(self, module_name, lang):
         def filter_func(row):
             return row.get('value') and JAVASCRIPT_TRANSLATION_COMMENT in row['comments']
         translations = CodeTranslations._get_code_translations(module_name, lang, filter_func)
-        self.web_translations[(module_name, lang)] = ReadonlyDict({
+        self.web_translations[module_name, lang] = frozendict({
             "messages": tuple(
-                ReadonlyDict({"id": src, "string": value})
+                frozendict({"id": src, "string": value})
                 for src, value in translations.items())
         })
 
@@ -1919,7 +1927,7 @@ def _get_translation_upgrade_queries(cr, field):
 
     # upgrade model_terms translation: one update per field per record
     if callable(field.translate):
-        cr.execute("SELECT code FROM res_lang WHERE active = 't'")
+        cr.execute("SELECT code FROM res_lang WHERE active IS TRUE")
         languages = {l[0] for l in cr.fetchall()}
         query = f"""
             SELECT t.res_id, m."{field.name}", t.value, t.noupdate

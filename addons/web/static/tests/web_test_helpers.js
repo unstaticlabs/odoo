@@ -13,8 +13,8 @@ import { IrUiView } from "./_framework/mock_server/mock_models/ir_ui_view";
 import { ResCompany } from "./_framework/mock_server/mock_models/res_company";
 import { ResCountry } from "./_framework/mock_server/mock_models/res_country";
 import { ResCurrency } from "./_framework/mock_server/mock_models/res_currency";
-import { ResGroupsPrivilege } from "./_framework/mock_server/mock_models/res_groups_privilege";
 import { ResGroups } from "./_framework/mock_server/mock_models/res_groups";
+import { ResGroupsPrivilege } from "./_framework/mock_server/mock_models/res_groups_privilege";
 import { ResPartner } from "./_framework/mock_server/mock_models/res_partner";
 import { ResUsers } from "./_framework/mock_server/mock_models/res_users";
 import { ResUsersSettings } from "./_framework/mock_server/mock_models/res_users_settings";
@@ -38,7 +38,6 @@ import { globalCachedFetch } from "./_framework/module_set.hoot";
  * @typedef {import("./_framework/mock_server/mock_server").RouteCallback<T>} RouteCallback
  */
 
-export { asyncStep, waitForSteps } from "./_framework/async_step";
 export {
     findComponent,
     getDropdownMenu,
@@ -54,6 +53,7 @@ export {
     makeMockEnv,
     mockService,
     restoreRegistry,
+    mockOffline,
 } from "./_framework/env_test_helpers";
 export {
     clickKanbanLoadMore,
@@ -119,8 +119,8 @@ export {
     pagerNext,
     pagerPrevious,
     removeFacet,
-    saveFavorite,
     saveAndEditFavorite,
+    saveFavorite,
     selectGroup,
     switchView,
     toggleActionMenu,
@@ -136,9 +136,9 @@ export {
 } from "./_framework/search_test_helpers";
 export { swipeLeft, swipeRight } from "./_framework/touch_helpers";
 export {
+    allowTranslations,
     installLanguages,
     patchTranslations,
-    allowTranslations,
 } from "./_framework/translation_test_helpers";
 export {
     clickButton,
@@ -148,6 +148,7 @@ export {
     clickModalButton,
     clickSave,
     clickViewButton,
+    editSelectMenu,
     expectMarkup,
     fieldInput,
     hideTab,
@@ -155,7 +156,6 @@ export {
     mountViewInDialog,
     parseViewProps,
     selectFieldDropdownItem,
-    editSelectMenu,
 } from "./_framework/view_test_helpers";
 export { mountWebClient, useTestClientAction } from "./_framework/webclient_test_helpers";
 

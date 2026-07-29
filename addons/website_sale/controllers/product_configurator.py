@@ -29,13 +29,10 @@ class WebsiteSaleProductConfiguratorController(SaleProductConfiguratorController
         :return: Whether the product configurator dialog should be shown.
         """
         product_template = request.env['product.template'].browse(product_template_id)
-        combination = request.env['product.template.attribute.value'].browse(ptav_ids)
         single_product_variant = product_template.get_single_product_variant()
-        # We can't use `single_product_variant.get('has_optional_products')` as it doesn't take
-        # `combination` into account.
-        has_optional_products = bool(product_template.optional_product_ids.filtered(
-            lambda op: self._should_show_product(op, combination)
-        ))
+        has_optional_products = bool(
+            product_template.optional_product_ids.filtered(self._should_show_product)
+        )
         return (
             has_optional_products
             or not (single_product_variant.get('product_id') or is_product_configured)
@@ -136,7 +133,8 @@ class WebsiteSaleProductConfiguratorController(SaleProductConfiguratorController
                 basic_product_information['price'], precision_rounding=currency.rounding
             )
             basic_product_information['can_be_sold'] = not (
-                request.website.prevent_zero_price_sale and has_zero_price
+                request.website.prevent_sale
+                and request.website._prevent_product_sale(product_or_template, has_zero_price)
             )
             # Don't compute the strikethrough price if there's a custom price (i.e. if `price_info`
             # is populated).
@@ -225,20 +223,18 @@ class WebsiteSaleProductConfiguratorController(SaleProductConfiguratorController
                 return compare_list_price
         return None
 
-    def _should_show_product(self, product_template, parent_combination):
+    def _should_show_product(self, product_template):
         """ Override of `sale` to only show products that can be added to the cart.
 
         :param product.template product_template: The product being checked.
-        :param product.template.attribute.value parent_combination: The combination of the parent
-            product.
         :rtype: bool
         :return: Whether the product should be shown in the configurator.
         """
-        should_show_product = super()._should_show_product(product_template, parent_combination)
+        should_show_product = super()._should_show_product(product_template)
         if request.is_frontend:
             return (
                 should_show_product
-                and product_template._is_add_to_cart_possible(parent_combination)
+                and product_template._is_add_to_cart_possible()
                 and product_template.filtered_domain(request.website.website_domain())
             )
         return should_show_product

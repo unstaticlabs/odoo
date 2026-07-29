@@ -6,18 +6,18 @@
 # Martin Trigaux, 2023
 # Abe Manyo, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-07-14 08:08+0000\n"
+"POT-Creation-Date: 2026-07-10 17:36+0000\n"
+"PO-Revision-Date: 2026-07-14 09:43+0000\n"
 "Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_recruitment/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -90,15 +90,15 @@ msgid ""
 "    <hr width=\"97%\" style=\"background-color: rgb(204,204,204); border: "
 "medium none; clear: both; display: block; font-size: 0px; min-height: 1px; "
 "line-height: 0; margin: 16px 0px 16px 0px;\"/>\n"
-"    <t t-if=\"object.user_id\">\n"
+"    <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\">\n"
 "        <h3 style=\"color:#9A6C8E;\"><strong>Your Contact:</strong></h3>\n"
 "        <p>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
+"            <span>Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t></span><br/>\n"
-"            <span>Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
+"            <span>Phone: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
 "        </p>\n"
 "        <hr width=\"97%\" style=\"background-color: rgb(204,204,204); "
 "border: medium none; clear: both; display: block; font-size: 0px; min-"
@@ -161,13 +161,13 @@ msgstr ""
 "<div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
 "    Halo,\n"
 "    <br/><br/>\n"
-"    Kami mengonfirmasi bahwa kami sukses menerima lamaran Anda untuk posisi\n"
+"    Kami mengonfirmasi bahwa lamaran Anda telah kami terima untuk posisi\n"
 "    \"<a t-att-href=\"hasattr(object.job_id, 'website_url') and "
 "object.job_id.website_url or ''\" style=\"color:#9A6C8E;\"><strong t-"
 "out=\"object.job_id.name or ''\">Experienced Developer</strong></a>\" di "
 "<strong t-out=\"object.company_id.name or ''\">PerusahaanAnda</strong>.\n"
 "    <br/><br/>\n"
-"    Kami akan menghubungi Anda dalam waktu dekat.\n"
+"    Kami akan segera menghubungi Anda.\n"
 "\n"
 "    <div t-if=\"'website_url' in object.job_id and "
 "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
@@ -175,34 +175,34 @@ msgstr ""
 "style=\"background-color: {{object.company_id.email_secondary_color or "
 "'#875A7B'}}; text-decoration: none; color: "
 "{{object.company_id.email_primary_color or '#FFFFFF'}}; padding: 8px 16px "
-"8px 16px; border-radius: 5px;\">Job Description</a>\n"
+"8px 16px; border-radius: 5px;\">Deskripsi Pekerjaan</a>\n"
 "    </div>\n"
 "\n"
 "    <hr width=\"97%\" style=\"background-color: rgb(204,204,204); border: "
 "medium none; clear: both; display: block; font-size: 0px; min-height: 1px; "
 "line-height: 0; margin: 16px 0px 16px 0px;\"/>\n"
-"    <t t-if=\"object.user_id\">\n"
+"    <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\">\n"
 "        <h3 style=\"color:#9A6C8E;\"><strong>Kontak Anda:</strong></h3>\n"
 "        <p>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
-"''\">admin@perusahaanAnda.contoh.com</t></span><br/>\n"
-"            <span>Telepon: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
+"            <span>Email: <t t-out=\"object.recruiter_id.work_email or "
+"''\">admin@yourcompany.example.com</t></span><br/>\n"
+"            <span>Telepon: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
 "        </p>\n"
 "        <hr width=\"97%\" style=\"background-color: rgb(204,204,204); "
 "border: medium none; clear: both; display: block; font-size: 0px; min-"
 "height: 1px; line-height: 0; margin: 16px 0px 16px 0px;\"/>\n"
 "    </t>\n"
 "\n"
-"    <h3 style=\"color:#9A6C8E;\"><strong>Apa langkah berikutnya?</strong></"
+"    <h3 style=\"color:#9A6C8E;\"><strong>Apa tahap berikutnya?</strong></"
 "h3>\n"
-"    Kami biasanya <strong>menjawab lamaran dalam beberapa hari.</strong><br/"
-"><br/>\n"
-"    Silakan hubungi <strong>kami bila Anda ingin mendapatkan feedback lebih\n"
-"    cepat</strong> atau bila Anda belum mendapatkan kabar yang cukup cepat \n"
-"    dari kami (cukup balas email inil).\n"
+"    Biasanya, kami <strong>menanggapi lamaran dalam beberapa hari.</"
+"strong><br/><br/>\n"
+"    Silakan <strong>hubungi kami jika Anda ingin tanggapan\n"
+"    yang lebih cepat</strong> atau jika kami tidak kunjung\n"
+"    mengabari (cukup balas email ini).\n"
 "\n"
 "    <hr width=\"97%\" style=\"background-color: rgb(204,204,204); border: "
 "medium none; clear: both; display: block; font-size: 0px; min-height: 1px; "
@@ -276,14 +276,14 @@ msgid ""
 "    <br/><br/>\n"
 "    Thank you,\n"
 "    <div style=\"font-size: 11px; color: grey;\">\n"
-"        <t t-if=\"object.user_id\">\n"
+"        <t t-if=\"object.recruiter_id\">\n"
 "            -- <br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            Email: <t t-out=\"object.user_id.email or "
+"            Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t><br/>\n"
-"            Phone: <t t-out=\"object.user_id.phone or ''\">+1 650-123-4567</"
-"t>\n"
+"            Phone: <t t-out=\"object.recruiter_id.work_phone or ''\">+1 "
+"650-123-4567</t>\n"
 "        </t>\n"
 "        <t t-else=\"\">\n"
 "            -- <br/>\n"
@@ -296,46 +296,44 @@ msgid ""
 msgstr ""
 "<div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
 "    Halo,<br/><br/>\n"
-"    Terima kasih atas minat Anda bergabung dengan tim kami di tim\n"
-"    <b><t t-out=\"object.company_id.name or ''\">PerusahaanAnda</t></b>.  "
+"    Terima kasih atas minat Anda untuk bergabung dengan tim\n"
+"   <b><t t-out=\"object.company_id.name or ''\"> PerusahaanAnda</t></b>.  "
 "Kami\n"
-"    ingin memberitahu Anda, walaupun resume Anda\n"
-"    kompetitif, tim perekrutan kami meninjau lamaran Anda\n"
-"    dan <b>tidak memilih Anda untuk pertimbangan lebih lanjut</b>.\n"
-"    <br/><br/>\n"
-"    Mohon ingat bahwa perekrutan itu susah, dan kami bisa\n"
-"    membuat kesalahan. Jangan sungkan untuk membalas email ini bila\n"
-"    Anda berpikir kami salah, atau bila Anda ingin informasi\n"
-"    lebih lanjut mengenai keputusan kami.\n"
-"    <br/><br/>\n"
-"    Namun, kami akan menyimpan resume Anda agar kami\n"
-"    dapat menghubungi Anda mengenai kesempatan di masa\n"
-"    depan yang mungkin lebih cocok untuk ketrampilan dan pengalaman Anda.\n"
-"    <br/><br/>\n"
-"    Kami mengharapkan yang terbaik untuk Anda dalam pelamaran kerja Anda dan "
-"berharap kami\n"
-"     akan memiliki kesempatan untuk mempertimbangkan Anda lagi untuk peran "
-"lain\n"
+"    ingin memberi tahu bahwa, meskipun resume Anda\n"
+"    kompetitif, tim perekrutan kami telah meninjau lamaran Anda\n"
+"    dan <b>tidak memilihnya untuk pertimbangan lebih lanjut</b>.\n"
+"   <br/><br/> \n"
+"    Perlu diingat bahwa perekrutan itu proses sulit, dan kami bisa saja\n"
+"    melakukan kesalahan. Jangan ragu untuk membalas email ini jika Anda\n"
+"    menganggap kami salah, atau jika Anda ingin informasi lebih lanjut\n"
+"    tentang keputusan kami.\n"
+"   <br/><br/> \n"
+"    Namun, kami akan menyimpan resume Anda dalam arsip dan menghubungi\n"
+"    Anda mengenai peluang di masa depan yang mungkin lebih\n"
+"    sesuai dengan keterampilan dan pengalaman Anda.\n"
+"   <br/><br/> \n"
+"    Semoga sukses dalam pencarian kerja Anda dan semoga\n"
+"    ada kesempatan untuk mempertimbangkan Anda untuk peran lain\n"
 "    di masa depan.\n"
-"    <br/><br/>\n"
+"   <br/><br/> \n"
 "    Terima kasih,\n"
-"    <div style=\"font-size: 11px; color: grey;\">\n"
-"        <t t-if=\"object.user_id\">\n"
+"   <div style=\"font-size: 11px; color: grey;\">\n"
+"        <t t-if=\"object.recruiter_id\"> \n"
 "            -- <br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            Email: <t t-out=\"object.user_id.email or "
-"''\">admin@perusahaanAnda.contoh.com</t><br/>\n"
-"            Telepon: <t t-out=\"object.user_id.phone or ''\">+1 "
+"            Email: <t t-out=\"object.recruiter_id.work_email or "
+"''\">admin@yourcompany.example.com</t><br/>\n"
+"            Telepon: <t t-out=\"object.recruiter_id.work_phone or ''\">+1 "
 "650-123-4567</t>\n"
 "        </t>\n"
-"        <t t-else=\"\">\n"
+"       <t t-else=\"\"> \n"
 "            -- <br/>\n"
 "            <t t-out=\"object.company_id.name or ''\">PerusahaanAnda</t><br/"
 ">\n"
 "            Tim HR\n"
-"        </t>\n"
-"    </div>\n"
+"       </t>\n"
+"    </div> \n"
 "</div>\n"
 "        "
 
@@ -350,13 +348,14 @@ msgid ""
 "        <br/><br/>\n"
 "        Best<br/>\n"
 "        <div style=\"font-size: 11px; color: grey;\">\n"
-"            <t t-if=\"object.user_id\">\n"
+"            <t t-if=\"object.recruiter_id and "
+"object.recruiter_id.user_id\">\n"
 "                -- <br/>\n"
-"                <strong t-out=\"object.user_id.name or ''\">Marc Demo</"
+"                <strong t-out=\"object.recruiter_id.name or ''\">Marc Demo</"
 "strong><br/>\n"
-"                Email: <t t-out=\"object.user_id.email or "
+"                Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">mark.brown23@example.com</t><br/>\n"
-"                Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
+"                Phone: <t t-out=\"object.recruiter_id.work_phone or ''\">+1 "
 "650-123-4567</t>\n"
 "            </t>\n"
 "            <t t-else=\"\">\n"
@@ -372,30 +371,30 @@ msgid ""
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-"        Kepada,<br/><br/>\n"
-"        Kami mengucapkan terima kasih untuk perhatian dan waktu Anda.<br/>\n"
-"        Kami mengharapkan yang terbaik bagi Anda untuk usaha Anda di masa "
-"depan.\n"
-"        <br/><br/>\n"
+"        Halo,<br/><br/>\n"
+"        Terima kasih atas minat dan waktu Anda.<br/>\n"
+"        Semoga sukses selalu ke depannya.\n"
+"       <br/><br/> \n"
 "        Salam<br/>\n"
 "        <div style=\"font-size: 11px; color: grey;\">\n"
-"            <t t-if=\"object.user_id\">\n"
+"           <t t-if=\"object.recruiter_id and "
+"object.recruiter_id.user_id\"> \n"
 "                -- <br/>\n"
-"                <strong t-out=\"object.user_id.name or ''\">Marc Demo</"
+"                <strong t-out=\"object.recruiter_id.name or ''\">Marc Demo</"
 "strong><br/>\n"
-"                Email: <t t-out=\"object.user_id.email or "
-"''\">mark.brown23@contoh.com</t><br/>\n"
-"                Telepon: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t>\n"
+"                Email: <t t-out=\"object.recruiter_id.work_email or "
+"''\">mark.brown23@example.com</t><br/>\n"
+"                Telepon: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t>\n"
 "            </t>\n"
-"            <t t-else=\"\">\n"
+"           <t t-else=\"\"> \n"
 "                -- <br/>\n"
 "                <t t-out=\"object.company_id.name or ''\">PerusahaanAnda</"
 "t><br/>\n"
 "                Tim HR<br/>\n"
 "            </t>\n"
-"        </div>\n"
-"    </div>\n"
+"       </div>\n"
+"    </div> \n"
 "</div>\n"
 "        "
 
@@ -423,14 +422,14 @@ msgid ""
 "8px 16px; border-radius: 5px;\">Job Description</a>\n"
 "        </div>\n"
 "\n"
-"        <t t-if=\"object.user_id\">\n"
+"        <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\">\n"
 "            You will soon be contacted by:<br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
+"            <span>Email: <t t-out=\"object.recruiter_id.work_email or "
 "''\">admin@yourcompany.example.com</t></span><br/>\n"
-"            <span>Phone: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
+"            <span>Phone: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
 "            <br/><br/>\n"
 "        </t>\n"
 "        See you soon,\n"
@@ -508,108 +507,107 @@ msgid ""
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
 "    <div style=\"text-align: center\">\n"
-"        <h2>Selamat!</h2>\n"
-"        <div style=\"color:grey;\">Resume Anda positif ditinjau.</div>\n"
+"       <h2> Selamat!</h2>\n"
+"        <div style=\"color:grey;\">Tinjauan resume Anda mendapatkan hasil "
+"positif.</div>\n"
 "    </div>\n"
-"    <div style=\"font-size: 13px; margin: 0px; padding: 0px;\">\n"
-"        Kami baru saja meninjau rersume Anda, dan Anda menarik perhatian\n"
-"        kami. Kami merasa Anda merupakan orang yang tepat untuk posisi\n"
-"        ini, lamaran Anda telah masuk short-list untuk\n"
-"        dipanggil atau untuk diwawancara.\n"
-"        <br/><br/>\n"
-"        <div t-if=\"'website_url' in object.job_id and "
+"   <div style=\"font-size: 13px; margin: 0px; padding: 0px;\"> \n"
+"        Kami baru saja meninjau resume Anda, dan hal itu menarik\n"
+"        perhatian kami. Karena kami yakin Anda mungkin cocok untuk\n"
+"        posisi ini, lamaran Anda terpilih untuk\n"
+"        panggilan telepon atau wawancara.\n"
+"       <br/><br/> \n"
+"       <div t-if=\"'website_url' in object.job_id and "
 "object.job_id.website_url\" style=\"padding: 16px 8px 16px 8px;\">\n"
 "            <a t-att-href=\"object.job_id.website_url\" t-attf-"
 "style=\"background-color: {{object.company_id.email_secondary_color or "
 "'#875A7B'}}; text-decoration: none; color: "
 "{{object.company_id.email_primary_color or '#FFFFFF'}}; padding: 8px 16px "
-"8px 16px; border-radius: 5px;\">Job Description</a>\n"
+"8px 16px; border-radius: 5px;\"> Deskripsi Pekerjaan</a>\n"
 "        </div>\n"
 "\n"
-"        <t t-if=\"object.user_id\">\n"
-"            Anda akan dalam waktu dekat dihubungi oleh:<br/>\n"
-"            <strong t-out=\"object.user_id.name or ''\">Mitchell Admin</"
+"       <t t-if=\"object.recruiter_id and object.recruiter_id.user_id\"> \n"
+"            Anda akan segera dihubungi oleh:<br/>\n"
+"            <strong t-out=\"object.recruiter_id.name or ''\">Mitchell Admin</"
 "strong><br/>\n"
-"            <span>Email: <t t-out=\"object.user_id.email or "
-"''\">admin@perusahaanAnda.contoh.com</t></span><br/>\n"
-"            <span>Telepon: <t t-out=\"object.user_id.phone or ''\">+1 "
-"650-123-4567</t></span>\n"
-"            <br/><br/>\n"
-"        </t>\n"
-"        Sampai jumpa sebentar lagi,\n"
-"        <div style=\"font-size: 11px; color: grey;\">\n"
+"           <span> Email: <t t-out=\"object.recruiter_id.work_email or "
+"''\">admin@yourcompany.example.com</t></span><br/>\n"
+"            <span> Telepon: <t t-out=\"object.recruiter_id.work_phone or "
+"''\">+1 650-123-4567</t></span>\n"
+"           <br/><br/> \n"
+"       </t> \n"
+"        Sampai jumpa,\n"
+"       <div style=\"font-size: 11px; color: grey;\"> \n"
 "            -- <br/>\n"
 "            Tim HR\n"
-"            <t t-if=\"'website_url' in object.job_id and "
-"hasattr(object.job_id, 'website_url') and object.job_id.website_url\">\n"
+"           <t t-if=\"'website_url' in object.job_id and "
+"hasattr(object.job_id, 'website_url') and object.job_id.website_url\"> \n"
 "                Temukan <a href=\"/jobs\" style=\"text-"
-"decoration:none;color:#717188;\">semua pekerjaan kami</a>.<br/>\n"
+"decoration:none;color:#717188;\">semua lowongan kerja kami</a>.<br/>\n"
 "            </t>\n"
-"        </div>\n"
+"       </div>\n"
 "\n"
 "        <hr width=\"97%\" style=\"background-color: rgb(204,204,204); "
 "border: medium none; clear: both; display: block; font-size: 0px; min-"
-"height: 1px; line-height: 0; margin: 16px 0px 16px 0px;\"/>\n"
-"        <h3 style=\"color:#9A6C8E;\"><strong>Apa langkah berikutnya?</"
+"height: 1px; line-height: 0; margin: 16px 0px 16px 0px;\"/> \n"
+"       <h3 style=\"color:#9A6C8E;\"><strong> Apa langkah selanjutnya?</"
 "strong></h3>\n"
-"        Kami biasanya <strong>menjawab lamaran dalam beberapa hari</"
+"        Kami biasanya <strong>menanggapi lamaran dalam beberapa hari</"
 "strong>.\n"
-"        <br/><br/>\n"
-"        Langkah berikutnya adalah panggilan telepon atau meeting di kantor "
-"kami.\n"
-"        <br/>\n"
-"        Silakan hubungi <strong>kami bila Anda ingin mendapatkan feedback "
-"lebih\n"
-"        cepat</strong> atau bila Anda belum mendapatkan kabar yang cukup "
-"cepat\n"
-"        dari kami (cukup balas email ini).\n"
-"        <br/>\n"
+"       <br/><br/> \n"
+"        Langkah selanjutnya adalah panggilan telepon atau pertemuan di "
+"kantor kami.\n"
+"       <br/> \n"
+"        Jangan ragu untuk <strong>menghubungi kami jika Anda ingin\n"
+"        tanggapan lebih cepat</strong> atau jika kami tidak kunjung\n"
+"        mengabari (cukup balas email ini).\n"
+"       <br/>\n"
 "\n"
 "        <hr width=\"97%\" style=\"background-color: rgb(204,204,204); "
 "border: medium none; clear: both; display: block; font-size: 0px; min-"
-"height: 1px; line-height: 0; margin: 17px 0px 16px 0px;\"/>\n"
-"        <t t-set=\"location\" t-value=\"''\"/>\n"
-"        <t t-if=\"object.job_id.address_id.name\">\n"
-"            <strong t-out=\"object.job_id.address_id.name or ''\">Teksa SpA</"
+"height: 1px; line-height: 0; margin: 17px 0px 16px 0px;\"/> \n"
+"       <t t-set=\"location\" t-value=\"''\"/>\n"
+"        <t t-if=\"object.job_id.address_id.name\"> \n"
+"           <strong t-out=\"object.job_id.address_id.name or ''\"> Teksa SpA</"
 "strong><br/>\n"
-"        </t>\n"
-"        <t t-if=\"object.job_id.address_id.street\">\n"
-"            <t t-out=\"object.job_id.address_id.street or ''\">Puerto Madero "
+"       </t>\n"
+"        <t t-if=\"object.job_id.address_id.street\"> \n"
+"           <t t-out=\"object.job_id.address_id.street or ''\"> Puerto Madero "
 "9710</t><br/>\n"
-"            <t t-set=\"location\" t-"
-"value=\"object.job_id.address_id.street\"/>\n"
-"        </t>\n"
-"        <t t-if=\"object.job_id.address_id.street2\">\n"
-"            <t t-out=\"object.job_id.address_id.street2 or ''\">Of A15, "
+"           <t t-set=\"location\" t-value=\"object.job_id.address_id.street\"/"
+">\n"
+"        </t> \n"
+"       <t t-if=\"object.job_id.address_id.street2\">\n"
+"            <t t-out=\"object.job_id.address_id.street2 or ''\"> Of A15, "
 "Santiago (RM)</t><br/>\n"
-"            <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
+"           <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
 "object.job_id.address_id.street2)\"/>\n"
-"        </t>\n"
-"        <t t-if=\"object.job_id.address_id.city\">\n"
-"            <t t-out=\"object.job_id.address_id.city or ''\">Pudahuel</t>,\n"
-"            <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
+"        </t> \n"
+"       <t t-if=\"object.job_id.address_id.city\">\n"
+"            <t t-out=\"object.job_id.address_id.city or ''\"> Pudahuel</t>,\n"
+"           <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
 "object.job_id.address_id.city)\"/>\n"
-"        </t>\n"
-"        <t t-if=\"object.job_id.address_id.state_id.name\">\n"
-"            <t t-out=\"object.job_id.address_id.state_id.name or ''\">C1</"
+"        </t> \n"
+"       <t t-if=\"object.job_id.address_id.state_id.name\">\n"
+"            <t t-out=\"object.job_id.address_id.state_id.name or ''\"> C1</"
 "t>,\n"
-"            <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
+"           <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
 "object.job_id.address_id.state_id.name)\"/>\n"
-"        </t>\n"
-"        <t t-if=\"object.job_id.address_id.zip\">\n"
-"            <t t-out=\"object.job_id.address_id.zip or ''\">98450</t>\n"
+"        </t> \n"
+"       <t t-if=\"object.job_id.address_id.zip\">\n"
+"            <t t-out=\"object.job_id.address_id.zip or ''\"> 98450</t>\n"
 "            <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
 "object.job_id.address_id.zip)\"/>\n"
-"        </t>\n"
-"        <br/>\n"
-"        <t t-if=\"object.job_id.address_id.country_id.name\">\n"
-"            <t t-out=\"object.job_id.address_id.country_id.name or "
-"''\">Argentina</t><br/>\n"
-"            <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
+"       </t>\n"
+"        <br/> \n"
+"       <t t-if=\"object.job_id.address_id.country_id.name\">\n"
+"            <t t-out=\"object.job_id.address_id.country_id.name or ''\"> "
+"Argentina</t><br/>\n"
+"           <t t-set=\"location\" t-value=\"'%s, %s' % (location, "
 "object.job_id.address_id.country_id.name)\"/>\n"
-"        </t>\n"
-"        <br/>\n"
-"    </div>\n"
+"        </t> \n"
+"       <br/>\n"
+"    </div> \n"
 "</div>\n"
 "        "
 
@@ -630,13 +628,29 @@ msgid ""
 msgstr ""
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
+msgid ""
+"<i class=\"fa fa-envelope flex-shrink-0 me-1 text-center\" title=\"Email\"/>"
+msgstr ""
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "<i class=\"fa fa-paperclip\" role=\"img\" aria-label=\"Documents\"/>"
 msgstr "<i class=\"fa fa-paperclip\" role=\"img\" aria-label=\"Dokumen\"/>"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "<i class=\"fa fa-user fa-2x\" title=\"new_applications_icon\"/>"
+msgid ""
+"<i class=\"fa fa-user\" title=\"new_applications_icon\" aria-hidden=\"true\"/"
+">"
+msgstr ""
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid ""
+"<span class=\"fa fa-exclamation-triangle pe-1\"/>\n"
+"                                    All applications will lose their hired "
+"date and hired status."
 msgstr ""
 
 #. module: hr_recruitment
@@ -650,29 +664,6 @@ msgid "<span invisible=\"address_id\" class=\"oe_read_only\">Remote</span>"
 msgstr "<span invisible=\"address_id\" class=\"oe_read_only\">Remote</span>"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid ""
-"<span invisible=\"not is_warning_visible\">\n"
-"                                <span class=\"fa fa-exclamation-triangle "
-"text-danger ps-3\">\n"
-"                                </span>\n"
-"                                <span class=\"text-danger\">\n"
-"                                    All applications will lose their hired "
-"date and hired status.\n"
-"                                </span>\n"
-"                            </span>"
-msgstr ""
-"<span invisible=\"not is_warning_visible\">\n"
-"                                <span class=\"fa fa-exclamation-triangle "
-"text-danger ps-3\">\n"
-"                                </span>\n"
-"                                <span class=\"text-danger\">\n"
-"                                    Tanggal dan status perekrutan semua "
-"lamaran akan hilang.\n"
-"                                </span>\n"
-"                            </span>"
-
-#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "<span invisible=\"not salary_expected_extra\"> + </span>"
 msgstr "<span invisible=\"not salary_expected_extra\"> + </span>"
@@ -681,6 +672,11 @@ msgstr "<span invisible=\"not salary_expected_extra\"> + </span>"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "<span invisible=\"not salary_proposed_extra\"> + </span>"
 msgstr "<span invisible=\"not salary_proposed_extra\"> + </span>"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "<span> / </span>"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
@@ -713,6 +709,11 @@ msgid "<span>View</span>"
 msgstr "<span>Lihat</span>"
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "<span>days</span>"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_defaults
 msgid ""
 "A Python dictionary that will be evaluated to provide default values when "
@@ -738,7 +739,6 @@ msgstr "Aktif"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_ids
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_activities
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Activities"
 msgstr "Aktivitas"
 
@@ -764,6 +764,8 @@ msgid "Activity Plan"
 msgstr "Rencana Kegiatan"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__activity_plans_ids
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__activity_plans_ids
 #: model:ir.ui.menu,name:hr_recruitment.hr_recruitment_menu_config_activity_plan
 msgid "Activity Plans"
 msgstr "Rencana-Rencana Kegiatan"
@@ -807,12 +809,6 @@ msgid "Activity type"
 msgstr "Jenis aktivitas"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
-msgid "Add Applicants"
-msgstr "Tambahkan Pelamar"
-
-#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
 msgid "Add Applicants to Pool"
 msgstr "Tambahkan Pelamar ke Kelompok"
@@ -830,6 +826,7 @@ msgstr "Tambahkan tahap baru di proses rekrutmen"
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_applicant_category_action
+#: model_terms:ir.actions.act_window,help:hr_recruitment.hr_job_tag_action
 msgid "Add a new tag"
 msgstr "Tambahkan tanda baru"
 
@@ -855,6 +852,7 @@ msgid "Add private notes about this applicant..."
 msgstr "Tambahkan catatan pribadi mengenai pelamar ini..."
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.talent_pool_add_applicants_view_form
@@ -865,6 +863,12 @@ msgstr "Tambahkan ke Kelompok"
 #: model:ir.actions.act_window,name:hr_recruitment.mail_followers_edit_action_from_hr_recruitment
 msgid "Add/Remove Followers"
 msgstr "Tambahkan/Hapus Pengikut"
+
+#. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/wizard/talent_pool_add_applicants.py:0
+msgid "Added the following talents to %(talent_pools)s: %(talent_names)s."
+msgstr ""
 
 #. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_hr_recruitment_manager
@@ -964,7 +968,7 @@ msgid "Applicant Notes"
 msgstr "Catatan Pelamar"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__applicant_properties_definition
+#: model:ir.model.fields,field_description:hr_recruitment.field_res_company__applicant_properties_definition
 msgid "Applicant Properties"
 msgstr "Properti-Properti Pelamar"
 
@@ -972,11 +976,6 @@ msgstr "Properti-Properti Pelamar"
 #: model:mail.message.subtype,name:hr_recruitment.mt_job_applicant_stage_changed
 msgid "Applicant Stage Changed"
 msgstr "Perubahan Tahap Pelamar"
-
-#. module: hr_recruitment
-#: model:mail.message.subtype,description:hr_recruitment.mt_applicant_new
-msgid "Applicant created"
-msgstr "Pelamar dibuat"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__partner_name
@@ -1022,6 +1021,8 @@ msgstr ""
 "                supaya Anda dapat mencarinya dengan mudah melalui kontennya."
 
 #. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/models/hr_applicant.py:0
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Application"
 msgstr "aplikasi"
@@ -1053,7 +1054,6 @@ msgstr "Email lamaran"
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_applications
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
 msgid "Applications"
 msgstr "Lamaran"
 
@@ -1082,8 +1082,15 @@ msgid "Apply for a Job"
 msgstr "Lamar Kerja"
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
+msgid "Apply to Jobs"
+msgstr ""
+
+#. module: hr_recruitment
 #. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
 #: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
@@ -1091,10 +1098,17 @@ msgid "Archive"
 msgstr "Arsip"
 
 #. module: hr_recruitment
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid "Archive job position"
+msgstr "Arsip lowongan kerja"
+
+#. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__application_status__archived
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_kanban_view_applicant
 msgid "Archived"
 msgstr "Diarsipkan"
@@ -1158,6 +1172,12 @@ msgid "Bachelor Degree"
 msgstr "Gelar Sarjana"
 
 #. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__biweekly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__biweekly
+msgid "Bi-Week"
+msgstr "Bi-Week"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_blacklisted
 msgid "Blacklist"
 msgstr "Blacklist"
@@ -1168,14 +1188,6 @@ msgid "Blacklisted Phone is Phone"
 msgstr "Nomor yang di-blacklist adalah Telepon"
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_blocked:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__blocked
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Blocked"
@@ -1228,17 +1240,15 @@ msgid "Campaign"
 msgstr "Kampanye"
 
 #. module: hr_recruitment
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_utm_campaigns
+msgid "Campaigns"
+msgstr "Kampanye"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__can_edit_body
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_send_mail__can_edit_body
 msgid "Can Edit Body"
 msgstr "Dapat Mengedit Body"
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_send_mail_view_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.talent_pool_add_applicants_view_form
-msgid "Cancel"
-msgstr "Batal"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_graph_view_job
@@ -1265,21 +1275,23 @@ msgstr "Warna"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__color
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__color
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__color
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__color
 msgid "Color Index"
 msgstr "Indeks Warna"
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_res_company
-msgid "Companies"
-msgstr "Perusahaan"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__company_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__company_id
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Company"
 msgstr "Perusahaan"
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__company_partner_id
+msgid "Company Partner"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_res_config_settings
@@ -1331,6 +1343,11 @@ msgid "Contract Signed"
 msgstr "Kontrak Ditandatangani"
 
 #. module: hr_recruitment
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_contract_type
+msgid "Contract Types"
+msgstr "Tipe Kontrak"
+
+#. module: hr_recruitment
 #. odoo-javascript
 #: code:addons/hr_recruitment/static/src/js/tours/hr_recruitment.js:0
 msgid "Copy this email address, to paste it in your email composer, to apply."
@@ -1357,7 +1374,6 @@ msgstr "Buat"
 #. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
 msgid "Create Applications"
@@ -1414,6 +1430,7 @@ msgstr "Buat %(amount)s lamar baru untuk: %(names)s"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__create_uid
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__create_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__create_uid
@@ -1429,6 +1446,7 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__create_date
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__create_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__create_date
@@ -1445,6 +1463,12 @@ msgid "Creation Date"
 msgstr "Tanggal Pembuatan"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__currency_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__currency_id
+msgid "Currency"
+msgstr "Mata Uang"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__no_of_employee
 msgid "Current Number of Employees"
 msgstr "Jumlah Karyawan Saat ini"
@@ -1453,6 +1477,12 @@ msgstr "Jumlah Karyawan Saat ini"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__alias_bounced_content
 msgid "Custom Bounced Message"
 msgstr "Pesan Kustom yang Dikembalikan"
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__daily
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__daily
+msgid "Day"
+msgstr "Hari"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__rotting_threshold_days
@@ -1618,12 +1648,6 @@ msgid "Directly Available"
 msgstr "Tersedia Langsung"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
-msgid "Discard"
-msgstr "Buang"
-
-#. module: hr_recruitment
 #: model:res.groups,name:hr_recruitment.group_applicant_cv_display
 msgid "Display CV on application form"
 msgstr "Tampilkan CV pada formulir lamaran"
@@ -1640,6 +1664,7 @@ msgstr "Tampilkan CV pada formulir lamaran"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_employee__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__display_name
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__display_name
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__display_name
@@ -1658,12 +1683,6 @@ msgstr "Tampilkan CV pada formulir lamaran"
 #: model:ir.model.fields,field_description:hr_recruitment.field_utm_source__display_name
 msgid "Display Name"
 msgstr "Nama Tampilan"
-
-#. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Tidak punya akses, lewati data ini untuk email singkat pengguna"
 
 #. module: hr_recruitment
 #: model:hr.recruitment.degree,name:hr_recruitment.degree_bac5
@@ -1755,11 +1774,6 @@ msgstr ""
 "membuat pelamar baru untuk posisi pekerjaan ini."
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__email_cc
-msgid "Email cc"
-msgstr "Email cc"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_job__alias_domain
 msgid "Email domain e.g. 'example.com' in 'odoo@example.com'"
 msgstr "Domain email misal 'contoh.com' di 'odoo@contoh.com'"
@@ -1810,11 +1824,6 @@ msgid "Employees"
 msgstr "Karyawan"
 
 #. module: hr_recruitment
-#: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_contract_type
-msgid "Employment Types"
-msgstr "Tipe Pekerjaan"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__priority
 msgid "Evaluation"
 msgstr "Evaluasi"
@@ -1858,9 +1867,9 @@ msgid "Extended Interviewer"
 msgstr "Extended Interviewer"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__favorite_user_ids
-msgid "Favorite User"
-msgstr "User Favorit"
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__favorite_recruiter_ids
+msgid "Favorite Recruiter"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__phone_sanitized
@@ -1880,6 +1889,11 @@ msgstr "File"
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job2
 msgid "First Interview"
 msgstr "Wawancara Pertama"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Fold by Default"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__fold
@@ -1935,16 +1949,6 @@ msgid "Great job! You hired a new colleague!"
 msgstr "Kerja bagus! Anda merekrut rekan kerja baru!"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_done
-msgid "Green Kanban Label"
-msgstr "Label Kanban Hijau"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_normal
-msgid "Grey Kanban Label"
-msgstr "Label Kanban Abu-Abu"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__has_domain
 msgid "Has Domain"
 msgstr "Memiliki Domain"
@@ -1975,9 +1979,10 @@ msgid "Hired Stage"
 msgstr "Tahap Direkrut"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
-msgid "Hiring Date"
-msgstr "Tanggal Perekrutan"
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__hourly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__hourly
+msgid "Hour"
+msgstr "Jam"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__id
@@ -1991,6 +1996,7 @@ msgstr "Tanggal Perekrutan"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__id
@@ -2107,14 +2113,28 @@ msgstr ""
 "enerima email massal sms lagi, dari daftar apapun"
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_normal:hr_recruitment.stage_job5
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid ""
+"If you archive these job positions, all their applicants will be archived "
+"too. Are you sure?"
+msgstr ""
+"Bila Anda mengarsip lowongan-lowongan kerja ini, semua pelamarnya akan "
+"diarsip juga. Apakah Anda yakin?"
+
+#. module: hr_recruitment
+#. odoo-javascript
+#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
+#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
+msgid ""
+"If you archive this job position, all its applicants will be archived too. "
+"Are you sure?"
+msgstr ""
+"Bila Anda mengarsip lowongan kerja ini, semua pelamarnya akan diarsip juga. "
+"Apakah Anda yakin?"
+
+#. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__normal
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "In Progress"
@@ -2129,10 +2149,8 @@ msgstr "IAP"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid ""
 "Incoming emails create applications automatically. Use it for direct "
-"applications or when posting job offers on LinkedIn, Monster, etc."
+"applications or when posting job opportunities on LinkedIn, Monster, etc."
 msgstr ""
-"Email masuk membuat lamaran secara otomatis. Gunakan untuk mengalihkan "
-"lamaran atau saat memposting lowongan kerja pada LinkedIn, Monster, dsb."
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__phone_blacklisted
@@ -2248,8 +2266,8 @@ msgstr "Halaman Pekerjaan"
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_job_platform
-msgid "Job Platforms"
-msgstr "Job Platfor"
+msgid "Job Platform"
+msgstr "Platform Pekerjaan"
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_job
@@ -2274,6 +2292,7 @@ msgstr "Posisi kerja yang dibuat"
 #: model:ir.actions.act_window,name:hr_recruitment.action_hr_job_interviewer
 #: model:ir.model.fields,field_description:hr_recruitment.field_job_add_applicants__job_ids
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_config_jobs
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
 msgid "Job Positions"
 msgstr "Jabatan Kerja"
 
@@ -2298,6 +2317,12 @@ msgid "Job Specific"
 msgstr "Spesifikasi Kerja"
 
 #. module: hr_recruitment
+#: model:ir.actions.act_window,name:hr_recruitment.hr_job_tag_action
+#: model:ir.ui.menu,name:hr_recruitment.menu_hr_job_tag_menu
+msgid "Job Tags"
+msgstr "Tag Kerja"
+
+#. module: hr_recruitment
 #: model:hr.applicant.refuse.reason,name:hr_recruitment.refuse_reason_5
 msgid "Job already fulfilled"
 msgstr "Lowongan sudah diisi"
@@ -2313,29 +2338,9 @@ msgid "Jobs - Recruitment Form"
 msgstr "Formulir Perekrutan Kerja"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_blocked
-msgid "Kanban Blocked"
-msgstr "Kanban Diblokir"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_normal
-msgid "Kanban Ongoing"
-msgstr "Kanban Sedang Berlangsung"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__kanban_state
 msgid "Kanban State"
 msgstr "Status Kanban"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_done
-msgid "Kanban Valid"
-msgstr "Kanban Valid"
-
-#. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__legend_waiting
-msgid "Kanban Waiting"
-msgstr "Menunggu Kanban"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_digest_digest__kpi_hr_recruitment_new_colleagues_value
@@ -2372,6 +2377,7 @@ msgstr "Update Tahap Terakhir"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__write_uid
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__write_uid
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__write_uid
@@ -2388,6 +2394,7 @@ msgstr "Terakhir Diperbarui oleh"
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_refuse_reason__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__write_date
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__write_date
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__write_date
@@ -2484,6 +2491,11 @@ msgid "Master Degree"
 msgstr "Gelar Magister"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__salary_max
+msgid "Maximum Salary"
+msgstr "Gaji Maksimum"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__medium_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__medium_id
 msgid "Medium"
@@ -2527,6 +2539,18 @@ msgid "Messages"
 msgstr "Pesan"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__salary_min
+msgid "Minimum Salary"
+msgstr "Gaji Minimum"
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__monthly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__monthly
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "Month"
+msgstr "Bulan"
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.job_add_applicants_view_form
 msgid "Move to..."
 msgstr "Pindahkan ke..."
@@ -2559,7 +2583,6 @@ msgstr "Jabatan Kerja Saya"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_platform__name
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__name
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
 msgid "Name"
 msgstr "Nama"
@@ -2607,7 +2630,7 @@ msgstr "Karyawan Baru"
 #: model:mail.message.subtype,name:hr_recruitment.mt_talent_new
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
 msgid "New Talent"
-msgstr ""
+msgstr "Talenta Baru"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_tree_activity
@@ -2678,6 +2701,11 @@ msgstr "Tidak data yang bisa ditampilkan"
 #: model_terms:ir.actions.act_window,help:hr_recruitment.hr_applicant_action_analysis
 msgid "No data yet!"
 msgstr "Belum ada data!"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "No email"
+msgstr "Tidak ada email"
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.action_hr_job_platforms
@@ -2839,11 +2867,6 @@ msgstr ""
 "Atau diskusi tentang pelamar ini secara privat dengan rekan-rekan Anda."
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_waiting
-msgid "Orange Kanban Label"
-msgstr "Label Kanban Oranye"
-
-#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
 msgid "Other benefits"
 msgstr "Tunjangan lainnya"
@@ -2943,8 +2966,8 @@ msgstr "Usulan Gaji Ekstra"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.res_config_settings_view_form
-msgid "Publish job offers on your website"
-msgstr "Publikasikan lowongan kerja pada website Anda"
+msgid "Publish job opportunities on your website"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:hr.recruitment.stage,name:hr_recruitment.stage_job1
@@ -2958,15 +2981,11 @@ msgid "Ratings"
 msgstr "Rating"
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_done:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__done
+msgid "Ready"
+msgstr "Siap"
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Ready for Next Stage"
 msgstr "Siap untuk Tahap Berikutnya"
@@ -2989,10 +3008,15 @@ msgid "Record Thread ID"
 msgstr "Rekam ID Thread"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__user_id
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__user_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__recruiter_id
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__recruiter_id
 msgid "Recruiter"
 msgstr "Recruiter"
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__recruiter_email
+msgid "Recruiter Work Email"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.ui.menu,name:hr_recruitment.menu_hr_recruitment_root
@@ -3026,8 +3050,8 @@ msgstr "Rencana Rekrutmen"
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_hr_recruitment_stage
-msgid "Recruitment Stages"
-msgstr "Tahap-Tahap Rekrutmen"
+msgid "Recruitment Stage"
+msgstr "Tahap Rekrutmen"
 
 #. module: hr_recruitment
 #: model:mail.template,name:hr_recruitment.email_template_data_applicant_congratulations
@@ -3050,9 +3074,9 @@ msgid "Recruitment: Refuse"
 msgstr "Rekrutmen: Tolak"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__legend_blocked
-msgid "Red Kanban Label"
-msgstr "Label Kanban Merah"
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+msgid "Reference"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.applicant_get_refuse_reason_view_form
@@ -3131,6 +3155,11 @@ msgid "Regex"
 msgstr "Regex"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__model
+msgid "Related Document Model"
+msgstr ""
+
+#. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_job.py:0
 msgid "Related Employees"
@@ -3183,9 +3212,13 @@ msgstr "Konten resume"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__is_rotting
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Rotting"
 msgstr "Membusuk"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Rotting in"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
@@ -3229,6 +3262,11 @@ msgid "Salary Proposed by the Organisation, extra advantages"
 msgstr "Gaji Yang Diusulkan Oleh Organisasi, fasilitas tambahan"
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_survey
+msgid "Salary Range"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__phone_sanitized
 msgid "Sanitized Number"
 msgstr "Nomor yang Dibersihkan"
@@ -3250,9 +3288,19 @@ msgid "Schedule Interview"
 msgstr "Jadwalkan Wawancara"
 
 #. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__schedule_pay
+msgid "Schedule Pay"
+msgstr "Jadwalkan Pembayaran"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_applicant_get_refuse_reason__scheduled_date
 msgid "Scheduled Date"
 msgstr "Tanggal Terjadwal"
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__payment_interval
+msgid "Scheduled Pay"
+msgstr "Gaji Terjadwal"
 
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_degree__score
@@ -3389,6 +3437,11 @@ msgstr ""
 "Tunjukkan semua rekaman yang tanggal kegiatan berikutnya berada di masa lalu"
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "Show for all positions"
+msgstr ""
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__source_id
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_source__source_id
 msgid "Source"
@@ -3450,11 +3503,6 @@ msgid "Stage Changed"
 msgstr "Tahapan Diubah"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid "Stage Definition"
-msgstr "Definisi Tahapan"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_recruitment_stage__name
 msgid "Stage Name"
 msgstr "Nama Tahap"
@@ -3479,6 +3527,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_tree
 msgid "Stages"
 msgstr "Tahap"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.crm_case_tree_view_job
+msgid "State"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__activity_state
@@ -3511,7 +3564,13 @@ msgid "Subject..."
 msgstr "Judul"
 
 #. module: hr_recruitment
+#: model:ir.model,name:hr_recruitment.model_hr_job_tag
+msgid "Tag"
+msgstr "Tag"
+
+#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant_category__name
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job_tag__name
 msgid "Tag Name"
 msgstr "Nama Tag"
 
@@ -3523,12 +3582,15 @@ msgstr "Nama tag sudah ada!"
 #. module: hr_recruitment
 #: model:ir.actions.act_window,name:hr_recruitment.hr_applicant_category_action
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__categ_ids
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__tag_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_talent_pool__categ_ids
 #: model:ir.model.fields,field_description:hr_recruitment.field_talent_pool_add_applicants__categ_ids
 #: model:ir.ui.menu,name:hr_recruitment.hr_applicant_category_menu
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_category_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_category_view_tree
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_tag_view_form
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_tag_view_list
 msgid "Tags"
 msgstr "Label"
 
@@ -3559,13 +3621,15 @@ msgstr "Keterangan Kelompok Talenta"
 #. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__talent_pool_ids
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_form
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Talent Pools"
 msgstr "Kelompok Talenta"
 
 #. module: hr_recruitment
-#: model:mail.message.subtype,description:hr_recruitment.mt_talent_new
+#. odoo-python
+#: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "Talent created"
-msgstr ""
+msgstr "Talenta dibuat"
 
 #. module: hr_recruitment
 #. odoo-python
@@ -3579,6 +3643,12 @@ msgstr "Talenta harus berasal ke setidaknya satu Kelompok Talenta."
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_talent_pool_view_kanban
 msgid "Talents"
 msgstr "Talenta-Talenta"
+
+#. module: hr_recruitment
+#. odoo-python
+#: code:addons/hr_recruitment/wizard/talent_pool_add_applicants.py:0
+msgid "Talents Added To Talent Pool(s)"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model.constraint,message:hr_recruitment.constraint_hr_job_platform_email_uniq
@@ -3601,7 +3671,7 @@ msgstr ""
 "memiliki hak Rekrutmen untuk ditetapkan sebagai pewawancara."
 
 #. module: hr_recruitment
-#: model:ir.model.fields,help:hr_recruitment.field_hr_job__user_id
+#: model:ir.model.fields,help:hr_recruitment.field_hr_job__recruiter_id
 msgid ""
 "The Recruiter will be the default value for all Applicants in this "
 "job             position. The Recruiter is automatically added to all "
@@ -3670,16 +3740,6 @@ msgstr ""
 "yang diterima untuk mengisi secara otomatis field nama Pelamar"
 
 #. module: hr_recruitment
-#. odoo-javascript
-#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
-msgid ""
-"These job positions and all related applicants will be archived. Are you "
-"sure?"
-msgstr ""
-"Lowongan-lowongan kerja berikut dan semua pelamar terkait akan diarsip. "
-"Apakah Anda yakin?"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_applicant__medium_id
 msgid ""
 "This displays how the applicant has reached out, e.g. via Email, LinkedIn, "
@@ -3716,16 +3776,6 @@ msgstr ""
 "daftar email"
 
 #. module: hr_recruitment
-#. odoo-javascript
-#: code:addons/hr_recruitment/static/src/views/recruitment_form_controller.js:0
-#: code:addons/hr_recruitment/static/src/views/recruitment_kanban_view.js:0
-#: code:addons/hr_recruitment/static/src/views/recruitment_list_controller.js:0
-msgid ""
-"This job position and all related applicants will be archived. Are you sure?"
-msgstr ""
-"Lowongan kerja ini dan semua pelamar terkait akan diarsip. Apakah Anda yakin?"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,help:hr_recruitment.field_hr_recruitment_stage__fold
 msgid ""
 "This stage is folded in the kanban view when there are no records in that "
@@ -3751,11 +3801,6 @@ msgid "Today Activities"
 msgstr "Aktivitas Hari ini"
 
 #. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid "Tooltips"
-msgstr "Tooltip"
-
-#. module: hr_recruitment
 #: model:ir.model.fields,field_description:hr_recruitment.field_hr_job__expected_employees
 msgid "Total Forecasted Employees"
 msgstr "Total Perkiraan Karyawan"
@@ -3779,8 +3824,8 @@ msgstr "Coba mengirim email"
 
 #. module: hr_recruitment
 #: model_terms:web_tour.tour,rainbow_man_message:hr_recruitment.hr_recruitment_tour
-msgid "Try the Website app to publish job offers online."
-msgstr "Coba app Website untuk mempublikasikan lowongan kerja online."
+msgid "Try the Website app to publish job opportunities online."
+msgstr "Coba aplikasi Website untuk mempublikasikan peluang kerja online."
 
 #. module: hr_recruitment
 #: model_terms:ir.actions.act_window,help:hr_recruitment.mail_activity_type_action_config_hr_applicant
@@ -3801,6 +3846,11 @@ msgstr "Jenis dari aktivitas pengecualian pada rekaman data."
 #: model:ir.model,name:hr_recruitment.model_utm_campaign
 msgid "UTM Campaign"
 msgstr "Kampanye UTM"
+
+#. module: hr_recruitment
+#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__utm_reference
+msgid "UTM Reference"
+msgstr ""
 
 #. module: hr_recruitment
 #: model:ir.model,name:hr_recruitment.model_utm_source
@@ -3864,11 +3914,6 @@ msgid "User"
 msgstr "Pengguna"
 
 #. module: hr_recruitment
-#: model:ir.model.fields,field_description:hr_recruitment.field_hr_applicant__user_email
-msgid "User Email"
-msgstr "Email Pengguna"
-
-#. module: hr_recruitment
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__priority__2
 msgid "Very Good"
 msgstr "Sangat Baik"
@@ -3879,14 +3924,6 @@ msgid "Visible to all"
 msgstr "Terlihat untuk semua"
 
 #. module: hr_recruitment
-#. odoo-python
-#: code:addons/hr_recruitment/models/hr_recruitment_stage.py:0
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job0
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job1
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job2
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job3
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job4
-#: model:hr.recruitment.stage,legend_waiting:hr_recruitment.stage_job5
 #: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__kanban_state__waiting
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_applicant_view_search_bis
 msgid "Waiting"
@@ -3908,6 +3945,17 @@ msgstr "Pesan situs"
 #: model:ir.model.fields,help:hr_recruitment.field_hr_talent_pool__website_message_ids
 msgid "Website communication history"
 msgstr "Riwayat komunikasi situs"
+
+#. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__weekly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__weekly
+msgid "Week"
+msgstr "Minggu"
+
+#. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "What are the requirements to move an applicant to this stage?"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
@@ -3937,30 +3985,16 @@ msgid "Write your message here..."
 msgstr "Tuliskan pesan Anda di sini..."
 
 #. module: hr_recruitment
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_applicant__schedule_pay__yearly
+#: model:ir.model.fields.selection,name:hr_recruitment.selection__hr_job__payment_interval__yearly
+msgid "Year"
+msgstr "Tahun"
+
+#. module: hr_recruitment
 #. odoo-python
 #: code:addons/hr_recruitment/models/hr_applicant.py:0
 msgid "You are not allowed to perform this action."
 msgstr "Anda tidak diizinkan untuk melakukan action ini."
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid ""
-"You can define here the labels that will be displayed for the kanban state "
-"instead\n"
-"                            of the default labels."
-msgstr ""
-"Anda dapat mendefinisikan di sini label yang akan ditampilkan untuk status "
-"kanban alih-alih\n"
-"                            label default."
-
-#. module: hr_recruitment
-#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
-msgid ""
-"You can define the requirements here. They will be displayed when you hover "
-"over the stage title."
-msgstr ""
-"Anda dapat mendefinisikan persyaratan di sini. Mereka akan ditampilkan saat "
-"Anda hover mouse di atas judul tahpa."
 
 #. module: hr_recruitment
 #. odoo-python
@@ -4049,6 +4083,11 @@ msgid "e.g. Masters"
 msgstr "contoh. Master"
 
 #. module: hr_recruitment
+#: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_recruitment_stage_form
+msgid "e.g. Qualification"
+msgstr ""
+
+#. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.hr_job_simple_form
 msgid "e.g. Sales Manager"
 msgstr "mis. Manajer Penjualan"
@@ -4106,13 +4145,13 @@ msgstr "id"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "in<br/>progress"
-msgstr "dalam<br/>proses"
+msgid "in<br/><span class=\"text-nowrap\">progress</span>"
+msgstr ""
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "new<br/>applications"
-msgstr "lamaran<br/>baru"
+msgid "new<br/><span class=\"text-nowrap\">applications</span>"
+msgstr ""
 
 #. module: hr_recruitment
 #. odoo-javascript
@@ -4136,135 +4175,5 @@ msgstr "kelompok talenta"
 
 #. module: hr_recruitment
 #: model_terms:ir.ui.view,arch_db:hr_recruitment.view_hr_job_kanban
-msgid "to<br/>recruit"
-msgstr "untuk<br/>direkrut"
-
-#~ msgid "<span class=\"o_stat_text\">Trackers</span>"
-#~ msgstr "<span class=\"o_stat_text\">Pelacak</span>"
-
-#~ msgid "<span>Folded in Recruitment Pipe: </span>"
-#~ msgstr "<span>Dilipat di Pipeline Rekrutmen: </span>"
-
-#~ msgid "Address where employees are working"
-#~ msgstr "Alamat tempat karyawan bekerja"
-
-#~ msgid "Alias domain"
-#~ msgstr "Domain alias"
-
-#~ msgid ""
-#~ "Applicants and their attached CV are created automatically when an email "
-#~ "is sent.\n"
-#~ "                If you install the document management modules, all "
-#~ "resumes are indexed automatically,\n"
-#~ "                so that you can easily search through their content."
-#~ msgstr ""
-#~ "Pelamar dan lampiran CV mereka akan dibuat otomatis ketika email "
-#~ "dikirim.\n"
-#~ "                Jika Anda memasang modul manajemen dokumen, semua lamaran "
-#~ "akan diberikan indeks secara otomatis,\n"
-#~ "                supaya Anda dapat mencarinya dengan mudah melalui "
-#~ "kontennya."
-
-#~ msgid "Application Summary"
-#~ msgstr "Ringkasan Lamaran"
-
-#~ msgid "Applied Job"
-#~ msgstr "Pekerjaan Yang Dilamar"
-
-#~ msgid "Contact Email"
-#~ msgstr "Kontak Email"
-
-#~ msgid "Contract"
-#~ msgstr "Kontrak"
-
-#~ msgid "Expected Salary"
-#~ msgstr "Gaji Yang Diharapkan"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Penyaring Tambahan"
-
-#~ msgid "Extra advantages..."
-#~ msgstr "Fasilitas tambahan..."
-
-#~ msgid "Green"
-#~ msgstr "Hijau"
-
-#~ msgid "Grey"
-#~ msgstr "Abu-Abu"
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "HR Responsible"
-#~ msgstr "Penanggunga Jawab HR"
-
-#~ msgid "Initial Qualification"
-#~ msgstr "Kualifikasi Awal"
-
-#~ msgid "Jobs Sources"
-#~ msgstr "Sumber Kerja"
-
-#~ msgid "Mobile"
-#~ msgstr "Ponsel"
-
-#~ msgid "Newly Hired Employees"
-#~ msgstr "Karyawan Yang Baru Diterima"
-
-#~ msgid "Newly hired employee"
-#~ msgstr "Karyawan yang baru diterima"
-
-#~ msgid "No Subject"
-#~ msgstr "Tidak Ada Judul"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Jumlah pesan yang butuh tindakan"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Bahasa terjemahan opsional (kode ISO) yang dipilih ketika mengirim email. "
-#~ "Bila tidak diatur, versi Bahasa Inggris akan digunakan. Ini seharusnya "
-#~ "merupakan expression placeholder yang menyediakan bahasa yang sesuai, "
-#~ "misalnya {{ object.partner_id.lang }}."
-
-#~ msgid "Owner"
-#~ msgstr "Pemilik"
-
-#~ msgid "Person responsible of validating the employee's contracts."
-#~ msgstr "Orang yang bertanggung jawab untuk memvalidasi kontak karyawan."
-
-#~ msgid "Proposed Salary"
-#~ msgstr "Usulan Gaji"
-
-#~ msgid "Publish available jobs on your website"
-#~ msgstr "Publikasikan pekerjaan yang tersedia pada website Anda"
-
-#~ msgid "Recruitment Process"
-#~ msgstr "Proses Perekrutan"
-
-#~ msgid "Recruitments"
-#~ msgstr "Perekrutan"
-
-#~ msgid "Red"
-#~ msgstr "Merah"
-
-#~ msgid "Reserve"
-#~ msgstr "Cadangan"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Tampilkan semua dokumen dengan aksi berikut sebelum hari ini"
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "Pemilik catatan yang dibuat setelah menerima email pada alias ini. Jika "
-#~ "kolom ini belum ditetapkan, sistem akan berusaha untuk menemukan pemilik "
-#~ "yang tepat berdasarkan pengirim (dari) alamat, atau akan menggunakan akun "
-#~ "Administrator jika tidak ada pengguna sistem yang ditemukan untuk alamat "
-#~ "tersebut."
+msgid "to<br/><span class=\"text-nowrap\">recruit</span>"
+msgstr ""

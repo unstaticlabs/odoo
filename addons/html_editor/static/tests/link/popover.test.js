@@ -4,18 +4,18 @@ import {
     delay,
     fill,
     press,
+    queryAll,
     queryFirst,
     queryOne,
     queryText,
-    select,
     waitFor,
     waitForNone,
 } from "@odoo/hoot-dom";
 import { animationFrame, tick } from "@odoo/hoot-mock";
 import { markup } from "@odoo/owl";
-import { contains, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
+import { contains, dataURItoBlob, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { setupEditor } from "../_helpers/editor";
-import { cleanLinkArtifacts } from "../_helpers/format";
+import { cleanLinkArtifacts, unformat } from "../_helpers/format";
 import { getContent, setContent, setSelection } from "../_helpers/selection";
 import { expectElementCount } from "../_helpers/ui_expectations";
 import {
@@ -84,7 +84,7 @@ describe("should open a popover", () => {
         expect(".o_we_edit_link").toHaveCount(1);
     });
     test("link popover shows remove button when editing a link", async () => {
-        await setupEditor('<p>this is a <a href="http://test.com/">li[]nk</a></p>');
+        await setupEditor(`<p>this is a <a href="http://test.com/">li[]nk</a></p>`);
         await expectElementCount(".o-we-linkpopover", 1);
         await click(".o_we_edit_link");
         await animationFrame();
@@ -104,6 +104,24 @@ describe("should open a popover", () => {
         queryOne(".o_we_href_input_link").focus();
         await animationFrame();
         expect(queryOne(".o-we-linkpopover").parentElement).toHaveAttribute("style", style);
+    });
+    test("link popover should open and switch to editing if selection inside links", async () => {
+        await setupEditor(
+            unformat(
+                `<div class="o-paragraph">
+                    \ufeff
+                    <a href="https://test" class="btn btn-primary">
+                        \ufeffHello\ufeff[
+                            <span class="fa fa-glass" contenteditable="false">\u200b</span>
+                        ]\ufeffWorld\ufeff
+                    </a>
+                    \ufeff
+                </div>`
+            )
+        );
+        await expectElementCount(".o-we-linkpopover", 1);
+        await click(".o_we_edit_link");
+        await expectElementCount(".o_link_popover_container", 1);
     });
     test("link popover should close when clicking on a contenteditable false element", async () => {
         await setupEditor(
@@ -913,7 +931,7 @@ describe("Link formatting in the popover", () => {
         await animationFrame();
         expect(".o_we_label_link").toHaveValue("link2");
         expect(".o_we_href_input_link").toHaveValue("http://test.com/");
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(1);
+        expect(queryOne("button[name='link_type']").textContent).toBe("Button Primary");
     });
     test("after changing the link format, the link should be updated", async () => {
         const { el } = await setupEditor(
@@ -923,12 +941,14 @@ describe("Link formatting in the popover", () => {
         await click(".o_we_edit_link");
         await animationFrame();
 
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(2);
+        expect(queryOne("button[name='link_type']").textContent).toBe("Button Secondary");
 
-        await click('select[name="link_type"');
-        await select("primary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Primary')");
+        await animationFrame();
         expect(cleanLinkArtifacts(getContent(el))).toBe(
-            '<p><a href="http://test.com/" class="btn btn-fill-primary">link2</a></p>'
+            `<p><a href="http://test.com/" class="btn btn-fill-primary">link2</a></p>`
         );
     });
     test("after changing the link format, the link should be updated (2)", async () => {
@@ -939,10 +959,12 @@ describe("Link formatting in the popover", () => {
         await click(".o_we_edit_link");
         await animationFrame();
 
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(2);
+        expect(queryOne("button[name='link_type']").textContent).toBe("Button Secondary");
 
-        await click('select[name="link_type"');
-        await select("primary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Primary')");
+        await animationFrame();
         expect(cleanLinkArtifacts(getContent(el))).toBe(
             '<p><a href="http://test.com/" class="btn btn-primary">link2</a></p>'
         );
@@ -955,12 +977,14 @@ describe("Link formatting in the popover", () => {
         await click(".o_we_edit_link");
         await animationFrame();
 
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(2);
+        expect(queryOne("button[name='link_type']").textContent).toBe("Button Secondary");
 
-        await click('select[name="link_type"');
-        await select("primary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Primary')");
+        await animationFrame();
         expect(cleanLinkArtifacts(getContent(el))).toBe(
-            '<p><a href="http://test.com/" class="random-css-class text-muted btn btn-outline-primary">link2</a></p>'
+            `<p><a href="http://test.com/" class="random-css-class text-muted btn btn-outline-primary">link2</a></p>`
         );
     });
     test("after applying the link format, the link's format should be updated", async () => {
@@ -968,69 +992,16 @@ describe("Link formatting in the popover", () => {
         await waitFor(".o-we-linkpopover");
         await click(".o_we_edit_link");
         await animationFrame();
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(0);
+        expect(queryOne("button[name='link_type']").textContent).toBe("Link");
 
-        await click('select[name="link_type"');
-        await select("secondary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Secondary')");
+        await animationFrame();
 
         await click(".o_we_apply_link");
         expect(cleanLinkArtifacts(getContent(el))).toBe(
             '<p><a href="http://test.com/" class="btn btn-secondary">link2[]</a></p>'
-        );
-    });
-    const styleForceColor = `p > a.btn { color: black !important; border-color: gray !important }`;
-    test("custom link format fill with solid color should be stored as background-color", async () => {
-        const { el } = await setupEditor(
-            '<p><a href="http://test.com/" class="btn btn-secondary">link2[]</a></p>',
-            {
-                config: {
-                    allowCustomStyle: true,
-                },
-                styleContent: styleForceColor,
-            }
-        );
-        await waitFor(".o-we-linkpopover");
-        await click(".o_we_edit_link");
-        await animationFrame();
-
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(2);
-
-        await click('select[name="link_type"');
-        await select("custom");
-        await animationFrame();
-        await click(".o_we_color_preview.custom-fill-picker");
-        await animationFrame();
-        await click('[data-color="#FF9C00"]');
-        expect(cleanLinkArtifacts(getContent(el))).toBe(
-            '<p><a href="http://test.com/" class="btn btn-custom" style="color: rgb(0, 0, 0); background-color: #FF9C00; border-width: 1px; border-color: rgb(128, 128, 128); border-style: solid; ">link2</a></p>'
-        );
-    });
-    test("custom link format fill with gradient should be stored as background-image", async () => {
-        const { el } = await setupEditor(
-            '<p><a href="http://test.com/" class="btn btn-secondary">link2[]</a></p>',
-            {
-                config: {
-                    allowCustomStyle: true,
-                },
-                styleContent: styleForceColor,
-            }
-        );
-        await waitFor(".o-we-linkpopover");
-        await click(".o_we_edit_link");
-        await animationFrame();
-
-        expect(queryOne('select[name="link_type"]').selectedIndex).toBe(2);
-
-        await click('select[name="link_type"');
-        await select("custom");
-        await animationFrame();
-        await click(".o_we_color_preview.custom-fill-picker");
-        await animationFrame();
-        await click(".gradient-tab");
-        await animationFrame();
-        await click(".o_gradient_color_button");
-        expect(cleanLinkArtifacts(getContent(el))).toBe(
-            '<p><a href="http://test.com/" class="btn btn-custom" style="color: rgb(0, 0, 0); background-image: linear-gradient(135deg, rgb(255, 204, 51) 0%, rgb(226, 51, 255) 100%); border-width: 1px; border-color: rgb(128, 128, 128); border-style: solid; ">link2</a></p>'
         );
     });
     test("clicking the discard button should revert the link format", async () => {
@@ -1038,8 +1009,10 @@ describe("Link formatting in the popover", () => {
         await waitFor(".o-we-linkpopover");
         await click(".o_we_edit_link");
         await contains(".o-we-linkpopover input.o_we_label_link").edit("link2");
-        await click('select[name="link_type"]');
-        await select("secondary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Secondary')");
+        await animationFrame();
         expect(cleanLinkArtifacts(getContent(el))).toBe(
             '<p><a href="http://test.com/" class="btn btn-secondary">link2</a></p>'
         );
@@ -1071,8 +1044,10 @@ describe("Link formatting in the popover", () => {
             confirm: false,
         });
 
-        await click('select[name="link_type"]');
-        await select("secondary");
+        await click("button[name='link_type']");
+        await animationFrame();
+        await click(".o-we-link-type-dropdown .dropdown-item:contains('Button Secondary')");
+        await animationFrame();
         expect(cleanLinkArtifacts(getContent(el))).toBe(
             '<p><a href="#" class="btn btn-secondary">link1</a></p>'
         );
@@ -1098,6 +1073,24 @@ describe("Link formatting in the popover", () => {
         await click(".o_we_apply_link");
         expect(cleanLinkArtifacts(getContent(el))).toBe(
             '<p>ab<a href="https://newtest.com">newtest.com[]</a></p>'
+        );
+    });
+    test("link_type dropdown should show a preview of preset with primary and secondary color.", async () => {
+        const { el } = await setupEditor(`<p><a href="http://test.com/">link1[]</a></p>`);
+        await waitFor(".o-we-linkpopover");
+        await click(".o_we_edit_link");
+        await animationFrame();
+        await click("button[name='link_type']");
+        await animationFrame();
+        const dropdownItems = queryAll(".o-we-link-type-dropdown .dropdown-item span");
+        expect(dropdownItems[0]).toHaveStyle({ color: "rgb(0, 143, 140)" });
+        expect(dropdownItems[1]).toHaveClass("btn btn-primary btn-sm");
+        expect(dropdownItems[2]).toHaveClass("btn btn-secondary btn-sm");
+        await click(dropdownItems[1]);
+        await animationFrame();
+        expect("button[name='link_type'] span").toHaveClass("btn btn-primary btn-sm");
+        expect(cleanLinkArtifacts(getContent(el))).toBe(
+            `<p><a href="http://test.com/" class="btn btn-primary">link1</a></p>`
         );
     });
 });
@@ -1174,7 +1167,7 @@ describe("shortcut", () => {
         expect("button:has(i.fa-upload)").toBeFocused();
         await press("Tab");
         await animationFrame();
-        expect("select[name='link_type']").toBeFocused();
+        expect("button[name='link_type']").toBeFocused();
         await press("Tab");
         await animationFrame();
         expect(".form-check-input").toBeFocused();
@@ -1251,6 +1244,31 @@ describe("link preview", () => {
         expect(".o_we_description_link_preview").toHaveText(
             "From ERP to CRM, eCommerce and CMS. Download Odoo or use it in the cloud. Grow Your Business."
         );
+    });
+    test("test internal image link preview", async () => {
+        const base64Image =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=";
+        const url = "/web/image/hoot.png";
+        onRpc(
+            url,
+            () =>
+                new Response(dataURItoBlob(base64Image), {
+                    headers: {
+                        "Content-Type": "image/png",
+                    },
+                })
+        );
+        const { editor } = await setupEditor(`<p>[]<br></p>`);
+        await insertText(editor, "/link");
+        await animationFrame();
+        await click(".o-we-command-name:first");
+        await contains(".o-we-linkpopover input.o_we_href_input_link").fill(url);
+        await animationFrame();
+
+        expect(".o_we_preview_favicon .fa-picture-o").toHaveCount(1);
+        expect(`a.o_we_url_link[href='${url}']`).toHaveText(url);
+        expect(".o_we_replace_title_btn").toHaveCount(1);
+        expect(`.o_extra_info_card a[href='${url}'] img[src^='data:']`).toHaveCount(1);
     });
     test("test internal metadata cached correctly", async () => {
         onRpc("/html_editor/link_preview_internal", () => {
@@ -1417,6 +1435,20 @@ describe("link preview", () => {
         await expectElementCount(".o-we-linkpopover", 1);
         expect("a.o_we_replace_title_btn").toHaveCount(1);
         expect("button.o_we_replace_title_btn").toHaveCount(0);
+    });
+    test("should open same-page links with anchor in current tab", async () => {
+        onRpc("/html_editor/link_preview_internal", () => ({}));
+        onRpc("/", () => ({}));
+        await setupEditor(`<p>This is a <a href="${window.origin}/#section">li[]nk</a></p>`);
+        await waitFor(".o-we-linkpopover");
+        expect(".o-we-linkpopover .o_we_url_link").toHaveAttribute("target", "_self");
+    });
+    test("should open same-page links without anchor in new tab", async () => {
+        onRpc("/html_editor/link_preview_internal", () => ({}));
+        onRpc("/section", () => ({}));
+        await setupEditor(`<p>This is a <a href="${window.origin}/section">li[]nk</a></p>`);
+        await waitFor(".o-we-linkpopover");
+        expect(".o-we-linkpopover .o_we_url_link").toHaveAttribute("target", "_blank");
     });
     test("should not crash when pressing tab", async () => {
         onRpc("/html_editor/link_preview_internal", () => ({
@@ -2046,7 +2078,7 @@ describe("label is a valid URL", () => {
         expect("input.o_we_href_input_link").toHaveValue("https://odoo.com/");
     });
     test("Focus should be on URL [label] when editing an existing link", async () => {
-        await setupEditor('<p>this is a <a href="http://test.com/">li[]nk</a></p>');
+        await setupEditor(`<p>this is a <a href="http://test.com/">li[]nk</a></p>`);
         await waitFor(".o-we-linkpopover");
         await click(".o_we_edit_link");
         expect(".o-we-linkpopover").toHaveCount(1);
@@ -2072,4 +2104,25 @@ test("Should properly show the preview if fetching metadata fails", async () => 
     const { el } = await setupEditor('<p><a href="/contactus">a[]b</a></p>');
     await waitFor(".o-we-linkpopover");
     expect(cleanLinkArtifacts(getContent(el))).toBe('<p><a href="/contactus">a[]b</a></p>');
+});
+
+test("Should should show link popover without edit", async () => {
+    const id = Math.random().toString();
+    onRpc("/html_editor/link_preview_internal", () => Promise.reject(new Error(`No data ${id}`)));
+    const originalConsoleWarn = console.warn.bind(console);
+    patchWithCleanup(console, {
+        warn: (msg, error, ...args) => {
+            if (!error?.message?.includes?.(id)) {
+                originalConsoleWarn(msg, error, ...args);
+            }
+        },
+    });
+    const { el } = await setupEditor(
+        '<p contenteditable="false"><a href="#"><i class="fa"></i></a></p>'
+    );
+    await animationFrame();
+    await click(el.querySelector(".fa"));
+    // Should open the link popover without edit button
+    expectElementCount(".o-we-linkpopover", 1);
+    expectElementCount(".o_we_edit_link", 0);
 });

@@ -1,9 +1,11 @@
 .o-mail-NotificationItem {
+    --list-group-bg: transparent;
     outline: 1px solid transparent;
     outline-offset: -1px;
 
     &:not(.o-interest) {
         --border-opacity: .35;
+        opacity: var(--mail-NotificationItem-notInterestOpacity, .875);
     }
     &.o-active {
         outline-color: rgba($o-action, var(--mail-NotificationItem-activeOutlineOpacity, 0.5));
@@ -14,7 +16,7 @@
 }
 
 .o-mail-NotificationItem-avatarContainer {
-    height: 42px;
+    height: 32px;
     aspect-ratio: 1;
     margin-top: map-get($spacers, 1) / 2;
     margin-bottom: map-get($spacers, 1) / 2;
@@ -42,7 +44,7 @@
 }
 
 .o-mail-NotificationItem-country {
-    width: 16px;
+    width: 14px;
     bottom: -2px;
     left: -4px;
 }
@@ -69,6 +71,10 @@
 
 .o-mail-NotificationItem-text {
     opacity: .75;
+
+    &.o-muted {
+        opacity: .5;
+    }
 
     &:before {
         // invisible character so that typing status bar has constant height, regardless of text content.

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Sales and Warehouse Management',
-    'version': '1.0',
     'category': 'Sales/Sales',
     'summary': 'Quotation, Sales Orders, Delivery & Invoicing Control',
     'description': """
@@ -34,7 +32,6 @@ Preferences
         'views/stock_picking_views.xml',
         'views/stock_reference_views.xml',
 
-        'report/sale_order_report_templates.xml',
         'report/stock_report_deliveryslip.xml',
 
         'data/mail_templates.xml',
@@ -43,7 +40,6 @@ Preferences
         'wizard/stock_rules_report_views.xml',
     ],
     'demo': ['data/sale_order_demo.xml'],
-    'installable': True,
     'auto_install': True,
     'assets': {
         'web.assets_backend': [
@@ -53,6 +49,8 @@ Preferences
             'sale_stock/static/tests/tours/*.js',
         ]
     },
+    'pre_init_hook': '_split_partial_sale_order_lines',
+    'post_init_hook': '_create_pickings_for_open_sale_orders',
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
 }

@@ -193,27 +193,6 @@ class ResPartner(models.Model):
         }, timeout=timeout)
         return self._process_enriched_response(response, error)
 
-    # TODO remove in master
-    def iap_partner_autocomplete_get_tag_ids(self, unspsc_codes):
-        """Called by JS to create the activity tags from the UNSPSC codes"""
-        # If the UNSPSC module is installed, we might have a translation, so let's use it
-        if self.env['ir.module.module']._get('product_unspsc').state == 'installed':
-            tag_names = self.env['product.unspsc.code']\
-                            .with_context(active_test=False)\
-                            .search([('code', 'in', [unspsc_code for unspsc_code, __ in unspsc_codes])])\
-                            .mapped('name')
-        # If it's not, then we use the default English name provided by DnB
-        else:
-            tag_names = [unspsc_name for __, unspsc_name in unspsc_codes]
-
-        tag_ids = self.env['res.partner.category']
-        for tag_name in tag_names:
-            if existing_tag := self.env['res.partner.category'].search([('name', '=', tag_name)]):
-                tag_ids |= existing_tag
-            else:
-                tag_ids |= self.env['res.partner.category'].create({'name': tag_name})
-        return tag_ids.ids
-
     @api.model
     def _get_view(self, view_id=None, view_type='form', **options):
         arch, view = super()._get_view(view_id, view_type, **options)

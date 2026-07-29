@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * website_blog
+# 	* website_blog
 #
 # Translators:
 # Matus Krnac <matus.krnac@gmail.com>, 2022
@@ -12,23 +12,21 @@
 # Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
 # Damian Brencic <brencicdamian12313@gmail.com>, 2023
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 01:31+0000\n"
-"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
-"website_blog/sk/>\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2022-09-22 05:56+0000\n"
+"Last-Translator: Damian Brencic <brencicdamian12313@gmail.com>, 2023\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: website_blog
 #. odoo-python
@@ -48,7 +46,12 @@ msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.date_selector
-msgid "-- All dates"
+msgid "-- Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.date_selector
+msgid "-- Unpublished"
 msgstr ""
 
 #. module: website_blog
@@ -164,20 +167,6 @@ msgstr ""
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
 msgstr ""
 
 #. module: website_blog
@@ -472,6 +461,16 @@ msgid "Author Name"
 msgstr "Meno autora"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_post__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__author_avatar
 msgid "Avatar"
 msgstr "Avatar"
@@ -540,12 +539,19 @@ msgstr ""
 #: model:ir.model,name:website_blog.model_blog_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__blog_id
 #: model:ir.ui.menu,name:website_blog.menu_website_blog_root_global
+#: model:res.groups.privilege,name:website_blog.res_groups_privilege_blog
 #: model:website.menu,name:website_blog.menu_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_blog_view_search
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_blog_form
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_search
+#: model_terms:ir.ui.view,arch_db:website_blog.website_blog
 msgid "Blog"
 msgstr "Blog"
+
+#. module: website_blog
+#: model:res.groups,name:website_blog.group_website_blog_manager
+msgid "Blog Manager"
+msgstr ""
 
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__name
@@ -603,7 +609,7 @@ msgstr "Podtitul blogu"
 #. module: website_blog
 #: model:ir.model,name:website_blog.model_blog_tag
 msgid "Blog Tag"
-msgstr "Štítok blogu"
+msgstr "Tag blogu"
 
 #. module: website_blog
 #: model:ir.model,name:website_blog.model_blog_tag_category
@@ -613,7 +619,12 @@ msgstr ""
 #. module: website_blog
 #: model:ir.actions.act_window,name:website_blog.action_tags
 msgid "Blog Tags"
-msgstr "Štítky blogu"
+msgstr "Tagy blogu"
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Blog Teaser"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_cover_post_fullwidth_design
@@ -661,6 +672,11 @@ msgstr "Dno"
 #: code:addons/website_blog/static/src/website_builder/blog_page_option.xml:0
 msgid "Breadcrumb"
 msgstr "Breadcrumb"
+
+#. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_3
@@ -916,11 +932,6 @@ msgstr ""
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Enter your post's title"
 msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Facebook"
-msgstr "Facebook"
 
 #. module: website_blog
 #: model:blog.post,subtitle:website_blog.blog_post_3
@@ -1287,11 +1298,6 @@ msgid "Leisure Facilities"
 msgstr ""
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "LinkedIn"
-msgstr "LinkedIn"
-
-#. module: website_blog
 #. odoo-javascript
 #: code:addons/website_blog/static/src/website_builder/blog_post_page_option.xml:0
 msgid "List"
@@ -1373,7 +1379,7 @@ msgstr "Médium"
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__message_has_error
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__message_has_error
 msgid "Message Delivery error"
-msgstr "Chyba doručenia správy"
+msgstr "Chyba zobrazovania správ"
 
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__message_ids
@@ -1670,18 +1676,19 @@ msgid "Publication Date"
 msgstr ""
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 msgid "Published"
-msgstr "Publikované"
+msgstr "Publikovať"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
 msgid "Published ("
-msgstr ""
-
-#. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
-msgid "Published Date"
 msgstr ""
 
 #. module: website_blog
@@ -1691,13 +1698,13 @@ msgid "Published Post"
 msgstr "Zverejnený príspevok"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
-msgid "Publishing Options"
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
+msgid "Published date"
 msgstr ""
 
 #. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__post_date
-msgid "Publishing date"
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Publishing Options"
 msgstr ""
 
 #. module: website_blog
@@ -1779,6 +1786,17 @@ msgid "Satellites"
 msgstr ""
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_list
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
+msgid "Scheduled ("
+msgstr ""
+
+#. module: website_blog
 #. odoo-javascript
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 msgid "Search for an image. (eg: type \"business\")"
@@ -1852,22 +1870,12 @@ msgstr "Zdieľajte odkazy"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on Facebook"
-msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on LinkedIn"
-msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Share on X"
-msgstr ""
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
 msgid "Share this post"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Shown as a preview on the /blog page"
 msgstr ""
 
 #. module: website_blog
@@ -2049,7 +2057,7 @@ msgstr "Titulka"
 #: model:ir.ui.menu,name:website_blog.menu_website_blog_tag_category_global
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_tag_category_tree
 msgid "Tag Categories"
-msgstr "Kategórie štítkov"
+msgstr "Tag kategórie"
 
 #. module: website_blog
 #: model:ir.actions.act_window,name:website_blog.action_tag_category
@@ -2064,12 +2072,12 @@ msgstr ""
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_tag_form
 msgid "Tag Form"
-msgstr "Formulár štítku"
+msgstr "Formulár tagu"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_tag_tree
 msgid "Tag List"
-msgstr "Zoznam štítkov"
+msgstr "Zoznam tagu"
 
 #. module: website_blog
 #: model:ir.model.constraint,message:website_blog.constraint_blog_tag_category_name_uniq
@@ -2091,7 +2099,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_tags_display
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_sidebar_blog_index_tags
 msgid "Tags"
-msgstr "Štítky"
+msgstr "Tagy"
 
 #. module: website_blog
 #. odoo-javascript
@@ -2168,13 +2176,6 @@ msgid "The best time to view the moon."
 msgstr ""
 
 #. module: website_blog
-#: model:ir.model.fields,help:website_blog.field_blog_post__post_date
-msgid ""
-"The blog post will be visible for your visitors as of this date on the "
-"website if it is set as published."
-msgstr ""
-
-#. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_2
 msgid ""
 "The cliffs in this region are among the highest in the world and to see "
@@ -2184,11 +2185,13 @@ msgid ""
 msgstr ""
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr ""
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_url
 msgid "The full relative URL to access the document through the website."
 msgstr ""
@@ -2371,13 +2374,13 @@ msgid "Travel"
 msgstr ""
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-msgid "Twitter"
-msgstr "Twitter"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
 msgid "Unpublished ("
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Unschedule"
 msgstr ""
 
 #. module: website_blog
@@ -2430,6 +2433,7 @@ msgid "Website"
 msgstr "Webstránka"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_absolute_url
 msgid "Website Absolute URL"
 msgstr ""
@@ -2451,6 +2455,7 @@ msgid "Website Snippet Filter"
 msgstr ""
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_url
 msgid "Website URL"
 msgstr "URL Webstránok"
@@ -2605,11 +2610,6 @@ msgid "to leave a comment"
 msgstr ""
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
-msgid "unpublished"
-msgstr "nepublikované"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid ""
 "|\n"
@@ -2620,52 +2620,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info
 msgid "| No comments yet"
 msgstr ""
-
-#~ msgid "&amp;nbsp;"
-#~ msgstr "&amp;nbsp;"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-github text-github\" aria-label=\"Github\" "
-#~ "title=\"Github\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-github text-github\" aria-label=\"Github\" "
-#~ "title=\"Github\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-#~ "title=\"Instagram\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-instagram text-instagram\" aria-label=\"Instagram\" "
-#~ "title=\"Instagram\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-twitter text-twitter\" aria-label=\"Twitter\" "
-#~ "title=\"Twitter\"/>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-#~ "title=\"Youtube\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-youtube-play text-youtube\" aria-label=\"Youtube\" "
-#~ "title=\"Youtube\"/>"
-
-#~ msgid "Follow us"
-#~ msgstr "Nasleduj nás"
-
-#~ msgid "Group By"
-#~ msgstr "Zoskupiť podľa"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet správ, ktoré vyžadujú akciu"
-
-#~ msgid "Read more"
-#~ msgstr "Čítaj viac"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Obmedzte publikovanie na túto webstránku."
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Úplná URL na prístup k dokumentu cez webové stránky."

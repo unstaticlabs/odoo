@@ -151,10 +151,6 @@ class StockWarehouse(models.Model):
             # create route selectable on the product to resupply the warehouse from another one
             warehouse.create_resupply_routes(warehouse.resupply_wh_ids)
 
-            # update partner data if partner assigned
-            if vals.get('partner_id'):
-                self._update_partner_data(vals['partner_id'], vals.get('company_id'))
-
             # manually update locations' warehouse since it didn't exist at their creation time
             view_location_id = self.env['stock.location'].browse(vals.get('view_location_id'))
             (view_location_id | view_location_id.with_context(active_test=False).child_ids).write({'warehouse_id': warehouse.id})
@@ -202,14 +198,6 @@ class StockWarehouse(models.Model):
 
         if vals.get('resupply_wh_ids') and not vals.get('resupply_route_ids'):
             old_resupply_whs = {warehouse.id: warehouse.resupply_wh_ids for warehouse in warehouses}
-
-        # If another partner assigned
-        if vals.get('partner_id'):
-            if vals.get('company_id'):
-                warehouses._update_partner_data(vals['partner_id'], vals.get('company_id'))
-            else:
-                for warehouse in self:
-                    warehouse._update_partner_data(vals['partner_id'], warehouse.company_id.id)
 
         if vals.get('code') or vals.get('name'):
             warehouses._update_name_and_code(vals.get('name'), vals.get('code'))
@@ -335,18 +323,6 @@ class StockWarehouse(models.Model):
                         'group_stock_multi_locations': True,
                     }).execute()
                 group_user.write({'implied_ids': [(4, group_stock_multi_warehouses.id), (4, group_stock_multi_locations.id)]})
-
-    @api.model
-    def _update_partner_data(self, partner_id, company_id):
-        if not partner_id:
-            return
-        ResCompany = self.env['res.company']
-        if company_id:
-            transit_loc = ResCompany.browse(company_id).internal_transit_location_id.id
-            self.env['res.partner'].browse(partner_id).with_company(company_id).write({'property_stock_customer': transit_loc, 'property_stock_supplier': transit_loc})
-        else:
-            transit_loc = self.env.company.internal_transit_location_id.id
-            self.env['res.partner'].browse(partner_id).write({'property_stock_customer': transit_loc, 'property_stock_supplier': transit_loc})
 
     def _create_or_update_sequences_and_picking_types(self):
         """ Create or update existing picking types for a warehouse.
@@ -1008,14 +984,12 @@ class StockWarehouse(models.Model):
                 'code': 'incoming',
                 'use_existing_lots': False,
                 'sequence': max_sequence + 1,
-                'sequence_code': 'IN',
                 'company_id': self.company_id.id,
             }, 'out_type_id': {
                 'name': _('Delivery Orders'),
                 'code': 'outgoing',
                 'use_create_lots': False,
                 'sequence': max_sequence + 7,
-                'sequence_code': 'OUT',
                 'print_label': True,
                 'company_id': self.company_id.id,
             }, 'pack_type_id': {
@@ -1026,7 +1000,6 @@ class StockWarehouse(models.Model):
                 'default_location_src_id': self.wh_pack_stock_loc_id.id,
                 'default_location_dest_id': output_loc.id,
                 'sequence': max_sequence + 6,
-                'sequence_code': 'PACK',
                 'company_id': self.company_id.id,
             }, 'pick_type_id': {
                 'name': _('Pick'),
@@ -1035,7 +1008,6 @@ class StockWarehouse(models.Model):
                 'use_existing_lots': True,
                 'default_location_src_id': self.lot_stock_id.id,
                 'sequence': max_sequence + 5,
-                'sequence_code': 'PICK',
                 'company_id': self.company_id.id,
             }, 'qc_type_id': {
                 'name': _('Quality Control'),
@@ -1045,7 +1017,6 @@ class StockWarehouse(models.Model):
                 'default_location_src_id': self.wh_input_stock_loc_id.id,
                 'default_location_dest_id': self.wh_qc_stock_loc_id.id,
                 'sequence': max_sequence + 2,
-                'sequence_code': 'QC',
                 'company_id': self.company_id.id,
             }, 'store_type_id': {
                 'name': _('Storage'),
@@ -1054,7 +1025,6 @@ class StockWarehouse(models.Model):
                 'use_existing_lots': True,
                 'default_location_dest_id': self.lot_stock_id.id,
                 'sequence': max_sequence + 3,
-                'sequence_code': 'STOR',
                 'company_id': self.company_id.id,
             }, 'int_type_id': {
                 'name': _('Internal Transfers'),
@@ -1065,7 +1035,6 @@ class StockWarehouse(models.Model):
                 'default_location_dest_id': self.lot_stock_id.id,
                 'active': self.env.user.has_group('stock.group_stock_multi_locations'),
                 'sequence': max_sequence + 4,
-                'sequence_code': 'INT',
                 'company_id': self.company_id.id,
             }, 'xdock_type_id': {
                 'name': _('Cross Dock'),
@@ -1075,7 +1044,6 @@ class StockWarehouse(models.Model):
                 'default_location_src_id': self.wh_input_stock_loc_id.id,
                 'default_location_dest_id': self.wh_output_stock_loc_id.id,
                 'sequence': max_sequence + 8,
-                'sequence_code': 'XD',
                 'company_id': self.company_id.id,
             }
         }, max_sequence + 9
@@ -1089,42 +1057,42 @@ class StockWarehouse(models.Model):
         return {
             'in_type_id': {
                 'name': _('%(name)s Sequence in', name=name),
-                'prefix': code + '/' + (self.in_type_id.sequence_code or 'IN') + '/', 'padding': 5,
+                'prefix': code + '/IN/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'out_type_id': {
                 'name': _('%(name)s Sequence out', name=name),
-                'prefix': code + '/' + (self.out_type_id.sequence_code or 'OUT') + '/', 'padding': 5,
+                'prefix': code + '/OUT/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'pack_type_id': {
                 'name': _('%(name)s Sequence packing', name=name),
-                'prefix': code + '/' + (self.pack_type_id.sequence_code or 'PACK') + '/', 'padding': 5,
+                'prefix': code + '/PACK/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'pick_type_id': {
                 'name': _('%(name)s Sequence picking', name=name),
-                'prefix': code + '/' + (self.pick_type_id.sequence_code or 'PICK') + '/', 'padding': 5,
+                'prefix': code + '/PICK/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'qc_type_id': {
                 'name': _('%(name)s Sequence quality control', name=name),
-                'prefix': code + '/' + (self.qc_type_id.sequence_code or 'QC') + '/', 'padding': 5,
+                'prefix': code + '/QC/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'store_type_id': {
                 'name': _('%(name)s Sequence storage', name=name),
-                'prefix': code + '/' + (self.store_type_id.sequence_code or 'STOR') + '/', 'padding': 5,
+                'prefix': code + '/STOR/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'int_type_id': {
                 'name': _('%(name)s Sequence internal', name=name),
-                'prefix': code + '/' + (self.int_type_id.sequence_code or 'INT') + '/', 'padding': 5,
+                'prefix': code + '/INT/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
             'xdock_type_id': {
                 'name': _('%(name)s Sequence cross dock', name=name),
-                'prefix': code + '/' + (self.xdock_type_id.sequence_code or 'XD') + '/', 'padding': 5,
+                'prefix': code + '/XD/', 'padding': 5,
                 'company_id': self.company_id.id,
             },
         }
@@ -1159,6 +1127,12 @@ class StockWarehouse(models.Model):
             'limit': 20,
             'context': dict(self.env.context, default_warehouse_selectable=True, default_warehouse_ids=self.ids)
         }
+
+    def action_open_internal_locations(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('stock.action_location_form')
+        action['domain'] = [('id', 'child_of', self.view_location_id.id)]
+        return action
 
     def get_current_warehouses(self):
         return self.env['stock.warehouse'].search_read(fields=['id', 'name', 'code'])

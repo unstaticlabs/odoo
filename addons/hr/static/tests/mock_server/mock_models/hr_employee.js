@@ -1,5 +1,4 @@
 import { fields, models } from "@web/../tests/web_test_helpers";
-import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
 
 export class HrEmployee extends models.ServerModel {
     _name = "hr.employee";
@@ -15,16 +14,7 @@ export class HrEmployee extends models.ServerModel {
     job_title = fields.Char();
 
     _get_store_avatar_card_fields() {
-        return [
-            "active",
-            "company_id",
-            mailDataHelpers.Store.one("department_id", ["name"]),
-            "user_id",
-            "work_email",
-            mailDataHelpers.Store.one("work_location_id", ["location_type", "name"]),
-            "work_phone",
-            "job_title",
-        ];
+        return this.env["hr.employee.public"]._get_store_avatar_card_fields();
     }
 
     _views = {

@@ -3,15 +3,15 @@
 # * website_hr_recruitment
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 03:46+0000\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-12-03 08:36+0000\n"
 "Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "website_hr_recruitment/ru/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_hr_recruitment
 #. odoo-python
@@ -50,12 +50,6 @@ msgstr ""
 "        "
 
 #. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid " In case of issue, contact %(contact_infos)s"
-msgstr " При возникновении проблем обратитесь к %(contact_infos)s"
-
-#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "'. Showing results for '"
 msgstr "'. Отображение результатов для '"
@@ -71,8 +65,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>ЧИТАТЬ</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>ЧИТАТЬ</b></small></a>"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
@@ -192,27 +186,27 @@ msgstr ""
 "span>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr "<strong class=\"s_rating_title\">Административная работа</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr "<strong class=\"s_rating_title\">Автономность</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr "<strong class=\"s_rating_title\">Отношения с клиентами</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr "<strong class=\"s_rating_title\">Личностное развитие</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr "<strong class=\"s_rating_title\">Техническая экспертиза</strong>"
 
@@ -253,16 +247,6 @@ msgid "All websites"
 msgstr "Все сайты"
 
 #. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"An application already exists for %(value)s. Duplicates might be rejected. %"
-"(recruiter_contact)s"
-msgstr ""
-"Заявка для %(value)s уже существует. Дубликаты могут быть отклонены. %"
-"(recruiter_contact)s"
-
-#. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_hr_applicant
 msgid "Applicant"
 msgstr "Кандидат"
@@ -294,39 +278,14 @@ msgid "Apply for a Job"
 msgstr "Откликнуться на вакансию"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
-msgid ""
-"As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br/><br/>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__publish_on
+msgid "Auto publish on"
 msgstr ""
-"Как сотрудник нашей компании, вы будете <b>сотрудничать с каждым отделом\n"
-"                        для создания и внедрения революционных продуктов.</"
-"b> Приходите работать в растущую компанию\n"
-"                        которая предлагает отличные преимущества и "
-"возможности двигаться вперед и учиться\n"
-"                        рядом с опытными лидерами. Мы ищем опытного и "
-"выдающегося\n"
-"                        сотрудника.\n"
-"                       <br/><br/>\n"
-"                        Эта должность является одновременно <b>творческой и "
-"строгой</b> по своей природе, вам необходимо мыслить\n"
-"                        нестандартно. Мы ожидаем от кандидата проактивности "
-"и стремления \"довести дело до конца\"\n"
-"                        дух. Чтобы быть успешным, вы должны обладать "
-"прочными навыками решения проблем."
+
+#. module: website_hr_recruitment
+#: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -478,11 +437,6 @@ msgid "Experience in writing online content"
 msgstr "Опыт написания онлайн-контента"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Facebook"
-msgstr "Facebook"
-
-#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 msgid "Filter by country"
 msgstr "Фильтр по стране"
@@ -491,11 +445,6 @@ msgstr "Фильтр по стране"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.topbar_customizations
 msgid "Filters"
 msgstr "Фильтры"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Follow us"
-msgstr "Подписывайтесь на нас"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -541,8 +490,8 @@ msgstr ""
 "                                                Следующий шаг - звонок или "
 "встреча в нашем офисе.\n"
 "                                               <br/><br/>\n"
-"                                                Не стесняйтесь <strong>"
-"связаться со мной, если хотите получить более быстрый\n"
+"                                                Не стесняйтесь "
+"<strong>связаться со мной, если хотите получить более быстрый\n"
 "                                                обратной связи</strong> или "
 "если вы не получаете от меня новостей\n"
 "                                                достаточно быстро."
@@ -582,6 +531,7 @@ msgid "Industries Filter"
 msgstr ""
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "Insert a Job Description..."
 msgstr "Вставьте описание работы..."
@@ -649,11 +599,6 @@ msgstr "Страница вакансий"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "Lead the entire sales cycle"
 msgstr "Руководите всем циклом продаж"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -732,8 +677,8 @@ msgstr "Другие"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
-msgid "Our Job Offers"
-msgstr "Наши предложения работы"
+msgid "Our Job Opportunities"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -772,6 +717,18 @@ msgid "Play any sport with colleagues, <br/>the bill is covered."
 msgstr "Играйте в любой вид спорта с коллегами, <br/>счет покрыт."
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Ongoing Application"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Refused Application"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__job_details
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_form_inherit
 msgid "Process Details"
@@ -781,6 +738,11 @@ msgstr "Подробности процесса"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
 msgid "Products"
 msgstr "Товары"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Publish On"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -794,8 +756,8 @@ msgstr "Опубликовано"
 
 #. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__published_date
-msgid "Published Date"
-msgstr "Дата публикации"
+msgid "Published date"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -838,6 +800,12 @@ msgstr "Ограничить конкретным веб-сайтом."
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__is_seo_optimized
 msgid "SEO optimized"
 msgstr "SEO-оптимизированный"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_website_inherit
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_pages_tree_view
+msgid "Scheduled"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -895,6 +863,22 @@ msgid "Strong analytical skills"
 msgstr "Сильные аналитические навыки"
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following ongoing applications share an email address, phone number and/"
+"or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following recently refused applications share an email address, phone "
+"number and/or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr "Полный абсолютный URL для доступа к документу через веб-сайт."
@@ -913,8 +897,8 @@ msgstr "Ссылка на вакансию скопирована в буфер 
 #. module: website_hr_recruitment
 #. odoo-python
 #: code:addons/website_hr_recruitment/models/hr_applicant.py:0
-msgid "The job offer has been closed."
-msgstr "Предложение о работе было закрыто."
+msgid "The job opportunity has been closed."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -955,6 +939,11 @@ msgid "Types"
 msgstr "Типы товаров"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Unschedule"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base_mobile
 msgid "Unspecified"
@@ -982,26 +971,6 @@ msgstr ""
 "помощью инновационных решений.\n"
 "                                Мы создаем продукты, которые помогают "
 "бизнесу расти."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We found a recent application with a similar name, email, phone number. You "
-"can continue if it's not a mistake."
-msgstr ""
-"Обнаружена недавняя заявка с похожими именем, e‑mail адресом и телефоном. "
-"Продолжайте, если это не ошибка."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We've found a previous closed application in our system within the last 6 "
-"months. Please consider before applying in order not to duplicate efforts."
-msgstr ""
-"В системе найдена закрытая заявка за последние 6 месяцев. Подайте новую "
-"только при необходимости, чтобы исключить дублирование."
 
 #. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_website
@@ -1050,6 +1019,11 @@ msgid "Website opengraph image"
 msgstr "Изображение на сайте opengraph"
 
 #. module: website_hr_recruitment
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__website_rating
+msgid "Website rating"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What We Offer"
 msgstr "Наше предложение"
@@ -1058,11 +1032,6 @@ msgstr "Наше предложение"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What's great in the job?"
 msgstr "Что хорошего в этой работе?"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "X"
-msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
@@ -1099,10 +1068,8 @@ msgstr "хлебные крошки"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_inherit_website
 msgid ""
 "e.g. Summarize the position in one or two lines that will be displayed on "
-"the Jobs list page..."
+"the job page and the jobs list page..."
 msgstr ""
-"например: Кратко опишите должность в одной‑двух строках – текст будет "
-"отображаться на сайте..."
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -1131,139 +1098,13 @@ msgstr "открытых вакансий"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
+msgid "scheduled"
+msgstr ""
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "unpublished"
 msgstr "неопубликовано"
 
 #~ msgid "+1 (650) 555-0187"
 #~ msgstr "+1 (650) 555-0187"
-
-#~ msgid "%s's Application"
-#~ msgstr "Заявка кандидата %s"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-external-link\" role=\"img\"/>\n"
-#~ "                        Job Page"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-external-link\" role=\"img\"/>\n"
-#~ "                        Страница работы"
-
-#~ msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-#~ msgstr "<i class=\"fa fa-globe me-1\" title=\"Вебсайт\"/>"
-
-#~ msgid "<small><b>READ</b></small>"
-#~ msgstr "<small><b>ЧИТАТЬ</b></small>"
-
-#~ msgid "<span class=\"fst-italic\">No address specified</span>"
-#~ msgstr "<span class=\"fst-italic\">Адрес не указан</span>"
-
-#~ msgid ""
-#~ "<span class=\"navbar-brand h5 my-0 me-sm-auto\">Our Job Offers</span>"
-#~ msgstr ""
-#~ "<span class=\"navbar-brand h5 my-0 me-sm-auto\">Наши вакансии</span>"
-
-#~ msgid "<span class=\"text-bg-success\">Published</span>"
-#~ msgstr "<span class=\"text-bg-success\">Опубликовано</span>"
-
-#~ msgid "Administrative Work"
-#~ msgstr "Административная работа"
-
-#~ msgid "All Countries"
-#~ msgstr "Все страны"
-
-#~ msgid "All Departments"
-#~ msgstr "Все отделы"
-
-#~ msgid "All Offices"
-#~ msgstr "Все офисы"
-
-#~ msgid "All Types"
-#~ msgstr "Все типы"
-
-#~ msgid "Autonomy"
-#~ msgstr "Автономия"
-
-#~ msgid "Customer Relationship"
-#~ msgstr "Отношения с клиентами"
-
-#~ msgid ""
-#~ "Each employee has a chance to see the impact of his work.\n"
-#~ "                You can make a real contribution to the success of the "
-#~ "company.\n"
-#~ "                <br/>\n"
-#~ "                Several activities are often organized all over the year, "
-#~ "such as weekly\n"
-#~ "                sports sessions, team building events, monthly drink, and "
-#~ "much more"
-#~ msgstr ""
-#~ "У каждого сотрудника есть шанс увидеть отдачу от своей работы.\n"
-#~ "                Вы можете внести реальный вклад в успех компании.\n"
-#~ "               <br/>\n"
-#~ "                В течение года часто организуются различные мероприятия, "
-#~ "такие как еженедельные\n"
-#~ "                еженедельные спортивные занятия, мероприятия по сплочению "
-#~ "коллектива, ежемесячные пьянки и многое другое"
-
-#~ msgid "No address specified"
-#~ msgstr "Адрес не указан"
-
-#~ msgid "Not published"
-#~ msgstr "Не публиковано"
-
-#~ msgid ""
-#~ "Perform assigned responsibilities, collaborate with team members, and "
-#~ "adhere to company policies.\n"
-#~ "        Strong communication, problem-solving, and work ethic required.\n"
-#~ "        Adaptability, initiative, and willingness to learn are valued."
-#~ msgstr ""
-#~ "Выполнять порученные обязанности, сотрудничать с членами команды и "
-#~ "придерживаться политики компании.\n"
-#~ "        Требуются хорошие навыки общения, решения проблем и трудовой "
-#~ "этики.\n"
-#~ "        Ценятся адаптивность, инициативность и готовность к обучению."
-
-#~ msgid "Personal Evolution"
-#~ msgstr "Эволюция личности"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Ограничьте публикацию на этом сайте."
-
-#~ msgid "SEO Optimized"
-#~ msgstr "SEO оптимизация"
-
-#~ msgid "Technical Expertise"
-#~ msgstr "Техническая экспертиза"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Полный URL-адрес для доступа к документу через веб-сайт."
-
-#~ msgid "The value entered doesn't seems like a linkedin profile."
-#~ msgstr "Введенное значение не похоже на профиль linkedin."
-
-#~ msgid "Unspecified type"
-#~ msgstr "Неуказанный тип"
-
-#~ msgid "Url Parameters"
-#~ msgstr "Параметры Url"
-
-#~ msgid ""
-#~ "You already applied to another position recently. You can continue if "
-#~ "it's not a mistake."
-#~ msgstr ""
-#~ "Недавно вы уже подавали заявку на другую должность. Вы можете продолжить, "
-#~ "если это не ошибка."
-
-#~ msgid "You already applied to this job position recently."
-#~ msgstr "Вы уже подавали заявку на эту вакансию."
-
-#~ msgid ""
-#~ "You can write here a short description of your Job Description that will "
-#~ "be displayed on the main Jobs' list page."
-#~ msgstr ""
-#~ "Здесь вы можете написать краткое описание вашей вакансии, которое будет "
-#~ "отображаться на главной странице списка вакансий."
-
-#~ msgid "e.g. https://www.linkedin.com/in/fpodoo/"
-#~ msgstr "например, https://www.linkedin.com/in/fpodoo/"
-
-#~ msgid "share it"
-#~ msgstr "поделиться"

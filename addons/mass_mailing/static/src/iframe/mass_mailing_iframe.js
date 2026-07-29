@@ -2,14 +2,15 @@ import {
     Component,
     onMounted,
     onWillDestroy,
+    onWillUnmount,
     status,
-    useComponent,
     useEffect,
     useRef,
     useState,
     useSubEnv,
 } from "@odoo/owl";
-import { LazyComponent, loadBundle } from "@web/core/assets";
+import { loadBundle } from "@web/core/assets";
+import { LazyComponent } from "@web/core/lazy_component";
 import { Deferred } from "@web/core/utils/concurrency";
 import { uniqueId } from "@web/core/utils/functions";
 import { useChildRef, useForwardRefToParent } from "@web/core/utils/hooks";
@@ -25,28 +26,6 @@ import { loadIframe } from "@mail/convert_inline/iframe_utils";
 import { isBlock } from "@html_editor/utils/blocks";
 
 const IFRAME_VALUE_SELECTOR = ".o_mass_mailing_value";
-
-/**
- * The MassMailingIframe will use this modified overlay service that will guarantee:
- * 1. Internal ordering of its different overlays
- * 2. To not mess up with owl's reconciliation of foreach when adding/removing overlays
- * This is a sub-optimal fix to the more general issue of owl displacing nodes that contain
- * an iframe, in which the iframe effectively unloads.
- */
-export function useOverlayServiceOffset() {
-    const comp = useComponent();
-    const originalOverlay = comp.env.services.overlay;
-    const subServices = Object.create(comp.env.services);
-    subServices.overlay = Object.create(originalOverlay);
-    subServices.overlay.add = (C, props, opts = {}) => {
-        opts = {
-            ...opts,
-            sequence: (opts.sequence ?? 50) + 1000,
-        };
-        return originalOverlay.add(C, props, opts);
-    };
-    useSubEnv({ services: subServices });
-}
 
 export class MassMailingIframe extends Component {
     static template = "mass_mailing.MassMailingIframe";
@@ -75,7 +54,6 @@ export class MassMailingIframe extends Component {
     };
 
     setup() {
-        useOverlayServiceOffset();
         this.overlayRef = useChildRef();
         this.iframeRef = useForwardRefToParent("iframeRef");
         this.iframeWrapperRef = useForwardRefToParent("iframeWrapperRef");
@@ -123,7 +101,6 @@ export class MassMailingIframe extends Component {
         };
         const sidebarResize = () => {
             const sidebar = this.sidebarRef.el;
-            const iframe = this.iframeRef.el;
             if (!sidebar) {
                 return;
             }
@@ -159,7 +136,12 @@ export class MassMailingIframe extends Component {
                     : `${stickyHeight}px`;
                 const maxHeight = this.state.isMobile
                     ? 1000
-                    : iframe.getBoundingClientRect().height;
+                    : Math.max(
+                          // height to fill remaining viewport space on an unscrolled page
+                          window.innerHeight - sidebar.parentElement.getBoundingClientRect().y - 5,
+                          // height of the parent element
+                          sidebar.parentElement.clientHeight
+                      );
                 const offsetHeight =
                     window.innerHeight -
                     stickyHeight -
@@ -208,6 +190,11 @@ export class MassMailingIframe extends Component {
             },
             () => [this.state.isMobile]
         );
+        onWillUnmount(() => {
+            if (this.htmlResizeObserver) {
+                this.htmlResizeObserver.disconnect();
+            }
+        });
         onWillDestroy(() => {
             this.iframeLoaded.resolve(false);
         });
@@ -241,7 +228,7 @@ export class MassMailingIframe extends Component {
         } else if (loadingError) {
             throw loadingError;
         }
-        const htmlResizeObserver = new ResizeObserver(this.throttledResize);
+        this.htmlResizeObserver = new ResizeObserver(this.throttledResize);
         this.iframeRef.el.contentDocument.body.classList.add("o_in_iframe");
         if (this.props.withBuilder) {
             this.iframeRef.el.contentDocument.body.classList.add("o_mass_mailing_with_builder");
@@ -249,7 +236,7 @@ export class MassMailingIframe extends Component {
             this.iframeRef.el.contentDocument.body.classList.add("bg-white");
         }
         this.iframeRef.el.contentDocument.body.appendChild(this.renderBodyContent());
-        htmlResizeObserver.observe(
+        this.htmlResizeObserver.observe(
             this.iframeRef.el.contentDocument.body.querySelector(IFRAME_VALUE_SELECTOR)
         );
         if (this.props.readonly) {
@@ -317,13 +304,11 @@ export class MassMailingIframe extends Component {
      */
     async loadIframeAssets() {
         const bundleEntryPromises = this.getIframeBundles().map(async (bundle) => {
-            const targets = (
-                await loadBundle(bundle, {
-                    targetDoc: this.iframeRef.el.contentDocument,
-                    css: true,
-                    js: false,
-                })
-            ).map((bundleEvent) => bundleEvent.target);
+            const targets = await loadBundle(bundle, {
+                targetDoc: this.iframeRef.el.contentDocument,
+                css: true,
+                js: false,
+            });
             const iframe = this.iframeRef.el;
             return [
                 bundle,

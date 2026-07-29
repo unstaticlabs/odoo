@@ -7,17 +7,16 @@
 # Thi Huong Nguyen, 2023
 # Martin Trigaux, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 21:56+0000\n"
-"Last-Translator: Deleted User <noreply+31@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-16 22:43+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "website_mass_mailing/vi/>\n"
 "Language: vi\n"
@@ -25,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_benefits_popup
@@ -53,7 +52,16 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_subscribe_form
 msgid ""
 "<i class=\"fa fa-check-circle-o\" role=\"img\"/> Thanks for registering!"
-msgstr "<i class=\"fa fa-check-circle-o\" role=\"img\"/> Cảm ơn bạn đã đăng ký!"
+msgstr ""
+"<i class=\"fa fa-check-circle-o\" role=\"img\"/> Cảm ơn bạn đã đăng ký!"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Email</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
@@ -76,6 +84,14 @@ msgstr ""
 "                                <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Name</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
+
+#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "<span class=\"s_website_form_label_content\">Name</span>\n"
@@ -83,6 +99,14 @@ msgid ""
 msgstr ""
 "<span class=\"s_website_form_label_content\">Tên</span>\n"
 "                                <span class=\"s_website_form_mark\"> *</span>"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid ""
+"<span class=\"s_website_form_label_content\">Our mailing lists</span>\n"
+"                                        <span class=\"s_website_form_mark\"> "
+"*</span>"
+msgstr ""
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
@@ -107,7 +131,8 @@ msgstr "Hãy là người đầu tiên nhận bản tin, sản phẩm và xu hư
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_subscribe_popup
 msgid ""
 "Be the first to find out all the latest news,<br/> products, and trends."
-msgstr "Hãy là người đầu tiên nhận bản tin,<br/> sản phẩm và xu hướng mới nhất."
+msgstr ""
+"Hãy là người đầu tiên nhận bản tin,<br/> sản phẩm và xu hướng mới nhất."
 
 #. module: website_mass_mailing
 #. odoo-javascript
@@ -118,24 +143,15 @@ msgid "Close"
 msgstr "Đóng"
 
 #. module: website_mass_mailing
-#: model:ir.model,name:website_mass_mailing.model_res_company
-msgid "Companies"
-msgstr "Công ty"
-
-#. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_mail_block_footer_social_left
 msgid "Contact"
 msgstr "Liên hệ"
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__display_name
-msgid "Display Name"
-msgstr "Tên hiển thị"
-
-#. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: code:addons/website_mass_mailing/static/src/website_builder/toggle_thanks_message_traslation_option.xml:0
 msgid "Display Thanks Message"
 msgstr "Hiển thị thông điệp cảm ơn"
 
@@ -178,11 +194,7 @@ msgstr ""
 "tôi, được gửi trực tiếp tới hộp thư đến của bạn."
 
 #. module: website_mass_mailing
-#: model:ir.model.fields,field_description:website_mass_mailing.field_res_company__id
-msgid "ID"
-msgstr "ID"
-
-#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "John Smith"
 msgstr "John Smith"
@@ -208,9 +220,15 @@ msgstr "Không tìm thấy (các) danh sách liên hệ!"
 #. module: website_mass_mailing
 #. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
 msgid "Newsletter"
 msgstr "Bản tin email"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid "Newsletter Aside"
+msgstr ""
 
 #. module: website_mass_mailing
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
@@ -244,6 +262,18 @@ msgstr "Popup bản tin email"
 
 #. module: website_mass_mailing
 #. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter block"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_translation_option_plugin.js:0
+msgid "Newsletter popup"
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option_plugin.js:0
 msgid ""
 "No mailing list found, do you want to create a new one? This will save all "
@@ -260,14 +290,15 @@ msgstr "Không"
 
 #. module: website_mass_mailing
 #. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "Pick one or remove this block."
+msgstr ""
+
+#. module: website_mass_mailing
+#. odoo-javascript
 #: code:addons/website_mass_mailing/static/src/website_builder/mailing_list_subscribe_option.xml:0
 msgid "Placeholder"
 msgstr "Phần giữ chỗ"
-
-#. module: website_mass_mailing
-#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
-msgid "Popup"
-msgstr "Popup"
 
 #. module: website_mass_mailing
 #. odoo-javascript
@@ -281,10 +312,16 @@ msgid "Stay Ahead with weekly insights &amp; updates"
 msgstr ""
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_subscribe_form
 msgid "Subscribe"
 msgstr "Đăng ký nhận tin"
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
+msgid "Subscribe for updates, offers <br/>and insights!"
+msgstr ""
 
 #. module: website_mass_mailing
 #. odoo-javascript
@@ -306,6 +343,7 @@ msgid "Template"
 msgstr "Mẫu"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "Thank you for subscribing!"
 msgstr "Cảm ơn bạn đã đăng ký!"
@@ -323,6 +361,13 @@ msgid "Thanks for subscribing!"
 msgstr "Cảm ơn bạn đã đăng ký"
 
 #. module: website_mass_mailing
+#. odoo-javascript
+#: code:addons/website_mass_mailing/static/src/interactions/subscribe_list_missing_error.xml:0
+msgid "This block is not linked to an active Newsletter."
+msgstr ""
+
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid ""
 "We send one weekly newsletter per list and always try to keep it "
@@ -338,6 +383,7 @@ msgid "You cannot subscribe to the following list anymore : %s"
 msgstr "Bạn không thể đăng ký danh sách sau nữa: %s"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "You will now be informed about the latest news."
 msgstr "Giờ đây, bạn sẽ được thông báo về những tin tức mới nhất."
@@ -364,6 +410,7 @@ msgstr ""
 "communication, email, modal, alert, dialog, prompt, pop-up, subscription"
 
 #. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_aside
 #: model_terms:ir.ui.view,arch_db:website_mass_mailing.s_newsletter_block_form_template
 msgid "johnsmith@example.com"
 msgstr "johnsmith@example.com"
@@ -400,32 +447,10 @@ msgstr ""
 "email, cảnh báo, hộp thoại, nhắc nhở, đăng ký, danh sách liên hệ, tin tức, "
 "lưới, ảnh, hình ảnh"
 
-#~ msgid ", .o_newsletter_popup"
-#~ msgstr ", .o_newsletter_popup"
-
-#~ msgid ".o_newsletter_popup"
-#~ msgstr ".o_newsletter_popup"
-
-#~ msgid ".s_newsletter_list"
-#~ msgstr ".s_newsletter_list"
-
-#~ msgid "Always First."
-#~ msgstr "Luôn nhận tin đầu tiên"
-
-#~ msgid "Be the first to find out all the latest news, products, and trends."
-#~ msgstr "Hãy là người đầu tiên nhận bản tin, sản phẩm và xu hướng mới nhất. "
-
-#~ msgid "Error"
-#~ msgstr "Lỗi"
-
-#~ msgid "Success"
-#~ msgstr "Thành công"
-
-#~ msgid "Suspicious activity detected by Google reCaptcha."
-#~ msgstr "Hoạt động đáng ngờ được Google reCaptcha phát hiện"
-
-#~ msgid "Thanks"
-#~ msgstr "Cám ơn"
-
-#~ msgid "your email..."
-#~ msgstr "email của bạn..."
+#. module: website_mass_mailing
+#: model_terms:ir.ui.view,arch_db:website_mass_mailing.snippets
+msgid ""
+"updates, digest, bulletin, announcements, notifications, communication, "
+"promotional, email, subscription, subscribe, mailing-list, news, grid, "
+"image, picture"
+msgstr ""

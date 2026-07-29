@@ -1,39 +1,12 @@
 import { Thread } from "@mail/core/common/thread_model";
 
 import { patch } from "@web/core/utils/patch";
-import { fields } from "../common/record";
-import { compareDatetime } from "@mail/utils/common/misc";
 import { rpc } from "@web/core/network/rpc";
 
 /** @type {import("models").Thread} */
 const threadPatch = {
-    setup() {
-        super.setup();
-        /** @type {number|undefined} */
-        this.recipientsCount = undefined;
-        this.recipients = fields.Many("mail.followers");
-        this.activities = fields.Many("mail.activity", {
-            sort: (a, b) => compareDatetime(a.date_deadline, b.date_deadline) || a.id - b.id,
-            onDelete(r) {
-                r.remove();
-            },
-        });
-        /** @type {boolean} */
-        this.isDisplayedInDiscussAppDesktop = fields.Attr(undefined, {
-            /** @this {import("models").Thread} */
-            compute() {
-                if (this.store.discuss.isActive && !this.store.env.services.ui.isSmall) {
-                    return this.eq(this.store.discuss.thread);
-                }
-                return false;
-            },
-        });
-    },
     get recipientsFullyLoaded() {
         return this.recipientsCount === this.recipients.length;
-    },
-    computeIsDisplayed() {
-        return this.isDisplayedInDiscussAppDesktop || super.computeIsDisplayed();
     },
     async loadMoreFollowers() {
         const data = await this.store.env.services.orm.call(this.model, "message_get_followers", [
@@ -92,17 +65,11 @@ const threadPatch = {
             views: [[false, "form"]],
         };
     },
-    async unpin() {
-        await this.store.chatHub.initPromise;
-        const chatWindow = this.store.ChatWindow.get({ thread: this });
-        await chatWindow?.close();
-        await super.unpin(...arguments);
-    },
     async follow() {
         const data = await rpc("/mail/thread/subscribe", {
             res_model: this.model,
             res_id: this.id,
-            partner_ids: [this.store.self.id],
+            partner_ids: [this.store.self_user?.partner_id?.id],
         });
         this.store.insert(data);
     },

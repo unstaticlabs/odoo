@@ -1,10 +1,9 @@
-import { browser } from "@web/core/browser/browser";
-import { _t } from "@web/core/l10n/translation";
-import { Deferred } from "@web/core/utils/concurrency";
-import { registry } from "@web/core/registry";
-import { session } from "@web/session";
 import { EventBus, reactive } from "@odoo/owl";
+import { browser } from "@web/core/browser/browser";
+import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
+import { Deferred } from "@web/core/utils/concurrency";
+import { session } from "@web/session";
 
 // List of worker events that should not be broadcasted.
 const INTERNAL_EVENTS = new Set([
@@ -27,20 +26,12 @@ export const BACK_ONLINE_RECONNECT_DELAY = 5000;
  *  @emits BUS:WORKER_STATE_UPDATED
  */
 export const busService = {
-    dependencies: [
-        "bus.parameters",
-        "localization",
-        "multi_tab",
-        "legacy_multi_tab",
-        "notification",
-        "worker_service",
-    ],
+    dependencies: ["bus.parameters", "localization", "multi_tab", "notification", "worker_service"],
 
     start(
         env,
         {
             multi_tab: multiTab,
-            legacy_multi_tab: legacyMultiTab,
             notification,
             "bus.parameters": params,
             worker_service: workerService,
@@ -80,7 +71,7 @@ export const busService = {
                 case "BUS:NOTIFICATION": {
                     const notifications = data.map(({ id, message }) => ({ id, ...message }));
                     state.lastNotificationId = notifications.at(-1).id;
-                    legacyMultiTab.setSharedValue("last_notification_id", state.lastNotificationId);
+                    localStorage.setItem("bus.last_notification_id", state.lastNotificationId);
                     for (const { id, type, payload } of notifications) {
                         notificationBus.trigger(type, { id, payload });
                         busService._onMessage(env, id, type, payload);
@@ -96,25 +87,6 @@ export const busService = {
                     break;
                 case "BUS:OUTDATED": {
                     multiTab.unregister();
-                    notification.add(
-                        _t(
-                            "Save your work and refresh to get the latest updates and avoid potential issues."
-                        ),
-                        {
-                            title: _t("The page is out of date"),
-                            type: "warning",
-                            sticky: true,
-                            buttons: [
-                                {
-                                    name: _t("Refresh"),
-                                    primary: true,
-                                    onClick: () => {
-                                        browser.location.reload();
-                                    },
-                                },
-                            ],
-                        }
-                    );
                     break;
                 }
             }
@@ -140,8 +112,9 @@ export const busService = {
                         session.websocket_worker_version
                     }`,
                     db: session.db,
-                    debug: odoo.debug,
-                    lastNotificationId: legacyMultiTab.getSharedValue("last_notification_id", 0),
+                    lastNotificationId: parseInt(
+                        localStorage.getItem("bus.last_notification_id") ?? 0
+                    ),
                     uid,
                     startTs: startedAt.valueOf(),
                 });

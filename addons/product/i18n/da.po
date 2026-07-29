@@ -9,17 +9,17 @@
 # Martin Trigaux, 2022
 # Mads Søndergaard, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 13:34+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/product/"
-"da/>\n"
+"POT-Creation-Date: 2026-04-17 18:38+0000\n"
+"PO-Revision-Date: 2026-07-16 12:27+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
+"product/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -283,6 +283,11 @@ msgid "<span class=\"o_stat_text\">Products</span>"
 msgstr "<span class=\"o_stat_text\">Produkter</span>"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "<span> - </span>"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
 msgid "<span>%</span>"
 msgstr "<span>%</span>"
@@ -400,6 +405,12 @@ msgid "A sellable combo product can only contain sellable products."
 msgstr "Et salgbart kombinationsprodukt må kun indeholde salgbare produkter."
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__is_storable
+#: model:ir.model.fields,help:product.field_product_template__is_storable
+msgid "A storable product is a product for which you manage stock."
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__access_token
 msgid "Access Token"
 msgstr "Adgangstoken"
@@ -460,6 +471,13 @@ msgstr "Aktiviteter"
 #: model:ir.model.fields,field_description:product.field_product_template__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Markering af undtagelsesaktivitet"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_pricelist__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_product__activity_plans_ids
+#: model:ir.model.fields,field_description:product.field_product_template__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_pricelist__activity_state
@@ -614,7 +632,6 @@ msgstr "Apple"
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Applied On"
 msgstr "Anvendt på"
 
@@ -710,19 +727,23 @@ msgstr "Attributnavn"
 #. module: product
 #: model:ir.model,name:product.model_product_attribute_value
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__custom_product_template_attribute_value_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_template_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_attribute_value_id
 #: model:ir.model.fields,field_description:product.field_update_product_attribute_value__attribute_value_id
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Attribute Value"
 msgstr "Attributværdi"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_template_attribute_value_ids
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__value_ids
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_value_list
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_view_form
 msgid "Attribute Values"
 msgstr "Attributværdier"
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "Attribute name (e.g. Color, Size, ... )"
+msgstr ""
 
 #. module: product
 #: model:ir.actions.act_window,name:product.attribute_action
@@ -749,11 +770,19 @@ msgid "Back to Quotation"
 msgstr "Tilbage til tilbud"
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__barcode
 #: model:ir.model.fields,field_description:product.field_product_template__barcode
 #: model:ir.model.fields,field_description:product.field_product_uom__barcode
 msgid "Barcode"
 msgstr "Stregkode"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_res_config_settings__module_product_barcodelookup
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Barcode Database"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -858,11 +887,6 @@ msgid "Can Variant Image 1024 be zoomed"
 msgstr "Kan variantbillede 1024 zoomes"
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.update_product_attribute_value_form
-msgid "Cancel"
-msgstr "Annullér"
-
-#. module: product
 #: model:product.attribute.value,name:product.pav_brand_canon
 msgid "Canon"
 msgstr "Canon"
@@ -882,10 +906,9 @@ msgid "Category"
 msgstr "Kategori"
 
 #. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Category: %s"
-msgstr "Kategori: %s"
+#: model:product.combo,name:product.chairs_combo
+msgid "Chairs Combo"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -1011,10 +1034,6 @@ msgstr ""
 
 #. module: product
 #: model:ir.model,name:product.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
-
-#. module: product
 #: model:ir.model.fields,field_description:product.field_product_combo__company_id
 #: model:ir.model.fields,field_description:product.field_product_combo_item__company_id
 #: model:ir.model.fields,field_description:product.field_product_document__company_id
@@ -1053,6 +1072,7 @@ msgid "Config Settings"
 msgstr "Konfigurationsindstillinger"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_attribute_value_view_tree
 #: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
 msgid "Configure"
 msgstr "Konfigurér"
@@ -1127,6 +1147,11 @@ msgid "Create a new product"
 msgstr "Opret en ny vare"
 
 #. module: product
+#: model_terms:ir.actions.act_window,help:product.product_category_action_form
+msgid "Create a new product category"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.actions.act_window,help:product.product_normal_action
 #: model_terms:ir.actions.act_window,help:product.product_normal_action_sell
 #: model_terms:ir.actions.act_window,help:product.product_variant_action
@@ -1146,6 +1171,11 @@ msgid "Create on Order"
 msgstr "Opret på bestilling"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "Create products by scanning using"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_custom_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__create_uid
@@ -1160,7 +1190,6 @@ msgstr "Opret på bestilling"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template__create_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__create_uid
@@ -1183,7 +1212,6 @@ msgstr "Oprettet af"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__create_date
 #: model:ir.model.fields,field_description:product.field_product_tag__create_date
 #: model:ir.model.fields,field_description:product.field_product_template__create_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__create_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__create_date
 #: model:ir.model.fields,field_description:product.field_product_uom__create_date
@@ -1218,6 +1246,20 @@ msgstr "Kubikmeter (m³)"
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__currency_id
 msgid "Currency"
 msgstr "Valuta"
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__qty_available
+msgid ""
+"Current quantity of products.\n"
+"In a context with a single Stock Location, this includes goods stored at "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"stored in the Stock Location of the Warehouse of this Shop, or any of its "
+"children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_custom
@@ -1255,6 +1297,18 @@ msgstr "Cyanblå"
 #: model:ir.model.fields,field_description:product.field_product_document__db_datas
 msgid "Database Data"
 msgstr "Databasedata"
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
+msgid "Date"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Decrease quantity"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -1318,6 +1372,11 @@ msgid "Design and plan smart offices with ease"
 msgstr ""
 
 #. module: product
+#: model:product.combo,name:product.desk_accessories_combo
+msgid "Desk Accessories Combo"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_3_product_template
 msgid "Desk Combination"
 msgstr "Skrivebordskombination"
@@ -1343,15 +1402,16 @@ msgid "Desk combination, black-brown: chair + desk + drawer"
 msgstr ""
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_attribute__sequence
-#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
-msgid "Determine the display order"
-msgstr "Angiv visningsrækkefølge"
+#: model:product.combo,name:product.desks_combo
+msgid "Desks Combo"
+msgstr ""
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_label_layout_form
-msgid "Discard"
-msgstr "Kassér"
+#: model:ir.model.fields,help:product.field_product_attribute__sequence
+#: model:ir.model.fields,help:product.field_product_attribute_value__sequence
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__sequence
+msgid "Determine the display order"
+msgstr "Angiv visningsrækkefølge"
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_pricelist_item__compute_price__percentage
@@ -1391,7 +1451,6 @@ msgstr "Vis anvendt på"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__display_name
 #: model:ir.model.fields,field_description:product.field_product_tag__display_name
 #: model:ir.model.fields,field_description:product.field_product_template__display_name
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__display_name
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__display_name
 #: model:ir.model.fields,field_description:product.field_product_uom__display_name
@@ -1437,11 +1496,6 @@ msgstr "Dokumenter"
 #: model:ir.model.fields,field_description:product.field_product_template__product_document_count
 msgid "Documents Count"
 msgstr "Antal dokumenter"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_document_search
-msgid "Documents of this variant"
-msgstr "Dokumenter af denne variant"
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_brand_dove
@@ -1554,9 +1608,14 @@ msgid "Error exporting file. Please try again."
 msgstr "Der opstod en fejl under dataeksporten. Prøv venligst igen senere."
 
 #. module: product
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__exclude_for
-msgid "Exclude for"
-msgstr "Udeluk for"
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__excluded_value_ids
+msgid "Exclude For"
+msgstr ""
+
+#. module: product
+#: model:product.category,name:product.product_category_expenses
+msgid "Expenses"
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields,help:product.field_product_pricelist_item__name
@@ -1638,6 +1697,12 @@ msgid "Fixed Price"
 msgstr "Fast pris"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__fixed_pricelist_rule_ids
+#: model:ir.model.fields,field_description:product.field_product_template__fixed_pricelist_rule_ids
+msgid "Fixed Pricelist Rule"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_20_product_template
 msgid "Flipover"
 msgstr "Vend om"
@@ -1677,6 +1742,32 @@ msgstr ""
 "Angivet i produktets standardmåleenhed."
 
 #. module: product
+#: model:ir.model.fields,help:product.field_product_product__virtual_available
+msgid ""
+"Forecast quantity (computed as Quantity On Hand - Outgoing + Incoming - "
+"Quantity to Remove)\n"
+"In a context with a single Stock Location, this includes goods stored in "
+"this location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods stored in the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods stored in any Stock Location with 'internal' "
+"type."
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Forecasted"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__virtual_available
+#: model:ir.model.fields,field_description:product.field_product_template__virtual_available
+msgid "Forecasted Quantity"
+msgstr "Forventet mængde"
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_label_layout__print_format
 msgid "Format"
 msgstr "Format"
@@ -1696,6 +1787,11 @@ msgstr "Firepersoners skrivebord"
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__is_custom
 msgid "Free text"
 msgstr "Fritekst"
+
+#. module: product
+#: model:product.category,name:product.product_category_furniture
+msgid "Furniture"
+msgstr ""
 
 #. module: product
 #: model:product.template,name:product.product_product_furniture_product_template
@@ -1740,6 +1836,7 @@ msgstr "Prisliste for Gold-medlemmer"
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_template__type__consu
+#: model:product.category,name:product.product_category_goods
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Goods"
@@ -1819,6 +1916,11 @@ msgid "History"
 msgstr "Historik"
 
 #. module: product
+#: model:product.category,name:product.product_category_construction
+msgid "Home Construction"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.expense_hotel_product_template
 msgid "Hotel Accommodation"
 msgstr "Hotelovernatning"
@@ -1840,7 +1942,6 @@ msgstr "Hotelovernatning"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__id
 #: model:ir.model.fields,field_description:product.field_product_tag__id
 #: model:ir.model.fields,field_description:product.field_product_template__id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__id
 #: model:ir.model.fields,field_description:product.field_product_uom__id
@@ -2002,6 +2103,18 @@ msgid "Inactive"
 msgstr "Inaktiv"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__incoming_qty
+#: model:ir.model.fields,field_description:product.field_product_template__incoming_qty
+msgid "Incoming"
+msgstr ""
+
+#. module: product
+#. odoo-javascript
+#: code:addons/product/static/src/product_catalog/order_line/order_line.xml:0
+msgid "Increase quantity"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_document__index_content
 msgid "Indexed Content"
 msgstr "Indekseret indhold"
@@ -2022,8 +2135,11 @@ msgid "Internal Notes"
 msgstr "Interne noter"
 
 #. module: product
+#. odoo-python
+#: code:addons/product/controllers/pricelist_report.py:0
 #: model:ir.model.fields,field_description:product.field_product_product__default_code
 #: model:ir.model.fields,field_description:product.field_product_template__default_code
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Internal Reference"
 msgstr "Intern reference"
 
@@ -2153,7 +2269,6 @@ msgstr "Stort mødebord"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_uid
 #: model:ir.model.fields,field_description:product.field_product_tag__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template__write_uid
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_uid
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_uid
 #: model:ir.model.fields,field_description:product.field_product_uom__write_uid
@@ -2175,7 +2290,6 @@ msgstr "Sidst opdateret af"
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__write_date
 #: model:ir.model.fields,field_description:product.field_product_tag__write_date
 #: model:ir.model.fields,field_description:product.field_product_template__write_date
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__write_date
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__write_date
 #: model:ir.model.fields,field_description:product.field_product_uom__write_date
@@ -2250,6 +2364,11 @@ msgid "Link between products and their UoMs"
 msgstr "Link mellem produkter og deres måleenheder"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_only_form_view
+msgid "List of possible values (e.g. Blue, Green, White, ... )"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_product_local_delivery_product_template
 msgid "Local Delivery"
 msgstr "Lokal levering"
@@ -2280,13 +2399,10 @@ msgid "M"
 msgstr "M"
 
 #. module: product
-#: model:ir.model.fields,help:product.field_product_template_attribute_value__exclude_for
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__excluded_value_ids
 msgid ""
-"Make this attribute value not compatible with other values of the product or "
-"some attribute values of optional and accessory products."
+"Make this attribute value not compatible with other values of the product."
 msgstr ""
-"Gør denne egenskabsværdi inkompatibel med andre værdier for produktet samt "
-"eventuelle egenskabsværdier for valgfrie og tilbehørsprodukter."
 
 #. module: product
 #: model:res.groups,name:product.group_product_variant
@@ -2429,6 +2545,7 @@ msgstr "Deadline på mine aktiviteter"
 #: model:ir.model.fields,field_description:product.field_product_product__name
 #: model:ir.model.fields,field_description:product.field_product_tag__name
 #: model:ir.model.fields,field_description:product.field_product_template__name
+#: model_terms:ir.ui.view,arch_db:product.product_attribute_value_form
 msgid "Name"
 msgstr "Navn"
 
@@ -2589,6 +2706,11 @@ msgid "Number of messages with delivery error"
 msgstr "Antal beskeder med leveringsfejl"
 
 #. module: product
+#: model:product.category,name:product.product_category_office
+msgid "Office"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_delivery_01_product_template
 msgid "Office Chair"
 msgstr "Kontorstol"
@@ -2622,6 +2744,18 @@ msgstr "Olay"
 #: model:product.attribute.value,name:product.pav_color_olive
 msgid "Olive"
 msgstr "Oliven"
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "On Hand"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_kanban_view
+msgid "On hand:"
+msgstr ""
 
 #. module: product
 #. odoo-python
@@ -2684,9 +2818,20 @@ msgid "Other Pricelist"
 msgstr "Anden prisliste"
 
 #. module: product
+#: model:product.category,name:product.product_category_outdoor_furniture
+msgid "Outdoor"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.product_template_dining_table
 msgid "Outdoor dining table"
 msgstr "Spisebord til udendørs brug"
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__outgoing_qty
+#: model:ir.model.fields,field_description:product.field_product_template__outgoing_qty
+msgid "Outgoing"
+msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_options_overhead_shelves
@@ -2829,6 +2974,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__price
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view_from_product
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Price"
 msgstr "Pris"
 
@@ -3134,18 +3280,12 @@ msgstr "Produkt-tags"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_tmpl_id
-#: model:ir.model.fields,field_description:product.field_product_template_attribute_exclusion__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__product_tmpl_id
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_value__product_tmpl_id
 #: model_terms:ir.ui.view,arch_db:product.product_search_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
 msgid "Product Template"
 msgstr "Produktskabelon"
-
-#. module: product
-#: model:ir.model,name:product.model_product_template_attribute_exclusion
-msgid "Product Template Attribute Exclusion"
-msgstr "Udelukkelse af attributten fra produktskabelonen"
 
 #. module: product
 #: model:ir.model,name:product.model_product_template_attribute_line
@@ -3202,12 +3342,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product.product_tag_tree_view
 msgid "Product Variant"
 msgstr "Produktvariant"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "Product Variant Values"
-msgstr "Produktvariantværdier"
 
 #. module: product
 #: model:ir.actions.act_window,name:product.product_normal_action
@@ -3287,6 +3421,7 @@ msgstr "Puma"
 #: model:ir.model.fields,field_description:product.field_product_product__purchase_ok
 #: model:ir.model.fields,field_description:product.field_product_template__purchase_ok
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Purchase"
 msgstr "Indkøb"
 
@@ -3324,15 +3459,40 @@ msgid "Quantity (%s UoM)"
 msgstr "Mængde (%s måleenhed)"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__qty_available
+#: model:ir.model.fields,field_description:product.field_product_template__qty_available
+msgid "Quantity On Hand"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.js:0
 msgid "Quantity already present (%s)."
 msgstr "Mængde allerede til stede (%s)."
 
 #. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
-msgid "Quotation Description"
-msgstr "Tilbudsbeskrivelse"
+#: model:ir.model.fields,help:product.field_product_product__incoming_qty
+msgid ""
+"Quantity of planned incoming products.\n"
+"In a context with a single Stock Location, this includes goods arriving to "
+"this Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods arriving to the "
+"Stock Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods arriving to any Stock Location with "
+"'internal' type."
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_product__outgoing_qty
+msgid ""
+"Quantity of planned outgoing products.\n"
+"In a context with a single Stock Location, this includes goods leaving this "
+"Location, or any of its children.\n"
+"In a context with a single Warehouse, this includes goods leaving the Stock "
+"Location of this Warehouse, or any of its children.\n"
+"Otherwise, this includes goods leaving any Stock Location with 'internal' "
+"type."
+msgstr ""
 
 #. module: product
 #: model:ir.model.fields.selection,name:product.selection__product_attribute__display_type__radio
@@ -3460,6 +3620,11 @@ msgid "Rule Tip"
 msgstr "Regeltip"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
+msgid "Rules"
+msgstr ""
+
+#. module: product
 #: model:product.attribute.value,name:product.pav_size_s
 msgid "S"
 msgstr "S"
@@ -3467,6 +3632,7 @@ msgstr "S"
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__sale_ok
 #: model:ir.model.fields,field_description:product.field_product_template__sale_ok
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
 #: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
@@ -3488,11 +3654,6 @@ msgstr "Salgsbeskrivelse"
 #: model_terms:ir.ui.view,arch_db:product.product_variant_easy_edit_view
 msgid "Sales Price"
 msgstr "Salgspris"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
-msgid "Sales Prices"
-msgstr "Salgspriser"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__lst_price
@@ -3526,6 +3687,7 @@ msgstr "Vælg"
 #: model:ir.model.fields,field_description:product.field_product_tag__sequence
 #: model:ir.model.fields,field_description:product.field_product_template__sequence
 #: model:ir.model.fields,field_description:product.field_product_template_attribute_line__sequence
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__sequence
 msgid "Sequence"
 msgstr "Sekvens"
 
@@ -3535,8 +3697,10 @@ msgid "Service"
 msgstr "Serviceydelse"
 
 #. module: product
+#: model:product.category,name:product.product_category_services
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 #: model_terms:ir.ui.view,arch_db:product.product_view_search_catalog
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
 msgid "Services"
 msgstr "Serviceydelser"
 
@@ -3558,15 +3722,42 @@ msgid "Shoes size"
 msgstr "Skostørrelse"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
+msgid "Short Description"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_template_attribute_value__show_price_extra
+msgid "Show Extra Price"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "Show Name"
 msgstr "Visningsnavn"
 
 #. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_qty_update_button
+#: model:ir.model.fields,field_description:product.field_product_template__show_qty_update_button
+msgid "Show Qty Update Button"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__show_sales_price_page
+#: model:ir.model.fields,field_description:product.field_product_template__show_sales_price_page
+msgid "Show Sales Price Page"
+msgstr ""
+
+#. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_template_search_view
 msgid "Show all records whose next activity date is past"
 msgstr "Vis alle poster, hvis næste aktivitetsdato er før i dag"
+
+#. module: product
+#: model:ir.model.fields,help:product.field_product_template_attribute_value__show_price_extra
+msgid "Show separately the extra price for this attribute value."
+msgstr ""
 
 #. module: product
 #: model:product.attribute.value,name:product.pav_color_silver
@@ -3880,11 +4071,9 @@ msgstr "Afrundingsmetoden skal udelukkende være positiv."
 #: model:ir.model.fields,help:product.field_product_combo_item__lst_price
 #: model:ir.model.fields,help:product.field_product_product__lst_price
 msgid ""
-"The sale price is managed from the product template. Click on the 'Configure "
-"Variants' button to set the extra attribute prices."
+"The sale price can be set manually or computed from the product template. "
+"Click on the 'Configure Variants' button to set the extra attribute prices."
 msgstr ""
-"Salgsprisen administreres fra produktskabelonen. Klik på knappen 'Konfigurér "
-"varianter', og angiv priserne for de ekstra attributter."
 
 #. module: product
 #. odoo-python
@@ -3984,6 +4173,26 @@ msgid "Today Activities"
 msgstr "Dagens aktiviteter"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total Forecasted"
+msgstr ""
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_product_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Total On Hand"
+msgstr ""
+
+#. module: product
+#: model:ir.model.fields,field_description:product.field_product_product__is_storable
+#: model:ir.model.fields,field_description:product.field_product_template__is_storable
+msgid "Track Inventory"
+msgstr ""
+
+#. module: product
 #: model:product.template,name:product.consu_delivery_01_product_template
 msgid "Two-Seat Sofa"
 msgstr "To-personers sofa"
@@ -4051,7 +4260,7 @@ msgstr "Uniqlo"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__uom_id
-#: model:ir.model.fields,field_description:product.field_product_supplierinfo__product_uom_id
+#: model:ir.model.fields,field_description:product.field_product_supplierinfo__uom_id
 #: model:ir.model.fields,field_description:product.field_product_template__uom_id
 #: model:ir.model.fields,field_description:product.field_product_uom__uom_id
 msgid "Unit"
@@ -4091,6 +4300,16 @@ msgstr "Måleenheder"
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_uom
 msgid "Units of Measure & Packagings"
 msgstr "Måleenheder og emballage"
+
+#. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_view_list_qty
+msgid "Update Quantities"
+msgstr ""
+
+#. module: product
+#: model:ir.actions.act_window,name:product.product_variant_edit_qty_action
+msgid "Update Variant Quantities"
+msgstr ""
 
 #. module: product
 #: model_terms:ir.ui.view,arch_db:product.product_attribute_view_form
@@ -4171,20 +4390,24 @@ msgid "Username"
 msgstr "Brugernavn"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.report_pricelist_page
+msgid "VINT_1000"
+msgstr ""
+
+#. module: product
 #: model:ir.model.fields,field_description:product.field_product_product__valid_product_template_attribute_line_ids
 #: model:ir.model.fields,field_description:product.field_product_template__valid_product_template_attribute_line_ids
 msgid "Valid Product Attribute Lines"
 msgstr "Gyldige produktattributlinjer"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_tree_view
+#: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 #: model_terms:ir.ui.view,arch_db:product.product_supplierinfo_form_view
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Validity"
 msgstr "Gyldighed"
-
-#. module: product
-#: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_form_view
-msgid "Validity Period"
-msgstr "Gyldighedsperiode"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_product_attribute_value__name
@@ -4223,6 +4446,7 @@ msgstr "Værdier"
 #: model:ir.model.fields,field_description:product.field_product_pricelist_item__product_id
 #: model_terms:ir.ui.view,arch_db:product.product_document_kanban
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_item_view_search
+#: model_terms:ir.ui.view,arch_db:product.product_template_form_view
 msgid "Variant"
 msgstr "Variant"
 
@@ -4287,12 +4511,6 @@ msgstr "Variant-tags"
 #: model_terms:ir.ui.view,arch_db:product.attribute_tree_view
 msgid "Variant Values"
 msgstr "Variantværdier"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_pricelist_item.py:0
-msgid "Variant: %s"
-msgstr "Variant: %s"
 
 #. module: product
 #: model:ir.model.fields,field_description:product.field_res_config_settings__group_product_variant
@@ -4545,6 +4763,15 @@ msgstr "Du kan ikke redigere dette produkt i kataloget."
 
 #. module: product
 #. odoo-python
+#: code:addons/product/models/product_product.py:0
+#: code:addons/product/models/product_template.py:0
+msgid ""
+"You cannot archive a product that is part of a combo. Please remove it from "
+"the following combos first: %s"
+msgstr ""
+
+#. module: product
+#. odoo-python
 #: code:addons/product/models/product_attribute.py:0
 msgid ""
 "You cannot archive this attribute as there are still products linked to it"
@@ -4593,12 +4820,6 @@ msgid ""
 msgstr ""
 "Du kan ikke ændre værdien %(value)s, da den er angivet på produktet %"
 "(product)s."
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_category.py:0
-msgid "You cannot create recursive categories."
-msgstr "Du kan ikke oprette rekursive kategorier."
 
 #. module: product
 #. odoo-python
@@ -4741,6 +4962,11 @@ msgid "attribute_id"
 msgstr "attribute_id"
 
 #. module: product
+#: model_terms:ir.ui.view,arch_db:product.res_config_settings_view_form
+msgid "barcodelookup.com"
+msgstr ""
+
+#. module: product
 #. odoo-javascript
 #: code:addons/product/static/src/js/pricelist_report/product_pricelist_report.xml:0
 msgid "csv"
@@ -4793,12 +5019,6 @@ msgstr "f.eks. Forret – Hovedret – Dessert"
 #: model_terms:ir.ui.view,arch_db:product.product_pricelist_view
 msgid "e.g. USD Retailers"
 msgstr "f.eks. forhandlere, der handler i USD"
-
-#. module: product
-#. odoo-python
-#: code:addons/product/models/product_template_attribute_line.py:0
-msgid "id"
-msgstr "ID"
 
 #. module: product
 #. odoo-python
@@ -4899,365 +5119,3 @@ msgstr "xlsx"
 
 #~ msgid "85"
 #~ msgstr "85"
-
-#~ msgid ""
-#~ "You cannot assign the Main Pricelist as Other Pricelist in PriceList Item"
-#~ msgstr ""
-#~ "Du kan ikke tildele den primære prisliste som en anden prisliste i "
-#~ "Prisliste genstand"
-
-#~ msgid "%(percentage)s %% discount and %(price)s surcharge"
-#~ msgstr "%(percentage)s %% rabat og %(price)s ekstragebyr"
-
-#~ msgid "%s %% discount"
-#~ msgstr "%s %% rabat"
-
-#~ msgid "'Products packaging - %s' % (object.name)"
-#~ msgstr "'Produkter pakning - %s' % (object.name)"
-
-#~ msgid ""
-#~ "- Instantly: All possible variants are created as soon as the attribute "
-#~ "and its values are added to a product.\n"
-#~ "        - Dynamically: Each variant is created only when its "
-#~ "corresponding attributes and values are added to a sales order.\n"
-#~ "        - Never: Variants are never created for the attribute.\n"
-#~ "        Note: the variants creation mode cannot be changed once the "
-#~ "attribute is used on at least one product."
-#~ msgstr ""
-#~ "- Med det samme: Alle mulige varianter oprettes så snart at egenskaben og "
-#~ "dets værdier er tilføjet til et produkt.\n"
-#~ "           - Dynamisk: Hver variant oprettes kun når dens tilsvarende "
-#~ "egensakb og værdi tilføjes en salgsordre.\n"
-#~ "            - Aldrig: Varianter er aldrig oprettet for egenskaber.\n"
-#~ "            Bemærk: Varianterne oprettelse tilstand kan ikke ændres når "
-#~ "egenskaber anvendes på mindst ét produkt."
-
-#~ msgid "160x80cm, with large legs."
-#~ msgstr "160x80cm, med store ben."
-
-#~ msgid "2 year"
-#~ msgstr "2 år"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Et opbevaringsvare er et produkt for hvilket du kan administrere lager. "
-#~ "Inventar appliktionen skal være installeret.\n"
-#~ "En forbrugsvare er et produkt hvor lageret ikke er administreret.\n"
-#~ "En tjeneste er et ikke-materielt produkt du tilbyder."
-
-#~ msgid "Advanced Pricelists"
-#~ msgstr "Avancerede prislister"
-
-#~ msgid "Advanced price rules (discounts, formulas)"
-#~ msgstr "Avanceres pris regler (rabatter, formularer)"
-
-#~ msgid "Allow users to input custom values for this attribute value"
-#~ msgstr ""
-#~ "Gør det muligt for brugere at angive tilpassede værdier for denne egenskab"
-
-#~ msgid ""
-#~ "Allows to manage different prices based on rules per category of "
-#~ "customers.\n"
-#~ "                Example: 10% for retailers, promotion of 5 EUR on this "
-#~ "product, etc."
-#~ msgstr ""
-#~ "Tillader at styre forskellige priser baseret på regler pr. kategori af "
-#~ "kunder.\n"
-#~ "                Eksempel: 10% til forhandlere, markesføring på 25 EUR på "
-#~ "dette produkt mv."
-
-#~ msgid "Applicable On"
-#~ msgstr "Gældende for"
-
-#~ msgid "Availability"
-#~ msgstr "Til rådighed"
-
-#~ msgid ""
-#~ "Barcode used for packaging identification. Scan this packaging barcode "
-#~ "from a transfer in the Barcode app to move all the contained units"
-#~ msgstr ""
-#~ "Stregkode brugt til pakke identifikation. Scan denne pakke stregkode fra "
-#~ "en overførsel i stregkode appen, for at flytte alle indeholdte enheder"
-
-#~ msgid "Can be Purchased"
-#~ msgstr "Kan indkøbes"
-
-#~ msgid "Can be Sold"
-#~ msgstr "Kan sælges"
-
-#~ msgid "Computation"
-#~ msgstr "Beregning"
-
-#~ msgid "Conditions"
-#~ msgstr "Betingelser"
-
-#~ msgid "Conference room table"
-#~ msgstr "Konference lokale bord"
-
-#~ msgid "Configuration"
-#~ msgstr "Konfiguration"
-
-#~ msgid "Consumable"
-#~ msgstr "Kan forbruges"
-
-#~ msgid "Contact Us"
-#~ msgstr "Kontakt os"
-
-#~ msgid "Contained Quantity"
-#~ msgstr "Indeholdt kvantitet"
-
-#~ msgid "Contained quantity"
-#~ msgstr "Indeholdt kvantitet"
-
-#~ msgid "Cubic Feet"
-#~ msgstr "Kubikfod"
-
-#~ msgid "Cubic Meters"
-#~ msgstr "Kubimetre"
-
-#~ msgid "Decimal Precision"
-#~ msgstr "Betydende decimaler"
-
-#~ msgid ""
-#~ "Default unit of measure used for purchase orders. It must be in the same "
-#~ "category as the default unit of measure."
-#~ msgstr ""
-#~ "Standard måleenhed brugt til købsordre. Den skal være i samme kategori "
-#~ "som standard måleenheden."
-
-#~ msgid "Delivery Lead Time"
-#~ msgstr "Leveringstid"
-
-#~ msgid "Desk combination, black-brown: chair + desk + drawer."
-#~ msgstr "Kombineret skrivebord, sort-brun: stol + skrivebord + skuffe."
-
-#~ msgid "Discount Policy"
-#~ msgstr "Rabatpolitik"
-
-#~ msgid "Discount included in the price"
-#~ msgstr "Rabat er inkluderet i prisen"
-
-#~ msgid "Discount on lines"
-#~ msgstr "Rabat på linjer"
-
-#~ msgid "Discounts"
-#~ msgstr "Rabatter"
-
-#~ msgid "Drawer with two routing possiblities."
-#~ msgstr "Skuffe med to route muligheder."
-
-#~ msgid "Four person modern office workstation"
-#~ msgstr "Fire personers moderne kontor arbejdsstation"
-
-#~ msgid "Gives the different ways to package the same product."
-#~ msgstr "Giver de diverse måde at pakke det samme produkt."
-
-#~ msgid "Group By"
-#~ msgstr "Sortér efter"
-
-#~ msgid "Is custom value"
-#~ msgstr "Er tilpasset værdi"
-
-#~ msgid "Kilograms"
-#~ msgstr "Kilogram"
-
-#~ msgid "Manage Product Packaging"
-#~ msgstr "Håndtér varepakning"
-
-#~ msgid "Multiple prices per product"
-#~ msgstr "Flere priser per produkt"
-
-#~ msgid ""
-#~ "Multiple prices: Pricelists with fixed price rules by product,\n"
-#~ "Advanced rules: enables advanced price rules for pricelists."
-#~ msgstr ""
-#~ "Flere priser: Prislister med fastsat prisregler ud fra produkt,\n"
-#~ "Avancerede regler: aktivere avancerede pris regler for prislister."
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Antal meddelser der kræver handling"
-
-#~ msgid "Number of price rules"
-#~ msgstr "Antal prisregler"
-
-#~ msgid "Packaging"
-#~ msgstr "Emballering"
-
-#~ msgid "Pounds"
-#~ msgstr "Pund"
-
-#~ msgid "Price Computation"
-#~ msgstr "Prisberegning"
-
-#~ msgid "Price Surcharge"
-#~ msgstr "Overpris"
-
-#~ msgid "Pricelist:"
-#~ msgstr "Prisliste:"
-
-#~ msgid "Pricelists Method"
-#~ msgstr "Prislister metode"
-
-#~ msgid "Pricelists are managed on"
-#~ msgstr "Prislister styres på"
-
-#~ msgid "Product Packages"
-#~ msgstr "Produkforpakninger"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Produkt indpakning"
-
-#~ msgid "Product Packaging (PDF)"
-#~ msgstr "Produktforpakning (PDF)"
-
-#~ msgid "Product Packagings"
-#~ msgstr "Produktforpakninger"
-
-#~ msgid "Product: %s"
-#~ msgstr "Produkt: %s"
-
-#~ msgid "Quantity of products contained in the packaging."
-#~ msgstr "Mængde af produkter indeholdt i pakken."
-
-#~ msgid "Rounding Method"
-#~ msgstr "Afrundingsmetode"
-
-#~ msgid "Sales Grid Entry"
-#~ msgstr "Salgs gitter postering"
-
-#~ msgid ""
-#~ "Sets the price so that it is a multiple of this value.\n"
-#~ "Rounding is applied after the discount and before the surcharge.\n"
-#~ "To have prices that end in 9.99, set rounding 10, surcharge -0.01"
-#~ msgstr ""
-#~ "Angiver prisen så den er multipel af denne værdi.\n"
-#~ "Afrunding sker efter rabat og før tillæg.\n"
-#~ "For at få priser som slutter med 9,99 - sæt afrunding 10, tillæg -0,01"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Vis alle poster, hvor den næste aktivitetsdato er før i dag"
-
-#~ msgid "Show public price & discount to the customer"
-#~ msgstr "Vis offentlig pris & rabat til kunden"
-
-#~ msgid "Tag Name"
-#~ msgstr "Tag-navn"
-
-#~ msgid ""
-#~ "The computed price is expressed in the default Unit of Measure of the "
-#~ "product."
-#~ msgstr "Den beregnede pris vises i varens standard enhed."
-
-#~ msgid ""
-#~ "The default Unit of Measure and the purchase Unit of Measure must be in "
-#~ "the same category."
-#~ msgstr ""
-#~ "Standard måleenheden og købs måleenheden skal være i samme kategori."
-
-#~ msgid "The first in the sequence is the default one."
-#~ msgstr "Den første i sekvensen er standarden."
-
-#~ msgid ""
-#~ "The number of variants to generate is too high. You should either not "
-#~ "generate variants for each combination or generate them on demand from "
-#~ "the sales order. To do so, open the form view of attributes and change "
-#~ "the mode of *Create Variants*."
-#~ msgstr ""
-#~ "Antallet af varianter der skal genereres er for høj. Du bør enten ikke "
-#~ "generere varianter for hver kombination, eller generere dem på "
-#~ "efterspørgsel fra salgsordren. For at gøre dette, kan du åbne formular "
-#~ "visningen for egenskaber, og ændre tilstanden til *Opret varianter*"
-
-#~ msgid ""
-#~ "The quantity to purchase from this vendor to benefit from the price, "
-#~ "expressed in the vendor Product Unit of Measure if not any, in the "
-#~ "default unit of measure of the product otherwise."
-#~ msgstr ""
-#~ "Mængden til indkøb fra denne forhandler som drager nytte af prisen, "
-#~ "udtrykt i forhandlerens produkt måleenhed. Hvis der ikke er nogen, "
-#~ "udtrykkes den i stedet i standard måleenheden for produktet."
-
-#~ msgid ""
-#~ "This pricelist will be used, instead of the default one, for sales to the "
-#~ "current partner"
-#~ msgstr ""
-#~ "Denne prisliste anvendes i stedet for standardprislisten ved salg til den "
-#~ "aktuelle kunde"
-
-#~ msgid ""
-#~ "This rounding precision is higher than the Decimal Accuracy (%s digits).\n"
-#~ "This may cause inconsistencies in computations.\n"
-#~ "Please set a precision between %s and 1."
-#~ msgstr ""
-#~ "Denne afrundings præcision er højere end Decimalpræcisionen (%s cifre).\n"
-#~ "Dette kan forårsage uoverensstemmelser i udregninger.\n"
-#~ "Vær venlig at angive en præcision mellem %s og 1."
-
-#~ msgid "Three Seater Sofa with Lounger in Steel Grey Colour"
-#~ msgstr "Tre sædet sofa med lænestol i stål-grå farve"
-
-#~ msgid "Three-Seat Sofa"
-#~ msgstr "Tre sædet sofa"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Enhed"
-
-#~ msgid "Unit of Measure Name"
-#~ msgstr "Måleenhed navn"
-
-#~ msgid "UoM"
-#~ msgstr "Enhed"
-
-#~ msgid "Value Price Extra"
-#~ msgstr "Værdi pris ekstra"
-
-#~ msgid "Variants Creation Mode"
-#~ msgstr "Varianter oprettelses tilstand"
-
-#~ msgid "Warning!"
-#~ msgstr "Advarsel!"
-
-#~ msgid ""
-#~ "You are setting a Decimal Accuracy less precise than the UOMs:\n"
-#~ "%s\n"
-#~ "This may cause inconsistencies in computations.\n"
-#~ "Please increase the rounding of those units of measure, or the digits of "
-#~ "this Decimal Accuracy."
-#~ msgstr ""
-#~ "Du angiver en Decimalpræcision som er mindre præcis end Måleenhedens:\n"
-#~ "%s\n"
-#~ "Dette kan forårsage uoverensstemmelser i udregninger.\n"
-#~ "Vær venlig at forøge afrundingen for de måleenheder, eller for antal "
-#~ "cifre i denne Decimalpræcision."
-
-#~ msgid ""
-#~ "You cannot create two values with the same name for the same attribute."
-#~ msgstr "Du kan ikke oprette to værdier med samme navn, for samme egenskab."
-
-#~ msgid ""
-#~ "You cannot define the decimal precision of 'Account' as greater than the "
-#~ "rounding factor of the company's main currency"
-#~ msgstr ""
-#~ "Du kan ikke definere decimal præcisionen for 'Konto' som større end "
-#~ "afrundings faktoren for virksomhedens primære valuta"
-
-#~ msgid ""
-#~ "You cannot delete this product category, it is the default generic "
-#~ "category."
-#~ msgstr ""
-#~ "Du kan ikke slette denne produkt kategori, da det er standard generisk "
-#~ "kategorien."
-
-#~ msgid "You cannot delete value %s because it was used in some products."
-#~ msgstr ""
-#~ "Du kan ikke slette værdien %s fordi den blev anvendt i visse produkter."
-
-#~ msgid "the parent company"
-#~ msgstr "overordnet firma"

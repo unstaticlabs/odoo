@@ -6,7 +6,7 @@ from odoo.addons.account_edi_ubl_cii.models.account_edi_common import FloatFmt
 
 class AccountEdiUBLPint(models.AbstractModel):
     _name = "account.edi.ubl_pint"
-    _inherit = 'account.edi.ubl'
+    _inherit = 'account.edi.ubl_cen_en16931'
     _description = "UBL PINT"
 
     # -------------------------------------------------------------------------
@@ -283,6 +283,9 @@ class AccountEdiUBLPint(models.AbstractModel):
         # produce discrepancies between the tax's base amount and the sum of base amount of lines.
         node = super()._ubl_get_tax_subtotal_node(vals, tax_subtotal)
 
+        # Not allowed by PINT.
+        node['cbc:Percent']['_text'] = None
+
         # [BR-S-08]/[BR-E-08]/[BR-Z-08]/... cac:TaxSubtotal -> cbc:TaxableAmount should be
         # computed based on the cbc:LineExtensionAmount of each line linked to the tax.
         # This applies to all tax category codes (S, E, Z, AE, etc.) as each has a
@@ -327,9 +330,6 @@ class AccountEdiUBLPint(models.AbstractModel):
                 '_text': FloatFmt(sum(corresponding_line_node_amounts), min_dp=currency.decimal_places),
                 'currencyID': currency.name,
             }
-
-        # Percent is not reported in TaxSubtotal
-        node['cbc:Percent']['_text'] = None
 
         return node
 

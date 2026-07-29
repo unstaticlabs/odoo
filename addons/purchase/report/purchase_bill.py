@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, tools
-from odoo.tools import formatLang
+from odoo import api, fields, models
+from odoo.tools import formatLang, SQL
 
 
 class PurchaseBillUnion(models.Model):
@@ -22,26 +21,6 @@ class PurchaseBillUnion(models.Model):
     vendor_bill_id = fields.Many2one('account.move', string='Vendor Bill', readonly=True)
     purchase_order_id = fields.Many2one('purchase.order', string='Purchase Order', readonly=True)
 
-    def init(self):
-        tools.drop_view_if_exists(self.env.cr, 'purchase_bill_union')
-        self.env.cr.execute("""
-            CREATE OR REPLACE VIEW purchase_bill_union AS (
-                SELECT
-                    id, name, ref as reference, partner_id, date, amount_untaxed as amount, currency_id, company_id,
-                    id as vendor_bill_id, NULL as purchase_order_id
-                FROM account_move
-                WHERE
-                    move_type in ('in_invoice', 'in_refund') and state = 'posted'
-            UNION
-                SELECT
-                    -id, name, partner_ref as reference, partner_id, date_order::date as date, amount_untaxed as amount, currency_id, company_id,
-                    NULL as vendor_bill_id, id as purchase_order_id
-                FROM purchase_order
-                WHERE
-                    state = 'purchase' AND
-                    invoice_status in ('to invoice', 'no')
-            )""")
-
     @api.depends('currency_id', 'reference', 'amount', 'purchase_order_id')
     @api.depends_context('show_total_amount')
     def _compute_display_name(self):
@@ -54,3 +33,35 @@ class PurchaseBillUnion(models.Model):
                 amount = 0.0
             name += ': ' + formatLang(self.env, amount, currency_obj=doc.currency_id)
             doc.display_name = name
+
+    @property
+    def _table_query(self):
+        return SQL("""
+                SELECT id,
+                       name,
+                       ref as reference,
+                       partner_id,
+                       date,
+                       amount_untaxed as amount,
+                       currency_id,
+                       company_id,
+                       id as vendor_bill_id,
+                       NULL as purchase_order_id
+                  FROM account_move
+                 WHERE move_type in ('in_invoice', 'in_refund')
+                   AND state = 'posted'
+            UNION
+                SELECT -id,
+                       name,
+                       partner_ref as reference,
+                       partner_id,
+                       date_order::date as date,
+                       amount_untaxed as amount,
+                       currency_id,
+                       company_id,
+                       NULL as vendor_bill_id,
+                       id as purchase_order_id
+                  FROM purchase_order
+                 WHERE state = 'purchase'
+                   AND invoice_status in ('to invoice', 'no')
+        """)

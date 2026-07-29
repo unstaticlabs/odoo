@@ -6,23 +6,23 @@
 # JH CHOI <hwangtog@gmail.com>, 2022
 # Sarah Park, 2023
 # Martin Trigaux, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:13+0000\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2026-02-14 12:04+0000\n"
 "Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/analytic/"
-"ko/>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-1/"
+"analytic/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: analytic
 #. odoo-python
@@ -50,11 +50,11 @@ msgstr "<span class=\"o_stat_text\">매출총이익</span>"
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
-"'프로젝트' 계획이 있어야 하며 해당 아이디가 시스템의 변수에 "
-"`analytic.project_plan`으로 설정되어 있어야 합니다."
+"'프로젝트' 계획이 있어야 하며 해당 아이디가 시스템의 변수에 `analytic."
+"project_plan`으로 설정되어 있어야 합니다."
 
 #. module: analytic
 #. odoo-javascript
@@ -204,6 +204,7 @@ msgid "Analytic Mixin"
 msgstr "분석 혼합"
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr "분석 계획"
@@ -220,7 +221,6 @@ msgstr "분석 계획에 대한 적용 가능성"
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -381,7 +381,8 @@ msgstr "환경 설정"
 msgid ""
 "Costs will be created automatically when you register supplier\n"
 "                invoices, expenses or timesheets."
-msgstr "비용은 공급업체 청구서나 비용 또는 작업시간표를 등록 시 자동으로 생성됩니다."
+msgstr ""
+"비용은 공급업체 청구서나 비용 또는 작업시간표를 등록 시 자동으로 생성됩니다."
 
 #. module: analytic
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_account__create_uid
@@ -577,8 +578,8 @@ msgid ""
 "                your margins easily."
 msgstr ""
 "Odoo에서 판매 주문 및 프로젝트는\n"
-"                분석 계정을 통해 구현됩니다. 이를 통해 수익과 비용을 "
-"추적함으로써\n"
+"                분석 계정을 통해 구현됩니다. 이를 통해 수익과 비용을 추적함으"
+"로써\n"
 "                쉽게 손익을 분석해 낼 수 있습니다."
 
 #. module: analytic
@@ -868,8 +869,8 @@ msgid ""
 "create new customer invoice or Sales order if we select this company, it "
 "will automatically take this as an analytic account)"
 msgstr ""
-"분석 분포를 사용할 회사를 선택합니다 (예. 이 회사를 선택하고 새로운 고객용 "
-"청구서 또는 판매주문서를 생성하면 이를 자동으로 분석 계정으로 사용합니다)."
+"분석 분포를 사용할 회사를 선택합니다 (예. 이 회사를 선택하고 새로운 고객용 청"
+"구서 또는 판매주문서를 생성하면 이를 자동으로 분석 계정으로 사용합니다)."
 
 #. module: analytic
 #: model:ir.model.fields,help:analytic.field_account_analytic_distribution_model__partner_category_id
@@ -878,9 +879,9 @@ msgid ""
 "(e.g. create new customer invoice or Sales order if we select this partner, "
 "it will automatically take this as an analytic account)"
 msgstr ""
-"분석 분포를 사용할 협력사 카테고리를 선택합니다 (예. 이 협력사를 선택하고 "
-"새로운 고객용 청구서 또는 판매주문서를 생성하면 이를 자동으로 분석 계정으로 "
-"사용합니다)."
+"분석 분포를 사용할 협력사 카테고리를 선택합니다 (예. 이 협력사를 선택하고 새"
+"로운 고객용 청구서 또는 판매주문서를 생성하면 이를 자동으로 분석 계정으로 사"
+"용합니다)."
 
 #. module: analytic
 #: model:ir.model.fields,help:analytic.field_account_analytic_distribution_model__partner_id
@@ -978,8 +979,8 @@ msgid ""
 "You can't change the company of an analytic account that already has "
 "analytic items! It's a recipe for an analytical disaster!"
 msgstr ""
-"이미 분석 항목이 있는 경우에는 분석 계정이 속한 회사를 변경할 수 없습니다! "
-"분석에 오류가 발생할 수 있습니다!"
+"이미 분석 항목이 있는 경우에는 분석 계정이 속한 회사를 변경할 수 없습니다! 분"
+"석에 오류가 발생할 수 있습니다!"
 
 #. module: analytic
 #. odoo-python
@@ -994,47 +995,10 @@ msgid ""
 "You defined a distribution with analytic account(s) belonging to a specific "
 "company but a model shared between companies or with a different company"
 msgstr ""
-"특정 회사에 속한 분석 계정으로 분포를 정의했으나 분포 모델이 회사 간 또는 "
-"다른 회사와 공유되었습니다."
+"특정 회사에 속한 분석 계정으로 분포를 정의했으나 분포 모델이 회사 간 또는 다"
+"른 회사와 공유되었습니다."
 
 #. module: analytic
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "e.g. Project XYZ"
 msgstr "예: 프로젝트 XYZ"
-
-#~ msgid "Deco Addict"
-#~ msgstr "Deco Addict"
-
-#~ msgid "Add a line"
-#~ msgstr "항목 추가하기"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "단위 사이의 변환은 동일 카테고리에서만 가능합니다. 변환은 비율에 따라 이루"
-#~ "어집니다."
-
-#~ msgid "Editing"
-#~ msgstr "수정중"
-
-#~ msgid "Group By..."
-#~ msgstr "그룹별..."
-
-#~ msgid "Invalid"
-#~ msgstr "유효하지 않음"
-
-#~ msgid "Loading..."
-#~ msgstr "불러오는 중..."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "조치가 필요한 메시지 수"
-
-#~ msgid "OK"
-#~ msgstr "확인"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "단위"
-
-#~ msgid "View"
-#~ msgstr "화면"

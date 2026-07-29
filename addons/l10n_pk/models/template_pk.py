@@ -30,7 +30,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'purchases_tax_17',
                 'income_account_id': 'l10n_pk_3111001',
                 'expense_account_id': 'l10n_pk_4111001',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_pk_1125001',
             },
         }
@@ -38,6 +37,14 @@ class AccountChartTemplate(models.AbstractModel):
     @template('pk', 'account.account')
     def _get_pk_account_account(self):
         return {
+            'l10n_pk_1111002': {'asset_depreciation_account_id': 'l10n_pk_1111002', 'asset_expense_account_id': 'l10n_pk_4221052'},
+            'l10n_pk_1111003': {'asset_depreciation_account_id': 'l10n_pk_1111003', 'asset_expense_account_id': 'l10n_pk_4221050'},
+            'l10n_pk_1111004': {'asset_depreciation_account_id': 'l10n_pk_1111004', 'asset_expense_account_id': 'l10n_pk_4221051'},
+            'l10n_pk_1111005': {'asset_depreciation_account_id': 'l10n_pk_1111005', 'asset_expense_account_id': 'l10n_pk_4221047'},
+            'l10n_pk_1111007': {'asset_depreciation_account_id': 'l10n_pk_1111007', 'asset_expense_account_id': 'l10n_pk_4221048'},
+            'l10n_pk_1111008': {'asset_depreciation_account_id': 'l10n_pk_1111008', 'asset_expense_account_id': 'l10n_pk_4221049'},
+            'l10n_pk_1111009': {'asset_depreciation_account_id': 'l10n_pk_1111009', 'asset_expense_account_id': 'l10n_pk_4221053'},
+            'l10n_pk_1111010': {'asset_depreciation_account_id': 'l10n_pk_1111010', 'asset_expense_account_id': 'l10n_pk_4221054'},
             'l10n_pk_1125001': {
                 'account_stock_variation_id': 'l10n_pk_4111001',
             },

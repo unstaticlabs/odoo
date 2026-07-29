@@ -16,17 +16,17 @@
 # jabiri7, 2022
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2023
 # Ivan Espinola, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-15 07:42+0000\n"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-07-15 08:36+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-2/"
 "purchase_stock/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +37,8 @@ msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "% On-Time Delivery"
-msgstr "% Entrega a temps"
+msgid "% On Time"
+msgstr ""
 
 #. module: purchase_stock
 #. odoo-python
@@ -71,6 +71,16 @@ msgid "+ %s day(s)"
 msgstr ""
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted ms-1\"> / month</small>"
+msgstr ""
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted\">Demand: </small>"
+msgstr ""
+
+#. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
 msgid "<span class=\"o_stat_text\">On-time Rate</span>"
 msgstr "<span class=\"o_stat_text\">Taxa en temps</span>"
@@ -92,18 +102,8 @@ msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "<span class=\"text-muted small me-1\">Monthly Demand:</span>"
-msgstr ""
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
 msgid "<span class=\"text-muted small ms-1\">Forecasted</span>"
 msgstr "<span class=\"text-muted small ms-1\">Previsió</span>"
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "<span invisible=\"on_time_rate &gt;= 0\">No data yet</span>"
-msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
@@ -222,13 +222,13 @@ msgstr "Comprar per reaprovisionar"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_company
-msgid "Companies"
-msgstr "Empreses"
+msgid "Company"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,help:purchase_stock.field_purchase_order__effective_date
-msgid "Completion date of the first receipt order."
-msgstr "Data de finalització de la primera ordre de recepció."
+msgid "Completion date of the last receipt order."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_config_settings
@@ -265,6 +265,13 @@ msgstr "Descripció personalitzada"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_rfq__day
 msgid "Daily"
 msgstr "Diàriament"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order__date_promised
+msgid ""
+"Date promised by the vendor for at least 1 or more products to be delivered "
+"by."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_picking__days_to_arrive
@@ -315,6 +322,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_type_id
 msgid "Deliver To"
 msgstr "Entregar a"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order_line__date_promised
+msgid ""
+"Delivery Date promised by the vendor. If the vendor delivers products after "
+"this date, their On-Time rate will be negatively impacted."
+msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_supplierinfo_replenishment_tree_view
@@ -437,11 +451,6 @@ msgid "Friday"
 msgstr "Divendres"
 
 #. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__full
-msgid "Fully Received"
-msgstr "Rebuts complets"
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/js/tours/purchase_stock.js:0
 msgid "Generate the draft vendor bill."
@@ -524,8 +533,8 @@ msgstr "Ubicació incoterminada"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "Rutes d'inventari"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__is_shipped
@@ -608,6 +617,12 @@ msgid "Minimum Inventory Rule"
 msgstr "Regla d'inventari mínim"
 
 #. module: purchase_stock
+#. odoo-python
+#: code:addons/purchase_stock/models/stock.py:0
+msgid "Missing products in receipt"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__1
 msgid "Monday"
 msgstr "Dilluns"
@@ -646,17 +661,13 @@ msgid "No supplier has been found to replenish"
 msgstr ""
 
 #. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__pending
-msgid "Not Received"
-msgstr "No s'ha rebut"
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/purchase_dashboard/purchase_dashboard.xml:0
 msgid "OTD"
 msgstr "OTD"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
 msgid "On"
 msgstr "On"
@@ -696,6 +707,11 @@ msgid "On-time Rate"
 msgstr "Taxa en temps"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Only"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "Order Deadline"
@@ -723,11 +739,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase_stock.field_product_product__purchase_order_line_ids
 msgid "PO Lines"
 msgstr "Línies PO"
-
-#. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__partial
-msgid "Partially Received"
-msgstr "Rebut parcialment"
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -760,6 +771,12 @@ msgstr "Mixin de reposició de producte"
 #: model:ir.model,name:purchase_stock.model_product_product
 msgid "Product Variant"
 msgstr "Variant de producte"
+
+#. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__date_promised
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__date_promised
+msgid "Promised Date"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__propagate_cancel
@@ -829,11 +846,6 @@ msgid "Receipt Date"
 msgstr ""
 
 #. module: purchase_stock
-#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__receipt_status
-msgid "Receipt Status"
-msgstr "Estat del rebut"
-
-#. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 msgid "Receive"
 msgstr "Rebre"
@@ -850,20 +862,14 @@ msgid "Received Qty Method"
 msgstr "Mètode de quantitat rebuda"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Received quantity is less than the expected quantity for transfer"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_ids
 msgid "Receptions"
 msgstr "Recepcions"
-
-#. module: purchase_stock
-#: model:ir.model.fields,help:purchase_stock.field_purchase_order__receipt_status
-msgid ""
-"Red: Late\n"
-"            Orange: To process today\n"
-"            Green: On time"
-msgstr ""
-"Vermell: retard\n"
-"            Taronja: a processar avui\n"
-"            Verd: a temps"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_reference
@@ -1018,6 +1024,11 @@ msgstr ""
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__7
 msgid "Sunday"
 msgstr "Diumenge"
+
+#. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_product_replenish__partner_id
+msgid "Supplier"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_warehouse_orderpoint__supplier_id_placeholder
@@ -1177,11 +1188,6 @@ msgid "Tuesday"
 msgstr "Dimarts"
 
 #. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "Units"
-msgstr ""
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/js/tours/purchase_stock.js:0
 msgid "Validate the receipt of all ordered products."
@@ -1276,12 +1282,18 @@ msgid "You must set a Vendor Location for this partner %s"
 msgstr "Ha d'assignar una localització de venedor per aquest soci %s"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "and no backorder is planned. Manual action may be needed."
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/product_catalog/search/search_panel.xml:0
 msgid "day(s)"
 msgstr "dia(es)"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
 #: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_po
 msgid "of"
 msgstr "de"
@@ -1292,9 +1304,19 @@ msgid "ordered instead of"
 msgstr "Encomanat en lloc de"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "received in contrast to the expected"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "this product should be manually replenished."
+msgstr ""
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "units"
 msgstr ""
 
 #. module: purchase_stock
@@ -1305,117 +1327,3 @@ msgstr ""
 
 #~ msgid "Stock Valuation"
 #~ msgstr "Valoració d'estoc"
-
-#~ msgid "Requests for quotation"
-#~ msgstr "Sol·licituds de pressupost"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">No On-time "
-#~ "Delivery Data</span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">No hi ha "
-#~ "dades de lliurament en temps</span>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Adreça d'enviament:</strong>"
-
-#~ msgid "Currency exchange rate difference"
-#~ msgstr "Diferència en la taxa de canvi de divisa"
-
-#~ msgid ""
-#~ "Depending on the modules installed, this will allow you to define the "
-#~ "route of the product: whether it will be bought, manufactured, "
-#~ "replenished on order, etc."
-#~ msgstr ""
-#~ "Depenent dels mòduls instal· lats, això us permetrà definir la ruta del "
-#~ "producte: si es compra, fabricada, es repensiva en ordre, etc."
-
-#~ msgid ""
-#~ "For the product %s, the warehouse of the operation type (%s) is "
-#~ "inconsistent with the location (%s) of the reordering rule (%s). Change "
-#~ "the operation type or cancel the request for quotation."
-#~ msgstr ""
-#~ "Per al producte %s, el magatzem del tipus d'operació (%s) és inconsistent "
-#~ "amb la ubicació (%s) de la regla de reordenació (%s). Canviar el tipus "
-#~ "d'operació o cancel·lar la sol·licitud de pressupost."
-
-#~ msgid "Incoterm"
-#~ msgstr "Incoterm"
-
-#~ msgid ""
-#~ "International Commercial Terms are a series of predefined commercial "
-#~ "terms used in international transactions."
-#~ msgstr ""
-#~ "Els termes de comerç internacional són una sèrie de condicions comercials "
-#~ "utilitzades en les transaccions internacionals."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Marge d'error pels terminis d'entrega del venedor. Quan el sistema genera "
-#~ "comandes per productes, es programaran dies abans per fer front a retards "
-#~ "inesperats del venedor."
-
-#~ msgid "Move forward expected request creation date by"
-#~ msgstr "Mou endavant la data de creació esperada de la sol·licitud per"
-
-#~ msgid "No data yet"
-#~ msgstr "Encara no hi ha dades"
-
-#~ msgid ""
-#~ "Odoo is not able to generate the anglo saxon entries. The total valuation "
-#~ "of %s is zero."
-#~ msgstr ""
-#~ "Odoo no és capaç de generar les entrades de saxons anglòfons. La "
-#~ "valoració total%s és zero"
-
-#~ msgid ""
-#~ "Over the past 12 months; the number of products received on time divided "
-#~ "by the number of ordered products."
-#~ msgstr ""
-#~ "En els últims 12 mesos, el nombre de productes rebuts a temps es divideix "
-#~ "pel nombre de productes ordenats."
-
-#~ msgid "Procurement Group"
-#~ msgstr "Grup de proveïment "
-
-#~ msgid "Product Supplier"
-#~ msgstr "Proveïdor de productes"
-
-#~ msgid "Purchase Security Lead Time"
-#~ msgstr "Temps d'inici de la seguretat de compra"
-
-#~ msgid "Purchase Visibility Days"
-#~ msgstr "Dies de visibilitat de compra"
-
-#~ msgid "Receive Products"
-#~ msgstr "Rebre productes"
-
-#~ msgid "Routes"
-#~ msgstr "Rutes"
-
-#~ msgid "Schedule request for quotations earlier to avoid delays"
-#~ msgstr "Planifica la sol·licitud de cites anteriors per evitar retards"
-
-#~ msgid ""
-#~ "Unable to cancel purchase order %s as some receptions have already been "
-#~ "done."
-#~ msgstr ""
-#~ "No es pot cancel·lar la comanda de compra %s, ja que algunes recepcions "
-#~ "ja s'han completat."
-
-#~ msgid "Visibility Days applied on the purchase routes."
-#~ msgstr "Dies de visibilitat aplicades a les rutes de compra."
-
-#~ msgid ""
-#~ "You cannot decrease the ordered quantity below the received quantity.\n"
-#~ "Create a return first."
-#~ msgstr ""
-#~ "No pots disminuir la quantitat encomanada per sota de la quantitat "
-#~ "rebuda.\n"
-#~ "Crea primer una devolució."
-
-#~ msgid "days"
-#~ msgstr "dies"

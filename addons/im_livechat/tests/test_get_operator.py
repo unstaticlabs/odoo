@@ -3,14 +3,12 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-import odoo
 from odoo import Command, fields
 from odoo.addons.im_livechat.tests.common import TestGetOperatorCommon
 from odoo.addons.mail.tests.common import MailCommon, freeze_all_time
 from odoo.tests.common import users
 
 
-@odoo.tests.tagged("-at_install", "post_install")
 class TestGetOperator(MailCommon, TestGetOperatorCommon):
     def setUp(self):
         super().setUp()
@@ -341,7 +339,6 @@ class TestGetOperator(MailCommon, TestGetOperatorCommon):
             "name": "Visitor 1",
             "channel_type": "livechat",
             "livechat_channel_id": livechat_channel.id,
-            "livechat_operator_id": operator.partner_id.id,
             "channel_member_ids": [Command.create({"partner_id": operator.partner_id.id})],
             "last_interest_dt": fields.Datetime.now() - timedelta(minutes=4),
         }

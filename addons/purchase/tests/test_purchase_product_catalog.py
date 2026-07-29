@@ -16,7 +16,7 @@ class TestPurchaseProductCatalog(AccountTestInvoicingCommon, HttpCase):
         """
         self.authenticate(self.env.user.login, self.env.user.login)
         company_currency = self.env.company.currency_id
-        other_currency = self.setup_other_currency('HRK', rates=[(fields.Date.today(), 0.5)])
+        other_currency = self.setup_other_currency('HRK', rates=[(fields.Date.subtract(fields.Date.today(), days=1), 0.5)])
 
         other_product_price = 100
         company_product_price = 150
@@ -118,24 +118,24 @@ class TestPurchaseProductCatalog(AccountTestInvoicingCommon, HttpCase):
             'seller_ids': [
                 Command.create({
                     'partner_id': vendor_by_liter.id,
-                    'product_uom_id': uom_liter.id,
+                    'uom_id': uom_liter.id,
                     'price': 2,
                     'discount': 22.5
                 }),
                 Command.create({
                     'partner_id': vendor_by_unit.id,
-                    'product_uom_id': self.uom_unit.id,
+                    'uom_id': self.uom_unit.id,
                     'price': 2.5,
                 }),
                 Command.create({
                     'partner_id': vendor_by_unit.id,
-                    'product_uom_id': self.uom_unit.id,
+                    'uom_id': self.uom_unit.id,
                     'min_qty': 6,
                     'price': 2.45,
                 }),
                 Command.create({
                     'partner_id': vendor_by_unit.id,
-                    'product_uom_id': self.uom_unit.id,
+                    'uom_id': self.uom_unit.id,
                     'min_qty': 12,
                     'price': 2.45,
                     'discount': 10.2,
@@ -176,7 +176,7 @@ class TestPurchaseProductCatalog(AccountTestInvoicingCommon, HttpCase):
         supplier_info = self.env['product.supplierinfo'].create({
             'partner_id': self.partner_a.id,
             'product_tmpl_id': product_template.id,
-            'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
+            'uom_id': self.env.ref('uom.product_uom_pack_6').id,
             'price': 100.0,
         })
 

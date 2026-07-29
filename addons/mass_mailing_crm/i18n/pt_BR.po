@@ -6,23 +6,24 @@
 # Martin Trigaux, 2022
 # Kevilyn Rosa, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Maitê Dietze (madi)" <madi@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~15.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 16:30+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/odoo-"
-"19/mass_mailing_crm/pt_BR/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-02-28 13:45+0000\n"
+"Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/"
+"odoo-s19-2/mass_mailing_crm/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
-"1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : "
+"((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: mass_mailing_crm
 #: model_terms:ir.ui.view,arch_db:mass_mailing_crm.mailing_mailing_view_form
@@ -32,8 +33,8 @@ msgid ""
 "invisible=\"use_leads\">Opportunities</span>"
 msgstr ""
 "<span class=\"o_stat_text\" invisible=\"not use_leads\">Leads</span>\n"
-"                        <span class=\"o_stat_text\" invisible=\"use_leads\">"
-"Oportunidades</span>"
+"                        <span class=\"o_stat_text\" "
+"invisible=\"use_leads\">Oportunidades</span>"
 
 #. module: mass_mailing_crm
 #: model:ir.model,website_form_label:mass_mailing_crm.model_crm_lead
@@ -68,6 +69,12 @@ msgstr "Lead"
 #. module: mass_mailing_crm
 #. odoo-python
 #: code:addons/mass_mailing_crm/models/mailing_mailing.py:0
+msgid "Lead Recall"
+msgstr "Lead Recall"
+
+#. module: mass_mailing_crm
+#. odoo-python
+#: code:addons/mass_mailing_crm/models/mailing_mailing.py:0
 #: model:ir.model.fields.selection,name:mass_mailing_crm.selection__utm_campaign__ab_testing_winner_selection__crm_lead_count
 msgid "Leads"
 msgstr "Leads"
@@ -82,6 +89,22 @@ msgstr "Análise de leads"
 #: model:ir.model.fields,field_description:mass_mailing_crm.field_mailing_mailing__crm_lead_count
 msgid "Leads/Opportunities Count"
 msgstr "Total de leads/oportunidades"
+
+#. module: mass_mailing_crm
+#. odoo-python
+#: code:addons/mass_mailing_crm/models/mailing_mailing.py:0
+msgid "Learn More"
+msgstr "Saiba mais"
+
+#. module: mass_mailing_crm
+#. odoo-python
+#: code:addons/mass_mailing_crm/models/mailing_mailing.py:0
+msgid ""
+"Looking to turn your mailings into leads? Use your sales team's email as the "
+"reply-to address."
+msgstr ""
+"Quer transformar suas correspondências em leads? Use o e-mail da sua equipe "
+"de vendas como endereço de resposta."
 
 #. module: mass_mailing_crm
 #: model:ir.model,name:mass_mailing_crm.model_mailing_mailing
@@ -129,17 +152,3 @@ msgstr "Usar leads"
 #: model:ir.model.fields,field_description:mass_mailing_crm.field_utm_campaign__ab_testing_winner_selection
 msgid "Winner Selection"
 msgstr "Seleção da versão ganhadora"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('use_leads', '=', "
-#~ "False)]}\">Leads</span>\n"
-#~ "                        <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('use_leads', '=', True)]}\">Opportunities</span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\" attrs=\"{'invisible': [('use_leads', '=', "
-#~ "False)]}\">Leads</span>\n"
-#~ "                        <span class=\"o_stat_text\" attrs=\"{'invisible': "
-#~ "[('use_leads', '=', True)]}\">Oportunidades</span>"
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Lead/Oportunidade"

@@ -2,16 +2,15 @@
 # This file contains the translation of the following modules:
 # * payment_nuvei
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Nusara Boonma <nuboo@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 20:33+0000\n"
-"Last-Translator: Nusara Boonma <nuboo@odoo.com>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-11-11 17:18+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
 "payment_nuvei/th/>\n"
 "Language: th\n"
@@ -19,13 +18,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_nuvei
 #. odoo-python
 #: code:addons/payment_nuvei/models/payment_transaction.py:0
 msgid "%(payment_method)s requires both a first and last name."
-msgstr "%(payment_method)s จำเป็นต้องมีทั้งชื่อจริงและนามสกุล"
+msgstr ""
 
 #. module: payment_nuvei
 #. odoo-python
@@ -33,8 +32,7 @@ msgstr "%(payment_method)s จำเป็นต้องมีทั้งช�
 msgid ""
 "An error occurred during the processing of your payment (%(reason)s). Please "
 "try again."
-msgstr ""
-"เกิดข้อผิดพลาดระหว่างการประมวลผลการชำระเงินของคุณ (%(reason)s) กรุณาลองอีกครั้ง"
+msgstr "เกิดข้อผิดพลาดระหว่างการประมวลผลการชำระเงินของคุณ (%(reason)s) กรุณาลองอีกครั้ง"
 
 #. module: payment_nuvei
 #: model:ir.model.fields,field_description:payment_nuvei.field_payment_provider__code
@@ -60,9 +58,8 @@ msgstr "ตัวระบุผู้ขาย"
 
 #. module: payment_nuvei
 #: model:ir.model.fields.selection,name:payment_nuvei.selection__payment_provider__code__nuvei
-#, fuzzy
 msgid "Nuvei"
-msgstr "Nuvei"
+msgstr ""
 
 #. module: payment_nuvei
 #: model:ir.model.fields,field_description:payment_nuvei.field_payment_provider__nuvei_merchant_identifier
@@ -131,9 +128,3 @@ msgstr ""
 #: model:ir.model.fields,help:payment_nuvei.field_payment_provider__code
 msgid "The technical code of this payment provider."
 msgstr "รหัสทางเทคนิคของผู้ให้บริการชำระเงินรายนี้"
-
-#~ msgid "No transaction found matching reference %(ref)s."
-#~ msgstr "ไม่พบธุรกรรมที่ตรงกับการอ้างอิง %(ref)s"
-
-#~ msgid "Received data with missing reference."
-#~ msgstr "ได้รับข้อมูลโดยไม่มีการอ้างอิง"

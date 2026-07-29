@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': "Project - Account",
@@ -14,7 +13,6 @@ This module allows the computation of the 'Vendor Bills', 'Other Costs' and 'Oth
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
     'data': [
-        'views/account_analytic_line_views.xml',
         'views/project_project_views.xml',
         'views/project_task_views.xml',
         'views/project_sharing_project_task_views.xml',

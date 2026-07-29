@@ -62,7 +62,7 @@ class StockMove(models.Model):
                 'product_id': product.id,
                 'product_uom_qty': 0,
                 'qty_delivered': quantity,
-                'product_uom_id': move.product_uom.id,
+                'product_uom_id': move.uom_id.id,
             }
             so_line = sale_order.order_line.filtered(lambda sol: sol.product_id == product)
             if product.invoice_policy == 'delivery':
@@ -258,7 +258,7 @@ class StockPicking(models.Model):
                 'product_id': product.id,
                 'product_uom_qty': 0,
                 'qty_delivered': quantity,
-                'product_uom_id': move.product_uom.id,
+                'product_uom_id': move.uom_id.id,
             }
             so_line = sale_order.order_line.filtered(lambda sol: sol.product_id == product)
             if product.invoice_policy == 'delivery':
@@ -317,10 +317,6 @@ class StockPicking(models.Model):
         self._log_activity(_render_note_exception_quantity, documents)
 
         return super(StockPicking, self)._log_less_quantities_than_expected(moves)
-
-    def _can_return(self):
-        self.ensure_one()
-        return super()._can_return() or self.sale_id
 
 
 class StockLot(models.Model):

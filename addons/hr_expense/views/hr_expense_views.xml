@@ -20,7 +20,7 @@
                     <!--  Optional -->
                     <field name="department_id" optional="hide" readonly="True"/>
                     <field name="date" optional="show" readonly="not is_editable"/>
-                    <field name="product_id" optional="show" readonly="not is_editable" required="1"/>
+                    <field name="product_id" optional="show" readonly="not is_editable"/>
                     <field name="payment_mode" optional="show" readonly="not is_editable"/>
                     <field name="activity_ids" widget="list_activity" optional="show"/>
                     <field name="analytic_distribution" widget="analytic_distribution"
@@ -189,7 +189,7 @@
 
                             <label for="product_id"/>
                             <div>
-                                <field name="product_id" required="1" readonly="not is_editable"
+                                <field name="product_id" readonly="not is_editable"
                                     context="{
                                         'default_type': 'service',
                                         'default_can_be_expensed': 1,
@@ -210,7 +210,7 @@
                             <div invisible="not product_has_cost">
                                 <div class="o_row">
                                     <field name="quantity" class="oe_inline" readonly="not is_editable"/>
-                                    <field name="product_uom_id" required="1" force_save="1"
+                                    <field name="product_uom_id" force_save="1"
                                            options="{'no_open': True, 'no_create': True}" groups="uom.group_uom"
                                            readonly="not is_editable" widget="many2one_uom"/>
                                 </div>
@@ -243,7 +243,6 @@
                                        widget="many2many_tax_tags"
                                        readonly="not is_editable"
                                        options="{'no_create': True}"/>
-                                <field name="tax_amount_currency"/>
                             </div>
                             <field name="employee_id" groups="!hr.group_hr_user"
                                    context="{'default_company_id': company_id}" widget="many2one_avatar_employee"
@@ -285,7 +284,7 @@
                     </div>
                 </sheet>
                 <div class="o_attachment_preview o_center_attachment"/>
-                <chatter/>
+                <chatter reload_on_attachment="True"/>
                 </form>
             </field>
         </record>
@@ -326,10 +325,11 @@
                                 <field name="employee_id" widget="many2one_avatar_employee"
                                        options="{'display_avatar_name': True}"
                                        readonly="True"/>
-                                <field class="ms-auto" name="state" widget="label_selection"
-                                        options="{'classes': {
-                                        'draft': 'default', 'submitted': 'warning', 'refused': 'danger', 'posted': 'warning',
-                                        'approved': 'success', 'in_payment': 'success', 'paid': 'success'}}"/>
+                                <field name="state" widget="badge" class="ms-auto"
+                                       decoration-info="state == 'draft'"
+                                       decoration-success="state in ['approved', 'posted', 'in_payment', 'paid']"
+                                       decoration-warning="state == 'submitted'"
+                                       decoration-danger="state == 'refused'"/>
                             </div>
                             <field class="mt8 text-muted" name="date"/>
                         </t>
@@ -450,7 +450,7 @@
                         domain="[('my_activity_date_deadline', '&gt;', 'today')]"/>
 
                     <!-- Group bys -->
-                    <group name="group_filters">
+                    <group>
                         <filter string="Employee" name="employee" domain="[]" context="{'group_by': 'employee_id'}"/>
                         <filter string="Category" name="product" domain="[]" context="{'group_by': 'product_id'}"/>
                         <filter string="Status" name="status" domain="[]" context="{'group_by': 'state'}"/>
@@ -521,7 +521,7 @@
             <field name="inherit_id" ref="hr_expense_view_search"/>
             <field name="mode">primary</field>
             <field name="arch" type="xml">
-                <xpath expr="//group[@name='group_filters']" position='after'>
+                <xpath expr="//group" position='after'>
                     <searchpanel>
                         <field name="state" expand="1" select="multi" icon="fa-check-square-o" enable_counters="1"/>
                         <field name="employee_id"  limit="20" hierarchize="0" select="one" icon="fa-users"/>
@@ -537,6 +537,7 @@
             <field name="res_model">hr.expense</field>
             <field name="view_mode">list,kanban,form,graph,pivot,activity</field>
             <field name="search_view_id" ref="hr_expense_view_search_with_panel"/>
+            <field name="domain">[('manager_id', '=?', context.get('active_id'))]</field>
             <field name="context">{'searchpanel_default_state': ['submitted']}</field>
             <field name="help" type="html">
                 <div class="o_view_nocontent_expense_receipt o_view_pink_overlay">
@@ -605,8 +606,8 @@
         </record>
 
         <record id="action_hr_expense_department_to_approve" model="ir.actions.act_window">
-            <field name="name">Expense to Approve</field>
-            <field name="path">expense-to-approve</field>
+            <field name="name">Expenses to Approve</field>
+            <field name="path">expenses-to-approve</field>
             <field name="res_model">hr.expense</field>
             <field name="view_mode">list,kanban,form,pivot,graph</field>
             <field name="search_view_id" ref="hr_expense_view_search_with_panel"/>

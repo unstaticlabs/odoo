@@ -6,15 +6,16 @@
 # Martin Trigaux, 2022
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
 # Pedro M. Baeza <pedro.baeza@tecnativa.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 03:44+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:35+0000\n"
+"PO-Revision-Date: 2026-06-13 17:57+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_adyen/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -44,6 +45,11 @@ msgstr "Error de Adyen"
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_latest_response
 msgid "Adyen Latest Response"
 msgstr "Última respuesta de Adyen"
+
+#. module: pos_adyen
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_merchant_account
+msgid "Adyen Merchant Account"
+msgstr "Cuenta de comerciante de Adyen"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
@@ -85,8 +91,10 @@ msgstr ""
 #. module: pos_adyen
 #. odoo-javascript
 #: code:addons/pos_adyen/static/src/app/utils/payment/payment_adyen.js:0
-msgid "Cannot process transactions with negative amount."
-msgstr "No se puede procesar transacciones con un importe negativo."
+msgid "Cannot refund non-Adyen transactions via Adyen."
+msgstr ""
+"Las transacciones que no proceden de Adyen no se pueden reembolsar a través "
+"de Adyen."
 
 #. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_res_config_settings
@@ -105,6 +113,8 @@ msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__display_name
 msgid "Display Name"
@@ -117,6 +127,8 @@ msgstr "URL del evento"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_adyen.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__id
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__id
 msgid "ID"
@@ -149,9 +161,19 @@ msgid "Point of Sale Configuration"
 msgstr "Configuración del TPV"
 
 #. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_order
+msgid "Point of Sale Order"
+msgstr "Pedido del punto de venta"
+
+#. module: pos_adyen
+#: model:ir.model,name:pos_adyen.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr "Pagos en el punto de venta"
+
+#. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Métodos de pago en el punto de venta"
+msgid "Point of Sale Payment Method"
+msgstr "Método de pago del punto de venta"
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_res_config_settings__pos_adyen_ask_customer_for_tip
@@ -179,8 +201,13 @@ msgstr ""
 msgid ""
 "Terminal %(terminal)s is already used on payment method %(payment_method)s."
 msgstr ""
-"El terminal %(terminal)s a se utiliza en el método de pago %(payment_method)"
-"s."
+"El terminal %(terminal)s a se utiliza en el método de pago "
+"%(payment_method)s."
+
+#. module: pos_adyen
+#: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_merchant_account
+msgid "The POS merchant account code used in Adyen"
+msgstr "La cuenta de comerciante del TPV que se usa en Adyen"
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_event_url
@@ -201,16 +228,3 @@ msgstr ""
 msgid "[Terminal model]-[Serial number], for example: P400Plus-123456789"
 msgstr ""
 "[Modelo de terminal] - [Número de serie], por ejemplo: P400Plus-123456789"
-
-#~ msgid "Adyen Latest Diagnosis"
-#~ msgstr "Último diagnóstico de Adyen"
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "Sesión TPV"
-
-#~ msgid "Terminal %s is already used in company %s on payment method %s."
-#~ msgstr ""
-#~ "El terminal %s ya está en uso en la compañía %s con el método de pago %s."
-
-#~ msgid "Terminal %s is already used on payment method %s."
-#~ msgstr "El terminal %s ya se usa en el método de pago %s."

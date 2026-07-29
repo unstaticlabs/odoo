@@ -18,11 +18,24 @@
             </field>
         </record>
 
+        <record id="im_livechat_channel_view_list" model="ir.ui.view">
+            <field name="name">im_livechat.channel.list</field>
+            <field name="model">im_livechat.channel</field>
+            <field name="arch" type="xml">
+                <list string="Live Chat Channels" sample="1">
+                    <field name="name" string="Name"/>
+                    <field name="user_ids" string="Operators" widget="many2many_avatar_user"/>
+                    <field name="nbr_channel" string="Sessions"/>
+                    <field name="rating_percentage_satisfaction" string="Rating (%)"/>
+                </list>
+            </field>
+        </record>
+
         <record id="im_livechat_channel_view_kanban" model="ir.ui.view">
             <field name="name">im_livechat.channel.kanban</field>
             <field name="model">im_livechat.channel</field>
             <field name="arch" type="xml">
-                <kanban js_class="im_livechat.livechat_channel_kanban" action="im_livechat.discuss_channel_action_from_livechat_channel" type="action">
+                <kanban sample="1" js_class="im_livechat.livechat_channel_kanban" action="im_livechat.discuss_channel_action_from_livechat_channel" type="action">
                     <field name="are_you_inside"/>
                     <field name="rating_count"/>
                     <templates>
@@ -104,6 +117,7 @@
                                         <list no_open="1" create="0">
                                             <field name="partner_id" string="Agent" widget="many2one_avatar_user" width="175px" context="{'im_livechat_hide_partner_company': True}"/>
                                             <field name="livechat_is_in_call" widget="boolean_phone" nolabel="1"/>
+                                            <field name="company_id" optional="hide"/>
                                             <field string="Languages" name="livechat_lang_ids" widget="many2many_tags" optional="show"/>
                                             <field string="Expertise" name="livechat_expertise_ids" widget="many2many_tags" optional="show"/>
                                             <field string="Ongoing Sessions" name="livechat_ongoing_session_count" width="150px" optional="show"/>
@@ -142,6 +156,11 @@
                                         </group>
                                         <group class="oe_subtotal_footer d-flex justify-content-end">
                                             <div class="container">
+                                                <field name="available_operator_ids" invisible="1"/>
+                                                <div class="row mb-2">
+                                                    <div class="col"><label class="fw-bold" for="available_operator_ids_count"/></div>
+                                                    <div class="col me-1"><field name="available_operator_ids_count" nolabel="1"/></div>
+                                                </div>
                                                 <div class="row mb-2">
                                                     <div class="col"><label class="fw-bold" for="ongoing_session_count"/></div>
                                                     <div class="col me-1"><field name="ongoing_session_count" nolabel="1"/></div>
@@ -228,8 +247,9 @@
             <field name="name">im.livechat.channel.view.search</field>
             <field name="model">im_livechat.channel</field>
             <field name="arch" type="xml">
-                <search string="LiveChat Channel Search">
-                    <field name="name" string="Channel"/>
+                <search string="Live Chat Channel Search">
+                    <field name="name" string="Channel Name"/>
+                    <field name="user_ids" string="Operators"/>
                 </search>
             </field>
         </record>
@@ -309,24 +329,11 @@
 
         <menuitem
             id="menu_livechat_sessions"
+            action="discuss_channel_action"
             name="Sessions"
             parent="menu_livechat_root"
             groups="im_livechat_group_user"
             sequence="10"/>
-
-        <menuitem
-            id="menu_livechat_all_conversations"
-            name="All Conversations"
-            action="discuss_channel_action"
-            parent="menu_livechat_sessions"
-            sequence="25"/>
-
-        <menuitem
-            id="menu_livechat_looking_for_help"
-            name="Looking for Help"
-            action="discuss_channel_looking_for_help_action"
-            parent="menu_livechat_sessions"
-            sequence="50"/>
 
         <menuitem
             id="menu_reporting_livechat"
@@ -363,14 +370,6 @@
             action="chatbot_script_action"
             groups="im_livechat_group_manager"
             sequence="20"/>
-
-        <menuitem
-            id="menu_livechat_conversation_tag"
-            name="Tags"
-            parent="livechat_config"
-            action="livechat_conversation_tag_action"
-            groups="im_livechat_group_user"
-            sequence="30"/>
 
     </data>
 </odoo>

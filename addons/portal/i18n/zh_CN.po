@@ -8,23 +8,23 @@
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
 # Emily Jia <eji@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:40+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-28 14:39+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/portal/zh_Hans/>\n"
+"projects/odoo-s19-2/portal/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -36,6 +36,11 @@ msgstr "\" 来验证您的动作。"
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "逾期%s天"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -62,14 +67,14 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
-msgstr "<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> 登出"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
+msgstr "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> 注销"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
 msgid "<i class=\"fa fa-fw fa-th me-1 small text-primary-emphasis\"/> Apps"
-msgstr "<i class=\"fa fa-fw fa-th me-1 small text-primary-emphasis\"/> 应用程序"
+msgstr ""
+"<i class=\"fa fa-fw fa-th me-1 small text-primary-emphasis\"/> 应用程序"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.side_content
@@ -113,17 +118,8 @@ msgstr "<i class=\"oi oi-plus me-2\"/>添加地址"
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-msgstr "<i title=\"系统使用说明\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">国家/地区...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">行政区划...</option>"
+msgstr ""
+"<i title=\"系统使用说明\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -269,7 +265,7 @@ msgid "Add extra content to display in the email"
 msgstr "添加额外内容以显示在EMail中"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "添加、删除或修改您的地址"
 
@@ -284,8 +280,8 @@ msgid "Address Management"
 msgstr "地址管理"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "地址"
 
@@ -322,10 +318,9 @@ msgid "Billing address"
 msgstr "账单地址"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "取消"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -338,7 +333,8 @@ msgstr "更改密码"
 msgid ""
 "Changing VAT number is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
-msgstr "一旦您的账户开具发票，不可更改增值税号码。如需要此操作，请直接与我们联系。"
+msgstr ""
+"一旦您的账户开具发票，不可更改增值税号码。如需要此操作，请直接与我们联系。"
 
 #. module: portal
 #. odoo-python
@@ -380,12 +376,17 @@ msgid "Company Name"
 msgstr "公司名称"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "配置设置"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "配置连接参数"
 
@@ -402,7 +403,11 @@ msgid "Confirm Password"
 msgstr "确认密码"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "连接 &amp; 安全"
@@ -438,11 +443,17 @@ msgid "Country"
 msgstr "国家/地区"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "创建客户"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -450,6 +461,7 @@ msgid "Created by"
 msgstr "创建人"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -504,6 +516,11 @@ msgid "Description"
 msgstr "描述"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "详情"
@@ -531,11 +548,17 @@ msgstr ""
 "                                        </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -649,6 +672,7 @@ msgstr "首页"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -674,6 +698,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "如要修改，请更新"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -740,6 +769,7 @@ msgstr ""
 "                并完成,"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -747,6 +777,7 @@ msgid "Last Updated by"
 msgstr "最后更新人"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -788,8 +819,8 @@ msgstr "消息"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr "模型%(model_name)s不支持token签名，因为它没有%(field_name)s字段。"
 
 #. module: portal
@@ -880,6 +911,11 @@ msgid "Phone"
 msgstr "电话"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -896,6 +932,11 @@ msgstr "门户访问管理"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "门户网站访问网址"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -1047,6 +1088,11 @@ msgid "Show As Optional Inherit"
 msgstr "作为可选继承显示"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "登录"
@@ -1076,6 +1122,11 @@ msgid "State / Province"
 msgstr "州/省"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "状态"
@@ -1084,6 +1135,11 @@ msgstr "状态"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "街道和号码"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1215,6 +1271,11 @@ msgid "This text is included in the email sent to new users of the portal."
 msgstr "这段文字会被包含在发给门户网站的新用户的email中。"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
 msgstr "切换筛选"
@@ -1281,9 +1342,9 @@ msgstr "视图"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1319,9 +1380,9 @@ msgstr "网站消息"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1356,7 +1417,7 @@ msgstr "写点什么呢。。。"
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "写信息…"
 
@@ -1399,6 +1460,12 @@ msgstr "您必须输入“"
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "您应该首先授予合作伙伴\"%s\"的门户权限。"
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1448,9 +1515,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "密码"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1468,134 +1535,3 @@ msgstr "对于您的用户帐户，安全地存储它非常重要。"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "您的账户详情"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> My Account"
-#~ msgstr "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/>我的账户"
-
-#~ msgid "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> Logout"
-#~ msgstr "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/>登出"
-
-#~ msgid "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> Apps"
-#~ msgstr "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/>应用"
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>编辑安全设置"
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> 编辑"
-
-#~ msgid ""
-#~ "<small class=\"form-text text-muted\">Changing company name or VAT number "
-#~ "is not allowed once document(s) have been issued for your account. <br/"
-#~ ">Please contact us directly for this operation.</small>"
-#~ msgstr ""
-#~ "<small class=\"form-text text-muted\">一旦为您的账户签发了文件，就不允许更"
-#~ "改公司名称或增值税号码。<br/>，请直接与我们联系这项操作。</small>"
-
-#~ msgid "Account Security"
-#~ msgstr "帐户安全"
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "必须为每个附件提供一个访问令牌。"
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "为您的帐户签发文件后，不允许更改公司名称。请直接联系我们进行此操作。"
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr ""
-#~ "确认\n"
-#~ "<span class=\"fa fa-long-arrow-right\"/>"
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "无法保存文件 <strong>%s</strong>"
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr "目前每个人都可以视图此文件，点击限制内部员工使用。"
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr "目前仅限于内部员工使用，点击可使每个人都能视图此文件。"
-
-#~ msgid "Discard"
-#~ msgstr "丢弃"
-
-#~ msgid "Documents"
-#~ msgstr "文档"
-
-#~ msgid "Employees Only"
-#~ msgstr "仅限员工"
-
-#~ msgid "Internal Note"
-#~ msgstr "内部说明"
-
-#~ msgid "Internal notes are only displayed to internal users."
-#~ msgstr "内部注释仅向内部用户显示."
-
-#~ msgid "Invitation email to contacts to create a user account"
-#~ msgstr "向联系人发送邀请电子邮件以创建用户帐户"
-
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgid "No Documents to display"
-#~ msgstr "没有显示的文档"
-
-#~ msgid "Portal: User Invite"
-#~ msgstr "门户:用户邀请"
-
-#~ msgid "Prev"
-#~ msgstr "上一个"
-
-#~ msgid "Published on %s"
-#~ msgstr "已在 %s 上发布"
-
-#~ msgid "Street"
-#~ msgstr "街道"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr "附件%s不存在或者您没有权限访问它。"
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr "该文档不存在或您无权访问。"
-
-#~ msgid "There are no comments for now."
-#~ msgstr "目前没有任何评论。"
-
-#~ msgid "VAT Number"
-#~ msgstr "增值税号码"
-
-#~ msgid "Visible"
-#~ msgstr "可见"
-
-#~ msgid "You are invited to access %s"
-#~ msgstr "您被邀请访问  %s"
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "您已被邀请访问以下文档："
-
-#~ msgid "Your account at {{ object.user_id.company_id.name }}"
-#~ msgstr "您在{{ object.user_id.company_id.name }}的账户。"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "邮政代码"
-
-#~ msgid "avatar"
-#~ msgstr "形象"
-
-#~ msgid "comment"
-#~ msgstr "评论"
-
-#~ msgid "comments"
-#~ msgstr "评论"

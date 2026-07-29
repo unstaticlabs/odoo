@@ -6,7 +6,7 @@ import { evaluateExpr } from "@web/core/py_js/py";
 import { rpc, rpcBus } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
-import { Deferred, KeepLast } from "@web/core/utils/concurrency";
+import { KeepLast } from "@web/core/utils/concurrency";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { View, ViewNotFoundError } from "@web/views/view";
 import { ActionDialog } from "./action_dialog";
@@ -872,13 +872,8 @@ export function makeActionManager(env, router = _router) {
      * @returns {Promise<Number>}
      */
     async function _updateUI(controller, options = {}) {
-        let resolve;
-        let reject;
         let removeDialogFn;
-        const currentActionProm = new Promise((_res, _rej) => {
-            resolve = _res;
-            reject = _rej;
-        });
+        const { promise: currentActionProm, resolve, reject } = Promise.withResolvers();
         const action = controller.action;
         if (action.target !== "new" && "newStack" in options) {
             controllerStack = options.newStack;
@@ -1032,7 +1027,7 @@ export function makeActionManager(env, router = _router) {
                     };
 
                     controllerStack = nextStack; // the controller is mounted, commit the new stack
-                    pushState();
+                    pushState(controllerStack, { sync: true });
                     this.titleService.setParts({ action: controller.displayName });
                     browser.sessionStorage.setItem(
                         "current_action",
@@ -1128,16 +1123,16 @@ export function makeActionManager(env, router = _router) {
         }
 
         if (options.clearBreadcrumbs && !options.noEmptyTransition) {
-            const def = new Deferred();
+            const { promise, resolve } = Promise.withResolvers();
             env.bus.trigger("ACTION_MANAGER:UPDATE", {
                 id: ++id,
                 Component: BlankComponent,
                 componentProps: {
-                    onMounted: () => def.resolve(),
+                    onMounted: () => resolve(),
                     withControlPanel: action.type === "ir.actions.act_window",
                 },
             });
-            await def;
+            await promise;
         }
         if (options.onActionReady) {
             options.onActionReady(action);
@@ -1160,12 +1155,21 @@ export function makeActionManager(env, router = _router) {
         const w = browser.open(url, "_blank");
         if (!w || w.closed || typeof w.closed === "undefined") {
             const msg = _t(
-                "A popup window has been blocked. You may need to change your " +
-                    "browser settings to allow popup windows for this page."
+                "A popup window has been blocked. You may need to change your browser settings to allow popup windows for this page. You can also copy the link and paste it in a new tab."
             );
             env.services.notification.add(msg, {
                 sticky: true,
                 type: "warning",
+                buttons: [
+                    {
+                        name: _t("Copy"),
+                        primary: true,
+                        onClick: async () => {
+                            const fullUrl = new URL(url, window.location.origin).href;
+                            navigator.clipboard.writeText(fullUrl);
+                        },
+                    },
+                ],
             });
         }
     }
@@ -1239,6 +1243,14 @@ export function makeActionManager(env, router = _router) {
         let view = (options.viewType && views.find((v) => v.type === options.viewType)) || views[0];
         if (env.isSmall) {
             view = _findView(views, view.multiRecord, action.mobile_view_mode) || view;
+        }
+        if (
+            env.services.offline.offline &&
+            !env.services.offline.isAvailableOffline(action.id, view.type, action.res_id || false)
+        ) {
+            view =
+                views.find((v) => env.services.offline.isAvailableOffline(action.id, v.type)) ||
+                view;
         }
 
         const controller = _makeController({
@@ -1706,7 +1718,7 @@ export function makeActionManager(env, router = _router) {
             );
             index = index > -1 ? index : controllerStack.length;
         }
-        return _updateUI(newController, { newWindow, index });
+        await _updateUI(newController, { newWindow, index });
     }
 
     /**
@@ -1883,7 +1895,7 @@ export function makeActionManager(env, router = _router) {
 }
 
 export const actionService = {
-    dependencies: ["dialog", "effect", "localization", "notification", "title", "ui"],
+    dependencies: ["dialog", "effect", "localization", "notification", "offline", "title", "ui"],
     start(env) {
         return makeActionManager(env);
     },

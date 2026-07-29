@@ -43,7 +43,7 @@ export function settleNthOrder(n, options = {}) {
         step.push({
             content: `Choose to auto link the lot number to the order line`,
             trigger: `.modal-content:contains('Do you want to load the SN/Lots linked to the Sales Order?') button:contains('${
-                loadSN ? "Ok" : "Cancel"
+                loadSN ? "Ok" : "Discard"
             }')`,
             run: "click",
         });
@@ -63,6 +63,14 @@ export function downPaymentFirstOrder(amount) {
             run: "click",
         },
         Numpad.click(amount),
+        {
+            content: `wait for down payment amount to be set`,
+            trigger: `.modal:not(.o_inactive_modal) .input-value:contains('% ${amount.replace(
+                "+",
+                ""
+            )}')`,
+        },
+
         Dialog.confirm("Apply"),
     ];
 }

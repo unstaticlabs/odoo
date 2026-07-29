@@ -1,7 +1,7 @@
 import { isVisible } from "@html_builder/utils/utils";
 import { Plugin } from "@html_editor/plugin";
 import { isElement } from "@html_editor/utils/dom_info";
-import { closestElement } from "@html_editor/utils/dom_traversal";
+import { closestElement, selectElements } from "@html_editor/utils/dom_traversal";
 import { _t } from "@web/core/l10n/translation";
 
 /** @typedef {import("plugins").CSSSelector} CSSSelector */
@@ -77,7 +77,7 @@ export class DropZonePlugin extends Plugin {
             return openModalEl;
         }
         const openDropdownEl = this.editable.querySelector(
-            ".o_editable.dropdown-menu.show, .dropdown-menu.show .o_editable.dropdown-menu"
+            ".o_savable.dropdown-menu.show, .dropdown-menu.show .o_savable.dropdown-menu"
         );
         if (openDropdownEl) {
             return openDropdownEl;
@@ -106,7 +106,7 @@ export class DropZonePlugin extends Plugin {
         const selectorExcludeAncestor = [];
         const selectorLockedWithin = [];
 
-        const editableAreaEls = this.dependencies.setup_editor_plugin.getEditableAreas();
+        const editableAreaEls = this.dependencies.setup_editor_plugin.getSavableAreas();
         const rootEl = this.getDropRootElement();
         this.dropzoneSelectors.forEach((dropzoneSelector) => {
             const {
@@ -171,7 +171,7 @@ export class DropZonePlugin extends Plugin {
         // Prevent dropping sanitized elements in sanitized zones.
         let forbidSanitize = false;
         // Check if the element is sanitized or if it contains such elements.
-        for (const el of [snippetEl, ...snippetEl.querySelectorAll("[data-snippet")]) {
+        for (const el of selectElements(snippetEl, "[data-snippet")) {
             const snippet = this.snippetModel.getOriginalSnippet(el.dataset.snippet);
             if (snippet && snippet.forbidSanitize) {
                 forbidSanitize = snippet.forbidSanitize;

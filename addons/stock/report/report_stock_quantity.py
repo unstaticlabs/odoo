@@ -69,7 +69,7 @@ WITH
         END
         LEFT JOIN product_product pp on pp.id=m.product_id
         LEFT JOIN product_template pt on pt.id=pp.product_tmpl_id
-        LEFT JOIN uom_uom uom_move ON uom_move.id = m.product_uom
+        LEFT JOIN uom_uom uom_move ON uom_move.id = m.uom_id
         LEFT JOIN uom_uom uom_product ON uom_product.id = pt.uom_id
         WHERE pt.is_storable = true AND
             source.w_id IS DISTINCT FROM dest.w_id AND
@@ -190,5 +190,5 @@ FROM (SELECT
 GROUP BY product_id, product_tmpl_id, state, date, company_id, warehouse_id
 );
 """
-        report_period = self.env['ir.config_parameter'].sudo().get_param('stock.report_stock_quantity_period', default='3')
-        self.env.cr.execute(query, {'report_period': int(report_period)})
+        report_period = self.env['ir.config_parameter'].sudo().get_int('stock.report_stock_quantity_period') or 3
+        self.env.cr.execute(query, {'report_period': report_period})

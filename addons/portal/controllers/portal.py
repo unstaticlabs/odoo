@@ -8,8 +8,16 @@ from werkzeug import urls
 from werkzeug.exceptions import Forbidden
 
 from odoo import SUPERUSER_ID, _, http
-from odoo.exceptions import AccessDenied, AccessError, MissingError, UserError, ValidationError
-from odoo.http import Controller, content_disposition, request, route
+from odoo.exceptions import (
+    AccessDenied,
+    AccessError,
+    MissingError,
+    UserError,
+    ValidationError,
+)
+from odoo.http import Controller, request, route
+from odoo.http.session import logout
+from odoo.http.stream import content_disposition
 from odoo.tools import clean_context, consteq, single_email_re, str2bool
 from odoo.tools.translate import LazyTranslate
 
@@ -158,9 +166,17 @@ class CustomerPortal(Controller):
             if fallback_sales_user and not fallback_sales_user._is_public():
                 sales_user_sudo = fallback_sales_user
 
+        portal_entries = dict(
+            request.env['portal.entry']._read_group(
+                [('show_in_portal', '=', True)],
+                groupby=["category"],
+                aggregates=['id:recordset']
+            )
+        )
         return {
             'sales_user': sales_user_sudo,
             'page_name': 'home',
+            'portal_entries': portal_entries,
         }
 
     def _prepare_home_portal_values(self, counters):
@@ -415,13 +431,16 @@ class CustomerPortal(Controller):
             # Existing address, use the values defined on the address
             state_id = partner_sudo.state_id.id
             country_sudo = partner_sudo.country_id
-            can_edit_vat = partner_sudo.can_edit_vat()
+            can_edit_vat = (
+                not current_partner
+                or (partner_sudo == current_partner and current_partner.can_edit_vat())
+            )
         else:
             # New address, take default values from current partner
             country_sudo = current_partner.country_id or self._get_default_country(**kwargs)
             state_id = current_partner.state_id.id
-            can_edit_vat = not current_partner or (
-                partner_sudo == current_partner and current_partner.can_edit_vat()
+            can_edit_vat = (
+                not current_partner or current_partner.can_edit_vat()
             )
         address_fields = (country_sudo and country_sudo.get_address_fields()) or ['city', 'zip']
 
@@ -430,7 +449,8 @@ class CustomerPortal(Controller):
             'partner_id': partner_sudo.id,
             'current_partner': current_partner,
             'commercial_partner': current_partner.commercial_partner_id,
-            'is_commercial_address': not current_partner or partner_sudo == commercial_partner,
+            # TODO: Remove me in master (Kept here to avoid changing the portal templates)
+            'is_commercial_address': not current_partner or current_partner._is_individual_contact(),
             'is_main_address': not current_partner or (partner_sudo and partner_sudo == current_partner),
             'commercial_address_update_url': (
                 # Only redirect to account update if the logged in user is their own commercial
@@ -538,6 +558,8 @@ class CustomerPortal(Controller):
                     'messages': error_messages,
                 }
 
+        parent_name_value = address_values.pop('parent_name', None)
+
         if not partner_sudo:  # Creation of a new address.
             self._complete_address_values(
                 address_values, address_type, use_delivery_as_billing, **form_data
@@ -562,18 +584,18 @@ class CustomerPortal(Controller):
                 # The `phone_validation` module is installed.
                 partner_sudo._onchange_phone_validation()
 
-        if (
-            'company_name' in address_values
-            and partner_sudo.commercial_partner_id != partner_sudo
-            and partner_sudo.commercial_partner_id.is_company
-        ):
-            # If partner is an individual, update existing company's name or remove one
-            company_name = address_values['company_name']
-            parent_company = partner_sudo.commercial_partner_id
-            partner_sudo.company_name = False
-
-            if company_name and parent_company and parent_company.name != company_name:
-                parent_company.name = company_name
+        if parent_name_value:
+            if partner_sudo.commercial_partner_id != partner_sudo:
+                if partner_sudo.commercial_partner_id.is_company:
+                    parent_company = partner_sudo.commercial_partner_id
+                    if parent_company.name != parent_name_value:
+                        parent_company.name = parent_name_value
+            elif partner_sudo.is_company:
+                if partner_sudo.name != parent_name_value:
+                    partner_sudo.name = parent_name_value
+            else:  # Current partner is an individual with no parent
+                parent_company = partner_sudo._create_parent_from_name(parent_name_value)
+                parent_company.is_company = True
 
         self._handle_extra_form_data(extra_form_data, address_values)
 
@@ -638,6 +660,7 @@ class CustomerPortal(Controller):
         invalid_fields = set()
         missing_fields = set()
         error_messages = []
+        current_partner = request.env['res.partner']._get_current_partner(**kwargs)
 
         if partner_sudo:
             name_change = (
@@ -678,7 +701,11 @@ class CustomerPortal(Controller):
 
             # Prevent changing commercial fields on sub-addresses, as they are expected to match
             # commercial partner values, and would be reset if modified on the commercial partner.
-            if not (is_commercial_address := partner_sudo == partner_sudo.commercial_partner_id):
+            can_edit_commercial_fields = (
+                not current_partner
+                or (partner_sudo == current_partner and current_partner._is_individual_contact())
+            )
+            if not can_edit_commercial_fields:
                 for commercial_field_name in partner_sudo._commercial_fields():
                     if commercial_field_name not in address_values:
                         continue
@@ -712,13 +739,13 @@ class CustomerPortal(Controller):
                 # Company name shouldn't be updated anywhere but the main and company address, even
                 # if it's not in the fields returned by _commercial_fields.
                 if partner_sudo != request.env['res.partner']._get_current_partner(**kwargs):
-                    address_values.pop('company_name', None)
+                    address_values.pop('parent_name', None)
             # Prevent changing the VAT number on a commercial partner if documents have been issued.
             elif (
                 'vat' in address_values
                 and partner_sudo.vat
                 and address_values['vat'] != partner_sudo.vat
-                and not partner_sudo.can_edit_vat()
+                and not can_edit_commercial_fields
             ):
                 invalid_fields.add('vat')
                 error_messages.append(_(
@@ -727,7 +754,7 @@ class CustomerPortal(Controller):
                 ))
         else:
             # We're creating a new address, it'll only be the main address of public customers
-            is_commercial_address = not request.env['res.partner']._get_current_partner(**kwargs)
+            can_edit_commercial_fields = not current_partner
 
         # Validate the email.
         if address_values.get('email') and not single_email_re.match(address_values['email']):
@@ -762,7 +789,7 @@ class CustomerPortal(Controller):
             required_field_set |= self._get_mandatory_delivery_address_fields(country)
         if address_type == 'billing' or use_delivery_as_billing:
             required_field_set |= self._get_mandatory_billing_address_fields(country)
-            if not is_commercial_address:
+            if not can_edit_commercial_fields:
                 commercial_fields = ResPartnerSudo._commercial_fields()
                 for fname in commercial_fields:
                     if fname in required_field_set and fname not in address_values:
@@ -872,7 +899,7 @@ class CustomerPortal(Controller):
     def security(self, **post):
         values = self._prepare_portal_layout_values()
         values['get_error'] = get_error
-        values['allow_api_keys'] = bool(request.env['ir.config_parameter'].sudo().get_param('portal.allow_api_keys'))
+        values['allow_api_keys'] = request.env['ir.config_parameter'].sudo().get_bool('portal.allow_api_keys')
         values['open_deactivate_modal'] = False
 
         if request.httprequest.method == 'POST':
@@ -924,7 +951,7 @@ class CustomerPortal(Controller):
             try:
                 request.env['res.users']._check_credentials(credential, {'interactive': True})
                 request.env.user.sudo()._deactivate_portal_user(**post)
-                request.session.logout()
+                logout(request.session)
                 return request.redirect('/web/login?message=%s' % urls.url_quote(_('Account deleted!')))
             except AccessDenied:
                 values['errors'] = {'deactivate': 'password'}

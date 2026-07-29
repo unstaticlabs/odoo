@@ -7,21 +7,21 @@
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 04:25+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:00+0000\n"
+"PO-Revision-Date: 2025-09-16 21:20+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/fleet/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_kanban
@@ -36,6 +36,11 @@ msgid ""
 msgstr ""
 "<span class=\"o_stat_value\">รถ</span>\n"
 "                                <span class=\"o_stat_text\">ใหม่</span>"
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_kanban
+msgid "<span class=\"text-muted\"> - </span>"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.res_config_settings_view_form
@@ -137,6 +142,14 @@ msgid "Activity Exception Decoration"
 msgstr "การตกแต่งข้อยกเว้นกิจกรรม"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_plans_ids
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__activity_state
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__activity_state
@@ -184,6 +197,14 @@ msgid "Air Filter Replacement"
 msgstr "การเปลี่ยนที่กรองแอร์"
 
 #. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid ""
+"All services and contracts linked to this vehicle will also be archived.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
 msgid "All vehicles"
 msgstr "ยานพาหนะทั้งหมด"
@@ -202,6 +223,18 @@ msgstr "สมัครคนขับใหม่"
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_brand_view_kanban
 msgid "Archive"
 msgstr "เก็บถาวร"
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle"
+msgstr ""
+
+#. module: fleet
+#. odoo-javascript
+#: code:addons/fleet/static/src/js/fleet_form.js:0
+msgid "Archive Vehicle & Contracts"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
@@ -391,7 +424,7 @@ msgid "Can Edit Body"
 msgstr "แก้ไขเนื้อหาหลักได้"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_send_mail_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
 msgid "Cancel"
 msgstr "ยกเลิก"
 
@@ -423,9 +456,22 @@ msgid "Cars"
 msgstr "รถ"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_res_partner__partner_cars_count
+#: model:ir.model.fields,field_description:fleet.field_res_users__partner_cars_count
+msgid "Cars Count"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/res_partner.py:0
+#: model_terms:ir.ui.view,arch_db:fleet.view_partner_form
+msgid "Cars History"
+msgstr ""
+
+#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__car_value
-msgid "Catalog Value (VAT Incl.)"
-msgstr "ค่าแคตตาล็อก (รวมภาษีมูลค่าเพิ่ม)"
+msgid "Catalog Value (Tax Incl.)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_15
@@ -443,9 +489,7 @@ msgstr "หมวดหมู่"
 msgid ""
 "Categories will help you manage your fleet more efficiently and arrange your "
 "vehicles."
-msgstr ""
-"หมวดหมู่จะช่วยให้คุณจัดการกลุ่มยานพาหนะได้อย่างมีประสิทธิภาพมากขึ้นและจัดเตรียมความพร้อมยานพาหน"
-"ะของคุณ"
+msgstr "หมวดหมู่จะช่วยให้คุณจัดการกลุ่มยานพาหนะได้อย่างมีประสิทธิภาพมากขึ้นและจัดเตรียมความพร้อมยานพาหนะของคุณ"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_service_type__category
@@ -526,6 +570,7 @@ msgstr "การสื่อสารเกี่ยวกับยานพา
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__company_id
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__company_id
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__company_id
 msgid "Company"
 msgstr "บริษัท"
 
@@ -539,6 +584,11 @@ msgstr "ตั้งค่าการกำหนดค่า"
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_brand_view_kanban
 msgid "Configuration"
 msgstr "การกำหนดค่า"
+
+#. module: fleet
+#: model:ir.model,name:fleet.model_res_partner
+msgid "Contact"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_search
@@ -613,6 +663,7 @@ msgstr "ต้นทุน"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__cost_type
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 msgid "Cost Type"
 msgstr "ประเภทต้นทุน"
 
@@ -645,6 +696,11 @@ msgstr "ประเทศ"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__country_code
 msgid "Country Code"
 msgstr "รหัสประเทศ"
+
+#. module: fleet
+#: model:ir.model,website_form_label:fleet.model_res_partner
+msgid "Create a Customer"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_model_category_action
@@ -743,9 +799,9 @@ msgstr "รายวัน"
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__date_start
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer__date
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_odometer_report__recorded_date
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_search
 msgid "Date"
@@ -758,7 +814,7 @@ msgstr "วันที่จดทะเบียนรถ"
 
 #. module: fleet
 #: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_contract__date
-#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_log_services__date_from
 msgid "Date when the cost has been executed"
 msgstr "วันที่ดำเนินการต้นทุน"
 
@@ -772,8 +828,7 @@ msgstr "วันที่เริ่มต้นความคุ้มคร
 msgid ""
 "Date when the coverage of the contract expirates (by default, one year after "
 "begin date)"
-msgstr ""
-"วันที่ความคุ้มครองของสัญญาสิ้นสุดลง (โดยเริ่มต้น หนึ่งปีหลังจากวันที่เริ่มต้น)"
+msgstr "วันที่ความคุ้มครองของสัญญาสิ้นสุดลง (โดยเริ่มต้น หนึ่งปีหลังจากวันที่เริ่มต้น)"
 
 #. module: fleet
 #: model:ir.model.fields,help:fleet.field_fleet_vehicle__write_off_date
@@ -828,6 +883,7 @@ msgstr "ดีเซล"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__display_name
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__display_name
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:fleet.field_res_partner__display_name
 msgid "Display Name"
 msgstr "แสดงชื่อ"
 
@@ -963,6 +1019,16 @@ msgid "End Date Contract Alert"
 msgstr "การแจ้งเตือนวันที่สิ้นสุดสัญญา"
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_log_services_check_service_dates
+msgid "End date must be on or after the start date."
+msgstr ""
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_to
+msgid "End of Service"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 msgid "Engine"
@@ -989,19 +1055,14 @@ msgid "Entry into service tax"
 msgstr "เข้าสู่ภาษีบริการ"
 
 #. module: fleet
-#. odoo-javascript
-#: code:addons/fleet/static/src/js/fleet_form.js:0
-msgid ""
-"Every service and contract of this vehicle will be considered as archived. "
-"Are you sure that you want to archive this record?"
-msgstr ""
-"การบริการและสัญญาทั้งหมดของยานพาหนะนี้จะถือว่าถูกเก็บถาวร คุณแน่ใจหรือไม่ว่าต้องการเก็บถาวรบันทึ"
-"กนี้"
-
-#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_21
 msgid "Exhaust Manifold Replacement"
 msgstr "การเปลี่ยนท่อร่วมไอเสีย"
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
+msgid "Expiration Date"
+msgstr ""
 
 #. module: fleet
 #: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__contract_state__expired
@@ -1259,6 +1320,7 @@ msgstr "ไฮโดรเจน"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_tag__id
 #: model:ir.model.fields,field_description:fleet.field_mail_activity_type__id
 #: model:ir.model.fields,field_description:fleet.field_res_config_settings__id
+#: model:ir.model.fields,field_description:fleet.field_res_partner__id
 msgid "ID"
 msgstr "ไอดี"
 
@@ -1508,8 +1570,7 @@ msgstr ""
 #. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_costs_reporting_action
 msgid "Manage efficiently your different effective vehicles Costs with Odoo."
-msgstr ""
-"จัดการต้นทุนยานพาหนะที่มีประสิทธิภาพและแตกต่างกันของคุณอย่างมีประสิทธิภาพด้วย Odoo"
+msgstr "จัดการต้นทุนยานพาหนะที่มีประสิทธิภาพและแตกต่างกันของคุณอย่างมีประสิทธิภาพด้วย Odoo"
 
 #. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_odometer_reporting_action
@@ -1833,11 +1894,6 @@ msgid "Odometer Value"
 msgstr "ค่าเครื่องวัดระยะทาง"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_odometer_view_graph
-msgid "Odometer Values Per Vehicle"
-msgstr "ค่าเครื่องวัดระยะทางต่อยานพาหนะ"
-
-#. module: fleet
 #: model:ir.model,name:fleet.model_fleet_vehicle_odometer
 msgid "Odometer log for a vehicle"
 msgstr "บันทึกเครื่องวัดระยะทางต่อยานพาหนะ"
@@ -1901,6 +1957,11 @@ msgid "Ordered"
 msgstr "สั่งแล้ว"
 
 #. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__vehicle_type__other
+msgid "Other"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_33
 msgid "Other Maintenance"
 msgstr "การบำรุงรักษาอื่น ๆ"
@@ -1916,14 +1977,9 @@ msgid "Oxygen Sensor Replacement"
 msgstr "การเปลี่ยนเซ็นเซอร์ออกซิเจน"
 
 #. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_bike
-msgid "Plan To Change Bike"
-msgstr "วางแผนที่จะเปลี่ยนจักรยาน"
-
-#. module: fleet
-#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_car
-msgid "Plan To Change Car"
-msgstr "วางแผนที่จะเปลี่ยนรถ"
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__plan_to_change_vehicle
+msgid "Plan To Change Vehicle"
+msgstr ""
 
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_search
@@ -2003,6 +2059,19 @@ msgid "Range Unit"
 msgstr ""
 
 #. module: fleet
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle__vehicle_range
+#: model:ir.model.fields,help:fleet.field_fleet_vehicle_model__vehicle_range
+msgid ""
+"Range represents the maximum distance a vehicle can travel on a full charge "
+"(for EVs) or             a full tank (for fuel-powered vehicles)"
+msgstr ""
+
+#. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+msgid "Reactivate"
+msgstr ""
+
+#. module: fleet
 #: model_terms:ir.actions.act_window,help:fleet.fleet_vehicle_action
 msgid "Ready to manage your fleet more efficiently?"
 msgstr "พร้อมที่จะจัดการกลุ่มยานพาหนะของคุณอย่างมีประสิทธิภาพแล้วหรือยัง?"
@@ -2049,8 +2118,8 @@ msgstr "โมเดลการแสดงผล"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_11
-msgid "Rent (Excluding VAT)"
-msgstr "ค่าเช่า (ไม่รวมภาษีมูลค่าเพิ่ม)"
+msgid "Rent (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_7
@@ -2084,8 +2153,8 @@ msgstr "ค่าคงเหลือ"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_14
-msgid "Residual value (Excluding VAT)"
-msgstr "ค่าคงเหลือ (ไม่รวมภาษีมูลค่าเพิ่ม)"
+msgid "Residual value (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_18
@@ -2116,6 +2185,18 @@ msgid "Resurface Rotors"
 msgstr "การเจียรจานเบรก"
 
 #. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change"
+msgstr ""
+
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "Review driver change of %s and specify End date"
+msgstr ""
+
+#. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_39
 msgid "Rotate Tires"
 msgstr "การสลับยาง"
@@ -2140,6 +2221,12 @@ msgstr "บันทึกเป็นแม่แบบใหม่"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__seats
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_model__seats
 msgid "Seating Capacity"
+msgstr ""
+
+#. module: fleet
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle__transmission__semi_automatic
+#: model:ir.model.fields.selection,name:fleet.selection__fleet_vehicle_model__transmission__semi_automatic
+msgid "Semi-Automatic"
 msgstr ""
 
 #. module: fleet
@@ -2182,7 +2269,9 @@ msgid "Service Activity"
 msgstr "กิจกรรมการบริการ"
 
 #. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__service_type
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__service_type_id
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_costs_report_view_search
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_services_view_search
 msgid "Service Type"
 msgstr "ประเภทบริการ"
@@ -2250,20 +2339,20 @@ msgid ""
 msgstr ""
 
 #. module: fleet
-#. odoo-python
-#: code:addons/fleet/models/fleet_vehicle.py:0
-msgid "Specify the End date of %s"
-msgstr "ระบุวันที่สิ้นสุดของ %s"
-
-#. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__state
 msgid "Stage"
 msgstr "ขั้นตอน"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_assignation_log__date_start
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_search
 msgid "Start Date"
 msgstr "วันที่เริ่ม"
+
+#. module: fleet
+#: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_log_services__date_from
+msgid "Start of Service"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_42
@@ -2369,6 +2458,11 @@ msgid "The following vehicle drivers are missing an email address: %s."
 msgstr "ผู้ขับขี่รถยนต์ต่อไปนี้ไม่มีที่อยู่อีเมล: %s"
 
 #. module: fleet
+#: model:ir.model.constraint,message:fleet.constraint_fleet_vehicle_unique_license_plate
+msgid "The license plate must be unique"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle.py:0
 msgid "The odometer value cannot be lower than the previous one."
@@ -2430,8 +2524,8 @@ msgstr "รวม"
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_13
-msgid "Total expenses (Excluding VAT)"
-msgstr "รายจ่ายทั้งหมด (ไม่รวมภาษีมูลค่าเพิ่ม)"
+msgid "Total expenses (Excluding Tax)"
+msgstr ""
 
 #. module: fleet
 #: model:fleet.service.type,name:fleet.type_service_service_17
@@ -2446,8 +2540,8 @@ msgid ""
 "maintenance, etc."
 msgstr ""
 "ติดตามบริการทั้งหมดที่ทำบนยานพาหนะของคุณ\n"
-"           บริการสามารถมีได้หลายประเภท: การซ่อมแซมเป็นครั้งคราว การบำรุงรักษาแบบคงที่ แล"
-"ะอื่น ๆ"
+"           บริการสามารถมีได้หลายประเภท: การซ่อมแซมเป็นครั้งคราว การบำรุงรักษาแบบคงที่ "
+"และอื่น ๆ"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__trailer_hook
@@ -2517,6 +2611,11 @@ msgid "Unit"
 msgstr "หน่วย"
 
 #. module: fleet
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
+msgid "Unregistered"
+msgstr ""
+
+#. module: fleet
 #. odoo-python
 #: code:addons/fleet/models/fleet_vehicle_model.py:0
 #: model:ir.model,name:fleet.model_fleet_vehicle
@@ -2552,11 +2651,6 @@ msgstr "จำนวนยานพาหนะ"
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle__description
 msgid "Vehicle Description"
 msgstr "คำอธิบายยานพาหนะ"
-
-#. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
-msgid "Vehicle Information"
-msgstr "ข้อมูลยานพาหนะ"
 
 #. module: fleet
 #: model:ir.model.fields,field_description:fleet.field_fleet_vehicle_cost_report__name
@@ -2651,6 +2745,7 @@ msgstr "ผู้ขาย"
 #. module: fleet
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vechicle_costs_report_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_log_contract_view_form
+#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_model_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 msgid "Visible to all"
 msgstr "มองเห็นได้ทุกคน"
@@ -2762,7 +2857,6 @@ msgid "e.g. Model S"
 msgstr "เช่น Model S"
 
 #. module: fleet
-#: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form
 #: model_terms:ir.ui.view,arch_db:fleet.fleet_vehicle_view_form_quick_create
 msgid "e.g. PAE 326"
 msgstr "เช่น PAE 326"
@@ -2825,62 +2919,8 @@ msgstr "แสดงบันทึกระยะทางสำหรับร
 msgid "show the services logs for this vehicle"
 msgstr "แสดงบันทึกการบริการสำหรับยานพาหนะคันนี้"
 
-#~ msgid "<span>g/km</span>"
-#~ msgstr "<span>g/km</span>"
-
-#~ msgid "<span>kW</span>"
-#~ msgstr "<span>kW</span>"
-
-#~ msgid "CO2 Emissions g/km"
-#~ msgstr "การปล่อย CO2 g/km"
-
-#~ msgid "Close Contract"
-#~ msgstr "ปิดสัญญา"
-
-#~ msgid "Co2 Standard"
-#~ msgstr "Co2 มาตรฐาน"
-
-#~ msgid "Contact"
-#~ msgstr "ติดต่อ"
-
-#~ msgid "Contains Vehicles"
-#~ msgstr "มียานพาหนะ"
-
-#~ msgid "Date when the vehicle has been immatriculated"
-#~ msgstr "วันที่ยานพาหนะได้รับการตรวจทะเบียน"
-
-#~ msgid "Doors Number"
-#~ msgstr "หมายเลขประตู"
-
-#~ msgid "Group By"
-#~ msgstr "กลุ่มโดย"
-
-#~ msgid "Immatriculation Date"
-#~ msgstr "วันที่ป้ายทะเบียน"
-
-#~ msgid "Km"
-#~ msgstr "Km"
-
-#~ msgid "Name of contract to renew soon"
-#~ msgstr "ชื่อสัญญาที่จะต่ออายุเร็ว ๆ นี้"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "จํานวนข้อความที่ต้องดําเนินการ"
-
-#~ msgid "Reset To Draft"
-#~ msgstr "รีเซ็ตเป็นแบบร่าง"
-
-#~ msgid "Seats Number"
-#~ msgstr "เลขที่นั่ง"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "แสดงระเบียนทั้งหมดที่มีวันที่ดำเนินการถัดไปคือก่อนวันนี้"
-
-#~ msgid "Start Contract"
-#~ msgstr "เริ่มต้นสัญญา"
-
-#~ msgid "Total of contracts due or overdue minus one"
-#~ msgstr "รวมสัญญาที่ครบกำหนดหรือค้างชำระลบหนึ่ง"
-
-#~ msgid "img"
-#~ msgstr "img"
+#. module: fleet
+#. odoo-python
+#: code:addons/fleet/models/fleet_vehicle.py:0
+msgid "user_id"
+msgstr ""

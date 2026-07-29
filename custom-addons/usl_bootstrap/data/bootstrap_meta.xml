@@ -23,8 +23,8 @@
     </data>
 
     <data>
-        <function model="ir.config_parameter" name="set_param" eval="('usl_bootstrap.baseline', 'development')"/>
-        <function model="ir.config_parameter" name="set_param" eval="('mail.catchall.domain', 'unstatic-labs.test')"/>
-        <function model="ir.config_parameter" name="set_param" eval="('mail.default.from', 'odoo@unstatic-labs.test')"/>
+        <function model="ir.config_parameter" name="set_str" eval="('usl_bootstrap.baseline', 'development')"/>
+        <function model="ir.config_parameter" name="set_str" eval="('mail.catchall.domain', 'unstatic-labs.test')"/>
+        <function model="ir.config_parameter" name="set_str" eval="('mail.default.from', 'odoo@unstatic-labs.test')"/>
     </data>
 </odoo>

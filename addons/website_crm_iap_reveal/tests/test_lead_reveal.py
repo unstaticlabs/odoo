@@ -4,9 +4,10 @@
 from odoo import exceptions
 from odoo.addons.crm.tests.common import TestCrmCommon
 from odoo.addons.website_crm_iap_reveal.tests.common import MockIAPReveal
-from odoo.tests.common import users
+from odoo.tests.common import tagged, users
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestLeadMine(TestCrmCommon, MockIAPReveal):
 
     @classmethod
@@ -154,7 +155,7 @@ class TestLeadMine(TestCrmCommon, MockIAPReveal):
             else:
                 rule = self.test_request_1
 
-            lead = self._new_leads.filtered(lambda lead: lead.name == '%s GmbH - %s' % (base_name, rule.suffix))
+            lead = self._new_leads.filtered(lambda lead: lead.name == f"{base_name} GmbH's opportunity - {rule.suffix}")
             self.assertTrue(bool(lead))
 
             # mine information

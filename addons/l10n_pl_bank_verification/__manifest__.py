@@ -1,7 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Poland - Accounting - Bank Account Verification',
-    'version': '1.0',
     'description': """
 This is the module to manage the accounting bank account verification for Poland in Odoo.
 ==========================================================================================

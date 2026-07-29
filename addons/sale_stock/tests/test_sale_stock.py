@@ -2,10 +2,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from datetime import datetime, timedelta
 
-from odoo import Command
 from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import ValuationReconciliationTestCommon
 from odoo.addons.sale_stock.tests.common import TestSaleStockCommon
 from odoo.exceptions import RedirectWarning, UserError
+from odoo.fields import Command
 from odoo.tests import Form, tagged
 from odoo.tests.common import new_test_user
 
@@ -450,10 +450,10 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
 
         # the move should be 12 units
         # note: move.product_qty = computed field, always in the uom of the quant
-        #       move.product_uom_qty = stored field representing the initial demand in move.product_uom
+        #       move.product_uom_qty = stored field representing the initial demand in move.uom_id
         move1 = so1.picking_ids.move_ids[0]
         self.assertEqual(move1.product_uom_qty, 12)
-        self.assertEqual(move1.product_uom.id, uom_unit.id)
+        self.assertEqual(move1.uom_id.id, uom_unit.id)
         self.assertEqual(move1.product_qty, 12)
 
         # edit the so line, sell 2 dozen, the move should now be 24 units
@@ -479,19 +479,19 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         # ```
         move1 = so1.picking_ids.move_ids[0]
         self.assertEqual(move1.product_uom_qty, 24)
-        self.assertEqual(move1.product_uom.id, uom_unit.id)
+        self.assertEqual(move1.uom_id.id, uom_unit.id)
         self.assertEqual(move1.product_qty, 24)
 
         # force the propagation of the uom, sell 3 dozen
-        self.env['ir.config_parameter'].sudo().set_param('stock.propagate_uom', '1')
+        self.env['ir.config_parameter'].sudo().set_bool('stock.propagate_uom', True)
         so1.write({
             'order_line': [
                 Command.update(product_line.id, {'product_uom_qty': 3}),
             ]
         })
-        move2 = so1.picking_ids.move_ids.filtered(lambda m: m.product_uom.id == uom_dozen.id)
+        move2 = so1.picking_ids.move_ids.filtered(lambda m: m.uom_id.id == uom_dozen.id)
         self.assertEqual(move2.product_uom_qty, 1)
-        self.assertEqual(move2.product_uom.id, uom_dozen.id)
+        self.assertEqual(move2.uom_id.id, uom_dozen.id)
         self.assertEqual(move2.product_qty, 12)
 
         # deliver everything
@@ -1139,7 +1139,7 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
             'location_dest_id': picking.location_dest_id.id,
             'product_id': self.product_b.id,
             'product_uom_qty': 1,
-            'product_uom': uom_km_id,
+            'uom_id': uom_km_id,
             'quantity': 1,
         })
         picking.button_validate()
@@ -2139,18 +2139,18 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         })
         # Since you dont have any warehouse for your company  you should raise a RedirectWarning
         error_message = "Please create a warehouse for company Company 2."
-        with self.assertRaisesRegex(RedirectWarning, error_message), self.env.cr.savepoint():
+        with self.assertRaisesRegex(RedirectWarning, error_message):
             so.with_company(new_company).action_confirm()
         warehouse.active = True
         # Since you have a warehouse which is not linked to the SO you should raise a UserError
         error_message = "You must set a warehouse on your sale order to proceed."
-        with self.assertRaisesRegex(UserError, error_message), self.env.cr.savepoint():
+        with self.assertRaisesRegex(UserError, error_message):
             so.with_company(new_company).action_confirm()
         # check the flow with 2 available warehouses for that company
         self.env['stock.warehouse'].create({'name': 'Warehouse 2', 'code': 'WH2', 'company_id': new_company.id})
         # Since you have a warehouse which is not linked to the SO you should raise a UserError
         error_message = "You must set a warehouse on your sale order to proceed."
-        with self.assertRaisesRegex(UserError, error_message), self.env.cr.savepoint():
+        with self.assertRaisesRegex(UserError, error_message):
             so.with_company(new_company).action_confirm()
 
     def test_custom_delivery_route_new_sale_line(self):
@@ -2615,7 +2615,7 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
             'move_ids': [Command.create({
                 'product_id': self.product.id,
                 'product_uom_qty': 2,
-                'product_uom': self.product.uom_id.id,
+                'uom_id': self.product.uom_id.id,
                 'location_id': warehouse.lot_stock_id.id,
                 'location_dest_id': self.ref('stock.stock_location_customers'),
             })],
@@ -2627,6 +2627,116 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         delivery.sale_id = sale_order
         self.assertEqual(delivery.reference_ids.sale_ids, sale_order)
         self.assertEqual(delivery.move_ids.reference_ids, delivery.reference_ids)
+
+    def test_invoiced_lot_values_include_properties(self):
+        """ Checks if lot properties are included in `_get_invoiced_lot_values()` """
+        # Test a lot with no properties first
+        lot = self.env['stock.lot'].create({
+            'name': 'lot_product_a_0001',
+            'product_id': self.product_a.id,
+        })
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [
+                Command.create({
+                    'product_id': self.product_a.id,
+                    'product_uom_qty': 1,
+                })
+            ]
+        })
+        # Set lots, validate records, generate invoices (required for `_get_invoiced_lot_values()`)
+        sale_order.action_confirm()
+        sale_order.picking_ids.move_line_ids.lot_id = lot
+        sale_order.picking_ids.button_validate()
+        sale_order._create_invoices()
+        invoice = sale_order.invoice_ids
+        invoice.action_post()
+        lot_values = invoice._get_invoiced_lot_values()
+
+        # 'lot_properties' is included, but is empty
+        self.assertEqual(len(lot_values), 1)
+        self.assertEqual(lot_values[0]['lot_properties'], [])
+
+        # Add properties to the lot
+        lot.lot_properties = [{
+            'name': 'prop1',
+            'string': 'Test1',
+            'type': 'char',
+            'value': 'abc',
+            'definition_changed': True,
+        }, {
+            'name': 'prop2',
+            'string': 'Test1',  # duplicated label is allowed
+            'type': 'char',
+            'value': 'xyz',
+            'definition_changed': True,
+        }, {
+            'name': 'prop3',
+            'string': 'Test2',
+            'type': 'integer',
+            'value': 123,
+            'definition_changed': True,
+        }]
+        # New 'lot_properties' value should include all properties
+        lot_values = invoice._get_invoiced_lot_values()
+        self.assertEqual(len(lot_values), 1)
+        self.assertEqual(lot_values[0]['lot_properties'], [{
+            'name': 'prop1',
+            'string': 'Test1',
+            'type': 'char',
+            'value': 'abc',
+        }, {
+            'name': 'prop2',
+            'string': 'Test1',
+            'type': 'char',
+            'value': 'xyz',
+        }, {
+            'name': 'prop3',
+            'string': 'Test2',
+            'type': 'integer',
+            'value': 123,
+        }])
+
+    def test_compute_sale_order_count_with_stock_user(self):
+        """Test that `sale_order_count` only counts sale orders
+        accessible to the current stock user.
+
+        A stock user can compute `sale_order_count` for a serial number,
+        but the result only includes sale orders that the user has
+        read access to (i.e. their own sale orders in this scenario).
+        """
+        user = new_test_user(self.env, login='fgh',
+                             groups='base.group_user,stock.group_stock_user, sales_team.group_sale_salesman')
+        self.new_product.tracking = 'lot'
+        lot = self.env['stock.lot'].create({
+            'name': 'SN001',
+            'product_id': self.new_product.id,
+        })
+        self.env['stock.quant']._update_available_quantity(self.new_product, self.company_data['default_warehouse'].lot_stock_id, 2, lot_id=lot)
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': self.new_product.id,
+                'product_uom_qty': 1.0,
+            })],
+        })
+        sale_order.action_confirm()
+        sale_order.picking_ids.button_validate()
+        self.assertEqual(sale_order.picking_ids.state, 'done')
+        self.assertEqual(lot.with_user(user).sale_order_count, 0)
+        sale_order_2 = self.env['sale.order'].with_user(user).create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': self.new_product.id,
+                'product_uom_qty': 1.0,
+            })],
+        })
+        sale_order_2.action_confirm()
+        sale_order_2.picking_ids.button_validate()
+        self.assertEqual(sale_order_2.picking_ids.state, 'done')
+        lot.invalidate_recordset()
+        self.assertEqual(lot.with_user(user).sale_order_count, 1)
+        self.assertEqual(lot.with_user(user).sale_order_ids, sale_order_2)
 
     def test_sale_partner_propagation_3_step_pull(self):
         """
@@ -2669,47 +2779,6 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
             {'partner_id': self.partner_a.id, 'picking_type_id': self.warehouse_3_steps_pull.pack_type_id.id},
             {'partner_id': self.partner_a.id, 'picking_type_id': self.warehouse_3_steps_pull.out_type_id.id},
         ])
-
-    def test_compute_sale_order_count_with_stock_user(self):
-        """Test that `sale_order_count` only counts sale orders
-        accessible to the current stock user.
-
-        A stock user can compute `sale_order_count` for a serial number,
-        but the result only includes sale orders that the user has
-        read access to (i.e. their own sale orders in this scenario).
-        """
-        user = new_test_user(self.env, login='fgh',
-                             groups='base.group_user,stock.group_stock_user, sales_team.group_sale_salesman')
-        self.new_product.tracking = 'lot'
-        lot = self.env['stock.lot'].create({
-            'name': 'SN001',
-            'product_id': self.new_product.id,
-        })
-        self.env['stock.quant']._update_available_quantity(self.new_product, self.company_data['default_warehouse'].lot_stock_id, 2, lot_id=lot)
-        sale_order = self.env['sale.order'].create({
-            'partner_id': self.partner_a.id,
-            'order_line': [Command.create({
-                'product_id': self.new_product.id,
-                'product_uom_qty': 1.0,
-            })],
-        })
-        sale_order.action_confirm()
-        sale_order.picking_ids.button_validate()
-        self.assertEqual(sale_order.picking_ids.state, 'done')
-        self.assertEqual(lot.with_user(user).sale_order_count, 0)
-        sale_order_2 = self.env['sale.order'].with_user(user).create({
-            'partner_id': self.partner_a.id,
-            'order_line': [Command.create({
-                'product_id': self.new_product.id,
-                'product_uom_qty': 1.0,
-            })],
-        })
-        sale_order_2.action_confirm()
-        sale_order_2.picking_ids.button_validate()
-        self.assertEqual(sale_order_2.picking_ids.state, 'done')
-        lot.invalidate_recordset()
-        self.assertEqual(lot.with_user(user).sale_order_count, 1)
-        self.assertEqual(lot.with_user(user).sale_order_ids, sale_order_2)
 
     def test_invoice_zero_quantity_after_delivery_fifo(self):
         """

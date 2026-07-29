@@ -4,7 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class PosPaymentMethod(models.Model):
     _name = 'pos.payment.method'
-    _description = "Point of Sale Payment Methods"
+    _description = "Point of Sale Payment Method"
     _order = "sequence, id"
     _inherit = ['pos.load.mixin']
 
@@ -194,6 +194,8 @@ class PosPaymentMethod(models.Model):
         vals_list = super().copy_data(default=default)
 
         for pm, vals in zip(self, vals_list):
+            if 'name' not in default:
+                vals['name'] = _("%s (copy)", pm.name)
             if pm.journal_id and pm.journal_id.type == 'cash':
                 if ('journal_id' in default and default['journal_id'] == pm.journal_id.id) or ('journal_id' not in default):
                     vals['journal_id'] = False
@@ -238,6 +240,14 @@ class PosPaymentMethod(models.Model):
                 pm.default_qr = pm.get_qr_code(False, '', '', pm.company_id.currency_id.id, False)
             except UserError:
                 pm.default_qr = False
+
+    @api.model
+    def _allowed_actions_in_self_order(self):
+        # This method is overridden by payment terminal modules to
+        # allow their methods to be called from the Self Order Kiosk.
+        # It is defined here rather than in `pos_self_order` so that
+        # the payment terminal modules don't need to depend on it.
+        return []
 
     def get_qr_code(self, amount, free_communication, structured_communication, currency, debtor_partner):
         """ Generates and returns a QR-code

@@ -11,7 +11,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_0_gard_0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">10</field>
         <field name="completion_time">2.5</field>
@@ -32,7 +32,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_0_gard_0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">5</field>
         <field name="completion_time">1</field>
@@ -46,7 +46,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_0_gard_0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">2</field>
         <field name="completion_time">2</field>
@@ -61,7 +61,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_0_gard_0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -75,7 +75,7 @@
         <field name="slide_category">quiz</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_0_gard_0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -152,7 +152,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">5</field>
         <field name="completion_time">0.5</field>
@@ -166,7 +166,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">5</field>
         <field name="completion_time">1.5</field>
@@ -180,7 +180,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">10</field>
         <field name="completion_time">1</field>
@@ -214,7 +214,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -229,7 +229,9 @@
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="html_content" type="html">
 <section class="s_cover parallax bg-black-50 pt16 pb16" data-scroll-background-ratio="0" style="background-image: none;" data-snippet="s_cover">
-    <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_1.jpg'); background-position: 50% 0;"></span>
+    <span class="s_parallax_bg_wrap">
+        <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_1.jpg'); background-position: 50% 0;"></span>
+    </span>
     <div class="o_we_bg_filter bg-black-50"/>
     <div class="container">
         <div class="row s_nb_column_fixed">
@@ -259,7 +261,7 @@
     </div>
 </section></field>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">5</field>
         <field name="completion_time">1</field>
@@ -331,7 +333,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">10</field>
         <field name="completion_time">2.5</field>
@@ -346,7 +348,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_1_gard1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -381,7 +383,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_2_gard2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -466,7 +468,9 @@
         <field name="channel_id" ref="website_slides.slide_channel_demo_2_gard2"/>
         <field name="html_content" type="html">
 <section class="s_cover parallax bg-black-50 pt16 pb16" data-scroll-background-ratio="0" style="background-image: none;" data-snippet="s_cover">
-    <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_3.jpg'); background-position: 50% 0;"></span>
+    <span class="s_parallax_bg_wrap">
+        <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_3.jpg'); background-position: 50% 0;"></span>
+    </span>
     <div class="o_we_bg_filter bg-black-50"/>
     <div class="container">
         <div class="row s_nb_column_fixed">
@@ -498,7 +502,7 @@
     </div>
 </section></field>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">2</field>
@@ -513,7 +517,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_2_gard2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">1</field>
@@ -529,7 +533,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_2_gard2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">2</field>
@@ -561,7 +565,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_3_furn0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">10</field>
         <field name="completion_time">12</field>
@@ -576,7 +580,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_3_furn0"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">10</field>
         <field name="completion_time">3</field>
@@ -609,7 +613,9 @@
         <field name="channel_id" ref="website_slides.slide_channel_demo_4_furn1"/>
         <field name="html_content" type="html">
 <section class="s_cover parallax bg-black-50 pt16 pb16" data-scroll-background-ratio="0" style="background-image: none;" data-snippet="s_cover">
-    <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_3.jpg'); background-position: 50% 0;"></span>
+    <span class="s_parallax_bg_wrap">
+        <span class="s_parallax_bg oe_img_bg" style="background-image: url('/website_slides/static/src/img/slide_demo_tree_img_3.jpg'); background-position: 50% 0;"></span>
+    </span>
     <div class="o_we_bg_filter bg-black-50"/>
     <div class="container">
         <div class="row s_nb_column_fixed">
@@ -639,7 +645,7 @@
     </div>
 </section></field>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=6)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=6)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">10</field>
         <field name="completion_time">1</field>
@@ -654,7 +660,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_4_furn1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=3)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=3)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">0.5</field>
@@ -668,7 +674,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_4_furn1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=4)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=4)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">2</field>
         <field name="completion_time">2</field>
@@ -682,7 +688,7 @@
         <field name="slide_category">infographic</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_4_furn1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=4)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=4)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">2</field>
         <field name="completion_time">2</field>
@@ -697,7 +703,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_4_furn1"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=4)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=4)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">3</field>
@@ -739,7 +745,7 @@
         <field name="slide_category">document</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_5_furn2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">10</field>
         <field name="completion_time">2.5</field>
@@ -766,7 +772,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_5_furn2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">3</field>
@@ -780,7 +786,7 @@
         <field name="slide_category">video</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_5_furn2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="True"/>
         <field name="public_views">5</field>
         <field name="completion_time">3</field>
@@ -793,7 +799,7 @@
         <field name="slide_category">quiz</field>
         <field name="channel_id" ref="website_slides.slide_channel_demo_5_furn2"/>
         <field name="is_published" eval="True"/>
-        <field name="date_published" eval="datetime.now() - timedelta(days=8)"/>
+        <field name="published_date" eval="datetime.now() - timedelta(days=8)"/>
         <field name="is_preview" eval="False"/>
         <field name="public_views">0</field>
         <field name="completion_time">0.5</field>

@@ -1,6 +1,7 @@
 import { parseEmail } from "@mail/utils/common/format";
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
 
+import { serializeDateTime } from "@web/core/l10n/dates";
 import {
     Command,
     getKwArgs,
@@ -8,6 +9,8 @@ import {
     models,
     unmakeKwArgs,
 } from "@web/../tests/web_test_helpers";
+
+const { DateTime } = luxon;
 
 export class MailThread extends models.ServerModel {
     _name = "mail.thread";
@@ -336,6 +339,34 @@ export class MailThread extends models.ServerModel {
     }
 
     /**
+     * @param {number} id
+     * @param {number} message_id
+     * @param {boolean} pinned
+     * @param {string} model
+     */
+    set_message_pin(id, message_id, pinned) {
+        const kwargs = getKwArgs(arguments, "id", "message_id", "pinned");
+        id = kwargs.id;
+        delete kwargs.id;
+        message_id = kwargs.message_id;
+        pinned = kwargs.pinned;
+
+        /** @type {import("mock_models").BusBus} */
+        const BusBus = this.env["bus.bus"];
+        /** @type {import("mock_models").MailMessage} */
+        const MailMessage = this.env["mail.message"];
+
+        const pinned_at = pinned && serializeDateTime(DateTime.now());
+        MailMessage.write([message_id], { pinned_at });
+        const [thread] = this.read(id);
+        BusBus._sendone(
+            thread,
+            "mail.record/insert",
+            new mailDataHelpers.Store(MailMessage.browse(message_id), { pinned_at }).get_result()
+        );
+    }
+
+    /**
      * @param {number} [author_id]
      * @param {string} [email_from]
      */
@@ -487,7 +518,7 @@ export class MailThread extends models.ServerModel {
                                 message_id: message.id,
                                 store_data: new mailDataHelpers.Store(
                                     MailMessage.browse(message.id),
-                                    makeKwArgs({ for_current_user: true, add_followers: true })
+                                    makeKwArgs({ for_current_user: true, inbox_fields: true })
                                 ).get_result(),
                             },
                         ]);
@@ -643,6 +674,9 @@ export class MailThread extends models.ServerModel {
             res.primary_email_field = this.env[this._name]._primary_email;
             res.partner_fields = this.env[this._name]._mail_get_partner_fields?.();
         }
+        if (request_list.includes("defaultSubject")) {
+            res.display_name = MailThread._message_compute_subject([thread.id])[thread.id];
+        }
         if (request_list.includes("display_name")) {
             res.display_name = thread.display_name;
         }
@@ -684,6 +718,20 @@ export class MailThread extends models.ServerModel {
         }
         if (fields.includes("modelName")) {
             res.modelName = this._description;
+        }
+        const pinned_domain = [
+            ["model", "=", this._name],
+            ["res_id", "=", thread.id],
+            ["pinned_at", "!=", false],
+        ];
+        if (request_list.includes("has_pinned_messages")) {
+            res["hasPinnedMessages"] = this.env["mail.message"]._filter(pinned_domain).length > 0;
+        }
+        if (request_list.includes("pinned_messages")) {
+            store.add(
+                this.env["mail.message"].browse(this.env["mail.message"].search(pinned_domain)),
+                makeKwArgs({ for_current_user: true })
+            );
         }
         if (request_list.includes("suggestedRecipients")) {
             res["suggestedRecipients"] = MailThread._message_get_suggested_recipients.call(this, [

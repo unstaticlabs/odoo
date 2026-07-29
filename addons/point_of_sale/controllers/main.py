@@ -15,6 +15,19 @@ _logger = logging.getLogger(__name__)
 
 class PosController(PortalAccount):
 
+    @http.route('/pos/receipt/<order_id>', type='http', auth='user')
+    def pos_receipt_download(self, order_id=None, company_id=None):
+        pos_order = request.env['pos.order'].with_company(company_id).browse(int(order_id))
+        if not pos_order.exists():
+            return request.not_found()
+
+        image = pos_order.order_receipt_generate_image()
+        return request.make_response(image, [
+            ('Content-Type', 'image/png'),
+            ('Content-Length', len(image)),
+            ('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"),
+        ])
+
     @http.route('/pos/service-worker.js', type='http', auth='user')
     def pos_web_service_worker(self):
         response = request.make_response(
@@ -96,7 +109,6 @@ class PosController(PortalAccount):
         session_info['user_companies'] = {'current_company': company.id, 'allowed_companies': {company.id: session_info['user_companies']['allowed_companies'][company.id]}}
         session_info['nomenclature_id'] = pos_session.company_id.nomenclature_id.id
         session_info['fallback_nomenclature_id'] = pos_session.config_id.fallback_nomenclature_id.id
-        use_lna = bool(pos_session.env["ir.config_parameter"].get_param("point_of_sale.use_lna"))
         context = {
             'from_backend': 1 if from_backend else 0,
             'use_pos_fake_tours': True if k.get('tours', False) else False,
@@ -106,7 +118,6 @@ class PosController(PortalAccount):
             'access_token': pos_session.config_id.access_token,
             'last_data_change': pos_session.config_id.last_data_change.strftime("%Y-%m-%d %H:%M:%S"),
             'urls_to_cache': json.dumps(pos_config._get_url_to_cache(request.session.debug)),
-            'use_lna': use_lna,
         }
         response = request.render('point_of_sale.index', context)
         response.headers['Cache-Control'] = 'no-store'

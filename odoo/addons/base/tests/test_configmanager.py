@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import call, patch
 
 import odoo
-from odoo.tests import TransactionCase
+from odoo.tests import tagged, TransactionCase
 from odoo.tools import file_open, file_open_temporary_directory, file_path
 from odoo.tools.config import configmanager
 
@@ -13,11 +13,8 @@ EMPTY_CONFIG_PATH = file_path('base/tests/config/empty.conf')
 PROJECT_PATH = odoo.tools.config.root_path.removesuffix('/odoo')
 DEFAULT_DATADIR = odoo.tools.config._default_options['data_dir']
 
-MISSING_HTTP_INTERFACE = """\
-WARNING:odoo.tools.config:missing --http-interface/http_interface, \
-using 0.0.0.0 by default, will change to 127.0.0.1 in 20.0"""
 
-
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestConfigManager(TransactionCase):
     maxDiff = None
 
@@ -47,10 +44,8 @@ class TestConfigManager(TransactionCase):
                 try:
                     self.assertEqual(self.config.options[k], truth[k], f"{k!r} doesn't match")
                 except AssertionError as exc2:
-                    if hasattr(Exception, 'add_note'):  # 3.11
-                        exc2.add_note(str(self.config._get_sources(k)))
-                        raise exc2 from exc1
-                    raise AssertionError(f"{exc2.args[0]}\n{self.config._get_sources(k)}") from exc1
+                    exc2.add_note(str(self.config._get_sources(k)))
+                    raise exc2 from exc1
             if missing := set(self.config.options).difference(truth):
                 e = "missing from the test dict: " + ', '.join(missing)
                 raise AssertionError(e) from exc1
@@ -95,7 +90,7 @@ class TestConfigManager(TransactionCase):
             'data_dir': DEFAULT_DATADIR,
 
             # HTTP
-            'http_interface': '0.0.0.0',
+            'http_interface': '127.0.0.1',
             'http_port': 8069,
             'gevent_port': 8072,
             'http_enable': True,
@@ -142,6 +137,7 @@ class TestConfigManager(TransactionCase):
             'db_sslmode': 'prefer',
             'db_maxconn': 64,
             'db_maxconn_gevent': None,
+            'db_system': 'postgres',
             'db_template': 'template0',
             'db_replica_host': None,
             'db_replica_port': None,
@@ -167,6 +163,7 @@ class TestConfigManager(TransactionCase):
 
             # multiprocessing
             'workers': 0,
+            'gevent_workers': 1,
             'limit_memory_soft': 2048 * 1024 * 1024,
             'limit_memory_soft_gevent': None,
             'limit_memory_hard': 2560 * 1024 * 1024,
@@ -260,6 +257,7 @@ class TestConfigManager(TransactionCase):
             'db_sslmode': 'verify-full',
             'db_maxconn': 42,
             'db_maxconn_gevent': 100,
+            'db_system': 'postgres',
             'db_template': 'backup1706',
             'db_replica_host': 'db2.localhost',
             'db_replica_port': 2038,
@@ -286,6 +284,7 @@ class TestConfigManager(TransactionCase):
 
             # multiprocessing
             'workers': 92,
+            'gevent_workers': 3,
             'limit_memory_soft': 1048576,
             'limit_memory_soft_gevent': 1048577,
             'limit_memory_hard': 1048578,
@@ -325,7 +324,7 @@ class TestConfigManager(TransactionCase):
             self.config._parse_config(['--config', config_path])
         with (
             self.assertNoLogs('py.warnings'),
-            self.assertLogs('odoo.tools.config', 'WARNING') as capture_warn,
+            self.assertNoLogs('odoo.tools.config', 'WARNING'),
         ):
             self.config._warn_deprecated_options()
         self.assertConfigEqual({
@@ -339,6 +338,7 @@ class TestConfigManager(TransactionCase):
             'db_password': '',
             'db_port': None,
             'db_sslmode': 'prefer',
+            'db_system': 'postgres',
             'db_template': 'template0',
             'db_user': '',
             'dbfilter': '',
@@ -346,7 +346,7 @@ class TestConfigManager(TransactionCase):
             'email_from': '',
             'geoip_city_db': '/usr/share/GeoIP/GeoLite2-City.mmdb',
             'http_enable': True,
-            'http_interface': '0.0.0.0',
+            'http_interface': '127.0.0.1',
             'http_port': 8069,
             'import_file_maxbytes': 10485760,
             'import_file_timeout': 3,
@@ -408,6 +408,7 @@ class TestConfigManager(TransactionCase):
 
             # multiprocessing
             'workers': 0,
+            'gevent_workers': 1,
             'limit_memory_soft': 2048 * 1024 * 1024,
             'limit_memory_soft_gevent': None,
             'limit_memory_hard': 2560 * 1024 * 1024,
@@ -459,20 +460,14 @@ class TestConfigManager(TransactionCase):
             )
             + missing('translate_modules'),
         )
-        self.assertEqual(capture_warn.output, [
-            'WARNING:odoo.tools.config:missing --http-interface/http_interface, '
-               'using 0.0.0.0 by default, will change to 127.0.0.1 in 20.0',
-        ])
 
     def test_05_repeat_parse_config(self):
         """Emulate multiple calls to parse_config()"""
-        with self.assertLogs('odoo.tools.config', 'WARNING') as capture:
-            config = configmanager()
-            config._parse_config()
-            config._warn_deprecated_options()
-            config._parse_config()
-            config._warn_deprecated_options()
-        self.assertEqual(capture.output, [MISSING_HTTP_INTERFACE] * 2)
+        config = configmanager()
+        config._parse_config()
+        config._warn_deprecated_options()
+        config._parse_config()
+        config._warn_deprecated_options()
 
     def test_06_cli(self):
         with file_open('base/tests/config/cli') as file:
@@ -566,6 +561,7 @@ class TestConfigManager(TransactionCase):
             'db_sslmode': 'verify-full',
             'db_maxconn': 42,
             'db_maxconn_gevent': 100,
+            'db_system': 'postgres',
             'db_template': 'backup1706',
             'db_replica_host': 'db2.localhost',
             'db_replica_port': 2038,
@@ -590,6 +586,7 @@ class TestConfigManager(TransactionCase):
             'geoip_country_db': '/tmp/country.db',
 
             'workers': 92,
+            'gevent_workers': 3,
             'limit_memory_soft': 1048576,
             'limit_memory_soft_gevent': 1048577,
             'limit_memory_hard': 1048578,
@@ -693,6 +690,7 @@ class TestConfigManager(TransactionCase):
             'db_sslmode': 'verify-full',
             'db_maxconn': 42,
             'db_maxconn_gevent': 100,
+            'db_system': 'postgres',
             'db_template': 'backup1706',
             'db_replica_host': 'db2.localhost',
             'db_replica_port': 2038,
@@ -717,6 +715,7 @@ class TestConfigManager(TransactionCase):
             'geoip_country_db': '/tmp/country.db',
 
             'workers': 92,
+            'gevent_workers': 3,
             'limit_memory_soft': 1048576,
             'limit_memory_soft_gevent': 1048577,
             'limit_memory_hard': 1048578,

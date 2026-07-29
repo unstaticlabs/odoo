@@ -6,6 +6,7 @@ const SUPPORTED_DOMAINS = [
     "player.vimeo.com",
     "vimeo.com",
     "dailymotion.com",
+    "facebook.com",
 ];
 
 /**
@@ -54,7 +55,9 @@ export function generateVideoIframe(parentEl, manageIframeSrcFct) {
     const extraEditionEl = document.createElement("div");
     extraEditionEl.className = "css_editable_mode_display";
     const extraSizeEl = document.createElement("div");
-    extraSizeEl.className = "media_iframe_video_size";
+    extraSizeEl.className = parentEl.dataset.isVertical
+        ? "media_iframe_video_size_for_vertical"
+        : "media_iframe_video_size";
     parentEl.append(extraEditionEl, extraSizeEl);
 
     // Rebuild the iframe.

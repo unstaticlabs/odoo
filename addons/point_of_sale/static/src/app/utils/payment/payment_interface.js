@@ -6,8 +6,8 @@
  *
  * To connect the interface to the right payment methods register it:
  *
- * import { register_payment_method } models from "@point_of_sale/app/store/pos_store";
- * register_payment_method('my_payment', MyPayment);
+ * import { registry } models from "@web/core/registry";
+ * registry.category("electronic_payment_interfaces").add("my_payment", MyPayment);
  *
  * my_payment is the technical name of the added selection in
  * use_payment_terminal.
@@ -26,16 +26,6 @@ export class PaymentInterface {
         this.pos = pos;
         this.payment_method_id = payment_method_id;
         this.supports_reversals = false;
-    }
-
-    /**
-     * This getter determines if send_payment_request
-     * is called automatically upon selecting the payment method.
-     * Overriding this to false allows manual input of an amount
-     * before sending the request to the terminal.
-     */
-    get fastPayments() {
-        return true;
     }
 
     /**
@@ -88,4 +78,47 @@ export class PaymentInterface {
      * progress payments.
      */
     close() {}
+
+    /**
+     * This method is a helper for the payment terminal to
+     * subscribe to its corresponding bus messages in the backend,
+     * enabling webhook payment confirmations.
+     *
+     * @param {string} channel - The message channel to subscribe to
+     * @param {(message) => void} callback - The callback to run
+     */
+    connectWebSocket(channel, callback) {
+        if (!this.pos.data.channels.some((channelInfo) => channelInfo.channel === channel)) {
+            this.pos.data.connectWebSocket(channel, callback);
+        }
+    }
+
+    /**
+     * This wraps calls to actions on the `pos.payment.method` model.
+     * It should always be used instead of calling the ORM directly, so
+     * that it can be overridden in e.g. `pos_self_order`.
+     *
+     * @param {string} method - The action to call on `pos.payment.method`
+     * @param {any[]} params - The action params to send
+     */
+    async callPaymentMethod(method, params) {
+        return await this.env.services.orm.silent.call("pos.payment.method", method, params);
+    }
+
+    /**
+     * Return true if the amount that was authorized can be modified,
+     * false otherwise
+     * @param {string} uuid - The id of the paymentline
+     */
+    canBeAdjusted(uuid) {
+        return false;
+    }
+
+    /**
+     * Called when the amount authorized by a payment request should
+     * be adjusted to account for a new order line, it can only be called if
+     * canBeAdjusted returns True
+     * @param {string} uuid - The id of the paymentline
+     */
+    sendPaymentAdjust(uuid) {}
 }

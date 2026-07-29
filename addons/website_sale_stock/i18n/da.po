@@ -8,15 +8,15 @@
 # Martin Trigaux, 2022
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2025, 2026.
-# Lærke Hedegaard Mathiasen <lhm@flytconsulting.dk>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-29 17:00+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-23 14:31+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_sale_stock/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -33,9 +33,36 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
 msgstr ""
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Add to wishlist"
+msgstr "Føj til ønskeliste"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Added to your wishlist"
+msgstr "Føjet til ønskeliste"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -50,8 +77,9 @@ msgstr "Alle lagre"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__assign
+#, fuzzy
 msgid "Assign"
-msgstr ""
+msgstr "Tildel"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__stock_notification_partner_ids
@@ -60,8 +88,9 @@ msgstr "\"Tilbage på lager\"-notifikationer"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
 msgid "Below"
-msgstr ""
+msgstr "Under"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_res_config_settings
@@ -77,11 +106,6 @@ msgstr "Fortsæt med at sælge"
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__default_allow_out_of_stock_order
 msgid "Continue selling when out-of-stock"
 msgstr "Fortsæt med at sælge, når varen ikke er på lager"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "Kære kunde"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -103,11 +127,18 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "Skrivebord kombination"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
@@ -123,11 +154,18 @@ msgid "Get notified when back in stock"
 msgstr "Få besked, når produktet er tilbage på lager"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Hello"
+msgstr "Hej"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
@@ -144,14 +182,32 @@ msgstr "Ugyldig e-mail"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr "Ugyldig e-mail"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "Lager"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "Lagerstandarder"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "Logo"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "Mitchell Admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -202,8 +258,9 @@ msgstr "Produktkombination"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_feed
+#, fuzzy
 msgid "Product Feed"
-msgstr ""
+msgstr "Produktfeed"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_product
@@ -211,19 +268,27 @@ msgid "Product Variant"
 msgstr "Produktvariant"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+#, fuzzy
+msgid "Product Wishlist"
+msgstr "Ønskeliste"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Product image"
+msgstr "Produktbillede"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
+#, fuzzy
 msgid "Product ribbon"
-msgstr ""
+msgstr "Produktbånd"
 
 #. module: website_sale_stock
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr "Produkt: Send e-mail vedrørende produkternes tilgængelighed"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "Med venlig hilsen"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -276,15 +341,15 @@ msgstr ""
 "opdateret. Vi beklager ulejligheden."
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "Følgende produkt er nu på lager."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+#, fuzzy
+msgid "Stock Notification"
+msgstr "Lagermeddelelse"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "Produktet '%(product_name)s' er nu tilgængeligt"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr ""
 
 #. module: website_sale_stock
 #. odoo-python
@@ -379,39 +444,3 @@ msgstr ""
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr "youremail@gmail.com"
-
-#~ msgid "<span invisible=\"not show_availability\">Units</span>"
-#~ msgstr "<span invisible=\"not show_availability\">Enheder</span>"
-
-#~ msgid "Default visibility for custom messages."
-#~ msgstr "Standardsynlighed for brugerdefinerede beskeder."
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr "Sådan viser du produkter med små mængder (ledige – reserveret)"
-
-#~ msgid "Only"
-#~ msgstr "Kun"
-
-#~ msgid "The item has not been added to your cart since it is not available."
-#~ msgstr ""
-#~ "Varen er ikke blevet lagt i din indkøbskurv, da den ikke er tilgængelig."
-
-#~ msgid "This product is out of stock."
-#~ msgstr "Dette produkt er ikke på lager."
-
-#~ msgid "Units"
-#~ msgstr "Enheder"
-
-#~ msgid "You already added"
-#~ msgstr "Du har allerede tilføjet"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr ""
-#~ "Du har allerede tilføjet alle de tilgængelige produkter til din "
-#~ "indkøbskurv."
-
-#~ msgid "You already have %s Units in your cart."
-#~ msgstr "Du har allerede %s varer i din kurv."
-
-#~ msgid "in your cart."
-#~ msgstr "i din kurv."

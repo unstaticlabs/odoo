@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 18:16+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"website_hr_recruitment/uz/>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website_hr_recruitment
 #. odoo-python
@@ -43,15 +41,8 @@ msgid ""
 msgstr ""
 "<span class=\"text-muted small\">Javob berish muddati</span> <h6>2 kun "
 "ochiq</h6> <span class=\"text-muted small\">Jarayon</span> <h6>1 ta telefon "
-"suhbati</h6> <h6>1 ta joyida suhbat</h6> <span class=\"text-muted small\">"
-"Taklif olish muddati</span> <h6>Suhbatdan so‘ng 4 kun</h6>"
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-#, fuzzy
-msgid " In case of issue, contact %(contact_infos)s"
-msgstr "Muammo yuzaga kelsa, %(contact_infos)s bilan bog‘laning"
+"suhbati</h6> <h6>1 ta joyida suhbat</h6> <span class=\"text-muted "
+"small\">Taklif olish muddati</span> <h6>Suhbatdan so‘ng 4 kun</h6>"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
@@ -72,8 +63,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>O‘QISH</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>O‘QISH</b></small></a>"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
@@ -206,31 +197,31 @@ msgstr ""
 "taqdim eting</span>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 #, fuzzy
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr "<strong class=\"s_rating_title\">Ma'muriy ishlar</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 #, fuzzy
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr "<strong class=\"s_rating_title\">Mustaqillik</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 #, fuzzy
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr "<strong class=\"s_rating_title\">Mijozlar bilan munosabat</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 #, fuzzy
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr "<strong class=\"s_rating_title\">Shaxsiy rivojlanish</strong>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 #, fuzzy
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr "<strong class=\"s_rating_title\">Texnik malaka</strong>"
@@ -279,17 +270,6 @@ msgid "All websites"
 msgstr "Barcha veb-saytlar"
 
 #. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-#, fuzzy
-msgid ""
-"An application already exists for %(value)s. Duplicates might be rejected. %"
-"(recruiter_contact)s"
-msgstr ""
-"%(value)s uchun ariza allaqachon mavjud. Takroriy arizalar rad etilishi "
-"mumkin. %(recruiter_contact)s"
-
-#. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_hr_applicant
 #, fuzzy
 msgid "Applicant"
@@ -327,35 +307,14 @@ msgid "Apply for a Job"
 msgstr "Ish o‘rniga ariza berish"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
-#, fuzzy
-msgid ""
-"As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br/><br/>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__publish_on
+msgid "Auto publish on"
 msgstr ""
-"Kompaniyamiz xodimi sifatida siz <b>yangicha mahsulotlarni yaratish va joriy "
-"etish uchun har bir bo‘lim bilan hamkorlik qilasiz.</b> Katta imkoniyatlar "
-"taqdim etadigan, rivojlanayotgan kompaniyamizda ishlang. Bu yerda tajribali "
-"rahbarlar bilan birgalikda o‘sish va yangi bilimlar olish imkoniyatiga ega "
-"bo‘lasiz. Biz tajribali va iste'dodli xodim izlamoqdamiz. <br/><br/> Bu "
-"lavozim <b>ijodkorlik va puxtalikni</b> talab qiladi, siz an'anaviy "
-"yondashuvlardan tashqarida fikrlashingiz kerak. Biz nomzoddan tashabbuskor "
-"va \"har qanday vazifani uddalay oladigan\" ruhda bo‘lishini kutamiz. "
-"Muvaffaqiyatga erishish uchun sizda muammolarni hal qilishning mustahkam "
-"ko‘nikmalari bo‘lishi lozim."
+
+#. module: website_hr_recruitment
+#: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -525,12 +484,6 @@ msgid "Experience in writing online content"
 msgstr "Onlayn kontent yozish tajribasi"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-#, fuzzy
-msgid "Facebook"
-msgstr "Facebook"
-
-#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 #, fuzzy
 msgid "Filter by country"
@@ -541,12 +494,6 @@ msgstr "Mamlakat bo‘yicha saralash"
 #, fuzzy
 msgid "Filters"
 msgstr "Filtrlar"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-#, fuzzy
-msgid "Follow us"
-msgstr "Bizni kuzatib boring"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -594,9 +541,9 @@ msgid ""
 "                                                quickly enough."
 msgstr ""
 "Odatda <strong>arizalarga 3 kun ichida javob beraman</strong>. <br/><br/> "
-"Keyingi bosqich telefon orqali suhbat yoki ofisimizda uchrashuv bo‘ladi. "
-"<br/><br/> Agar tezroq javob olishni istasangiz</strong> yoki mendan o‘z "
-"vaqtida xabar ololmasangiz, <strong>menga murojaat qilishingiz mumkin."
+"Keyingi bosqich telefon orqali suhbat yoki ofisimizda uchrashuv bo‘ladi. <br/"
+"><br/> Agar tezroq javob olishni istasangiz</strong> yoki mendan o‘z vaqtida "
+"xabar ololmasangiz, <strong>menga murojaat qilishingiz mumkin."
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -637,6 +584,7 @@ msgid "Industries Filter"
 msgstr "Sanoat filtri"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 #, fuzzy
 msgid "Insert a Job Description..."
@@ -716,12 +664,6 @@ msgstr "Ishlar sahifasi"
 #, fuzzy
 msgid "Lead the entire sales cycle"
 msgstr "Butun savdo jarayonini boshqarish"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-#, fuzzy
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -809,9 +751,8 @@ msgstr "Boshqalar"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
-#, fuzzy
-msgid "Our Job Offers"
-msgstr "Bizning ish takliflarimiz"
+msgid "Our Job Opportunities"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -858,6 +799,18 @@ msgstr ""
 "Hamkasblar bilan xohlagan sport turini o‘ynash, <br/>xarajatlar qoplanadi"
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Ongoing Application"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Refused Application"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__job_details
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_form_inherit
 #, fuzzy
@@ -869,6 +822,11 @@ msgstr "Jarayon tafsilotlari"
 #, fuzzy
 msgid "Products"
 msgstr "Mahsulotlar"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Publish On"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -883,9 +841,8 @@ msgstr "Nashr etilgan"
 
 #. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__published_date
-#, fuzzy
-msgid "Published Date"
-msgstr "Nashr etilgan sana"
+msgid "Published date"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -897,7 +854,8 @@ msgstr "Mijoz ehtiyojlarini aniqlash"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 #, fuzzy
 msgid "Real responsibilities and challenges in a fast evolving company"
-msgstr "Tez rivojlanayotgan kompaniyada haqiqiy mas'uliyatlar va qiyinchiliklar"
+msgstr ""
+"Tez rivojlanayotgan kompaniyada haqiqiy mas'uliyatlar va qiyinchiliklar"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -936,6 +894,12 @@ msgstr "Muayyan veb-saytga cheklash"
 #, fuzzy
 msgid "SEO optimized"
 msgstr "SEO optimallashtirigan"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_website_inherit
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_pages_tree_view
+msgid "Scheduled"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -1003,6 +967,22 @@ msgid "Strong analytical skills"
 msgstr "Kuchli tahliliy ko‘nikmalar"
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following ongoing applications share an email address, phone number and/"
+"or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following recently refused applications share an email address, phone "
+"number and/or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__website_absolute_url
 #, fuzzy
 msgid "The full absolute URL to access the document through the website."
@@ -1024,9 +1004,8 @@ msgstr "Ish havolasi vaqtinchalik xotiraga nusxalandi"
 #. module: website_hr_recruitment
 #. odoo-python
 #: code:addons/website_hr_recruitment/models/hr_applicant.py:0
-#, fuzzy
-msgid "The job offer has been closed."
-msgstr "Ish taklifi yopildi"
+msgid "The job opportunity has been closed."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -1072,6 +1051,11 @@ msgid "Types"
 msgstr "Turlar"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Unschedule"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base_mobile
 #, fuzzy
@@ -1102,28 +1086,6 @@ msgstr ""
 "Biz innovatsion mahsulotlar orqali har bir inson hayotini yaxshilashni "
 "maqsad qilgan ishtiyoqli odamlar jamoasimiz. Biznesingiz muammolarini hal "
 "qilish uchun ajoyib mahsulotlar yaratamiz"
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-#, fuzzy
-msgid ""
-"We found a recent application with a similar name, email, phone number. You "
-"can continue if it's not a mistake."
-msgstr ""
-"Biz yaqinda o‘xshash ism, elektron pochta manzili va telefon raqamiga ega "
-"bo‘lgan ariza topdik. Xato bo‘lmasa, davom etishingiz mumkin"
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-#, fuzzy
-msgid ""
-"We've found a previous closed application in our system within the last 6 "
-"months. Please consider before applying in order not to duplicate efforts."
-msgstr ""
-"Tizimimizda so‘nggi 6 oy ichida avvalgi yopilgan arizani topdik. Takroriy "
-"harakatlardan qochish uchun ariza topshirishdan oldin o‘ylab ko‘ring"
 
 #. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_website
@@ -1181,6 +1143,11 @@ msgid "Website opengraph image"
 msgstr "Veb-sayt meta-tasviriy rasmi"
 
 #. module: website_hr_recruitment
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__website_rating
+msgid "Website rating"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 #, fuzzy
 msgid "What We Offer"
@@ -1191,11 +1158,6 @@ msgstr "Biz nimalarni taklif qilamiz"
 #, fuzzy
 msgid "What's great in the job?"
 msgstr "Ish nima bilan ajoyib?"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "X"
-msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
@@ -1235,13 +1197,10 @@ msgstr "yo‘l ko‘rsatkich"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_inherit_website
-#, fuzzy
 msgid ""
 "e.g. Summarize the position in one or two lines that will be displayed on "
-"the Jobs list page..."
+"the job page and the jobs list page..."
 msgstr ""
-"Misol uchun: Vakansiyalar ro‘yxati sahifasida ko‘rsatiladigan lavozimni bir-"
-"ikki qatorda qisqacha tavsiflang..."
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -1272,6 +1231,11 @@ msgstr "bo‘sh ish o‘rni"
 #, fuzzy
 msgid "open positions"
 msgstr "bo‘sh ish o‘rinlari"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
+msgid "scheduled"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index

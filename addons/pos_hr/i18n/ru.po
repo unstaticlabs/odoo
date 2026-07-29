@@ -3,16 +3,16 @@
 # * pos_hr
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-13 12:53+0000\n"
-"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"POT-Creation-Date: 2026-07-10 17:37+0000\n"
+"PO-Revision-Date: 2025-11-08 19:06+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/pos_hr/"
 "ru/>\n"
 "Language: ru\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_hr
 #: model_terms:ir.ui.view,arch_db:pos_hr.single_employee_sales_report
@@ -69,8 +69,6 @@ msgid ""
 "Cannot generate report per employee: only one employee logged in during this "
 "session."
 msgstr ""
-"Невозможно сформировать отчет по сотрудникам: в течение этой сессии в "
-"системе работал только один сотрудник."
 
 #. module: pos_hr
 #. odoo-javascript
@@ -132,6 +130,7 @@ msgstr "Отменить"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__display_name
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__display_name
@@ -192,7 +191,7 @@ msgstr "Сотрудники с правами менеджера"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__minimal_employee_ids
 #: model:ir.model.fields,field_description:pos_hr.field_res_config_settings__pos_minimal_employee_ids
 msgid "Employees with minimal access"
-msgstr "Сотрудники с минимальным уровнем доступа"
+msgstr ""
 
 #. module: pos_hr
 #. odoo-javascript
@@ -206,6 +205,7 @@ msgstr "Введите ваш PIN"
 #: model:ir.model.fields,field_description:pos_hr.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_daily_sales_reports_wizard__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_order__id
+#: model:ir.model.fields,field_description:pos_hr.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_payment__id
 #: model:ir.model.fields,field_description:pos_hr.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_hr.field_product_product__id
@@ -238,6 +238,12 @@ msgstr ""
 
 #. module: pos_hr
 #. odoo-javascript
+#: code:addons/pos_hr/static/src/app/components/popups/cashier_selection_popup/cashier_selection_popup.xml:0
+msgid "More..."
+msgstr ""
+
+#. module: pos_hr
+#. odoo-javascript
 #: code:addons/pos_hr/static/src/app/utils/select_cashier_mixin.js:0
 msgid "No Cashiers"
 msgstr "Нет кассиров"
@@ -249,8 +255,6 @@ msgid ""
 "Only the cashier linked to the logged-in user (%s) can proceed to the "
 "Backend."
 msgstr ""
-"Только кассир, привязанный к текущему авторизованному пользователю (%s), "
-"может перейти в бэкэнд."
 
 #. module: pos_hr
 #. odoo-javascript
@@ -306,8 +310,13 @@ msgstr "Ежедневный отчет по POS"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Заказы в POS"
+msgid "Point of Sale Order"
+msgstr ""
+
+#. module: pos_hr
+#: model:ir.model,name:pos_hr.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_order
@@ -316,8 +325,8 @@ msgstr "Отчет по заказам в POS"
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Платежи через POS"
+msgid "Point of Sale Payment"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_pos_session
@@ -340,6 +349,12 @@ msgstr "Выберите кассира"
 #: model_terms:ir.ui.view,arch_db:pos_hr.res_config_settings_view_form
 msgid "Select Employee(s)"
 msgstr "Выбрать сотрудника(ов)"
+
+#. module: pos_hr
+#. odoo-javascript
+#: code:addons/pos_hr/static/src/app/screens/order_details_dialog.js:0
+msgid "Served By"
+msgstr ""
 
 #. module: pos_hr
 #: model:ir.model,name:pos_hr.model_report_pos_hr_single_employee_sales_report
@@ -395,41 +410,3 @@ msgid ""
 msgstr ""
 "Нельзя удалить сотрудника, который участвует в текущей сессии POS. Сначала "
 "завершите следующие сессии: \n"
-
-#~ msgid "If left empty, only Odoo users have extended rights in PoS"
-#~ msgstr ""
-#~ "Если не указано, расширенные права в POS есть только у пользователей Odoo"
-
-#~ msgid "All employees"
-#~ msgstr "Все работники"
-
-#~ msgid "Change Cashier"
-#~ msgstr "Изменить кассира"
-
-#~ msgid "Employee: %s - PoS Config(s): %s \n"
-#~ msgstr "Сотрудник: %s - PoS Config(s): %s\n"
-
-#~ msgid "Incorrect Password"
-#~ msgstr "Неверный пароль"
-
-#~ msgid "Log in to"
-#~ msgstr "Войдите в систему"
-
-#~ msgid "No employee"
-#~ msgstr "Nessun dipendente"
-
-#~ msgid ""
-#~ "Person who uses the cash register. It can be a reliever, a student or an "
-#~ "interim employee."
-#~ msgstr ""
-#~ "Лицо, использующее кассовый аппарат. Это может быть питчер, ученик или "
-#~ "временный работник."
-
-#~ msgid "Please try again."
-#~ msgstr "Пожалуйста, попробуйте еще раз."
-
-#~ msgid "Scan your badge"
-#~ msgstr "Отсканируйте свой бейдж"
-
-#~ msgid "or"
-#~ msgstr "или"

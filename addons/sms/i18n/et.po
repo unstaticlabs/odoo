@@ -18,23 +18,22 @@
 # Leaanika Randmets, 2022
 # JanaAvalah, 2023
 # Anna, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Eelma <karin.eelma@impactic.ee>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 23:53+0000\n"
-"Last-Translator: Eelma <karin.eelma@impactic.ee>\n"
-"Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/sms/et/>"
-"\n"
+"PO-Revision-Date: 2025-11-11 17:19+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/sms/et/"
+">\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -192,6 +191,12 @@ msgstr ""
 "this template"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -261,10 +266,7 @@ msgid "Buy credits."
 msgstr "Osta punkte."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Tühista"
@@ -299,8 +301,8 @@ msgstr "Vali oma saatja nimi"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Ettevõtted"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -391,12 +393,6 @@ msgid "Delivered"
 msgstr "Tarnitud"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Loobu"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -419,8 +415,8 @@ msgstr "Kuva nimi"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Dokumendi jälgijad"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -549,9 +545,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -680,6 +676,12 @@ msgid "Marked for deletion"
 msgstr "Kustutamiseks märgitud"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -688,8 +690,8 @@ msgstr "Sõnum"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Sõnumi teavitused"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -701,8 +703,8 @@ msgstr "Puuduolev number"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Mudelid"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -986,9 +988,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1260,6 +1262,12 @@ msgid "Sms Template"
 msgstr "SMS mall"
 
 #. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
 msgid "Stored Recipient Number"
 msgstr "Salvestatud adressaadi number"
@@ -1380,7 +1388,7 @@ msgstr ""
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
 msgid "To"
-msgstr "Kuni"
+msgstr "Saaja"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__state
@@ -1617,262 +1625,3 @@ msgstr "dokument"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid ""
-#~ "%s out of the %s selected SMS Text Messages have successfully been resent."
-#~ msgstr "%s valitud tekstisõnumitest %s on edukalt uuesti saadetud."
-
-#~ msgid ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">No records</span>"
-#~ msgstr ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">Kirjed puuduvad</span>"
-
-#~ msgid "Action Needed"
-#~ msgstr "Vajalik toiming"
-
-#~ msgid "Action To Do"
-#~ msgstr "Toimingud, mida teha"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Manuste arv"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Mustas nimekirjas on mobiiltelefoni number"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "Mustas nimekirjas on telefoni number"
-
-#~ msgid "Buy credits"
-#~ msgstr "Osta punkte"
-
-#~ msgid "Can Cancel"
-#~ msgstr "Võib tühistada"
-
-#~ msgid "Can Resend"
-#~ msgstr "Võib uueseti saata"
-
-#~ msgid "Canceled"
-#~ msgstr "Tühistatud"
-
-#~ msgid ""
-#~ "Choose method for SMS sending:\n"
-#~ "SMS: mass SMS\n"
-#~ "Post as Message: log on document\n"
-#~ "Post as Note: mass SMS with archives"
-#~ msgstr ""
-#~ "Valige SMS-i saatmise viis:\n"
-#~ "SMS: mass-SMS\n"
-#~ "Postita sõnumina: logi sisse dokumenti\n"
-#~ "Postita märkusena: mass-SMS arhiividega"
-
-#~ msgid "Close"
-#~ msgstr "Sulge"
-
-#~ msgid "Edit Partners"
-#~ msgstr "Muuda partnereid"
-
-#~ msgid "Error Message"
-#~ msgstr "Veateade"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "Väli, mida kasutatakse puhastatud telefoninumbri salvestamiseks. Aitab "
-#~ "kiirendada otsinguid ja võrdlusi."
-
-#~ msgid "Followers"
-#~ msgstr "Jälgijad"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Jälgijad (partnerid)"
-
-#~ msgid "Has Insufficient Credit"
-#~ msgstr "Pole piisavalt krediiti"
-
-#~ msgid "Has Message"
-#~ msgstr "On sõnum"
-
-#~ msgid "Has Unregistered Account"
-#~ msgstr "Registreerimata konto"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "Kui märgitud, siis uued sõnumid nõuavad Su tähelepanu."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "Kui puhastatud telefoninumber on mustas nimekirjas, ei saa kontakt enam "
-#~ "ühtegi masspostituse SMS´i mitte ühestki kanalist."
-
-#~ msgid "Ignore all"
-#~ msgstr "Eira kõiki"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Näitab, kas mustas nimekirjas olev puhastatud telefoninumber on mobiili "
-#~ "number. Aitab eristada, milline number on mustas nimekirjas             "
-#~ "kui mudelis on nii mobiiltelefoni kui ka telefoninumbri väli."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Näitab, kas mustas nimekirjas olev puhastatud telefoninumber on mobiili "
-#~ "number. Aitab eristada, milline number on mustas nimekirjas             "
-#~ "kui mudelis on nii mobiiltelefoni kui ka telefoninumbri väli."
-
-#~ msgid "Is Follower"
-#~ msgstr "Jälgija"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Sõnumi edastamise veateade"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Sõnumi tüüp: email sõnumiks, teade süsteemi sõnumiks, kommentaar muudeks "
-#~ "sõnumiteks nagu kasutaja vastused."
-
-#~ msgid "Messages"
-#~ msgstr "Sõnumid"
-
-#~ msgid "Notification"
-#~ msgstr "Teavitused"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Toimingute arv"
-
-#~ msgid "Number of errors"
-#~ msgstr "Vigade arv"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Tegutsemist nõudvate sõnumite arv"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Kohaletoimetamise veateatega sõnumite arv"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Valikuline tõlkekeel (ISO-kood), mis valitakse meili saatmisel. Kui seda "
-#~ "pole määratud, kasutatakse ingliskeelset versiooni. Tavaliselt peaks see "
-#~ "olema kohahoidja avaldis, mis pakub sobivat keelt, nt. "
-#~ "{{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Kontakti kaart"
-
-#~ msgid "Phone Blacklist Mixin"
-#~ msgstr "Telefoni musta nimekirja Mixin"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Telefoninumber lisatud musta nimekirja"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefon/Mobiil"
-
-#~ msgid "Post as Message"
-#~ msgstr "Postita sõnum"
-
-#~ msgid "Post as Note"
-#~ msgstr "Postita märkus"
-
-#~ msgid "Reason"
-#~ msgstr "Põhjus"
-
-#~ msgid "Recipient"
-#~ msgstr "Saaja"
-
-#~ msgid "Recipient Name"
-#~ msgstr "Saaja nimi"
-
-#~ msgid "Recipients"
-#~ msgstr "Saajad"
-
-#~ msgid "Resend Notification"
-#~ msgstr "Saatke teavitus uuesti"
-
-#~ msgid "SMS API"
-#~ msgstr "SMS API"
-
-#~ msgid "SMS Resend"
-#~ msgstr "Sõnumi uuesti saatmine"
-
-#~ msgid "Send & Close"
-#~ msgstr "Saada ja sule"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Saada SMS"
-
-#~ msgid "Send as"
-#~ msgstr "Saada kui"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "Saada kui (SMS)"
-
-#~ msgid "Sending Failures"
-#~ msgstr "Saatmise tõrked"
-
-#~ msgid "Sending SMS can only be done on a mail.thread or a transient model"
-#~ msgstr ""
-#~ "SMS-i saatmine saab toimuda ainult mail.threadi või transientse mudeli "
-#~ "abil."
-
-#~ msgid "Set up an account"
-#~ msgstr "Seadistage konto"
-
-#~ msgid "Sms Resend"
-#~ msgstr "SMS uuesti saata"
-
-#~ msgid "Try Again"
-#~ msgstr "Proovi uuesti"
-
-#~ msgid ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-#~ msgstr ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-
-#~ msgid "Use blacklist"
-#~ msgstr "Kasuta musta nimekirja"
-
-#~ msgid "Website Messages"
-#~ msgstr "Veebilehe sõnumid"
-
-#~ msgid "Website communication history"
-#~ msgstr "Veebilehe suhtluse ajalugu"
-
-#~ msgid "You do not have access to the message and/or related document."
-#~ msgstr "Puudub ligipääs sõnumile ja/või sellega seotud dokumendile."
-
-#~ msgid "characters, fits in"
-#~ msgstr "tähemärki, saadetakse"

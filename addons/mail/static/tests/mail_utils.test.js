@@ -1,4 +1,4 @@
-import { addLink, parseAndTransform } from "@mail/utils/common/format";
+import { addLink, htmlToHtmlInline, parseAndTransform } from "@mail/utils/common/format";
 import { useSequential } from "@mail/utils/common/hooks";
 import {
     contains,
@@ -65,7 +65,7 @@ test("addLink: utility function and special entities", () => {
         ],
         [
             markup`<p>https://example.com/"hello"&gt;</p>`,
-            '<p><a target="_blank" rel="noreferrer noopener" href="https://example.com/">https://example.com/</a>"hello"&gt;</p>',
+            '<p><a target="_blank" rel="noreferrer noopener" href="https://example.com/">https://example.com/</a>&quot;hello&quot;&gt;</p>',
         ],
         // & and ' linkified since they are in URL regex
         [
@@ -74,9 +74,9 @@ test("addLink: utility function and special entities", () => {
         ],
         [
             markup`<p>https://example.com/'yeah'</p>`,
-            '<p><a target="_blank" rel="noreferrer noopener" href="https://example.com/\'yeah\'">https://example.com/\'yeah\'</a></p>',
+            '<p><a target="_blank" rel="noreferrer noopener" href="https://example.com/&#x27;yeah&#x27;">https://example.com/&#x27;yeah&#x27;</a></p>',
         ],
-        [markup`<p>:'(</p>`, "<p>:'(</p>"],
+        [markup`<p>:'(</p>`, "<p>:&#x27;(</p>"],
         [markup`:'(`, ":&#x27;("],
         ["<p>:'(</p>", "&lt;p&gt;:&#x27;(&lt;/p&gt;"],
         [":'(", ":&#x27;("],
@@ -239,4 +239,24 @@ test("isSequential doesn't execute intermediate call.", async () => {
     const result = await Promise.all([sequence(), sequence(), sequence(), sequence(), sequence()]);
     expect(result).toEqual([1, undefined, undefined, undefined, 5]);
     expect.verifySteps(["1", "5"]);
+});
+
+test("htmlToHtmlInline replaces br with spaces", () => {
+    expect(htmlToHtmlInline(markup`a<br/>b`).toString()).toBe("a\u00a0b");
+});
+
+test("htmlToHtmlInline inserts spaces between adjacent block elements", () => {
+    expect(htmlToHtmlInline(markup`<div>Before</div><p>After</p>`).toString()).toBe(
+        "Before\u00a0After"
+    );
+});
+
+test("htmlToHtmlInline copies rel and target attributes from links", () => {
+    expect(
+        htmlToHtmlInline(
+            markup`<a href="https://odoo.com" target="_blank" rel="noreferrer noopener" id="link-id">Odoo</a>`
+        ).toString()
+    ).toBe(
+        '<a href="https://odoo.com" target="_blank" rel="noreferrer noopener">https://odoo.com</a>'
+    );
 });

@@ -1,4 +1,4 @@
-import { fields, Record } from "@mail/core/common/record";
+import { fields, Record } from "@mail/model/export";
 import { imageUrl } from "@web/core/utils/urls";
 import { rpc } from "@web/core/network/rpc";
 import { debounce } from "@web/core/utils/timing";
@@ -18,7 +18,6 @@ const { DateTime } = luxon;
  */
 
 export class MailGuest extends Record {
-    static id = "id";
     static _name = "mail.guest";
     static new() {
         const record = super.new(...arguments);
@@ -87,7 +86,7 @@ export class MailGuest extends Record {
 
     get avatarUrl() {
         const accessTokenParam = {};
-        if (this.store.self.main_user_id?.share !== false) {
+        if (this.store.self_user?.share !== false) {
             accessTokenParam.access_token = this.avatar_128_access_token;
         }
         if (this.id === -1) {

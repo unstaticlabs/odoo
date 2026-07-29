@@ -29,7 +29,7 @@ class TestAccruedPurchaseStock(AccountTestInvoicingCommon):
                     'name': product.name,
                     'product_id': product.id,
                     'product_qty': 10.0,
-                    'product_uom_id': product.uom_id.id,
+                    'uom_id': product.uom_id.id,
                     'price_unit': product.list_price,
                     'tax_ids': False,
                 }),
@@ -158,10 +158,12 @@ class TestAccruedPurchaseStock(AccountTestInvoicingCommon):
         difference between product standard cost and invoiced price or delivered price."""
         def _create_invoice_for_po(purchase_order, date):
             with freeze_time(date):
-                move_form = Form(self.env['account.move'].with_context(default_move_type='in_invoice', default_date=date))
+                action_view_invoice = purchase_order.action_create_invoice()
+                action_view_invoice['context'].update(default_purchase_id=purchase_order.id, default_date=date)
+                move_form = Form.from_action(self.env, action_view_invoice)
                 move_form.invoice_date = date
+                move_form.move_type = 'in_invoice'
                 move_form.partner_id = self.partner_a
-                move_form.purchase_vendor_bill_id = self.env['purchase.bill.union'].browse(-purchase_order.id)
                 return move_form.save()
 
         account_receivable = self.company_data['default_account_receivable']
@@ -187,7 +189,7 @@ class TestAccruedPurchaseStock(AccountTestInvoicingCommon):
                     'name': self.product_a.name,
                     'product_id': self.product_a.id,
                     'product_qty': 10,  # 10 units * $ 1,000.00 = $ 10,000.00
-                    'product_uom_id': self.product_a.uom_id.id,
+                    'uom_id': self.product_a.uom_id.id,
                     'price_unit': self.product_a.list_price,
                     'tax_ids': False,
                 }),
@@ -202,7 +204,6 @@ class TestAccruedPurchaseStock(AccountTestInvoicingCommon):
         invoice_2.line_ids[0].quantity = 5
         invoice_2.line_ids[0].price_unit = 900.00  # Invoice at different price.
         invoice_2.action_post()
-
         # Receive 1 unit yesterday.
         with freeze_time('2025-06-30'):
             receipt_1 = purchase_order.picking_ids

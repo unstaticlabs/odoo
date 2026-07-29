@@ -5,25 +5,25 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Maitê Dietze (madi)" <madi@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:35+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-02-07 12:28+0000\n"
 "Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/odoo-"
-"19/product_expiry/pt_BR/>\n"
+"s19-1/product_expiry/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: product_expiry
 #. odoo-python
@@ -41,14 +41,14 @@ msgstr "\t--Expirado--"
 #: model_terms:ir.ui.view,arch_db:product_expiry.view_move_form_expiry
 msgid ""
 "<span class=\"badge rounded-pill float-end text-bg-warning\" invisible=\"not "
-"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; expiration_date)"
-"\">Expiring</span>\n"
+"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; "
+"expiration_date)\">Expiring</span>\n"
 "            <span class=\"badge rounded-pill float-end text-bg-danger\" "
 "invisible=\"not product_expiry_alert\">Expired</span>"
 msgstr ""
 "<span class=\"badge rounded-pill float-end text-bg-warning\" invisible=\"not "
-"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; expiration_date)\">"
-"Expirando</span>\n"
+"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; "
+"expiration_date)\">Expirando</span>\n"
 "            <span class=\"badge rounded-pill float-end text-bg-danger\" "
 "invisible=\"not product_expiry_alert\">Expirado</span>"
 
@@ -181,8 +181,8 @@ msgid ""
 "Date to determine the expired lots and serial numbers using the filter "
 "\"Expiration Alerts\"."
 msgstr ""
-"Data que determina a expiração de lotes e números de série usando o filtro “"
-"alertas de expiração”."
+"Data que determina a expiração de lotes e números de série usando o filtro "
+"“alertas de expiração”."
 
 #. module: product_expiry
 #: model_terms:ir.ui.view,arch_db:product_expiry.view_move_form_expiry
@@ -194,11 +194,6 @@ msgstr "Datas"
 #: model:ir.model.fields,field_description:product_expiry.field_expiry_picking_confirmation__description
 msgid "Description"
 msgstr "Descrição"
-
-#. module: product_expiry
-#: model_terms:ir.ui.view,arch_db:product_expiry.confirm_expiry_view
-msgid "Discard"
-msgstr "Cancelar"
 
 #. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_res_config_settings__group_expiry_date_on_delivery_slip
@@ -295,8 +290,8 @@ msgid ""
 "Otherwise, this includes goods stored in any Stock Location with 'internal' "
 "type."
 msgstr ""
-"Quantidade prevista (calculado como quantidade em mãos - saída + "
-"recebimento - quantidade a remover)\n"
+"Quantidade prevista (calculado como quantidade em mãos - saída + recebimento "
+"- quantidade a remover)\n"
 "Em um contexto com um único local de estoque, isso inclui mercadorias "
 "armazenadas neste local, ou qualquer um de seus secundários.\n"
 "Em um contexto com um único armazém, isso inclui mercadorias armazenadas no "
@@ -383,8 +378,8 @@ msgstr ""
 #: model:ir.model.fields,help:product_expiry.field_product_template__removal_time
 msgid ""
 "Number of days before the Expiration Date after which the goods should be "
-"removed from the stock and not be counted in the Fresh On Hand Stock "
-"anymore.It will be computed on the lot/serial number."
+"removed from the stock and not be counted in the Fresh On Hand Stock anymore."
+"It will be computed on the lot/serial number."
 msgstr ""
 "Número de dias antes da Data de Vencimento após o qual as mercadorias devem "
 "ser removidas do estoque e não devem mais ser contadas no Estoque de "
@@ -444,8 +439,8 @@ msgstr "Variante do produto"
 
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_quant
-msgid "Quants"
-msgstr "Quants"
+msgid "Quant"
+msgstr "Quant"
 
 #. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_product_product__removal_time
@@ -709,27 +704,3 @@ msgstr ""
 #: model:product.removal,method:product_expiry.removal_fefo
 msgid "fefo"
 msgstr "pvps"
-
-#~ msgid "Fresh Free Stock"
-#~ msgstr "Estoque gratuito fresco"
-
-#~ msgid ""
-#~ "Number of days before the Expiration Date after which the goods should be "
-#~ "removed from the stock. It will be computed on the lot/serial number."
-#~ msgstr ""
-#~ "Número de dias antes da Data de Vencimento após o qual a mercadoria "
-#~ "deverá ser retirada do estoque. Será calculado no lote/número de série."
-
-#~ msgid "Proceed except for expired one"
-#~ msgstr "Prossiga exceto para um expirado"
-
-#~ msgid "Procurement Group"
-#~ msgstr "Grupo de Aquisição"
-
-#~ msgid ""
-#~ "This is the date on which the goods with this Serial Number should be "
-#~ "removed from the stock. This date will be used in FEFO removal strategy."
-#~ msgstr ""
-#~ "Esta é a data na qual os produtos com este Número de Série devem ser "
-#~ "removidos do estoque. Esta data será utilizada na estratégia FEFO ( First "
-#~ "Expiry First Out )."

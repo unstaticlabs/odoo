@@ -6,14 +6,15 @@
 # Martin Trigaux, 2018
 # Boško Stojaković <bluesoft83@gmail.com>, 2018
 # Bole <bole@dajmi5.com>, 2018
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 03:40+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:29+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/bs/>\n"
 "Language: bs\n"
 "MIME-Version: 1.0\n"
@@ -36,13 +37,15 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "Kompanije"
+#, fuzzy
+msgid "Company"
+msgstr "Kompanija"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
+#, fuzzy
 msgid "Config Settings"
-msgstr ""
+msgstr "Postavke"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_partner
@@ -51,8 +54,9 @@ msgstr "Kontakt"
 
 #. module: partner_autocomplete
 #: model:ir.model,website_form_label:partner_autocomplete.model_res_partner
+#, fuzzy
 msgid "Create a Customer"
-msgstr ""
+msgstr "Kreirajte klijenta"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_iap_autocomplete_api__display_name
@@ -75,8 +79,9 @@ msgstr ""
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_ir_http
+#, fuzzy
 msgid "HTTP Routing"
-msgstr ""
+msgstr "HTTP rutiranje"
 
 #. module: partner_autocomplete
 #. odoo-javascript
@@ -145,18 +150,3 @@ msgstr ""
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr ""
-
-#~ msgid "Created by"
-#~ msgstr "Kreirao"
-
-#~ msgid "Created on"
-#~ msgstr "Kreirano"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Zadnji ažurirao"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Zadnje ažurirano"
-
-#~ msgid "Partner"
-#~ msgstr "Partner"

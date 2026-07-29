@@ -4,410 +4,185 @@
 #
 # Translators:
 # Martin Trigaux <mat@odoo.com>, 2017
-# Bone NI <bounkirdni@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.saas~18\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-16 13:48+0000\n"
-"PO-Revision-Date: 2026-06-29 11:50+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/lunch/lo/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2017-10-02 11:26+0000\n"
+"Last-Translator: Martin Trigaux <mat@odoo.com>, 2017\n"
+"Language-Team: Lao (https://www.transifex.com/odoo/teams/41243/lo/)\n"
 "Language: lo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_temaki
 msgid "1 Avocado - 1 Salmon - 1 Eggs - 1 Tuna"
-msgstr "ອາໂວກາໂດ 1 - ຊາມອນ 1 - ໄຂ່ 1 - ທູນ້າ 1"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_chirashi
 msgid "2 Tempuras, Cabbages, Onions, Sesame Sauce"
-msgstr "ເທມປຸຣະ 2, ກະລໍ່າປີ, ຫົວຜັກບົ່ວ, ຊອດໝາກງາ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_4formaggi
 msgid "4 Formaggi"
-msgstr "ຟໍມາກກີ 4 ຊະນິດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_salmon
 msgid "4 Sushi Salmon - 6 Maki Salmon - 4 Sashimi Salmon"
-msgstr "ຊູຊິຊາມອນ 4 - ມາກິຊາມອນ 6 - ຊາຊິມິຊາມອນ 4"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_maki
 msgid "6 Maki Salmon - 6 Maki Tuna - 6 Maki Shrimp/Avocado"
-msgstr "ມາກິຊາມອນ 6 - ມາກິທູນ້າ 6 - ມາກິກຸ້ງ/ອາໂວກາໂດ 6"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Receive button\" title=\"Receive button\"/>"
+msgid ""
+"<i class=\"fa fa-check\" role=\"img\" aria-label=\"Receive button\" "
+"title=\"Receive button\"/>"
 msgstr ""
-"<i class=\"fa fa-check\" role=\"img\" aria-label=\"ປຸ່ມຮັບ\" title=\"ປຸ່ມຮັບ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_report_kanban
-msgid "<i class=\"fa fa-clock-o\" role=\"img\" aria-label=\"Date\" title=\"Date\"/>"
+msgid ""
+"<i class=\"fa fa-clock-o\" role=\"img\" aria-label=\"Date\" title=\"Date\"/>"
 msgstr ""
-"<i class=\"fa fa-clock-o\" role=\"img\" aria-label=\"ວັນທີ\" title=\"ວັນທີ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-envelope\" role=\"img\" aria-label=\"Send notification\" title=\"Send notification\"/>"
+msgid ""
+"<i class=\"fa fa-envelope\" role=\"img\" aria-label=\"Send notification\" "
+"title=\"Send notification\"/>"
 msgstr ""
-"<i class=\"fa fa-envelope\" role=\"img\" aria-label=\"ສົ່ງການແຈ້ງເຕືອນ\" "
-"title=\"ສົ່ງການແຈ້ງເຕືອນ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_report_kanban
-msgid "<i class=\"fa fa-money\" role=\"img\" aria-label=\"Amount\" title=\"Amount\"/>"
+msgid ""
+"<i class=\"fa fa-money\" role=\"img\" aria-label=\"Amount\" title=\"Amount\"/"
+">"
 msgstr ""
-"<i class=\"fa fa-money\" role=\"img\" aria-label=\"ຈຳນວນເງິນ\" title=\"ຈຳນວນເງິ"
-"ນ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-money\" role=\"img\" aria-label=\"Money\" title=\"Money\"/>"
+msgid ""
+"<i class=\"fa fa-money\" role=\"img\" aria-label=\"Money\" title=\"Money\"/>"
 msgstr ""
-"<i class=\"fa fa-money\" role=\"img\" aria-label=\"ເງິນ\" title=\"ເງິນ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-paper-plane\" role=\"img\" aria-label=\"Send button\" title=\"Send button\"/>"
+msgid ""
+"<i class=\"fa fa-paper-plane\" role=\"img\" aria-label=\"Send button\" "
+"title=\"Send button\"/>"
 msgstr ""
-"<i class=\"fa fa-paper-plane\" role=\"img\" aria-label=\"ປຸ່ມສົ່ງ\" title=\"ປຸ່ມສົ່"
-"ງ\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-phone\" role=\"img\" aria-label=\"Order button\" title=\"Order button\"/>"
+msgid ""
+"<i class=\"fa fa-phone\" role=\"img\" aria-label=\"Order button\" "
+"title=\"Order button\"/>"
 msgstr ""
-"<i class=\"fa fa-phone\" role=\"img\" aria-label=\"ປຸ່ມສັ່ງຊື້\" title=\"ປຸ່ມສັ່ງຊື້\"/>"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
-msgid "<i class=\"fa fa-times\" role=\"img\" aria-label=\"Cancel button\" title=\"Cancel button\"/>"
+msgid ""
+"<i class=\"fa fa-times\" role=\"img\" aria-label=\"Cancel button\" "
+"title=\"Cancel button\"/>"
 msgstr ""
-"<i class=\"fa fa-times\" role=\"img\" aria-label=\"ປຸ່ມຍົກເລີກ\" title=\"ປຸ່ມຍົກເລີ"
-"ກ\"/>"
 
 #. module: lunch
 #: model:mail.template,body_html:lunch.lunch_order_mail_supplier
 msgid ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: white; color: #454748; border-collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <span style=\"font-size: 10px;\">Lunch Order</span><br>\n"
-"                </td><td valign=\"middle\" align=\"right\" t-if=\"not user.company_id.uses_default_logo\">\n"
-"                    <img t-attf-src=\"/logo.png?company={{ user.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"user.company_id.name\">\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr>\n"
-"                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
-"    <div>\n"
-"        <t t-set=\"lines\" t-value=\"ctx.get('lines', [])\"></t>\n"
-"        <t t-set=\"order\" t-value=\"ctx.get('order')\"></t>\n"
-"        <t t-set=\"currency\" t-value=\"user.env['res.currency'].browse(order.get('currency_id'))\"></t>\n"
-"        <p>\n"
-"        Dear <t t-out=\"order.get('supplier_name', '')\">Laurie Poiret</t>,\n"
-"        </p><p>\n"
-"        Here is, today orders for <t t-out=\"order.get('company_name', '')\">LunchCompany</t>:\n"
-"        </p>\n"
+"<t>\n"
+"<t t-set=\"lines\" t-value=\"ctx.get('lines', [])\"/>\n"
+"<t t-set=\"order\" t-value=\"ctx.get('order', {})\"/>\n"
+"<t t-set=\"currency\" t-value=\"user.env['res.currency'].browse(order."
+"get('currency_id'))\"/>\n"
+"<p>\n"
+"Dear <t t-out=\"order.get('supplier_name', '')\">Laurie Poiret</t>,\n"
+"</p><p>\n"
+"Here is, today orders for <t t-out=\"order.get('company_name', "
+"'')\">LunchCompany</t>:\n"
+"</p>\n"
 "\n"
-"        <t t-if=\"sites\">\n"
-"            <br>\n"
-"            <p>Location</p>\n"
-"            <t t-foreach=\"site\" t-as=\"site\">\n"
-"                <p><t t-out=\"site['name'] or ''\"></t> : <t t-out=\"site['address'] or ''\"></t></p>\n"
+"<t t-if=\"sites\">\n"
+"    <br/>\n"
+"    <p>Location</p>\n"
+"    <p t-foreach=\"site\" t-as=\"site\">\n"
+"        <t t-out=\"site['name'] or ''\"/> : <t t-out=\"site['address'] or "
+"''\"/>\n"
+"    </p>\n"
+"    <br/>\n"
+"</t>\n"
+"\n"
+"<table>\n"
+"    <thead>\n"
+"        <tr style=\"background-color:rgb(233,232,233);\">\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;"
+"\"><strong>Product</strong></th>\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;"
+"\"><strong>Comments</strong></th>\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;"
+"\"><strong>Person</strong></th>\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;"
+"\"><strong>Site</strong></th>\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;\" "
+"align=\"center\"><strong>Qty</strong></th>\n"
+"            <th style=\"width: 100%; min-width: 96px; font-size: 13px;\" "
+"align=\"center\"><strong>Price</strong></th>\n"
+"        </tr>\n"
+"    </thead>\n"
+"    <tbody>\n"
+"        <tr t-foreach=\"lines\" t-as=\"line\">\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-"
+"out=\"line['product'] or ''\">Sushi salmon</td>\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\">\n"
+"            <t t-if=\"line['toppings']\">\n"
+"                <t t-out=\"line['toppings'] or ''\">Soy sauce</t>\n"
 "            </t>\n"
-"            <br>\n"
-"        </t>\n"
-"\n"
-"        <table>\n"
-"            <thead>\n"
-"                <tr style=\"background-color:rgb(233,232,233);\">\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\"><strong>Product</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\"><strong>Comments</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\"><strong>Person</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\"><strong>Site</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\" align=\"center\"><strong>Qty</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: 13px;\" align=\"center\"><strong>Price</strong></th>\n"
-"                </tr>\n"
-"            </thead>\n"
-"            <tbody>\n"
-"                <tr t-foreach=\"lines\" t-as=\"line\">\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-out=\"line['product'] or ''\">Sushi salmon</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\">\n"
-"                    <t t-if=\"line['toppings']\">\n"
-"                        <t t-out=\"line['toppings'] or ''\">Soy sauce</t>\n"
-"                    </t>\n"
-"                    <t t-if=\"line['note']\">\n"
-"                        <div style=\"color: rgb(173,181,189);\" t-out=\"line['note'] or ''\">With wasabi.</div>\n"
-"                    </t>\n"
-"                    </td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-out=\"line['username'] or ''\">lap</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-out=\"line['site'] or ''\">Office 1</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" align=\"right\" t-out=\"line['quantity'] or ''\">10</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" align=\"right\" t-out=\"format_amount(line['price'], currency) or ''\">$ 1.00</td>\n"
-"                </tr>\n"
-"                <tr>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td style=\"width: 100%; font-size: 13px; border-top: 1px solid black;\"><strong>Total</strong></td>\n"
-"                    <td style=\"width: 100%; font-size: 13px; border-top: 1px solid black;\" align=\"right\"><strong t-out=\"format_amount(order['amount_total'], currency) or ''\">$ 10.00</strong></td>\n"
-"                </tr>\n"
-"            </tbody>\n"
-"        </table>\n"
-"\n"
-"        <p>Do not hesitate to contact us if you have any questions.</p>\n"
-"    </div>\n"
-"                    </td>\n"
-"                </tr>\n"
-"                <tr>\n"
-"                    <td style=\"text-align:center;\">\n"
-"                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                    </td>\n"
-"                </tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\" align=\"left\">\n"
-"                    <t t-out=\"user.company_id.name or ''\">YourCompany</t>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                    <t t-out=\"user.company_id.phone or ''\">+1 650-123-4567</t>\n"
-"                    <t t-if=\"user.company_id.phone and (user.company_id.email or user.company_id.website)\">|</t>\n"
-"                    <t t-if=\"user.company_id.email\">\n"
-"                        <a t-attf-href=\"'mailto:%s' % {{ user.company_id.email }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"user.company_id.email or ''\">info@yourcompany.com</a>\n"
-"                    </t>\n"
-"                    <t t-if=\"user.company_id.email and user.company_id.website\">|</t>\n"
-"                    <t t-if=\"user.company_id.website\">\n"
-"                        <a t-attf-href=\"'%s' % {{ user.company_id.website }}\" style=\"text-decoration:none; color: #454748;\" t-out=\"user.company_id.website or ''\">http://www.example.com</a>\n"
-"                    </t>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
+"            <t t-if=\"line['note']\">\n"
+"                <div style=\"color: rgb(173,181,189);\" t-out=\"line['note'] "
+"or ''\">With wasabi.</div>\n"
+"            </t>\n"
+"            </td>\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-"
+"out=\"line['username'] or ''\">lap</td>\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" t-"
+"out=\"line['site'] or ''\">Office 1</td>\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" "
+"align=\"right\" t-out=\"line['quantity'] or ''\">10</td>\n"
+"            <td style=\"width: 100%; font-size: 13px;\" valign=\"top\" "
+"align=\"right\" t-out=\"format_amount(line['price'], currency) or ''\">$ "
+"1.00</td>\n"
+"        </tr>\n"
+"        <tr>\n"
+"            <td/>\n"
+"            <td/>\n"
+"            <td/>\n"
+"            <td/>\n"
+"            <td style=\"width: 100%; font-size: 13px; border-top: 1px solid "
+"black;\"><strong>Total</strong></td>\n"
+"            <td style=\"width: 100%; font-size: 13px; border-top: 1px solid "
+"black;\" align=\"right\"><strong t-out=\"order.get('amount_total') and "
+"format_amount(order['amount_total'], currency) or ''\">$ 10.00</strong></"
+"td>\n"
+"        </tr>\n"
+"    </tbody>\n"
 "</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
-"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"        Powered by <a target=\"_blank\" href=\"https://www.odoo.com\" style=\"color: #875A7B;\">Odoo</a>\n"
-"      </td></tr>\n"
-"    </table>\n"
-"</td></tr>\n"
-"</table>\n"
-"        "
+"\n"
+"<p>Do not hesitate to contact us if you have any questions.</p>\n"
+"        </t>"
 msgstr ""
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
-"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
-"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
-"align=\"center\">\n"
-"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-"style=\"padding: 16px; background-color: white; color: #454748; border-"
-"collapse:separate;\">\n"
-"<tbody>\n"
-"    <!-- HEADER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-"0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\">\n"
-"                    <span style=\"font-size: 10px;\">ລາຍການສັ່ງອາຫານທ່ຽງ</span>"
-"<br>\n"
-"                </td><td valign=\"middle\" align=\"right\" t-if=\"not "
-"user.company_id.uses_default_logo\">\n"
-"                    <img t-attf-src=\"/logo.png?company={{ "
-"user.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; "
-"width: 80px;\" t-att-alt=\"user.company_id.name\">\n"
-"                </td></tr>\n"
-"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
-"                  <hr width=\"100%\" style=\"background-color:rgb"
-"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
-"height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- CONTENT -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
-"0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr>\n"
-"                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
-"    <div>\n"
-"        <t t-set=\"lines\" t-value=\"ctx.get('lines', [])\"></t>\n"
-"        <t t-set=\"order\" t-value=\"ctx.get('order')\"></t>\n"
-"        <t t-set=\"currency\" t-value=\"user.env['res.currency'].browse"
-"(order.get('currency_id'))\"></t>\n"
-"        <p>\n"
-"        ຮຽນ <t t-out=\"order.get('supplier_name', '')\">Laurie Poiret</t>,\n"
-"        </p><p>\n"
-"        ນີ້ແມ່ນລາຍການສັ່ງອາຫານຂອງມື້ນີ້ ສຳລັບ <t t-out=\"order.get('company_name', '')"
-"\">LunchCompany</t>:\n"
-"        </p>\n"
-"\n"
-"        <t t-if=\"sites\">\n"
-"            <br>\n"
-"            <p>ສະຖານທີ່</p>\n"
-"            <t t-foreach=\"site\" t-as=\"site\">\n"
-"                <p><t t-out=\"site['name'] or ''\"></t> : <t t-"
-"out=\"site['address'] or ''\"></t></p>\n"
-"            </t>\n"
-"            <br>\n"
-"        </t>\n"
-"\n"
-"        <table>\n"
-"            <thead>\n"
-"                <tr style=\"background-color:rgb(233,232,233);\">\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\"><strong>ສິນຄ້າ</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\"><strong>ຄຳເຫັນ</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\"><strong>ຜູ້ສັ່ງ</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\"><strong>ສະຖານທີ່</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\" align=\"center\"><strong>ຈຳນວນ</strong></th>\n"
-"                    <th style=\"width: 100%; min-width: 96px; font-size: "
-"13px;\" align=\"center\"><strong>ລາຄາ</strong></th>\n"
-"                </tr>\n"
-"            </thead>\n"
-"            <tbody>\n"
-"                <tr t-foreach=\"lines\" t-as=\"line\">\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\" t-out=\"line['product'] or ''\">Sushi salmon</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\">\n"
-"                    <t t-if=\"line['toppings']\">\n"
-"                        <t t-out=\"line['toppings'] or ''\">Soy sauce</t>\n"
-"                    </t>\n"
-"                    <t t-if=\"line['note']\">\n"
-"                        <div style=\"color: rgb(173,181,189);\" t-"
-"out=\"line['note'] or ''\">With wasabi.</div>\n"
-"                    </t>\n"
-"                    </td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\" t-out=\"line['username'] or ''\">lap</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\" t-out=\"line['site'] or ''\">Office 1</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\" align=\"right\" t-out=\"line['quantity'] or ''\">10</td>\n"
-"                    <td style=\"width: 100%; font-size: 13px;\" "
-"valign=\"top\" align=\"right\" t-out=\"format_amount(line['price'], "
-"currency) or ''\">$ 1.00</td>\n"
-"                </tr>\n"
-"                <tr>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td></td>\n"
-"                    <td style=\"width: 100%; font-size: 13px; border-top: "
-"1px solid black;\"><strong>ລວມທັງໝົດ</strong></td>\n"
-"                    <td style=\"width: 100%; font-size: 13px; border-top: "
-"1px solid black;\" align=\"right\"><strong t-out=\"format_amount"
-"(order['amount_total'], currency) or ''\">$ 10.00</strong></td>\n"
-"                </tr>\n"
-"            </tbody>\n"
-"        </table>\n"
-"\n"
-"        <p>ກະລຸນາຕິດຕໍ່ຫາພວກເຮົາ ຫາກທ່ານມີຄຳຖາມ ຫຼື ຂໍ້ສົງໄສໃດໆ.</p>\n"
-"    </div>\n"
-"                    </td>\n"
-"                </tr>\n"
-"                <tr>\n"
-"                    <td style=\"text-align:center;\">\n"
-"                        <hr width=\"100%\" style=\"background-color:rgb"
-"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
-"height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
-"                    </td>\n"
-"                </tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"    <!-- FOOTER -->\n"
-"    <tr>\n"
-"        <td align=\"center\" style=\"min-width: 590px;\">\n"
-"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
-"width=\"590\" style=\"min-width: 590px; background-color: white; font-size: "
-"11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                <tr><td valign=\"middle\" align=\"left\">\n"
-"                    <t t-out=\"user.company_id.name or ''\">YourCompany</t>\n"
-"                </td></tr>\n"
-"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
-"0.7;\">\n"
-"                    <t t-out=\"user.company_id.phone or ''\">+1 650-123-"
-"4567</t>\n"
-"                    <t t-if=\"user.company_id.phone and "
-"(user.company_id.email or user.company_id.website)\">|</t>\n"
-"                    <t t-if=\"user.company_id.email\">\n"
-"                        <a t-attf-href=\"'mailto:%s' % {{ "
-"user.company_id.email }}\" style=\"text-decoration:none; color: #454748;\" t-"
-"out=\"user.company_id.email or ''\">info@yourcompany.com</a>\n"
-"                    </t>\n"
-"                    <t t-if=\"user.company_id.email and "
-"user.company_id.website\">|</t>\n"
-"                    <t t-if=\"user.company_id.website\">\n"
-"                        <a t-attf-href=\"'%s' % {{ user.company_id.website }}"
-"\" style=\"text-decoration:none; color: #454748;\" t-"
-"out=\"user.company_id.website or ''\">http://www.example.com</a>\n"
-"                    </t>\n"
-"                </td></tr>\n"
-"            </table>\n"
-"        </td>\n"
-"    </tr>\n"
-"</tbody>\n"
-"</table>\n"
-"</td></tr>\n"
-"<!-- POWERED BY -->\n"
-"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
-"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
-"style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
-"padding: 8px; border-collapse:separate;\">\n"
-"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
-"        ຂັບເຄື່ອນໂດຍ <a target=\"_blank\" href=\"https://www.odoo.com\" "
-"style=\"color: #875A7B;\">Odoo</a>\n"
-"      </td></tr>\n"
-"    </table>\n"
-"</td></tr>\n"
-"</table>\n"
-"        "
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_report_action_control_accounts
@@ -416,26 +191,17 @@ msgid ""
 "            An expense is automatically created at the order receipt.<br>\n"
 "            A payment represents the employee reimbursement to the company."
 msgstr ""
-"ການເຄື່ອນໄຫວເງິນສົດສາມາດເປັນໄດ້ທັງ ລາຍຈ່າຍ ຫຼື ການຊຳລະເງິນ.<br>\n"
-"            ລາຍຈ່າຍຈະຖືກສ້າງຂຶ້ນໂດຍອັດຕະໂນມັດເມື່ອໄດ້ຮັບໃບສັ່ງຊື້.<br>\n"
-"            ການຊຳລະເງິນແມ່ນການທີ່ພະນັກງານຈ່າຍຄືນໃຫ້ກັບບໍລິສັດ."
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action_statbutton
 msgid "A product is defined by its name, category, price and vendor."
-msgstr "ສິນຄ້າຖືກກຳນົດໂດຍ ຊື່, ໝວດໝູ່, ລາຄາ ແລະ ຜູ້ສະໜອງ."
-
-#. module: lunch
-#: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__notification_moment__am
-#: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__moment__am
-msgid "AM"
-msgstr "ຕອນເຊົ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_needaction
 msgid "Action Needed"
-msgstr "ຕ້ອງດຳເນີນການ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__active
@@ -445,69 +211,80 @@ msgstr "ຕ້ອງດຳເນີນການ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__active
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
 msgid "Active"
-msgstr "ເປີດໃຊ້ງານ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_ids
 msgid "Activities"
-msgstr "ກິດຈະກຳ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "ການຕົກແຕ່ງກິດຈະກຳທີ່ຍົກເວັ້ນ"
+msgstr ""
+
+#. module: lunch
+#: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_state
 msgid "Activity State"
-msgstr "ສະຖານະກິດຈະກຳ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "ໄອຄອນປະເພດກິດຈະກຳ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
 msgid "Add To Cart"
-msgstr "ເພີ່ມເຂົ້າກະຕ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__address
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Address"
-msgstr "ທີ່ຢູ່"
+msgstr ""
 
 #. module: lunch
 #: model:res.groups,name:lunch.group_lunch_manager
 msgid "Administrator"
-msgstr "ຜູ້ດູແລລະບົບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__name
 msgid "Alert Name"
-msgstr "ຊື່ການແຈ້ງເຕືອນ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.alert,name:lunch.alert_office_3
 msgid "Alert for Office 3"
-msgstr "ແຈ້ງເຕືອນສຳລັບ ຫ້ອງການ 3"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__mode__alert
 msgid "Alert in app"
-msgstr "ແຈ້ງເຕືອນໃນແອັບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_alert_menu
 msgid "Alerts"
-msgstr "ການແຈ້ງເຕືອນ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Already Paid"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__amount
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove_report__amount
 msgid "Amount"
-msgstr "ຈຳນວນເງິນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
@@ -518,195 +295,226 @@ msgstr "ຈຳນວນເງິນ"
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_search
 msgid "Archived"
-msgstr "ເກັບຖາວອນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_order__available_toppings_1
 #: model:ir.model.fields,help:lunch.field_lunch_order__available_toppings_2
 #: model:ir.model.fields,help:lunch.field_lunch_order__available_toppings_3
 msgid "Are extras available for this product"
-msgstr "ມີເຄື່ອງຄຽງເພີ່ມເຕີມສຳລັບສິນຄ້ານີ້ບໍ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_attachment_count
 msgid "Attachment Count"
-msgstr "ຈຳນວນໄຟລ໌ຄັດຕິດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.constraint,message:lunch.constraint_lunch_supplier_automatic_email_time_range
-msgid "Automatic Email Sending Time should be between 0 and 12"
-msgstr "ເວລາສົ່ງອີເມວອັດຕະໂນມັດຄວນຢູ່ລະຫວ່າງ 0 ຫາ 12"
+msgid "Automatic Email Sending Time should be between 0 and 24"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Availability"
-msgstr "ຄວາມພ້ອມ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Available Balance"
+msgstr ""
+
+#. module: lunch
+#: model:ir.model.fields,field_description:lunch.field_lunch_order__available_on_date
+msgid "Available On Date"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Available Today"
-msgstr "ພ້ອມໃຊ້ງານມື້ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__available_toppings_1
 msgid "Available Toppings 1"
-msgstr "ເຄື່ອງຄຽງທີ່ມີ 1"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__available_toppings_2
 msgid "Available Toppings 2"
-msgstr "ເຄື່ອງຄຽງທີ່ມີ 2"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__available_toppings_3
 msgid "Available Toppings 3"
-msgstr "ເຄື່ອງຄຽງທີ່ມີ 3"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_bacon
 #: model:lunch.product,name:lunch.product_bacon_0
 msgid "Bacon"
-msgstr "ເບຄອນ"
+msgstr ""
+
+#. module: lunch
+#: model:res.groups,comment:lunch.group_lunch_manager
+msgid ""
+"Be able to create new products, cashmoves and to confirm or cancel orders."
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_bacon
 #: model_terms:lunch.product,description:lunch.product_bacon_0
 msgid "Beef, Bacon, Salad, Cheddar, Fried Onion, BBQ Sauce"
-msgstr "ຊີ້ນງົວ, ເບຄອນ, ສະລັດ, ເນີຍແຂງເຊດດ້າ, ຫົວຜັກບົ່ວຈືນ, ຊອດບາບີຄິວ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_cheese_burger_0
 #: model_terms:lunch.product,description:lunch.product_cheeseburger
 msgid "Beef, Cheddar, Salad, Fried Onions, BBQ Sauce"
-msgstr "ຊີ້ນງົວ, ເນີຍແຂງເຊດດ້າ, ສະລັດ, ຫົວຜັກບົ່ວຈືນ, ຊອດບາບີຄິວ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_Bolognese
 msgid "Bolognese Pasta"
-msgstr "ພັດສະຕ້າ ໂບໂລເນສ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_country
 msgid "Brie, Honey, Walnut Kernels"
-msgstr "ເນີຍແຂງບີ, ນ້ຳເຜິ້ງ, ໝາກວໍນັດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_burger
 msgid "Burger"
-msgstr "ເບີເກີ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search_2
 msgid "By Employee"
-msgstr "ຕາມພະນັກງານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "By User"
-msgstr "ຕາມຜູ້ໃຊ້"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Cancel"
-msgstr "ຍົກເລີກ"
+msgstr "ຍົກເລີອກ"
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__cancelled
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Cancelled"
-msgstr "ຍົກເລີກແລ້ວ"
+msgstr "ຍົກເລີກ"
+
+#. module: lunch
+#. odoo-python
+#: code:addons/lunch/models/lunch_supplier.py:0
+msgid "Cannot send an email to this supplier!"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_action_payment
 #: model:ir.ui.menu,name:lunch.lunch_cashmove_report_menu_payment
 msgid "Cash Moves"
-msgstr "ການເຄື່ອນໄຫວເງິນສົດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_cashmove_report
 msgid "Cashmoves report"
-msgstr "ລາຍງານການເຄື່ອນໄຫວເງິນສົດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Categories"
-msgstr "ໝວດໝູ່"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Category"
-msgstr "ໝວດໝູ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__mode__chat
 msgid "Chat notification"
-msgstr "ແຈ້ງເຕືອນຜ່ານແຊັດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_cheese_ham
 msgid "Cheese And Ham"
-msgstr "ເນີຍແຂງ ແລະ ແຮມ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_cheese_burger_0
 #: model:lunch.product,name:lunch.product_cheeseburger
 msgid "Cheese Burger"
-msgstr "ຊີດເບີເກີ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_cheese_ham
 msgid "Cheese, Ham, Salad, Tomatoes, cucumbers, eggs"
-msgstr "ເນີຍແຂງ, ແຮມ, ສະລັດ, ໝາກເລັ່ນ, ໝາກແຕງ, ໄຂ່"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_chicken_curry
 msgid "Chicken Curry"
-msgstr "ແກງໄກ່"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_chirashi
 msgid "Chirashi"
-msgstr "ຊິຣາຊິ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__city
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "City"
-msgstr "ນະຄອນ / ເມືອງ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Clear Order"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_control_suppliers
 msgid ""
-"Click on the <span class=\"fa fa-phone text-success\" title=\"Order button\"></span> to announce that the order is ordered.<br>\n"
-"            Click on the <span class=\"fa fa-check text-success\" title=\"Receive button\"></span> to announce that the order is received.<br>\n"
-"            Click on the <span class=\"fa fa-times-circle text-danger\" title=\"Cancel button\"></span> red X to announce that the order isn't available."
+"Click on the <span class=\"fa fa-phone text-success\" role=\"img\" aria-"
+"label=\"Order button\" title=\"Order button\"></span> to announce that the "
+"order is ordered.<br>\n"
+"            Click on the <span class=\"fa fa-check text-success\" "
+"role=\"img\" aria-label=\"Receive button\" title=\"Receive button\"></span> "
+"to announce that the order is received.<br>\n"
+"            Click on the <span class=\"fa fa-times-circle text-danger\" "
+"role=\"img\" aria-label=\"Cancel button\" title=\"Cancel button\"></span> "
+"red X to announce that the order isn't available."
 msgstr ""
-"ຄລິກໃສ່ <span class=\"fa fa-phone text-success\" title=\"Order button\"></"
-"span> ເພື່ອແຈ້ງວ່າໄດ້ສັ່ງຊື້ແລ້ວ.<br>\n"
-"            ຄລິກໃສ່ <span class=\"fa fa-check text-success\" title=\"Receive "
-"button\"></span> ເພື່ອແຈ້ງວ່າໄດ້ຮັບເຄື່ອງແລ້ວ.<br>\n"
-"            ຄລິກໃສ່ <span class=\"fa fa-times-circle text-danger\" "
-"title=\"Cancel button\"></span> ເຄື່ອງໝາຍ X ສີແດງ ເພື່ອແຈ້ງວ່າລາຍການນີ້ບໍ່ມີ."
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Close"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_club
 #: model:lunch.product,name:lunch.product_club_0
 msgid "Club"
-msgstr "ຄລັບແຊນວິດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_coke_0
 msgid "Coca Cola"
-msgstr "ໂຄຄາ ໂຄລ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_company
-msgid "Companies"
-msgstr "ບໍລິສັດ"
-
-#. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__company_id
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__company_id
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__company_id
@@ -719,67 +527,67 @@ msgstr "ບໍລິສັດ"
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_config_settings
 msgid "Config Settings"
-msgstr "ຕັ້ງຄ່າລະບົບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.menu_lunch_config
 msgid "Configuration"
-msgstr "ການຕັ້ງຄ່າ"
+msgstr ""
 
 #. module: lunch
 #. odoo-javascript
 #: code:addons/lunch/static/src/mixins/lunch_renderer_mixin.js:0
 msgid "Configure Your Order"
-msgstr "ຕັ້ງຄ່າການສັ່ງຊື້ຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Confirm"
-msgstr "ຢືນຢັນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Confirm Orders"
-msgstr "ຢືນຢັນການສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_report_action_control_accounts
 #: model:ir.ui.menu,name:lunch.lunch_cashmove_report_menu_control_accounts
 msgid "Control Accounts"
-msgstr "ຄວບຄຸມບັນຊີ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_order_action_control_suppliers
 #: model:ir.ui.menu,name:lunch.lunch_order_menu_control_suppliers
 msgid "Control Vendors"
-msgstr "ຄວບຄຸມຜູ້ສະໜອງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__country_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Country"
-msgstr "ປະເທດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_report_action_control_accounts
 msgid "Create a new payment"
-msgstr "ສ້າງການຊຳລະເງິນໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_category_action
 msgid "Create a new product category"
-msgstr "ສ້າງໝວດໝູ່ສິນຄ້າໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action_statbutton
 msgid "Create a new product for lunch"
-msgstr "ສ້າງສິນຄ້າໃໝ່ສຳລັບອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_alert_action
 msgid "Create new lunch alerts"
-msgstr "ສ້າງການແຈ້ງເຕືອນອາຫານສວາຍໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__create_uid
@@ -791,7 +599,7 @@ msgstr "ສ້າງການແຈ້ງເຕືອນອາຫານສວາ
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__create_uid
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__create_uid
 msgid "Created by"
-msgstr "ສ້າງໂດຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__create_date
@@ -803,13 +611,13 @@ msgstr "ສ້າງໂດຍ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__create_date
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__create_date
 msgid "Created on"
-msgstr "ສ້າງເມື່ອ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__cron_id
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__cron_id
 msgid "Cron"
-msgstr "ຄຣອນ (ຕັ້ງເວລາເຮັດວຽກ)"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__currency_id
@@ -820,24 +628,30 @@ msgstr "ຄຣອນ (ຕັ້ງເວລາເຮັດວຽກ)"
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__currency_id
 #: model:ir.model.fields,field_description:lunch.field_res_config_settings__currency_id
 msgid "Currency"
-msgstr "ສະກຸນເງິນ"
+msgstr "ເງິນຕາ"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
 msgid "Currently inactive"
-msgstr "ບໍ່ມີການເຄື່ອນໄຫວໃນຂະນະນີ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__date
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove_report__date
 msgid "Date"
-msgstr "ວັນທີ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Decrease quantity"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__delivery
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__delivery__delivery
 msgid "Delivery"
-msgstr "ການຈັດສົ່ງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__description
@@ -848,14 +662,14 @@ msgid "Description"
 msgstr "ຄຳອະທິບາຍ"
 
 #. module: lunch
-#: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
-msgid "Discard"
-msgstr "ຖິ້ມ"
-
-#. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__mode
 msgid "Display"
-msgstr "ສະແດງຜົນ"
+msgstr ""
+
+#. module: lunch
+#: model:ir.model.fields,field_description:lunch.field_lunch_order__display_add_button
+msgid "Display Add Button"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__display_name
@@ -867,208 +681,189 @@ msgstr "ສະແດງຜົນ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__display_name
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__display_name
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__display_name
+#: model:ir.model.fields,field_description:lunch.field_res_company__display_name
+#: model:ir.model.fields,field_description:lunch.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:lunch.field_res_users__display_name
 msgid "Display Name"
-msgstr "ຊື່ທີ່ສະແດງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__display_reorder_button
 msgid "Display Reorder Button"
-msgstr "ສະແດງປຸ່ມສັ່ງຄືນໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_drinks
 msgid "Drinks"
-msgstr "ເຄື່ອງດື່ມ"
-
-#. module: lunch
-#. odoo-javascript
-#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
-msgid "Edit order"
-msgstr "ແກ້ໄຂການສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__email
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__send_by__mail
 msgid "Email"
-msgstr "ອີເມວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__last_month
 msgid "Employee who ordered last month"
-msgstr "ພະນັກງານທີ່ສັ່ງອາຫານໃນເດືອນແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__last_week
 msgid "Employee who ordered last week"
-msgstr "ພະນັກງານທີ່ສັ່ງອາຫານໃນອາທິດແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__last_year
 msgid "Employee who ordered last year"
-msgstr "ພະນັກງານທີ່ສັ່ງອາຫານໃນປີແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__everyone
 msgid "Everyone"
-msgstr "ທຸກຄົນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_label_1
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_label_1
 msgid "Extra 1 Label"
-msgstr "ປ້າຍເຄື່ອງຄຽງ 1"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_quantity_1
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_quantity_1
 msgid "Extra 1 Quantity"
-msgstr "ຈຳນວນເຄື່ອງຄຽງ 1"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_label_2
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_label_2
 msgid "Extra 2 Label"
-msgstr "ປ້າຍເຄື່ອງຄຽງ 2"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_quantity_2
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_quantity_2
 msgid "Extra 2 Quantity"
-msgstr "ຈຳນວນເຄື່ອງຄຽງ 2"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_label_3
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_label_3
 msgid "Extra 3 Label"
-msgstr "ປ້າຍເຄື່ອງຄຽງ 3"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_quantity_3
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_quantity_3
 msgid "Extra 3 Quantity"
-msgstr "ຈຳນວນເຄື່ອງຄຽງ 3"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__display_toppings
 msgid "Extras"
-msgstr "ເຄື່ອງຄຽງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_ids_1
 msgid "Extras 1"
-msgstr "ເຄື່ອງຄຽງ 1"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_ids_2
 msgid "Extras 2"
-msgstr "ເຄື່ອງຄຽງ 2"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_ids_3
 msgid "Extras 3"
-msgstr "ເຄື່ອງຄຽງ 3"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_users__favorite_lunch_product_ids
 msgid "Favorite Lunch Product"
-msgstr "ສິນຄ້າອາຫານສວາຍທີ່ມັກ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__favorite_user_ids
 msgid "Favorite User"
-msgstr "ຜູ້ໃຊ້ທີ່ມັກ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_follower_ids
 msgid "Followers"
-msgstr "ຜູ້ຕິດຕາມ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "ຜູ້ຕິດຕາມ (ຄູ່ຄ້າ)"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "ໄອຄອນ Font awesome ເຊັ່ນ: fa-tasks"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__email_formatted
 msgid "Format email address \"Name <email@domain>\""
-msgstr "ຮູບແບບທີ່ຢື່ອີເມວ \"ຊື່ <email@domain>\""
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__email_formatted
 msgid "Formatted Email"
-msgstr "ຮູບແບບອີເມວ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_italiana
 msgid "Fresh Tomatoes, Basil, Mozzarella"
-msgstr "ໝາກເລັ່ນສົດ, ໃບໂຫລະພາ, ເນີຍແຂງມອດຊາເລລ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__fri
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__fri
 msgid "Fri"
-msgstr "ວັນສຸກ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Friday"
-msgstr "ວັນສຸກ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_gouda
 msgid "Gouda Cheese"
-msgstr "ເນີຍແຂງ ກູດ້າ"
-
-#. module: lunch
-#: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search_2
-#: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
-#: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
-msgid "Group By"
-msgstr "ຈັດກຸ່ມຕາມ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_club
 #: model_terms:lunch.product,description:lunch.product_club_0
 msgid "Ham, Cheese, Vegetables"
-msgstr "ແຮມ, ເນີຍແຂງ, ຜັກ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__has_message
 msgid "Has Message"
-msgstr "ມີຂໍ້ຄວາມ"
-
-#. module: lunch
-#: model:ir.module.category,description:lunch.module_lunch_category
-msgid "Helps you handle your lunch needs, if you are a manager you will be able to create new products, cashmoves and to confirm or cancel orders."
 msgstr ""
-"ຊ່ວຍຈັດການຄວາມຕ້ອງການອາຫານສວາຍຂອງທ່ານ, ຫາກທ່ານເປັນຜູ້ຈັດການ ທ່ານຈະສາມາດສ້າງສິນຄ້າໃໝ່, ການເຄື່"
-"ອນໄຫວເງິນສົດ ແລະ ຢືນຢັນ ຫຼື ຍົກເລີກການສັ່ງຊື້ໄດ້."
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_category_action
 msgid "Here you can access all categories for the lunch products."
-msgstr "ບ່ອນນີ້ທ່ານສາມາດເຂົ້າເຖິງໝວດໝູ່ທັງໝົດສຳລັບສິນຄ້າອາຫານສວາຍ."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_by_supplier
 msgid "Here you can see today's orders grouped by vendors."
-msgstr "ບ່ອນນີ້ທ່ານສາມາດເຫັນການສັ່ງຊື້ມື້ນີ້ ໂດຍຈັດກຸ່ມຕາມຜູ້ສະໜອງ."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_report_action_account
 msgid ""
-"Here you can see your cash moves.<br>A cash move can either be an expense or a payment.\n"
-"            An expense is automatically created when an order is received while a payment is a reimbursement to the company encoded by the manager."
+"Here you can see your cash moves.<br>A cash move can either be an expense or "
+"a payment.\n"
+"            An expense is automatically created when an order is received "
+"while a payment is a reimbursement to the company encoded by the manager."
 msgstr ""
-"ບ່ອນນີ້ທ່ານສາມາດເຫັນການເຄື່ອນໄຫວເງິນສົດຂອງທ່ານ.<br>ການເຄື່ອນໄຫວເງິນສົດສາມາດເປັນໄດ້ທັງ ລາຍຈ່າຍ "
-"ຫຼື ການຊຳລະເງິນ.\n"
-"            ລາຍຈ່າຍຈະຖືກສ້າງຂຶ້ນໂດຍອັດຕະໂນມັດເມື່ອໄດ້ຮັບໃບສັ່ງຊື້, ໃນຂະນະທີ່ການຊຳລະເງິນແມ່ນການຈ່າ"
-"ຍຄືນໃຫ້ບໍລິສັດທີ່ບັນທຶກໂດຍຜູ້ຈັດການ."
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__id
@@ -1080,99 +875,108 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__id
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__id
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__id
+#: model:ir.model.fields,field_description:lunch.field_res_company__id
+#: model:ir.model.fields,field_description:lunch.field_res_config_settings__id
+#: model:ir.model.fields,field_description:lunch.field_res_users__id
 msgid "ID"
-msgstr "ລະຫັດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_exception_icon
 msgid "Icon"
-msgstr "ໄອຄອນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "ໄອຄອນເພື່ອບອກເຖິງກິດຈະກຳທີ່ຍົກເວັ້ນ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "ຖ້າໝາຍໄວ້, ຂໍ້ຄວາມໃໝ່ຈະຕ້ອງໄດ້ຮັບການເອົາໃຈໃສ່ຈາກທ່ານ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_has_error
 msgid "If checked, some messages have a delivery error."
-msgstr "ຖ້າໝາຍໄວ້, ບາງຂໍ້ຄວາມອາດມີຂໍ້ຜິດພາດໃນການສົ່ງ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_1920
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_1920
 msgid "Image"
-msgstr "ຮູບພາບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_1024
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_1024
 msgid "Image 1024"
-msgstr "ຮູບພາບ 1024"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__image_128
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_128
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_128
 msgid "Image 128"
-msgstr "ຮູບພາບ 128"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__image_1920
 msgid "Image 1920"
-msgstr "ຮູບພາບ 1920"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_256
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_256
 msgid "Image 256"
-msgstr "ຮູບພາບ 256"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_512
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_512
 msgid "Image 512"
-msgstr "ຮູບພາບ 512"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Increase quantity"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
 msgid "Information, allergens, ..."
-msgstr "ຂໍ້ມູນ, ສານກໍ່ພູມແພ້, ..."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__available_today
 msgid "Is Displayed Today"
-msgstr "ສະແດງຜົນມື້ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__is_favorite
 msgid "Is Favorite"
-msgstr "ເປັນລາຍການທີ່ມັກ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_is_follower
 msgid "Is Follower"
-msgstr "ເປັນຜູ້ຕິດຕາມ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__is_new
 msgid "Is New"
-msgstr "ເປັນລາຍການໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_users__last_lunch_location_id
 msgid "Last Lunch Location"
-msgstr "ສະຖານທີ່ອາຫານສວາຍລ່າສຸດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__last_order_date
 msgid "Last Order Date"
-msgstr "ວັນທີສັ່ງຊື້ລ່າສຸດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__write_uid
@@ -1184,7 +988,7 @@ msgstr "ວັນທີສັ່ງຊື້ລ່າສຸດ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__write_uid
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__write_uid
 msgid "Last Updated by"
-msgstr "ອັບເດດລ່າສຸດໂດຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__write_date
@@ -1196,40 +1000,40 @@ msgstr "ອັບເດດລ່າສຸດໂດຍ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__write_date
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__write_date
 msgid "Last Updated on"
-msgstr "ອັບເດດລ່າສຸດເມື່ອ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__location_ids
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__available_location_ids
 msgid "Location"
-msgstr "ສະຖານທີ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__name
 msgid "Location Name"
-msgstr "ຊື່ສະຖານທີ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_location_menu
 msgid "Locations"
-msgstr "ສະຖານທີ່ຕ່າງໆ"
+msgstr ""
 
 #. module: lunch
-#: model:ir.module.category,name:lunch.module_lunch_category
 #: model:ir.ui.menu,name:lunch.menu_lunch
+#: model:res.groups.privilege,name:lunch.res_groups_privilege_lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Lunch"
-msgstr "ອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_alert
 msgid "Lunch Alert"
-msgstr "ການແຈ້ງເຕືອນອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_alert_action
 msgid "Lunch Alerts"
-msgstr "ການແຈ້ງເຕືອນອາຫານສວາຍທັງໝົດ"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
@@ -1237,499 +1041,523 @@ msgstr "ການແຈ້ງເຕືອນອາຫານສວາຍທັງ
 #: code:addons/lunch/report/lunch_cashmove_report.py:0
 #: model:ir.model,name:lunch.model_lunch_cashmove
 msgid "Lunch Cashmove"
-msgstr "ການເຄື່ອນໄຫວເງິນສົດອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_topping
 msgid "Lunch Extras"
-msgstr "ເຄື່ອງຄຽງອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
+#: model:ir.model,name:lunch.model_lunch_location
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__lunch_location_id
 msgid "Lunch Location"
-msgstr "ສະຖານທີ່ອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_location_action
-#: model:ir.model,name:lunch.model_lunch_location
 msgid "Lunch Locations"
-msgstr "ສະຖານທີ່ອາຫານສວາຍທັງໝົດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_maki
 msgid "Lunch Maki 18pc"
-msgstr "ມາກິອາຫານສວາຍ 18 ຊິ້ນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_company__lunch_minimum_threshold
 msgid "Lunch Minimum Threshold"
-msgstr "ເກນຂັ້ນຕ່ຳຂອງອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_company__lunch_notify_message
 msgid "Lunch Notify Message"
-msgstr "ຂໍ້ຄວາມແຈ້ງເຕືອນອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
+#. odoo-python
+#: code:addons/lunch/models/lunch_supplier.py:0
 #: model:ir.model,name:lunch.model_lunch_order
 msgid "Lunch Order"
-msgstr "ລາຍການສັ່ງອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Lunch Overdraft"
-msgstr "ເງິນເບີກເກີນອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_product
 msgid "Lunch Product"
-msgstr "ສິນຄ້າອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_product_category
 msgid "Lunch Product Category"
-msgstr "ໝວດໝູ່ສິນຄ້າອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_salmon
 msgid "Lunch Salmon 20pc"
-msgstr "ຊາມອນອາຫານສວາຍ 20 ຊິ້ນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_supplier
 msgid "Lunch Supplier"
-msgstr "ຜູ້ສະໜອງອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_temaki
 msgid "Lunch Temaki mix 3pc"
-msgstr "ເຕມາກິລວມ 3 ຊິ້ນ"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_order.py:0
 msgid "Lunch notification"
-msgstr "ການແຈ້ງເຕືອນອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_config_settings__company_lunch_notify_message
 msgid "Lunch notification message"
-msgstr "ຂໍ້ຄວາມແຈ້ງເຕືອນອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_order_action_cancel
 msgid "Lunch: Cancel meals"
-msgstr "ອາຫານສວາຍ: ຍົກເລີກມື້ອາຫານ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_order_action_confirm
 msgid "Lunch: Receive meals"
-msgstr "ອາຫານສວາຍ: ຮັບມື້ອາຫານ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_order_action_notify
 msgid "Lunch: Send notifications"
-msgstr "ອາຫານສວາຍ: ສົ່ງການແຈ້ງເຕືອນ"
+msgstr ""
 
 #. module: lunch
 #: model:mail.template,name:lunch.lunch_order_mail_supplier
 msgid "Lunch: Supplier Order"
-msgstr "ອາຫານສວາຍ: ສັ່ງຊື້ຈາກຜູ້ສະໜອງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_alert_cron_sa_234
 msgid "Lunch: alert chat notification (Alert for Office 3)"
-msgstr "ອາຫານສວາຍ: ແຈ້ງເຕືອນຜ່ານແຊັດ (ແຈ້ງເຕືອນສຳລັບ ຫ້ອງການ 3)"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_235
 msgid "Lunch: send automatic email to Coin gourmand"
-msgstr "ອາຫານສວາຍ: ສົ່ງອີເມວອັດຕະໂນມັດຫາ Coin gourmand"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_230
 msgid "Lunch: send automatic email to Lunch Supplier"
-msgstr "ອາຫານສວາຍ: ສົ່ງອີເມວອັດຕະໂນມັດຫາຜູ້ສະໜອງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_236
 msgid "Lunch: send automatic email to Pizza Inn"
-msgstr "ອາຫານສວາຍ: ສົ່ງອີເມວອັດຕະໂນມັດຫາ Pizza Inn"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_238
 msgid "Lunch: send automatic email to Sushi Shop"
-msgstr "ອາຫານສວາຍ: ສົ່ງອີເມວອັດຕະໂນມັດຫາ Sushi Shop"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_237
 msgid "Lunch: send automatic email to The Corner"
-msgstr "ອາຫານສວາຍ: ສົ່ງອີເມວອັດຕະໂນມັດຫາ The Corner"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_res_config_settings__currency_id
 msgid "Main currency of the company."
-msgstr "ສະກຸນເງິນຫຼັກຂອງບໍລິສັດ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.menu_lunch_admin
 msgid "Manager"
-msgstr "ຜູ້ຈັດການ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_config_settings__company_lunch_minimum_threshold
 msgid "Maximum Allowed Overdraft"
-msgstr "ວົງເງິນເບີກເກີນສູງສຸດທີ່ອະນຸຍາດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Maximum overdraft that your employees can reach"
-msgstr "ວົງເງິນເບີກເກີນສູງສຸດທີ່ພະນັກງານຂອງທ່ານສາມາດໃຊ້ໄດ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__message
 msgid "Message"
-msgstr "ຂໍ້ຄວາມ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_has_error
 msgid "Message Delivery error"
-msgstr "ຂໍ້ຜິດພາດໃນການສົ່ງຂໍ້ຄວາມ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_ids
 msgid "Messages"
-msgstr "ຂໍ້ຄວາມ"
-
-#. module: lunch
-#: model:ir.model.fields,field_description:lunch.field_lunch_supplier__moment
-msgid "Moment"
-msgstr "ຊ່ວງເວລາ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__mon
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__mon
 msgid "Mon"
-msgstr "ວັນຈັນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Monday"
-msgstr "ວັນຈັນ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_mozzarella
 msgid "Mozzarella"
-msgstr "ມອດຊາເລລ່າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_mozzarella
 msgid "Mozzarella, Pesto, Tomatoes"
-msgstr "ມອດຊາເລລ່າ, ຊອດເພສໂຕ້, ໝາກເລັ່ນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_report_action_account
 msgid "My Account"
-msgstr "ບັນຊີຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_cashmove_report_menu_form
 msgid "My Account History"
-msgstr "ປະຫວັດບັນຊີຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "My Account grouped"
-msgstr "ບັນຊີຂອງຂ້ອຍຈັດກຸ່ມແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__my_activity_date_deadline
 msgid "My Activity Deadline"
-msgstr "ກຳນົດເວລາສິ້ນສຸດກິດຈະກຳຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.menu_lunch_title
 msgid "My Lunch"
-msgstr "ອາຫານສວາຍຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_order_menu_tree
 msgid "My Order History"
-msgstr "ປະຫວັດການສັ່ງຊື້ຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_order_action
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "My Orders"
-msgstr "ການສັ່ງຊື້ຂອງຂ້ອຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__name
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__name
 msgid "Name"
-msgstr "ຊື່"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_Napoli
 msgid "Napoli Pasta"
-msgstr "ພັດສະຕ້າ ນາໂປລີ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_product_kanban_order
 msgid "New"
-msgstr "ໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_order_menu_form
 msgid "New Order"
-msgstr "ການສັ່ງຊື້ໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__new_until
 msgid "New Until"
-msgstr "ໃໝ່ຈົນຮອດວັນທີ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "ເຫດການປະຕິທິນກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "ກຳນົດເວລາສິ້ນສຸດກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_summary
 msgid "Next Activity Summary"
-msgstr "ສະຫຼຸບກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_type_id
 msgid "Next Activity Type"
-msgstr "ປະເພດກິດຈະກຳຖັດໄປ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__delivery__no_delivery
 msgid "No Delivery"
-msgstr "ບໍ່ມີການຈັດສົ່ງ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_report_action_account
 msgid "No cash move yet"
-msgstr "ຍັງບໍ່ມີການເຄື່ອນໄຫວເງິນສົດ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/views/no_content_helper.xml:0
+msgid "No location found"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "No lunch location available."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_control_suppliers
 msgid "No lunch order yet"
-msgstr "ຍັງບໍ່ມີການສັ່ງອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action
 msgid "No previous order found"
-msgstr "ບໍ່ພົບປະຫວັດການສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_1__0_more
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_2__0_more
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_3__0_more
 msgid "None or More"
-msgstr "ບໍ່ມີ ຫຼື ຫຼາຍກວ່າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Not Received"
-msgstr "ຍັງບໍ່ໄດ້ຮັບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__note
 msgid "Notes"
-msgstr "ໝາຍເຫດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_by_supplier
 msgid "Nothing to order today"
-msgstr "ມື້ນີ້ບໍ່ມີລາຍການສັ່ງ"
+msgstr ""
 
 #. module: lunch
-#: model:ir.model.fields,field_description:lunch.field_lunch_alert__notification_moment
-msgid "Notification Moment"
-msgstr "ຊ່ວງເວລາແຈ້ງເຕືອນ"
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Nothing to order, add some meals to begin."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__notification_time
 msgid "Notification Time"
-msgstr "ເວລາແຈ້ງເຕືອນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.constraint,message:lunch.constraint_lunch_alert_notification_time_range
-msgid "Notification time must be between 0 and 12"
-msgstr "ເວລາແຈ້ງເຕືອນຕ້ອງຢູ່ລະຫວ່າງ 0 ຫາ 12"
+msgid "Notification time must be between 0 and 24"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__notified
 msgid "Notified"
-msgstr "ແຈ້ງເຕືອນແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_needaction_counter
 msgid "Number of Actions"
-msgstr "ຈຳນວນການດຳເນີນການ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_has_error_counter
 msgid "Number of errors"
-msgstr "ຈຳນວນຂໍ້ຜິດພາດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_needaction_counter
-msgid "Number of messages which requires an action"
-msgstr "ຈຳນວນຂໍ້ຄວາມທີ່ຕ້ອງດຳເນີນການ"
+msgid "Number of messages requiring action"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "ຈຳນວນຂໍ້ຄວາມທີ່ມີຂໍ້ຜິດພາດໃນການສົ່ງ"
+msgstr ""
+
+#. module: lunch
+#. odoo-python
+#: code:addons/lunch/models/lunch_order.py:0
+msgid ""
+"Oh no! You don’t have enough money in your wallet to order your selected "
+"lunch! Contact your lunch manager to add some money to your wallet."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_1__1_more
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_2__1_more
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_3__1_more
 msgid "One or More"
-msgstr "ໜຶ່ງ ຫຼື ຫຼາຍກວ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_1__1
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_2__1
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_3__1
 msgid "Only One"
-msgstr "ພຽງແຕ່ໜຶ່ງ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 msgid "Order"
-msgstr "ສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__date
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Order Date"
-msgstr "ວັນທີສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__order_deadline_passed
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__order_deadline_passed
 msgid "Order Deadline Passed"
-msgstr "ກຳນົດເວລາສັ່ງຊື້ໝົດແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #. odoo-javascript
 #: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
 msgid "Order Now"
-msgstr "ສັ່ງເລີຍ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__automatic_email_time
 msgid "Order Time"
-msgstr "ເວລາສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_product_action_order
 msgid "Order Your Lunch"
-msgstr "ສັ່ງອາຫານສວາຍຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
-msgid "Order lines Tree"
-msgstr "ລາຍການສັ່ງຊື້ແບບລາຍການ"
+msgid "Order lines List"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__ordered
 msgid "Ordered"
-msgstr "ສັ່ງແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Orders"
-msgstr "ການສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:mail.template,subject:lunch.lunch_order_mail_supplier
-msgid "Orders for {{ ctx['order']['company_name'] }}"
-msgstr "ລາຍການສັ່ງຊື້ສຳລັບ {{ ctx['order']['company_name'] }}"
+msgid "Orders for {{ ctx.get('order', {}).get('company_name') }}"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Overdraft"
-msgstr "ເງິນເບີກເກີນບັນຊີ"
+msgstr ""
 
 #. module: lunch
-#: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__notification_moment__pm
-#: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__moment__pm
-msgid "PM"
-msgstr "ຕອນແລງ"
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "Passed orders"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_pasta
 msgid "Pasta"
-msgstr "ພັດສະຕ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 msgid "Payment"
-msgstr "ການຊຳລະເງິນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_action_payment
-msgid "Payments are used to register liquidity movements. You can process those payments by your own means or by using installed facilities."
+msgid ""
+"Payments are used to register liquidity movements. You can process those "
+"payments by your own means or by using installed facilities."
 msgstr ""
-"ການຊຳລະເງິນແມ່ນໃຊ້ເພື່ອບັນທຶກການເຄື່ອນໄຫວຂອງສະພາບຄ່ອງ. ທ່ານສາມາດດຳເນີນການຊຳລະເງິນເຫຼົ່ານັ້ນດ້ວຍວິ"
-"ທີຂອງທ່ານເອງ ຫຼື ໃຊ້ເຄື່ອງມືທີ່ຕິດຕັ້ງໄວ້."
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__phone
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__send_by__phone
 msgid "Phone"
-msgstr "ໂທລະສັບ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_pizza
 msgid "Pizza"
-msgstr "ປິຊ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_funghi
 msgid "Pizza Funghi"
-msgstr "ປິຊ້າໜ້າເຫັດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_italiana
 msgid "Pizza Italiana"
-msgstr "ປິຊ້າອິຕາລຽນ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_margherita
 #: model:lunch.product,name:lunch.product_pizza_0
 msgid "Pizza Margherita"
-msgstr "ປິຊ້າ ມາເກຣິຕ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_vege
 msgid "Pizza Vegetarian"
-msgstr "ປິຊ້າມັງສະວິລັດ"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/views/no_content_helper.xml:0
+msgid "Please create a location to start ordering."
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.alert,message:lunch.alert_office_3
 msgid "Please order"
-msgstr "ກະລຸນາສັ່ງອາຫານ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__price
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__price
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Price"
-msgstr "ລາຄາ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__product_id
@@ -1741,18 +1569,18 @@ msgstr "ສິນຄ້າ"
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__is_available_at
 msgid "Product Availability"
-msgstr "ຄວາມພ້ອມຂອງສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_product_category_action
 #: model:ir.ui.menu,name:lunch.lunch_product_category_menu
 msgid "Product Categories"
-msgstr "ໝວດໝູ່ສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_form
 msgid "Product Categories Form"
-msgstr "ຟອມໝວດໝູ່ສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__category_id
@@ -1760,34 +1588,35 @@ msgstr "ຟອມໝວດໝູ່ສິນຄ້າ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__name
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_tree
 msgid "Product Category"
-msgstr "ໝວດໝູ່ສິນຄ້າ"
+msgstr "ໝວດສິນຄ້າ"
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__product_count
 msgid "Product Count"
-msgstr "ຈຳນວນສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__product_image
+#: model_terms:ir.ui.view,arch_db:lunch.view_lunch_product_kanban
 msgid "Product Image"
-msgstr "ຮູບພາບສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__name
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__name
 msgid "Product Name"
-msgstr "ຊື່ສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Product Search"
-msgstr "ຄົ້ນຫາສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_order.py:0
 msgid "Product is no longer available."
-msgstr "ສິນຄ້າບໍ່ມີຈຳໜ່າຍອີກຕໍ່ໄປ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_product_action
@@ -1796,179 +1625,170 @@ msgstr "ສິນຄ້າບໍ່ມີຈຳໜ່າຍອີກຕໍ່ໄ
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_kanban
 msgid "Products"
-msgstr "ສິນຄ້າທັງໝົດ"
+msgstr "ສິນຄ້າ"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_form
 msgid "Products Form"
-msgstr "ຟອມສິນຄ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_tree
-msgid "Products List"
-msgstr "ລາຍຊື່ສິນຄ້າ"
-
-#. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_tree
-msgid "Products Tree"
-msgstr "ຂໍ້ມູນສິນຄ້າແບບລາຍການ"
+msgid "Products List"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__quantity
 msgid "Quantity"
-msgstr "ຈຳນວນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Re-order"
-msgstr "ສັ່ງຄືນໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Receive"
-msgstr "ຮັບເຄື່ອງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__confirmed
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Received"
-msgstr "ໄດ້ຮັບແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Reception notification"
-msgstr "ການແຈ້ງເຕືອນການຮັບເຄື່ອງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__recipients
 msgid "Recipients"
-msgstr "ຜູ້ຮັບ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_action_payment
 msgid "Register a payment"
-msgstr "ບັນທຶກການຊຳລະເງິນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Reset"
-msgstr "ຄືນຄ່າໃໝ່"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__responsible_id
 msgid "Responsible"
-msgstr "ຜູ້ຮັບຜິດຊອບ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_user_id
 msgid "Responsible User"
-msgstr "ຜູ້ໃຊ້ທີ່ຮັບຜິດຊອບ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_chirashi
 msgid "Salmon and Avocado"
-msgstr "ຊາມອນ ແລະ ອາໂວກາໂດ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_sandwich
 msgid "Sandwich"
-msgstr "ແຊນວິດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__sat
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__sat
 msgid "Sat"
-msgstr "ວັນເສົາ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Saturday"
-msgstr "ວັນເສົາ"
-
-#. module: lunch
-#: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
-msgid "Save"
-msgstr "ບັນທຶກ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Search"
-msgstr "ຄົ້ນຫາ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 msgid "Send"
-msgstr "ສົ່ງ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Send Notification"
-msgstr "ສົ່ງການແຈ້ງເຕືອນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__send_by
 msgid "Send Order By"
-msgstr "ສົ່ງໃບສັ່ງຊື້ໂດຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Send Orders"
-msgstr "ສົ່ງການສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Send this message to your users when their order has been delivered."
-msgstr "ສົ່ງຂໍ້ຄວາມນີ້ຫາຜູ້ໃຊ້ຂອງທ່ານເມື່ອການສັ່ງຊື້ຂອງພວກເຂົາຖືກຈັດສົ່ງແລ້ວ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__sent
 msgid "Sent"
-msgstr "ສົ່ງແລ້ວ"
+msgstr ""
 
 #. module: lunch
 #: model:mail.template,description:lunch.lunch_order_mail_supplier
 msgid "Sent to vendor with the order of the day"
-msgstr "ສົ່ງໃຫ້ຜູ້ສະໜອງພ້ອມກັບລາຍການສັ່ງຊື້ປະຈຳວັນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_config_settings_action
 #: model:ir.ui.menu,name:lunch.lunch_settings_menu
 msgid "Settings"
-msgstr "ການຕັ້ງຄ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__show_confirm_button
 msgid "Show Confirm Button"
-msgstr "ສະແດງປຸ່ມຢືນຢັນ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__show_order_button
 msgid "Show Order Button"
-msgstr "ສະແດງປຸ່ມສັ່ງຊື້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__until
 msgid "Show Until"
-msgstr "ສະແດງຈົນກວ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_spicy_tuna
 msgid "Spicy Tuna"
-msgstr "ທູນ້າລົດເຜັດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__state_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "State"
-msgstr "ແຂວງ / ລັດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__state
 msgid "Status"
-msgstr "ສະຖານະ"
+msgstr "ສະພາບ"
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_state
@@ -1978,238 +1798,246 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"ສະຖານະໂດຍອີງຕາມກິດຈະກຳ\n"
-"ເກີນກຳນົດ: ວັນຄົບກຳນົດໄດ້ຜ່ານໄປແລ້ວ\n"
-"ມື້ນີ້: ວັນທີກິດຈະກຳແມ່ນມື້ນີ້\n"
-"ວາງແຜນ: ກິດຈະກຳໃນອະນາຄົດ."
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__street
 msgid "Street"
-msgstr "ຖະໜົນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Street 2..."
-msgstr "ຖະໜົນ 2..."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Street..."
-msgstr "ຖະໜົນ..."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__street2
 msgid "Street2"
-msgstr "ຖະໜົນ 2"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_control_suppliers
 msgid "Summary of all lunch orders, grouped by vendor and by date."
-msgstr "ສະຫຼຸບການສັ່ງອາຫານສວາຍທັງໝົດ, ຈັດກຸ່ມຕາມຜູ້ສະໜອງ ແລະ ວັນທີ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__sun
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__sun
 msgid "Sun"
-msgstr "ວັນອາທິດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Sunday"
-msgstr "ວັນອາທິດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__supplier_id
 msgid "Supplier"
-msgstr "ຜູ້ສະໜອງ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_sushi
 msgid "Sushi"
-msgstr "ຊູຊິ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_temaki
 msgid "Temaki"
-msgstr "ເຕມາກິ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_country
 msgid "The Country"
-msgstr "ເດີ ຄັນທຣີ (ຊື່ເມນູ)"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_product.py:0
 msgid ""
-"The following product categories are archived. You should either unarchive the categories or change the category of the product.\n"
+"The following product categories are archived. You should either unarchive "
+"the categories or change the category of the product.\n"
 "%s"
 msgstr ""
-"ໝວດໝູ່ສິນຄ້າຕໍ່ໄປນີ້ຖືກເກັບຖາວອນແລ້ວ. ທ່ານຄວນຍົກເລີກການເກັບຖາວອນ ຫຼື ປ່ຽນໝວດໝູ່ຂອງສິນຄ້າ.\n"
-"%s"
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_product.py:0
 msgid ""
-"The following suppliers are archived. You should either unarchive the suppliers or change the supplier of the product.\n"
+"The following suppliers are archived. You should either unarchive the "
+"suppliers or change the supplier of the product.\n"
 "%s"
 msgstr ""
-"ຜູ້ສະໜອງຕໍ່ໄປນີ້ຖືກເກັບຖາວອນແລ້ວ. ທ່ານຄວນຍົກເລີກການເກັບຖາວອນ ຫຼື ປ່ຽນຜູ້ສະໜອງຂອງສິນຄ້າ.\n"
-"%s"
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_product_category__product_count
 msgid "The number of products related to this category"
-msgstr "ຈຳນວນສິນຄ້າທີ່ກ່ຽວຂ້ອງກັບໝວດໝູ່ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
 msgid "The orders for this vendor have already been sent."
-msgstr "ການສັ່ງຊື້ສຳລັບຜູ້ສະໜອງນີ້ໄດ້ຖືກສົ່ງໄປແລ້ວ."
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_supplier.py:0
 msgid "The orders have been confirmed!"
-msgstr "ການສັ່ງຊື້ໄດ້ຮັບການຢືນຢັນແລ້ວ!"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_supplier.py:0
 msgid "The orders have been sent!"
-msgstr "ການສັ່ງຊື້ໄດ້ຖືກສົ່ງໄປແລ້ວ!"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__responsible_id
-msgid "The responsible is the person that will order lunch for everyone. It will be used as the 'from' when sending the automatic email."
+msgid ""
+"The responsible is the person that will order lunch for everyone. It will be "
+"used as the 'from' when sending the automatic email."
 msgstr ""
-"ຜູ້ຮັບຜິດຊອບແມ່ນບຸກຄົນທີ່ຈະສັ່ງອາຫານສວາຍໃຫ້ທຸກຄົນ. ຈະຖືກໃຊ້ເປັນຊື່ 'ຜູ້ສົ່ງ' ເມື່ອສົ່ງອີເມວອັດຕະໂນມັດ."
+
+#. module: lunch
+#. odoo-python
+#: code:addons/lunch/models/lunch_order.py:0
+msgid "The vendor related to this order is not available at the selected date."
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_order.py:0
 msgid "The vendor related to this order is not available today."
-msgstr "ຜູ້ສະໜອງທີ່ກ່ຽວຂ້ອງກັບການສັ່ງຊື້ນີ້ບໍ່ພ້ອມໃຫ້ບໍລິການໃນມື້ນີ້."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action
-msgid "There is no previous order recorded. Click on \"My Lunch\" and then create a new lunch order."
+msgid ""
+"There is no previous order recorded. Click on \"My Lunch\" and then create a "
+"new lunch order."
 msgstr ""
-"ບໍ່ມີປະຫວັດການສັ່ງຊື້ທີ່ບັນທຶກໄວ້. ຄລິກທີ່ \"ອາຫານສວາຍຂອງຂ້ອຍ\" ແລ້ວສ້າງການສັ່ງຊື້ໃໝ່."
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action_order
 msgid "There is no product available today"
-msgstr "ມື້ນີ້ບໍ່ມີສິນຄ້າພ້ອມໃຫ້ບໍລິການ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__recurrency_end_date
 msgid "This field is used in order to "
-msgstr "ຟິວນີ້ຖືກໃຊ້ເພື່ອ "
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__available_today
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__available_today
 msgid "This is True when if the supplier is available today"
-msgstr "ຈະເປັນ 'ຈິງ' ເມື່ອຜູ້ສະໜອງພ້ອມໃຫ້ບໍລິການໃນມື້ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__thu
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__thu
 msgid "Thu"
-msgstr "ວັນພະຫັດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Thursday"
-msgstr "ວັນພະຫັດ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__tz
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__tz
 msgid "Timezone"
-msgstr "ເຂດເວລາ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__new
 msgid "To Order"
-msgstr "ລໍຖ້າສັ່ງຊື້"
+msgstr ""
+
+#. module: lunch
+#. odoo-javascript
+#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
+msgid "To Pay"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_payment_dialog
 msgid "To add some money to your wallet, please contact your lunch manager."
 msgstr ""
-"ເພື່ອເຕີມເງິນເຂົ້າໃນກະເປົາເງິນຂອງທ່ານ, ກະລຸນາຕິດຕໍ່ຜູ້ຈັດການອາຫານສວາຍຂອງທ່ານ."
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_location_action
 msgid "To see some locations, create one using the create button"
-msgstr "ເພື່ອເບິ່ງສະຖານທີ່, ໃຫ້ສ້າງໃໝ່ໂດຍໃຊ້ປຸ່ມສ້າງ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_action_order
-msgid "To see some products, check if your vendors are available today and that you have configured some products"
+msgid ""
+"To see some products, check if your vendors are available today and that you "
+"have configured some products"
 msgstr ""
-"ເພື່ອເບິ່ງສິນຄ້າ, ໃຫ້ກວດເບິ່ງວ່າຜູ້ສະໜອງຂອງທ່ານພ້ອມໃຫ້ບໍລິການໃນມື້ນີ້ບໍ່ ແລະ ທ່ານໄດ້ຕັ້ງຄ່າສິນຄ້າໄວ້ແລ້ວບໍ່"
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Today"
-msgstr "ມື້ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_order_action_by_supplier
 #: model:ir.ui.menu,name:lunch.lunch_order_menu_by_supplier
 msgid "Today's Orders"
-msgstr "ການສັ່ງຊື້ຂອງມື້ນີ້"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_4formaggi
 msgid "Tomato sauce, Olive oil, Fresh Tomatoes, Onions, Vegetables, Parmesan"
-msgstr "ຊອດໝາກເລັ່ນ, ນ້ຳມັນໝາກກອກ, ໝາກເລັ່ນສົດ, ຫົວຜັກບົ່ວ, ຜັກ, ເນີຍແຂງພາເມຊານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_Napoli
 msgid "Tomatoes, Basil"
-msgstr "ໝາກເລັ່ນ, ໃບໂຫລະພາ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_margherita
 #: model_terms:lunch.product,description:lunch.product_pizza_0
 msgid "Tomatoes, Mozzarella"
-msgstr "ໝາກເລັ່ນ, ເນີຍແຂງມອດຊາເລລ່າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_vege
 msgid "Tomatoes, Mozzarella, Mushrooms, Peppers, Olives"
-msgstr "ໝາກເລັ່ນ, ເນີຍແຂງມອດຊາເລລ່າ, ເຫັດ, ໝາກເຜັດຍັກ, ໝາກກອກ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_funghi
 msgid "Tomatoes, Mushrooms, Mozzarella"
-msgstr "ໝາກເລັ່ນ, ເຫັດ, ເນີຍແຂງມອດຊາເລລ່າ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__topping_category
 msgid "Topping Category"
-msgstr "ໝວດໝູ່ເຄື່ອງຄຽງ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_ids_1
 msgid "Topping Ids 1"
-msgstr "ລະຫັດເຄື່ອງຄຽງ 1"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_ids_2
 msgid "Topping Ids 2"
-msgstr "ລະຫັດເຄື່ອງຄຽງ 2"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__topping_ids_3
 msgid "Topping Ids 3"
-msgstr "ລະຫັດເຄື່ອງຄຽງ 3"
+msgstr ""
 
 #. module: lunch
 #. odoo-javascript
@@ -2224,38 +2052,38 @@ msgstr "ລວມທັງໝົດ"
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__price
 msgid "Total Price"
-msgstr "ລາຄາລວມ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__tue
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__tue
 msgid "Tue"
-msgstr "ວັນອັງຄານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Tuesday"
-msgstr "ວັນອັງຄານ"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_tuna
 msgid "Tuna"
-msgstr "ທູນ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_tuna
 msgid "Tuna, Mayonnaise"
-msgstr "ທູນ້າ, ມາຢອງເນສ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "ປະເພດຂອງກິດຈະກຳທີ່ຍົກເວັ້ນໃນບັນທຶກ."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__recurrency_end_date
 msgid "Until"
-msgstr "ຈົນຮອດວັນທີ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_users
@@ -2264,12 +2092,12 @@ msgstr "ຈົນຮອດວັນທີ"
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__user_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "User"
-msgstr "ຜູ້ໃຊ້"
+msgstr ""
 
 #. module: lunch
 #: model:res.groups,name:lunch.group_lunch_user
 msgid "User : Order your meal"
-msgstr "ຜູ້ໃຊ້ : ສັ່ງມື້ອາຫານຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__supplier_id
@@ -2279,136 +2107,139 @@ msgstr "ຜູ້ໃຊ້ : ສັ່ງມື້ອາຫານຂອງທ່
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Vendor"
-msgstr "ຜູ້ສະໜອງ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Vendor Orders by Date"
-msgstr "ການສັ່ງຊື້ຈາກຜູ້ສະໜອງຕາມວັນທີ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_vendors_action
 #: model:ir.ui.menu,name:lunch.lunch_vendors_menu
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Vendors"
-msgstr "ຜູ້ສະໜອງທັງໝົດ"
+msgstr ""
+
+#. module: lunch
+#: model_terms:ir.ui.view,arch_db:lunch.lunch_location_form_view
+#: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_form
+#: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_form
+#: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
+msgid "Visible to all"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__wed
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__wed
 msgid "Wed"
-msgstr "ວັນພຸດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Wednesday"
-msgstr "ວັນພຸດ"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/controllers/main.py:0
-msgid "You are trying to impersonate another user, but this can only be done by a lunch manager"
+msgid ""
+"You are trying to impersonate another user, but this can only be done by a "
+"lunch manager"
 msgstr ""
-"ທ່ານກຳລັງພະຍາຍາມປອມຕົວເປັນຜູ້ໃຊ້ອື່ນ, ແຕ່ການດຳເນີນການນີ້ສາມາດເຮັດໄດ້ໂດຍຜູ້ຈັດການອາຫານສວາຍເທົ່ານັ້ນ"
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_order.py:0
 msgid "You have to order one and only one %s"
-msgstr "ທ່ານຕ້ອງສັ່ງພຽງແຕ່ໜຶ່ງ %s ເທົ່ານັ້ນ"
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_order.py:0
 msgid "You should order at least one %s"
-msgstr "ທ່ານຄວນສັ່ງຢ່າງໜ້ອຍໜຶ່ງ %s"
-
-#. module: lunch
-#. odoo-javascript
-#: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
-msgid "Your Account"
-msgstr "ບັນຊີຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
 #. odoo-javascript
 #: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
 msgid "Your Cart ("
-msgstr "ກະຕ່າຂອງທ່ານ ("
+msgstr ""
 
 #. module: lunch
 #. odoo-python
 #: code:addons/lunch/models/lunch_alert.py:0
 msgid "Your Lunch Order"
-msgstr "ລາຍການສັ່ງອາຫານສວາຍຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
 #. odoo-javascript
 #: code:addons/lunch/static/src/components/lunch_dashboard.xml:0
 msgid "Your Order"
-msgstr "ການສັ່ງຊື້ຂອງທ່ານ"
+msgstr ""
 
 #. module: lunch
-#. odoo-python
-#: code:addons/lunch/models/lunch_order.py:0
-msgid "Your wallet does not contain enough money to order that. To add some money to your wallet, please contact your lunch manager."
+#: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
+msgid ""
+"Your wallet does not contain enough money to order that. To add some money "
+"to your wallet, please contact your lunch manager."
 msgstr ""
-"ເງິນໃນກະເປົາຂອງທ່ານບໍ່ພໍສຳລັບການສັ່ງຊື້ນີ້. ເພື່ອເຕີມເງິນ, ກະລຸນາຕິດຕໍ່ຜູ້ຈັດການອາຫານສວາຍຂອງທ່ານ."
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "ZIP"
-msgstr "ລະຫັດໄປສະນີ"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__zip_code
 msgid "Zip"
-msgstr "ລະຫັດໄປສະນີ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_form
 msgid "alert form"
-msgstr "ຟອມການແຈ້ງເຕືອນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_form
 msgid "cashmove form"
-msgstr "ຟອມການເຄື່ອນໄຫວເງິນສົດ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_tree
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_tree_2
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_tree
-msgid "cashmove tree"
-msgstr "ລາຍການການເຄື່ອນໄຫວເງິນສົດ"
+msgid "cashmove list"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_form
 msgid "e.g. Order before 11am"
-msgstr "ເຊັ່ນ: ສັ່ງກ່ອນເວລາ 11 ໂມງເຊົ້າ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "e.g. The Pizzeria Inn"
-msgstr "ເຊັ່ນ: ຮ້ານ ປິຊ້າ ອິນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search_2
 msgid "lunch cashmove"
-msgstr "ການເຄື່ອນໄຫວເງິນສົດອາຫານສວາຍ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "lunch employee payment"
-msgstr "ການຊຳລະເງິນອາຫານສວາຍຂອງພະນັກງານ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_kanban
 msgid "on"
-msgstr "ໃນ"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_kanban
 msgid "to"
-msgstr "ຫາ"
+msgstr ""

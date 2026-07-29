@@ -21,7 +21,6 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
 
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             })],
@@ -60,6 +59,10 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
 
         # Mobile, meal, table
         self.start_tour(self_route, "self_mobile_meal_table_takeaway_in")
+        last_order = self.env['pos.order'].search([], order="id desc", limit=1)
+        html = last_order.order_receipt_generate_html()
+        self.assertTrue("Service at Table" in html)
+
         self.start_tour(self_route, "self_mobile_meal_table_takeaway_out")
 
         self.env['pos.order'].search([('state', '=', 'draft')]).write({'state': 'cancel'})
@@ -70,6 +73,10 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
         # Mobile, meal, counter
         self.start_tour(self_route, "self_mobile_meal_counter_takeaway_in")
         self.start_tour(self_route, "self_mobile_meal_counter_takeaway_out")
+
+        last_order = self.env['pos.order'].search([], order="id desc", limit=1)
+        html = last_order.order_receipt_generate_html()
+        self.assertTrue("Pickup At Counter" in html)
 
         # Cancel in meal
         self.start_tour(self_route, "self_order_mobile_meal_cancel")
@@ -151,7 +158,6 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
 
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             }), (0, 0, {
@@ -175,6 +181,7 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
         self.start_tour(self_route, "self_order_mobile_0_price_order")
 
         order = self.env['pos.order'].search([], limit=1)
+        self.assertEqual(order.general_customer_note, "test")
         self.assertEqual(order.picking_count, 1)
 
     def test_order_sequence_in_self(self):
@@ -265,7 +272,7 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
         self.start_tour('/pos/ui?config_id=%d' % self.pos_config.id, 'test_pos_self_order_preparation_changes', login='pos_user')
         self.assertEqual(order.self_ordering_table_id, expected_table, "self_ordering_table_id should be equal to the original table")
 
-    def test_self_order_table_sharing(self):
+    def test_self_order_table_no_more_sharing(self):
         """
         - MEAL MODE: table is assigned to order via table_id field when scanning QR code
             all phones scanning the same table QR code share the same order
@@ -281,7 +288,6 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
 
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             }), (0, 0, {
@@ -318,7 +324,7 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
             })],
         })
 
-        self.start_tour(self_route, "test_self_order_table_sharing-each_mode")
+        self.start_tour(self_route, "test_self_order_table_no_more_sharing-each_mode")
         last_order = self.pos_config.current_session_id.order_ids[0]
         self.assertEqual(last_order.floating_order_name, f"Self-Order T {table.table_number}")
         self.assertFalse(last_order.table_id)
@@ -327,7 +333,7 @@ class TestSelfOrderMobile(SelfOrderCommonTest):
             'self_ordering_pay_after': 'meal',
         })
 
-        self.start_tour(self_route, "test_self_order_table_sharing-meal_mode")
+        self.start_tour(self_route, "test_self_order_table_no_more_sharing-meal_mode")
 
     def test_delete_mobile_order_from_backend(self):
         self.pos_config.write({

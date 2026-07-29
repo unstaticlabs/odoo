@@ -6,6 +6,7 @@ import { Orderline } from "@point_of_sale/app/components/orderline/orderline";
 import { OrderDisplay } from "@point_of_sale/app/components/order_display/order_display";
 import { useRouterParamsChecker } from "@point_of_sale/app/hooks/pos_router_hook";
 import { PriceFormatter } from "@point_of_sale/app/components/price_formatter/price_formatter";
+import { _t } from "@web/core/l10n/translation";
 
 export class SplitBillScreen extends Component {
     static template = "pos_restaurant.SplitBillScreen";
@@ -118,12 +119,20 @@ export class SplitBillScreen extends Component {
         this.pos.startTransferOrder();
     }
     async handleDiscountLines(originalOrder, newOrder) {
-        const discountPercentage = originalOrder.globalDiscountPc;
-        if (!this.isTransferred && discountPercentage) {
-            await this.pos.applyDiscount(discountPercentage, newOrder);
+        const { value, type } = originalOrder.globalDiscountPc;
+        if (value) {
+            await this.pos.applyDiscount(value, type, originalOrder);
+            if (!this.isTransferred) {
+                await this.pos.applyDiscount(value, type, newOrder);
+            }
         }
     }
-    async _createNewSplitOrder(originalOrder, newOrderName, curOrderUuid) {
+    async createSplittedOrder() {
+        const curOrderUuid = this.currentOrder.uuid;
+        const originalOrder = this.pos.models["pos.order"].find((o) => o.uuid === curOrderUuid);
+        const originalOrderName = this._getOrderName(originalOrder);
+        const newOrderName = this._getSplitOrderName(originalOrderName);
+
         const newOrder = this.pos.createNewOrder({
             preset_id: originalOrder.preset_id,
             preset_time: originalOrder.preset_time,
@@ -150,6 +159,7 @@ export class SplitBillScreen extends Component {
                         newCourse = this.pos.models["restaurant.order.course"].create({
                             order_id: newOrder,
                             index: courseIndex,
+                            name: _t("Course ") + courseIndex,
                         });
                         newCourses.set(courseIndex, newCourse);
                     }
@@ -204,34 +214,12 @@ export class SplitBillScreen extends Component {
             line.delete();
         }
         await this.handleDiscountLines(originalOrder, newOrder);
-        return newOrder;
-    }
-    async createSplittedOrder() {
-        const curOrderUuid = this.currentOrder.uuid;
-        const originalOrder = this.pos.models["pos.order"].find((o) => o.uuid === curOrderUuid);
-
-        // Guard to prevent multiple simultaneous split of the same order
-        if (originalOrder.uiState.isSplitInProgress) {
-            return;
-        }
-        originalOrder.uiState.isSplitInProgress = true;
-        try {
-            const originalOrderName = this._getOrderName(originalOrder);
-            const newOrderName = this._getSplitOrderName(originalOrderName);
-            const newOrder = await this._createNewSplitOrder(
-                originalOrder,
-                newOrderName,
-                curOrderUuid
-            );
-            await this.pos.syncAllOrders({ orders: [originalOrder, newOrder] });
-            originalOrder.customer_count -= 1;
-            originalOrder.setScreenData({ name: "ProductScreen" });
-            this.pos.selectedOrderUuid = null;
-            this.pos.setOrder(newOrder);
-            this.back();
-        } finally {
-            originalOrder.uiState.isSplitInProgress = false;
-        }
+        await this.pos.syncAllOrders({ orders: [originalOrder, newOrder] });
+        originalOrder.customer_count -= 1;
+        originalOrder.setScreenData({ name: "ProductScreen" });
+        this.pos.selectedOrderUuid = null;
+        this.pos.setOrder(newOrder);
+        this.back();
     }
 
     setLineQtyStr(line) {

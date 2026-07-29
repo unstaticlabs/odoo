@@ -10,7 +10,7 @@ class TestPeppolAccountMove(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env['ir.config_parameter'].sudo().set_param('account_peppol.edi.mode', 'test')
+        cls.env['ir.config_parameter'].sudo().set_str('account_peppol.edi.mode', 'test')
 
     def _peppol_invoice(self, post=False):
         move = self._create_invoice(post=post)

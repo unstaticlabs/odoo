@@ -5,23 +5,23 @@
 # Translators:
 # Martin Trigaux, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 21:31+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-04-14 06:04+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_import/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -54,8 +54,8 @@ msgid ""
 "A single column was found in the file, this often means the file separator "
 "is incorrect."
 msgstr ""
-"単一カラムがファイル内に見つかりました。これはファイルセパレータが間違ってい"
-"るときによくあることです。"
+"単一列がファイル内に見つかりました。これはファイルセパレータが間違っていると"
+"きによくあることです。"
 
 #. module: base_import
 #. odoo-javascript
@@ -75,8 +75,8 @@ msgstr "詳細"
 msgid ""
 "After each batch import, this delay is applied to avoid unthrottled calls"
 msgstr ""
-"バッチインポートのたびに、この遅延が適用され、スロットル制御されていない"
-"コールを回避します。"
+"バッチインポートのたびに、この遅延が適用され、スロットル制御されていないコー"
+"ルを回避します。"
 
 #. module: base_import
 #. odoo-javascript
@@ -139,12 +139,6 @@ msgstr "しかし、.csvファイルも使用できます。"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "キャンセル"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr "'再開'をクリックしてインポートを続行し、次の行%sから再開します。"
@@ -153,20 +147,21 @@ msgstr "'再開'をクリックしてインポートを続行し、次の行%s�
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid "Column %(column)s contains incorrect values (value: %(value)s)"
-msgstr "カラム%(column)sに正しくない値が含まれています (値: %(value)s)"
+msgstr "列%(column)sに正しくない値が含まれています (値: %(value)s)"
 
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
-msgstr "カラム%(column)s に正しくない値が含まれています。エラー行 %(line)d: %(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
+msgstr ""
+"列%(column)s に正しくない値が含まれています。エラー行 %(line)d: %(error)s"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
 msgid "Column Name"
-msgstr "カラム名"
+msgstr "列名"
 
 #. module: base_import
 #. odoo-javascript
@@ -185,7 +180,8 @@ msgstr "コメント"
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Could not retrieve URL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
-msgstr "取得できなかったURL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
+msgstr ""
+"取得できなかったURL: %(url)s [%(field_name)s: L%(line_number)d]: %(error)s"
 
 #. module: base_import
 #. odoo-javascript
@@ -248,6 +244,12 @@ msgid "Delay after each batch"
 msgstr "各バッチ後の遅延"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr "破棄"
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -305,8 +307,8 @@ msgstr ""
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "レコードをインポート中にエラーが発生しました: すべての行は同じサイズである必"
 "要がありますが、タイトル列は%(title_row_entries)dエントリを持っており、最初の"
@@ -338,12 +340,6 @@ msgid "External ID"
 msgstr "外部ID"
 
 #. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "フィールド '%(field)s' には日付/時刻の値を入力できません。"
-
-#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
 msgid "Field Name"
 msgstr "フィールド名"
@@ -357,7 +353,7 @@ msgstr "ファイル"
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_data_content/import_data_content.xml:0
 msgid "File Column"
-msgstr "ファイルカラム"
+msgstr "ファイル列"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__file_name
@@ -377,8 +373,8 @@ msgstr "ファイルサイズが設定された最大値を超えています(%s
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "ファイルのチェック と/または インポート。 バイナリ形式で (base64でない)"
+msgid "File to check and/or import"
+msgstr "要確認および/またはインポートするファイル"
 
 #. module: base_import
 #. odoo-javascript
@@ -396,7 +392,8 @@ msgstr "中断する前に現在のバッチを最終処理しています..."
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_data_content/import_data_content.xml:0
 msgid "For CSV files, you may need to select the correct separator."
-msgstr "CSVファイルの場合、正しいセパレータを選択する必要がある場合があります。"
+msgstr ""
+"CSVファイルの場合、正しいセパレータを選択する必要がある場合があります。"
 
 #. module: base_import
 #. odoo-javascript
@@ -411,8 +408,8 @@ msgid ""
 "Found invalid image data, images should be imported as either URLs or base64-"
 "encoded data."
 msgstr ""
-"無効な画像データが見つかりました。画像はURLまたはbase64でエンコードされた"
-"データとしてインポートする必要があります。"
+"無効な画像データが見つかりました。画像はURLまたはbase64でエンコードされたデー"
+"タとしてインポートする必要があります。"
 
 #. module: base_import
 #. odoo-javascript
@@ -448,9 +445,9 @@ msgid ""
 "                    field corresponding to the column. This makes imports\n"
 "                    simpler especially when the file has many columns."
 msgstr ""
-"ファイルにカラム名が含まれている場合\n"
-"　　　Odoo はフィールドに関連するカラムを自動認識します。\n"
-"　　　この機能により、カラムが多いファイルのインポートでも簡単に\n"
+"ファイルに列名が含まれている場合\n"
+"　　　Odoo はフィールドに関連する列を自動認識します。\n"
+"　　　この機能により、列が多いファイルのインポートでも簡単に\n"
 "　　　作業ができます。"
 
 #. module: base_import
@@ -535,7 +532,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid "Invalid cell value at row %(row)s, column %(col)s: %(cell_value)s"
-msgstr "異常値あり 行 %(row)s, カラム%(col)s: %(cell_value)s"
+msgstr "異常値あり 行 %(row)s, 列%(col)s: %(cell_value)s"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__write_uid
@@ -781,7 +778,7 @@ msgstr "タブ"
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_action/import_action.xml:0
 msgid "Test"
-msgstr "テスト"
+msgstr "インポートテスト"
 
 #. module: base_import
 #. odoo-javascript
@@ -824,15 +821,15 @@ msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was manually selected."
 msgstr ""
-"エンコーディング「%s」を使用してファイルをデコードする際に問題が発生しました"
-"。\n"
+"エンコーディング「%s」を使用してファイルをデコードする際に問題が発生しまし"
+"た。\n"
 "このエンコーディングは手動で選択されました。"
 
 #. module: base_import
 #. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "This column will be concatenated in field"
-msgstr "このカラムはフィールド内で連結されます"
+msgstr "この列はフィールド内で連結されます"
 
 #. module: base_import
 #. odoo-javascript
@@ -864,8 +861,8 @@ msgstr "インポートの経過を追跡"
 msgid ""
 "Unable to load \"{extension}\" file: requires Python module \"{modname}\""
 msgstr ""
-"\"{extension}\" ファイルが読み込めません: 以下のPythonモジュールが必要です \""
-"{modname}\""
+"\"{extension}\" ファイルが読み込めません: 以下のPythonモジュールが必要です "
+"\"{modname}\""
 
 #. module: base_import
 #. odoo-python
@@ -915,10 +912,10 @@ msgid ""
 "in addition to the suggestions provided. Leave empty to let Odoo guess the "
 "format (recommended)"
 msgstr ""
-"年はYYYY、月はMM、日はDDで表します。ドット、スラッシュ、ダッシュなどの"
-"セパレータを含めます。提案されたフォーマット以外に、カスタムフォーマットを使"
-"用することもできます。Odooにフォーマットを推測させる場合は空白にして下さい。"
-"(推奨)"
+"年はYYYY、月はMM、日はDDで表します。ドット、スラッシュ、ダッシュなどのセパ"
+"レータを含めます。提案されたフォーマット以外に、カスタムフォーマットを使用す"
+"ることもできます。Odooにフォーマットを推測させる場合は空白にして下さい。(推"
+"奨)"
 
 #. module: base_import
 #. odoo-javascript
@@ -1015,40 +1012,3 @@ msgstr "秒"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "不明のエラーコード%s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "カラム %s に正しくない値が含まれています (値: %s) "
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "カラム %s に正しくない値が含まれています。エラー行 %d : %s "
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "日付の処理エラー [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "インポートの時間が過ぎました。 再試行してください。 この問題がまた発生する"
-#~ "場合は、ファイルがシステムの構成に対して大きすぎる可能性があるため、分割し"
-#~ "てみてください（ファイルごとにインポートするレコードが少なくなります）"
-
-#~ msgid "Imported file"
-#~ msgstr "インポートファイル"
-
-#~ msgid "Load File"
-#~ msgstr "ファイル読込"
-
-#~ msgid "Upload File"
-#~ msgstr "ファイルをアップロード"
-
-#~ msgid "Upload an Excel or CSV file to import"
-#~ msgstr "Excel、または、CSVファイルをアップロードし、インポートしましょう"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr ""
-#~ "URL経由で画像をインポートすることはできません。理由については、管理者また"
-#~ "はサポートに確認してください。"

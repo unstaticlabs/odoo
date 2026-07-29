@@ -1,4 +1,4 @@
-import { textInputBasePassthroughProps } from "@html_builder/core/building_blocks/builder_text_input_base";
+import { textInputBasePassthroughProps } from "@html_builder/core/building_blocks/builder_input_base";
 import { BuilderUrlPicker } from "@html_builder/core/building_blocks/builder_urlpicker";
 import { basicContainerBuilderComponentProps, useActionInfo } from "@html_builder/core/utils";
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";

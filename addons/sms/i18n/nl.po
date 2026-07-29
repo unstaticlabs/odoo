@@ -6,17 +6,18 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 04:08+0000\n"
+"PO-Revision-Date: 2026-06-24 16:19+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/sms/nl/>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/sms/nl/>"
+"\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -161,8 +162,8 @@ msgstr ""
 "                                    als een interne notitie in de "
 "berichtengeschiedenis.\n"
 "                                </span>\n"
-"                                <span invisible=\"sms_method != 'comment'\">"
-"\n"
+"                                <span invisible=\"sms_method != "
+"'comment'\">\n"
 "                                    De sms wordt als sms verzonden naar de "
 "ontvangers van het\n"
 "                                    sjabloon en ook toegevoegd als een "
@@ -205,6 +206,12 @@ msgid ""
 msgstr ""
 "Voeg een contextuele actie toe aan het gerelateerde model om een SMS wizard "
 "te tonen met deze sjabloon"
+
+#. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr "Waarschuwing"
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
@@ -281,10 +288,7 @@ msgid "Buy credits."
 msgstr "Credits kopen."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Annuleren"
@@ -302,7 +306,7 @@ msgstr "Kies een taal:"
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.ir_actions_server_view_form
 msgid "Choose a template..."
-msgstr "Kies een template."
+msgstr "Kies een sjabloon."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
@@ -319,8 +323,8 @@ msgstr "Kies je afzendernaam"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Bedrijven"
+msgid "Company"
+msgstr "Bedrijf"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -411,12 +415,6 @@ msgid "Delivered"
 msgstr "Geleverd"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Negeren"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -435,12 +433,12 @@ msgstr "Negeren"
 #: model:ir.model.fields,field_description:sms.field_sms_template_reset__display_name
 #: model:ir.model.fields,field_description:sms.field_sms_tracker__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Documentvolgers"
+msgid "Document Follower"
+msgstr "Documentvolger"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -571,9 +569,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -706,6 +704,12 @@ msgid "Marked for deletion"
 msgstr "Gemarkeerd voor verwijdering"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr "Marketing"
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -714,8 +718,8 @@ msgstr "Bericht"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Bericht notificaties"
+msgid "Message Notification"
+msgstr "Berichtmelding"
 
 #. module: sms
 #. odoo-javascript
@@ -727,8 +731,8 @@ msgstr "Ontbrekend nummer"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Modellen"
+msgid "Model"
+msgstr "Model"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -1020,9 +1024,9 @@ msgstr "SMS Account Verificatie Code Wizard"
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1299,6 +1303,12 @@ msgid "Sms Template"
 msgstr "SMS-sjabloon"
 
 #. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr "Sms-type"
+
+#. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
 msgid "Stored Recipient Number"
 msgstr "Opgeslagen nummer van de ontvanger"
@@ -1455,8 +1465,8 @@ msgstr ""
 "\n"
 "- 'Werk een record bij': werk de waarden van een record bij\n"
 "- 'Activiteit aanmaken': maak een activiteit (Chat)\n"
-"- 'E-mail sturen': plaats een bericht, een notitie of stuur een e-mail (Chat)"
-"\n"
+"- 'E-mail sturen': plaats een bericht, een notitie of stuur een e-mail "
+"(Chat)\n"
 "- 'Sms sturen': stuur een sms, log ze op documenten (sms)\n"
 "- 'Volgers toevoegen/verwijderen': voeg volgers toe of verwijder volgers van "
 "een record (Chat)\n"
@@ -1696,263 +1706,3 @@ msgstr "regel:"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid ""
-#~ "%s out of the %s selected SMS Text Messages have successfully been resent."
-#~ msgstr ""
-#~ "%s van de %s geselecteerde SMS-tekstberichten zijn opnieuw verzonden."
-
-#~ msgid ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">No records</span>"
-#~ msgstr ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">Geen records</span>"
-
-#~ msgid "Action Needed"
-#~ msgstr "Actie gevraagd"
-
-#~ msgid "Action To Do"
-#~ msgstr "Uit te voeren actie"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Aantal bijlagen"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Telefoon op blacklist is een mobiel nummer"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "Telefoon op blacklist is een vaste lijn"
-
-#~ msgid "Buy credits"
-#~ msgstr "Credits kopen"
-
-#~ msgid "Can Cancel"
-#~ msgstr "Kan annuleren"
-
-#~ msgid "Can Resend"
-#~ msgstr "Kan opnieuw verzenden"
-
-#~ msgid "Canceled"
-#~ msgstr "Geannuleerd"
-
-#~ msgid ""
-#~ "Choose method for SMS sending:\n"
-#~ "SMS: mass SMS\n"
-#~ "Post as Message: log on document\n"
-#~ "Post as Note: mass SMS with archives"
-#~ msgstr ""
-#~ "Kies methode voor sms-verzending:\n"
-#~ "SMS: massa-sms\n"
-#~ "Post als bericht: log in document\n"
-#~ "Post als Opmerking: massa-sms met archieven"
-
-#~ msgid "Close"
-#~ msgstr "Sluiten"
-
-#~ msgid "Edit Partners"
-#~ msgstr "Relaties bewerken"
-
-#~ msgid "Error Message"
-#~ msgstr "Foutmelding"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "Veld voor het opslaan van een opgeschoond telefoonnummer. Helpt het "
-#~ "zoeken en vergelijken te versnellen."
-
-#~ msgid "Followers"
-#~ msgstr "Volgers"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Volgers (Relaties)"
-
-#~ msgid "Has Insufficient Credit"
-#~ msgstr "Heeft onvoldoende krediet"
-
-#~ msgid "Has Message"
-#~ msgstr "Heeft bericht"
-
-#~ msgid "Has Unregistered Account"
-#~ msgstr "Heeft een niet-geregistreerd account."
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "Indien aangevinkt vragen nieuwe berichten je aandacht."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "Als het opgeschoonde telefoonnummer op de blacklist staat, ontvangt de "
-#~ "contactpersoon geen mass-sms meer van welke lijst dan ook"
-
-#~ msgid "Ignore all"
-#~ msgstr "Negeer alle"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Geeft aan of een op de blacklist geplaatst opgeschoond telefoonnummer een "
-#~ "mobiel nummer is. Helpt te onderscheiden welk nummer op de blacklist "
-#~ "staat wanneer een model zowel een mobiel als een telefoonveld bevat."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Geeft aan of een op de blacklist geplaatst opgeschoond telefoon nummer "
-#~ "een telefoonnummer is. Helpt te onderscheiden welk nummer op de blacklist "
-#~ "staat wanneer een model zowel een mobiel als een telefoonveld bevat."
-
-#~ msgid "Is Follower"
-#~ msgstr "Is een volger"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Bericht afleverfout"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Berichttype: e-mail voor e-mailbericht, notificatie voor systeembericht, "
-#~ "commentaar voor andere berichten zoals gebruiker beantwoord"
-
-#~ msgid "Messages"
-#~ msgstr "Berichten"
-
-#~ msgid "Notification"
-#~ msgstr "Melding"
-
-#~ msgid "Number of Actions"
-#~ msgstr "Aantal acties"
-
-#~ msgid "Number of errors"
-#~ msgstr "Aantal foutmeldingen"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Aantal berichten die actie vereisen"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Aantal berichten met leveringsfout"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Optionele vertaaltaal (ISO-code) om te selecteren bij het verzenden van "
-#~ "een e-mail. Indien niet ingesteld, wordt de Engelse versie gebruikt. Dit "
-#~ "moet meestal een placeholder expressie zijn die de juiste taal geeft, "
-#~ "bijv. {{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Relatie"
-
-#~ msgid "Phone Blacklist Mixin"
-#~ msgstr "Telefoon blacklist Mixin"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Telefoon geblacklist"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telefoon/mobiel"
-
-#~ msgid "Post as Message"
-#~ msgstr "Post als bericht"
-
-#~ msgid "Post as Note"
-#~ msgstr "Posten als notitie"
-
-#~ msgid "Reason"
-#~ msgstr "Reden"
-
-#~ msgid "Recipient"
-#~ msgstr "Ontvanger"
-
-#~ msgid "Recipient Name"
-#~ msgstr "Naam ontvanger"
-
-#~ msgid "Recipients"
-#~ msgstr "Ontvangers"
-
-#~ msgid "Resend Notification"
-#~ msgstr "Notificatie opnieuw verzenden"
-
-#~ msgid "SMS API"
-#~ msgstr "SMS API"
-
-#~ msgid "SMS Resend"
-#~ msgstr "SMS opnieuw verzenden"
-
-#~ msgid "Send & Close"
-#~ msgstr "Verzenden & Sluiten"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Verzend SMS tekstbericht"
-
-#~ msgid "Send as"
-#~ msgstr "Verzenden als"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "Verzenden als (SMS)"
-
-#~ msgid "Sending Failures"
-#~ msgstr "Mislukte verzendingen"
-
-#~ msgid "Sending SMS can only be done on a mail.thread or a transient model"
-#~ msgstr "SMS verzenden kan alleen via een mail.thread of een transiënt model"
-
-#~ msgid "Set up an account"
-#~ msgstr "Maak een account aan"
-
-#~ msgid "Sms Resend"
-#~ msgstr "SMS opnieuw verzenden"
-
-#~ msgid "Try Again"
-#~ msgstr "Probeer het nog eens"
-
-#~ msgid ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-#~ msgstr ""
-#~ "Type serveractie. De volgende waarden zijn beschikbaar:\n"
-#~ "- 'Python-code uitvoeren': een blok python-code dat wordt uitgevoerd\n"
-#~ "- 'Maak een nieuw record': maak een nieuw record met nieuwe waarden\n"
-#~ "- 'Update a Record': update de waarden van een record\n"
-#~ "- 'Voer meerdere acties uit': definieer een actie die verschillende "
-#~ "andere serveracties activeert\n"
-#~ "- 'E-mail versturen': post een bericht, een notitie of stuur een e-mail "
-#~ "(Chat)\n"
-#~ "- 'Volgers toevoegen': volgers toevoegen aan een record (Chat)\n"
-#~ "- 'Volgende activiteit aanmaken': maak een activiteit aan (Chat)\n"
-#~ "- 'Stuur SMS-tekstbericht': stuur sms, log ze op documenten (SMS)"
-
-#~ msgid "Use blacklist"
-#~ msgstr "Blacklist gebruiken"
-
-#~ msgid "Website Messages"
-#~ msgstr "Websiteberichten"
-
-#~ msgid "Website communication history"
-#~ msgstr "Website communicatiegeschiedenis"
-
-#~ msgid "You do not have access to the message and/or related document."
-#~ msgstr ""
-#~ "Je hebt geen toegang tot dit bericht en/of het gerelateerde document."
-
-#~ msgid "characters, fits in"
-#~ msgstr "karakters, past in"

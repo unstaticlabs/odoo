@@ -33,7 +33,7 @@ class ResPartner(models.Model):
         if not self.env.user.has_group('point_of_sale.group_pos_user'):
             return data_list
         for partner in self.filtered('pos_order_count'):
-            stat_info = {'iconClass': 'fa-shopping-bag', 'value': partner.pos_order_count, 'label': _('Shopping cart'), 'tagClass': 'o_tag_color_7'}
+            stat_info = {'iconClass': 'fa-shopping-bag', 'value': partner.pos_order_count, 'label': _('Shopping cart')}
             data_list[partner.id].append(stat_info)
         return data_list
 
@@ -52,6 +52,14 @@ class ResPartner(models.Model):
             'res.partner': self._load_pos_data_read(new_partners, config),
             'account.fiscal.position': self.env['account.fiscal.position']._load_pos_data_read(fiscal_positions, config),
         }
+
+    @api.constrains('barcode')
+    def _check_barcode_prefix(self):
+        for partner in self:
+            if partner.barcode and not partner.barcode.startswith("042"):
+                self.env.user._bus_send("simple_notification", {
+                    'message': _("Barcode must start with 042")
+            })
 
     @api.model
     def _load_pos_data_domain(self, data, config):
@@ -108,10 +116,8 @@ class ResPartner(models.Model):
         This function returns an action that displays the pos orders from partner.
         '''
         action = self.env['ir.actions.act_window']._for_xml_id('point_of_sale.action_pos_pos_form')
-        if self.is_company:
-            action['domain'] = [('partner_id.commercial_partner_id', '=', self.id)]
-        else:
-            action['domain'] = [('partner_id', '=', self.id)]
+        # If the partner has any children (including grandchildren)
+        action['domain'] = [('partner_id', 'child_of', self.id)]
         return action
 
     def open_commercial_entity(self):
@@ -124,3 +130,19 @@ class ResPartner(models.Model):
     def _unlink_if_pos_no_orders(self):
         if self.sudo().pos_order_ids:
             raise ValidationError(_('You cannot delete a customer that has point of sales orders. You can archive it instead.'))
+
+    def action_open_partner_view(self):
+        return {
+            'name': _('Edit Partner') if self else _('Create Partner'),
+            'target': 'new',
+            'view_mode': 'form',
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.partner',
+            'views': [(self._get_pos_partner_view_id(), 'form')],
+        }
+
+    def _get_pos_partner_view_id(self):
+        # Simplified form by default; localizations needing the complete backend
+        # form (extra l10n/identification fields) override this to return
+        # typically base.view_partner_form.
+        return self.env.ref('point_of_sale.view_partner_form_pos_ui').id

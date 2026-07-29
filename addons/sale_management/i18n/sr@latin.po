@@ -1,27 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * sale_management
+# 	* sale_management
 #
 # Translators:
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Martin Trigaux, 2022
-# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022, 2026.
+# Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 02:39+0000\n"
-"Last-Translator: Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>\n"
-"Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
-"odoo-19/sale_management/sr_Latn/>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, "
+"2022\n"
+"Language-Team: Serbian (https://app.transifex.com/odoo/teams/41243/sr/)\n"
 "Language: sr@latin\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -70,11 +70,17 @@ msgid "Archived"
 msgstr "Arhivirano"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Preduzeća"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -151,12 +157,6 @@ msgid "Display Type"
 msgstr "Vrsta prikaza"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Nema pristup, preskočite ove podatke za korisnički email pregled"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -167,6 +167,18 @@ msgstr ""
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr "Dodeljuje redni broj kada prikazuje listu linija ponude."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -260,7 +272,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -330,6 +342,12 @@ msgstr "Šabloni ponude"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -417,6 +435,8 @@ msgstr ""
 "prodaju lakšim i zaštićenim od grešaka."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -514,8 +534,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -525,8 +545,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -543,142 +563,9 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "days"
-msgstr "dani"
+msgstr "dana"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr "npr. Standardni konsalting paket"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Vaš šablon ne može da sadrži proizvod od više kompanija."
-
-#~ msgid ""
-#~ "Your template contains products from company %(product_company)s whereas "
-#~ "your template belongs to company %(template_company)s. \n"
-#~ " Please change the company of your template or remove the products from "
-#~ "other companies."
-#~ msgstr ""
-#~ "Vaš šablon sadrži proizvode od kompanije %(product_company)s dok vaš "
-#~ "šablon pripada kompaniji %(template_company)s. \n"
-#~ " Molimo promenite kompaniju svog šablona ili uklonite proizvode drugih "
-#~ "kompanija."
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Opcije</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Dodaj u korpu"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Dodaj na liniju porudžbine"
-
-#~ msgid "Category"
-#~ msgstr "Kategorija"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Do konverzije između mernih jedinica može doć́i samo ako pripadaju istoj "
-#~ "kategoriji. Konverzija će se izvršiti na osnovu odnosa."
-
-#~ msgid "Disc.%"
-#~ msgstr "Popust %"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Popust (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr "Dodeljuje redni broj kada prikazuje listu opcionih proizvoda."
-
-#~ msgid "Group By"
-#~ msgstr "Grupiši po"
-
-#~ msgid "Line"
-#~ msgstr "Linija"
-
-#~ msgid "Office Chair"
-#~ msgstr "Kancelarijska stolica"
-
-#~ msgid "Optional Products"
-#~ msgstr "Opcioni proizvodi"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Linije opcionih proizvoda"
-
-#~ msgid "Options"
-#~ msgstr "Opcije"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Prikaži na Ponudi"
-
-#~ msgid "Quantity:"
-#~ msgstr "Količina:"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Opcija šablona ponude"
-
-#~ msgid "Remove"
-#~ msgstr "Ukloni"
-
-#~ msgid "Sale Options"
-#~ msgstr "Opcije prodaje"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Referenca porudžbenice"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Linije obrasca prodajne ponude"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Ovo polje će biti označeno ako je opcija linije proizvoda već prisutna na "
-#~ "ponudi."
-
-#~ msgid "Unit Price"
-#~ msgstr "Jedinična cena"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Jedinična cena:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Jedinica Mere"
-
-#~ msgid "UoM"
-#~ msgstr "JM"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Ne možete dodavati opcije potvrđenim porudžbinama."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Vaša ponuda sadrži proizvod od kompanije %(product_company)s dok vaša "
-#~ "ponuda pripada kompaniji %(quote_company)s. \n"
-#~ " Molimo promenite kompaniju svoje ponude ili uklonite proizvode od drugih "
-#~ "kompanija (%(bad_products)s)."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "Sto za 4 osobe"
-
-#~ msgid "<span>Payment</span>"
-#~ msgstr "<span>Plaćanje</span>"
-
-#~ msgid "<span>Signature</span>"
-#~ msgstr "<span>Potpis</span>"
-
-#~ msgid "Online confirmation"
-#~ msgstr "Online potvrda"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Dizajner ponude"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Ponuda ističe nakon"

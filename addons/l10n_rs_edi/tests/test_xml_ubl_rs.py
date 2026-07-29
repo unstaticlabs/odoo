@@ -24,9 +24,8 @@ class TestUBLRS(TestUBLCommon):
         cls.company_data['company'].partner_id.l10n_rs_edi_registration_number = '87654321'
 
         cls.env['res.partner.bank'].create({
-            'acc_type': 'iban',
             'partner_id': cls.company_data['company'].partner_id.id,
-            'acc_number': 'RS1234123456123456123456',
+            'account_number': 'RS1234123456123456123456',
             'allow_out_payment': True,
         })
 
@@ -38,11 +37,11 @@ class TestUBLRS(TestUBLCommon):
             'zip': '101801',
             'phone': '+381 98 765 43 21',
             'vat': 'RS111032440',
-            'bank_ids': [Command.create({'acc_number': 'RS1234567891234567892345'})],
+            'bank_ids': [Command.create({'account_number': 'RS1234567891234567892345'})],
             'l10n_rs_edi_registration_number': '12345678',
         })
 
-    def create_invoice(self, move_type, **invoice_kwargs):
+    def _create_invoice_rs(self, move_type, **invoice_kwargs):
         return self._generate_move(
             self.env.company.partner_id,
             self.partner_a,
@@ -71,7 +70,7 @@ class TestUBLRS(TestUBLCommon):
         return xml_file
 
     def test_export_invoice(self):
-        invoice = self.create_invoice("out_invoice")
+        invoice = self._create_invoice_rs("out_invoice")
         invoice_xml, _ = self.env['account.edi.xml.ubl.rs']._export_invoice(invoice)
         expected_xml = self._read_xml_test_file('export_invoice')
         self.assertXmlTreeEqual(
@@ -80,7 +79,7 @@ class TestUBLRS(TestUBLCommon):
         )
 
     def test_export_credit_note(self):
-        refund = self.create_invoice("out_refund")
+        refund = self._create_invoice_rs("out_refund")
         refund_xml, _ = self.env['account.edi.xml.ubl.rs']._export_invoice(refund)
         expected_xml = self._read_xml_test_file('export_credit_note')
         self.assertXmlTreeEqual(

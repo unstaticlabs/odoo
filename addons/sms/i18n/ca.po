@@ -18,24 +18,24 @@
 # Guspy12, 2022
 # Ivan Espinola, 2022
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:19+0000\n"
+"PO-Revision-Date: 2026-03-07 14:41+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/sms/ca/>"
-"\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-2/sms/"
+"ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.1\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -192,6 +192,12 @@ msgstr ""
 "amb aquesta plantilla"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
 msgid "Alternate way to identify a SMS record, used for delivery reports"
 msgstr ""
@@ -261,10 +267,7 @@ msgid "Buy credits."
 msgstr "Compra crèdits."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "Cancel·la"
@@ -299,8 +302,8 @@ msgstr ""
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "Empreses"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -391,12 +394,6 @@ msgid "Delivered"
 msgstr "Lliurat"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "Descartar"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -419,8 +416,8 @@ msgstr "Nom mostrat"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "Seguidors del Document"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -550,9 +547,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -681,6 +678,12 @@ msgid "Marked for deletion"
 msgstr ""
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -689,8 +692,8 @@ msgstr "Missatge"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "Notificacions de missatges"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -702,8 +705,8 @@ msgstr "Número que falta"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "Models"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -987,9 +990,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1259,6 +1262,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "Plantilla Sms"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1621,267 +1630,3 @@ msgstr "registre:"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid ""
-#~ "%s out of the %s selected SMS Text Messages have successfully been resent."
-#~ msgstr ""
-#~ "%s fora de %s els missatges de text SMS seleccionats s'han reenviat "
-#~ "correctament."
-
-#~ msgid ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">No records</span>"
-#~ msgstr ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">Sense registres</span>"
-
-#~ msgid "Action Needed"
-#~ msgstr "Acció necessària"
-
-#~ msgid "Action To Do"
-#~ msgstr "Acció a fer"
-
-#~ msgid "Attachment Count"
-#~ msgstr "Nombre d'adjunts"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Telèfon a la llista negra és mòbil"
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "El telèfon a la llista negra és el telèfon"
-
-#~ msgid "Buy credits"
-#~ msgstr "Comprar crèdits"
-
-#~ msgid "Can Cancel"
-#~ msgstr "Pot cancel·lar"
-
-#~ msgid "Can Resend"
-#~ msgstr "Pot tornar a enviar"
-
-#~ msgid "Canceled"
-#~ msgstr "Cancel·lat"
-
-#~ msgid ""
-#~ "Choose method for SMS sending:\n"
-#~ "SMS: mass SMS\n"
-#~ "Post as Message: log on document\n"
-#~ "Post as Note: mass SMS with archives"
-#~ msgstr ""
-#~ "Trieu el mètode per enviar SMS:\n"
-#~ "SMS: SMS massiu\n"
-#~ "Publica com a missatge: registra al document\n"
-#~ "Publica com a nota: SMS massiu amb arxius"
-
-#~ msgid "Close"
-#~ msgstr "Tancar"
-
-#~ msgid "Edit Partners"
-#~ msgstr "Modificar els contactes"
-
-#~ msgid "Error Message"
-#~ msgstr "Missatge d'error"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "Camp utilitzat per emmagatzemar el número de telèfon sanejat. Ajuda a "
-#~ "accelerar les cerques i comparacions."
-
-#~ msgid "Followers"
-#~ msgstr "Seguidors"
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "Seguidors (Partners)"
-
-#~ msgid "Has Insufficient Credit"
-#~ msgstr "Té un crèdit insuficient"
-
-#~ msgid "Has Message"
-#~ msgstr "Té un missatge"
-
-#~ msgid "Has Unregistered Account"
-#~ msgstr "Té un compte no registrat"
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr ""
-#~ "Si està marcat, hi ha nous missatges que requereixen la vostra atenció."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "Si el número de telèfon sanejat està en la llista negra, el contacte no "
-#~ "rebrà més sms de correu massiu, de cap llista"
-
-#~ msgid "Ignore all"
-#~ msgstr "Ignora-ho tot"
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Indica si un número de telèfon a la llista negra és un número de mòbil. "
-#~ "Ajuda a distingir quin número està a la llista negra             quan hi "
-#~ "ha un camp mòbil i un telèfon en un model."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Indica si un número de telèfon a la llista negra és un número de telèfon. "
-#~ "Ajuda a distingir quin número està a la llista negra            quan hi "
-#~ "ha un camp mòbil i un telèfon en un model."
-
-#~ msgid "Is Follower"
-#~ msgstr "És seguidor"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "Error d'entrega del missatge"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Tipus de missatge: e-mail per a missatges de correu, notificació per a "
-#~ "missatges de sistema, comentaris per altres tipus de missatges com "
-#~ "resposta d'usuaris."
-
-#~ msgid "Messages"
-#~ msgstr "Missatges"
-
-#~ msgid "Notification"
-#~ msgstr "Notificació "
-
-#~ msgid "Number of Actions"
-#~ msgstr "Nombre d'accions"
-
-#~ msgid "Number of errors"
-#~ msgstr "Nombre d'errors"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Nombre de missatges que requereixen una acció"
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "Nombre de missatges amb error d'entrega"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Idioma opcional de traducció (ISO codi) per a seleccionar en enviar un "
-#~ "correu electrònic. Si no està establerta, s' usarà la versió anglesa. "
-#~ "Això normalment hauria de ser una expressió de substitució que proveeix "
-#~ "el llenguatge apropiat, p. ex. {{ object.partner_id.lang }}."
-
-#~ msgid "Partner"
-#~ msgstr "Empresa"
-
-#~ msgid "Phone Blacklist Mixin"
-#~ msgstr "Llista negra de telèfons Mixin"
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "Telèfon a la llista negra"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Telèfon/Mòbil"
-
-#~ msgid "Post as Message"
-#~ msgstr "Publica com a missatge"
-
-#~ msgid "Post as Note"
-#~ msgstr "Publica com a nota"
-
-#~ msgid "Reason"
-#~ msgstr "Raó"
-
-#~ msgid "Recipient"
-#~ msgstr "Destinatari"
-
-#~ msgid "Recipient Name"
-#~ msgstr "Nom del destinatari"
-
-#~ msgid "Recipients"
-#~ msgstr "Destinataris"
-
-#~ msgid "Resend Notification"
-#~ msgstr "Torna a enviar la notificació"
-
-#~ msgid "SMS API"
-#~ msgstr "SMS API"
-
-#~ msgid "SMS Resend"
-#~ msgstr "Reenvia SMS"
-
-#~ msgid "Send & Close"
-#~ msgstr "Envia i tanca"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Envia un missatge de text SMS"
-
-#~ msgid "Send as"
-#~ msgstr "Envia com a"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "Envia com (SMS)"
-
-#~ msgid "Sending Failures"
-#~ msgstr "Errors d'enviament"
-
-#~ msgid "Sending SMS can only be done on a mail.thread or a transient model"
-#~ msgstr ""
-#~ "L'enviament de SMS només es pot fer en un model mail.thread o transitori"
-
-#~ msgid "Set up an account"
-#~ msgstr "Configura un compte"
-
-#~ msgid "Sms Resend"
-#~ msgstr "Reenvia Sms"
-
-#~ msgid "Try Again"
-#~ msgstr "Torna-ho a provar"
-
-#~ msgid ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-#~ msgstr ""
-#~ "Tipus d'acció del servidor. Els valors següents estan disponibles:\n"
-#~ "- 'Executeu codi Python': un bloc de codi Python que s'executarà\n"
-#~ "- \"Crea un registre nou\": crea un registre nou amb valors nous\n"
-#~ "- 'Actualitzar un registre': actualitza els valors d'un registre\n"
-#~ "- 'Executa diverses accions': defineix una acció que desencadena diverses "
-#~ "altres accions del servidor\n"
-#~ "- 'Envia un correu electrònic': publica un missatge, una nota o envia un "
-#~ "correu electrònic (Comentar)\n"
-#~ "- 'Afegeix seguidors: afegeix seguidors a un registre (Comentar)\n"
-#~ "- 'Crea una activitat següent': crea una activitat (Comentar)\n"
-#~ "- 'Envia un missatge de text SMS': envieu SMS, registreu-los als "
-#~ "documents (SMS)"
-
-#~ msgid "Use blacklist"
-#~ msgstr "Utilitza la llista negra"
-
-#~ msgid "Website Messages"
-#~ msgstr "Missatges del lloc web"
-
-#~ msgid "Website communication history"
-#~ msgstr "Historial de comunicacions del lloc web"
-
-#~ msgid "You do not have access to the message and/or related document."
-#~ msgstr "No teniu accés al missatge ni al document relacionat."
-
-#~ msgid "characters, fits in"
-#~ msgstr "caràcters, encaixa amb"

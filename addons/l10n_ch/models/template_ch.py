@@ -37,7 +37,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'paperformat_id': 'l10n_din5008.paperformat_euro_din',
                 'expense_account_id': 'ch_coa_4200',
                 'income_account_id': 'ch_coa_3200',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'ch_coa_1210',
             },
         }

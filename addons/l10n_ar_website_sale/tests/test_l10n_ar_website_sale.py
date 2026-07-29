@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from odoo.fields import Command
+from odoo.fields import Command, Datetime
 from odoo.tests import tagged
 
 from odoo.addons.l10n_ar.tests.common import TestArCommon
@@ -34,16 +32,15 @@ class TestL10nArWebsiteSale(TestArCommon):
             'name': 'Color',
             'display_type': 'color',
         })
-        cls.color_white = cls.env['product.attribute.value'].create({
+        cls.color_white, cls.color_black = cls.env['product.attribute.value'].create([{
             'name': 'White',
             'html_color': '#FFFFFF',
             'attribute_id': cls.color_attribute.id,
-        })
-        cls.color_black = cls.env['product.attribute.value'].create({
+        }, {
             'name': 'Black',
             'html_color': '#000000',
             'attribute_id': cls.color_attribute.id,
-        })
+        }])
 
     def assertDictContains(self, actual_dict, expected_subset):
         """Assert that actual_dict contains all key-value pairs from expected_subset."""
@@ -57,8 +54,8 @@ class TestL10nArWebsiteSale(TestArCommon):
                 product_or_template=product_id or self.product_1,
                 quantity=quantity,
                 uom=self.uom_unit,
-                date=datetime(2025, 5, 21),
-                website=self.ar_website
+                date=Datetime.today(),
+                website=self.ar_website,
             )
 
     def test_default_website_sale_legal_values(self):
@@ -76,14 +73,14 @@ class TestL10nArWebsiteSale(TestArCommon):
             })
 
         with self.subTest(scenario="Mixed taxes - 10.5% excluded + 27% included"):
-            template = self.env['account.chart.template']
-            tax_27_included = template.ref('ri_tax_vat_27_ventas')
-            tax_10_5_excluded = template.ref('ri_tax_vat_10_ventas')
+            AccountChartTemplate = self.env['account.chart.template']
+            tax_27_included = AccountChartTemplate.ref('ri_tax_vat_27_ventas')
+            tax_10_5_excluded = AccountChartTemplate.ref('ri_tax_vat_10_ventas')
 
             tax_27_included.price_include = True
             tax_10_5_excluded.price_include = False
 
-            self.product_1.taxes_id = (tax_27_included + tax_10_5_excluded).ids
+            self.product_1.taxes_id = tax_27_included + tax_10_5_excluded
             combo = self._get_combination_info()
             self.assertDictContains(combo, {
                 'list_price': 1082.68,                 # Computed price including all taxes

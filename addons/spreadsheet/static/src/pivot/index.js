@@ -20,6 +20,7 @@ function identity(cmd) {
 coreTypes.add("UPDATE_ODOO_PIVOT_DOMAIN");
 
 invalidateEvaluationCommands.add("UPDATE_ODOO_PIVOT_DOMAIN");
+invalidateEvaluationCommands.add("REFRESH_PIVOT");
 
 cellMenuRegistry.add("pivot_see_records", {
     name: _t("See records"),
@@ -33,6 +34,7 @@ cellMenuRegistry.add("pivot_see_records", {
         return SEE_RECORDS_PIVOT_VISIBLE(position, env.model.getters);
     },
     icon: "o-spreadsheet-Icon.SEE_RECORDS",
+    isEnabledOnLockedSheet: true,
 });
 
 inverseCommandRegistry.add("UPDATE_ODOO_PIVOT_DOMAIN", identity);

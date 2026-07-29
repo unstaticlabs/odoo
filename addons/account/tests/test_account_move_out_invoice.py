@@ -1781,7 +1781,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         self.invoice.action_post()
 
         bank1 = self.env['res.partner.bank'].create({
-            'acc_number': 'BE43798822936101',
+            'account_number': 'BE43798822936101',
             'partner_id': self.partner_a.id,
             "allow_out_payment": True,
         })
@@ -2625,7 +2625,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         # Test to check that when switching from out_invoice to out_refund the bank partner is changed accordingly
         bank = self.env["res.partner.bank"].create({
             "bank_name": "FAKE",
-            "acc_number": "1234567890",
+            "account_number": "1234567890",
             "partner_id": self.partner_a.id,
             "allow_out_payment": True,
         })
@@ -4384,8 +4384,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             )
 
         currency = self.setup_other_currency('EUR', rates=[
-            ('2016-01-01', 3.0),
-            ('2017-01-01', 2.0),
+            ('2015-12-31', 3.0),
+            ('2016-12-31', 2.0),
         ])
         self.assertRecordValues(invoice('2015-01-01'), [{
             'amount_total': 1000.0,
@@ -4609,13 +4609,13 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         company_2 = self.company_data_2['company']
         bank = self.env["res.partner.bank"].create({
             "bank_name": "FAKE",
-            "acc_number": "1234567890",
+            "account_number": "1234567890",
             "partner_id": company_1.partner_id.id,
             "allow_out_payment": True,
         })
         bank_2 = self.env["res.partner.bank"].create({
             "bank_name": "FAKE 2",
-            "acc_number": "1234567890",
+            "account_number": "1234567890",
             "partner_id": company_2.partner_id.id,
             "allow_out_payment": True,
         })
@@ -4712,8 +4712,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_lines_recomputation_after_currency_rate_change(self):
         currency = self.setup_other_currency('EUR', rates=[
-            ('2025-01-01', 0.5),
-            ('2025-02-01', 0.4),
+            ('2024-12-31', 0.5),
+            ('2025-01-31', 0.4),
         ])
 
         with Form(self.env['account.move'].with_context(default_move_type='out_invoice')) as move_form:
@@ -4751,7 +4751,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_narration_preserved_when_use_invoice_terms_disabled(self):
         """ Ensure narration is preserved when partner changes and invoice terms are disabled. """
-        self.env['ir.config_parameter'].sudo().set_param('account.use_invoice_terms', False)
+        self.env['ir.config_parameter'].sudo().set_bool('account.use_invoice_terms', False)
         invoice = self.invoice.copy({
             'narration': 'Manually written terms by user',
         })
@@ -4766,7 +4766,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_narration_translation_on_partner_language_change(self):
         """Ensure narration translates when partner.lang changes (HTML terms link)."""
-        self.env['ir.config_parameter'].sudo().set_param('account.use_invoice_terms', True)
+        self.env['ir.config_parameter'].sudo().set_bool('account.use_invoice_terms', True)
         self.env['res.lang']._activate_lang('fr_FR')
 
         self.env.company.terms_type = 'html'
@@ -4927,10 +4927,11 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             })],
         })
         invoice.action_post()
-        invoice = invoice.with_context(active_model='account.move', active_id=invoice.id)
         discounted_amount = invoice.invoice_payment_term_id._get_amount_due_after_discount(
-            total_amount=invoice.amount_total,
-            untaxed_amount=invoice.amount_tax,
+            invoice.amount_total,
+            invoice.amount_tax,
+            currency=invoice.currency_id,
+            cash_rounding=invoice.invoice_cash_rounding_id,
         )
         self.assertEqual(discounted_amount, 52.95)
 
@@ -5039,6 +5040,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 {'name': '2026-01-01', 'rate': 2.0, 'currency_id': self.other_currency.id, 'company_id': self.env.company.id},
             ]
         )
+        self.assertEqual(self.env['account.move'].get_currency_rate(self.env.company.id, self.other_currency.id, '2026-01-01'), 2.0)
         with (freeze_time('2025-01-02'), patch.object(self.env.cr, 'now', lambda: fields.Datetime.to_datetime("2025-01-02 10:00:00"))):
             move = self.env['account.move'].create({
                 'move_type': 'out_invoice',

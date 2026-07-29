@@ -7,10 +7,10 @@ import {
     onRpc,
     serverState,
 } from "@web/../tests/web_test_helpers";
-import { user } from "@web/core/user";
 import { click as mailClick, contains as mailContains } from "@mail/../tests/mail_test_helpers";
 import { defineHrModels } from "@hr/../tests/hr_test_helpers";
 import { cookie } from "@web/core/browser/cookie";
+import { user } from "@web/core/user";
 
 describe.current.tags("desktop");
 defineHrModels();

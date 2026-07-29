@@ -9,6 +9,10 @@ from odoo.http import request, route, Controller
 class GoogleTranslateController(Controller):
     @route("/mail/message/translate", type="jsonrpc", auth="user")
     def translate(self, message_id):
+        # sudo: ir.config_parameter - read keys are hard-coded and values are only used for server requests
+        ir_config = request.env["ir.config_parameter"].sudo()
+        if not ir_config.get_bool("mail.use_google_translate_api"):
+            return
         message = request.env["mail.message"].search([("id", "=", message_id)])
         if not message:
             raise request.not_found()
@@ -52,7 +56,7 @@ class GoogleTranslateController(Controller):
 
     def _post(self, endpoint="", data=None):
         # sudo: ir.config_parameter - reading google translate api key, using it to make the request
-        api_key = request.env["ir.config_parameter"].sudo().get_param("mail.google_translate_api_key")
+        api_key = request.env["ir.config_parameter"].sudo().get_str("mail.google_translate_api_key")
         url = f"https://translation.googleapis.com/language/translate/v2/{endpoint}?key={api_key}"
         response = requests.post(url, data=data, timeout=3)
         response.raise_for_status()

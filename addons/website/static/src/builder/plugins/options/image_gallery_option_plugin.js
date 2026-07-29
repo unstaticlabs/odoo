@@ -11,6 +11,7 @@ import { withSequence } from "@html_editor/utils/resource";
 import { SNIPPET_SPECIFIC, SNIPPET_SPECIFIC_END } from "@html_builder/utils/option_sequence";
 import { BaseOptionComponent } from "@html_builder/core/utils";
 import { forwardToThumbnail } from "@html_builder/utils/utils_css";
+import { ClassAction } from "@html_builder/core/core_builder_action_plugin";
 import { uuid } from "@web/core/utils/strings";
 
 /**
@@ -51,6 +52,7 @@ class ImageGalleryOption extends Plugin {
             SetImageGalleryLayoutAction,
             SetImageGalleryColumnsAction,
             SetCarouselSpeedAction,
+            IndicatorsStyleClassAction,
         },
         system_classes: ["o_empty_gallery_alert"],
         get_gallery_items_handlers: this.getGalleryItems.bind(this),
@@ -62,12 +64,6 @@ class ImageGalleryOption extends Plugin {
         on_image_saved_handlers: ({ imageEl }) => this.updateCarouselThumbnail(imageEl),
         on_snippet_dropped_handlers: ({ snippetEl }) => {
             const carousels = snippetEl.querySelectorAll(".s_image_gallery .carousel");
-            for (const carousel of carousels) {
-                // TODO: Remove in master. This should be replaced with a simple
-                // `style="margin: 0 12px;"` in the snippet template, similar to
-                // the one used for building carousel items.
-                carousel.style.margin = "0 12px";
-            }
             this.addCarouselListener(carousels);
             this.addUniqueIds(carousels);
         },
@@ -584,6 +580,25 @@ export class SetCarouselSpeedAction extends BuilderAction {
     }
     getValue({ editingElement }) {
         return editingElement.dataset.bsInterval / 1000;
+    }
+}
+
+export class IndicatorsStyleClassAction extends ClassAction {
+    static id = "indicatorsStyle";
+    apply({ editingElement, params: { mainParam: className } }) {
+        super.apply(...arguments);
+        if (editingElement.matches(".s_image_gallery_indicators_outline")) {
+            // Remove the outline helper when the chosen indicator style no
+            // longer offers that option.
+            if (
+                ![
+                    "s_image_gallery_indicators_squared",
+                    "s_image_gallery_indicators_rounded",
+                ].includes(className)
+            ) {
+                editingElement.classList.remove("s_image_gallery_indicators_outline");
+            }
+        }
     }
 }
 

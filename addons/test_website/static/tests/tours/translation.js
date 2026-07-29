@@ -121,9 +121,10 @@ function singleLanguage() {
             content: "Change text",
             trigger: 'div.ace_line .ace_xml:contains("oe_structure")',
             run() {
-                window.ace.edit(document.querySelector("#resource-editor div"))
+                window.ace
+                    .edit(document.querySelector("#resource-editor div"))
                     .getSession()
-                    .insert({row: 8, column: 1}, '<p>More text</p>\n');
+                    .insert({ row: 8, column: 1 }, "<p>More text</p>\n");
             },
         },
         ...saveHtmlEditor(),
@@ -144,7 +145,7 @@ function singleLanguage() {
         ...clickOnEditAndWaitEditMode(),
         {
             content: "Edit template text",
-            trigger: ":iframe main p.o_editable[data-oe-field='arch'][contenteditable='true']",
+            trigger: ":iframe main p.o_savable[data-oe-field='arch'][contenteditable='true']",
             run: "editor Modified Text",
         },
         ...clickOnSave("bottom", 50000, false),
@@ -153,9 +154,10 @@ function singleLanguage() {
             content: "Change text",
             trigger: 'div.ace_line .ace_xml:contains("test_website.test_view")',
             run() {
-                window.ace.edit(document.querySelector("#resource-editor div"))
-                   .getSession()
-                   .insert({row: 2, column: 36}, 'Further ');
+                window.ace
+                    .edit(document.querySelector("#resource-editor div"))
+                    .getSession()
+                    .insert({ row: 2, column: 36 }, "Further ");
             },
         },
         ...saveHtmlEditor(),
@@ -191,11 +193,7 @@ registerWebsitePreviewTour(
     {
         url: "/",
     },
-    () => [
-        ensureFrUser,
-        ensureFrSite,
-        ...singleLanguage(),
-    ]
+    () => [ensureFrUser, ensureFrSite, ...singleLanguage()]
 );
 
 registerWebsitePreviewTour(
@@ -203,11 +201,7 @@ registerWebsitePreviewTour(
     {
         url: "/",
     },
-    () => [
-        ensureEnUser,
-        ensureFrSite,
-        ...singleLanguage(),
-    ]
+    () => [ensureEnUser, ensureFrSite, ...singleLanguage()]
 );
 
 registerWebsitePreviewTour(
@@ -215,32 +209,35 @@ registerWebsitePreviewTour(
     {
         url: "/",
     },
-    () => [
-        ensureFrUser,
-        ensureEnSite,
-        ...singleLanguage(),
-    ]
+    () => [ensureFrUser, ensureEnSite, ...singleLanguage()]
 );
 
 function switchLanguage(lang, timeout = 50000) {
     return [
         {
             content: "Ensure was in other language",
-            trigger: `:iframe .o_header_language_selector:contains(${lang !== "fr" ? "Français" : "English"})`,
+            trigger: `:iframe .o_header_language_selector:contains(${
+                lang !== "fr" ? "Français" : "English"
+            })`,
             timeout,
-        }, {
+        },
+        {
             content: "Open language dropdown",
             trigger: ":iframe .o_header_language_selector .dropdown-toggle",
             run: "click",
-        }, {
+        },
+        {
             content: "Select language",
             trigger: `:iframe .o_header_language_selector .js_change_lang[data-url_code=${lang}]`,
             run: "click",
-        }, {
+        },
+        {
             content: "Wait until target page is loaded",
-            trigger: `:iframe .o_header_language_selector:contains(${lang === "fr" ? "Français" : "English"})`,
+            trigger: `:iframe .o_header_language_selector:contains(${
+                lang === "fr" ? "Français" : "English"
+            })`,
             timeout,
-        }
+        },
     ];
 }
 
@@ -261,22 +258,26 @@ function openTranslate(timeout = 50000) {
             content: "Open edit dropdown",
             trigger: ".o_edit_website_container button",
             run: "click",
-        }, {
+        },
+        {
             content: "Enter translate mode",
             trigger: ".o_translate_website_dropdown_item",
             run: "click",
-        }, {
+        },
+        {
             content: "Effect's 200ms setTimeout passed",
             trigger: ".o_builder_open .o_main_navbar.d-none:not(:visible)",
-        }, {
+        },
+        {
             content: "Translatable text became highlighted",
             trigger: ":iframe [data-oe-translation-state=to_translate]",
             timeout,
-        }, {
+        },
+        {
             content: "Confirm popup",
             trigger: ".o_website_dialog .btn-secondary",
             run: "click",
-        }
+        },
     ];
 }
 
@@ -286,11 +287,13 @@ function saveTranslation(timeout = 50000) {
             content: "Save translation",
             trigger: ".o-website-builder_sidebar button[data-action=save]",
             run: "click",
-        }, {
+        },
+        {
             content: "Back to preview mode",
             trigger: ".o_edit_website_container button",
             timeout,
-        }, {
+        },
+        {
             trigger: "body:not(.o_builder_open)",
             noPrepend: true,
             timeout,
@@ -325,9 +328,10 @@ function multiLanguage(mainLanguage, secondLanguage) {
             content: "Change text",
             trigger: 'div.ace_line .ace_xml:contains("oe_structure")',
             run() {
-                window.ace.edit(document.querySelector("#resource-editor div"))
+                window.ace
+                    .edit(document.querySelector("#resource-editor div"))
                     .getSession()
-                    .insert({row: 6, column: 50}, "more text ");
+                    .insert({ row: 6, column: 50 }, "more text ");
             },
         },
         {
@@ -388,7 +392,7 @@ function multiLanguage(mainLanguage, secondLanguage) {
         ...clickOnEditAndWaitEditMode(),
         {
             content: "Edit template text",
-            trigger: ":iframe main p.o_editable[contenteditable='true']",
+            trigger: ":iframe main p.o_savable[contenteditable='true']",
             run: "editor Modified View",
         },
         ...clickOnSave("bottom", 50000, false),
@@ -410,9 +414,10 @@ function multiLanguage(mainLanguage, secondLanguage) {
             content: "Change text",
             trigger: 'div.ace_line .ace_xml:contains("test_website.test_view")',
             run() {
-                window.ace.edit(document.querySelector("#resource-editor div"))
-                   .getSession()
-                   .insert({row: 2, column: 36}, 'Further ');
+                window.ace
+                    .edit(document.querySelector("#resource-editor div"))
+                    .getSession()
+                    .insert({ row: 2, column: 36 }, "Further ");
             },
         },
         ...saveHtmlEditor(),
@@ -423,7 +428,7 @@ function multiLanguage(mainLanguage, secondLanguage) {
         ...clickOnEditAndWaitEditMode(),
         {
             content: "Edit template text",
-            trigger: ":iframe main p.o_editable[data-oe-field='arch'][contenteditable='true']",
+            trigger: ":iframe main p.o_savable[data-oe-field='arch'][contenteditable='true']",
             run: "editor Even more modified Text",
         },
         ...clickOnSave("bottom", 50000, false),
@@ -454,46 +459,34 @@ registerWebsitePreviewTour(
     "translation_multi_language_fr_user_fr_en_site",
     {
         url: "/fr",
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     },
-    () => [
-        ensureFrUser,
-        ensureFrSite,
-        ...multiLanguage("fr", "en"),
-    ]
+    () => [ensureFrUser, ensureFrSite, ...multiLanguage("fr", "en")]
 );
 
 registerWebsitePreviewTour(
     "translation_multi_language_fr_user_en_fr_site",
     {
         url: "/en",
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     },
-    () => [
-        ensureFrUser,
-        ensureEnSite,
-        ...multiLanguage("en", "fr"),
-    ]
+    () => [ensureFrUser, ensureEnSite, ...multiLanguage("en", "fr")]
 );
 
 registerWebsitePreviewTour(
     "translation_multi_language_en_user_fr_en_site",
     {
         url: "/fr",
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     },
-    () => [
-        ensureEnUser,
-        ensureFrSite,
-        ...multiLanguage("fr", "en"),
-    ]
+    () => [ensureEnUser, ensureFrSite, ...multiLanguage("fr", "en")]
 );
 
 registerWebsitePreviewTour(
     "translation_multi_language_en_user_en_fr_site",
     {
         url: "/en",
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     },
-    () => [
-        ensureEnUser,
-        ensureEnSite,
-        ...multiLanguage("en", "fr"),
-    ]
+    () => [ensureEnUser, ensureEnSite, ...multiLanguage("en", "fr")]
 );

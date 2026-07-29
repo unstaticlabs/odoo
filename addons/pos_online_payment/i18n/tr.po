@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * pos_online_payment
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 21:41+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-03-13 18:36+0000\n"
+"PO-Revision-Date: 2025-11-20 13:21+0000\n"
+"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "pos_online_payment/tr/>\n"
 "Language: tr\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay
@@ -243,6 +243,7 @@ msgid "POS Order"
 msgstr "POS Siparişi"
 
 #. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay
 msgid "Payment"
 msgstr "Ödeme"
@@ -269,11 +270,6 @@ msgid "Payment provider requirement"
 msgstr ""
 
 #. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_account_payment
-msgid "Payments"
-msgstr "Ödemeler"
-
-#. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
 msgid "Please ensure you have a customer with an email address on this order."
@@ -286,18 +282,18 @@ msgstr "Satış Noktası Yapılandırması"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Satış Noktası Siparişi"
-
-#. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Satış Noktası Ödeme Yöntemleri"
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Satış Noktası Ödemeleri"
+msgid "Point of Sale Payment"
+msgstr ""
+
+#. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_session
@@ -374,8 +370,8 @@ msgstr "Bu ödemeyle ilişkilendirilmiş Satış Noktası siparişi"
 #. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
-msgid "The QR Code for paying could not be generated."
-msgstr "Ödeme için QR kodu oluşturulamadı"
+msgid "The QR code payment could not be generated."
+msgstr ""
 
 #. module: pos_online_payment
 #. odoo-python

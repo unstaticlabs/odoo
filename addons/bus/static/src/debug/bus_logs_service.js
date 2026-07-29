@@ -1,35 +1,39 @@
 import { reactive } from "@odoo/owl";
 
+import { browser } from "@web/core/browser/browser";
 import { registry } from "@web/core/registry";
 
 export const busLogsService = {
-    dependencies: ["bus_service", "legacy_multi_tab", "worker_service"],
+    dependencies: ["bus_service", "worker_service"],
     /**
      * @param {import("@web/env").OdooEnv}
-     * @param {Partial<import("services").Services>} services
+     * @param {Partial<import("services").ServiceFactories>} services
      */
-    start(env, { bus_service, legacy_multi_tab, worker_service }) {
+    start(env, { bus_service, worker_service }) {
         const state = reactive({
-            enabled: legacy_multi_tab.getSharedValue("bus_log_menu.enabled", false),
-            toggleLogging() {
-                state.enabled = !state.enabled;
-                if (bus_service.isActive) {
-                    bus_service.setLoggingEnabled(state.enabled);
-                }
-                legacy_multi_tab.setSharedValue("bus_log_menu.enabled", state.enabled);
+            enabled: JSON.parse(localStorage.getItem("bus_log_menu.enabled")),
+            enableLogging() {
+                state.enabled = true;
+                bus_service.setLoggingEnabled(true);
+                localStorage.setItem("bus_log_menu.enabled", true);
+            },
+            disableLogging() {
+                state.enabled = false;
+                bus_service.setLoggingEnabled(false);
+                localStorage.setItem("bus_log_menu.enabled", false);
             },
         });
-        legacy_multi_tab.bus.addEventListener("shared_value_updated", ({ detail }) => {
-            if (detail.key === "bus_log_menu.enabled") {
-                state.enabled = JSON.parse(detail.newValue);
+        browser.addEventListener("storage", ({ key, newValue }) => {
+            if (key === "bus_log_menu.enabled") {
+                state.enabled = JSON.parse(newValue);
             }
         });
         worker_service.connectionInitializedDeferred.then(() => {
             bus_service.setLoggingEnabled(state.enabled);
         });
         odoo.busLogging = {
-            stop: () => state.enabled && state.toggleLogging(),
-            start: () => !state.enabled && state.toggleLogging(),
+            stop: () => state.disableLogging(),
+            start: () => state.enableLogging(),
             download: () => bus_service.downloadLogs(),
         };
         if (state.enabled) {

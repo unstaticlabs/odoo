@@ -1,5 +1,4 @@
-from math import floor, log10
-from odoo import api, models
+from odoo import api, models, _
 
 
 class CrmIapLeadHelpers(models.Model):
@@ -12,7 +11,7 @@ class CrmIapLeadHelpers(models.Model):
         Notify about the number of credit.
         In order to avoid to spam people each hour, an ir.config_parameter is set
         """
-        already_notified = self.env['ir.config_parameter'].sudo().get_param(notification_parameter, False)
+        already_notified = self.env['ir.config_parameter'].sudo().get_bool(notification_parameter)
         if already_notified:
             return
         mail_template = self.env.ref('crm_iap_mine.lead_generation_no_credits')
@@ -27,7 +26,7 @@ class CrmIapLeadHelpers(models.Model):
             'email_to': ','.join(emails)
         }
         mail_template.send_mail(iap_account.id, force_send=True, email_values=email_values)
-        self.env['ir.config_parameter'].sudo().set_param(notification_parameter, True)
+        self.env['ir.config_parameter'].sudo().set_bool(notification_parameter, True)
 
     @api.model
     def lead_vals_from_response(self, lead_type, team_id, tag_ids, user_id, company_data, people_data):
@@ -43,7 +42,7 @@ class CrmIapLeadHelpers(models.Model):
             'user_id': user_id,
             'reveal_id': company_data.get('duns') or company_data.get('clearbit_id', ''),
             # Lead vals from data
-            'name': company_data.get('name', '') or company_data.get('domain', ''),
+            'name': _("%s's opportunity", (company_data.get('name', '') or company_data.get('domain', ''))),
             'partner_name': company_data.get('name', ''),
             'email_from': next(iter(company_data.get('email', [])), ''),
             'phone': company_data.get('phone') or next(iter(company_data.get('phone_numbers', [])), ''),

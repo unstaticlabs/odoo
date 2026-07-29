@@ -55,7 +55,7 @@ test("Search in chatter", async () => {
     triggerHotkey("Enter");
     await contains(".o-mail-SearchMessageResult .o-mail-Message");
     await click(".o-mail-MessageCard-jump");
-    await contains(".o-mail-Message.o-highlighted .o-mail-Message-content", { text: "not empty" });
+    await contains(".o-mail-Message.o-highlighted .o-mail-Message-content:text('not empty')");
 });
 
 test("Close button should close the search panel", async () => {
@@ -75,6 +75,34 @@ test("Close button should close the search panel", async () => {
     await contains(".o-mail-SearchMessageResult .o-mail-Message");
     await click(".o-mail-SearchMessageInput [title='Close']");
     await contains(".o-mail-SearchMessageInput", { count: 0 });
+});
+
+test("opening search in chatter hides files and pinned messages panels", async () => {
+    patchUiSize({ size: SIZES.XXL });
+    const pyEnv = await startServer();
+    const partnerId = pyEnv["res.partner"].create({ name: "John Doe" });
+    pyEnv["mail.message"].create({
+        body: "Pinned message",
+        model: "res.partner",
+        pinned_at: "2025-01-01 00:00:00",
+        res_id: partnerId,
+    });
+    pyEnv["ir.attachment"].create({
+        mimetype: "text/plain",
+        name: "A.txt",
+        res_id: partnerId,
+        res_model: "res.partner",
+    });
+    await start();
+    await openFormView("res.partner", partnerId);
+    await click("button[aria-label='Attach files']:text('1')");
+    await click("button[title='Pinned Messages']");
+    await contains(".o-mail-AttachmentBox");
+    await contains(".o-mail-pinnedMessages");
+    await click("[title='Search Messages']");
+    await contains(".o_searchview");
+    await contains(".o-mail-AttachmentBox", { count: 0 });
+    await contains(".o-mail-pinnedMessages", { count: 0 });
 });
 
 test("Search in chatter should be hightligted", async () => {

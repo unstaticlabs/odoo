@@ -1,22 +1,21 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* website_customer
+# * website_customer
 #
+# Translators:
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 16:10+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Albanian <https://translate.odoo.com/projects/odoo-19/"
-"website_customer/sq/>\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2016-03-31 13:21+0000\n"
+"Last-Translator: Martin Trigaux\n"
+"Language-Team: Albanian (http://www.transifex.com/odoo/odoo-9/language/sq/)\n"
 "Language: sq\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -52,7 +51,7 @@ msgstr ""
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__active
 msgid "Active"
-msgstr ""
+msgstr "Aktiv"
 
 #. module: website_customer
 #. odoo-python
@@ -69,6 +68,16 @@ msgstr ""
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
 msgstr ""
 
 #. module: website_customer
@@ -126,12 +135,12 @@ msgstr ""
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__create_uid
 msgid "Created by"
-msgstr ""
+msgstr "Krijuar nga"
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__create_date
 msgid "Created on"
-msgstr ""
+msgstr "Krijuar me"
 
 #. module: website_customer
 #. odoo-python
@@ -155,7 +164,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__display_name
 #: model:ir.model.fields,field_description:website_customer.field_website__display_name
 msgid "Display Name"
-msgstr ""
+msgstr "Emri i paraqitur"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -208,7 +217,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__id
 #: model:ir.model.fields,field_description:website_customer.field_website__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: website_customer
 #. odoo-javascript
@@ -224,12 +233,12 @@ msgstr ""
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__write_uid
 msgid "Last Updated by"
-msgstr ""
+msgstr "Modifikuar per here te fundit nga"
 
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__write_date
 msgid "Last Updated on"
-msgstr ""
+msgstr "Modifikuar per here te fundit me"
 
 #. module: website_customer
 #: model_terms:ir.actions.act_window,help:website_customer.action_partner_tag_form
@@ -263,6 +272,11 @@ msgstr ""
 #. module: website_customer
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__partner_ids
 msgid "Partners"
+msgstr "Partner"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
 msgstr ""
 
 #. module: website_customer
@@ -270,7 +284,7 @@ msgstr ""
 #: code:addons/website_customer/models/website.py:0
 #: model_terms:ir.ui.view,arch_db:website_customer.references_block
 msgid "References"
-msgstr ""
+msgstr "Referenca"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import common
+from odoo.tests import tagged, common
 from odoo.exceptions import ValidationError
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFiscalPosition(common.TransactionCase):
     """Tests for fiscal positions in auto apply (account.fiscal.position).
     If a partner has a vat number, the fiscal positions with "vat_required=True"
@@ -343,6 +344,29 @@ class TestFiscalPosition(common.TransactionCase):
             'sequence': sequence
         } for sequence in range(1, 3)])
         self.assertEqual(self.fp._get_fiscal_position(self.jc), fiscal_positions[0])
+
+    def test_tax_map_if_not_in_fiscal_position(self):
+        """
+        - a Tax, having a FP, should be mapped to nothing on another FP that is not linked to the tax
+        - a Tax, without a FP, should be mapped to itself regardless of the FP
+        """
+        self.env.company.country_id = self.us
+        self.env['account.tax.group'].create({'name': 'default_tax_group'})
+        fiscal_position_a = self.fp.create({'name': 'fiscal_position_a'})
+        fiscal_position_b = self.fp.create({'name': 'fiscal_position_b'})
+        self.env['account.tax'].create({
+            'name': "dummy_tax",
+            'fiscal_position_ids': fiscal_position_b.ids,  # if not tax set on a fp, map_tax() always returns empty tax recordset
+        })
+        tax_w_fp = self.env['account.tax'].create({
+            'name': "tax_w_fp",
+            'fiscal_position_ids': fiscal_position_a.ids,
+        })
+        tax_wo_fp = self.env['account.tax'].create({
+            'name': "tax_wo_fp",
+        })
+        self.assertEqual(fiscal_position_b.map_tax(tax_w_fp), self.env['account.tax'])
+        self.assertEqual(fiscal_position_b.map_tax(tax_wo_fp), tax_wo_fp)
 
     def test_get_fiscal_position_child_company_user(self):
         """A user restricted to a child company must not get an AccessError when

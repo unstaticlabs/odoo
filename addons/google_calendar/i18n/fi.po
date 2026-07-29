@@ -11,16 +11,16 @@
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
 # Eino Mäkitalo <eino.makitalo@netitbe.fi>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 11:04+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-22 14:49+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "google_calendar/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -107,14 +107,9 @@ msgid "Calendar ID"
 msgstr "Calendar ID"
 
 #. module: google_calendar
-#: model_terms:ir.ui.view,arch_db:google_calendar.google_calendar_reset_account_view_form
-msgid "Cancel"
-msgstr "Peruuta"
-
-#. module: google_calendar
 #: model_terms:ir.ui.view,arch_db:google_calendar.res_config_settings_view_form
 msgid "Client ID"
-msgstr "Asiakastunnus"
+msgstr "Asiakkaan tunniste/ID"
 
 #. module: google_calendar
 #: model_terms:ir.ui.view,arch_db:google_calendar.res_config_settings_view_form
@@ -177,12 +172,6 @@ msgstr "Poistetaan molemmista"
 #: model:ir.model.fields.selection,name:google_calendar.selection__google_calendar_account_reset__delete_policy__delete_google
 msgid "Delete from the current Google Calendar account"
 msgstr "Poista nykyisestä Google-kalenteritilistä"
-
-#. module: google_calendar
-#. odoo-javascript
-#: code:addons/google_calendar/static/src/views/google_calendar/google_calendar_controller.js:0
-msgid "Discard"
-msgstr "Hylkää"
 
 #. module: google_calendar
 #: model:ir.model.fields,field_description:google_calendar.field_calendar_alarm_manager__display_name
@@ -470,39 +459,3 @@ msgid ""
 "you don't seem to have permission to modify this event on Google Calendar"
 msgstr ""
 "sinulla ei näytä olevan lupaa muokata tätä tapahtumaa Google-kalenterissa"
-
-#~ msgid ""
-#~ "An error occurred while generating the token. Your authorization code may "
-#~ "be invalid or has already expired [%s]. You should check your Client ID "
-#~ "and secret on the Google APIs plateform or try to stop and restart your "
-#~ "calendar synchronisation."
-#~ msgstr ""
-#~ "Pääsytunnuksen luomisessa tapahtui virhe. Valtuutuskoodisi voi olla "
-#~ "virheellinen tai se on jo vanhentunut [%s]. Tarkista asiakastunnuksesi ja "
-#~ "salaisuutesi Google APIs -alustalta tai yritä keskeyttää ja käynnistää "
-#~ "kalenterin synkronointi uudelleen."
-
-#~ msgid "Google Calendar Account"
-#~ msgstr "Google-kalenteritili"
-
-#~ msgid "Google Calendar Account Data"
-#~ msgstr "Google-kalenteritilin tiedot"
-
-#~ msgid "Success"
-#~ msgstr "Onnistuminen"
-
-#~ msgid "The account for the Google Calendar service is not configured."
-#~ msgstr "Google-kalenteripalvelun tiliä ei ole määritetty."
-
-#~ msgid "The synchronization with Google calendar was successfully stopped."
-#~ msgstr "Synkronointi Google-kalenterin kanssa lopetettiin onnistuneesti."
-
-#~ msgid "The user has already a google account"
-#~ msgstr "Käyttäjällä on jo Google-tili"
-
-#~ msgid ""
-#~ "You are about to stop the synchronization of your calendar with Google. "
-#~ "Are you sure you want to continue?"
-#~ msgstr ""
-#~ "Olet lopettamassa kalenterisi synkronoinnin Googlen kanssa. Haluatko "
-#~ "varmasti jatkaa?"

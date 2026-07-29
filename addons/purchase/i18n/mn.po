@@ -22,24 +22,25 @@
 # Martin Trigaux, 2022
 # hish, 2022
 # Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Bayarkhuu Bataa <bbayarkhuu@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Bayarkhuu Bataa <bbayarkhuu@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:42+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-01-15 20:35+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-s19-1/"
 "purchase/mn/>\n"
 "Language: mn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: purchase
 #: model:ir.actions.report,print_report_name:purchase.action_report_purchase_order
@@ -142,12 +143,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -187,12 +186,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -221,12 +218,10 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
@@ -327,6 +322,15 @@ msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Худалдаж авсан</span>"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "<span> day(s) before</span>"
 msgstr ""
@@ -367,6 +371,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Нэхэмжлэл</strong>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -550,6 +559,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Ажилбарын тайлбар"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -771,12 +785,6 @@ msgid "Auto-Complete"
 msgstr "Автомат-Бөглөгдөх"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Автоматаар бөглөх"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
@@ -945,10 +953,6 @@ msgstr "Харилцааны түүх"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Компаниуд"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1002,17 +1006,11 @@ msgid "Confirm your purchase."
 msgstr "Худалдан авалтаа батлана уу."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Баталгаажсан огноо"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1108,7 +1106,7 @@ msgstr "Захиалагчийн хандах URL"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
 msgid "Date"
-msgstr "Огноо"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1181,15 +1179,6 @@ msgid ""
 msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Нийлүүлэгчийн хүргэлт хийхээр амалсан огноо. Энэ огноо нь бараа хүлээн "
-"авалтын төлөвлөлтөнд ашиглагдана."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 msgid ""
@@ -1219,6 +1208,12 @@ msgstr "Хөнгөлөлт (%)"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Discount:"
 msgstr "Хөнгөлөлт:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1308,6 +1303,12 @@ msgid "Expected Arrival"
 msgstr ""
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Extra line with %s "
@@ -1320,12 +1321,12 @@ msgid "Fiscal Position"
 msgstr "Татварын тайлангийн тохируулга"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr ""
 
@@ -1365,6 +1366,11 @@ msgstr ""
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__invoice_status__invoiced
 msgid "Fully Billed"
 msgstr "Бүрэн нэхэмжилсэн"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1668,6 +1674,11 @@ msgid "Line Uom"
 msgstr ""
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Lock"
 msgstr "Түгжих"
@@ -1933,6 +1944,11 @@ msgid "Not Acknowledged"
 msgstr ""
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 msgid "Not using Odoo?"
 msgstr ""
@@ -2031,25 +2047,27 @@ msgid "Order"
 msgstr "Захиалга"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
 msgstr "Захиалгын огноо"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
+msgid "Order DeadLine: Last 365 Days"
 msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
 msgstr "Захиалгын эцсийн огноо"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2082,17 +2100,22 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Бусад мэдээлэл"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
 msgstr ""
 
 #. module: purchase
@@ -2246,7 +2269,6 @@ msgstr "Худалдан авалтын процесст давхар хянал
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Худалдан авалт"
@@ -2255,6 +2277,11 @@ msgstr "Худалдан авалт"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Худалдан авалтын гэрээ"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2421,6 +2448,12 @@ msgid "Purchase Report"
 msgstr "Худалдан авалтын тайлан"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2470,15 +2503,19 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Худалдан авсан"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Сүүлийн 365 хоногт худалдан авсан"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2491,7 +2528,7 @@ msgstr "Худалдан авалт"
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
 msgid "Purchases & Bills Union"
-msgstr "Худалдан авалт & нэхэмжлэл нэгтгэл"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -2600,12 +2637,24 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
 msgstr ""
 
 #. module: purchase
@@ -2653,10 +2702,10 @@ msgstr "Холбогдол"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
 msgid "Reference Document"
-msgstr "Холбогдох анхан шатны баримт"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Суурь хэмжих нэгж"
 
@@ -2720,8 +2769,8 @@ msgstr ""
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
 msgstr "Үнийн санал"
@@ -2760,7 +2809,7 @@ msgstr "Худалдан авалт хайх"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
 msgid "Search Reference Document"
-msgstr "Баримтын холбогдлоор хайх"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2831,6 +2880,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr ""
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Send the request for quotation to your vendor."
@@ -2881,6 +2935,11 @@ msgstr "Хуваалцах"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__show_comparison
 msgid "Show Comparison"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
 msgstr ""
 
 #. module: purchase
@@ -3082,6 +3141,14 @@ msgid "The Price of one unit of the product's Unit of Measure"
 msgstr ""
 
 #. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 msgid ""
 "The request for quotation is the first step of the purchases flow. Once\n"
@@ -3269,7 +3336,7 @@ msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
 msgstr "Ширхэг"
 
@@ -3382,7 +3449,7 @@ msgstr "Нийлүүлэгч"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
 msgid "Vendor Bill"
-msgstr "Нийлүүлэгчийн нэхэмжлэл"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3584,6 +3651,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "day(s) before"
 msgstr ""
 
@@ -3607,6 +3679,11 @@ msgstr ""
 #: code:addons/purchase/models/account_invoice.py:0
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
 msgstr ""
 
 #. module: purchase
@@ -3639,6 +3716,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr ""
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3650,310 +3732,3 @@ msgstr ""
 #: model:mail.template,subject:purchase.email_template_edi_purchase_reminder
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr ""
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> Зурвас илгээх"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> Татаж авах"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/> <b>Төлөгдсөн</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/> <b>Төлбөр хүлээж буй</b>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Хэвлэх"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Request for Quotation </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Purchase Order "
-#~ "</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Үнийн санал</span>\n"
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','in',"
-#~ "('draft','sent'))]}\">Худалдан авалтын захиалга</span>"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Захиалгын огноо.</strong>"
-
-#~ msgid "<strong>Purchase Representative:</strong>"
-#~ msgstr "<strong>Худалдан авалтын хариуцагч</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Хүргэх хаяг:</strong>"
-
-#~ msgid "<strong>Your Order Reference:</strong>"
-#~ msgstr "<strong>Таны захиалгын дугаар:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Үлдэгдэл тооцох барааны хувьд та тэдгээр барааны нөөцийг хянах боломжтой "
-#~ "юм. Үүний тулд Inventory app суулгасан байх шаардлагатай.\n"
-#~ "Үлдэгдэл тооцохгүй бараа бол нөөцийг хянаж бүртгэх шаардлагагүй бараа "
-#~ "юм.\n"
-#~ "Үйлчилгээ бол таны ханган үзүүлдэг материаллаг бус ажил үйлчилгээ болно."
-
-#~ msgid "Accept"
-#~ msgstr "Зөвшөөрөх"
-
-#~ msgid "All RFQs"
-#~ msgstr "Бүх захиалгууд"
-
-#~ msgid "All Waiting RFQs"
-#~ msgstr "Хүлээгдэж буй захиалгууд"
-
-#~ msgid "Auto-complete from a past bill / purchase order."
-#~ msgstr "Өмнөх нэхэмжлэл/захиалгаас автоматаар бөглөх"
-
-#~ msgid "Bill Control"
-#~ msgstr "Нэхэмжлэл хяналт"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Хориглох мэдэгдэл"
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "'%s' төлөвт байгаа худалдан авах захиалгын мөрийг устгах боломжгүй."
-
-#~ msgid "Category"
-#~ msgstr "Ангилал"
-
-#~ msgid "Confirm"
-#~ msgstr "Батлах"
-
-#~ msgid "Confirm Receipt Date"
-#~ msgstr "Хүлээн авах огноог баталгаажуулах"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Хэмжих нэгжийг хооронд нь хөрвүүлэх явдал нь зөвхөн нэг ангилалд хамаарч "
-#~ "байвал л хийгдэнэ. Хөрвүүлэлт нь харьцаан дээр суурилж явагдана."
-
-#~ msgid "Create Bill"
-#~ msgstr "Нэхэмжлэл үүсгэх"
-
-#~ msgid "Days"
-#~ msgstr "Өдөр"
-
-#~ msgid "Done"
-#~ msgstr "Дууссан"
-
-#~ msgid "Download"
-#~ msgstr "Татаж авах"
-
-#~ msgid "Draft RFQs"
-#~ msgstr "Үнийн санал"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Имэйл үүсгэх харилцах цонх"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Өргөтгөсөн шүүлт"
-
-#~ msgid "Group By"
-#~ msgstr "Бүлэглэлт"
-
-#~ msgid "History"
-#~ msgstr "Түүх"
-
-#~ msgid "Late RFQs"
-#~ msgstr "Хоцорсон захиалгууд"
-
-#~ msgid "Lead Time to Purchase"
-#~ msgstr "Худалдан авалтын урьтал хугацаа"
-
-#~ msgid "Manage your purchase agreements (call for tenders, blanket orders)"
-#~ msgstr ""
-#~ "Худалдан авалтын гэрээг удирдан зохион байгуулах (тендерийн сонгон "
-#~ "шалгаруулалт, бланкет худалдан авалтын гэрээ)"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Нийлүүлэгчийн урьтал хугацааны хоцролтоос сэргийлэх. Систем хэрэгцээт "
-#~ "бараанд худалдан авах захиалгыг үүсгэж хүлээн авах огноог тооцохдоо "
-#~ "нийлүүлэгчийн урьтал хугацаан дээр энд тохируулсан нөөц хоногийн хугацааг "
-#~ "нэмж тооцоолно."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Нийлүүлэгчийн урьтал хугацааны хоцролтоос сэргийлэх. Систем хэрэгцээт "
-#~ "бараанд худалдан авах захиалгыг үүсгэж хүлээн авах огноог тооцохдоо "
-#~ "нийлүүлэгчийн урьтал хугацаан дээр энд тохируулсан нөөц хоногийн хугацааг "
-#~ "нэмж тооцоолно."
-
-#~ msgid "My RFQs"
-#~ msgstr "Миний захиалгууд"
-
-#~ msgid "No Message"
-#~ msgstr "Мессеж байхгүй"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Үйлдэл шаардсан зурвасын тоо"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Захиалсан тоо хэмжээ"
-
-#~ msgid "Packaging"
-#~ msgstr "Савлагаа"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Захиалга хэвлэх"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Барааны Шинж чанарууд"
-
-#~ msgid "Product Categories"
-#~ msgstr "Барааны ангилал"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Барааны Баглаа"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Нийлүүлэгчийн урьтал хугацаа"
-
-#~ msgid "Purchase Representative"
-#~ msgstr "Худалдан авалт хариуцагч"
-
-#~ msgid "Quantities billed by vendors"
-#~ msgstr "Нийлүүлэгчээс нэхэмжлэгдсэн тоо хэмжээ"
-
-#~ msgid "RFQ Done"
-#~ msgstr "Захиалга дууссан"
-
-#~ msgid "RFQs"
-#~ msgstr "Захиалгууд"
-
-#~ msgid "RFQs Sent Last 7 Days"
-#~ msgstr "Сүүлийн 7 хоногийн илгээгдсэн захиалгууд"
-
-#~ msgid "Ratio between the purchase order currency and the company currency"
-#~ msgstr "Худалдан авалтын валютыг компанийн үндсэн валюттай харьцуулсан ханш"
-
-#~ msgid "Re-Send by Email"
-#~ msgstr "Имэйлээр дахин илгээх"
-
-#~ msgid "Received quantities"
-#~ msgstr "Хүлээн авсан тоо"
-
-#~ msgid "Reception Confirmed"
-#~ msgstr "Орлого батлагдсан"
-
-#~ msgid "Security Lead Time for Purchase"
-#~ msgstr "Худалдан авалтын аюулгүй урьтал хугацаа"
-
-#~ msgid "Select a purchase order or an old bill"
-#~ msgstr "Худалдан авалт эсвэл өмнөх нэхэмжлэлийг сонгох"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "\"Анхааруулга\" сонголтыг сонгосноор хэрэглэгчид зурвас толилуулах болно. "
-#~ "\"Хориглох Мессеж\"-г сонгосноор зурвас хэлээд зогсохгүй тухайн үйлдлийг "
-#~ "хорих болно. Зурвасыг дараагийн талбарт бичих ёстой."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "PO-г имэйлээр илгээх"
-
-#~ msgid "Send by Email"
-#~ msgstr "Имэйлээр илгээх"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Өнөөдрийг хүртэлх хугацаанд дараагийн ажилбарын огноо нь тохируулагдсан "
-#~ "бүх тэмдэглэлүүд"
-
-#~ msgid "Source Document"
-#~ msgstr "Эх үүсвэр баримт"
-
-#~ msgid ""
-#~ "There is no invoiceable line. If a product has a control policy based on "
-#~ "received quantity, please make sure that a quantity has been received."
-#~ msgstr ""
-#~ "Нэхэмжлэх боломжтой мөр алга. Хэрэв бараа нь хүлээж авсан тоо хэмжээнд "
-#~ "суурилсан хяналтын бодлоготой бол хүлээж авсан тоо байгаа эсэхийг шалгана "
-#~ "уу."
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "Нийлүүлэгчээс худалдан авалт хийх үед үндсэн валютын оронд энэ валют "
-#~ "ашиглагдах болно"
-
-#~ msgid ""
-#~ "This default value is applied to any new product created. This can be "
-#~ "changed in the product detail form."
-#~ msgstr ""
-#~ "Энэ утга нь шинээр бараа бүртгэх бүрт ашиглагдана. Энэ утгыг барааны "
-#~ "дэлгэрэнгүй форм дээр өөрчлөх боломжтой."
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Нийлүүлэгчийн нэхэмжлэл нь эндээс холбогдолтойгоор үүслээ: %s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr ""
-#~ "Нийлүүлэгчийн нэхэмжлэл нь эндээс холбогдолтойгоор засварлагдлаа: %s"
-
-#~ msgid "To Send"
-#~ msgstr "Илгээх"
-
-#~ msgid ""
-#~ "Unable to cancel this purchase order. You must first cancel the related "
-#~ "vendor bills."
-#~ msgstr ""
-#~ "Энэ худалдан авалтыг цуцлах боломжгүй. Та эхлээд холбогдох "
-#~ "нэхэмжлэлүүдийг цуцлах шаардлагатай."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Хэмжих нэгжийн ангилал"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "UoM"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "Waiting"
-#~ msgstr "Хүлээгдэж буй"
-
-#~ msgid "Waiting RFQs"
-#~ msgstr "Хүлээгдэж буй захиалгууд"
-
-#~ msgid "Warning"
-#~ msgstr "Анхааруулга"
-
-#~ msgid "Warning for %s"
-#~ msgstr "%s-д зориулсан анхааруулга"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Худалдан авалтын захиалгын анхааруулга"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Энэ барааг худалдан авахтай холбоотой анхааруулга"
-
-#~ msgid "close"
-#~ msgstr "хаах"

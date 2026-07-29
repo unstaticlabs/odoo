@@ -9,6 +9,7 @@ import { exprToBoolean } from "@web/core/utils/strings";
 import { FIELD_WIDTHS } from "@web/views/list/column_width_hook";
 import { formatDate, formatDateTime } from "../formatters";
 import { standardFieldProps } from "../standard_field_props";
+import { DateTimeOperation } from "@web/model/relational_model/operation";
 
 const { DateTime } = luxon;
 
@@ -105,61 +106,7 @@ export class DateTimeField extends Component {
     //-------------------------------------------------------------------------
 
     setup() {
-        const getPickerProps = () => {
-            const value = this.getRecordValue();
-            /** @type {DateTimePickerProps} */
-            const pickerProps = {
-                value,
-                type: this.field.type,
-                range: this.isRange(value),
-                showRangeToggler:
-                    this.relatedField && !this.props.required && !this.props.alwaysRange,
-                onToggleRange,
-            };
-            if (this.props.maxDate) {
-                pickerProps.maxDate = this.parseLimitDate(this.props.maxDate);
-            }
-            if (this.props.minDate) {
-                pickerProps.minDate = this.parseLimitDate(this.props.minDate);
-            }
-            if (!isNaN(this.props.rounding)) {
-                pickerProps.rounding = this.props.rounding;
-            } else if (this.props.showSeconds) {
-                pickerProps.rounding = 0;
-            }
-            if (this.props.maxPrecision) {
-                pickerProps.maxPrecision = this.props.maxPrecision;
-            }
-            if (this.props.minPrecision) {
-                pickerProps.minPrecision = this.props.minPrecision;
-            }
-            return pickerProps;
-        };
-
-        const onToggleRange = () => {
-            this.state.range = !this.state.range;
-
-            if (this.state.range) {
-                let values = this.values;
-                const optionalFieldIndex = values[0] ? 1 : 0;
-
-                if (!values[0] && !values[1]) {
-                    values = [DateTime.local(), DateTime.local()];
-                }
-                values[optionalFieldIndex] = optionalFieldIndex
-                    ? values[0].plus({ hours: 1 })
-                    : values[1].minus({ hours: 1 });
-
-                this.state.focusedDateIndex = 0;
-                this.state.value = values;
-            } else {
-                const mainFieldIndex = this.props.name === this.startDateField ? 0 : 1;
-
-                this.state.focusedDateIndex = mainFieldIndex;
-                this.state.value[mainFieldIndex ? 0 : 1] = false;
-            }
-        };
-
+        const getPickerProps = () => this.getPickerProps();
         const dateTimePicker = useDateTimePicker({
             target: "root",
             showSeconds: this.props.showSeconds,
@@ -168,6 +115,21 @@ export class DateTimeField extends Component {
             },
             onChange: () => {
                 this.state.range = this.isRange(this.state.value);
+            },
+            onWillParseValues: (values) => {
+                const parsedValues = values.map((value) => DateTimeOperation.parse(value));
+                const toUpdate = {};
+                if (parsedValues[0]) {
+                    toUpdate[this.startDateField] = parsedValues[0];
+                }
+                if (parsedValues[1]) {
+                    toUpdate[this.endDateField] = parsedValues[1];
+                }
+                if (Object.keys(toUpdate).length) {
+                    this.props.record.update(toUpdate);
+                    return true;
+                }
+                return false;
             },
             onClose: () => {
                 this.picker.activeInput = "";
@@ -221,6 +183,63 @@ export class DateTimeField extends Component {
     //-------------------------------------------------------------------------
     // Methods
     //-------------------------------------------------------------------------
+
+    getPickerProps() {
+        const value = this.getRecordValue();
+        /** @type {DateTimePickerProps} */
+        const pickerProps = {
+            value,
+            type: this.field.type,
+            range: this.isRange(value),
+            showRangeToggler:
+                this.relatedField &&
+                !this.isRequired(this.relatedField) &&
+                !this.props.alwaysRange,
+            onToggleRange: this.onToggleRange.bind(this),
+        };
+        if (this.props.maxDate) {
+            pickerProps.maxDate = this.parseLimitDate(this.props.maxDate);
+        }
+        if (this.props.minDate) {
+            pickerProps.minDate = this.parseLimitDate(this.props.minDate);
+        }
+        if (!isNaN(this.props.rounding)) {
+            pickerProps.rounding = this.props.rounding;
+        } else if (this.props.showSeconds) {
+            pickerProps.rounding = 0;
+        }
+        if (this.props.maxPrecision) {
+            pickerProps.maxPrecision = this.props.maxPrecision;
+        }
+        if (this.props.minPrecision) {
+            pickerProps.minPrecision = this.props.minPrecision;
+        }
+        return pickerProps;
+    }
+
+    onToggleRange() {
+        this.state.range = !this.state.range;
+
+        if (this.state.range) {
+            let values = this.values;
+            const optionalFieldIndex = values[0] ? 1 : 0;
+
+            if (!values[0] && !values[1]) {
+                values = [DateTime.local(), DateTime.local()];
+            }
+            values[optionalFieldIndex] = optionalFieldIndex
+                ? values[0].plus({ hours: 1 })
+                : values[1].minus({ hours: 1 });
+
+            this.state.focusedDateIndex = 0;
+            this.state.value = values;
+        } else {
+            const mainFieldIndex = this.props.name === this.startDateField ? 0 : 1;
+
+            this.state.focusedDateIndex = mainFieldIndex;
+            this.state.value[mainFieldIndex ? 0 : 1] = false;
+        }
+    }
 
     /**
      * @param {number} valueIndex
@@ -286,8 +305,19 @@ export class DateTimeField extends Component {
         }
         return (
             this.props.alwaysRange ||
-            this.props.required ||
+            this.isRequired(this.relatedField) ||
             ensureArray(value).filter(Boolean).length === 2
+        );
+    }
+
+    /**
+     * @param {string} fieldName
+     * @returns {boolean}
+     */
+    isRequired(fieldName) {
+        return evaluateBooleanExpr(
+            this.props.record.activeFields[fieldName].required,
+            this.props.record.evalContextWithVirtualIds
         );
     }
 
@@ -434,8 +464,7 @@ export const dateField = {
             deps.push({
                 name: options[START_DATE_FIELD_OPTION],
                 type,
-                readonly: false,
-                ...attrs,
+                readonly: attrs.readonly || false,
             });
             if (options[END_DATE_FIELD_OPTION]) {
                 console.warn(
@@ -446,8 +475,7 @@ export const dateField = {
             deps.push({
                 name: options[END_DATE_FIELD_OPTION],
                 type,
-                readonly: false,
-                ...attrs,
+                readonly: attrs.readonly || false,
             });
         }
         return deps;

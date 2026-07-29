@@ -15,13 +15,13 @@
 # Paweł Wodyński <pw@myodoo.pl>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
+# "Marta (wacm)" <wacm@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:09+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-10-28 08:54+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/pl/>\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -62,11 +62,6 @@ msgstr "Aktywuj"
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_module_filter_apps_inherit
 msgid "Apps"
 msgstr "Aplikacje"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "Anuluj"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
@@ -376,36 +371,3 @@ msgstr "wykonano"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "inicjalizcja"
-
-#~ msgid "Import App"
-#~ msgstr "Import aplikacji"
-
-#~ msgid "Import module"
-#~ msgstr "Importuj moduł"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Data ostatniej modyfikacji"
-
-#~ msgid ""
-#~ "Note: you can only import data modules (.xml files and static assets)"
-#~ msgstr ""
-#~ "Uwaga: możesz importować tylko moduły danych (pliki .xml i zasoby "
-#~ "statyczne)."
-
-#~ msgid "Open Modules"
-#~ msgstr "Otwórz moduły"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "Wybierz paczkę modułu do importu (plik .zip)"
-
-#~ msgid "Studio customizations require Studio"
-#~ msgstr "Dostosowania w Studio wymagają Studio"
-
-#~ msgid ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"
-#~ msgstr ""
-#~ "Niespełnione zależności modułu: \n"
-#~ "\n"
-#~ " - %s"

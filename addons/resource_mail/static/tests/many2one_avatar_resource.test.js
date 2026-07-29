@@ -10,7 +10,6 @@ import {
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
 import { queryFirst } from "@odoo/hoot-dom";
 import { defineResourceMailModels } from "./resource_mail_test_helpers";
-import { onRpc } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
 const data = {};
@@ -82,20 +81,6 @@ beforeEach(async () => {
             resource_type: "user",
         },
     ]);
-    onRpc("resource.resource", "get_avatar_card_data", (params) => {
-        const resourceIdArray = params.args[0];
-        const resourceId = resourceIdArray[0];
-        const resources = pyEnv['resource.resource'].read([resourceId]);
-        const result = resources.map(resource => ({
-            name: resource.name,
-            role_ids: resource.role_ids,
-            email:resource.email,
-            phone: resource.phone,
-            user_id: resource.user_id,
-        }));
-        return result;
-    });
-
 });
 
 test("many2one_avatar_resource widget in form view", async () => {
@@ -156,7 +141,7 @@ test("many2one_avatar_resource widget in kanban view", async () => {
     await contains(".o_avatar_card", { count: 0 });
     // 2. Clicking on human resource's avatar with no user associated
     await click(".o_kanban_record:nth-of-type(2) .o_m2o_avatar > img");
-    await contains(".o_card_user_infos span", { text: "Marie" });
+    await contains(".o-mail-avatar-card-name", { text: "Marie" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -169,7 +154,7 @@ test("many2one_avatar_resource widget in kanban view", async () => {
     );
     // 3. Clicking on human resource's avatar with one user associated
     await click(".o_kanban_record:nth-of-type(3) .o_m2o_avatar > img");
-    await contains(".o_card_user_infos span", { text: "Pierre" });
+    await contains(".o-mail-avatar-card-name", { text: "Pierre" });
     await contains(
         ".o_avatar_card",
         { count: 1 },

@@ -201,7 +201,8 @@ class TestJoEdiPosTypes(JoEdiPosCommon):
                 },
             ],
         }
-        order = self._l10n_jo_create_order(order_vals)
+        cash_pm = self.main_pos_config.payment_method_ids.filtered(lambda pm: pm.l10n_jo_edi_pos_is_cash)[0]
+        order = self._l10n_jo_create_order(order_vals, [(cash_pm, 132)], default_payment=False)
 
         expected_file = self._read_xml_test_file('type_7')
         generated_file = self.env['pos.edi.xml.ubl_21.jo']._export_pos_order(order)[0]

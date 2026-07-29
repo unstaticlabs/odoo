@@ -5,9 +5,8 @@ import { useChildRef } from "@web/core/utils/hooks";
 import { Component } from "@odoo/owl";
 
 export const deleteConfirmationMessage = _t(
-    `Ready to make your record disappear into thin air? Are you sure?
-It will be gone forever!
-
+    `Ready to make your record disappear into thin air? Are you sure? It will be gone forever!
+    
 Think twice before you click that 'Delete' button!`
 );
 
@@ -25,6 +24,7 @@ export class ConfirmationDialog extends Component {
             },
             optional: true,
         },
+        size: { type: String, optional: true },
         body: { type: String, optional: true },
         confirm: { type: Function, optional: true },
         confirmLabel: { type: String, optional: true },
@@ -35,9 +35,10 @@ export class ConfirmationDialog extends Component {
     };
     static defaultProps = {
         confirmLabel: _t("Ok"),
-        cancelLabel: _t("Cancel"),
+        cancelLabel: _t("Discard"),
         confirmClass: "btn-primary",
         title: _t("Confirmation"),
+        size: "sm",
     };
 
     setup() {

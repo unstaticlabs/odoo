@@ -4,26 +4,26 @@
 #
 # Translators:
 # Martin Trigaux, 2022
-# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2022, 2026.
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2022
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:26+0000\n"
-"Last-Translator: Alina Lisnenko <alina.lisnenko@erp.co.ua>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-09-16 22:55+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
 "google_calendar/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: google_calendar
 #. odoo-python
@@ -99,11 +99,6 @@ msgid "Calendar ID"
 msgstr "ID календаря"
 
 #. module: google_calendar
-#: model_terms:ir.ui.view,arch_db:google_calendar.google_calendar_reset_account_view_form
-msgid "Cancel"
-msgstr "Скасувати"
-
-#. module: google_calendar
 #: model_terms:ir.ui.view,arch_db:google_calendar.res_config_settings_view_form
 msgid "Client ID"
 msgstr "ID клієнта"
@@ -169,12 +164,6 @@ msgstr "Видалити з обох"
 #: model:ir.model.fields.selection,name:google_calendar.selection__google_calendar_account_reset__delete_policy__delete_google
 msgid "Delete from the current Google Calendar account"
 msgstr "Видалити з поточного облікового запису Google Календаря"
-
-#. module: google_calendar
-#. odoo-javascript
-#: code:addons/google_calendar/static/src/views/google_calendar/google_calendar_controller.js:0
-msgid "Discard"
-msgstr ""
 
 #. module: google_calendar
 #: model:ir.model.fields,field_description:google_calendar.field_calendar_alarm_manager__display_name
@@ -457,39 +446,3 @@ msgstr "невизначений час"
 msgid ""
 "you don't seem to have permission to modify this event on Google Calendar"
 msgstr "схоже, у вас немає дозволу змінювати цю подію в Google календарі"
-
-#~ msgid ""
-#~ "An error occurred while generating the token. Your authorization code may "
-#~ "be invalid or has already expired [%s]. You should check your Client ID "
-#~ "and secret on the Google APIs plateform or try to stop and restart your "
-#~ "calendar synchronisation."
-#~ msgstr ""
-#~ "Під час створення токену виникла помилка. Ваш код авторизації може бути "
-#~ "недійсним або вже протермінований [%s]. Вам слід перевірити ваш Client ID "
-#~ "та секретний ключ на платформі Google API або спробуйте зупинити і "
-#~ "перезапустити вашу синхронізацію календаря."
-
-#~ msgid "Google Calendar Account"
-#~ msgstr "Обліковий запис Google Календаря"
-
-#~ msgid "Google Calendar Account Data"
-#~ msgstr "Дані облікового запису Google Календаря"
-
-#~ msgid "Success"
-#~ msgstr "Успіх"
-
-#~ msgid "The account for the Google Calendar service is not configured."
-#~ msgstr "Послуга облікового запису Google календаря не налаштована."
-
-#~ msgid "The synchronization with Google calendar was successfully stopped."
-#~ msgstr "Синхронізація з Google календарем успішно зупинена."
-
-#~ msgid "The user has already a google account"
-#~ msgstr "Користувач уже має обліковий запис Google"
-
-#~ msgid ""
-#~ "You are about to stop the synchronization of your calendar with Google. "
-#~ "Are you sure you want to continue?"
-#~ msgstr ""
-#~ "Ви збираєтеся припинити синхронізацію свого календаря з Google. Ви "
-#~ "впевнені, що хочете продовжити?"

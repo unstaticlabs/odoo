@@ -13,9 +13,10 @@ from odoo.tools import SQL
 class IrDefault(models.Model):
     """ User-defined default values for fields. """
     _name = 'ir.default'
-    _description = 'Default Values'
+    _description = 'Default Value'
     _rec_name = 'field_id'
     _allow_sudo_commands = False
+    _clear_cache_name = 'default'
 
     field_id = fields.Many2one('ir.model.fields', string="Field", required=True,
                                ondelete='cascade', index=True)
@@ -49,13 +50,12 @@ class IrDefault(models.Model):
         for record in self:
             if field := record.field_id:
                 model = self.env[field.model]
-                model._check_field_access(model._fields[field.name], 'write')
+                model.check_field_access(model._fields[field.name], 'write')
 
     @api.model_create_multi
     def create(self, vals_list):
         # invalidate all company dependent fields since their fallback value in cache may be changed
         self.env.invalidate_all()
-        self.env.registry.clear_cache()
         new_defaults = super().create(vals_list)
         new_defaults._check_accessible_field_id()
         return new_defaults
@@ -64,18 +64,17 @@ class IrDefault(models.Model):
         if self:
             # invalidate all company dependent fields since their fallback value in cache may be changed
             self.env.invalidate_all()
-            self.env.registry.clear_cache()
         new_default = super().write(vals)
         self.check_access('write')
         self._check_accessible_field_id()
         return new_default
 
     def unlink(self):
+        res = super().unlink()
         if self:
             # invalidate all company dependent fields since their fallback value in cache may be changed
             self.env.invalidate_all()
-            self.env.registry.clear_cache()
-        return super(IrDefault, self).unlink()
+        return res
 
     @api.model
     def set(self, model_name, field_name, value, user_id=False, company_id=False, condition=False):

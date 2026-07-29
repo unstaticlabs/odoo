@@ -2,14 +2,12 @@ import { AttachmentList } from "@mail/core/common/attachment_list";
 import { useAttachmentUploader } from "@mail/core/common/attachment_uploader_hook";
 import { useCustomDropzone } from "@web/core/dropzone/dropzone_hook";
 import { MailAttachmentDropzone } from "@mail/core/common/mail_attachment_dropzone";
-import { MessageConfirmDialog } from "@mail/core/common/message_confirm_dialog";
 import { NavigableList } from "@mail/core/common/navigable_list";
 import { MAIL_PLUGINS, MAIL_SMALL_UI_PLUGINS } from "@mail/core/common/plugin/plugin_sets";
 import { mapSuggestionsToOptions, useSuggestion } from "@mail/core/common/suggestion_hook";
 import { useSelection } from "@mail/utils/common/hooks";
 import { trimEmptyBlocksAround } from "@mail/utils/common/format";
 import { isDragSourceExternalFile } from "@mail/utils/common/misc";
-
 import { Wysiwyg } from "@html_editor/wysiwyg";
 
 import { rpc } from "@web/core/network/rpc";
@@ -34,22 +32,35 @@ import {
 
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
-import { htmlJoin, isHtmlEmpty, isMarkup, setElementContent } from "@web/core/utils/html";
+import {
+    htmlFormatList,
+    htmlJoin,
+    isHtmlEmpty,
+    isMarkup,
+    setElementContent,
+} from "@web/core/utils/html";
 import { FileUploader } from "@web/views/fields/file_handler";
 import { isEmail } from "@web/core/utils/strings";
-import { isDisplayStandalone, isIOS, isMobileOS } from "@web/core/browser/feature_detection";
+import {
+    isDisplayStandalone,
+    isIOS,
+    isMobileOS,
+    isMacOS,
+} from "@web/core/browser/feature_detection";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { useComposerActions } from "@mail/core/common/composer_actions";
 import { ActionList } from "@mail/core/common/action_list";
 import { closestElement, lastLeaf } from "@html_editor/utils/dom_traversal";
 import { rightPos } from "@html_editor/utils/position";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { usePopover } from "@web/core/popover/popover_hook";
 
 const EDIT_CLICK_TYPE = {
     CANCEL: "cancel",
     SAVE: "save",
 };
+export const MENTION_AMOUNT_WARNING = 50;
 
 class FullComposerRecoveryPopover extends Component {
     static props = ["composer", "onClickFullRecover", "onClickTextRecover", "close?"];
@@ -111,6 +122,7 @@ export class Composer extends Component {
         "type?",
         "showFullComposer?",
         "allowUpload?",
+        "disabled?",
     ];
     static template = "mail.Composer";
 
@@ -160,7 +172,7 @@ export class Composer extends Component {
                 await new Promise(setTimeout);
                 return (
                     !this.isEventTrusted(ev) ||
-                    isEventHandled(ev, "sidebar.openThread") ||
+                    isEventHandled(ev, "sidebar.openChannel") ||
                     isEventHandled(ev, "emoji.selectEmoji") ||
                     isEventHandled(ev, "Composer.onClickAddEmoji") ||
                     isEventHandled(ev, "composer.clickOnAddAttachment") ||
@@ -204,7 +216,7 @@ export class Composer extends Component {
                 },
                 () =>
                     this.props.allowUpload &&
-                    (!this.store.rtc.state.isFullscreen || this.env.inMeetingView)
+                    (!this.store.rtc.isFullscreen || this.env.inMeetingView)
             );
         }
         useChildSubEnv({ inComposer: true });
@@ -325,7 +337,7 @@ export class Composer extends Component {
     }
 
     get areAllActionsDisabled() {
-        return false;
+        return this.props.disabled;
     }
 
     get isMultiUpload() {
@@ -336,17 +348,19 @@ export class Composer extends Component {
         if (this.props.placeholder) {
             return this.props.placeholder;
         }
-        if (this.thread) {
-            if (this.thread.channel_type === "channel") {
-                const threadName = this.thread.displayName;
-                if (this.thread.parent_channel_id) {
+        if (this.thread?.channel) {
+            if (this.thread.channel.channel_type === "channel") {
+                const channelName = this.thread.channel.displayName;
+                if (this.thread.channel.parent_channel_id) {
                     return _t('Message "%(subChannelName)s"', {
-                        subChannelName: threadName,
+                        subChannelName: channelName,
                     });
                 }
-                return _t("Message #%(threadName)s…", { threadName });
+                return _t("Message #%(channelName)s…", { channelName });
             }
-            return _t("Message %(thread name)s…", { "thread name": this.thread.displayName });
+            return _t("Message %(thread name)s…", {
+                "thread name": this.thread.channel.displayName,
+            });
         }
         return "";
     }
@@ -383,7 +397,7 @@ export class Composer extends Component {
     }
 
     get CANCEL_OR_SAVE_EDIT_TEXT() {
-        const tags = {
+        const substitutions = {
             open_samp: markup`<samp>`,
             close_samp: markup`</samp>`,
             open_em: markup`<em>`,
@@ -392,16 +406,16 @@ export class Composer extends Component {
             close_cancel: markup`</button>`,
             open_save: markup`<button class="btn btn-link fst-italic p-0 align-baseline" data-type="${EDIT_CLICK_TYPE.SAVE}">`,
             close_save: markup`</button>`,
+            save_keyboard_shortcut: this.env.inChatter
+                ? isMacOS()
+                    ? markup`CMD-Enter`
+                    : markup`CTRL-Enter`
+                : markup`Enter`,
         };
-        return this.env.inChatter
-            ? _t(
-                  "%(open_samp)sEscape%(close_samp)s %(open_em)sto %(open_cancel)scancel%(close_cancel)s%(close_em)s, %(open_samp)sCTRL-Enter%(close_samp)s %(open_em)sto %(open_save)ssave%(close_save)s%(close_em)s",
-                  tags
-              )
-            : _t(
-                  "%(open_samp)sEscape%(close_samp)s %(open_em)sto %(open_cancel)scancel%(close_cancel)s%(close_em)s, %(open_samp)sEnter%(close_samp)s %(open_em)sto %(open_save)ssave%(close_save)s%(close_em)s",
-                  tags
-              );
+        return _t(
+            "Press %(open_samp)sESC%(close_samp)s %(open_em)sto %(open_cancel)scancel%(close_cancel)s%(close_em)s, %(open_samp)s%(save_keyboard_shortcut)s%(close_samp)s %(open_em)sto %(open_save)ssave%(close_save)s%(close_em)s",
+            substitutions
+        );
     }
 
     get SEND_TEXT() {
@@ -412,7 +426,8 @@ export class Composer extends Component {
     }
 
     get sendKeybinds() {
-        return this.env.inChatter ? [_t("CTRL"), _t("Enter")] : [_t("Enter")];
+        const modifierKey = isMacOS() ? _t("CMD") : _t("CTRL");
+        return this.env.inChatter ? [modifierKey, _t("Enter")] : [_t("Enter")];
     }
 
     get showComposerAvatar() {
@@ -458,6 +473,7 @@ export class Composer extends Component {
             },
             isLoading: !!this.suggestion.search.term && this.suggestion.state.isFetching,
             options: [],
+            rememberPosition: false,
         };
         if (!this.hasSuggestions) {
             return props;
@@ -525,14 +541,19 @@ export class Composer extends Component {
                 }
                 break;
             case "Enter": {
-                if (isEventHandled(ev, "NavigableList.select") || !this.state.active) {
+                if (
+                    isEventHandled(ev, "NavigableList.select") ||
+                    document.querySelector(".o-we-SuggestionList .o-navigable") ||
+                    !this.state.active
+                ) {
                     ev.preventDefault();
                     return;
                 }
                 if (this.isMobileOS || ev.isComposing) {
                     return;
                 }
-                const shouldPost = this.env.inChatter ? ev.ctrlKey : !ev.shiftKey;
+                const modKey = isMacOS() ? ev.metaKey : ev.ctrlKey;
+                const shouldPost = this.env.inChatter ? modKey : !ev.shiftKey;
                 if (!shouldPost) {
                     return;
                 }
@@ -561,7 +582,7 @@ export class Composer extends Component {
         return {};
     }
 
-    async onClickFullComposer(ev) {
+    async onClickFullComposerGetAction() {
         this.props.composer.restoredFromFullComposer = false;
         const allRecipients = [...this.thread.suggestedRecipients];
         if (this.props.type !== "note") {
@@ -660,6 +681,11 @@ export class Composer extends Component {
                 fullComposerBus: this.fullComposerBus,
             },
         };
+        return { action, options };
+    }
+
+    async onClickFullComposer(ev) {
+        const { action, options } = await this.onClickFullComposerGetAction();
         await this.env.services.action.doAction(action, options);
         this.state.isFullComposerOpen = true;
     }
@@ -734,6 +760,40 @@ export class Composer extends Component {
                 return;
             }
         }
+        const { specialMentions, roles } = this.store.getMentionsFromText(composer.composerHtml, {
+            mentionedRoles: composer.mentionedRoles,
+        });
+        const hasEveryoneBigMention =
+            specialMentions.includes("everyone") &&
+            composer.thread.channel?.member_count > MENTION_AMOUNT_WARNING;
+        const rolesMentionAmount = roles.reduce((sum, role) => sum + (role.user_ids_count || 0), 0);
+        if (hasEveryoneBigMention || rolesMentionAmount > MENTION_AMOUNT_WARNING) {
+            const confirmDef = Promise.withResolvers();
+            this.store.env.services.dialog.add(ConfirmationDialog, {
+                body: _t(
+                    "You're about to notify %(amount)s people with %(mention)s. Do you want to continue?",
+                    {
+                        amount: hasEveryoneBigMention
+                            ? composer.thread.channel.member_count
+                            : rolesMentionAmount,
+                        mention: hasEveryoneBigMention
+                            ? markup`<a class="o-discuss-mention pe-none">@everyone</a>`
+                            : htmlFormatList(
+                                  roles.map(
+                                      (r) =>
+                                          markup`<a class="o-discuss-mention pe-none">@${r.name}</a>`
+                                  )
+                              ),
+                    }
+                ),
+                confirmLabel: _t("Send Message"),
+                confirm: () => confirmDef.resolve(true),
+                cancel: () => confirmDef.resolve(false),
+            });
+            if (!(await confirmDef.promise)) {
+                return false;
+            }
+        }
         await this.processMessage(async (value) => {
             await this._sendMessage(value, this.postData, this.extraData);
         });
@@ -772,7 +832,7 @@ export class Composer extends Component {
         const postThread = toRaw(this.thread);
         const post = postThread.post.bind(postThread, value, postData, extraData);
         let message;
-        if (postThread.model === "discuss.channel") {
+        if (postThread.channel) {
             // feature of (optimistic) temp message
             post();
         } else {
@@ -800,18 +860,7 @@ export class Composer extends Component {
                 })
             );
         } else {
-            this.env.services.dialog.add(
-                MessageConfirmDialog,
-                {
-                    message: composer.message,
-                    onConfirm: () =>
-                        this.message.remove({
-                            removeFromThread: this.shouldHideFromMessageListOnDelete,
-                        }),
-                    prompt: _t("Are you sure you want to bid farewell to this message forever?"),
-                },
-                { context: this }
-            );
+            composer.message.showDeleteConfirm(this);
         }
         this.suggestion?.clearRawMentions();
     }
@@ -880,12 +929,8 @@ export class Composer extends Component {
         ev.stopPropagation();
         const composer = toRaw(this.props.composer);
         composer.isFocused = true;
-        if (
-            composer.thread?.scrollTop === "bottom" &&
-            !composer.thread.scrollUnread &&
-            !composer.thread.markedAsUnread
-        ) {
-            composer.thread?.markAsRead();
+        if (composer.thread?.shouldMarkAsReadOnFocus) {
+            composer.thread.markAsRead();
         }
     }
 
@@ -953,7 +998,7 @@ export class Composer extends Component {
             return;
         }
         if (!isHtmlEmpty(config.composerHtml)) {
-            if (composer.thread && composer.thread?.model !== "discuss.channel") {
+            if (composer.thread && !composer.thread.channel) {
                 composer.restoredFromFullComposer = config.fromFullComposer;
             }
             composer.emailAddSignature = config.emailAddSignature;
@@ -962,9 +1007,5 @@ export class Composer extends Component {
         if (Number.isInteger(config.replyToMessageId)) {
             composer.replyToMessage = this.store["mail.message"].insert(config.replyToMessageId);
         }
-    }
-
-    get shouldHideFromMessageListOnDelete() {
-        return false;
     }
 }

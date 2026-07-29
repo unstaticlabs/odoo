@@ -83,7 +83,7 @@
         }
     }
 
-    &:not(.o_slideshow) {
+    &.o_image_popup {
         img {
             cursor: pointer;
         }
@@ -232,6 +232,7 @@
                 border: 0;
                 background-size: cover;
                 background-position: center;
+                background-color: white;
 
                 &:not(.active):not(:hover) {
                     filter: grayscale(1);
@@ -239,6 +240,22 @@
 
                 &:hover {
                     opacity: 1;
+                }
+            }
+
+            &.s_image_gallery_indicators_outline .carousel {
+                --indicators-border-color: #{$carousel-indicator-active-bg};
+
+                &.carousel-dark {
+                    --indicators-border-color: #{$carousel-dark-indicator-active-bg};
+                }
+
+                .carousel-indicators > button {
+                    box-shadow: inset 0 0 0 0.5px color-mix(
+                        in srgb,
+                        var(--indicators-border-color),
+                        transparent 40%
+                    );
                 }
             }
         }
@@ -433,18 +450,7 @@
     }
 }
 
-// TODO adapt in Master. Override Bootstrap's dark indicators without
-// out-prioritizing user overrides in stable versions.
-:where(.s_image_gallery[data-vcss="002"].s_image_gallery_indicators_squared,
-    .s_image_gallery[data-vcss="002"].s_image_gallery_indicators_rounded) {
-    &, .carousel-dark {
-        .carousel-indicators [data-bs-target] {
-            background-color: white;
-        }
-    }
-}
-
-.s_gallery_lightbox {
+.o_image_lightbox {
     .modal-dialog {
         height: 100%;
         background-color: rgba(0,0,0,0.7);

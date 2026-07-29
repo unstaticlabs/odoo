@@ -8,12 +8,14 @@ import zipfile
 from werkzeug.exceptions import NotFound, UnsupportedMediaType
 
 from odoo import _, http
-from odoo.addons.mail.controllers.thread import ThreadController
 from odoo.exceptions import AccessError, UserError
-from odoo.http import request, content_disposition
-from odoo.addons.mail.tools.discuss import add_guest_to_context, Store
+from odoo.http import request
+from odoo.http.stream import content_disposition
 from odoo.tools.misc import file_open
 from odoo.tools.pdf import DependencyError, PdfReadError, extract_page
+
+from odoo.addons.mail.controllers.thread import ThreadController
+from odoo.addons.mail.tools.discuss import Store, add_guest_to_context
 
 logger = logging.getLogger(__name__)
 
@@ -81,16 +83,14 @@ class AttachmentController(ThreadController):
             # sudo: ir.attachment - posting a new attachment on an accessible thread
             attachment = request.env["ir.attachment"].sudo().create(vals)
             attachment._post_add_create(**kwargs)
-            res = {
-                "data": {
-
-                    "store_data": Store().add(
-                        attachment,
-                        extra_fields=request.env["ir.attachment"]._get_store_ownership_fields(),
-                    ).get_result(),
-                    "attachment_id": attachment.id,
-                }
-            }
+            store = Store().add(
+                attachment,
+                lambda res: (
+                    res.from_method("_store_attachment_fields"),
+                    res.from_method("_store_ownership_fields"),
+                ),
+            )
+            res = {"data": {"store_data": store.get_result(), "attachment_id": attachment.id}}
         except AccessError:
             res = {"error": _("You are not allowed to upload an attachment here.")}
         return request.make_json_response(res)
@@ -104,6 +104,9 @@ class AttachmentController(ThreadController):
             raise NotFound()
         message = request.env["mail.message"].sudo().search(
             [("attachment_ids", "in", attachment.ids)], limit=1)
+        if message:
+            thread = request.env[message.model].browse(message.res_id)
+            thread._message_update_content(message, body=message.body)  # marks the message edited
         # sudo: ir.attachment: access is validated with _has_attachments_ownership
         attachment.sudo()._delete_and_notify(message)
 

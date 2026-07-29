@@ -12,25 +12,43 @@ class TestPosRestaurantFlow(TestFrontendCommon):
         table_a, table_b = self.env['restaurant.table'].create([
             {
                 'table_number': 91,
+                'parent_id': False,
+                'parent_side': False,
                 'floor_id': self.main_floor.id,
                 'seats': 4,
-                'position_h': 10,
-                'position_v': 10,
+                'active': True,
+                'floor_plan_layout': {
+                    'width': 10,
+                    'height': 10,
+                    'left': 10,
+                    'top': 10,
+                    'shape': "square",
+                    'color': "rgb(53,211,116)",
+                },
             },
             {
                 'table_number': 92,
+                'parent_id': False,
+                'parent_side': False,
                 'floor_id': self.main_floor.id,
                 'seats': 4,
-                'position_h': 20,
-                'position_v': 20,
+                'active': True,
+                'floor_plan_layout': {
+                    'width': 10,
+                    'height': 10,
+                    'left': 30,
+                    'top': 30,
+                    'shape': "square",
+                    'color': "rgb(53,211,116)",
+                },
             },
         ])
 
-        table_b.set_parent_id(table_a.id, self.pos_config.id)
+        table_b.set_parent_id(table_a.id, "top", self.pos_config.id)
         table_b.flush_recordset(['parent_id'])
         self.assertEqual(table_b.parent_id, table_a, "Table B should be attached to table A")
 
-        table_a.set_parent_id(table_b.id, self.pos_config.id)
+        table_a.set_parent_id(table_b.id, "bottom", self.pos_config.id)
         table_a.flush_recordset(['parent_id'])
         table_b.flush_recordset(['parent_id'])
 

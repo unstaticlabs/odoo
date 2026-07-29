@@ -12,15 +12,11 @@ import {
 } from "@mail/../tests/mail_test_helpers";
 import { describe, expect, test } from "@odoo/hoot";
 import { Deferred } from "@odoo/hoot-mock";
-import {
-    asyncStep,
-    mockService,
-    serverState,
-    waitForSteps,
-    withUser,
-} from "@web/../tests/web_test_helpers";
+import { fields, mockService, serverState, withUser } from "@web/../tests/web_test_helpers";
 
 import { rpc } from "@web/core/network/rpc";
+import { range } from "@web/core/utils/numbers";
+import { ResFake } from "@mail/../tests/mock_server/mock_models/res_fake";
 
 describe.current.tags("desktop");
 defineMailModels();
@@ -113,7 +109,7 @@ test('"reply to" composer should log note if message replied to is a note', asyn
         res_partner_id: serverState.partnerId,
     });
     onRpcBefore("/mail/message/post", (args) => {
-        asyncStep("/mail/message/post");
+        expect.step("/mail/message/post");
         expect(args.post_data.message_type).toBe("comment");
         expect(args.post_data.subtype_xmlid).toBe("mail.mt_note");
     });
@@ -126,7 +122,7 @@ test('"reply to" composer should log note if message replied to is a note', asyn
     await insertText(".o-mail-Composer-input", "Test");
     await click(".o-mail-Composer button[title='Log']");
     await contains(".o-mail-Composer", { count: 0 });
-    await waitForSteps(["/mail/message/post"]);
+    await expect.waitForSteps(["/mail/message/post"]);
 });
 
 test('"reply to" composer should send message if message replied to is not a note', async () => {
@@ -148,7 +144,7 @@ test('"reply to" composer should send message if message replied to is not a not
         res_partner_id: serverState.partnerId,
     });
     onRpcBefore("/mail/message/post", (args) => {
-        asyncStep("/mail/message/post");
+        expect.step("/mail/message/post");
         expect(args.post_data.message_type).toBe("comment");
         expect(args.post_data.subtype_xmlid).toBe("mail.mt_comment");
     });
@@ -161,7 +157,7 @@ test('"reply to" composer should send message if message replied to is not a not
     await insertText(".o-mail-Composer-input", "Test");
     await click(".o-mail-Composer button[title='Send']:enabled");
     await contains(".o-mail-Composer button[title='Send']", { count: 0 });
-    await waitForSteps(["/mail/message/post"]);
+    await expect.waitForSteps(["/mail/message/post"]);
 });
 
 test("show subject of message in Inbox", async () => {
@@ -196,7 +192,7 @@ test("show subject of message in Inbox", async () => {
     ]);
     await start();
     await openDiscuss("mail.box_inbox");
-    await contains(".o-mail-Message", { text: "Subject: Salutations, voyageurnot empty" });
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur'))");
     // Empty body: display subject only
     await contains(".o-mail-Message:has(:text('Subject: Hello, wanderer'))");
 });
@@ -217,7 +213,7 @@ test("show subject of message in history", async () => {
     });
     await start();
     await openDiscuss("mail.box_history");
-    await contains(".o-mail-Message", { text: "Subject: Salutations, voyageurnot empty" });
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))");
 });
 
 test("subject should not be shown when subject is the same as the thread name", async () => {
@@ -239,9 +235,8 @@ test("subject should not be shown when subject is the same as the thread name", 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -264,9 +259,8 @@ test("subject should not be shown when subject is the same as the thread name an
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -289,9 +283,8 @@ test('subject should not be shown when subject differs from thread name only by 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -314,9 +307,8 @@ test('subject should not be shown when subject differs from thread name only by 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -339,9 +331,8 @@ test("subject should be shown when the thread name has an extra prefix compared 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -364,9 +355,8 @@ test('subject should not be shown when subject differs from thread name only by 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -389,9 +379,8 @@ test('subject should not be shown when subject differs from thread name only by 
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message", {
+    await contains(".o-mail-Message:has(:text('Subject: Salutations, voyageur not empty'))", {
         count: 0,
-        text: "Subject: Salutations, voyageurnot empty",
     });
 });
 
@@ -427,47 +416,37 @@ test("inbox: mark all messages as read", async () => {
     ]);
     await start();
     await openDiscuss("mail.box_inbox");
-    await contains("button", { text: "Inbox", contains: [".badge", { text: "2" }] });
+    await contains("button:has(:text('Inbox'))", { contains: [".badge:text('2')"] });
     await contains(".o-mail-DiscussSidebarChannel", {
-        contains: [
-            ["span", { text: "General" }],
-            [".badge", { text: "2" }],
-        ],
+        contains: [["span:text('General')"], [".badge:text('2')"]],
     });
     await contains(".o-mail-DiscussContent .o-mail-Message", { count: 2 });
-    await click(".o-mail-DiscussContent-header button:enabled", { text: "Mark all read" });
-    await contains("button", { text: "Inbox", contains: [".badge", { count: 0 }] });
+    await click(".o-mail-DiscussContent-header button:enabled:text('Mark all read')");
+    await contains("button:has(:text('Inbox'))", { contains: [".badge", { count: 0 }] });
     await contains(".o-mail-DiscussSidebarChannel", {
-        contains: [
-            ["span", { text: "General" }],
-            [".badge", { count: 0 }],
-        ],
+        contains: [["span:text('General')"], [".badge", { count: 0 }]],
     });
     await contains(".o-mail-Message", { count: 0 });
-    await contains("button:disabled", { text: "Mark all read" });
+    await contains("button:disabled:text('Mark all read')");
 });
 
 test("inbox: mark as read should not display jump to present", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
     const msgIds = pyEnv["mail.message"].create(
-        Array(30)
-            .keys()
-            .map((i) => ({
-                body: "not empty".repeat(100),
-                model: "discuss.channel",
-                needaction: true,
-                res_id: channelId,
-            }))
+        range(30).map(() => ({
+            body: "not empty".repeat(100),
+            model: "discuss.channel",
+            needaction: true,
+            res_id: channelId,
+        }))
     );
     pyEnv["mail.notification"].create(
-        Array(30)
-            .keys()
-            .map((i) => ({
-                mail_message_id: msgIds[i],
-                notification_type: "inbox",
-                res_partner_id: serverState.partnerId,
-            }))
+        range(30).map((i) => ({
+            mail_message_id: msgIds[i],
+            notification_type: "inbox",
+            res_partner_id: serverState.partnerId,
+        }))
     );
     await start();
     await openDiscuss("mail.box_inbox");
@@ -476,7 +455,7 @@ test("inbox: mark as read should not display jump to present", async () => {
     await contains(".o-mail-Message", { count: 30 });
     await scroll(".o-mail-Thread", 0);
     await contains("[title='Jump to Present']");
-    await click(".o-mail-DiscussContent-header button:enabled", { text: "Mark all read" });
+    await click(".o-mail-DiscussContent-header button:enabled:text('Mark all read')");
     await contains("[title='Jump to Present']", { count: 0 });
 });
 
@@ -504,7 +483,7 @@ test("click on (non-channel/non-partner) origin thread link should redirect to f
             // Callback of doing an action (action manager).
             // Expected to be called on click on origin thread link,
             // which redirects to form view of record related to origin thread
-            asyncStep("do-action");
+            expect.step("do-action");
             expect(action.type).toBe("ir.actions.act_window");
             expect(action.views).toEqual([[false, "form"]]);
             expect(action.res_model).toBe("res.fake");
@@ -515,9 +494,9 @@ test("click on (non-channel/non-partner) origin thread link should redirect to f
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await click(".o-mail-Message-header a", { text: "Some record" });
+    await click(".o-mail-Message-header a:text('Some record')");
     await def;
-    await waitForSteps(["do-action"]);
+    await expect.waitForSteps(["do-action"]);
 });
 
 test("inbox messages are never squashed", async () => {
@@ -561,10 +540,10 @@ test("inbox messages are never squashed", async () => {
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message", { count: 2 });
-    await contains(".o-mail-Message:not(.o-squashed)", { text: "body1" });
-    await contains(".o-mail-Message:not(.o-squashed)", { text: "body2" });
-    await click(".o-mail-DiscussSidebarChannel", { text: "test" });
-    await contains(".o-mail-Message.o-squashed", { text: "body2" });
+    await contains(".o-mail-Message:not(.o-squashed):has(:text('body1'))");
+    await contains(".o-mail-Message:not(.o-squashed):has(:text('body2'))");
+    await click(".o-mail-DiscussSidebarChannel:has(:text('test'))");
+    await contains(".o-mail-Message.o-squashed:has(:text('body2'))");
 });
 
 test("reply: stop replying button click", async () => {
@@ -588,8 +567,8 @@ test("reply: stop replying button click", async () => {
     await click("[title='Expand']");
     await click(".o-dropdown-item:contains('Reply')");
     await contains(".o-mail-Composer");
-    await contains("i[title='Stop replying']");
-    await click("i[title='Stop replying']");
+    await contains("i[title='Discard']");
+    await click("i[title='Discard']");
     await contains(".o-mail-Composer", { count: 0 });
 });
 
@@ -611,65 +590,11 @@ test("error notifications should not be shown in Inbox", async () => {
     await start();
     await openDiscuss("mail.box_inbox");
     await contains(".o-mail-Message");
-    await contains(".o-mail-Message-header small", { text: "on Demo User" });
-    await contains(`.o-mail-Message-header a[href*='/odoo/res.partner/${partnerId}']`, {
-        text: "Demo User",
-    });
+    await contains(".o-mail-Message-header small:text('on Demo User')");
+    await contains(
+        `.o-mail-Message-header a[href*='/odoo/res.partner/${partnerId}']:text('Demo User')`
+    );
     await contains(".o-mail-Message-notification", { count: 0 });
-});
-
-test("emptying inbox displays rainbow man in inbox", async () => {
-    const pyEnv = await startServer();
-    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
-    const messageId1 = pyEnv["mail.message"].create({
-        body: "not empty",
-        model: "discuss.channel",
-        needaction: true,
-        res_id: channelId,
-    });
-    pyEnv["mail.notification"].create([
-        {
-            mail_message_id: messageId1,
-            notification_type: "inbox",
-            res_partner_id: serverState.partnerId,
-        },
-    ]);
-    await start();
-    await openDiscuss("mail.box_inbox");
-    await contains(".o-mail-Message");
-    await click("button:enabled", { text: "Mark all read" });
-    await contains(".o_reward_rainbow");
-});
-
-test("emptying inbox doesn't display rainbow man in another thread", async () => {
-    const pyEnv = await startServer();
-    pyEnv["res.users"].write(serverState.userId, { notification_type: "inbox" });
-    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
-    const partnerId = pyEnv["res.partner"].create({});
-    const messageId = pyEnv["mail.message"].create({
-        body: "not empty",
-        model: "res.partner",
-        needaction: true,
-        res_id: partnerId,
-    });
-    pyEnv["mail.notification"].create([
-        {
-            mail_message_id: messageId,
-            notification_type: "inbox",
-            res_partner_id: serverState.partnerId,
-        },
-    ]);
-    await start();
-    await openDiscuss(channelId);
-    await contains("button", { text: "Inbox", contains: [".badge", { text: "1" }] });
-    const [partner] = pyEnv["res.partner"].read(serverState.partnerId);
-    pyEnv["bus.bus"]._sendone(partner, "mail.message/mark_as_read", {
-        message_ids: [messageId],
-        needaction_inbox_counter: 0,
-    });
-    await contains("button", { text: "Inbox", contains: [".badge", { count: 0 }] });
-    // weak test, no guarantee that we waited long enough for the potential rainbow man to show
-    await contains(".o_reward_rainbow", { count: 0 });
 });
 
 test("Counter should be incremented by 1 when receiving a message with a mention in a channel", async () => {
@@ -694,7 +619,7 @@ test("Counter should be incremented by 1 when receiving a message with a mention
     ]);
     await start();
     await openDiscuss("mail.box_inbox");
-    await contains("button", { text: "Inbox", contains: [".badge", { text: "1" }] });
+    await contains("button:has(:text('Inbox'))", { contains: [".badge:text('1')"] });
     const mention = [serverState.partnerId];
     const mentionName = serverState.partnerName;
     withUser(userId, () =>
@@ -709,7 +634,7 @@ test("Counter should be incremented by 1 when receiving a message with a mention
             thread_model: "discuss.channel",
         })
     );
-    await contains("button", { text: "Inbox", contains: [".badge", { text: "2" }] });
+    await contains("button:has(:text('Inbox'))", { contains: [".badge:text('2')"] });
 });
 
 test("Clear need action counter when opening a channel", async () => {
@@ -743,13 +668,11 @@ test("Clear need action counter when opening a channel", async () => {
     ]);
     await start();
     await openDiscuss("mail.box_inbox");
-    await contains(".o-mail-DiscussSidebar-item", {
-        text: "General",
-        contains: [".badge", { text: "2" }],
+    await contains(".o-mail-DiscussSidebarChannel:has(:text('General'))", {
+        contains: [".badge:text('2')"],
     });
-    await click(".o-mail-DiscussSidebarChannel", { text: "General" });
-    await contains(".o-mail-DiscussSidebar-item", {
-        text: "General",
+    await click(".o-mail-DiscussSidebarChannel:has(:text('General'))");
+    await contains(".o-mail-DiscussSidebar-item:has(:text('General'))", {
         contains: [".badge", { count: 0 }],
     });
 });
@@ -776,5 +699,112 @@ test("can reply to email message", async () => {
     await contains(".o-mail-Message");
     await click("[title='Expand']");
     await click(".o-dropdown-item:contains('Reply')");
-    await contains(".o-mail-Composer", { text: "Replying to md@oilcompany.fr" });
+    await contains(".o-mail-Composer:has(:text('Replying to md@oilcompany.fr'))");
+});
+
+test("can mark message as unread from history", async () => {
+    const pyEnv = await startServer();
+    pyEnv["res.users"].write([serverState.userId], { notification_type: "inbox" });
+    const partnerId = pyEnv["res.partner"].create({ name: "John Doe" });
+    const messageId = pyEnv["mail.message"].create({
+        author_id: partnerId,
+        body: "lorem ipsum",
+        model: "res.partner",
+        needaction: false,
+        res_id: partnerId,
+    });
+    pyEnv["mail.notification"].create({
+        is_read: true,
+        mail_message_id: messageId,
+        notification_status: "sent",
+        notification_type: "inbox",
+        res_partner_id: serverState.partnerId,
+    });
+    await start();
+    await openDiscuss("mail.box_history");
+    await contains(".o-mail-Message-body:text(lorem ipsum)");
+    await click("[title='Expand']");
+    await click(".o-dropdown-item:contains(Mark as Unread)");
+    await contains(".o-mail-Message-body:text(lorem ipsum)", { count: 0 });
+    await click(".o-mail-Mailbox[data-mailbox-id='inbox'] .badge:text(1)");
+    await contains(".o-mail-Message-body:text(lorem ipsum)");
+    await click(".o-mail-MessagingMenu-counter:text(1)");
+    await contains(".o-mail-NotificationItem-text:text(John Doe: lorem ipsum)");
+});
+
+test("show thread priority in Inbox", async () => {
+    const pyEnv = await startServer();
+    const fakeId = pyEnv["res.fake"].create({
+        name: "Some record",
+        priority: "2",
+    });
+    const messageId = pyEnv["mail.message"].create({
+        body: "not empty",
+        model: "res.fake",
+        res_id: fakeId,
+        needaction: true,
+    });
+    pyEnv["mail.notification"].create({
+        mail_message_id: messageId,
+        notification_status: "sent",
+        notification_type: "inbox",
+        res_partner_id: serverState.partnerId,
+    });
+    await start();
+    await openDiscuss("mail.box_inbox");
+    await contains(".o-mail-Message-header .fa-star", { count: 2 });
+    await contains(".o-mail-Message-header .fa-star-o");
+});
+
+test("show thread priority with only 1 or 0 star", async () => {
+    ResFake._fields.priority = fields.Selection({
+        selection: [
+            ["0", "Low priority"],
+            ["1", "Urgent"],
+        ],
+        default: "0",
+    });
+    const pyEnv = await startServer();
+    const [fakeId1, fakeId2] = pyEnv["res.fake"].create([
+        {
+            name: "Some record",
+            priority: "1",
+        },
+        {
+            name: "Some record",
+            priority: "0",
+        },
+    ]);
+    const [messageId1, messageId2] = pyEnv["mail.message"].create([
+        {
+            body: "not empty",
+            model: "res.fake",
+            res_id: fakeId1,
+            needaction: true,
+        },
+        {
+            body: "not empty",
+            model: "res.fake",
+            res_id: fakeId2,
+            needaction: true,
+        },
+    ]);
+    pyEnv["mail.notification"].create([
+        {
+            mail_message_id: messageId1,
+            notification_status: "sent",
+            notification_type: "inbox",
+            res_partner_id: serverState.partnerId,
+        },
+        {
+            mail_message_id: messageId2,
+            notification_status: "sent",
+            notification_type: "inbox",
+            res_partner_id: serverState.partnerId,
+        },
+    ]);
+    await start();
+    await openDiscuss("mail.box_inbox");
+    await contains(".o-mail-Message-header .fa-star");
+    await contains(".o-mail-Message-header .fa-star-o");
 });

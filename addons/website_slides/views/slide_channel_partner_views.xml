@@ -51,7 +51,6 @@
                         decoration-warning="channel_enroll == 'payment'"
                         optional="hide"/>
                     <field name="channel_website_id" groups="website.group_multi_website" optional="hide"/>
-                    <field name="active" column_invisible="True"/>
                     <button name="action_archive" title="Archive" icon="fa-times" type="object"
                         invisible="not active"/>
                     <button name="action_unarchive" title="Unarchive" icon="fa-undo" type="object"
@@ -92,7 +91,7 @@
             <field name="model">slide.channel.partner</field>
             <field name="arch" type="xml">
                 <pivot string="Attendees" sample="1">
-                    <field name="completion" invisible="1"/>
+                    <field name="completion"/>
                 </pivot>
             </field>
         </record>
@@ -128,5 +127,17 @@
             </field>
         </record>
 
+        <record id="slide_channel_partner_action_report_certified" model="ir.actions.act_window">
+            <field name="name">Certified attendees</field>
+            <field name="res_model">slide.channel.partner</field>
+            <field name="view_mode">list,form,kanban</field>
+            <field name="context">{'search_default_filter_completed': 1}</field>
+            <field name="search_view_id" ref="website_slides.slide_channel_partner_view_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    <strong>No Certified Attendees Yet!</strong>
+                </p>
+            </field>
+        </record>
     </data>
 </odoo>

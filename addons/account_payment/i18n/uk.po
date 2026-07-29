@@ -10,10 +10,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 10:23+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 12:46+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
@@ -154,6 +154,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "Для створення нової платіжної операції потрібен токен."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -168,6 +173,11 @@ msgstr "Сума доступна для повернення"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Сума боргу"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -192,8 +202,9 @@ msgstr "Авторизовані операції"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Рядок банківської виписки"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -360,7 +371,7 @@ msgid "Invoices Count"
 msgstr "Підрахунок рахунків"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "Рахунки на оплату"
 
@@ -419,6 +430,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "Опція онлайн-оплати не ввімкнена в конфігурації."
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -474,6 +492,7 @@ msgid "Pay overdue"
 msgstr "Оплатити протермінування"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -491,7 +510,17 @@ msgstr "Журнал оплати"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Спосіб оплати"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "Рядок способу оплати"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Способи оплати"
@@ -531,15 +560,16 @@ msgid "Payment Transactions"
 msgstr "Платіжні операції"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Платежі"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "Увійдіть, щоб оплатити протерміновані рахунки"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Прайс-листи"
 
 #. module: account_payment
 #. odoo-python
@@ -793,43 +823,17 @@ msgid "has been applied."
 msgstr "було застосовано."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "протерміновано"
 
-#~ msgid "Code"
-#~ msgstr "Код"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Не вдалося знайти відповідний варіант оплати.</strong><br/>\n"
-#~ "                                Якщо ви вважаєте, що це помилка, "
-#~ "зверніться до адміністратора сайту."
-
-#~ msgid "Pay with"
-#~ msgstr "Оплатити через"
-
-#~ msgid "Register Payment"
-#~ msgstr "Зареєструвати платіж"
-
-#~ msgid ""
-#~ "The payment related to the transaction with reference %(ref)s has been "
-#~ "posted: %(link)s"
-#~ msgstr ""
-#~ "Платіж, пов'язаний з транзакцією з референсом %(ref)s опубліковано: %"
-#~ "(link)s"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Тип повернення підтримується"
-
-#~ msgid ""
-#~ "You can't delete a payment method that is linked to a provider in the "
-#~ "enabled or test state.\n"
-#~ "Linked provider(s): %s"
-#~ msgstr ""
-#~ "Ви не можете видалити спосіб оплати, пов’язаний із постачальником у "
-#~ "включеному або тестовому стані.\n"
-#~ "Пов'язані провайдери: %s"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

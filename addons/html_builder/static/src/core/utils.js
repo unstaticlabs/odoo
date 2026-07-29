@@ -15,10 +15,17 @@ import {
     useState,
     useSubEnv,
 } from "@odoo/owl";
+import { convertNumericToUnit, getHtmlStyle } from "@html_editor/utils/formatting";
 import { useBus } from "@web/core/utils/hooks";
 import { effect } from "@web/core/utils/reactive";
 import { useDebounced } from "@web/core/utils/timing";
 import { BuilderAction } from "./builder_action";
+
+// Selectors for special cases where snippet options are bound to parent
+// containers instead of the snippet itself.
+export const BLOCKQUOTE_PARENT_HANDLERS = ".s_reviews_wall .row > div";
+export const BLOCKQUOTE_DISABLE_WIDTH_APPLY_TO = ":scope > .s_blockquote";
+export const SPECIAL_BLOCKQUOTE_SELECTOR = `${BLOCKQUOTE_PARENT_HANDLERS} > .s_blockquote`;
 
 /**
  * @typedef { import("../../../../html_editor/static/src/editor").EditorContext } EditorContext
@@ -665,8 +672,9 @@ function useOperationWithReload(callApply, reload) {
                 env.editor.shared.history.addStep();
                 await env.editor.shared.savePlugin.save();
                 const target = env.editor.shared.builderOptions.getReloadSelector(editingElement);
+                const folded = env.editor.shared.builderOptions.getFolded(editingElement);
                 const url = reload.getReloadUrl?.();
-                await env.editor.config.reloadEditor({ target, url });
+                await env.editor.config.reloadEditor({ target, folded, url });
             }
         } finally {
             env.services.ui.unblock();
@@ -681,6 +689,103 @@ function getValueWithDefault(userInputValue, defaultValue, formatRawValue) {
         }
     }
     return userInputValue;
+}
+
+export function useBuilderNumberInputUnits() {
+    const comp = useComponent();
+    const env = useEnv();
+
+    /**
+     * @param {string | number} values - Values separated by spaces or a number
+     * @param {(string) => string} convertSingleValueFn - Convert a single value
+     */
+    const convertSpaceSplitValues = (values, convertSingleValueFn) => {
+        if (typeof values === "number") {
+            return convertSingleValueFn(values.toString());
+        }
+        if (values === null) {
+            return values;
+        }
+        if (!values) {
+            return "";
+        }
+        return values.trim().split(/\s+/g).map(convertSingleValueFn).join(" ");
+    };
+
+    const formatRawValue = (rawValue) =>
+        convertSpaceSplitValues(rawValue, (value) => {
+            const unit = comp.props.unit;
+            const { savedValue, savedUnit } = value.match(
+                /(?<savedValue>[\d.e+-]+)(?<savedUnit>\w*)/
+            ).groups;
+            if (savedUnit || comp.props.saveUnit) {
+                // Convert value from saveUnit to unit
+                value = convertNumericToUnit(
+                    parseFloat(savedValue),
+                    savedUnit || comp.props.saveUnit,
+                    unit,
+                    getHtmlStyle(env.getEditingElement().ownerDocument)
+                );
+            }
+            // Put *at most* 3 decimal digits
+            return parseFloat(parseFloat(value).toFixed(3)).toString();
+        });
+
+    const clampValue = (value) => {
+        if (comp.props.composable && !value && value !== 0) {
+            return value;
+        }
+        value = parseFloat(value);
+        if (value < comp.props.min) {
+            return `${comp.props.min}`;
+        }
+        if (value > comp.props.max) {
+            return `${comp.props.max}`;
+        }
+        return +value.toFixed(3);
+    };
+
+    const parseDisplayValue = (displayValue) => {
+        if (!displayValue) {
+            return displayValue;
+        }
+        if (comp.props.composable) {
+            displayValue = displayValue
+                .trim()
+                .replace(/,/g, ".")
+                .replace(/[^0-9.-\s]/g, "")
+                // Only accept "-" at the start or after a space
+                .replace(/(?<!^|\s)-/g, "");
+        }
+        displayValue =
+            displayValue.split(" ").map(clampValue.bind(this)).join(" ") || comp.props.default;
+        return convertSpaceSplitValues(displayValue, (value) => {
+            if (value === "") {
+                return value;
+            }
+            const unit = comp.props.unit;
+            const saveUnit = comp.props.saveUnit;
+            const applyWithUnit = comp.props.applyWithUnit;
+            if (unit && saveUnit) {
+                // Convert value from unit to saveUnit
+                value = convertNumericToUnit(
+                    value,
+                    unit,
+                    saveUnit,
+                    getHtmlStyle(env.getEditingElement().ownerDocument)
+                );
+            }
+            if (unit && applyWithUnit) {
+                if (saveUnit || saveUnit === "") {
+                    value = value + saveUnit;
+                } else {
+                    value = value + unit;
+                }
+            }
+            return value;
+        });
+    };
+    return { formatRawValue, parseDisplayValue, clampValue };
 }
 
 /**
@@ -757,9 +862,10 @@ export function useInputBuilderComponent({
         );
         const { actionId, actionParam } = actionWithGetValue;
         try {
-            const actionValue =
-                getAction(actionId).getValue({ editingElement, params: actionParam }) ||
-                defaultValue;
+            let actionValue = getAction(actionId).getValue({ editingElement, params: actionParam });
+            if (actionValue === undefined) {
+                actionValue = defaultValue;
+            }
             return {
                 value: actionValue,
             };
@@ -1112,6 +1218,10 @@ export class BaseOptionComponent extends Component {
     static components = {};
     static props = {};
     static template = "";
+    // When `editableOnly` is set to false, the element does not need to be in
+    // an editable area and the checks are therefore lighter. (= previous
+    // data-no-check/noCheck)
+    static editableOnly = true;
 
     setup() {
         /** @type {EditorContext} */

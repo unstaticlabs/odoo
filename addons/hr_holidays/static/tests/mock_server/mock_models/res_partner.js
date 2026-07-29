@@ -5,34 +5,27 @@ import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
 export class ResPartner extends hrModels.ResPartner {
     leave_date_to = fields.Date({ related: false });
 
-    compute_im_status(partner) {
-        /** @type {import("mock_models").ResUsers} */
-        const ResUsers = this.env["res.users"];
-        if (partner.main_user_id && ResUsers.browse(partner.main_user_id).leave_date_to) {
-            if (partner.im_status === "online") {
-                return "leave_online";
-            } else if (partner.im_status === "away") {
-                return "leave_away";
-            } else {
-                return "leave_offline";
-            }
-        } else {
-            return super.compute_im_status(partner);
-        }
-    }
-
     get _to_store_defaults() {
+        const employeeFields = ["active", "company_id", "leave_date_to", "user_id"];
         return [
             ...super._to_store_defaults,
-            mailDataHelpers.Store.one(
-                "main_user_id",
-                mailDataHelpers.Store.many("employee_ids", [
-                    "active",
-                    "company_id",
-                    "leave_date_to",
-                    "user_id",
-                ])
-            ),
+            mailDataHelpers.Store.one("main_user_id", [
+                "partner_id",
+                mailDataHelpers.Store.many("all_employee_ids", employeeFields),
+                mailDataHelpers.Store.many("employee_ids", employeeFields),
+            ]),
+        ];
+    }
+
+    _get_store_im_status_fields() {
+        const employeeFields = ["active", "company_id", "leave_date_to", "user_id"];
+        return [
+            ...super._get_store_im_status_fields(),
+            mailDataHelpers.Store.one("main_user_id", [
+                "partner_id",
+                mailDataHelpers.Store.many("all_employee_ids", employeeFields),
+                mailDataHelpers.Store.many("employee_ids", employeeFields),
+            ]),
         ];
     }
 }

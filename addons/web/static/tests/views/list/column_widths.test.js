@@ -18,7 +18,7 @@ import {
 } from "@web/../tests/web_test_helpers";
 
 import { registry } from "@web/core/registry";
-import { resetDateFieldWidths } from "@web/views/list/column_width_hook";
+import { parseWidthAttribute, resetDateFieldWidths } from "@web/views/list/column_width_hook";
 
 describe.current.tags("desktop");
 
@@ -142,6 +142,15 @@ function expectedColumnWidthsToBeCloseTo(expectedColumnWidths) {
 }
 
 // width computation
+test(`width computation: parseWidthAttribute`, async () => {
+    expect(parseWidthAttribute("40")).toEqual({ min: 40, max: 40 });
+    expect(parseWidthAttribute("75px")).toEqual({ min: 75, max: 75 });
+    expect(parseWidthAttribute("[92]")).toEqual({ min: 92 });
+    expect(parseWidthAttribute("[24px]")).toEqual({ min: 24 });
+    expect(parseWidthAttribute("[120,200]")).toEqual({ min: 120, max: 200 });
+    expect(parseWidthAttribute("[75px,148px]")).toEqual({ min: 75, max: 148 });
+});
+
 test(`width computation: no record, lot of fields`, async () => {
     Foo._records = [];
     await mountView({
@@ -328,6 +337,34 @@ test(`width computation: with records, lot of fields, long texts`, async () => {
     expectedColumnWidthsToBeCloseTo([40, 29, 89, 80, 102, 99, 89, 188, 114, 100]);
 });
 
+test(`width computation: with records, lot of fields, long texts (mobile)`, async () => {
+    resize({ width: 400 });
+
+    Foo._records[0].text =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt";
+    Foo._records[1].foo = "Duis aute irure dolor in reprehenderit in voluptate velit esse cillumt";
+    Bar._records[1].name = "Lorem Ipsum is not simply random text.";
+
+    await mountView({
+        type: "list",
+        resModel: "foo",
+        arch: `
+            <list>
+                <field name="bar"/>
+                <field name="foo"/>
+                <field name="int_field"/>
+                <field name="m2o"/>
+                <field name="qux"/>
+                <field name="date"/>
+                <field name="text"/>
+                <field name="datetime"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+            </list>`,
+    });
+    expectedColumnWidthsToBeCloseTo([67, 329, 80, 263, 102, 99, 329, 188, 114, 100]);
+});
+
 test(`width computation: editable list, overflowing table`, async () => {
     class Abc extends models.Model {
         titi = fields.Char();
@@ -447,7 +484,7 @@ test(`width computation: widget with listViewWidth in its definition`, async () 
     expect(getColumnWidths()).toEqual([40, 180, 580]);
 });
 
-test(`width computation: list with width attribute in arch`, async () => {
+test(`width computation: list with width attribute in arch (fixed widths)`, async () => {
     await mountView({
         type: "list",
         resModel: "foo",
@@ -460,6 +497,21 @@ test(`width computation: list with width attribute in arch`, async () => {
             </list>`,
     });
     expect(getColumnWidths()).toEqual([40, 61, 72, 102, 524]);
+});
+
+test(`width computation: list with width attribute in arch (min/max widths)`, async () => {
+    await mountView({
+        type: "list",
+        resModel: "foo",
+        arch: `
+            <list>
+                <field name="int_field" width="[52,100]"/>
+                <field name="foo"/>
+                <field name="qux" width="[30]"/>
+                <field name="currency_id"/>
+            </list>`,
+    });
+    expect(getColumnWidths()).toEqual([40, 109, 165, 179, 306]);
 });
 
 test(`width computation: datetime in numeric, am/pm format`, async () => {
@@ -762,7 +814,7 @@ test(`width computation: button columns don't have a max width`, async () => {
     expect(tableWidth).toBeLessThan(800);
     columnWidths = getColumnWidths();
     // indices 0 and 1 because selectors aren't displayed on small screens
-    expect(columnWidths[0]).toBe(100);
+    expect(columnWidths[0]).toBe(210);
     expect(columnWidths[1]).toBeGreaterThan(330);
 });
 
@@ -1225,7 +1277,7 @@ test(`freeze widths: x2many, add first record`, async () => {
     });
 
     const initialWidths = getColumnWidths();
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_data_row").toHaveCount(1);
     expect(getColumnWidths()).toEqual(initialWidths);
 });
@@ -1305,7 +1357,7 @@ test(`freeze widths: x2many, toggle optional field`, async () => {
 
     // create a record to store the current widths, but discard it directly to keep
     // the list empty (otherwise, the browser automatically computes the optimal widths)
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(getColumnWidths()).toEqual([110, 626, 32]);
 
     await contains(".o_optional_columns_dropdown_toggle").click();

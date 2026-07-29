@@ -2,21 +2,22 @@
 
 from unittest.mock import Mock, patch
 
-from odoo.http import root
 from odoo.tests import HttpCase, tagged
 from odoo.tools import urls
 
 from odoo.addons.payment import utils as payment_utils
-from odoo.addons.website_sale.controllers.delivery import Delivery as WebsiteSaleDeliveryController
-from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.addons.website_sale.controllers.cart import Cart
+from odoo.addons.website_sale.controllers.delivery import (
+    Delivery as WebsiteSaleDeliveryController,
+)
+from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.addons.website_sale.tests.common import MockRequest, WebsiteSaleCommon
 
 
 @tagged('post_install', '-at_install')
 class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
-    """ The goal of this method class is to test the address management on
-        express checkout.
+    """The goal of this method class is to test the address management on
+    express checkout.
     """
 
     @classmethod
@@ -123,10 +124,8 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
         self.assertEqual(payment_values['minor_amount'], amount_without_delivery)
 
     def test_express_checkout_public_user(self):
-        """ Test that when using express checkout as a public user, a new partner is created. """
-        session = self.authenticate(None, None)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        """Test that when using express checkout as a public user, a new partner is created."""
+        self.authenticate(None, None, session_extra={'sale_order_id': self.sale_order.id})
 
         self.make_jsonrpc_request(
             urls.urljoin(
@@ -144,14 +143,16 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
         )
 
     def test_express_checkout_registered_user(self):
-        """ Test that when you use express checkout as a registered user and the address sent by the
-            express checkout form exactly matches the one registered in odoo, we do not create a new
-            partner and reuse the existing one.
+        """Test that when you use express checkout as a registered user and the address sent by the
+        express checkout form exactly matches the one registered in odoo, we do not create a new
+        partner and reuse the existing one.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
 
         self.make_jsonrpc_request(
             urls.urljoin(
@@ -167,17 +168,17 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
                     'zip': self.user_demo.partner_id.zip,
                     'country': self.user_demo.partner_id.country_id.code,
                     'state': self.user_demo.partner_id.state_id.code,
-                }
-            }
+                },
+            },
         )
 
         self.assertEqual(self.sale_order.partner_id.id, self.user_demo.partner_id.id)
         self.assertEqual(self.sale_order.partner_invoice_id.id, self.user_demo.partner_id.id)
 
     def test_express_checkout_registered_user_existing_address(self):
-        """ Test that when you use the express checkout as a registered user and the address sent by
-            the express checkout form exactly matches to one of the addresses linked to this user in
-            odoo, we do not create a new partner and reuse the existing one.
+        """Test that when you use the express checkout as a registered user and the address sent by
+        the express checkout form exactly matches to one of the addresses linked to this user in
+        odoo, we do not create a new partner and reuse the existing one.
         """
         # Create a child partner for the demo partner
         child_partner_address = dict(self.express_checkout_billing_values)
@@ -197,37 +198,41 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
         ))
 
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
 
         self.make_jsonrpc_request(
             urls.urljoin(
                 self.base_url(), WebsiteSale._express_checkout_route
             ), params={
                 'billing_address': dict(self.express_checkout_billing_values)
-            }
+            },
         )
 
         self.assertEqual(self.sale_order.partner_id.id, self.user_demo.partner_id.id)
         self.assertEqual(self.sale_order.partner_invoice_id.id, child_partner.id)
 
     def test_express_checkout_registered_user_new_address(self):
-        """ Test that when you use the express checkout as a registered user and the address sent by
-            the express checkout form doesn't match to one of the addresses linked to this user in
-            odoo, we create a new partner.
+        """Test that when you use the express checkout as a registered user and the address sent by
+        the express checkout form doesn't match to one of the addresses linked to this user in
+        odoo, we create a new partner.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
 
         self.make_jsonrpc_request(
             urls.urljoin(
-                self.base_url(), WebsiteSale._express_checkout_route
+                self.base_url(), WebsiteSale._express_checkout_route,
             ), params={
-                'billing_address': dict(self.express_checkout_billing_values)
-            }
+                'billing_address': dict(self.express_checkout_billing_values),
+            },
         )
 
         self.assertEqual(self.sale_order.partner_id.id, self.user_demo.partner_id.id)
@@ -239,15 +244,14 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
         )
 
     def test_express_checkout_public_user_shipping_address_change(self):
-        """ Test that when using express checkout as a public user and selecting a shipping address,
-            a new partner is created if the partner of the SO is the public partner.
+        """Test that when using express checkout as a public user and selecting a shipping address,
+        a new partner is created if the partner of the SO is the public partner.
         """
-        session = self.authenticate(None, None)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(None, None, session_extra={'sale_order_id': self.sale_order.id})
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
-            return_value=self.rate_shipment_result
+            return_value=self.rate_shipment_result,
         ):
             self.make_jsonrpc_request(
                 urls.urljoin(
@@ -269,13 +273,12 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             )
 
     def test_express_checkout_public_user_shipping_address_change_twice(self):
-        """ Test that when using express checkout as a public user and selecting a shipping address
-            more than once, a new partner is created if the partner of the SO is the public partner
-            (only creates one new partner that is updated).
+        """Test that when using express checkout as a public user and selecting a shipping address
+        more than once, a new partner is created if the partner of the SO is the public partner
+        (only creates one new partner that is updated).
         """
-        session = self.authenticate(None, None)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(None, None, session_extra={'sale_order_id': self.sale_order.id})
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -310,13 +313,16 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             )
 
     def test_express_checkout_registered_user_exisiting_shipping_address_change(self):
-        """ Test that when using express checkout as a registered user and selecting an exisiting
-            shipping address, the existing partner (the one of the SO) is reused.
+        """Test that when using express checkout as a registered user and selecting an exisiting
+        shipping address, the existing partner (the one of the SO) is reused.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -335,14 +341,17 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             self.assertEqual(self.sale_order.partner_id.id, self.user_demo.partner_id.id)
 
     def test_express_checkout_registered_user_new_shipping_address_change(self):
-        """ Test that when using express checkout as a registered user and selecting a new shipping
-            address, a new partner is created if the partner of the SO or his children are different
-            from the delivery information received.
+        """Test that when using express checkout as a registered user and selecting a new shipping
+        address, a new partner is created if the partner of the SO or his children are different
+        from the delivery information received.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -368,14 +377,17 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             )
 
     def test_express_checkout_registered_user_new_shipping_address_change_twice(self):
-        """ Test that when using express checkout as a registered user and selecting a new
-            shipping address more than once, a new partner is created if the partner of the SO is
-            the public partner (only creates one new partner that is updated).
+        """Test that when using express checkout as a registered user and selecting a new
+        shipping address more than once, a new partner is created if the partner of the SO is
+        the public partner (only creates one new partner that is updated).
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -410,8 +422,8 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             )
 
     def test_express_checkout_partial_delivery_address_context_key(self):
-        """ Test that when using express checkout with only partial delivery information,
-            `express_checkout_partial_delivery_address` context key is in the context.
+        """Test that when using express checkout with only partial delivery information,
+        `express_checkout_partial_delivery_address` context key is in the context.
         """
         delivery_carrier_mock = Mock()
         delivery_carrier_mock.rate_shipment = Mock(
@@ -427,14 +439,17 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
         self.assertTrue(sale_order.env.context.get('express_checkout_partial_delivery_address'))
 
     def test_express_checkout_registered_user_with_shipping_option(self):
-        """ Test that when you use the express checkout as a registered user and the shipping
-            address sent by the express checkout form exactly matches one of the addresses linked
-            to this user in Odoo, we do not create a new partner and reuse the existing one.
+        """Test that when you use the express checkout as a registered user and the shipping
+        address sent by the express checkout form exactly matches one of the addresses linked
+        to this user in Odoo, we do not create a new partner and reuse the existing one.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -466,14 +481,17 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
             self.assertEqual(self.sale_order.partner_id.id, self.user_demo.partner_id.id)
 
     def test_express_checkout_registered_user_with_shipping_option_new_address(self):
-        """ Test that when you use the express checkout as a registered user and the shipping
-            address sent by the express checkout form doesn't exist in Odoo, we create a new
-            partner.
+        """Test that when you use the express checkout as a registered user and the shipping
+        address sent by the express checkout form doesn't exist in Odoo, we create a new
+        partner.
         """
         self.sale_order.partner_id = self.user_demo.partner_id.id
-        session = self.authenticate(self.user_demo.login, self.user_demo.login)
-        session['sale_order_id'] = self.sale_order.id
-        root.session_store.save(session)
+        self.authenticate(
+            self.user_demo.login,
+            self.user_demo.login,
+            session_extra={'sale_order_id': self.sale_order.id},
+        )
+
         with patch(
             'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
             return_value=self.rate_shipment_result
@@ -513,23 +531,20 @@ class TestWebsiteSaleExpressCheckoutFlows(WebsiteSaleCommon, HttpCase):
                 self.sale_order.partner_shipping_id.name.endswith(self.sale_order.name)
             )
 
-    def test_express_checkout_compute_taxes_returns_amount_without_delivery(self):
+    def test_express_checkout_shipping_address_change_returns_amount_without_delivery(self):
         """
-        Test that the /express_checkout/compute_taxes route returns the minor amount
-        without delivery costs.
+        Test that the minor amount returned by the /shop/express/shipping_address_change route
+        doens't include delivery costs.
         """
         websiteSaleDeliveryController = WebsiteSaleDeliveryController()
 
-        delivery_product = self.env['product.product'].create({'name': 'Delivery'})
-        delivery = self.env['delivery.carrier'].create({
-            'name': 'Normal Delivery Charges',
-            'fixed_price': 10,
-            'delivery_type': 'fixed',
-            'product_id': delivery_product.id,
-        })
-        self.sale_order._create_delivery_line(delivery, 10)
         expected_amount = self.sale_order._compute_amount_total_without_delivery()
 
-        with MockRequest(self.env, website=self.website, sale_order_id=self.sale_order.id):
-            minor_amount = websiteSaleDeliveryController.express_checkout_shipping_address_compute_taxes()
-            self.assertEqual(minor_amount, expected_amount * 100)
+        with patch(
+            'odoo.addons.delivery.models.delivery_carrier.DeliveryCarrier.rate_shipment',
+            return_value=self.rate_shipment_result
+        ), MockRequest(self.env, website=self.website, sale_order_id=self.sale_order.id):
+            result = websiteSaleDeliveryController.express_checkout_process_delivery_address(
+                partial_delivery_address=self.express_checkout_anonymized_shipping_values,
+            )
+            self.assertEqual(result['adjusted_minor_amount'], expected_amount * 100)

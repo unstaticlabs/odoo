@@ -2,13 +2,13 @@
 # This file contains the translation of the following modules:
 # * pos_sale
 #
-# Oakarmin Iron <oakarminiron@gmail.com>, 2025, 2026.
+# Oakarmin Iron <oakarminiron@gmail.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 22:20+0000\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-10-28 07:12+0000\n"
 "Last-Translator: Oakarmin Iron <oakarminiron@gmail.com>\n"
 "Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/pos_sale/"
 "my/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_sale
 #. odoo-python
@@ -40,6 +40,11 @@ msgstr ""
 #. module: pos_sale
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "<span style=\"margin: 0px 5px;\">:</span>"
+msgstr ""
+
+#. module: pos_sale
+#: model_terms:ir.ui.view,arch_db:pos_sale.pos_orderline_receipt_information
+msgid "<strong>Sale Order: </strong>"
 msgstr ""
 
 #. module: pos_sale
@@ -101,12 +106,19 @@ msgid "Delivery Quantity"
 msgstr ""
 
 #. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid "Discard"
+msgstr ""
+
+#. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_crm_team__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__display_name
@@ -173,6 +185,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__id
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__id
@@ -195,6 +208,14 @@ msgstr ""
 msgid ""
 "It seems that you didn't configure a down payment product in your point of "
 "sale. You can go to your point of sale configuration to choose one."
+msgstr ""
+
+#. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid ""
+"It seems that you didn't configure a down payment product in your point of "
+"sale. You can go to your point of sale settings to choose one."
 msgstr ""
 
 #. module: pos_sale
@@ -262,13 +283,18 @@ msgid "Point of Sale Configuration"
 msgstr ""
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order_line
-msgid "Point of Sale Order Lines"
+#: model:ir.model,name:pos_sale.model_pos_order
+msgid "Point of Sale Order"
 msgstr ""
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order
-msgid "Point of Sale Orders"
+#: model:ir.model,name:pos_sale.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_sale
+#: model:ir.model,name:pos_sale.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
 msgstr ""
 
 #. module: pos_sale
@@ -317,7 +343,7 @@ msgstr ""
 #. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__sale_order_count
 msgid "Sale Order Count"
-msgstr "အရောင်း အော်ဒါ အရေအတွက်"
+msgstr ""
 
 #. module: pos_sale
 #: model_terms:ir.ui.view,arch_db:pos_sale.res_config_settings_view_form

@@ -2,25 +2,25 @@
 # This file contains the translation of the following modules:
 # * marketing_card
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 22:35+0000\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2026-01-24 12:26+0000\n"
 "Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-1/"
 "marketing_card/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: marketing_card
 #. odoo-python
@@ -128,6 +128,11 @@ msgid "Activity Exception Decoration"
 msgstr "Decorazione eccezione attività"
 
 #. module: marketing_card
+#: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Piani attività"
+
+#. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__activity_state
 msgid "Activity State"
 msgstr "Stato attività"
@@ -144,8 +149,8 @@ msgid ""
 "An error occured while rendering a card for %(record_name)s. Try again or "
 "check the server logs for more details."
 msgstr ""
-"Si è verificato un errore durante la visualizzazione della scheda per %"
-"(record_name)s. Prova di nuovo oppure controlla i log del server per avere "
+"Si è verificato un errore durante la visualizzazione della scheda per "
+"%(record_name)s. Prova di nuovo oppure controlla i log del server per avere "
 "più dettagli."
 
 #. module: marketing_card
@@ -623,6 +628,11 @@ msgid "Messages"
 msgstr "Messaggi"
 
 #. module: marketing_card
+#: model:ir.model,name:marketing_card.model_ir_model
+msgid "Model"
+msgstr "Modello"
+
+#. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__res_model
 #: model:ir.model.fields,field_description:marketing_card.field_card_card__res_model
 msgid "Model Name"
@@ -636,11 +646,6 @@ msgid ""
 msgstr ""
 "Il modello della campagna %(campaign)s potrebbe non essere modificato dato "
 "che ha già delle schede"
-
-#. module: marketing_card
-#: model:ir.model,name:marketing_card.model_ir_model
-msgid "Models"
-msgstr "Modelli"
 
 #. module: marketing_card
 #: model:ir.model.fields,field_description:marketing_card.field_card_campaign__my_activity_date_deadline
@@ -1138,20 +1143,3 @@ msgstr "ad es. Presentazione"
 #: model_terms:ir.ui.view,arch_db:marketing_card.card_campaign_view_form
 msgid "e.g. Why people should share on their network?"
 msgstr "ad es. Perché le persone dovrebbero condividerla sulla propria rete?"
-
-#~ msgid "Filter By"
-#~ msgstr "Filtra per"
-
-#~ msgid "Group By"
-#~ msgstr "Raggruppa per"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "Lingua di traduzione opzionale (codice ISO) da selezionare quando si "
-#~ "invia un'email. Se non impostato, verrà usata la versione inglese. Di "
-#~ "solito dovrebbe essere un'espressione segnaposto che fornisce la lingua "
-#~ "appropriata, ad esempio {{ object.partner_id.lang }}."

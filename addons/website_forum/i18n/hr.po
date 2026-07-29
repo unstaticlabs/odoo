@@ -17,15 +17,15 @@
 # Matej Mijoč, 2022
 # Martin Trigaux, 2022
 # Bole <bole@dajmi5.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:00+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Croatian <https://translate.odoo.com/projects/odoo-19/"
 "website_forum/hr/>\n"
 "Language: hr\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -2297,11 +2297,6 @@ msgid "Left 10 answers with score of 10 or more"
 msgstr ""
 
 #. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr ""
-
-#. module: website_forum
 #. odoo-javascript
 #: code:addons/website_forum/static/src/xml/public_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:website_forum.post_display
@@ -3292,6 +3287,20 @@ msgid "The accepted answer is deleted"
 msgstr ""
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3664,6 +3673,13 @@ msgid "Website / Forum"
 msgstr "Web stranica / Forum"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3671,7 +3687,9 @@ msgid "Website Messages"
 msgstr "Poruke webstranica"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "URL web stranice"
 
@@ -4143,111 +4161,3 @@ msgstr "vaša biografija može bit vidljiva kao tooltip"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "Vaš e-mail..."
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Uvredljiv]</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Odgovor]</b>"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "Označeno\n"
-#~ "</small>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>Od </span>"
-
-#~ msgid "About"
-#~ msgstr "O programu"
-
-#~ msgid "All Tags"
-#~ msgstr "Sve oznake"
-
-#~ msgid "Answer"
-#~ msgstr "Odgovor"
-
-#~ msgid "Back"
-#~ msgstr "Natrag"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Komentiraj ovu objavu..."
-
-#~ msgid "Comments"
-#~ msgstr "Komentari"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Pretvori sve odgovore u komentare i obrnuto"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Pretvori svoje odgovore u komentare i obratno"
-
-#~ msgid "Following"
-#~ msgstr "Slijedi"
-
-#~ msgid "Group By"
-#~ msgstr "Grupiraj po"
-
-#~ msgid "Karma"
-#~ msgstr "Karma"
-
-#~ msgid "Last activity date"
-#~ msgstr "Datum posljednje aktivnosti"
-
-#~ msgid "Menu"
-#~ msgstr "Izbornik"
-
-#~ msgid "Moderation"
-#~ msgstr "Moderiranje"
-
-#~ msgid "More"
-#~ msgstr "Više"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Broj poruka koje zahtijevaju aktivnost"
-
-#~ msgid "Our forums"
-#~ msgstr "Naši forumi"
-
-#~ msgid "People"
-#~ msgstr "Osobe"
-
-#~ msgid "Post Comment"
-#~ msgstr "Objavi komentar"
-
-#~ msgid "Posts:"
-#~ msgstr "Postovi:"
-
-#~ msgid "Register"
-#~ msgstr "Registracija"
-
-#~ msgid "Return to the question list."
-#~ msgstr "Povratak na popis pitanja"
-
-#~ msgid "Show"
-#~ msgstr "Prikaži"
-
-#~ msgid "Sign in"
-#~ msgstr "Prijava"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "Žao nam je, morate biti prijavljeni za ovu akciju"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Žao nam je, morate biti prijavljeni kako biste označili objavu"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "Žao nam je, morate biti prijavljeni za glasanje"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr "Žao nam je, anonimni korisnici ne mogu birati točan odgovor."
-
-#~ msgid "Trending"
-#~ msgstr "Trendovi"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Čeka ovjeru"

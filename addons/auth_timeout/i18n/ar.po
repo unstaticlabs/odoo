@@ -3,15 +3,15 @@
 # * auth_timeout
 #
 # "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 11:47+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-05-23 17:17+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-2/"
 "auth_timeout/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_res_groups
@@ -30,31 +30,6 @@ msgstr "مجموعات الوصول"
 #: model:ir.model,name:auth_timeout.model_auth_totp_device
 msgid "Authentication Device"
 msgstr "جهاز المصادقة"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Authentication code"
-msgstr "رمز المصادقة"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Authentication code via email"
-msgstr "رمز المصادقة عبر البريد الإلكتروني"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Confirm"
-msgstr "تأكيد"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-#: model_terms:ir.ui.view,arch_db:auth_timeout.check_identity
-msgid "Confirm access"
-msgstr "تأكيد الوصول"
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_auth_totp_device__display_name
@@ -69,26 +44,12 @@ msgstr "اسم العرض"
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_inactivity_mfa
 msgid ""
 "Enable two-factor authentication when the inactivity timeout is reached."
-msgstr "قم بتمكين المصادقة ثنائية العوامل عند انتهاء الوقت المحدد لعدم النشاط."
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_mfa
 msgid "Enable two-factor authentication when the session timeout is reached."
-msgstr "قم بتمكين المصادقة ثنائية العوامل عند انتهاء الوقت المحدد للجلسة."
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Enter below the six-digit authentication code just sent to your email"
 msgstr ""
-"قم بإدخال رمز المصادقة المكون من ستة أرقام الذي تم إرساله للتو إلى بريدك "
-"الإلكتروني"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Forgot password?"
-msgstr "هل نسيت كلمة المرور؟"
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_ir_http
@@ -98,18 +59,12 @@ msgstr "مسار HTTP"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__has_lock_timeout
 msgid "Has Lock Timeout"
-msgstr "هناك مهلة قفل"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__has_lock_timeout_inactivity
 msgid "Has Lock Timeout Inactivity"
-msgstr "يحتوي على مهلة قفل في حال عدم النشاط"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Having problems ?"
-msgstr "واجهتك أي مشكلة؟"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_auth_totp_device__id
@@ -128,37 +83,37 @@ msgstr "عدم النشاط"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity
 msgid "Inactivity timeout"
-msgstr "مهلة عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_2fa_selection
 msgid "Lock Timeout 2Fa Selection"
-msgstr "اختيار مهلة القفل 2Fa"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_delay_in_unit
 msgid "Lock Timeout Delay In Unit"
-msgstr "تأخير مهلة القفل بالوحدة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_delay_unit
 msgid "Lock Timeout Delay Unit"
-msgstr "وحدة تأخير انتهاء مهلة القفل"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_2fa_selection
 msgid "Lock Timeout Inactivity 2Fa Selection"
-msgstr "اختيار المصادقة الثنائية لوقت انتهاء صلاحية القفل بسبب عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_delay_in_unit
 msgid "Lock Timeout Inactivity Delay In Unit"
-msgstr "تأخير مهلة القفل بسبب عدم النشاط بالوحدة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_delay_unit
 msgid "Lock Timeout Inactivity Delay Unit"
-msgstr "وحدة تأخير مهلة القفل بسبب عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_2fa_selection__without_2fa
@@ -168,59 +123,37 @@ msgstr "تسجيل الخروج"
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_2fa_selection__with_2fa
 msgid "Logout with two-factor authentication"
-msgstr "تسجيل الخروج باستخدام المصادقة الثنائية"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid ""
-"Open your two-factor authenticator (TOTP) app or browser extension to view "
-"your authentication code."
 msgstr ""
-"افتح تطبيق المصادقة الثنائية (TOTP) أو ملحق المتصفح لعرض رمز المصادقة الخاص "
-"بك."
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Passkey"
-msgstr "مفتاح المرور"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Password"
-msgstr "كلمة المرور"
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_mfa
 msgid "Require MFA on inactivity timeout"
-msgstr "قم بطلب MFA عند انتهاء مهلة عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_mfa
 msgid "Require MFA on session timeout"
-msgstr "قم بطلب MFA عند انتهاء مهلة الجلسة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__has_lock_timeout_inactivity
 msgid "Requires re-authentication after a period of user inactivity"
-msgstr "يتطلب إعادة المصادقة بعد فترة من عدم نشاط المستخدم"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__has_lock_timeout
 msgid "Requires re-authentication after the user's last connection"
-msgstr "يتطلب إعادة المصادقة بعد آخر اتصال للمستخدم"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_inactivity_2fa_selection__without_2fa
 msgid "Screen lock"
-msgstr "قفل الشاشة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_inactivity_2fa_selection__with_2fa
 msgid "Screen lock with two-factor authentication"
-msgstr "قفل الشاشة باستخدام المصادقة الثنائية"
+msgstr ""
 
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
@@ -230,13 +163,7 @@ msgstr "الجلسة"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout
 msgid "Session timeout"
-msgstr "انتهاء مهلة الجلسة"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Signed in as"
-msgstr "تم تسجيل الدخول باسم"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_inactivity
@@ -244,7 +171,6 @@ msgid ""
 "Time (in minutes) of user inactivity after which re-authentication is "
 "required."
 msgstr ""
-"الوقت (بالدقائق) الذي يمر دون نشاط من المستخدم، وبعده يتعين إعادة المصادقة."
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout
@@ -252,8 +178,6 @@ msgid ""
 "Time interval (in minutes) after which re-authentication is required, "
 "regardless of inactivity."
 msgstr ""
-"الفاصل الزمني (بالدقائق) الذي يتعين بعده إعادة المصادقة، بغض النظر عن عدم "
-"النشاط."
 
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
@@ -261,57 +185,9 @@ msgid "Timeouts"
 msgstr "المهلة الزمنية"
 
 #. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Use an authentication code sent by email"
-msgstr "استخدم رمز المصادقة المرسل عبر البريد الإلكتروني"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Use passkey"
-msgstr "استخدام مفتاح المرور"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Use your authenticator app"
-msgstr "استخدم تطبيق المصادقة الخاص بك"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Use your passkey"
-msgstr "استخدم مفتاح المرور الخاص بك"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Use your password"
-msgstr "استخدم كلمة المرور الخاصة بك"
-
-#. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_res_users
 msgid "User"
 msgstr "المستخدم"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "Verify"
-msgstr "تأكيد"
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "When you are ready, authenticate using the button below."
-msgstr "عندما تكون جاهزًا، قم بالمصادقة باستخدام الزر أدناه."
-
-#. module: auth_timeout
-#. odoo-javascript
-#: code:addons/auth_timeout/static/src/services/check_identity/check_identity.xml:0
-msgid "XXXXXX"
-msgstr "XXXXXX"
 
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
@@ -344,7 +220,7 @@ msgstr "دقائق"
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
 msgid "of inactivity"
-msgstr "من عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_ir_websocket

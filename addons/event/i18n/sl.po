@@ -13,14 +13,14 @@
 # Martin Trigaux, 2022
 # Jasmina Macur <jasmina@hbs.si>, 2022
 # Tomaž Jug <tomaz@editor.si>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 21:05+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2025-09-16 21:30+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Slovenian <https://translate.odoo.com/projects/odoo-19/event/"
 "sl/>\n"
 "Language: sl\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
 "n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_question__event_count
@@ -134,8 +134,8 @@ msgid ""
 "'Full Page Ticket - %s - %s' % ((object.event_id.name or "
 "'Event').replace('/',''), (object.name or '').replace('/',''))"
 msgstr ""
-"'Vstopnica na celo stran - %s - %s' % ((object.event_id.name or 'Event')"
-".replace('/',''), (object.name or '').replace('/',''))"
+"'Vstopnica na celo stran - %s - %s' % ((object.event_id.name or "
+"'Event').replace('/',''), (object.name or '').replace('/',''))"
 
 #. module: event
 #: model:ir.actions.report,print_report_name:event.action_report_event_event_full_page_ticket
@@ -243,8 +243,8 @@ msgid ""
 "tracks online through a Youtube integration</span>"
 msgstr ""
 "<br/>\n"
-"                                        <span class=\"text-muted\">"
-"Predvajajte svoje skladbe na spletu prek integracije YouTuba</span>"
+"                                        <span class=\"text-"
+"muted\">Predvajajte svoje skladbe na spletu prek integracije YouTuba</span>"
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
@@ -293,8 +293,8 @@ msgid ""
 "<i class=\"fa fa-info-circle me-2\"></i>This event and all the conferences "
 "are in <b>English</b>!"
 msgstr ""
-"<i class=\"fa fa-info-circle me-2\"></i>Ta dogodek in vse konference so v<b>"
-"angleščini</b>!"
+"<i class=\"fa fa-info-circle me-2\"></i>Ta dogodek in vse konference so "
+"v<b>angleščini</b>!"
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.view_event_kanban
@@ -1573,8 +1573,9 @@ msgstr "Opis vstopnice, ki jo želite sporočiti svojim strankam."
 msgid ""
 "A slot cannot be scheduled outside of its event time range.\n"
 "\n"
-"Event:\t\t%(event_start)s - %(event_end)s\n"
-"Slot:\t\t%(slot_name)s"
+"Event:\t%(event_start_date)s, %(event_start_time)s - %(event_end_date)s, %"
+"(event_end_time)s\n"
+"Slot:\t%(slot_name)s"
 msgstr ""
 
 #. module: event
@@ -1637,6 +1638,12 @@ msgid "Activity Exception Decoration"
 msgstr "Izjema pri oznaki aktivnosti"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_event_event__activity_plans_ids
+#: model:ir.model.fields,field_description:event.field_event_registration__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__activity_state
 #: model:ir.model.fields,field_description:event.field_event_registration__activity_state
 msgid "Activity State"
@@ -1676,7 +1683,19 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_type_form
 msgid "Add some internal notes (to do lists, contact info, ...)"
-msgstr "Dodajte nekaj notranjih opomb (seznami opravil, kontaktni podatki, ...)"
+msgstr ""
+"Dodajte nekaj notranjih opomb (seznami opravil, kontaktni podatki, ...)"
+
+#. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid ""
+"Adding these slots will automatically adjust the event's time range to "
+"include them.\n"
+"\n"
+"From:\t%(start)s - %(end)s\n"
+"To:\t\t%(new_start)s - %(new_end)s\n"
+msgstr ""
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__address_search
@@ -2206,6 +2225,12 @@ msgid "Confirm attendance?"
 msgstr "Potrditi udeležbo?"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Confirmation"
+msgstr ""
+
+#. module: event
 #: model:ir.model,name:event.model_res_partner
 msgid "Contact"
 msgstr "Stik"
@@ -2349,6 +2374,11 @@ msgid "Design Fair Los Angeles"
 msgstr "Sejem oblikovanja v Los Angelesu"
 
 #. module: event
+#: model:ir.model,name:event.model_digest_digest
+msgid "Digest"
+msgstr ""
+
+#. module: event
 #: model:event.event,subtitle:event.event_4
 msgid "Discover how to grow a sustainable business with our experts."
 msgstr "Odkrijte, kako z našimi strokovnjaki razviti trajnostno podjetje."
@@ -2359,6 +2389,7 @@ msgid "Discover more"
 msgstr "Odkrijte več"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:event.field_event_event__display_name
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__display_name
 #: model:ir.model.fields,field_description:event.field_event_mail__display_name
@@ -2431,8 +2462,8 @@ msgstr "E-pošta"
 
 #. module: event
 #: model:ir.model,name:event.model_mail_template
-msgid "Email Templates"
-msgstr "Predloge e-pošte"
+msgid "Email Template"
+msgstr ""
 
 #. module: event
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
@@ -2490,6 +2521,7 @@ msgstr "Napaka"
 #: model:ir.model.fields,field_description:event.field_event_registration__event_id
 #: model:ir.model.fields,field_description:event.field_event_registration_answer__event_id
 #: model:ir.model.fields,field_description:event.field_event_slot__event_id
+#: model_terms:ir.ui.view,arch_db:event.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:event.event_event_view_activity
 #: model_terms:ir.ui.view,arch_db:event.event_question_view_search
 #: model_terms:ir.ui.view,arch_db:event.view_event_search
@@ -3075,6 +3107,7 @@ msgid "How to Fold (4)"
 msgstr "Kako zložiti (4)"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__id
 #: model:ir.model.fields,field_description:event.field_event_event__id
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__id
 #: model:ir.model.fields,field_description:event.field_event_mail__id
@@ -3332,6 +3365,11 @@ msgstr "Kanban stanje"
 #: model_terms:ir.ui.view,arch_db:event.res_config_settings_view_form
 msgid "Key"
 msgstr "Ključ"
+
+#. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations_value
+msgid "Kpi Nbr Of Registrations Value"
+msgstr ""
 
 #. module: event
 #: model:ir.model.fields,field_description:event.field_event_event__lang
@@ -3624,13 +3662,16 @@ msgid "Name"
 msgstr "Naziv"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.xml:0
 #: model:event.stage,name:event.event_stage_new
 msgid "New"
 msgstr "Novo"
 
 #. module: event
 #. odoo-javascript
-#: code:addons/event/static/src/views/event_slot_calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+#: code:addons/event/static/src/views/event_slot/list/event_slot_list_controller.js:0
 msgid "New Slot"
 msgstr ""
 
@@ -4089,6 +4130,7 @@ msgid "Registration statistics"
 msgstr "Statistika registracij"
 
 #. module: event
+#: model:ir.model.fields,field_description:event.field_digest_digest__kpi_nbr_of_registrations
 #: model:ir.model.fields,field_description:event.field_event_event_ticket__registration_ids
 msgid "Registrations"
 msgstr "Registracije"
@@ -4225,6 +4267,12 @@ msgid "Select Attendee"
 msgstr "Izberite udeleženca"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_multi_selection_buttons.xml:0
+msgid "Select days to add slots"
+msgstr ""
+
+#. module: event
 #: model_terms:ir.ui.view,arch_db:event.event_registration_answer_view_tree
 msgid "Selected answer"
 msgstr "Izbrani odgovor"
@@ -4352,6 +4400,7 @@ msgstr ""
 #: code:addons/event/models/event_event.py:0
 #: model:ir.actions.act_window,name:event.event_slot_action_from_event
 #: model:ir.model.fields,field_description:event.field_event_event__event_slot_ids
+#: model_terms:ir.ui.view,arch_db:event.view_event_form
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_calendar
 #: model_terms:ir.ui.view,arch_db:event.view_event_slot_tree
 msgid "Slots"
@@ -4988,6 +5037,12 @@ msgid "Upcoming/Running"
 msgstr "Napovedano/V teku"
 
 #. module: event
+#. odoo-javascript
+#: code:addons/event/static/src/views/event_slot/calendar/event_slot_calendar_controller.js:0
+msgid "Update Event"
+msgstr ""
+
+#. module: event
 #. odoo-python
 #: code:addons/event/models/event_event.py:0
 msgid "Update the limit of registrations?"
@@ -5139,7 +5194,8 @@ msgstr "Resnično si med najboljšimi."
 #: code:addons/event/models/event_question.py:0
 msgid ""
 "You cannot change the question type of a question that already has answers!"
-msgstr "Vrste vprašanja, na katero že obstajajo odgovori, ne morete spremeniti!"
+msgstr ""
+"Vrste vprašanja, na katero že obstajajo odgovori, ne morete spremeniti!"
 
 #. module: event
 #. odoo-python
@@ -5320,120 +5376,3 @@ msgstr "{{ object.event_id.name }}: {{ object.event_date_range }}"
 
 #~ msgid "5-10"
 #~ msgstr "5-10"
-
-#~ msgid "Warning"
-#~ msgstr "Opozorilo"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check\" role=\"img\" aria-label=\"Confirm button\" "
-#~ "title=\"Confirm Registration\"/>"
-
-#~ msgid "After the event"
-#~ msgstr "Po dogodku"
-
-#~ msgid "Automatically Confirm Registrations"
-#~ msgstr "Samodejno potrdi registracije"
-
-#~ msgid "Before the event"
-#~ msgstr "Pred dogodkom"
-
-#~ msgid "Confirm"
-#~ msgstr "Potrdi"
-
-#~ msgid "Confirm Registration"
-#~ msgstr "Potrdi registracijo"
-
-#~ msgid "Confirmed"
-#~ msgstr "Potrjeno"
-
-#~ msgid "Customer"
-#~ msgstr "Stranka"
-
-#~ msgid "Customer Email"
-#~ msgstr "E-pošta stranke"
-
-#~ msgid "Done"
-#~ msgstr "Opravljeno"
-
-#~ msgid ""
-#~ "Events and registrations will automatically be confirmed upon creation, "
-#~ "easing the flow for simple events."
-#~ msgstr ""
-#~ "Dogodki in registracije bodo samodejno potrjeni ob ustvarjanju, kar bo "
-#~ "olajšalo pretok enostavnih dogodkov."
-
-#~ msgid "Expected"
-#~ msgstr "Pričakovano"
-
-#~ msgid "Expected attendees"
-#~ msgstr "Pričakovani udeleženci"
-
-#~ msgid ""
-#~ "For each event you can define a maximum registration of seats(number of "
-#~ "attendees), above this numbers the registrations are not accepted."
-#~ msgstr ""
-#~ "Za vsak dogodek lahko določite največjo dovoljeno število sedežev "
-#~ "(število udeležencev). Nad tem številom pa prijave ne bodo sprejete."
-
-#~ msgid "Green Kanban Label"
-#~ msgstr "Zelena kanban oznaka"
-
-#~ msgid "Group By"
-#~ msgstr "Združi po"
-
-#~ msgid "Kanban Blocked Explanation"
-#~ msgstr "Obrazložitev blokade v kanban"
-
-#~ msgid "Kanban Ongoing Explanation"
-#~ msgstr "Obrazložitev 'v teku' v kanban"
-
-#~ msgid "Kanban Valid Explanation"
-#~ msgstr "Obrazložitev 'veljavno' v kanban"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobilni telefon"
-
-#~ msgid "None"
-#~ msgstr "Ni prenosa"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Število sporočil, ki zahtevajo dejavnost"
-
-#~ msgid "Red Kanban Label"
-#~ msgstr "Rdeča kanban oznaka"
-
-#~ msgid "Scan badges to confirm attendances"
-#~ msgstr "Skenirajte značke, da potrdite udeležbo"
-
-#~ msgid "Set To Unconfirmed"
-#~ msgstr "Nastavi na 'Nepotrjen'"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Prikaži vse zapise z datumom naslednje aktivnosti pred današnjim datumom."
-
-#~ msgid "Task is blocked. Click to unblock or set as done."
-#~ msgstr ""
-#~ "Opravilo je blokirano. Kliknite, če želite deblokirati ali nastaviti kot "
-#~ "dokončano."
-
-#~ msgid "This operator is not supported"
-#~ msgstr "Ta operater ni podprt"
-
-#~ msgid "WARNING: Event Scheduler Error for event: %s"
-#~ msgstr "OPOZORILO: Napaka razporejevalnika dogodkov za dogodek:%s"
-
-#~ msgid "events@odoo.com"
-#~ msgstr "events@odoo.com"
-
-#~ msgid "events@yourcompany.com"
-#~ msgstr "events@yourcompany.com"
-
-#~ msgid "reserved +"
-#~ msgstr "rezervirano +"
-
-#~ msgid "unconfirmed"
-#~ msgstr "nepotrjeno"

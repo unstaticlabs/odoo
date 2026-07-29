@@ -7,14 +7,14 @@
 # Mustafa J. Kadhem <safi2266@gmail.com>, 2022
 # Niyas Raphy, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 08:36+0000\n"
+"PO-Revision-Date: 2025-11-11 17:16+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/sms/ar/>\n"
 "Language: ar\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -70,8 +70,8 @@ msgid ""
 "<i class=\"fa fa-warning\"/> You cannot send SMS while your account is not "
 "registered."
 msgstr ""
-"<i class=\"fa fa-warning\"/>  لا يمكنك إرسال رسائل نصية قصيرة بينما حسابك غير "
-"مسجل."
+"<i class=\"fa fa-warning\"/>  لا يمكنك إرسال رسائل نصية قصيرة بينما حسابك "
+"غير مسجل."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.iap_account_view_form
@@ -157,8 +157,8 @@ msgstr ""
 "نشرها فقط\n"
 "                                    كملاحظة داخلية في سجل الرسائل.\n"
 "                                </span>\n"
-"                                <span invisible=\"sms_method != 'comment'\">"
-"\n"
+"                                <span invisible=\"sms_method != "
+"'comment'\">\n"
 "                                    سيتم إرسال الرسائل النصية القصيرة كرسالة "
 "نصية قصيرة إلى مستلمي\n"
 "                                    القالب وسيتم نشره أيضاً كملاحظة داخلية\n"
@@ -199,6 +199,12 @@ msgid ""
 msgstr ""
 "قم بإضافة إجراء سياقي في النموذج ذي الصلة لفتح أداة إنشاء الرسائل النصية "
 "القصيرة مع هذا القالب"
+
+#. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
@@ -272,10 +278,7 @@ msgid "Buy credits."
 msgstr "شراء رصيد."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 msgid "Cancel"
 msgstr "إلغاء"
@@ -310,8 +313,8 @@ msgstr "اختر اسم المُرسِل"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-msgid "Companies"
-msgstr "الشركات"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -402,12 +405,6 @@ msgid "Delivered"
 msgstr "تم التوصيل"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-msgid "Discard"
-msgstr "إهمال"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -430,8 +427,8 @@ msgstr "اسم العرض"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-msgid "Document Followers"
-msgstr "متابعي المستند"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -559,9 +556,9 @@ msgstr "المُعرف"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -694,6 +691,12 @@ msgid "Marked for deletion"
 msgstr "محدد للحذف"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -702,8 +705,8 @@ msgstr "الرسالة"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-msgid "Message Notifications"
-msgstr "إشعارات الرسائل"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -715,8 +718,8 @@ msgstr "الرقم مفقود"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-msgid "Models"
-msgstr "النماذج"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -753,8 +756,8 @@ msgid ""
 "Note that this is not required, if you don't set a sender name, your SMS "
 "will be sent from a short code."
 msgstr ""
-"لاحظ أن هذا الأمر غير مطلوب، إذا لم تقم بتعيين اسم المرسل، فسيتم إرسال الرسائل "
-"القصيرة من رمز قصير."
+"لاحظ أن هذا الأمر غير مطلوب، إذا لم تقم بتعيين اسم المرسل، فسيتم إرسال "
+"الرسائل القصيرة من رمز قصير."
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_mail_notification__notification_type
@@ -824,13 +827,10 @@ msgstr "النشر على مستند"
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_composer__use_exclusion_list
-#, fuzzy
 msgid ""
 "Prevent sending messages to blacklisted contacts. Disable only when "
 "absolutely necessary."
 msgstr ""
-"منع إرسال الرسائل إلى جهات الاتصال المدرجة في القائمة السوداء. لا تقم بتعطيل "
-"هذه الميزة إلا عند الضرورة القصوى."
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
@@ -1009,9 +1009,9 @@ msgstr "معالج رمز التحقق من حساب الرسائل النصية
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1267,7 +1267,8 @@ msgid ""
 "Sidebar action to make this template available on records of the related "
 "document model"
 msgstr ""
-"إجراء الشريط الجانبي الذي يجعل القالب متاحاً في السجلات المتعلقة بنموذج المستند"
+"إجراء الشريط الجانبي الذي يجعل القالب متاحاً في السجلات المتعلقة بنموذج "
+"المستند"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__comment_single_recipient
@@ -1283,6 +1284,12 @@ msgstr "التخطي في الوقت الحالي"
 #: model:ir.model.fields,field_description:sms.field_sms_template_preview__sms_template_id
 msgid "Sms Template"
 msgstr "قالب الرسائل النصية القصيرة"
+
+#. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
@@ -1474,9 +1481,8 @@ msgstr "حساب غير مسجل"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__use_exclusion_list
-#, fuzzy
 msgid "Use Exclusion List"
-msgstr "استخدم قائمة الاستبعاد"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__template_id
@@ -1499,12 +1505,12 @@ msgstr ""
 "يُستخدم لوضع الرسائل المنشأة في فئات\n"
 "'البريد الإلكتروني': يتم إنشاؤها عن طريق البريد الوارد. على سبيل المثال: "
 "بوابة البريد\n"
-"'تعليق': يتم إنشاؤه من خلال مدخلات المستخدمين. على سبيل المثال: من خلال تطبيق "
-"المناقشة أو الإنشاء\n"
+"'تعليق': يتم إنشاؤه من خلال مدخلات المستخدمين. على سبيل المثال: من خلال "
+"تطبيق المناقشة أو الإنشاء\n"
 "'email_outgoing': يتم إنشاؤها عن طريق المراسلات\n"
 "'إشعار': يتم إنشاؤه عن طريق النظام. على سبيل المثال: رسائل التتبع\n"
-"'auto_comment': يتم إنشاؤه عن طريق آلية الإشعارات التلقائية. على سبيل المثال: "
-"الإقرار\n"
+"'auto_comment': يتم إنشاؤه عن طريق آلية الإشعارات التلقائية. على سبيل "
+"المثال: الإقرار\n"
 "'user_notification': يتم إنشاؤها لمستلم محدد"
 
 #. module: sms
@@ -1629,8 +1635,8 @@ msgid ""
 msgstr ""
 "يجب أن يتراوح طول اسم المرسل الخاص بك بين 3 و11 حرفاً وأن يحتوي على أحرف "
 "أبجدية وعددية فقط.\n"
-"                        يجب أن يتناسب مع اسم شركتك، ولا يُسمح لك بتعديله بمجرد "
-"تسجيله، لذلك اختره بعناية."
+"                        يجب أن يتناسب مع اسم شركتك، ولا يُسمح لك بتعديله "
+"بمجرد تسجيله، لذلك اختره بعناية."
 
 #. module: sms
 #. odoo-python
@@ -1677,264 +1683,3 @@ msgstr "السجل:"
 
 #~ msgid "+1 555-555-555"
 #~ msgstr "+1 555-555-555"
-
-#~ msgid ""
-#~ "%s out of the %s selected SMS Text Messages have successfully been resent."
-#~ msgstr "%s من %s رسائل نصية محددة تمت إعادة إرسالها بنجاح. "
-
-#~ msgid ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">No records</span>"
-#~ msgstr ""
-#~ "<span class=\"text-warning\" attrs=\"{'invisible': [('no_record', '=', "
-#~ "False)]}\">لا توجد سجلات</span> "
-
-#~ msgid "Action Needed"
-#~ msgstr "يتطلب اتخاذ إجراء "
-
-#~ msgid "Action To Do"
-#~ msgstr "الإجراء لتنفيذه "
-
-#~ msgid "Attachment Count"
-#~ msgstr "عدد المرفقات"
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "الهاتف الذي تم إدراجه في القائمة السوداء هو هاتف محمول "
-
-#~ msgid "Blacklisted Phone is Phone"
-#~ msgstr "الهاتف الذي تم إدراجه في القائمة السوداء هو هاتف "
-
-#~ msgid "Buy credits"
-#~ msgstr "شراء رصيد"
-
-#~ msgid "Can Cancel"
-#~ msgstr "يمكن الإلغاء "
-
-#~ msgid "Can Resend"
-#~ msgstr "يمكن إعادة الإرسال "
-
-#~ msgid "Canceled"
-#~ msgstr "تم الإلغاء "
-
-#~ msgid ""
-#~ "Choose method for SMS sending:\n"
-#~ "SMS: mass SMS\n"
-#~ "Post as Message: log on document\n"
-#~ "Post as Note: mass SMS with archives"
-#~ msgstr ""
-#~ "اختر طريقة إرسال الرسائل النصية القصيرة: \n"
-#~ "الرسائل النصية القصيرة: الرسائل النصية القصيرة الجماعية \n"
-#~ "النشر كرسالة: التسجيل في المستند \n"
-#~ "النشر كملاحظة: الرسائل النصية القصيرة الجماعية مع الأرشيف "
-
-#~ msgid "Close"
-#~ msgstr "إغلاق "
-
-#~ msgid "Edit Partners"
-#~ msgstr "تحرير الشركاء"
-
-#~ msgid "Error Message"
-#~ msgstr "رسالة الخطأ"
-
-#~ msgid ""
-#~ "Field used to store sanitized phone number. Helps speeding up searches "
-#~ "and comparisons."
-#~ msgstr ""
-#~ "حقل مُستخدَم لتخزين أرقام الهواتف السليمة، مما يساعد على تسريع عمليات البحث "
-#~ "والمقارنات. "
-
-#~ msgid "Followers"
-#~ msgstr "المتابعين "
-
-#~ msgid "Followers (Partners)"
-#~ msgstr "المتابعين (الشركاء) "
-
-#~ msgid "Has Insufficient Credit"
-#~ msgstr "ليس به رصيد كافي "
-
-#~ msgid "Has Message"
-#~ msgstr "يحتوي على رسالة "
-
-#~ msgid "Has Unregistered Account"
-#~ msgstr "يحتوي على حساب غير مسجل "
-
-#~ msgid "If checked, new messages require your attention."
-#~ msgstr "إذا كان محددًا، فهناك رسائل جديدة تحتاج لرؤيتها."
-
-#~ msgid ""
-#~ "If the sanitized phone number is on the blacklist, the contact won't "
-#~ "receive mass mailing sms anymore, from any list"
-#~ msgstr ""
-#~ "إذا كان رقم الهاتف السليم في القائمة السوداء، لن تستلم جهة الاتصال "
-#~ "الرسائل النصية القصيرة الجماعية من أي قائمة بعد الآن "
-
-#~ msgid "Ignore all"
-#~ msgstr "تجاهل الكل "
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "يشير إلى ما إذا كان رقم الهاتف السليم المدرج في القائمة السوداء أم لا.  "
-#~ "يساعد في تمييز أي الأرقام تم إدراجها في القائمة السوداء عندما يمون هناك "
-#~ "حقلان لرقم الهاتف والهاتف المحمول في إحدى النماذج. "
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a phone number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "يشير إلى ما إذا كان رقم الهاتف السليم رقم هاتف أم لا. يساعد في تمييز أي "
-#~ "الأرقام تم إدراجها في القائمة السوداء عندما يكون هناك حقلان لرقم الهاتف "
-#~ "والهاتف المحمول في أحد النماذج. "
-
-#~ msgid "Is Follower"
-#~ msgstr "متابع"
-
-#~ msgid "Message Delivery error"
-#~ msgstr "خطأ في تسليم الرسائل"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "نوع الرسالة: خيار بريد إلكتروني يعني وجود رسالة بريد إلكتروني، إشعار يعني "
-#~ "وجود رسالة من النظام، تعليق يعني رسائل أخرى مثل ردود المستخدمين "
-
-#~ msgid "Messages"
-#~ msgstr "الرسائل"
-
-#~ msgid "Notification"
-#~ msgstr "إشعار "
-
-#~ msgid "Number of Actions"
-#~ msgstr "عدد الإجراءات"
-
-#~ msgid "Number of errors"
-#~ msgstr "عدد الأخطاء "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء "
-
-#~ msgid "Number of messages with delivery error"
-#~ msgstr "عدد الرسائل الحادث بها خطأ في التسليم"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "لغة الترجمة الاختيارية (كود ISO) لاختيارها عند إرسال بريد إلكتروني. إذا "
-#~ "لم يتم تعيينها، سوف تُستخدم النسخة باللغة الإنجليزية. عادة ما يكون ذلك "
-#~ "تمثيلاً للعنصر النائب المسؤول عن التزويد باللغة المناسبة، مثال: "
-#~ "{{ object.partner_id.lang }}. "
-
-#~ msgid "Partner"
-#~ msgstr "الشريك"
-
-#~ msgid "Phone Blacklist Mixin"
-#~ msgstr "مجموعة مخصصات القائمة السوداء لأرقام الهواتف "
-
-#~ msgid "Phone Blacklisted"
-#~ msgstr "تم إدراج رقم الهاتف في القائمة السوداء "
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "الهاتف/الهاتف المتحرك "
-
-#~ msgid "Post as Message"
-#~ msgstr "النشر كرسالة "
-
-#~ msgid "Post as Note"
-#~ msgstr "النشر كملاحظة "
-
-#~ msgid "Reason"
-#~ msgstr "السبب"
-
-#~ msgid "Recipient"
-#~ msgstr "المستلم"
-
-#~ msgid "Recipient Name"
-#~ msgstr "اسم المستلم "
-
-#~ msgid "Recipients"
-#~ msgstr "المستلمين"
-
-#~ msgid "Resend Notification"
-#~ msgstr "إعادة إرسال الإشعار "
-
-#~ msgid "SMS API"
-#~ msgstr "الواجهة البرمجية للرسائل النصية القصيرة "
-
-#~ msgid "SMS Resend"
-#~ msgstr "إعادة إرسال الرسائل النصية القصيرة "
-
-#~ msgid "Send & Close"
-#~ msgstr "إرسال وإغلاق "
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "إرسال رسالة نصية قصيرة "
-
-#~ msgid "Send as"
-#~ msgstr "الإرسال كـ"
-
-#~ msgid "Send as (SMS)"
-#~ msgstr "الإرسال كـ (رسالة نصية قصيرة) "
-
-#~ msgid "Sending Failures"
-#~ msgstr "الفشل في الإرسال "
-
-#~ msgid "Sending SMS can only be done on a mail.thread or a transient model"
-#~ msgstr ""
-#~ "يمكنك إرسال رسائل نصية قصيرة فقط في نموذج mail.thread أو في نموذج عابر "
-#~ "(transient) "
-
-#~ msgid "Set up an account"
-#~ msgstr "ضبط حساب "
-
-#~ msgid "Sms Resend"
-#~ msgstr "إعادة إرسال الرسالة النصية القصيرة "
-
-#~ msgid "Try Again"
-#~ msgstr "حاول مجدداً "
-
-#~ msgid ""
-#~ "Type of server action. The following values are available:\n"
-#~ "- 'Execute Python Code': a block of python code that will be executed\n"
-#~ "- 'Create a new Record': create a new record with new values\n"
-#~ "- 'Update a Record': update the values of a record\n"
-#~ "- 'Execute several actions': define an action that triggers several other "
-#~ "server actions\n"
-#~ "- 'Send Email': post a message, a note or send an email (Discuss)\n"
-#~ "- 'Add Followers': add followers to a record (Discuss)\n"
-#~ "- 'Create Next Activity': create an activity (Discuss)\n"
-#~ "- 'Send SMS Text Message': send SMS, log them on documents (SMS)"
-#~ msgstr ""
-#~ "القيم التالية متاحة لنوع إجراء الخادم:\n"
-#~ "- 'تنفيذ كود بايثون': سوف يتم تنفيذ كتلة كود بايثون\n"
-#~ "- 'إنشاءسجل جديد': إنشاء سجل جديد بقيم جديدة\n"
-#~ "- 'تحديث سجل': تحديث قيم سجل\n"
-#~ "- 'تنفيذ عدة إجراءات': قم بتحديد إجراء سوف يقوم بتشغيل إجراءات خادم "
-#~ "متعددة أخرى\n"
-#~ "- 'إرسال بريد إلكتروني': قم بنشر رسالة أو ملاحظة أو إرسال بريد إلكتروني "
-#~ "(المناقشة)\n"
-#~ "- 'إضافة متابعين': إضافة متابعين إلى سجل (المناقشة)\n"
-#~ "- 'إنشاء النشاط التالي': إنشاء نشاط (المناقشة) \n"
-#~ "- 'إرسال الرسائل النصية القصيرة': أرسل الرسائل النصية القصيرة وسجلها في "
-#~ "المستندات (الرسائل النصية القصيرة) "
-
-#~ msgid "Use blacklist"
-#~ msgstr "استخدام القائمة السوداء "
-
-#~ msgid "Website Messages"
-#~ msgstr "رسائل الموقع الإلكتروني "
-
-#~ msgid "Website communication history"
-#~ msgstr "سجل تواصل الموقع الإلكتروني "
-
-#~ msgid "You do not have access to the message and/or related document."
-#~ msgstr "لا تملك صلاحية الوصول إلى الرسائل و/أو المستند ذي الصلة. "
-
-#~ msgid "characters, fits in"
-#~ msgstr "رموز، تتسع في "

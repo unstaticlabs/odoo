@@ -3,14 +3,15 @@
 # * event_product
 #
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Ujjawal Pathak (pauj)" <pauj@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 16:42+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-13 17:56+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-s19-2/"
 "event_product/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
@@ -27,10 +28,17 @@ msgid ""
 msgstr "टिकट का ब्यौरा जो आप ग्राहकों को बताना चाहते हैं।"
 
 #. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__additional_product_ids
+#: model:ir.model.fields,field_description:event_product.field_event_type_ticket__additional_product_ids
+msgid "Additional Products"
+msgstr ""
+
+#. module: event_product
 #: model:ir.model.fields,field_description:event_product.field_product_product__service_tracking
 #: model:ir.model.fields,field_description:event_product.field_product_template__service_tracking
+#, fuzzy
 msgid "Create on Order"
-msgstr ""
+msgstr "ऑर्डर पर बनाएं"
 
 #. module: event_product
 #: model:ir.model.fields,field_description:event_product.field_event_event__currency_id
@@ -78,8 +86,9 @@ msgstr ""
 
 #. module: event_product
 #: model:ir.model,name:event_product.model_event_type_ticket
+#, fuzzy
 msgid "Event Template Ticket"
-msgstr ""
+msgstr "इवेंट टेम्प्लेट टिकट"
 
 #. module: event_product
 #: model:ir.model,name:event_product.model_event_event_ticket
@@ -90,6 +99,12 @@ msgstr "इवेंट टिकट"
 #: model:ir.model.fields,field_description:event_product.field_product_product__event_ticket_ids
 msgid "Event Tickets"
 msgstr ""
+
+#. module: event_product
+#: model:product.category,name:event_product.product_category_events
+#, fuzzy
+msgid "Events"
+msgstr "इवेंट"
 
 #. module: event_product
 #: model:ir.model.fields.selection,name:event_product.selection__event_registration__sale_status__free
@@ -113,25 +128,17 @@ msgid "Not Sold"
 msgstr "नहीं बिका"
 
 #. module: event_product
-#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__price
-#: model:ir.model.fields,field_description:event_product.field_event_type_ticket__price
-msgid "Price"
-msgstr "कीम"
-
-#. module: event_product
 #: model:ir.model.fields,field_description:event_product.field_event_event_ticket__price_reduce
 #: model:ir.model.fields,field_description:event_product.field_event_type_ticket__price_reduce
 msgid "Price Reduce"
 msgstr ""
 
 #. module: event_product
-#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__price_reduce_taxinc
-msgid "Price Reduce Tax inc"
-msgstr ""
-
-#. module: event_product
-#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__price_incl
-msgid "Price include"
+#: model:ir.model.fields,help:event_product.field_event_event_ticket__total_price
+#: model:ir.model.fields,help:event_product.field_event_type_ticket__total_price
+msgid ""
+"Price at which this ticket will be sold, which takes into account the Ticket "
+"Price and the price of every Additional Product"
 msgstr ""
 
 #. module: event_product
@@ -150,8 +157,8 @@ msgstr "उत्पाद प्रकार"
 #. odoo-python
 #: code:addons/event_product/models/product_product.py:0
 msgid ""
-"Products linked to an event ticket must have \"%(tracking)s\" set to \"%"
-"(event)s\"."
+"Products linked to an event ticket must have \"%(tracking)s\" set to "
+"\"%(event)s\"."
 msgstr ""
 
 #. module: event_product
@@ -170,10 +177,47 @@ msgid "Sales Start"
 msgstr ""
 
 #. module: event_product
+#: model:ir.model.fields,help:event_product.field_event_event_ticket__additional_product_ids
+#: model:ir.model.fields,help:event_product.field_event_type_ticket__additional_product_ids
+msgid ""
+"Select products to include with each registration. They will also show up "
+"separately on Sale Orders."
+msgstr ""
+
+#. module: event_product
 #: model:ir.model.fields.selection,name:event_product.selection__event_registration__sale_status__sold
 #: model_terms:ir.ui.view,arch_db:event_product.event_registration_ticket_view_form
 msgid "Sold"
 msgstr "बिक गया"
+
+#. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__price
+#: model:ir.model.fields,field_description:event_product.field_event_type_ticket__price
+msgid "Ticket Price"
+msgstr ""
+
+#. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__total_price
+#: model:ir.model.fields,field_description:event_product.field_event_type_ticket__total_price
+#, fuzzy
+msgid "Total Price"
+msgstr "कुल कीमत"
+
+#. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__total_price_reduce
+#: model:ir.model.fields,field_description:event_product.field_event_type_ticket__total_price_reduce
+msgid "Total Price Reduce"
+msgstr ""
+
+#. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__total_price_reduce_taxinc
+msgid "Total Price Reduce Tax inc"
+msgstr ""
+
+#. module: event_product
+#: model:ir.model.fields,field_description:event_product.field_event_event_ticket__total_price_incl
+msgid "Total Price include"
+msgstr ""
 
 #. module: event_product
 #: model_terms:ir.ui.view,arch_db:event_product.event_registration_ticket_view_form

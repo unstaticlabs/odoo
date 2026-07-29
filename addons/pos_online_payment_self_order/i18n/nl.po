@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * pos_online_payment_self_order
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:29+0000\n"
+"POT-Creation-Date: 2026-04-24 17:38+0000\n"
+"PO-Revision-Date: 2026-06-06 14:40+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_online_payment_self_order/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,7 @@ msgstr "Configuratie-instellingen"
 #: model:ir.model.fields,field_description:pos_online_payment_self_order.field_pos_payment_method__display_name
 #: model:ir.model.fields,field_description:pos_online_payment_self_order.field_res_config_settings__display_name
 msgid "Display Name"
-msgstr "Weergavenaam"
+msgstr "Schermnaam"
 
 #. module: pos_online_payment_self_order
 #: model:ir.model,name:pos_online_payment_self_order.model_ir_http
@@ -101,13 +101,13 @@ msgstr "Kassa-instellingen"
 
 #. module: pos_online_payment_self_order
 #: model:ir.model,name:pos_online_payment_self_order.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Orders kassa"
+msgid "Point of Sale Order"
+msgstr "Kassaorder"
 
 #. module: pos_online_payment_self_order
 #: model:ir.model,name:pos_online_payment_self_order.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Kassa Betaalmethodes"
+msgid "Point of Sale Payment Method"
+msgstr "Kassa betaalmethode"
 
 #. module: pos_online_payment_self_order
 #. odoo-javascript

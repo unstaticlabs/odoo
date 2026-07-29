@@ -34,7 +34,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'tvad_21',
                 'expense_account_id': 'ro_pcg_expense',
                 'income_account_id': 'ro_pcg_sale',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'pcg_301',
             },
         }

@@ -10,18 +10,18 @@
 # Özlem Atalay <ozlema@eskayazilim.com.tr>, 2022
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 03:50+0000\n"
-"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-28 12:47+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "hr_presence/tr/>\n"
 "Language: tr\n"
@@ -29,13 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: hr_presence
-#. odoo-python
-#: code:addons/hr_presence/models/hr_employee.py:0
-msgid "%(name)s has been noted as %(state)s today"
-msgstr "Bugün %(state)s olarak kaydedilenler: %(name)s"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: hr_presence
 #: model:mail.template,body_html:hr_presence.mail_template_presence
@@ -56,8 +50,8 @@ msgid ""
 "            "
 msgstr ""
 "<div>\n"
-"                    Sayın <t t-out=\"object.name or ''\">Abigail Peterson</t>"
-",<br/><br/>\n"
+"                    Sayın <t t-out=\"object.name or ''\">Abigail Peterson</"
+"t>,<br/><br/>\n"
 "Umarız her şey yolundadır. Şu anda iş yerinde bulunmadığınızı ve sizden "
 "gelen bir izin talebi kaydı olmadığını fark ettik. Bu durum bizim "
 "tarafımızdan bir dikkatsizlikten kaynaklanıyorsa, karışıklık için içtenlikle "
@@ -71,21 +65,14 @@ msgstr ""
 "            "
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__absent
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__absent
 #: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
 msgid "Absent"
 msgstr "Mevcut Değil"
 
 #. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_log
-msgid "Add a log note"
-msgstr "Kayıt notu ekleyin"
-
-#. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
+msgid "Company"
+msgstr ""
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_config_settings
@@ -150,12 +137,6 @@ msgid "Hr Presence Last Compute Date"
 msgstr "İk Hazır Bulunma Son İşlem Tarihi"
 
 #. module: hr_presence
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee__hr_presence_state_display
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__hr_presence_state_display
-msgid "Hr Presence State Display"
-msgstr "İk Hazır Bulunma Durumu Ekranı"
-
-#. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_presence.field_ir_websocket__id
@@ -189,28 +170,10 @@ msgid "Manually Set Present"
 msgstr "Manuel olarak Ayarla"
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__out_of_working_hour
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__out_of_working_hour
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Off-Hours"
-msgstr "Mesai Dışı"
-
-#. module: hr_presence
 #. odoo-javascript
 #: code:addons/hr_presence/static/src/search/hr_presence_cog_menu/hr_presence_cog_menu.xml:0
 msgid "Presence Control"
 msgstr "Çalışan Mevcudiyet Kontrolü"
-
-#. module: hr_presence
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Presence/Absence"
-msgstr "Varlık/Yokluk"
-
-#. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__present
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__present
-msgid "Present"
-msgstr "Mevcut"
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_hr_employee_public
@@ -220,13 +183,9 @@ msgstr "Herkese Açık Personel"
 #. module: hr_presence
 #. odoo-python
 #: code:addons/hr_presence/models/hr_employee.py:0
+#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
 msgid "Send SMS"
 msgstr "SMS Gönder"
-
-#. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
-msgid "Send a SMS"
-msgstr "SMS Gönderin"
 
 #. module: hr_presence
 #: model:mail.template,description:hr_presence.mail_template_presence
@@ -295,63 +254,3 @@ msgstr "Bunu yapma hakkınız yok. Lütfen bir Yöneticiye başvurun."
 #: model:ir.model,name:hr_presence.model_ir_websocket
 msgid "websocket message handling"
 msgstr "websocket mesaj işleme"
-
-#~ msgid "Absence/Presence"
-#~ msgstr "Devamsızlık/Varlık"
-
-#~ msgid "Basic Employee"
-#~ msgstr "Temel Personel"
-
-#~ msgid "Compose Email"
-#~ msgstr "E-posta Oluştur"
-
-#~ msgid "Compute presence and open presence view"
-#~ msgstr "Hazır bulunma ve açık bulunma görünümünü hesaplama"
-
-#~ msgid "Create Uid"
-#~ msgstr "Kullanıcı Kimliği Oluştur"
-
-#~ msgid "Employee's Presence to Define"
-#~ msgstr "Tanımlamak için Çalışanın Varlığı"
-
-#~ msgid "Employees"
-#~ msgstr "Personel"
-
-#~ msgid ""
-#~ "Exception made if there was a mistake of ours, it seems that you are not "
-#~ "at your office and there is not request of time off from you.\n"
-#~ "Please, take appropriate measures in order to carry out this work "
-#~ "absence.\n"
-#~ "Do not hesitate to contact your manager or the human resource department."
-#~ msgstr ""
-#~ "Bizim bir hatamız varsa gözardı edin, ofisinizde olmadığınız ve sizden "
-#~ "izin talebi olmadığı anlaşılıyor.\n"
-#~ "Lütfen, bu iş devamsızlığını gerçekleştirmek için uygun önlemleri alın.\n"
-#~ "Yöneticinize veya insan kaynakları departmanınıza başvurmaktan çekinmeyin."
-
-#~ msgid "Log"
-#~ msgstr "Kayıt"
-
-#~ msgid "Presence"
-#~ msgstr "Hazır Bulunma"
-
-#~ msgid "SMS"
-#~ msgstr "SMS"
-
-#~ msgid "Set as absent"
-#~ msgstr "Yok olarak ayarla"
-
-#~ msgid "Set as present"
-#~ msgstr "Mevcut olarak ayarla"
-
-#~ msgid "There is no professional email address for this employee."
-#~ msgstr "Bu personel için profesyonel bir e-posta adresi yok."
-
-#~ msgid "There is no professional mobile for this employee."
-#~ msgstr "Bu personel için profesyonel bir cep telefonu yok."
-
-#~ msgid "Time Off"
-#~ msgstr "İzin"
-
-#~ msgid "To Define"
-#~ msgstr "Tanımlanacak"

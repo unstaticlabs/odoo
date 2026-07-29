@@ -10,6 +10,19 @@ class GelatoCommon(SaleCommon):
     def setUpClass(cls):
         super().setUpClass()
 
+        cls.partner_missing_street = cls.env['res.partner'].create({
+            'name': 'Test',
+            'city': 'Leuven',
+            'zip': '3001',
+            'country_id': cls.env.ref('base.be').id,
+            'email': 'test@test.com',
+            'phone': '123123123',
+        })
+
+        cls.partner_street_too_long = cls.partner_missing_street.copy({
+            'street': 'Rue de la Madeleine/Magdalenasteenweg'
+        })
+
         cls.gelato_template = cls.env['product.template'].create({
             'name': 'Gelato Product Template'
         })

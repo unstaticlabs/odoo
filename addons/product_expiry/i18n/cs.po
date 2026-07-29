@@ -10,17 +10,15 @@
 # Ladislav Tomm <tomm@helemik.cz>, 2022
 # Martin Trigaux, 2022
 # Jiří Podhorecký, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Marek Jasanský <zahiro@ashtechnology.eu>, 2026.
-# "Marta (wacm)" <wacm@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 04:28+0000\n"
-"Last-Translator: Marek Jasanský <zahiro@ashtechnology.eu>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-18 12:16+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/"
 "product_expiry/cs/>\n"
 "Language: cs\n"
@@ -29,13 +27,13 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: product_expiry
 #. odoo-python
 #: code:addons/product_expiry/models/production_lot.py:0
 msgid "\t--Expire on %(date)s--"
-msgstr "\t--Expirace %(date)s--"
+msgstr ""
 
 #. module: product_expiry
 #. odoo-python
@@ -47,8 +45,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:product_expiry.view_move_form_expiry
 msgid ""
 "<span class=\"badge rounded-pill float-end text-bg-warning\" invisible=\"not "
-"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; expiration_date)"
-"\">Expiring</span>\n"
+"(alert_date &lt;= time.strftime('%Y-%m-%d %H:%M:%S') &lt; "
+"expiration_date)\">Expiring</span>\n"
 "            <span class=\"badge rounded-pill float-end text-bg-danger\" "
 "invisible=\"not product_expiry_alert\">Expired</span>"
 msgstr ""
@@ -186,11 +184,6 @@ msgid "Description"
 msgstr "Popis"
 
 #. module: product_expiry
-#: model_terms:ir.ui.view,arch_db:product_expiry.confirm_expiry_view
-msgid "Discard"
-msgstr "Zrušit"
-
-#. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_res_config_settings__group_expiry_date_on_delivery_slip
 msgid "Display Expiration Dates on Delivery Slips"
 msgstr "Zobrazit data expirace na dodacích listech"
@@ -209,7 +202,7 @@ msgstr "Zobrazit data expirace na dodacích listech"
 #: model:ir.model.fields,field_description:product_expiry.field_stock_quant__display_name
 #: model:ir.model.fields,field_description:product_expiry.field_stock_rule__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: product_expiry
 #: model_terms:ir.ui.view,arch_db:product_expiry.report_lot_label_expiry
@@ -365,8 +358,8 @@ msgstr ""
 #: model:ir.model.fields,help:product_expiry.field_product_template__removal_time
 msgid ""
 "Number of days before the Expiration Date after which the goods should be "
-"removed from the stock and not be counted in the Fresh On Hand Stock "
-"anymore.It will be computed on the lot/serial number."
+"removed from the stock and not be counted in the Fresh On Hand Stock anymore."
+"It will be computed on the lot/serial number."
 msgstr ""
 
 #. module: product_expiry
@@ -420,8 +413,8 @@ msgstr "Produktová varianta"
 
 #. module: product_expiry
 #: model:ir.model,name:product_expiry.model_stock_quant
-msgid "Quants"
-msgstr "Kvanty"
+msgid "Quant"
+msgstr ""
 
 #. module: product_expiry
 #: model:ir.model.fields,field_description:product_expiry.field_product_product__removal_time
@@ -677,20 +670,3 @@ msgstr ""
 #: model:product.removal,method:product_expiry.removal_fefo
 msgid "fefo"
 msgstr "fefo"
-
-#~ msgid ""
-#~ "Number of days before the Expiration Date after which the goods should be "
-#~ "removed from the stock. It will be computed on the lot/serial number."
-#~ msgstr ""
-#~ "Počet dní před datem vypršení platnosti, po kterém by mělo být zboží "
-#~ "odebráno ze skladu. Bude vypočítáno na šarži / sériovém čísle."
-
-#~ msgid "Procurement Group"
-#~ msgstr "Skupina zásobování"
-
-#~ msgid ""
-#~ "This is the date on which the goods with this Serial Number should be "
-#~ "removed from the stock. This date will be used in FEFO removal strategy."
-#~ msgstr ""
-#~ "Toto je datum, kdy by mělo být zboží s tímto sériovým číslem odebráno ze "
-#~ "skladu. Toto datum bude použito ve strategii odstranění FEFO."

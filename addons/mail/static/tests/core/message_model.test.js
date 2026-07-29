@@ -13,9 +13,9 @@ test("Message model properties", async () => {
     await start();
     const store = getService("mail.store");
     store.Store.insert({
-        self_partner: { id: serverState.partnerId },
+        self_user: { id: serverState.userId, partner_id: serverState.partnerId },
     });
-    store.Thread.insert({
+    store["mail.thread"].insert({
         id: serverState.partnerId,
         model: "res.partner",
         name: "general",
@@ -31,7 +31,7 @@ test("Message model properties", async () => {
         body: markup`<p>Test</p>`,
         date: deserializeDateTime("2019-05-05 10:00:00"),
         id: 4000,
-        starred: true,
+        is_bookmarked: true,
         model: "res.partner",
         thread: { id: serverState.partnerId, model: "res.partner" },
         res_id: serverState.partnerId,

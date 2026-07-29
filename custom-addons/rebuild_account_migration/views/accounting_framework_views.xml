@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rebuild_account_report_definition_search" model="ir.ui.view">
+        <field name="name">rebuild.account.report.definition.search</field>
+        <field name="model">rebuild.account.report.definition</field>
+        <field name="arch" type="xml">
+            <search string="Accounting Reports">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="company_id"/>
+                <field name="origin"/>
+                <field name="family"/>
+                <field name="lifecycle"/>
+                <filter name="current" string="Current" domain="[('lifecycle', '=', 'current')]"/>
+                <filter name="company" string="Company-specific" domain="[('company_id', '!=', False)]"/>
+                <filter name="shared" string="Shared" domain="[('company_id', '=', False)]"/>
+                <separator/>
+                <filter name="group_family" string="Family" context="{'group_by': 'family'}"/>
+                <filter name="group_origin" string="Origin" context="{'group_by': 'origin'}"/>
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                <filter name="group_lifecycle" string="Lifecycle" context="{'group_by': 'lifecycle'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_definition_list" model="ir.ui.view">
+        <field name="name">rebuild.account.report.definition.list</field>
+        <field name="model">rebuild.account.report.definition</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false"
+                decoration-muted="not active or lifecycle == 'deprecated'"
+                decoration-info="company_id">
+                <field name="sequence" column_invisible="True"/>
+                <field name="active" widget="boolean_toggle" readonly="not company_id"/>
+                <field name="name"/>
+                <field name="family"/>
+                <field name="presentation_style"/>
+                <field name="default_amount_rounding" optional="show"/>
+                <field name="origin"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="definition_version"/>
+                <field name="lifecycle" widget="badge"/>
+                <field name="navigation_group" optional="hide"/>
+                <button name="action_open_report" type="object" string="Open Report" icon="fa-external-link"/>
+                <button name="action_customize_for_company" type="object" string="Customize" icon="fa-copy" invisible="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_definition_form" model="ir.ui.view">
+        <field name="name">rebuild.account.report.definition.form</field>
+        <field name="model">rebuild.account.report.definition</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button name="action_open_report" type="object" string="Open Report" class="oe_highlight" icon="fa-external-link"/>
+                    <button name="action_customize_for_company" type="object" string="Customize for Company" icon="fa-copy" invisible="company_id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Company-specific" bg_color="text-bg-info" invisible="not company_id"/>
+                    <widget name="web_ribbon" title="Deprecated" bg_color="text-bg-secondary" invisible="lifecycle != 'deprecated'"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_report" type="object" class="oe_stat_button" icon="fa-bar-chart">
+                            <field name="generated_session_count" widget="statinfo" string="Current Sessions"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name" readonly="not company_id"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="origin" readonly="1"/>
+                            <field name="family" readonly="not company_id"/>
+                            <field name="navigation_group" readonly="not company_id"/>
+                        </group>
+                        <group>
+                            <field name="active" readonly="not company_id"/>
+                            <field name="lifecycle" readonly="not company_id"/>
+                            <field name="definition_version" readonly="not company_id"/>
+                            <field name="effective_from" readonly="not company_id"/>
+                            <field name="effective_to" readonly="not company_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Business Purpose">
+                            <group string="Purpose">
+                                <field name="business_purpose" nolabel="1" readonly="not company_id"/>
+                            </group>
+                            <group string="Expected outcome">
+                                <field name="expected_outcome" nolabel="1" readonly="not company_id"/>
+                            </group>
+                        </page>
+                        <page string="Presentation and Navigation">
+                            <group>
+                                <field name="presentation_style" readonly="not company_id"/>
+                                <field name="default_group_by" readonly="not company_id"/>
+                                <field name="default_amount_rounding" readonly="not company_id"/>
+                            </group>
+                            <group string="Hierarchy">
+                                <field name="hierarchy_guidance" nolabel="1" readonly="not company_id"/>
+                            </group>
+                            <group string="Official document">
+                                <group>
+                                    <field name="document_template" readonly="not company_id"/>
+                                    <field name="document_footer_label" readonly="not company_id"/>
+                                </group>
+                                <group>
+                                    <field name="document_primary_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_section_background_color" placeholder="#E9ECEF" readonly="not company_id"/>
+                                    <field name="document_section_text_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_muted_color" placeholder="#666666" readonly="not company_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Filters and Exports">
+                            <group>
+                                <group string="Filters">
+                                    <field name="supports_comparison" readonly="not company_id"/>
+                                    <field name="supports_journals" readonly="not company_id"/>
+                                    <field name="supports_accounts" readonly="not company_id"/>
+                                    <field name="supports_partners" readonly="not company_id"/>
+                                    <field name="supports_analytics" readonly="not company_id"/>
+                                </group>
+                                <group string="Exports">
+                                    <field name="supports_pdf" readonly="not company_id"/>
+                                    <field name="supports_xlsx" readonly="not company_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Advanced Logic" groups="base.group_system">
+                            <group>
+                                <field name="code"/>
+                                <field name="report_type"/>
+                                <field name="technical_key"/>
+                                <field name="technical_model"/>
+                                <field name="target_action_xmlid"/>
+                                <field name="source_module"/>
+                                <field name="customization_of_id"/>
+                            </group>
+                            <group string="Implementation boundary">
+                                <field name="technical_summary" nolabel="1"/>
+                            </group>
+                            <div class="alert alert-warning" role="alert">
+                                Report engine keys are whitelisted extension points supplied by installed modules.
+                                Configuration does not execute arbitrary code.
+                            </div>
+                        </page>
+                    </notebook>
+                    <div class="alert alert-info" role="alert" invisible="company_id">
+                        This shared definition is upgrade-managed. Use Customize for Company instead of editing it directly.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_report_definition" model="ir.actions.act_window">
+        <field name="name">Accounting Reports</field>
+        <field name="res_model">rebuild.account.report.definition</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rebuild_account_report_definition_search"/>
+        <field name="context">{'create': False, 'delete': False, 'search_default_current': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No report definitions are installed.</p>
+            <p>Installed modules provide governed report engines; company configuration controls their purpose, presentation, filters, exports and navigation.</p>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_list" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.list</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <list create="true" delete="true" decoration-info="company_id">
+                <field name="active" widget="boolean_toggle" readonly="not company_id"/>
+                <field name="account_code"/>
+                <field name="display_label"/>
+                <field name="report_type" optional="show"/>
+                <field name="company_id" optional="show"/>
+                <button name="action_customize_for_company" type="object" string="Personnaliser" icon="fa-copy" invisible="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_form" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.form</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_customize_for_company" type="object" string="Personnaliser pour la société" class="oe_highlight" invisible="company_id"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Partagé" bg_color="text-bg-secondary" invisible="company_id"/>
+                    <widget name="web_ribbon" title="Société" bg_color="text-bg-info" invisible="not company_id"/>
+                    <group>
+                        <group>
+                            <field name="active" readonly="not company_id"/>
+                            <field name="account_code" readonly="not company_id"/>
+                            <field name="display_label" readonly="not company_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="report_type" readonly="not company_id"/>
+                        </group>
+                    </group>
+                    <group string="Justification">
+                        <field name="evidence_note" nolabel="1" readonly="not company_id"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Ce libellé ne modifie ni le plan comptable ni les écritures. Il harmonise uniquement la présentation à l’écran et dans les exports.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_report_account_presentation_search" model="ir.ui.view">
+        <field name="name">rebuild.account.report.account.presentation.search</field>
+        <field name="model">rebuild.account.report.account.presentation</field>
+        <field name="arch" type="xml">
+            <search string="Libellés de comptes dans les rapports">
+                <field name="account_code"/>
+                <field name="display_label"/>
+                <field name="report_type"/>
+                <field name="company_id"/>
+                <filter name="shared" string="Partagés" domain="[('company_id', '=', False)]"/>
+                <filter name="company" string="Société" domain="[('company_id', '!=', False)]"/>
+                <filter name="group_report" string="Rapport" context="{'group_by': 'report_type'}"/>
+                <filter name="group_company" string="Société" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_report_account_presentation" model="ir.actions.act_window">
+        <field name="name">Libellés de comptes</field>
+        <field name="res_model">rebuild.account.report.account.presentation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rebuild_account_report_account_presentation_search"/>
+        <field name="context">{'search_default_shared': 1}</field>
+    </record>
+
+    <record id="view_rebuild_account_declaration_rule_list_framework" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.rule.list.framework</field>
+        <field name="model">rebuild.account.declaration.rule</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_rule_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="origin"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="lifecycle" widget="badge" optional="show"/>
+            </xpath>
+            <xpath expr="//button[@name='action_open_official_source']" position="before">
+                <button name="action_open_declarations" type="object" string="Instances" icon="fa-calendar"/>
+                <button name="action_customize_for_company" type="object" string="Customize" icon="fa-copy" invisible="company_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_declaration_rule_form_framework" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.rule.form.framework</field>
+        <field name="model">rebuild.account.declaration.rule</field>
+        <field name="inherit_id" ref="view_rebuild_account_declaration_rule_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="edit">true</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_open_official_source']" position="before">
+                <button name="action_open_declarations" type="object" string="Open Instances" icon="fa-calendar"/>
+                <button name="action_customize_for_company" type="object" string="Customize for Company" icon="fa-copy" invisible="company_id"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <widget name="web_ribbon" title="Company-specific" bg_color="text-bg-info" invisible="not company_id"/>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="before">
+                <group string="Definition Governance">
+                    <group>
+                        <field name="company_id" readonly="1" options="{'no_create': True}"/>
+                        <field name="origin" readonly="1"/>
+                        <field name="lifecycle"/>
+                    </group>
+                    <group>
+                        <field name="definition_version" readonly="1"/>
+                        <field name="business_purpose"/>
+                        <field name="expected_outcome"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Advanced Logic" groups="base.group_system">
+                    <group>
+                        <field name="source_module"/>
+                        <field name="technical_model"/>
+                        <field name="customization_of_id"/>
+                    </group>
+                    <group string="Implementation boundary">
+                        <field name="technical_summary" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div class="alert alert-info" role="alert" invisible="company_id">
+                    This localization definition is upgrade-managed. Use Customize for Company instead of editing it directly.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_closing_control_definition_list_framework" model="ir.ui.view">
+        <field name="name">rebuild.account.control.definition.list.framework</field>
+        <field name="model">rebuild.account.closing.control.definition</field>
+        <field name="inherit_id" ref="view_rebuild_account_closing_control_definition_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="definition_version" optional="hide"/>
+                <field name="lifecycle" widget="badge" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_closing_control_definition_form_framework" model="ir.ui.view">
+        <field name="name">rebuild.account.control.definition.form.framework</field>
+        <field name="model">rebuild.account.closing.control.definition</field>
+        <field name="inherit_id" ref="view_rebuild_account_closing_control_definition_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='enabled']" position="after">
+                <field name="definition_version" string="Business Version"/>
+                <field name="lifecycle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_rebuild_account_framework"
+        name="Accounting Framework"
+        parent="account.menu_finance_configuration"
+        sequence="5"
+        groups="account.group_account_manager"/>
+    <menuitem
+        id="menu_rebuild_account_report_definitions"
+        name="Reports"
+        parent="menu_rebuild_account_framework"
+        action="action_rebuild_account_report_definition"
+        sequence="20"
+        groups="account.group_account_manager"/>
+    <menuitem
+        id="menu_rebuild_account_report_account_presentations"
+        name="Libellés de comptes"
+        parent="menu_rebuild_account_framework"
+        action="action_rebuild_account_report_account_presentation"
+        sequence="25"
+        groups="account.group_account_manager"/>
+
+    <record id="menu_rebuild_account_closing_control_configuration" model="ir.ui.menu">
+        <field name="name">Controls</field>
+        <field name="parent_id" ref="menu_rebuild_account_framework"/>
+        <field name="sequence">10</field>
+        <field name="group_ids" eval="[(6, 0, [ref('account.group_account_manager')])]"/>
+    </record>
+    <record id="menu_rebuild_account_declaration_rules" model="ir.ui.menu">
+        <field name="name">Declarations</field>
+        <field name="parent_id" ref="menu_rebuild_account_framework"/>
+        <field name="sequence">30</field>
+        <field name="group_ids" eval="[(6, 0, [ref('account.group_account_manager')])]"/>
+    </record>
+</odoo>

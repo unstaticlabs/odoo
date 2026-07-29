@@ -24,8 +24,8 @@ async function downloadSpreadsheet(env, action) {
     if (!xlsxData) {
         const model = await createSpreadsheetModel({ env, data, revisions: stateUpdateMessages });
         await waitForDataLoaded(model);
+        xlsxData = await model.exportXLSX();
         sources = model.getters.getLoadedDataSources();
-        xlsxData = model.exportXLSX();
     }
     await download({
         url: "/spreadsheet/xlsx",

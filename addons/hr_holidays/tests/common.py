@@ -6,6 +6,7 @@ from odoo import Command, fields
 from odoo.tests import common, Form
 from odoo.tests.common import TransactionCase
 from odoo.fields import Datetime
+from odoo.addons.hr.tests.test_utils import get_admin_employee
 from odoo.addons.mail.tests.common import mail_new_test_user
 
 
@@ -15,10 +16,40 @@ class TestHrHolidaysCommon(common.TransactionCase):
     def setUpClass(cls):
         super(TestHrHolidaysCommon, cls).setUpClass()
         cls.env.user.tz = 'Europe/Brussels'
-        cls.env.user.company_id.resource_calendar_id.tz = "Europe/Brussels"
+        cls.env.user.company_id.tz = "Europe/Brussels"
 
         cls.company = cls.env['res.company'].create({'name': 'Test company'})
         cls.external_company = cls.env['res.company'].create({'name': 'External Test company'})
+
+        cls.company.resource_calendar_id = cls.env['resource.calendar'].create({
+            'attendance_ids': [
+                (0, 0,
+                    {
+                        'dayofweek': weekday,
+                        'hour_from': hour,
+                        'hour_to': hour + 4,
+                    })
+                for weekday in ['0', '1', '2', '3', '4']
+                for hour in [8, 13]
+            ],
+            'company_id': cls.company.id,
+            'name': 'Standard 40h/week',
+        })
+
+        cls.external_company.resource_calendar_id = cls.env['resource.calendar'].create({
+            'attendance_ids': [
+                (0, 0,
+                    {
+                        'dayofweek': weekday,
+                        'hour_from': hour,
+                        'hour_to': hour + 4,
+                    })
+                for weekday in ['0', '1', '2', '3', '4']
+                for hour in [8, 13]
+            ],
+            'company_id': cls.external_company.id,
+            'name': 'Standard 40h/week',
+        })
 
         cls.env.user.company_id = cls.company
 
@@ -30,12 +61,15 @@ class TestHrHolidaysCommon(common.TransactionCase):
         # For example, the tour 'time_off_request_calendar_view' would succeed (false positive) without this leave type.
         # However, the tour won't create a time-off request (as expected)because no time-off type is available to be selected on the leave
         # This would cause the test case that uses the tour to fail.
-        cls.env['hr.leave.type'].create({
-            'name': 'Test Leave Type',
+        cls.env['hr.work.entry.type'].create({
+            'name': 'Test Work Entry Type',
+            'code': 'Test Work Entry Type',
             'requires_allocation': False,
             'request_unit': 'day',
-            'company_id': cls.company.id,
+            'unit_of_measure': 'day',
         })
+
+        cls.admin_employee = get_admin_employee(cls.env)
 
         # Test users to use through the various tests
         cls.user_hruser = mail_new_test_user(cls.env, login='armande', groups='base.group_user,hr_holidays.group_hr_holidays_user')
@@ -47,7 +81,7 @@ class TestHrHolidaysCommon(common.TransactionCase):
 
         cls.user_responsible = mail_new_test_user(cls.env, login='Titus', groups='base.group_user,hr_holidays.group_hr_holidays_responsible')
         cls.user_responsible_id = cls.user_responsible.id
-        cls.user_employee = mail_new_test_user(cls.env, login='enguerran', password='enguerran', groups='base.group_user')
+        cls.user_employee = mail_new_test_user(cls.env, login='enguerran', password='enguerran', groups='hr_holidays.group_hr_holidays_employee')
         cls.user_employee_id = cls.user_employee.id
         cls.external_user_employee = mail_new_test_user(cls.env, login='external', password='external', groups='base.group_user')
         cls.external_user_employee_id = cls.external_user_employee.id
@@ -101,8 +135,8 @@ class TestHrHolidaysCommon(common.TransactionCase):
         cls.rd_dept.write({'manager_id': cls.employee_hruser_id})
         cls.hours_per_day = cls.employee_emp.resource_id.calendar_id.hours_per_day or 8
 
-    def assert_remaining_leaves_equal(self, leave_type, value, employee, date=None, digits=None):
-        allocation_data = leave_type.get_allocation_data(employee, date)
+    def assert_remaining_leaves_equal(self, work_entry_type, value, employee, date=None, digits=None):
+        allocation_data = work_entry_type.get_allocation_data(employee, date)
         if not date:
             date = fields.Date.today()
         if digits:
@@ -112,17 +146,17 @@ class TestHrHolidaysCommon(common.TransactionCase):
             self.assertEqual(allocation_data[employee][0][1]['remaining_leaves'],
                 value, f"Remaining leaves for date '{date}' are incorrect.")
 
-    def _take_leave(self, employee, leave_type, date_from, date_to):
+    def _take_leave(self, employee, work_entry_type, date_from, date_to):
         leave = self.env['hr.leave'].create({
             'name': 'Leave',
             'employee_id': employee.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': date_from,
             'request_date_to': date_to,
         })
         return leave
 
-    def _create_form_test_accrual_allocation(self, leave_type, date_from, employee, accrual_plan, date_to=None, creator_user=None):
+    def _create_form_test_accrual_allocation(self, work_entry_type, date_from, employee, accrual_plan, date_to=None, creator_user=None):
         allocation = self.env['hr.leave.allocation']
         if creator_user:
             allocation = allocation.with_user(creator_user)
@@ -131,13 +165,13 @@ class TestHrHolidaysCommon(common.TransactionCase):
             form.allocation_type = 'accrual'
             form.accrual_plan_id = accrual_plan
             form.employee_id = employee
-            form.holiday_status_id = leave_type
+            form.work_entry_type_id = work_entry_type
             form.date_from = date_from
             if date_to:
                 form.date_to = date_to
         return form.record
 
-    def _create_form_test_regular_allocation(self, leave_type, date_from, employee, number_of_days, date_to=None, creator_user=None):
+    def _create_form_test_regular_allocation(self, work_entry_type, date_from, employee, number_of_days, date_to=None, creator_user=None):
         allocation = self.env['hr.leave.allocation']
         if creator_user:
             allocation = allocation.with_user(creator_user)
@@ -145,7 +179,7 @@ class TestHrHolidaysCommon(common.TransactionCase):
             form.name = 'Test regular allocation'
             form.allocation_type = 'regular'
             form.employee_id = employee
-            form.holiday_status_id = leave_type
+            form.work_entry_type_id = work_entry_type
             form.date_from = date_from
             form.number_of_days_display = number_of_days
             if date_to:
@@ -159,11 +193,27 @@ class TestHolidayContract(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.leave_type = cls.env['hr.leave.type'].create({
+        cls.env.company.resource_calendar_id = cls.env['resource.calendar'].create({
+            'attendance_ids': [
+                (0, 0,
+                    {
+                        'dayofweek': weekday,
+                        'hour_from': hour,
+                        'hour_to': hour + 4,
+                    })
+                for weekday in ['0', '1', '2', '3', '4']
+                for hour in [8, 13]
+            ],
+            'name': 'Standard 40h/week',
+        })
+
+        cls.work_entry_type = cls.env['hr.work.entry.type'].create({
             'name': 'Legal Leaves',
-            'time_type': 'leave',
+            'code': 'Legal Leaves',
+            'count_as': 'absence',
             'requires_allocation': False,
-            'responsible_ids': [Command.link(cls.env.ref('base.user_admin').id)],
+            'request_unit': 'day',
+            'unit_of_measure': 'day',
         })
         cls.env.ref('base.user_admin').notification_type = 'inbox'
 
@@ -183,21 +233,16 @@ class TestHolidayContract(TransactionCase):
         cls.calendar_35h = cls.env['resource.calendar'].create({
             'name': '35h calendar',
             'attendance_ids': [
-                (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Monday Lunch', 'dayofweek': '0', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Monday Evening', 'dayofweek': '0', 'hour_from': 13, 'hour_to': 16, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday Lunch', 'dayofweek': '1', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Tuesday Evening', 'dayofweek': '1', 'hour_from': 13, 'hour_to': 16, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Wednesday Morning', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Wednesday Lunch', 'dayofweek': '2', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Wednesday Evening', 'dayofweek': '2', 'hour_from': 13, 'hour_to': 16, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday Lunch', 'dayofweek': '3', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Thursday Evening', 'dayofweek': '3', 'hour_from': 13, 'hour_to': 16, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday Lunch', 'dayofweek': '4', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Friday Evening', 'dayofweek': '4', 'hour_from': 13, 'hour_to': 16, 'day_period': 'afternoon'})
+                (0, 0, {'dayofweek': '0', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 13, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 13, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 13, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 13, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 13, 'hour_to': 16})
             ]
         })
         cls.calendar_40h = cls.env['resource.calendar'].create({'name': 'Default calendar'})
@@ -228,7 +273,7 @@ class TestHolidayContract(TransactionCase):
         return cls.env['hr.leave'].create({
             'name': name or 'Holiday!!!',
             'employee_id': employee_id or cls.richard_emp.id,
-            'holiday_status_id': cls.leave_type.id,
+            'work_entry_type_id': cls.work_entry_type.id,
             'request_date_to': date_to or Datetime.today(),
             'request_date_from': date_from or Datetime.today(),
         })

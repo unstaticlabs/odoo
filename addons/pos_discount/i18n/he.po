@@ -5,15 +5,14 @@
 # Translators:
 # ExcaliberX <excaliberx@gmail.com>, 2022
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Yoram Lavi <yoram@digitale.co.il>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# or balmas <or@laylinetech.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 20:34+0000\n"
+"POT-Creation-Date: 2026-04-03 18:37+0000\n"
+"PO-Revision-Date: 2025-09-29 02:31+0000\n"
 "Last-Translator: or balmas <or@laylinetech.com>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "pos_discount/he/>\n"
@@ -23,7 +22,17 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: pos_discount
+#: model_terms:ir.ui.view,arch_db:pos_discount.pos_session_sales_details
+msgid "<strong>Amount of global discounts</strong>:"
+msgstr ""
+
+#. module: pos_discount
+#: model_terms:ir.ui.view,arch_db:pos_discount.pos_session_sales_details
+msgid "<strong>Number of global discounts</strong>:"
+msgstr ""
 
 #. module: pos_discount
 #. odoo-python
@@ -32,8 +41,6 @@ msgid ""
 "A discount product is needed to use the Global Discount feature. Go to Point "
 "of Sale > Configuration > Settings to set it."
 msgstr ""
-"נדרש מוצר הנחה כדי להשתמש בתכונת ההנחה הגלובלית. עבור אל נקודת מכירה > "
-"תצורה > הגדרות כדי להגדיר אותו."
 
 #. module: pos_discount
 #: model:ir.model.fields,help:pos_discount.field_pos_config__iface_discount
@@ -43,10 +50,11 @@ msgstr "אפשר לקופאי לתת הנחה לכל ההזמנה."
 #. module: pos_discount
 #: model:ir.model,name:pos_discount.model_res_config_settings
 msgid "Config Settings"
-msgstr "תצורת הגדרות"
+msgstr "הגדר הגדרות"
 
 #. module: pos_discount
 #. odoo-javascript
+#: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 #: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.xml:0
 #: model:product.template,name:pos_discount.product_product_consumable_product_template
 msgid "Discount"
@@ -58,8 +66,6 @@ msgid "Discount %"
 msgstr "% הנחה"
 
 #. module: pos_discount
-#. odoo-javascript
-#: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__discount_pc
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__pos_discount_pc
 msgid "Discount Percentage"
@@ -75,20 +81,16 @@ msgstr "מוצר הנחה"
 #: model:ir.model.fields,field_description:pos_discount.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_product_template__display_name
+#: model:ir.model.fields,field_description:pos_discount.field_report_point_of_sale_report_saledetails__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__display_name
 msgid "Display Name"
-msgstr ""
-
-#. module: pos_discount
-#. odoo-javascript
-#: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
-msgid "Error"
 msgstr ""
 
 #. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_account_move_line__id
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_discount.field_product_template__id
+#: model:ir.model.fields,field_description:pos_discount.field_report_point_of_sale_report_saledetails__id
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__id
 msgid "ID"
 msgstr ""
@@ -105,6 +107,12 @@ msgid "No discount product found"
 msgstr "לא נמצא מוצר הנחה"
 
 #. module: pos_discount
+#. odoo-javascript
+#: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
+msgid "Oh snap !"
+msgstr ""
+
+#. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__iface_discount
 msgid "Order Discounts"
 msgstr "הנחות בהזמנה"
@@ -113,6 +121,11 @@ msgstr "הנחות בהזמנה"
 #: model:ir.model,name:pos_discount.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr "תצורת קופה"
+
+#. module: pos_discount
+#: model:ir.model,name:pos_discount.model_report_point_of_sale_report_saledetails
+msgid "Point of Sale Details"
+msgstr ""
 
 #. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__pos_discount_product_id
@@ -150,6 +163,3 @@ msgstr ""
 #: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
 msgid "You cannot edit a discount line."
 msgstr ""
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "משמרת קופה "

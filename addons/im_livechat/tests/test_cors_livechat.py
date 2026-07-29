@@ -1,9 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import tagged, HttpCase, JsonRpcException
+from odoo.tests import HttpCase, JsonRpcException
 
 
-@tagged("post_install", "-at_install")
 class TestCorsLivechat(HttpCase):
     @classmethod
     def setUpClass(cls):
@@ -57,10 +56,11 @@ class TestCorsLivechat(HttpCase):
         )
         self.authenticate(None, None)
         self.make_jsonrpc_request(
-            "/im_livechat/cors/channel/messages",
+            "/im_livechat/cors/channel/mark_as_read",
             {
                 "guest_token": data["store_data"]["Store"]["guest_token"],
                 "channel_id": data["channel_id"],
+                "last_message_id": 0,
             },
         )
 
@@ -76,9 +76,10 @@ class TestCorsLivechat(HttpCase):
         self.authenticate(None, None)
         with self.assertRaises(JsonRpcException, msg="werkzeug.exceptions.NotFound"):
             self.make_jsonrpc_request(
-                "/im_livechat/cors/channel/messages",
+                "/im_livechat/cors/channel/mark_as_read",
                 {
                     "guest_token": guest.access_token,
                     "channel_id": data["channel_id"],
+                    "last_message_id": 0,
                 },
             )

@@ -70,16 +70,17 @@ class TestSelfOrderCombo(SelfOrderCommonTest):
 
     def test_combo_price_no_free_items(self):
         """
-        Regression test: when all combo sub-combos have qty_free=0, remaining_total
+        Regression test: when all combo sub-combos are upsell (qty_free=0), remaining_total
         (= parent list price) must be distributed proportionally to the extra lines,
         not silently dropped.
         """
         self.pos_config.with_user(self.pos_user).open_ui()
         self.pos_config.current_session_id.set_opening_control(0, "")
 
-        # Sub-combo with qty_free=0 (no free items) and qty_max=1
+        # Upsell combo: qty_free=0 (no free items), all selections are charged as extras
         no_free_combo = self.env['product.combo'].create({
             'name': 'No Free Combo',
+            'is_upsell': True,
             'qty_free': 0,
             'qty_max': 1,
             'combo_item_ids': [
@@ -135,9 +136,9 @@ class TestSelfOrderCombo(SelfOrderCommonTest):
         order.recompute_prices()
 
         # base_price of the combo = min lst_price among items = min(cola.lst_price, fanta.lst_price) = 2.2
-        # With qty_free=0, remaining_total = parent lst_price = 10.0 must flow into the child
-        # price_unit should be: base_price + proportional_share_of_parent_price
-        # = base_price + round(base_price * 10 / (base_price * 1)) = base_price + 10.0
+        # With is_upsell=True (qty_free=0), remaining_total = parent lst_price = 10.0 must flow into the child.
+        # price_unit = base_price + proportional_share_of_parent_price
+        # = base_price + round(base_price * 10.0 / (base_price * 1)) = base_price + 10.0
         expected_price = no_free_combo.base_price + combo_product.lst_price
         self.assertAlmostEqual(
             child_line.price_unit, expected_price, places=2,
@@ -335,6 +336,86 @@ class TestSelfOrderCombo(SelfOrderCommonTest):
         self_route = self.pos_config._get_self_order_route()
         self.start_tour(self_route, "test_product_dont_display_all_variants")
 
+    def test_self_order_combo_multiple_qty(self):
+        """
+        Tests that when having a combo with multiple qty, the price in the backend
+        is correctly computed based on the combo product's price.
+        """
+        water, orange_juice, water2, orange_juice2 = self.env['product.product'].create([
+            {
+                'name': 'Water',
+                'available_in_pos': True,
+                'list_price': 0.0,
+                'taxes_id': [],
+            },
+            {
+                'name': 'Orange Juice',
+                'available_in_pos': True,
+                'list_price': 0.0,
+            },
+            {
+                'name': 'Water 2',
+                'available_in_pos': True,
+                'list_price': 2.0,
+                'taxes_id': [],
+            },
+            {
+                'name': 'Orange Juice 2',
+                'available_in_pos': True,
+                'list_price': 2.0,
+            }
+
+        ])
+        drinks_combo, drinks_combo_with_price = self.env['product.combo'].create([
+            {
+                'name': 'Drinks',
+                'combo_item_ids': [
+                    Command.create({'product_id': water.id, 'extra_price': 0}),
+                    Command.create({'product_id': orange_juice.id, 'extra_price': 0}),
+                ],
+            },
+            {
+                'name': 'Drinks2',
+                'combo_item_ids': [
+                    Command.create({'product_id': water2.id, 'extra_price': 0}),
+                    Command.create({'product_id': orange_juice2.id, 'extra_price': 0}),
+                ],
+            }
+        ])
+        self.env['product.product'].create([
+            {
+                'name': 'Combo Drinks',
+                'type': 'combo',
+                'available_in_pos': True,
+                'list_price': 12.0,
+                'combo_ids': [
+                    Command.set([drinks_combo.id]),
+                ],
+            },
+            {
+                'name': 'Price for drinks',
+                'type': 'combo',
+                'available_in_pos': True,
+                'list_price': 12.0,
+                'combo_ids': [
+                    Command.set([drinks_combo_with_price.id]),
+                ],
+            }
+        ])
+
+        self.pos_config.write({
+            'self_ordering_mode': 'kiosk',
+            'self_ordering_pay_after': 'each',
+            'self_ordering_service_mode': 'table',
+        })
+        self.pos_config.with_user(self.pos_user).open_ui()
+        self.pos_config.current_session_id.set_opening_control(0, "")
+        self_route = self.pos_config._get_self_order_route()
+        self.start_tour(self_route, "test_self_order_combo_multiple_qty")
+        orders = self.env['pos.order'].search([], order='id desc', limit=2)
+        self.assertEqual(orders[1].amount_total, 24)
+        self.assertEqual(orders[0].amount_total, 36)
+
     def test_self_combo_extra_price_selection_and_confirmation(self):
         """
         Test extra price display in combo selection and confirmation.
@@ -344,6 +425,7 @@ class TestSelfOrderCombo(SelfOrderCommonTest):
         """
 
         setup_product_combo_items(self)
+        self.desks_combo.is_upsell = True
         self.desks_combo.qty_free = 0
         self.desks_combo.qty_max = 3
 

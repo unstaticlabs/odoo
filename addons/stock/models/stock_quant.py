@@ -18,7 +18,7 @@ _logger = logging.getLogger(__name__)
 
 class StockQuant(models.Model):
     _name = 'stock.quant'
-    _description = 'Quants'
+    _description = 'Quant'
     _rec_name = 'product_id'
     _rec_names_search = ['location_id', 'lot_id', 'package_id', 'owner_id']
 
@@ -49,7 +49,7 @@ class StockQuant(models.Model):
     product_tmpl_id = fields.Many2one(
         'product.template', string='Product Template',
         related='product_id.product_tmpl_id')
-    product_uom_id = fields.Many2one(
+    uom_id = fields.Many2one(
         'uom.uom', 'Unit',
         readonly=True, related='product_id.uom_id')
     is_favorite = fields.Boolean(related='product_tmpl_id.is_favorite')
@@ -198,14 +198,14 @@ class StockQuant(models.Model):
     def _compute_is_outdated(self):
         self.is_outdated = False
         for quant in self:
-            if quant.product_id and quant.product_uom_id.compare(quant.inventory_quantity - quant.inventory_diff_quantity, quant.quantity) and quant.inventory_quantity_set:
+            if quant.product_id and quant.uom_id.compare(quant.inventory_quantity - quant.inventory_diff_quantity, quant.quantity) and quant.inventory_quantity_set:
                 quant.is_outdated = True
 
     def _search_is_outdated(self, operator, value):
         if operator != 'in':
             return NotImplemented
         quant_ids = self.search([('inventory_quantity_set', '=', True)])
-        quant_ids = quant_ids.filtered(lambda quant: quant.product_uom_id.compare(quant.inventory_quantity - quant.inventory_diff_quantity, quant.quantity)).ids
+        quant_ids = quant_ids.filtered(lambda quant: quant.uom_id.compare(quant.inventory_quantity - quant.inventory_diff_quantity, quant.quantity)).ids
         return [('id', 'in', quant_ids)]
 
     @api.depends('quantity')
@@ -325,16 +325,16 @@ class StockQuant(models.Model):
         """ Only allowed fields should be modified """
         return super(StockQuant, self.with_context(inventory_mode=True))._load_records_write(values)
 
-    def _read_group_select(self, aggregate_spec, query):
+    def _read_group_select(self, table, aggregate_spec):
         if aggregate_spec == 'inventory_quantity:sum' and self.env.context.get('inventory_report_mode'):
             return SQL("NULL")
         if aggregate_spec == 'available_quantity:sum':
-            sql_quantity = self._read_group_select('quantity:sum', query)
-            sql_reserved_quantity = self._read_group_select('reserved_quantity:sum', query)
+            sql_quantity = self._read_group_select(table, 'quantity:sum')
+            sql_reserved_quantity = self._read_group_select(table, 'reserved_quantity:sum')
             return SQL("%s - %s", sql_quantity, sql_reserved_quantity)
         if aggregate_spec == 'inventory_quantity_auto_apply:sum':
-            return self._read_group_select('quantity:sum', query)
-        return super()._read_group_select(aggregate_spec, query)
+            return self._read_group_select(table, 'quantity:sum')
+        return super()._read_group_select(table, aggregate_spec)
 
     @api.model
     def get_import_templates(self):
@@ -402,7 +402,7 @@ class StockQuant(models.Model):
     def action_view_inventory(self):
         """ Similar to _get_quants_action except specific for inventory adjustments (i.e. inventory counts). """
         self = self._set_view_context()
-        if not self.env['ir.config_parameter'].sudo().get_param('stock.skip_quant_tasks'):
+        if not self.env['ir.config_parameter'].sudo().get_bool('stock.skip_quant_tasks'):
             self._quant_tasks()
 
         ctx = dict(self.env.context or {})
@@ -1007,12 +1007,12 @@ class StockQuant(models.Model):
         for quant in self:
             # if inventory applied from product's inverse_qty and the inventory_diff_quantity is 0,
             # we skip creating a move with 0 quantity.
-            if quant.env.context.get('from_inverse_qty') and quant.product_uom_id.compare(quant.inventory_diff_quantity, 0) == 0:
+            if quant.env.context.get('from_inverse_qty') and quant.uom_id.compare(quant.inventory_diff_quantity, 0) == 0:
                 continue
             inventory_location = quant.product_id.with_company(quant.company_id).property_stock_inventory or\
                 default_loss_locations.get(quant.company_id.id)
             # Create and validate a move so that the quant matches its `inventory_quantity`.
-            if quant.product_uom_id.compare(quant.inventory_diff_quantity, 0) > 0:
+            if quant.uom_id.compare(quant.inventory_diff_quantity, 0) > 0:
                 move_vals.append(
                     quant._get_inventory_move_values(quant.inventory_diff_quantity,
                                                      inventory_location,
@@ -1065,7 +1065,7 @@ class StockQuant(models.Model):
             incoming_dates = []
         else:
             incoming_dates = [quant.in_date for quant in quants if quant.in_date and
-                              quant.product_uom_id.compare(quant.quantity, 0) > 0]
+                              quant.uom_id.compare(quant.quantity, 0) > 0]
         if in_date:
             incoming_dates += [in_date]
         # If multiple incoming dates are available for a given lot_id/package_id/owner_id, we
@@ -1264,7 +1264,7 @@ class StockQuant(models.Model):
 
         res = {
             'product_id': self.product_id.id,
-            'product_uom': self.product_uom_id.id,
+            'uom_id': self.uom_id.id,
             'product_uom_qty': qty,
             'company_id': self.company_id.id or self.env.company.id,
             'state': 'confirmed',
@@ -1275,7 +1275,7 @@ class StockQuant(models.Model):
             'picked': True,
             'move_line_ids': [(0, 0, {
                 'product_id': self.product_id.id,
-                'product_uom_id': self.product_uom_id.id,
+                'uom_id': self.uom_id.id,
                 'quantity': qty,
                 'location_id': location_id.id,
                 'location_dest_id': location_dest_id.id,
@@ -1312,7 +1312,7 @@ class StockQuant(models.Model):
 
         :param extend: If True, enables form, graph and pivot views. False by default.
         """
-        if not self.env['ir.config_parameter'].sudo().get_param('stock.skip_quant_tasks'):
+        if not self.env['ir.config_parameter'].sudo().get_bool('stock.skip_quant_tasks'):
             self._quant_tasks()
         ctx = dict(self.env.context or {})
         ctx['inventory_report_mode'] = True
@@ -1366,9 +1366,11 @@ class StockQuant(models.Model):
 
         # Quantity part.
         if self.tracking != 'serial' or self.quantity > 1:
-            quantity_ai = gs1_quantity_rules_ai_by_uom.get(self.product_uom_id.id)
+            quantity_ai = gs1_quantity_rules_ai_by_uom.get(self.uom_id.id)
             if quantity_ai:
-                qty_str = str(int(self.quantity / self.product_uom_id.rounding))
+                digits = self.env['decimal.precision'].precision_get('Product Unit')
+                rounding = 10 ** -digits
+                qty_str = str(int(self.quantity / rounding))
                 if len(qty_str) <= 6:
                     barcode += quantity_ai + '0' * (6 - len(qty_str)) + qty_str
             else:
@@ -1397,8 +1399,8 @@ class StockQuant(models.Model):
 
         :return: list
         """
-        agg_barcode_max_length = int(self.env['ir.config_parameter'].sudo().get_param('stock.agg_barcode_max_length', 400))
-        barcode_separator = self.env['ir.config_parameter'].sudo().get_param('stock.barcode_separator')
+        agg_barcode_max_length = self.env['ir.config_parameter'].sudo().get_int('stock.agg_barcode_max_length') or 400
+        barcode_separator = self.env['ir.config_parameter'].sudo().get_str('stock.barcode_separator')
         if not barcode_separator:
             return []  # A barcode separator is mandatory to be able to aggregate barcodes.
 
@@ -1414,9 +1416,10 @@ class StockQuant(models.Model):
             ('is_gs1_nomenclature', '=', True)]
         )
         gs1_quantity_rules_ai_by_uom = {}
+        digits = self.env['decimal.precision'].precision_get('Product Unit')
 
         for rule in gs1_quantity_rules:
-            decimal = str(len(f'{rule.associated_uom_id.rounding:.10f}'.rstrip('0').split('.')[1]))
+            decimal = str(digits)
             rule_ai = rule.pattern[1:4] + decimal
             gs1_quantity_rules_ai_by_uom[rule.associated_uom_id.id] = rule_ai
 

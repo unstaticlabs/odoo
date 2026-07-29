@@ -3,12 +3,13 @@
 import logging
 
 import odoo.tools
-from odoo import http
-from odoo.modules import Manifest
+from odoo import http, release
 from odoo.http import request
+from odoo.http.stream import STATIC_CACHE_LONG
+from odoo.modules import Manifest
 from odoo.tools.misc import file_path
-from .utils import _local_web_translations
 
+from .utils import _local_web_translations
 
 _logger = logging.getLogger(__name__)
 
@@ -82,16 +83,26 @@ class WebClient(http.Controller):
 
         # The type of the route is set to HTTP, but the rpc is made with a get and expects JSON
         return request.make_json_response(body, [
-            ('Cache-Control', f'public, max-age={http.STATIC_CACHE_LONG}'),
+            ('Cache-Control', f'public, max-age={STATIC_CACHE_LONG}'),
         ])
 
     @http.route('/web/webclient/version_info', type='jsonrpc', auth="none")
     def version_info(self):
-        return odoo.service.common.exp_version()
+        return {
+            'server_version': release.version,
+            'server_version_info': release.version_info,
+            'server_serie': release.serie,
+        }
 
     @http.route('/web/tests', type='http', auth='user', readonly=True)
     def unit_tests_suite(self, mod=None, **kwargs):
-        return request.render('web.unit_tests_suite', {'session_info': {'view_info': request.env['ir.ui.view'].get_view_info()}})
+        return request.render('web.unit_tests_suite', {
+            'session_info': {
+                "server_version": release.version,
+                "server_version_info": release.version_info,
+                'view_info': request.env['ir.ui.view'].get_view_info()
+            },
+        })
 
     @http.route('/web/tests/legacy', type='http', auth='user', readonly=True)
     def test_suite(self, mod=None, **kwargs):

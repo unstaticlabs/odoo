@@ -8,8 +8,7 @@
             </button>
         </xpath>
         <xpath expr="//div[hasclass('validation')]" position="attributes">
-            <!-- Check availability for all children, needed due to condition based pay button. Skip rendering if none are available. -->
-            <attribute name="t-if">!this.swapButton or showFastPaymentMethods or (pos.showBackButton() and !pos.config.module_pos_restaurant)</attribute>
+            <attribute name="t-if">this.swapButton or props.showActionButton</attribute>
         </xpath>
         <xpath expr="//div[hasclass('validation')]//button[hasclass('pay-order-button')]" position="attributes">
             <attribute name="t-if">!this.swapButton</attribute>
@@ -48,15 +47,15 @@
                     <span t-esc="this.fireCourseBtnText"></span>
                 </button>
                 <button
-                    class="button btn btn-secondary btn-lg d-flex flex-row align-items-center justify-content-center"
+                    class="button w-50 btn btn-secondary btn-lg d-flex flex-row align-items-center justify-content-center"
                     t-on-click="() => doReprintOrder.call()"
-                    t-elif="this.pos.unwatched.printers.length and this.currentOrder.uiState.lastPrints.length"
+                    t-elif="!ui.isSmall and this.pos.ticketPrinter.hasPreparationPrinters and this.currentOrder.lastPrints.length"
                     t-att-disabled="doReprintOrder.status === 'loading'">
-                    <i class="fa fa-cutlery" aria-hidden="true"></i>
+                    Reprint
                 </button>
                 <button
                     class="button btn btn-secondary btn-lg d-flex flex-row align-items-center justify-content-center w-50"
-                    t-on-click="() => this.clickNew()"
+                    t-on-click="() => this.pos.showDefault()"
                     t-elif="!this.currentOrder.isDirectSale and !this.displayCategoryCount.length and !this.currentOrder.isEmpty()"
                 >
                     <span>New</span>
@@ -92,7 +91,7 @@
                     </button>
                 </t>
                 <button t-if="!currentOrder.isEmpty() and this.pos.numpadMode != 'table'"
-                    t-on-click="() => pos.pay()" 
+                    t-on-click="() => pos.pay()"
                     class="button pay-order-button pay-order-button-restaurant btn btn-lg w-50"
                     t-attf-class="{{ this.highlightPay ? 'highlight btn-primary' : 'btn-secondary' }}"
                 >

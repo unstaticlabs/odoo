@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * pos_loyalty
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 18:35+0000\n"
-"PO-Revision-Date: 2026-07-10 09:18+0000\n"
+"POT-Creation-Date: 2026-05-01 17:37+0000\n"
+"PO-Revision-Date: 2026-07-10 08:53+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_loyalty/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -155,14 +155,12 @@ msgid "Available rewards"
 msgstr "Saatavilla olevat palkinnot"
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
-msgid "Balance"
-msgstr "Saldo"
+#. odoo-python
+#: code:addons/pos_loyalty/receipt/pos_order_receipt.py:0
+msgid "Balance:"
+msgstr "Saldo:"
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
 #: model:ir.model.fields,field_description:pos_loyalty.field_loyalty_rule__promo_barcode
 msgid "Barcode"
 msgstr "Viivakoodi"
@@ -228,6 +226,7 @@ msgstr "Alennus ja kanta-asiakkuus"
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_loyalty.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_loyalty.field_product_product__display_name
 #: model:ir.model.fields,field_description:pos_loyalty.field_product_template__display_name
@@ -253,12 +252,6 @@ msgstr "Anna lahjakortin numero"
 #: code:addons/pos_loyalty/static/src/app/components/popups/manage_giftcard_popup/manage_giftcard_popup.xml:0
 msgid "Enter amount"
 msgstr "Kirjoita summa"
-
-#. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
-msgid "Error"
-msgstr "Virhe"
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -311,6 +304,7 @@ msgstr "Kuinka monta pistettä tämä palkkio maksaa kupongilla."
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_loyalty.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_loyalty.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_loyalty.field_product_product__id
 #: model:ir.model.fields,field_description:pos_loyalty.field_product_template__id
@@ -360,7 +354,7 @@ msgstr "Onko palkkiorivi"
 #. module: pos_loyalty
 #: model:ir.model,name:pos_loyalty.model_account_move_line
 msgid "Journal Item"
-msgstr "Kirjausrivi"
+msgstr ""
 
 #. module: pos_loyalty
 #: model:ir.model,name:pos_loyalty.model_loyalty_mail
@@ -394,6 +388,12 @@ msgid "Loyalty Rule"
 msgstr "Kanta-asiakkuussääntö"
 
 #. module: pos_loyalty
+#. odoo-python
+#: code:addons/pos_loyalty/models/pos_order.py:0
+msgid "Loyalty coupon sold"
+msgstr "Kanta-asiakaskuponki myyty"
+
+#. module: pos_loyalty
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/app/screens/product_screen/order_summary/order_summary.js:0
 msgid "No"
@@ -410,6 +410,12 @@ msgstr "Tällä kupongilla ei voi lunastaa palkkiota."
 #: code:addons/pos_loyalty/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 msgid "No valid eWallet found"
 msgstr "Kelvollista eLompakkoa ei löytynyt"
+
+#. module: pos_loyalty
+#. odoo-javascript
+#: code:addons/pos_loyalty/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
+msgid "Oh snap !"
+msgstr "Voi rähmä!"
 
 #. module: pos_loyalty
 #. odoo-python
@@ -461,14 +467,19 @@ msgid "Point of Sale Configuration"
 msgstr "Kassajärjestelmän asetukset"
 
 #. module: pos_loyalty
-#: model:ir.model,name:pos_loyalty.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassajärjestelmän tilausrivit"
+#: model:ir.model,name:pos_loyalty.model_pos_order
+msgid "Point of Sale Order"
+msgstr "Kassajärjestelmän tilaus"
 
 #. module: pos_loyalty
-#: model:ir.model,name:pos_loyalty.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassajärjestelmän tilaukset"
+#: model:ir.model,name:pos_loyalty.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr "Kassajärjestelmän tilausrivi"
+
+#. module: pos_loyalty
+#: model:ir.model,name:pos_loyalty.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr "Kassajärjestelmän tilauskuittien luontityökalu"
 
 #. module: pos_loyalty
 #: model:ir.model,name:pos_loyalty.model_pos_session
@@ -505,7 +516,7 @@ msgstr "Tuote"
 #. module: pos_loyalty
 #: model:ir.model,name:pos_loyalty.model_product_product
 msgid "Product Variant"
-msgstr "Tuotevariantti"
+msgstr "Tuotevariaatio"
 
 #. module: pos_loyalty
 #. odoo-python
@@ -596,8 +607,8 @@ msgstr ""
 "tilaus."
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
+#. odoo-python
+#: code:addons/pos_loyalty/receipt/pos_order_receipt.py:0
 msgid "Spent:"
 msgstr "Käytetty:"
 
@@ -635,6 +646,15 @@ msgstr "Tämä tarjouskoodiohjelma ei ole vielä voimassa."
 #: code:addons/pos_loyalty/static/src/app/services/pos_store.js:0
 msgid "That promo code program requires a specific pricelist."
 msgstr "Tämä tarjouskoodiohjelma edellyttää tiettyä hinnastoa."
+
+#. module: pos_loyalty
+#. odoo-javascript
+#: code:addons/pos_loyalty/static/src/app/components/popups/manage_giftcard_popup/manage_giftcard_popup.js:0
+msgid ""
+"The code is invalid. Ensure that the spelling is right or if the gift card "
+"exists."
+msgstr ""
+"Koodi on virheellinen. Varmista oikeinkirjoitus tai lahjakortin olemassaolo."
 
 #. module: pos_loyalty
 #: model:ir.model.fields,help:pos_loyalty.field_pos_order_line__coupon_id
@@ -707,8 +727,8 @@ msgid ""
 "There is no email template on the gift card program and your pos is set to "
 "print them."
 msgstr ""
-"Lahjakorttiohjelmassa ei ole sähköpostipohjia, vaikka kassajärjestelmäsi on "
-"asetettu tulostamaan niitä."
+"Lahjakorttiohjelmassa ei ole sähköpostimallia, ja pos on asetettu "
+"tulostamaan ne."
 
 #. module: pos_loyalty
 #. odoo-python
@@ -724,15 +744,6 @@ msgstr ""
 #: model:ir.model.fields,help:pos_loyalty.field_loyalty_rule__valid_product_ids
 msgid "These are the products that are valid for this rule."
 msgstr "Nämä tuotteet pätevät tähän sääntöön."
-
-#. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/components/popups/manage_giftcard_popup/manage_giftcard_popup.js:0
-msgid ""
-"This code seems to be invalid, please check the Gift Card code and try again."
-msgstr ""
-"Tämä koodi vaikuttaa virheelliseltä, tarkista lahjakortin koodi ja yritä "
-"uudelleen."
 
 #. module: pos_loyalty
 #. odoo-python
@@ -810,10 +821,9 @@ msgid "Unpaid gift card rejected."
 msgstr "Maksamaton lahjakortti hylätty."
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_loyalty.pos_order_receipt
 msgid "Until:"
-msgstr "Päättyen:"
+msgstr ""
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -838,8 +848,8 @@ msgid "Whether this line is part of a reward or not."
 msgstr "Olipa tämä rivi osa palkintoa tai ei."
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
+#. odoo-python
+#: code:addons/pos_loyalty/receipt/pos_order_receipt.py:0
 msgid "Won:"
 msgstr "Saatu:"
 
@@ -852,7 +862,7 @@ msgstr "Kyllä"
 #. module: pos_loyalty
 #. odoo-javascript
 #: code:addons/pos_loyalty/static/src/app/screens/product_screen/order_summary/order_summary.js:0
-msgid "You cannot change the quantity or price of a physical gift card."
+msgid "You cannot change the quantity or the price of a physical gift card."
 msgstr "Et voi muuttaa fyysisen lahjakortin määrää tai arvoa."
 
 #. module: pos_loyalty
@@ -866,7 +876,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/pos_loyalty/models/loyalty_program.py:0
 msgid "You must set '%(mail_template)s' before setting '%(report)s'."
-msgstr "Sinun on asetettava '%(mail_template)s' ennen kuin asetat '%(report)s'."
+msgstr ""
+"Sinun on asetettava '%(mail_template)s' ennen kuin asetat '%(report)s'."
 
 #. module: pos_loyalty
 #. odoo-javascript
@@ -893,10 +904,15 @@ msgid "eWallet requires a customer to be selected"
 msgstr "eWallet edellyttää, että asiakas on valittu"
 
 #. module: pos_loyalty
-#. odoo-javascript
-#: code:addons/pos_loyalty/static/src/app/screens/receipt_screen/order_receipt/order_receipt.xml:0
+#: model_terms:ir.ui.view,arch_db:pos_loyalty.pos_order_receipt
 msgid "no expiration"
-msgstr "ei voimassaoloaikaa"
+msgstr ""
+
+#. module: pos_loyalty
+#. odoo-python
+#: code:addons/pos_loyalty/receipt/pos_order_receipt.py:0
+msgid "used"
+msgstr ""
 
 #~ msgid ""
 #~ "Gift Card: %s\n"
@@ -904,15 +920,3 @@ msgstr "ei voimassaoloaikaa"
 #~ msgstr ""
 #~ "Lahjakortti: %s\n"
 #~ "Saldo: %s"
-
-#~ msgid "Restrict publishing to those shops."
-#~ msgstr "Rajoita julkaiseminen näihin kauppoihin."
-
-#~ msgid "Customer"
-#~ msgstr "Asiakas"
-
-#~ msgid "This Gift card has already been sold."
-#~ msgstr "Tämä lahjakortti on jo myyty."
-
-#~ msgid "the gift cards"
-#~ msgstr "lahjakortit"

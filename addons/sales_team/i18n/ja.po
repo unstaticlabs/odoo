@@ -6,24 +6,24 @@
 # Martin Trigaux, 2022
 # Andy Yiu, 2022
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:02+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-04 13:01+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "sales_team/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: sales_team
 #. odoo-python
@@ -38,7 +38,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr "%(user_names)s はすでに他のチーム (%(team_names)s) にいます。"
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 msgid ""
 "<i class=\"fa fa-envelope me-1\" role=\"img\" aria-label=\"Email\" "
@@ -50,7 +49,8 @@ msgstr ""
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Company\"/>"
-msgstr "<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Company\"/>"
+msgstr ""
+"<i class=\"fa fa-fw me-1 fa-building text-primary\" title=\"Company\"/>"
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
@@ -61,6 +61,12 @@ msgstr "<i class=\"fa fa-fw me-1 fa-envelope text-primary\" title=\"Email\"/>"
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
 msgstr "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
+
+#. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
+msgstr "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"販売チーム\"/>"
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
@@ -108,7 +114,8 @@ msgstr "チームメンバーを追加"
 #. module: sales_team
 #: model:ir.model.fields,help:sales_team.field_crm_team__crm_team_member_ids
 msgid "Add members to automatically assign their documents to this sales team."
-msgstr "メンバーを追加して、そのドキュメントをこの販売チームに自動的に割り当てます。"
+msgstr ""
+"メンバーを追加して、そのドキュメントをこの販売チームに自動的に割り当てます。"
 
 #. module: sales_team
 #: model:res.groups,name:sales_team.group_sale_manager
@@ -246,6 +253,7 @@ msgstr "表示名"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Email"
 msgstr "メール"
 
@@ -292,8 +300,8 @@ msgid ""
 "If True, users may belong to several sales teams. Otherwise membership is "
 "limited to a single sales team."
 msgstr ""
-"True の場合、ユーザは複数の販売チームに所属できます。そうでない場合は、"
-"メンバーシップは1つの販売チームに限定されます。"
+"True の場合、ユーザは複数の販売チームに所属できます。そうでない場合は、メン"
+"バーシップは1つの販売チームに限定されます。"
 
 #. module: sales_team
 #: model:ir.model.fields,help:sales_team.field_crm_team__message_needaction
@@ -357,8 +365,8 @@ msgid ""
 "Main user sales team. Used notably for pipeline, or to set sales team in "
 "invoicing or subscription."
 msgstr ""
-"販売チームのメインユーザー。特にパイプラインや、請求書発行や"
-"サブスクリプションで販売チームを設定するために使用します。"
+"販売チームのメインユーザー。特にパイプラインや、請求書発行やサブスクリプショ"
+"ンで販売チームを設定するために使用します。"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__member_company_ids
@@ -434,6 +442,7 @@ msgstr "その他"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Phone"
 msgstr "電話"
 
@@ -479,6 +488,7 @@ msgstr "営業担当者"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -612,8 +622,8 @@ msgid ""
 "Those represent the different categories of things you have to do (e.g. "
 "\"Call\" or \"Prepare meeting\")."
 msgstr ""
-"これらは、やるべきことの様々なカテゴリを表します（例「電話」や「会議の準備」"
-"）"
+"これらは、やるべきことの様々なカテゴリを表します（例「電話」や「会議の準"
+"備」）"
 
 #. module: sales_team
 #: model:crm.tag,name:sales_team.categ_oppor6
@@ -654,7 +664,8 @@ msgstr ""
 msgid ""
 "Use Tags to manage and track your Opportunities (product structure, sales "
 "type, ...)"
-msgstr "タグを使用して、案件を管理および追跡します。（プロダクト構成、販売タイプ...）"
+msgstr ""
+"タグを使用して、案件を管理および追跡します。（プロダクト構成、販売タイプ...）"
 
 #. module: sales_team
 #: model:ir.model,name:sales_team.model_res_users
@@ -721,8 +732,8 @@ msgstr "マルチチームで勤務？"
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
 "重複したメンバーシップを作成しようとしています。%(duplicates)sはすでに存在し"
 "ています。"
@@ -760,28 +771,3 @@ msgid ""
 "the user will have an access to the sales configuration as well as statistic "
 "reports."
 msgstr "ユーザは販売構成および統計レポートにアクセスできます。"
-
-#~ msgid "Contact"
-#~ msgstr "連絡先"
-
-#~ msgid ""
-#~ "Follow this salesteam to automatically track the events associated to "
-#~ "users of this team."
-#~ msgstr ""
-#~ "この販売チームに従って、このチームのユーザに関連付けられたイベントを自動的"
-#~ "に追跡します。"
-
-#~ msgid "Group By"
-#~ msgstr "グループ化"
-
-#~ msgid "Group By..."
-#~ msgstr "グループ化…"
-
-#~ msgid "Mobile"
-#~ msgstr "携帯電話"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "アクションを必要とするメッセージの数"
-
-#~ msgid "Sample data"
-#~ msgstr "サンプルデータ"

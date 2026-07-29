@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:40+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2026-06-13 14:14+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-2/"
 "auth_passkey/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -52,12 +52,6 @@ msgstr "Metoda ověřování"
 #: model:ir.model.fields,field_description:auth_passkey.field_res_users__auth_passkey_key_ids
 msgid "Auth Passkey Key"
 msgstr "Autorizační přístupový kód"
-
-#. module: auth_passkey
-#: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_create_view_form
-#: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_rename
-msgid "Cancel"
-msgstr "Zrušit"
 
 #. module: auth_passkey
 #: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_create_view_form
@@ -161,6 +155,8 @@ msgid "Or choose a different method:"
 msgstr "Nebo zvolte jinou metodu:"
 
 #. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
 #: model:ir.model,name:auth_passkey.model_auth_passkey_key
 #: model:ir.model.fields.selection,name:auth_passkey.selection__res_users_identitycheck__auth_method__webauthn
 msgid "Passkey"
@@ -231,11 +227,29 @@ msgid "Use a Passkey"
 msgstr "Použijte přístupový klíč"
 
 #. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "Use passkey"
+msgstr "Použijte přístupový klíč"
+
+#. module: auth_passkey
 #: model_terms:ir.ui.view,arch_db:auth_passkey.res_users_identitycheck_view_form_passkey
 msgid "Use password"
 msgstr "Použíjte heslo"
 
 #. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "Use your passkey"
+msgstr "Použijte svůj přístupový klíč"
+
+#. module: auth_passkey
 #: model:ir.model,name:auth_passkey.model_res_users
 msgid "User"
 msgstr "Uživatel"
+
+#. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "When you are ready, authenticate using the button below."
+msgstr "Až budete připraveni, přihlaste se pomocí tlačítka níže."

@@ -37,6 +37,9 @@ class WebclientController(ThreadController):
 
     @classmethod
     def _process_request_loop(self, store: Store, fetch_params):
+        # aggregate of messages to return, to batch them in a single query when all the fetch params
+        # have been processed
+        request.update_context(messages=request.env["mail.message"], add_inbox_fields=False)
         for fetch_param in fetch_params:
             name, params, data_id = (
                 (fetch_param, None, None)
@@ -49,14 +52,36 @@ class WebclientController(ThreadController):
                 self._process_request_for_logged_in_user(store, name, params)
             if request.env.user._is_internal():
                 self._process_request_for_internal_user(store, name, params)
+        if messages := request.env.context["messages"]:
+            if request.env.context["add_inbox_fields"]:
+                # sudo: bus.bus: reading non-sensitive last id
+                bus_last_id = request.env["bus.bus"].sudo()._bus_last_id()
+                store.add(messages, "_store_message_fields", fields_params={"inbox_fields": True})
+                for records in messages._records_by_model_name().values():
+                    if not isinstance(records, request.env.registry["mail.thread"]):
+                        continue
+                    store.add(
+                        records,
+                        lambda res: (
+                            # sudo: mail.thread: users can read their own message_needaction_counter on the thread
+                            res.attr("message_needaction_counter", sudo=True),
+                            res.attr("message_needaction_counter_bus_id", bus_last_id),
+                        ),
+                        as_thread=True,
+                    )
+            else:
+                store.add(messages, "_store_message_fields")
         store.data_id = None
 
     @classmethod
     def _process_request_for_all(self, store: Store, name, params):
         if name == "init_messaging":
-            if not request.env.user._is_public():
-                user = request.env.user.sudo(False)
-                user._init_messaging(store)
+            if request.env.user._is_internal():
+                # sudo: bus.bus: reading non-sensitive last id
+                bus_last_id = request.env["bus.bus"].sudo()._bus_last_id()
+                store.add_global_values(
+                    lambda res: self._store_init_messaging_global_fields(res, bus_last_id),
+                )
         if name == "mail.thread":
             thread = self._get_thread_with_access(
                 params["thread_model"],
@@ -65,13 +90,22 @@ class WebclientController(ThreadController):
                 **params.get("access_params", {}),
             )
             if not thread:
+                thread = request.env[params["thread_model"]].browse(params["thread_id"])
+                store.add(thread, {"hasReadAccess": False, "hasWriteAccess": False}, as_thread=True)
+            else:
                 store.add(
-                    request.env[params["thread_model"]].browse(params["thread_id"]),
-                    {"hasReadAccess": False, "hasWriteAccess": False},
+                    thread,
+                    "_store_thread_fields",
+                    fields_params={"request_list": params["request_list"]},
                     as_thread=True,
                 )
-            else:
-                store.add(thread, request_list=params["request_list"], as_thread=True)
+        if name == "/mail/poll_option/votes":
+            option_id = params.get("poll_option_id")
+            # sudo - mail.poll.option: validated by "_get_thread_with_access" afterwards.
+            if opt_sudo := request.env["mail.poll.option"].sudo().search([("id", "=", option_id)]):
+                message = opt_sudo.poll_id.start_message_id
+                if self._get_thread_with_access(message.model, message.res_id, mode="read"):
+                    store.add(opt_sudo.vote_ids, "_store_vote_fields")
 
     @classmethod
     def _process_request_for_logged_in_user(self, store: Store, name, params):
@@ -101,7 +135,20 @@ class WebclientController(ThreadController):
             # and solves it by removing useless notifications
             if lost:
                 lost.sudo().unlink()  # no unlink right except admin, ok to remove as lost anyway
-            valid.mail_message_id._message_notifications_to_store(store)
+            store.add(valid.mail_message_id, "_store_notification_fields")
+        if name == "/mail/thread/messages":
+            if thread := self._get_thread_with_access(
+                params["thread_model"],
+                params["thread_id"],
+                mode="read",
+            ):
+                messages = self._resolve_messages(
+                    store,
+                    thread=thread,
+                    fetch_params=params.get("fetch_params"),
+                )
+                if not request.env.user._is_public():
+                    messages.set_message_done()
 
     @classmethod
     def _process_request_for_internal_user(self, store: Store, name, params):
@@ -120,14 +167,63 @@ class WebclientController(ThreadController):
                 ("create_uid", "=", request.env.user.id),
                 ("group_ids", "in", request.env.user.all_group_ids.ids),
             ]
-            store.add(request.env["mail.canned.response"].search(domain))
+            store.add(
+                request.env["mail.canned.response"].search_fetch(domain),
+                "_store_canned_response_fields",
+            )
         if name == "avatar_card":
             record_id, model = params.get("id"), params.get("model")
-            if not record_id or model not in ("res.users", "res.partner"):
+            if not record_id or model not in self._get_supported_avatar_card_models():
                 return
             context = {
                 "active_test": False,
                 "allowed_company_ids": request.env.user._get_company_ids(),
             }
             record = request.env[model].with_context(**context).search([("id", "=", record_id)])
-            store.add(record, record._get_store_avatar_card_fields(store.target))
+            store.add(record, "_store_avatar_card_fields")
+
+    @classmethod
+    def _store_init_messaging_global_fields(cls, res: Store.FieldList, bus_last_id):
+        user = request.env.user.sudo(False)
+        res.attr(
+            "inbox",
+            {
+                "counter": user.partner_id._get_needaction_count(),
+                "counter_bus_id": bus_last_id,
+                "id": "inbox",
+                "model": "mail.box",
+            },
+        )
+        user._store_bookmark_box_global_fields(res, bus_last_id)
+
+    @classmethod
+    def _get_supported_avatar_card_models(self):
+        return ["res.users", "res.partner"]
+
+    @classmethod
+    def _resolve_messages(
+        self,
+        store: Store,
+        /,
+        *,
+        domain=None,
+        thread=None,
+        fetch_params=None,
+        add_to_store=True,
+        sudo=False,
+    ):
+        fetch_res = (
+            request.env["mail.message"]
+            .sudo(sudo)
+            ._message_fetch(domain, thread=thread, **(fetch_params or {}))
+        )
+        messages = fetch_res.pop("messages")
+        if add_to_store:
+            request.update_context(messages=request.env.context["messages"] | messages)
+        store.resolve_data_request(
+            lambda res: (
+                [res.attr(k, v) for k, v in fetch_res.items()],
+                res.many("messages", [], value=messages),
+            ),
+        )
+        return messages

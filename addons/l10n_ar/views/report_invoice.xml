@@ -75,7 +75,7 @@
 
     <template id="report_invoice_document" inherit_id="account.report_invoice_document" primary="True">
       <!-- custom header and footer -->
-        <t t-set="o" position="after">
+        <t t-call="web.external_layout" position="before">
             <t t-set="custom_header" t-value="'l10n_ar.custom_header'"/>
             <t t-set="report_date" t-value="o.invoice_date"/>
             <t t-set="report_number" t-value="o.l10n_latam_document_number"/>
@@ -102,15 +102,6 @@
 
         <!-- remove default partner address -->
         <t t-set="address" position="replace"/>
-        <xpath expr="//div[@name='address_not_same_as_shipping']" position="replace">
-            <div name="address_not_same_as_shipping"/>
-        </xpath>
-        <xpath expr="//div[@name='address_same_as_shipping']" position="replace">
-            <div name="address_same_as_shipping"/>
-        </xpath>
-        <xpath expr="//div[@name='no_shipping']" position="replace">
-            <div name="no_shipping"/>
-        </xpath>
 
         <!-- remove default document title -->
         <xpath expr="//t[@t-set='layout_document_title']" position="replace"/>
@@ -153,8 +144,8 @@
             <attribute name="t-options">{"widget": "monetary", "display_currency": o.currency_id}</attribute>
         </span>
 
-        <t t-set="tax_totals" position="attributes">
-            <attribute name="t-value">o._l10n_ar_get_invoice_totals_for_report()</attribute>
+        <t t-call="account.document_tax_totals" position="attributes">
+            <attribute name="tax_totals">o._l10n_ar_get_invoice_totals_for_report()</attribute>
         </t>
 
         <!-- use column vat instead of taxes and only if vat discriminated -->
@@ -255,7 +246,7 @@
                 </t>
                 <!-- Show CBU for FACTURA DE CREDITO ELECTRONICA MiPyMEs and NOTA DE DEBITO ELECTRONICA MiPyMEs -->
                 <t t-if="o.l10n_latam_document_type_id.code in ['201', '206', '211', '202', '207', '212'] and o.partner_bank_id">
-                    <br/><strong>CBU for payment: </strong><span t-out="o.partner_bank_id.acc_number or '' if o.partner_bank_id.acc_type == 'cbu' else ''"/>
+                    <br/><strong>CBU for payment: </strong><span t-out="o.partner_bank_id.account_number or '' if o.partner_bank_id.account_type == 'cbu' else ''"/>
                 </t>
 
             </div>
@@ -290,7 +281,7 @@
                     </th>
                     <t t-foreach="l10n_ar_custom_tax_summary" t-as="detail">
                         <tr>
-                            <td class="text-end"><strong t-esc="detail['name']"/></td>
+                            <td class="text-end"><strong t-out="detail['name']"/></td>
                             <td class="text-end">
                                 <span
                                     class="oe_subtotal_footer_separator"

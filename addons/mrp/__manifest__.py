@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 
@@ -39,7 +38,6 @@
         'views/stock_rule_views.xml',
         'views/mrp_unbuild_views.xml',
         'views/res_config_settings_views.xml',
-        'views/stock_scrap_views.xml',
         'wizard/stock_replenishment_info.xml',  # needs views/mrp_workcenter_views.xml to load first
         'report/report_deliveryslip.xml',
         'report/mrp_report_views_main.xml',

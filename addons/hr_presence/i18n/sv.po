@@ -2,15 +2,14 @@
 # This file contains the translation of the following modules:
 # * hr_presence
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 08:44+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-09-16 21:22+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "hr_presence/sv/>\n"
 "Language: sv\n"
@@ -18,13 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: hr_presence
-#. odoo-python
-#: code:addons/hr_presence/models/hr_employee.py:0
-msgid "%(name)s has been noted as %(state)s today"
-msgstr "%(name)s har noterats som %(state)s idag"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_presence
 #: model:mail.template,body_html:hr_presence.mail_template_presence
@@ -46,26 +39,19 @@ msgid ""
 msgstr ""
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__absent
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__absent
 #: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
 msgid "Absent"
 msgstr "Frånvarande"
 
 #. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_log
-msgid "Add a log note"
-msgstr "Lägg till en logganteckning"
-
-#. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_company
-msgid "Companies"
-msgstr "Företag"
+msgid "Company"
+msgstr ""
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_config_settings
 msgid "Config Settings"
-msgstr "Inställningar"
+msgstr "Konfigureringsinställningar"
 
 #. module: hr_presence
 #: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_time_off
@@ -80,7 +66,7 @@ msgstr "Skapa en ledig tid"
 #: model:ir.model.fields,field_description:hr_presence.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:hr_presence.field_res_users_log__display_name
 msgid "Display Name"
-msgstr "Visningsnamn"
+msgstr ""
 
 #. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee__email_sent
@@ -91,7 +77,7 @@ msgstr "Skickat e-postmeddelande"
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_hr_employee
 msgid "Employee"
-msgstr "Anställd"
+msgstr ""
 
 #. module: hr_presence
 #: model:sms.template,name:hr_presence.sms_template_data_hr_presence
@@ -125,12 +111,6 @@ msgid "Hr Presence Last Compute Date"
 msgstr "Hr Närvaro Senaste beräkning Datum"
 
 #. module: hr_presence
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee__hr_presence_state_display
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__hr_presence_state_display
-msgid "Hr Presence State Display"
-msgstr "Hr Närvaro Status Display"
-
-#. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_presence.field_ir_websocket__id
@@ -138,7 +118,7 @@ msgstr "Hr Närvaro Status Display"
 #: model:ir.model.fields,field_description:hr_presence.field_res_config_settings__id
 #: model:ir.model.fields,field_description:hr_presence.field_res_users_log__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_res_users_log__ip
@@ -164,28 +144,10 @@ msgid "Manually Set Present"
 msgstr "Manuellt inställd Nuvarande"
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__out_of_working_hour
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__out_of_working_hour
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Off-Hours"
-msgstr ""
-
-#. module: hr_presence
 #. odoo-javascript
 #: code:addons/hr_presence/static/src/search/hr_presence_cog_menu/hr_presence_cog_menu.xml:0
 msgid "Presence Control"
 msgstr "Närvarokontroll"
-
-#. module: hr_presence
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Presence/Absence"
-msgstr "Närvaro/frånvaro"
-
-#. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__present
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__present
-msgid "Present"
-msgstr "Närvarande"
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_hr_employee_public
@@ -195,13 +157,9 @@ msgstr ""
 #. module: hr_presence
 #. odoo-python
 #: code:addons/hr_presence/models/hr_employee.py:0
+#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
 msgid "Send SMS"
 msgstr "Skicka SMS"
-
-#. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
-msgid "Send a SMS"
-msgstr "Skicka ett SMS"
 
 #. module: hr_presence
 #: model:mail.template,description:hr_presence.mail_template_presence
@@ -271,12 +229,3 @@ msgstr "Du har inte rätt att göra detta. Vänligen kontakta en administratör.
 #: model:ir.model,name:hr_presence.model_ir_websocket
 msgid "websocket message handling"
 msgstr "websocket meddelandehantering"
-
-#~ msgid "Create Uid"
-#~ msgstr "Skapa Uid"
-
-#~ msgid "Out of Working Hours"
-#~ msgstr "Utanför arbetstid"
-
-#~ msgid "Presence"
-#~ msgstr "Närvaro"

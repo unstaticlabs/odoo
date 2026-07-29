@@ -3,8 +3,10 @@
 
 from base64 import b64decode
 
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import tagged, TransactionCase
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAvatarMixin(TransactionCase):
 
     """ tests the avatar mixin """
@@ -18,7 +20,6 @@ class TestAvatarMixin(TransactionCase):
             'image_1920': False,
             'create_date': '2015-11-12 00:00:00',
             'login': 'demo_1',
-            'password': 'demo_1',
             'partner_id': partner_without_image.id,
         })
         self.user_without_name = self.env['res.users'].create({
@@ -26,7 +27,6 @@ class TestAvatarMixin(TransactionCase):
             'email': 'marc.grey25@example.com',
             'image_1920': False,
             'login': 'marc_1',
-            'password': 'marc_1',
         })
         self.external_partner = self.env['res.partner'].create({
             'name': 'Josh Demo',
@@ -46,7 +46,7 @@ class TestAvatarMixin(TransactionCase):
         expectedAvatar = (
             "<?xml version='1.0' encoding='UTF-8' ?>"
             "<svg height='180' width='180' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>"
-            "<rect fill='hsl(184, 40%, 45%)' height='180' width='180'/>"
+            "<rect fill='#4EA7F2' height='180' width='180'/>"
             "<text fill='#ffffff' font-size='96' text-anchor='middle' x='90' y='125' font-family='sans-serif'>M</text>"
             "</svg>"
         )
@@ -59,7 +59,7 @@ class TestAvatarMixin(TransactionCase):
         expectedAvatar = (
             "<?xml version='1.0' encoding='UTF-8' ?>"
             "<svg height='180' width='180' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>"
-            "<rect fill='hsl(71, 48%, 45%)' height='180' width='180'/>"
+            "<rect fill='#A76DBC' height='180' width='180'/>"
             "<text fill='#ffffff' font-size='96' text-anchor='middle' x='90' y='125' font-family='sans-serif'>J</text>"
             "</svg>"
         )

@@ -5,8 +5,10 @@ import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import { registry } from "@web/core/registry";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
+import * as Notification from "@point_of_sale/../tests/generic_helpers/notification_util";
+import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 
 registry.category("web_tour.tours").add("GiftCardProgramTour1", {
     steps: () =>
@@ -30,7 +32,7 @@ registry.category("web_tour.tours").add("GiftCardProgramTour2", {
         ].flat(),
 });
 
-registry.category("web_tour.tours").add("GiftCardWithRefundtTour", {
+registry.category("web_tour.tours").add("GiftCardWithRefundTour", {
     steps: () =>
         [
             Chrome.startPoS(),
@@ -54,10 +56,34 @@ registry.category("web_tour.tours").add("GiftCardWithRefundtTour", {
             ProductScreen.addOrderline("Gift Card", "1"),
             ProductScreen.selectedOrderlineHas("Gift Card", "1"),
             PosLoyalty.orderTotalIs("0.0"),
+            PosLoyalty.finalizeOrder("Cash", "0"),
+            ...ProductScreen.clickRefund(),
+            TicketScreen.selectOrder("002"),
+            Order.hasLine({
+                withClass: ".selected",
+                productName: "Gift Card",
+                run: "click",
+            }),
+            Order.hasLine({
+                withClass: ".selected",
+                productName: "Gift Card",
+                run: "click",
+            }),
+            Notification.has(
+                "Refunding a top up or reward product for an eWallet or gift card program is not allowed."
+            ),
+            negateStep(
+                ...Order.hasLine({
+                    withClass: ".selected",
+                    productName: "Gift Card",
+                    refundQty: "2",
+                })
+            ),
         ].flat(),
 });
 
 registry.category("web_tour.tours").add("GiftCardProgramPriceNoTaxTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -73,6 +99,7 @@ registry.category("web_tour.tours").add("GiftCardProgramPriceNoTaxTour", {
 });
 
 registry.category("web_tour.tours").add("PosLoyaltyPointsGiftcard", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -108,6 +135,7 @@ registry.category("web_tour.tours").add("PosLoyaltyGiftCardTaxes", {
 });
 
 registry.category("web_tour.tours").add("PhysicalGiftCardProgramSaleTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -131,6 +159,7 @@ registry.category("web_tour.tours").add("PhysicalGiftCardProgramSaleTour", {
 });
 
 registry.category("web_tour.tours").add("MultiplePhysicalGiftCardProgramSaleTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -172,7 +201,8 @@ registry.category("web_tour.tours").add("GiftCardProgramInvoice", {
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickInvoiceButton(),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
         ].flat(),
 });
 
@@ -202,7 +232,8 @@ registry.category("web_tour.tours").add("test_physical_gift_card_invoiced", {
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickInvoiceButton(),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
         ].flat(),
 });
 
@@ -217,6 +248,7 @@ registry.category("web_tour.tours").add("EmptyProductScreenTour", {
 });
 
 registry.category("web_tour.tours").add("test_physical_gift_card", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),

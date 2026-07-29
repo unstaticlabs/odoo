@@ -26,10 +26,12 @@ export class ProfileDialog extends Component {
             optional: true,
         },
         userId: { type: Number },
+        canEditCountry: { type: Boolean, optional: true },
     };
     static defaultProps = {
         confirm: () => {},
         focusWebsiteDescription: false,
+        canEditCountry: true,
     };
 
     setup() {

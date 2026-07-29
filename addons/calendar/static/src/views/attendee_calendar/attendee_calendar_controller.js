@@ -52,14 +52,26 @@ export class AttendeeCalendarController extends CalendarController {
 
     getQuickCreateFormViewProps(record) {
         const props = super.getQuickCreateFormViewProps(record);
-        const onDialogClosed = () => {
-            this.model.load();
-        };
         return {
             ...props,
             size: "md",
             context: { ...props.context, ...this.props.context },
-            onRecordSaved: () => onDialogClosed(),
+            onRecordSave: async (record) => {
+                // first ask fields for their changes, in case user was still typing
+                await record.getChanges();
+                const updates = {
+                    ...(!record.data.name && { name: _t("(No Title)") }),
+                    ...(record.data.allday && { show_as: "free" }),
+                };
+                if (Object.keys(updates).length) {
+                    await record.update(updates);
+                }
+                const saved = await record.save({ reload: false });
+                if (saved) {
+                    this.model.load();
+                }
+                return saved;
+            },
         };
     }
 

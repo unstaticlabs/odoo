@@ -1,5 +1,6 @@
 import { BlurPerformanceWarning } from "@mail/discuss/call/common/blur_performance_warning";
 import { CallActionList } from "@mail/discuss/call/common/call_action_list";
+import { CallPresentationBar } from "@mail/discuss/call/common/call_presentation_bar";
 import { CallParticipantCard } from "@mail/discuss/call/common/call_participant_card";
 import { PttAdBanner } from "@mail/discuss/call/common/ptt_ad_banner";
 
@@ -34,10 +35,11 @@ export class Call extends Component {
         ActionList,
         BlurPerformanceWarning,
         CallActionList,
+        CallPresentationBar,
         CallParticipantCard,
         PttAdBanner,
     };
-    static props = ["thread?", "compact?", "hasOverlay?", ...inDiscussCallViewProps];
+    static props = ["channel?", "compact?", "hasOverlay?", ...inDiscussCallViewProps];
     static defaultProps = { hasOverlay: true };
     static template = "discuss.Call";
 
@@ -61,7 +63,7 @@ export class Call extends Component {
             insetCard: undefined,
         });
         this.store = useService("mail.store");
-        this.callActions = useCallActions({ thread: () => this.channel });
+        this.callActions = useCallActions({ channel: () => this.channel });
         onMounted(() => {
             this.resizeObserver = new ResizeObserver(() => this.arrangeTiles());
             this.resizeObserver.observe(this.grid.el);
@@ -74,6 +76,7 @@ export class Call extends Component {
         });
         useHotkey("shift+d", () => this.rtc.toggleDeafen());
         useHotkey("shift+m", () => this.rtc.toggleMicrophone());
+        useHotkey("shift+h", () => this.rtc.raiseHand(!this.rtc.selfSession.raisingHand));
         useInDiscussCallView();
     }
 
@@ -86,8 +89,12 @@ export class Call extends Component {
         );
     }
 
+    get isAnyonePresenting() {
+        return this.channel.rtc_session_ids.some((s) => s.is_screen_sharing_on);
+    }
+
     get isFullSize() {
-        return this.props.isPip || this.rtc.state.isFullscreen;
+        return this.props.isPip || this.rtc.isFullscreen;
     }
 
     get isActiveCall() {
@@ -95,7 +102,7 @@ export class Call extends Component {
     }
 
     get minimized() {
-        if (this.rtc.state.isFullscreen || !this.channel || this.channel.activeRtcSession) {
+        if (this.rtc.isFullscreen || !this.channel || this.channel.activeRtcSession) {
             return false;
         }
         if (!this.isActiveCall || this.channel.videoCount === 0 || this.props.compact) {
@@ -105,7 +112,7 @@ export class Call extends Component {
     }
 
     get channel() {
-        return this.props.thread || this.rtc.channel;
+        return this.props.channel || this.rtc.channel;
     }
 
     /** @returns {CardData[]} */
@@ -131,9 +138,23 @@ export class Call extends Component {
         ];
     }
 
+    get sidebarCards() {
+        const selfCards = [];
+        const otherVisibleCards = [];
+        const cards = this.channel.visibleCards;
+        for (let i = 0; i < cards.length; i++) {
+            if (cards[i].session?.eq(this.rtc.selfSession)) {
+                selfCards.push(cards[i]);
+            } else {
+                otherVisibleCards.push(cards[i]);
+            }
+        }
+        return selfCards.concat(otherVisibleCards);
+    }
+
     /**
      * @param {import("models").RtcSession} session
-     * @param {String} [videoType]
+     * @param {import("@mail/discuss/call/common/rtc_service").VideoType} [videoType]
      */
     setInset(session, videoType) {
         const key = "session_" + session.id;
@@ -152,7 +173,7 @@ export class Call extends Component {
 
     get hasCallNotifications() {
         return Boolean(
-            (!this.props.compact || this.rtc.state.isFullscreen) &&
+            (!this.props.compact || this.rtc.isFullscreen) &&
                 this.isActiveCall &&
                 this.rtc.notifications.size
         );
@@ -162,12 +183,12 @@ export class Call extends Component {
         return Boolean(
             this.channel.activeRtcSession &&
                 this.state.overlay &&
-                (!this.props.compact || this.rtc.state.isFullscreen)
+                (!this.props.compact || this.rtc.isFullscreen)
         );
     }
 
     get isControllerFloating() {
-        return this.rtc.state.isFullscreen || (this.channel.activeRtcSession && !this.ui.isSmall);
+        return this.rtc.isFullscreen || (this.channel.activeRtcSession && !this.ui.isSmall);
     }
 
     onMouseleaveMain(ev) {
@@ -206,7 +227,7 @@ export class Call extends Component {
         this.grid.el.style.setProperty("--width", "0");
         this.grid.el.style.setProperty("--height", "0");
         const { width, height } = this.grid.el.getBoundingClientRect();
-        const aspectRatio = this.minimized ? 1 : 16 / 9;
+        const aspectRatio = this.minimized && this.channel.videoCount === 0 ? 1 : 16 / 9;
         const tileCount = this.grid.el.children.length;
         let optimal = {
             area: 0,

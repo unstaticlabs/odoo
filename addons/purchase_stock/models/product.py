@@ -36,7 +36,7 @@ class ProductProduct(models.Model):
 
     purchase_order_line_ids = fields.One2many('purchase.order.line', 'product_id', string="PO Lines")  # used to compute quantities
     monthly_demand = fields.Float(compute='_compute_monthly_demand')
-    suggested_qty = fields.Integer(compute='_compute_suggested_quantity', search='_search_product_with_suggested_quantity')
+    suggested_qty = fields.Integer(compute='_compute_suggested_quantity', search='_search_suggested_quantity')
     suggest_estimated_price = fields.Float(compute='_compute_suggest_estimated_price')
 
     @api.depends("monthly_demand")
@@ -59,6 +59,17 @@ class ProductProduct(models.Model):
                 qty -= max(product.qty_available, 0) + max(product.incoming_qty, 0)
                 product.suggested_qty = max(float_round(qty, precision_digits=0, rounding_method="UP"), 0)
 
+    def _search_suggested_quantity(self, operator, value):
+        if operator in ["in", "not in"]:
+            return NotImplemented
+
+        search_domain = self.env.context.get("suggest_domain") or [('type', '=', 'consu')]
+        safe_search_domain = [c if c[0] != "suggested_qty" else [1, "=", 1] for c in search_domain]
+        products = self.search_fetch(safe_search_domain, ["suggested_qty"])
+        ids = products.filtered_domain([("suggested_qty", operator, value)]).ids
+
+        return [('id', 'in', ids)]
+
     @api.depends("suggested_qty")
     @api.depends_context("suggest_based_on", "suggest_days", "suggest_percent", "warehouse_id")
     def _compute_suggest_estimated_price(self):
@@ -76,17 +87,6 @@ class ProductProduct(models.Model):
 
             price = seller.price_discounted if seller else product.standard_price
             product.suggest_estimated_price = price * product.suggested_qty
-
-    def _search_product_with_suggested_quantity(self, operator, value):
-        if operator in ["in", "not in"]:
-            return NotImplemented
-
-        search_domain = self.env.context.get("suggest_domain") or [('type', '=', 'consu')]
-        safe_search_domain = [c if c[0] != "suggested_qty" else [1, "=", 1] for c in search_domain]
-        products = self.search_fetch(safe_search_domain, ["suggested_qty"])
-        ids = products.filtered_domain([("suggested_qty", operator, value)]).ids
-
-        return [('id', 'in', ids)]
 
     @api.depends_context('suggest_days', 'suggest_based_on', 'warehouse_id')
     def _compute_quantities(self):
@@ -117,7 +117,7 @@ class ProductProduct(models.Model):
         ])
         move_domain = Domain.AND([
             move_domain,
-            self._get_monthly_demand_moves_location_domain(),
+            self._get_monthly_demand_moves_location_domain(warehouse_id=self.env.context.get('warehouse_id')),
         ])
 
         move_qty_by_products = self.env['stock.move']._read_group(move_domain, ['product_id'], ['product_qty:sum'])
@@ -134,13 +134,12 @@ class ProductProduct(models.Model):
             product.monthly_demand = qty_by_product.get(product.id, 0) / factor
 
     @api.model
-    def _get_monthly_demand_moves_location_domain(self):
+    def _get_monthly_demand_moves_location_domain(self, warehouse_id=False):
         """ Returns a domain on stock moves coming from the selected warehouse that are:
                 - going to customer locations or used in production
                 - going to other warehouses (eg. central warehouse dispatching to stores)
             (We don't include returns in demand estimation - they come back on hand)
         """
-        warehouse_id = self.env.context.get('warehouse_id')
         non_return_moves_domain = ['!', ('move_dest_ids.origin_returned_move_id', '=', False)]
         if not warehouse_id:
             return Domain.AND([
@@ -170,7 +169,7 @@ class ProductProduct(models.Model):
         qty_by_product_location, qty_by_product_wh = super()._get_quantity_in_progress(location_ids, warehouse_ids)
         domain = self._get_lines_domain(location_ids, warehouse_ids)
         groups = self.env['purchase.order.line'].sudo()._read_group(domain,
-            ['order_id', 'product_id', 'product_uom_id', 'orderpoint_id', 'location_final_id'],
+            ['order_id', 'product_id', 'uom_id', 'orderpoint_id', 'location_final_id'],
             ['product_qty:sum'])
         for order, product, uom, orderpoint, location_final, product_qty_sum in groups:
             if orderpoint:
@@ -287,7 +286,7 @@ class ProductSupplierinfo(models.Model):
                 lambda s: s.id == orderpoint.supplier_id.id
             ).show_set_supplier_button = False
 
-    @api.depends('partner_id', 'min_qty', 'product_uom_id', 'currency_id', 'price')
+    @api.depends('partner_id', 'min_qty', 'uom_id', 'currency_id', 'price')
     @api.depends_context('use_simplified_supplier_name')
     def _compute_display_name(self):
         if self.env.context.get('use_simplified_supplier_name'):
@@ -295,7 +294,7 @@ class ProductSupplierinfo(models.Model):
         else:
             for supplier in self:
                 price_str = formatLang(self.env, supplier.price, currency_obj=supplier.currency_id)
-                supplier.display_name = f'{supplier.partner_id.display_name} ({supplier.min_qty} {supplier.product_uom_id.name} - {price_str})'
+                supplier.display_name = f'{supplier.partner_id.display_name} ({supplier.min_qty} {supplier.uom_id.name} - {price_str})'
 
     def action_set_supplier(self):
         self.ensure_one()
@@ -313,7 +312,7 @@ class ProductSupplierinfo(models.Model):
             ])
             orderpoint.route_id = self.env['stock.rule'].search(domain, limit=1).route_id.id
         orderpoint.supplier_id = self
-        supplier_min_qty = self.product_uom_id._compute_quantity(self.min_qty, orderpoint.product_id.uom_id)
+        supplier_min_qty = self.uom_id._compute_quantity(self.min_qty, orderpoint.product_id.uom_id)
         if orderpoint.qty_to_order < supplier_min_qty:
             orderpoint.qty_to_order = supplier_min_qty
         if self.env.context.get('replenish_id'):

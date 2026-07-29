@@ -12,14 +12,14 @@ class TestCloudStorageAttachmentController(HttpCaseWithUserDemo, TestCloudStorag
     def test_cloud_storage_google_attachment_upload(self):
         """Test uploading an attachment with google cloud storage."""
         thread = self.env["res.partner"].create({"name": "Test"})
-        self.env["ir.config_parameter"].set_param("cloud_storage_provider", "google")
+        self.env["ir.config_parameter"].set_str("cloud_storage_provider", "google")
         self.authenticate(self.user_demo.login, self.user_demo.login)
 
         with file_open("addons/web/__init__.py") as file:
             res = self.url_open(
                 url="/mail/attachment/upload",
                 data={
-                    "csrf_token": odoo.http.Request.csrf_token(self),
+                    "csrf_token": self.csrf_token(),
                     "is_pending": True,
                     "thread_id": thread.id,
                     "thread_model": thread._name,

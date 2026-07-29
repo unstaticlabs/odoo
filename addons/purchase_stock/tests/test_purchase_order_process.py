@@ -42,12 +42,12 @@ class TestPurchaseOrderProcess(PurchaseTestCommon):
                 Command.create({
                     'product_id': self.product.id,
                     'product_qty': 2.0,
-                    'product_uom_id': self.uom.id,
+                    'uom_id': self.uom.id,
                 }),
                 Command.create({
                     'product_id': self.product_2.id,
                     'product_qty': 3.0,
-                    'product_uom_id': self.uom.id,
+                    'uom_id': self.uom.id,
                 })],
         })
         purchase_order.button_confirm()

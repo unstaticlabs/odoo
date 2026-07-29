@@ -7,12 +7,10 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import create_index, frozendict, make_index_name, ormcache
 
-from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
-
 
 class AccountAnalyticPlan(models.Model):
     _name = 'account.analytic.plan'
-    _description = 'Analytic Plans'
+    _description = 'Analytic Plan'
     _parent_store = True
     _rec_name = 'complete_name'
     _order = 'sequence asc, id'
@@ -103,7 +101,7 @@ class AccountAnalyticPlan(models.Model):
 
     @ormcache()
     def __get_all_plans(self):
-        project_plan = self.browse(int(self.env['ir.config_parameter'].sudo().get_param('analytic.project_plan', 0)))
+        project_plan = self.browse(self.env['ir.config_parameter'].sudo().get_int('analytic.project_plan'))
         if not project_plan:
             raise UserError(_("A 'Project' plan needs to exist and its id needs to be set as `analytic.project_plan` in the system variables"))
         other_plans = self.sudo().search([('parent_id', '=', False)]) - project_plan
@@ -324,7 +322,7 @@ class AccountAnalyticPlan(models.Model):
                 # If there is a parent, we just need to make sure there is a field to group by the hierarchy level
                 # of this plan, allowing to group by sub plan
                 if prev_stored:
-                    prev_stored.with_context({MODULE_UNINSTALL_FLAG: True}).unlink()
+                    prev_stored.with_context(force_delete=True).unlink()
                 description = f"{plan.root_id.name} ({depth})"
                 if not prev_related:
                     self.env['ir.model.fields'].with_context(update_custom_fields=True).sudo().create({
@@ -344,7 +342,7 @@ class AccountAnalyticPlan(models.Model):
             else:
                 # If there is no parent, then we need to create a new stored field as this is the root plan
                 if prev_related:
-                    prev_related.with_context({MODULE_UNINSTALL_FLAG: True}).unlink()
+                    prev_related.with_context(force_delete=True).unlink()
                 description = plan.name
                 if not prev_stored:
                     column = plan._strict_column_name()
@@ -404,7 +402,7 @@ class AccountAnalyticPlan(models.Model):
 
 class AccountAnalyticApplicability(models.Model):
     _name = 'account.analytic.applicability'
-    _description = "Analytic Plan's Applicabilities"
+    _description = "Analytic Plan's Applicability"
     _check_company_auto = True
     _check_company_domain = models.check_company_domain_parent_of
 

@@ -87,8 +87,7 @@ in the IrQweb class.
               ┃  ┃    ┗━► t-tag-open      ━━► _compile_directive_open          ◄━━┓  ┃
               ┃  ┃    ┗━► t-tag-close     ━━► _compile_directive_close         ◄━━┫  ┃
               ┃  ┃    ┗━► t-out           ━━► _compile_directive_out             ━┛ ━┫ ◄━━┓
-              ┃  ┃    ┗━► t-field         ━━► _compile_directive_field               ┃   ━┫
-              ┃  ┃    ┗━► t-esc           ━━► _compile_directive_esc                 ┃   ━┛
+              ┃  ┃    ┗━► t-field         ━━► _compile_directive_field               ┃   ━┛
               ┃  ┃    ┗━► t-*             ━━► ...                                    ┃
               ┃  ┃                                                                   ┃
               ┗━━┻━► _compile_static_node                                           ━┛
@@ -157,10 +156,10 @@ defined in ``_directives_eval_order`` method.
 ```
 <t t-set="check" t-value="1"/>
 <section t-if="False">10</section>
-<span t-elif="check == 1" t-foreach="range(3)" t-as="check" t-esc="check"/>
+<span t-elif="check == 1" t-foreach="range(3)" t-as="check" t-out="check"/>
 
 <section t-if="False">10</section>
-<div t-else="" t-if="check == 1" t-foreach="range(3)" t-as="check" t-esc="check"/>
+<div t-else="" t-if="check == 1" t-foreach="range(3)" t-as="check" t-out="check"/>
 
 Result:
 
@@ -224,8 +223,8 @@ dict. (for example: ``t-options="{'widget': 'float'}"`` is equal to
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Values**: python expression (or format string expression for ``t-attf-``)
 
-Compile the attributes to create ``values['__qweb_attrs__']`` dictionary code
-in the compiled function. Use the ``t-att`` expression and add each key-value
+Compile the attributes to create ``attrs`` dictionary code in the compiled
+function. Use the ``t-att`` expression and add each key-value
 ``t-att-key="expression value"`` to this dict. (for example:
 ``t-att="{'class': f'float_{1}'}"`` is equal to ``t-att-class="f'float_{1}'"``
 and is equal to ``t-attf-class="float_{{1}}")
@@ -299,14 +298,6 @@ Use ``t-out`` compile method but the generated code call ``_get_field``
 instead of ``_get_widget``. It's the ``ir.qweb.field.*`` models that format
 the value. The rendering model is chosen according to the type of field. The
 rendering model can be modified via the ``t-options-widget``.
-
-``t-esc``
-~~~~~~~~~
-Deprecated, please use ``t-out``
-
-``t-raw``
-~~~~~~~~~
-Deprecated, please use ``t-out``
 
 ``t-set``
 ~~~~~~~~~
@@ -409,7 +400,8 @@ from odoo.tools.profiler import QwebTracker
 from odoo.exceptions import UserError, MissingError
 
 from odoo.addons.base.models.assetsbundle import AssetsBundle
-from odoo.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, TEMPLATE_EXTENSIONS
+from odoo.addons.base.models.ir_ui_view import MOVABLE_BRANDING
+from odoo.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, TEMPLATE_EXTENSIONS, FONT_EXTENSIONS
 
 _logger = logging.getLogger(__name__)
 
@@ -479,7 +471,12 @@ FIRST_RSTRIP_REGEXP = re.compile(r'^(\n[ \t]*)+(\n[ \t])')
 VARNAME_REGEXP = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 TO_VARNAME_REGEXP = re.compile(r'[^A-Za-z0-9_]+')
 # Attribute name used outside the context of the QWeb.
-SPECIAL_DIRECTIVES = {'t-translation', 't-ignore', 't-title'}
+# When importing data, the <template> generate a root <t> with the `t-name` of
+# the template (equal to the xmlid). This is deprecated. It was used when
+# multiple templates were sent in the same etree.
+# Inside the template, `id` could be used as anchor for xpath. Actually `name`
+# is also used as anchor but is depreciated.
+SPECIAL_DIRECTIVES = {'t-translation', 't-ignore', 't-title', 'id', 'name'} | set(MOVABLE_BRANDING)
 # Name of the variable to insert the content in t-call in the template.
 # The slot will be replaced by the `t-call` tag content of the caller.
 T_CALL_SLOT = '0'
@@ -580,7 +577,7 @@ class QwebCallParameters(NamedTuple):
     def __repr__(self):
         # cleaning context and values in order to have a consistent log when debugging.
         context = {k: v for k, v in self.context.items() if not k.startswith('_')}
-        qweb_root_values = self.values.get('__qweb_root_values') or {}
+        qweb_root_values = self.values and self.values.get('__qweb_root_values') or {}
         values = self.values and {
             k: v for k, v in self.values.items()
             if k not in ('__qweb_root_values', '__qweb_attrs__')
@@ -670,8 +667,14 @@ class QwebContent:
 
 
 class QwebJSON(json.JSON):
+
+    def default(self, obj):
+        if isinstance(obj, Mapping):
+            return dict(obj)
+        return obj
+
     def dumps(self, *args, **kwargs):
-        prev_default = kwargs.pop('default', lambda obj: obj)
+        prev_default = kwargs.pop('default', self.default)
         return super().dumps(*args, **kwargs, default=(
             lambda obj: prev_default(str(obj) if isinstance(obj, QwebContent) else obj)
         ))
@@ -750,6 +753,7 @@ class IrQweb(models.AbstractModel):
         """
         root_values = values['__qweb_root_values']
         loaded_functions = self.env.context['__qweb_loaded_functions']
+        loaded_options = self.env.context['__qweb_loaded_options']
 
         params = QwebCallParameters(
             context={},
@@ -778,10 +782,14 @@ class IrQweb(models.AbstractModel):
 
                     # use QwebContent params or return already evaluated QwebContent
                     if is_content := isinstance(item, QwebContent):
+                        params = item.params__
+                        if params.directive == 't-log':
+                            path = OrderedSet(str(info.params.path_xml) for info in stack if info.params.path_xml)
+                            path.add(str(params.path_xml))
+                            _logger.warning("t-log is displayed in dev mode:\n    %s\n\n%s", '\n    '.join(path), item or "--EMPTY--")
                         if item.html is not None:
                             yield item.html
                             continue
-                        params = item.params__
 
                     else:  # isinstance(item, QwebCallParameters)
                         params = item
@@ -802,7 +810,7 @@ class IrQweb(models.AbstractModel):
                         loaded_functions.update(template_functions)
                         render_template = template_functions[params.method or def_name]
                     else:
-                        options = irQweb._compile(params.view_ref)[2]
+                        options = loaded_options[params.view_ref]
 
                     # Apply a new scope if needed
                     if params.scope:
@@ -833,7 +841,7 @@ class IrQweb(models.AbstractModel):
             raise
 
         except Exception as error:
-            qweb_error_info = self._get_error_info(error, stack, stack[-1])
+            qweb_error_info = self._get_error_info(error, stack[1:], stack[-1])
             if qweb_error_info.template is None and qweb_error_info.ref is None:
                 qweb_error_info.ref = view_ref
 
@@ -898,10 +906,11 @@ class IrQweb(models.AbstractModel):
         source_file_ref = None if ref == no_id_ref else ref
         line_nb = 0
         trace = traceback.format_exc()
+
         for error_line in reversed(trace.split('\n')):
             if f'File "<{source_file_ref}>"' in error_line or (ref is None and 'File "<' in error_line):
                 line_function = error_line.split(', line ')[1]
-                line_nb = int(line_function.split(',')[0])
+                line_nb = int(line_function.split(',')[0]) - 1
                 break
 
         source = [info.params.path_xml for info in stack if info.params.path_xml]
@@ -916,14 +925,19 @@ class IrQweb(models.AbstractModel):
                 if found:
                     break
                 continue
+
+            c_path = match[1][1:-1]
+            c_html = match[2][1:-1]
+            if c_html == '<t/>':
+                continue
             if found:
-                info = (ref, match[1][1:-1], match[2][1:-1])
+                info = (ref, c_path, c_html)
                 if info not in source:
                     source.append(info)
             else:
                 found = True
-                path = match[1][1:-1]
-                html = match[2][1:-1]
+                path = c_path
+                html = c_html
 
         if path:
             source.append((ref, path, html))
@@ -950,7 +964,7 @@ class IrQweb(models.AbstractModel):
     # assume cache will be invalidated by third party on write to ir.ui.view
     def _get_template_cache_keys(self):
         """ Return the list of context keys to use for caching ``_compile``. """
-        return ['lang', 'inherit_branding', 'inherit_branding_auto', 'edit_translations', 'profile']
+        return ['lang', 'inherit_branding', 'inherit_branding_auto', 'edit_translations', 'profile', 'preserve_comments']
 
     def _get_template_info(self, template):
         return self.env['ir.ui.view']._get_cached_template_info(template)
@@ -999,6 +1013,23 @@ class IrQweb(models.AbstractModel):
         tools.ormcache('ref', 'tuple(self.env.context.get(k) or False for k in self._get_template_cache_keys())', cache='templates'),
     )
     def _generate_code_cached(self, ref: int):
+        # The method preloads templates to put information into the transaction
+        # cache in addition to browse records. It also loads in batch the
+        # template from directives (like: t-call and t-snippet).
+        try:
+            document = self._get_template(ref)[1]
+        except Exception:  # noqa: BLE001
+            return self._generate_code_uncached(ref)
+
+        view_hash = hash(document)
+        cache_key = tuple(self.env.context.get(k) or False for k in self._get_template_cache_keys())
+        return self._generate_code_cached_memo(ref, memo_key=(view_hash, cache_key))
+
+    @tools.conditional(
+        'xml' not in tools.config['dev_mode'],
+        tools.ormcache('ref', 'memo_key', cache='template_code'),
+    )
+    def _generate_code_cached_memo(self, ref: int, memo_key):
         return self._generate_code_uncached(ref)
 
     def _generate_code_uncached(self, template: int | str | etree._Element):
@@ -1070,7 +1101,7 @@ class IrQweb(models.AbstractModel):
 
         compile_context.pop('raise_if_not_found', None)
 
-        ref_name = element.attrib.pop('t-name', None)
+        ref_name = element.attrib.get('t-name')
         if isinstance(ref, int) or (isinstance(template, str) and '<' not in template):
             ref_name = self._get_template_info(ref)['key'] or ref_name
 
@@ -1112,20 +1143,20 @@ class IrQweb(models.AbstractModel):
         name_gen = count()
         compile_context['make_name'] = lambda prefix: f"{def_name}_{prefix}_{next(name_gen)}"
 
-        if element.text:
-            element.text = FIRST_RSTRIP_REGEXP.sub(r'\2', element.text)
-
         compile_context['template_functions'] = {}
 
         compile_context['_text_concat'] = []
         self._append_text("", compile_context)  # To ensure the template function is a generator and doesn't become a regular function
         compile_context['template_functions'][f'{def_name}_content'] = (
             [f"def {def_name}_content(self, values):"]
-            + self._compile_node(element, compile_context, 2)
-            + self._flush_text(compile_context, 2, rstrip=True))
+            + [indent_code('attrs = None', 1)]
+            + [indent_code('if False: yield ""', 1)]
+            + self._compile_root(element, compile_context)
+            + self._flush_text(compile_context, 1, rstrip=True))
 
         compile_context['template_functions'][def_name] = [indent_code(f"""
             def {def_name}(self, values):
+                attrs = None
                 if 'xmlid' not in values:
                     values['xmlid'] = {options['ref_name']!r}
                     values['viewid'] = {options['ref']!r}
@@ -1151,6 +1182,10 @@ class IrQweb(models.AbstractModel):
 
         if options.get('profile'):
             options['ref_xml'] = compile_context['ref_xml']
+
+        # The compilation did not fail.
+        compile_context['_qweb_error_path_xml'][1] = None
+        compile_context['_qweb_error_path_xml'][2] = None
 
         return (code, options, def_name)
 
@@ -1383,6 +1418,8 @@ class IrQweb(models.AbstractModel):
             self._rstrip_text(compile_context)
         text = ''.join(text_concat)
         text_concat.clear()
+        if not text:
+            return []
         return [f"{'    ' * level}yield {text!r}"]
 
     def _is_static_node(self, el, compile_context):
@@ -1652,6 +1689,7 @@ class IrQweb(models.AbstractModel):
             'elif', # Must be the first because compiled by the previous if.
             'else', # Must be the first because compiled by the previous if.
             'debug',
+            'log',
             'groups',
             'as', 'foreach',
             'if',
@@ -1660,7 +1698,7 @@ class IrQweb(models.AbstractModel):
             'options',
             'call',
             'att',
-            'field', 'esc', 'raw', 'out',
+            'field', 'out',
             'tag-open',
             'set',
             'inner-content',
@@ -1668,6 +1706,12 @@ class IrQweb(models.AbstractModel):
         ]
 
     # compile
+
+    def _compile_root(self, element, compile_context):
+        element.attrib.pop('t-name', None)
+        if element.text:
+            element.text = FIRST_RSTRIP_REGEXP.sub(r'\2', element.text)
+        return self._compile_node(element, compile_context, 1)
 
     def _compile_node(self, el, compile_context, level):
         """ Compile the given element into python code.
@@ -1720,7 +1764,7 @@ class IrQweb(models.AbstractModel):
             if el_tag not in VOID_ELEMENTS:
                 el.set('t-tag-close', el_tag)
 
-        if not ({'t-out', 't-esc', 't-raw', 't-field'} & set(el.attrib)):
+        if not {'t-out', 't-field'}.intersection(el.attrib):
             el.set('t-inner-content', 'True')
 
         return body + self._compile_directives(el, compile_context, level)
@@ -1805,6 +1849,8 @@ class IrQweb(models.AbstractModel):
             el.attrib.pop('t-tag-close', None)
             return self._compile_static_node(el, compile_context, level)
 
+        ref, path, xml = compile_context['_qweb_error_path_xml']
+
         code = []
 
         # compile the directives still present on the element
@@ -1827,7 +1873,7 @@ class IrQweb(models.AbstractModel):
 
         remaining = set(el.attrib) - SPECIAL_DIRECTIVES
         if remaining:
-            _logger.warning('Unknown directives or unused attributes: %s in %s', remaining, compile_context['template'])
+            _logger.warning('Unknown directives or unused attributes: %s from %s\nPath: %s\nTemplate: %s', remaining, xml, path, compile_context['ref_name'] or ref)
 
         return code
 
@@ -1893,8 +1939,8 @@ class IrQweb(models.AbstractModel):
     def _compile_directive_att(self, el, compile_context, level):
         """ Compile the attributes of the given elements.
 
-        The compiled function will create the ``values['__qweb_attrs__']``
-        dictionary. Then the dictionary will be output.
+        The compiled function will create the ``attrs`` dictionary.
+        Then the dictionary will be output.
 
 
         The new namespaces of the current element.
@@ -1910,7 +1956,15 @@ class IrQweb(models.AbstractModel):
         - value from keys that start with ``t-attf-``: format string
             expression.
         """
-        code = [indent_code("attrs = values['__qweb_attrs__'] = {}", level)]
+        code = []
+        if (not el.nsmap and el.tag == 't') or (el.nsmap and etree.QName(el.tag).localname == 't'):
+            # if it's an invisible element <t>
+            if not el.get('t-out') and not el.get('t-esc') and not el.get('t-raw') and el.getparent() is not None:
+                # if this invisible doesn't generate content, attributes will never be consumed
+                return code
+            if el.attrib.get('t-consumed-options') != 'True':
+                # If the content is inserted without using a widget, attributes will never be consumed
+                return code
 
         # Compile the introduced new namespaces of the given element.
         #
@@ -1963,6 +2017,10 @@ class IrQweb(models.AbstractModel):
                         attrs.update(dict(atts_value))
                     """, level))
 
+        if code:
+            code = [indent_code("attrs = {}", level)] + code
+            compile_context['qweb_attrs_created'] = True
+
         return code
 
     def _compile_directive_tag_open(self, el, compile_context, level):
@@ -1991,23 +2049,25 @@ class IrQweb(models.AbstractModel):
         # open the open tag
         self._append_text(f"<{el_tag}", compile_context)
 
-        code = self._flush_text(compile_context, level)
-
         # Generates the part of the code that prost process and output the
         # attributes from ``attrs`` dictionary. Consumes `attrs` dictionary
         # and reset it.
         #
         # Use str(value) to change Markup into str and escape it, then use str
         # to avoid the escaping of the other html content.
-        code.append(indent_code(f"""
-            attrs = values.pop('__qweb_attrs__', None)
-            if attrs:
-                tagName = {el.tag!r}
-                attrs = self._post_processing_att(tagName, attrs)
-                for name, value in attrs.items():
-                    if value or isinstance(value, str):
-                        yield f' {{escape(str(name))}}="{{escape(str(value))}}"'
-        """, level))
+
+        if compile_context.get('qweb_attrs_created'):
+            code = self._flush_text(compile_context, level)
+            code.append(indent_code(f"""
+                if attrs:
+                    tagName = {el.tag!r}
+                    for name, value in self._post_processing_att(tagName, attrs).items():
+                        if value or isinstance(value, str):
+                            yield f' {{escape(str(name))}}="{{escape(str(value))}}"'
+                    attrs = None
+            """, level))
+        else:
+            code = []
 
         # close the open tag
         if 't-tag-close' in el.attrib:
@@ -2073,11 +2133,13 @@ class IrQweb(models.AbstractModel):
                 # set the content as value
                 _ref, path, xml = compile_context['_qweb_error_path_xml']
                 content = (
-                    self._compile_directive(el, compile_context, 'inner-content', 1) +
+                    self._compile_directive(el, dict(compile_context, qweb_attrs_created=False), 'inner-content', 1) +
                     self._flush_text(compile_context, 1))
                 if content:
                     def_name = compile_context['make_name']('t_set')
                     def_code = [f"def {def_name}(self, values):"]
+                    def_code.append(indent_code('attrs = None', 1))
+                    def_code.append(indent_code('if False: yield ""', 1))
                     def_code.append(indent_code(f'# element: {path!r} , {xml!r}', 1))
                     def_code.extend(content)
                     compile_context['template_functions'][def_name] = def_code
@@ -2155,7 +2217,9 @@ class IrQweb(models.AbstractModel):
             strip = ''  # remove technical spaces
         code = self._flush_text(compile_context, level)
 
+        _ref, path, xml = compile_context['_qweb_error_path_xml']
         code.append(indent_code(f"if {self._compile_expr(expr)}:", level))
+        code.append(indent_code(f'# element: {path!r} , {xml!r}', level + 1))
         body = []
         if strip:
             self._append_text(strip, compile_context)
@@ -2314,7 +2378,9 @@ class IrQweb(models.AbstractModel):
             """, level))
 
         code.append(indent_code(f"""
+                foreach_attrs = attrs
                 for index, item in enumerate({t_foreach}):
+                    attrs = foreach_attrs
                     values[{expr_as + '_index'!r}] = index
                     if {has_value}:
                         values[{expr_as!r}], values[{expr_as + '_value'!r}] = item
@@ -2328,7 +2394,8 @@ class IrQweb(models.AbstractModel):
                     values[{expr_as + '_parity'!r}] = 'odd' if values[{expr_as + '_odd'!r}] else 'even'
             """, level))
 
-        code.extend(content_foreach or indent_code('continue', level + 1))
+        code.extend(content_foreach or [indent_code('continue', level + 1)])
+        code.append(indent_code("attrs = None", level + 1))
 
         return code
 
@@ -2364,77 +2431,85 @@ class IrQweb(models.AbstractModel):
         if expr is None:
             ttype = 't-field'
             expr = el.attrib.pop('t-field', None)
-            if expr is None:
-                # deprecated use.
-                ttype = 't-esc'
-                expr = el.attrib.pop('t-esc', None)
-                if expr is None:
-                    ttype = 't-raw'
-                    expr = el.attrib.pop('t-raw')
 
-        code = self._flush_text(compile_context, level)
+        flush = self._flush_text(compile_context, level)
 
         _ref, path, xml = compile_context['_qweb_error_path_xml']
 
         code_options = el.attrib.pop('t-consumed-options', 'None')
-        tag_open = (
-            self._compile_directive(el, compile_context, 'tag-open', level + 1) +
-            self._flush_text(compile_context, level + 1))
-        tag_close = (
-            self._compile_directive(el, compile_context, 'tag-close', level + 1) +
-            self._flush_text(compile_context, level + 1))
-        default_body = (
-            self._compile_directive(el, compile_context, 'inner-content', level + 1) +
-            self._flush_text(compile_context, level + 1))
 
         # The generated code will set the values of the content, attrs (used to
         # output attributes) and the force_display (if the widget or field
         # mark force_display as True, the tag will be inserted in the output
         # even the value of content is None and without default value)
 
-        if expr == T_CALL_SLOT and code_options != 'True':
-            code.append(indent_code("if True:", level))
-            code.extend(tag_open)
-            code.append(indent_code(f"yield values.get({T_CALL_SLOT}, '')", level + 1))
-            code.extend(tag_close)
-            return code
+        is_slot = expr == T_CALL_SLOT and code_options != 'True'
+
+        if is_slot:
+            code = [indent_code(f"""
+                self.env.context['_qweb_error_path_xml'][0] = template_options['ref']
+                self.env.context['_qweb_error_path_xml'][1] = {path!r}
+                self.env.context['_qweb_error_path_xml'][2] = {xml!r}
+                yield values.get({T_CALL_SLOT}, '')
+            """, level)]
         elif ttype == 't-field':
+            code = []
             record, field_name = expr.rsplit('.', 1)
-            code.append(indent_code(f"""
-                field_attrs, content, force_display = self._get_field({self._compile_expr(record, raise_on_missing=True)}, {field_name!r}, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), values)
-                if values.get('__qweb_attrs__') is None:
-                    values['__qweb_attrs__'] = field_attrs
-                else:
-                    values['__qweb_attrs__'].update(field_attrs)
+            attr_name = 'field_attrs' if compile_context.get('qweb_attrs_created') else 'attrs'
+            code.append(indent_code(f"""{attr_name}, content, force_display = self._get_field({self._compile_expr(record, raise_on_missing=True)}, {field_name!r}, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), values)""", level))
+            if compile_context.get('qweb_attrs_created'):
+                code.append(indent_code("""
+                    if attrs is None:
+                        attrs = field_attrs
+                    else:
+                        attrs.update(field_attrs)
+                    """, level))
+            else:
+                compile_context['qweb_attrs_created'] = True
+            code.append(indent_code("""
                 if content is not None and content is not False:
                     content = self._compile_to_str(content)
                 """, level))
             force_display_dependent = True
         else:
+            code = []
             if expr == T_CALL_SLOT:
                 code.append(indent_code(f"content = values.get({T_CALL_SLOT}, '')", level))
             else:
                 code.append(indent_code(f"content = {self._compile_expr(expr)}", level))
 
             if code_options == 'True':
-                code.append(indent_code(f"""
-                    widget_attrs, content, force_display = self._get_widget(content, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), values)
-                    if values.get('__qweb_attrs__') is None:
-                        values['__qweb_attrs__'] = widget_attrs
-                    else:
-                        values['__qweb_attrs__'].update(widget_attrs)
-                    content = self._compile_to_str(content)
-                    """, level))
+                attr_name = 'widget_attrs' if compile_context.get('qweb_attrs_created') else 'attrs'
+                code.append(indent_code(f"""{attr_name}, content, force_display = self._get_widget(content, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), values)""", level))
+                if compile_context.get('qweb_attrs_created'):
+                    code.append(indent_code("""
+                        if attrs is None:
+                            attrs = widget_attrs
+                        else:
+                            attrs.update(widget_attrs)
+                        """, level))
+                else:
+                    compile_context['qweb_attrs_created'] = True
+                code.append(indent_code("content = self._compile_to_str(content)", level))
                 force_display_dependent = True
             else:
                 force_display_dependent = False
 
-            if ttype == 't-raw':
-                # deprecated use.
-                code.append(indent_code("""
-                    if content is not None and content is not False:
-                        content = Markup(content)
-                """, level))
+        level_tag = level + (0 if is_slot else 1)
+        tag_open = (
+            self._compile_directive(el, compile_context, 'tag-open', level_tag) +
+            self._flush_text(compile_context, level_tag))
+        tag_close = (
+            self._compile_directive(el, compile_context, 'tag-close', level_tag) +
+            self._flush_text(compile_context, level_tag))
+        default_body = (
+            self._compile_directive(el, compile_context, 'inner-content', level_tag) +
+            self._flush_text(compile_context, level_tag))
+
+        if is_slot:
+            return flush + tag_open + code + tag_close
+
+        code = flush + code
 
         # The generated code will create the output tag with all attribute.
         # If the value is not falsy or if there is default content or if it's
@@ -2479,30 +2554,9 @@ class IrQweb(models.AbstractModel):
                 code.append(indent_code("elif force_display:", level))
                 code.extend(tag_open + tag_close)
 
-            code.append(indent_code("""else: values.pop('__qweb_attrs__', None)""", level))
+            code.append(indent_code("""else: attrs = None""", level))
 
         return code
-
-    def _compile_directive_esc(self, el, compile_context, level):
-        # deprecated use.
-        if compile_context.get('dev_mode'):
-            _logger.warning(
-                "Found deprecated directive @t-esc=%r in template %r. Replace by @t-out",
-                el.get('t-esc'),
-                compile_context.get('ref', '<unknown>'),
-            )
-        return self._compile_directive_out(el, compile_context, level)
-
-    def _compile_directive_raw(self, el, compile_context, level):
-        # deprecated use.
-        _logger.warning(
-            "Found deprecated directive @t-raw=%r in template %r. Replace by "
-            "@t-out, and explicitely wrap content in `Markup` if "
-            "necessary (which likely is not the case)",
-            el.get('t-raw'),
-            compile_context.get('ref', '<unknown>'),
-        )
-        return self._compile_directive_out(el, compile_context, level)
 
     def _compile_directive_field(self, el, compile_context, level):
         """Compile ``t-field`` expressions into a python code as a list of
@@ -2548,9 +2602,6 @@ class IrQweb(models.AbstractModel):
         if el_tag != 't':
             raise SyntaxError(f"t-call must be on a <t> element (actually on <{el_tag}>).")
 
-        if el.attrib.get('t-call-options'): # retro-compatibility
-            el.attrib.set('t-options', el.attrib.pop('t-call-options'))
-
         nsmap = compile_context.get('nsmap')
 
         code = self._flush_text(compile_context, level, rstrip=el.tag.lower() == 't')
@@ -2572,12 +2623,12 @@ class IrQweb(models.AbstractModel):
 
         # values from content (t-out="0")
         if bool(list(el) or el.text):
-            is_deprecated_version = not any(not key.startswith('t-') for key in el.attrib) and any(n.attrib.get('t-set') for n in el)
-
             def_name = compile_context['make_name']('t_call')
             code_content = [f"def {def_name}(self, values):"]
+            code_content.append(indent_code('attrs = None', 1))
+            code_content.append(indent_code('if False: yield ""', 1))
             code_content.append(indent_code(f'# element: {path!r} , {xml!r}', 1))
-            code_content.extend(self._compile_directive(el, compile_context, 'inner-content', 1))
+            code_content.extend(self._compile_directive(el, dict(compile_context, qweb_attrs_created=False), 'inner-content', 1))
             self._append_text('', compile_context)  # To ensure the template function is a generator and doesn't become a regular function
             code_content.extend(self._flush_text(compile_context, 1, rstrip=True))
 
@@ -2585,17 +2636,9 @@ class IrQweb(models.AbstractModel):
 
             code.append(indent_code(f"""
                 t_call_content_values = values.copy()
-                qwebContent = QwebContent(self, QwebCallParameters(self.env.context, {compile_context['ref']!r}, {def_name!r}, t_call_content_values, 'root', 'inner-content', (template_options['ref'], {path!r}, {xml!r})))
+                qwebContent = QwebContent(self, QwebCallParameters(self.env.context, {compile_context['ref']!r}, {def_name!r}, t_call_content_values, 'root', 't-call-content', (template_options['ref'], {path!r}, {xml!r})))
                 t_call_values = {{ {T_CALL_SLOT}: qwebContent}}
             """, level))
-
-            if is_deprecated_version:
-                # force the loading of the content to get values from t-set
-                code.append(indent_code(f"""
-                    str(qwebContent)
-                    new_values = {{k: v for k, v in t_call_content_values.items() if k != {T_CALL_SLOT} and k != '__qweb_attrs__' and values.get(k) is not v}}
-                    t_call_values.update(new_values)
-                """, level))
         else:
             code.append(indent_code(f"t_call_values = {{ {T_CALL_SLOT}: '' }}", level))
 
@@ -2658,6 +2701,7 @@ class IrQweb(models.AbstractModel):
         xmlid = el.attrib.pop('t-call-assets')
         css = self._compile_bool(el.attrib.pop('t-css', True))
         js = self._compile_bool(el.attrib.pop('t-js', True))
+        binary = self._compile_bool(el.attrib.pop('t-binary', False))
         # async_load support was removed
         defer_load = self._compile_bool(el.attrib.pop('defer_load', False))
         lazy_load = self._compile_bool(el.attrib.pop('lazy_load', False))
@@ -2668,6 +2712,7 @@ class IrQweb(models.AbstractModel):
                 {xmlid!r},
                 css={css},
                 js={js},
+                binary={binary},
                 debug=values.get("debug"),
                 defer_load={defer_load},
                 lazy_load={lazy_load},
@@ -2683,8 +2728,7 @@ class IrQweb(models.AbstractModel):
                 yield '<'
                 yield tagName
 
-                attrs = self._post_processing_att(tagName, asset_attrs)
-                for name, value in attrs.items():
+                for name, value in self._post_processing_att(tagName, asset_attrs).items():
                     if value or isinstance(value, str):
                         yield f' {escape(str(name))}="{escape(str(value))}"'
 
@@ -2696,6 +2740,32 @@ class IrQweb(models.AbstractModel):
                     yield tagName
                     yield '>'
                 """, level))
+
+        return code
+
+    def _compile_directive_log(self, el, compile_context, level):
+        if 'qweb' not in tools.config['dev_mode']:
+            return []
+
+        el.attrib.pop('t-log')
+
+        code = self._flush_text(compile_context, level, rstrip=el.tag.lower() == 't')
+
+        # set the content as value
+        ref, path, xml = compile_context['_qweb_error_path_xml']
+
+        def_name = compile_context['make_name']('t_log')
+        def_code = [f"def {def_name}(self, values):"]
+        def_code.append(indent_code('attrs = None', 1))
+        def_code.append(indent_code('if False: yield ""', 1))
+        def_code.append(indent_code(f'# element: {path!r} , {xml!r}', 1))
+        def_code.extend(self._compile_directives(el, dict(compile_context, qweb_attrs_created=False), 1))
+        def_code.extend(self._flush_text(compile_context, 1) or [indent_code('yield ""', 1)])
+        compile_context['template_functions'][def_name] = def_code
+
+        code.append(indent_code(f"""
+            yield QwebContent(self, QwebCallParameters(self.env.context, {ref!r}, {def_name!r}, values, False, 't-log', ({ref!r}, {path!r}, {xml!r})))
+        """, level))
 
         return code
 
@@ -2792,38 +2862,38 @@ class IrQweb(models.AbstractModel):
 
         return (attributes, content, inherit_branding)
 
-    def _get_asset_nodes(self, bundle, css=True, js=True, debug=False, defer_load=False, lazy_load=False, media=None, autoprefix=False):
+    def _get_asset_nodes(self, bundle, css=True, js=True, binary=False, debug=False, defer_load=False, lazy_load=False, media=None, autoprefix=False):
         """Generates asset nodes.
         If debug=assets, the assets will be regenerated when a file which composes them has been modified.
         Else, the assets will be generated only once and then stored in cache.
         """
         media = css and media or None
-        links = self._get_asset_links(bundle, css=css, js=js, debug=debug, autoprefix=autoprefix)
-        return self._links_to_nodes(links, defer_load=defer_load, lazy_load=lazy_load, media=media)
+        links = self._get_asset_links(bundle, css=css, js=js, binary=binary, debug=debug, autoprefix=autoprefix)
+        return self._links_to_nodes([links[0]] if binary else links, defer_load=defer_load, lazy_load=lazy_load, media=media)
 
-    def _get_asset_links(self, bundle, css=True, js=True, debug=None, autoprefix=False):
+    def _get_asset_links(self, bundle, css=True, js=True, binary=False, debug=None, autoprefix=False):
         """Generates asset nodes.
         If debug=assets, the assets will be regenerated when a file which composes them has been modified.
         Else, the assets will be generated only once and then stored in cache.
         """
-        rtl = self.env['res.lang'].sudo()._get_data(code=(self.env.lang or self.env.user.lang)).direction == 'rtl'
+        rtl = self.env['res.lang'].sudo()._lang_get(code=(self.env.lang or self.env.user.lang)).direction == 'rtl'
         assets_params = self.env['ir.asset']._get_asset_params() # website_id
         debug_assets = debug and 'assets' in debug
 
         if debug_assets:
-            return self._generate_asset_links(bundle, css=css, js=js, debug_assets=True, assets_params=assets_params, rtl=rtl, autoprefix=autoprefix)
+            return self._generate_asset_links(bundle, css=css, js=js, binary=binary, debug_assets=True, assets_params=assets_params, rtl=rtl, autoprefix=autoprefix)
         else:
-            return self._generate_asset_links_cache(bundle, css=css, js=js, assets_params=assets_params, rtl=rtl, autoprefix=autoprefix)
+            return self._generate_asset_links_cache(bundle, css=css, js=js, binary=binary, assets_params=assets_params, rtl=rtl, autoprefix=autoprefix)
 
     # other methods used for the asset bundles
     @tools.conditional(
         # in non-xml-debug mode we want assets to be cached forever, and the admin can force a cache clear
         # by restarting the server after updating the source code (or using the "Clear server cache" in debug tools)
         'xml' not in tools.config['dev_mode'],
-        tools.ormcache('bundle', 'css', 'js', 'tuple(sorted(assets_params.items()))', 'rtl', 'autoprefix', cache='assets'),
+        tools.ormcache('bundle', 'css', 'js', 'binary', 'tuple(sorted(assets_params.items()))', 'rtl', 'autoprefix', cache='assets'),
     )
-    def _generate_asset_links_cache(self, bundle, css=True, js=True, assets_params=None, rtl=False, autoprefix=False):
-        return self._generate_asset_links(bundle, css, js, False, assets_params, rtl, autoprefix=autoprefix)
+    def _generate_asset_links_cache(self, bundle, css=True, js=True, binary=False, assets_params=None, rtl=False, autoprefix=False):
+        return self._generate_asset_links(bundle, css, js, binary, False, assets_params, rtl, autoprefix=autoprefix)
 
     def _get_asset_content(self, bundle, assets_params=None):
         if assets_params is None:
@@ -2831,23 +2901,24 @@ class IrQweb(models.AbstractModel):
         asset_paths = self.env['ir.asset']._get_asset_paths(bundle=bundle, assets_params=assets_params)
         files = []
         external_asset = []
-        for path, full_path, _bundle, last_modified in asset_paths:
+        for path, full_path, definition_bundle, last_modified in asset_paths:
             if full_path is not EXTERNAL_ASSET:
                 files.append({
                     'url': path,
                     'filename': full_path,
                     'content': '',
                     'last_modified': last_modified,
+                    'definition_bundle': definition_bundle,
                 })
             else:
                 external_asset.append(path)
         return (files, external_asset)
 
-    def _get_asset_bundle(self, bundle_name, css=True, js=True, debug_assets=False, rtl=False, assets_params=None, autoprefix=False):
+    def _get_asset_bundle(self, bundle_name, css=True, js=True, binary=False, debug_assets=False, rtl=False, assets_params=None, autoprefix=False):
         if assets_params is None:
             assets_params = self.env['ir.asset']._get_asset_params()
         files, external_assets = self._get_asset_content(bundle_name, assets_params)
-        return AssetsBundle(bundle_name, files, external_assets, env=self.env, css=css, js=js, debug_assets=debug_assets, rtl=rtl, assets_params=assets_params, autoprefix=autoprefix)
+        return AssetsBundle(bundle_name, files, external_assets, env=self.env, css=css, js=js, binary=binary, debug_assets=debug_assets, rtl=rtl, assets_params=assets_params, autoprefix=autoprefix)
 
     def _links_to_nodes(self, paths, defer_load=False, lazy_load=False, media=None):
         return [self._link_to_node(path, defer_load=defer_load, lazy_load=lazy_load, media=media) for path in paths]
@@ -2857,6 +2928,7 @@ class IrQweb(models.AbstractModel):
         is_js = ext in SCRIPT_EXTENSIONS
         is_xml = ext in TEMPLATE_EXTENSIONS
         is_css = ext in STYLE_EXTENSIONS
+        is_font = ext in FONT_EXTENSIONS
 
         if is_js:
             is_asset_bundle = path and path.startswith('/web/assets/')
@@ -2898,10 +2970,19 @@ class IrQweb(models.AbstractModel):
                 }
             return ('script', attributes)
 
+        if is_font:
+            attributes = {
+                'rel': 'preload',
+                'href': path,
+                'as': 'font',
+                'crossorigin': '',
+            }
+            return ('link', attributes)
+
         return None
 
-    def _generate_asset_links(self, bundle, css=True, js=True, debug_assets=False, assets_params=None, rtl=False, autoprefix=False):
-        asset_bundle = self._get_asset_bundle(bundle, css=css, js=js, debug_assets=debug_assets, rtl=rtl, assets_params=assets_params, autoprefix=autoprefix)
+    def _generate_asset_links(self, bundle, css=True, js=True, binary=False, debug_assets=False, assets_params=None, rtl=False, autoprefix=False):
+        asset_bundle = self._get_asset_bundle(bundle, css=css, js=js, binary=binary, debug_assets=debug_assets, rtl=rtl, assets_params=assets_params, autoprefix=autoprefix)
         return asset_bundle.get_links()
 
     def _get_asset_link_urls(self, bundle, debug=False):
@@ -2920,13 +3001,19 @@ class IrQweb(models.AbstractModel):
         """
         _logger.runbot('Pregenerating assets bundles')
 
-        js_bundles, css_bundles = self._get_bundles_to_pregenarate()
+        js_bundles, css_bundles, bin_bundles = self._get_bundles_to_pregenarate()
 
         links = []
         start = time.time()
         for bundle in sorted(js_bundles):
             links += self._get_asset_bundle(bundle, css=False, js=True).js()
         _logger.info('JS Assets bundles generated in %s seconds', time.time()-start)
+        start = time.time()
+        for bundle in sorted(bin_bundles):
+            binary_bundle = self._get_asset_bundle(bundle, binary=True)
+            for bin in binary_bundle.binaries:
+                links.extend(binary_bundle.bin(bin.extension))
+        _logger.info('Binary Assets bundles generated in %s seconds', time.time() - start)
         start = time.time()
         for bundle in sorted(css_bundles):
             links += self._get_asset_bundle(bundle, css=True, js=False).css()
@@ -2937,24 +3024,28 @@ class IrQweb(models.AbstractModel):
         """
         Returns the list of bundles to pregenerate.
         """
-        js_views_bundles, css_views_bundles = self._get_bundles_from_views()
+        js_views_bundles, css_views_bundles, bin_views_bundles = self._get_bundles_from_views()
         lazy_bundles = self._get_lazy_bundles_from_js()
-        return (js_views_bundles | lazy_bundles, css_views_bundles | lazy_bundles)
+        return (js_views_bundles | lazy_bundles, css_views_bundles | lazy_bundles, bin_views_bundles)
 
     def _get_bundles_from_views(self):
         views = self.env['ir.ui.view'].search([('type', '=', 'qweb'), ('arch_db', 'like', 't-call-assets')])
         js_bundles = set()
         css_bundles = set()
+        bin_bundles = set()
         for view in views:
             for call_asset in etree.fromstring(view.arch_db).xpath("//*[@t-call-assets]"):
                 asset = call_asset.get('t-call-assets')
                 js = str2bool(call_asset.get('t-js', 'True'))
                 css = str2bool(call_asset.get('t-css', 'True'))
+                binary = str2bool(call_asset.get('t-binary', 'False'))
                 if js:
                     js_bundles.add(asset)
                 if css:
                     css_bundles.add(asset)
-        return (js_bundles, css_bundles)
+                if binary:
+                    bin_bundles.add(asset)
+        return (js_bundles, css_bundles, bin_bundles)
 
     def _get_lazy_bundles_from_js(self):
         modules = self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name')

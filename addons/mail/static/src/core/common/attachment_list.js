@@ -87,7 +87,9 @@ export class AttachmentList extends Component {
             return this.props.unlinkAttachment(attachment);
         }
         this.dialog.add(ConfirmationDialog, {
-            body: _t('Do you really want to delete "%s"?', attachment.name),
+            title: _t('Delete Attachment'),
+            body: _t('Are you sure you want to delete "%s"?\nThis action cannot be undone.', attachment.name),
+            confirmLabel: _t('Delete Attachment'),
             cancel: () => {},
             confirm: () => this.onConfirmUnlink(attachment),
         });
@@ -118,7 +120,7 @@ export class AttachmentList extends Component {
 
     getActions(attachment) {
         const res = [];
-        if (this.showDelete) {
+        if (this.showDelete(attachment)) {
             res.push({
                 label: _t("Remove"),
                 icon: "fa fa-trash",
@@ -135,12 +137,12 @@ export class AttachmentList extends Component {
         return res;
     }
 
-    get showDelete() {
+    showDelete(attachment) {
         // in the composer they should all be implicitly deletable
         if (this.env.inComposer) {
             return true;
         }
-        if (!this.attachment.isDeletable) {
+        if (!attachment.isDeletable) {
             return false;
         }
         // in messages users are expected to delete the message instead of just the attachment

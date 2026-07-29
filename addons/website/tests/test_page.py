@@ -1,21 +1,24 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from lxml import html
 from unittest.mock import patch
 
-from odoo.addons.website.controllers.main import Website
-from odoo.addons.http_routing.tests.common import MockRequest
+from lxml import html
+
+from odoo.exceptions import AccessError
 from odoo.fields import Command
-from odoo.http import root
-from odoo.tests import common, HttpCase, tagged
-from odoo.tests.common import HOST
-from odoo.tools import config, mute_logger
+from odoo.http.session import session_store
+from odoo.tests import HttpCase, common, tagged
+from odoo.tools import mute_logger
+
+from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
+from odoo.addons.http_routing.tests.common import MockRequest
+from odoo.addons.website.controllers.main import Website
 
 
 @tagged('-at_install', 'post_install')
 class TestPage(common.TransactionCase):
     def setUp(self):
-        super(TestPage, self).setUp()
+        super().setUp()
         View = self.env['ir.ui.view']
         Page = self.env['website.page']
         Menu = self.env['website.menu']
@@ -286,12 +289,6 @@ class WithContext(HttpCase):
         admin_uid = self.env.ref('base.user_admin').id
         website = self.env['website'].get_current_website()
 
-        robot = self.xmlrpc_object.execute(
-            dbname, admin_uid, 'admin',
-            'website', 'search_pages', [website.id], 'info'
-        )
-        self.assertIn({'loc': '/website/info'}, robot)
-
         pages = self.xmlrpc_object.execute(
             dbname, admin_uid, 'admin',
             'website', 'search_pages', [website.id], 'page'
@@ -323,7 +320,7 @@ class WithContext(HttpCase):
             self.assertIn('ZeroDivisionError: division by zero', r.text, "Error should be shown in debug.")
 
     def test_04_visitor_no_session(self):
-        with patch.object(root.session_store, 'save') as session_save,\
+        with patch.object(session_store(), 'save') as session_save,\
              MockRequest(self.env, website=self.env['website'].browse(1)):
             # no session should be saved for website visitor
             self.url_open(self.page.url).raise_for_status()
@@ -353,13 +350,11 @@ class WithContext(HttpCase):
             r = self.url_open(self.page.url)
             self.assertEqual(r.status_code, 200)
             self.assertIn(f'"og:image" content="{base_url}/favicon.ico"', r.text)
-            self.assertIn(f'"twitter:image" content="{base_url}/favicon.ico"', r.text)
 
             self.page.website_meta_og_img = '/logo'
             r = self.url_open(self.page.url)
             self.assertEqual(r.status_code, 200)
             self.assertIn(f'"og:image" content="{base_url}/logo"', r.text)
-            self.assertIn(f'"twitter:image" content="{base_url}/logo"', r.text)
 
     def test_website_homepage_url_change(self):
         website = self.env['website'].browse([1])
@@ -424,10 +419,12 @@ class WithContext(HttpCase):
         contactus_url = '/contactus'
         contactus_url_full = website.domain + contactus_url
         contactus_content = b'content="Contact Us | Test Website"'
-        contactus_menu = self.env['website.menu'].search([
-            ('website_id', '=', website.id),
-            ('url', '=', contactus_url),
-        ], limit=1)
+        contactus_menu = self.env['website.menu'].create({
+            'name': "Contact us",
+            'url': contactus_url,
+            'website_id': website.id,
+            'parent_id': website.menu_id.id,
+        })
         home_url = '/'
         home_url_full = website.domain + home_url
         home_content = b'content="Home | Test Website"'
@@ -693,3 +690,36 @@ class TestNewPage(common.TransactionCase):
                     menu.page_id,
                     f"Menu '{menu.name}' was not linked to the created page."
                 )
+
+
+@tagged('-at_install', 'post_install')
+class TestUrlDependencies(TransactionCaseWithUserDemo):
+    def test_search_url_dependencies_with_restricted_html_field(self):
+        self.page = self.env['website.page'].create({
+            'name': 'Test Page',
+            'url': '/test-page',
+            'type': 'qweb',
+            'arch': '<div>Test</div>',
+        })
+        # Add a website page into robots_txt
+        self.website = self.env['website'].browse(1)
+        self.website.robots_txt = '''
+            User-agent: *
+            Disallow: /test-page
+        '''
+        self.env['ir.model.access'].create({
+            'name': 'read',
+            'model_id': self.env['ir.model']._get('website.page').id,
+            'group_id': self.env.ref("base.group_user").id,
+            'perm_read': True,
+        })
+        with MockRequest(self.env, website=self.website, context={'lang': 'en_US'}):
+            website = self.website.with_user(self.user_demo)
+            with self.assertRaises(AccessError):
+                website.robots_txt
+
+            dependencies = website.search_url_dependencies('website.page', self.page.ids)
+            self.assertEqual(
+                dependencies['Website'][0]['record_name'],
+                self.website.display_name,
+            )

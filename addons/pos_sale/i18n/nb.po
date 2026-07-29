@@ -8,13 +8,13 @@
 # Marius Stedjan <marius@stedjan.com>, 2022
 # Martin Trigaux, 2022
 # Henning Fyllingsnes, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 20:58+0000\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 18:38+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Norwegian Bokmål <https://translate.odoo.com/projects/odoo-19/"
 "pos_sale/nb_NO/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_sale
 #. odoo-python
@@ -46,6 +46,11 @@ msgstr ""
 #. module: pos_sale
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "<span style=\"margin: 0px 5px;\">:</span>"
+msgstr ""
+
+#. module: pos_sale
+#: model_terms:ir.ui.view,arch_db:pos_sale.pos_orderline_receipt_information
+msgid "<strong>Sale Order: </strong>"
 msgstr ""
 
 #. module: pos_sale
@@ -107,12 +112,19 @@ msgid "Delivery Quantity"
 msgstr ""
 
 #. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid "Discard"
+msgstr ""
+
+#. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_crm_team__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__display_name
@@ -179,6 +191,7 @@ msgstr "Fra"
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__id
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__id
@@ -201,6 +214,14 @@ msgstr "Fakturert"
 msgid ""
 "It seems that you didn't configure a down payment product in your point of "
 "sale. You can go to your point of sale configuration to choose one."
+msgstr ""
+
+#. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid ""
+"It seems that you didn't configure a down payment product in your point of "
+"sale. You can go to your point of sale settings to choose one."
 msgstr ""
 
 #. module: pos_sale
@@ -268,14 +289,19 @@ msgid "Point of Sale Configuration"
 msgstr "Kassapunkt"
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassaordrelinjer"
+#: model:ir.model,name:pos_sale.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassaordrer"
+#: model:ir.model,name:pos_sale.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_sale
+#: model:ir.model,name:pos_sale.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_pos_session
@@ -455,57 +481,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "x"
 msgstr ""
-
-#~ msgid "Back"
-#~ msgstr "Tilbake"
-
-#~ msgid "Cancelled"
-#~ msgstr "Kansellert"
-
-#~ msgid "Customer"
-#~ msgstr "Kunde"
-
-#~ msgid "Date"
-#~ msgstr "Dato"
-
-#~ msgid "Locked"
-#~ msgstr "Låst"
-
-#~ msgid "New"
-#~ msgstr "Ny"
-
-#~ msgid "No"
-#~ msgstr "Nei"
-
-#~ msgid "Open POS Sessions"
-#~ msgstr "Åpne kassaøkter"
-
-#~ msgid "Quotation"
-#~ msgstr "Tilbud"
-
-#~ msgid "Quotation Sent"
-#~ msgstr "Tilbud sendt"
-
-#~ msgid "Salesman"
-#~ msgstr "Selger"
-
-#~ msgid "Salesperson"
-#~ msgstr "Selger"
-
-#~ msgid "Session Running"
-#~ msgstr "Økt pågår"
-
-#~ msgid "Session Sale Amount"
-#~ msgstr "Salgsbeløp for økt"
-
-#~ msgid "Sessions Running"
-#~ msgstr "Økter som pågår"
-
-#~ msgid "State"
-#~ msgstr "Modus"
-
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgid "Yes"
-#~ msgstr "Ja"

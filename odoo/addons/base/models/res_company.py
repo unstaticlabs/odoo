@@ -11,6 +11,7 @@ from odoo.exceptions import ValidationError, UserError
 from odoo.fields import Command, Domain
 from odoo.tools import html2plaintext, file_open, ormcache, zeep
 from odoo.tools.image import image_process
+from odoo.tools.sql import table_columns
 
 _logger = logging.getLogger(__name__)
 
@@ -28,12 +29,14 @@ class ZeepOrmCache(ZeepCache):
         return self.company._get_zeep_cache__().get(url)
 
 
-class ResCompany(models.Model):
+class ResCompany(models.CachedModel):
     _name = 'res.company'
-    _description = 'Companies'
+    _description = 'Company'
     _order = 'sequence, name'
     _inherit = ['format.address.mixin', 'format.vat.label.mixin']
     _parent_store = True
+    _clear_asset_cache_on_fields = {'font', 'primary_color', 'secondary_color', 'external_report_layout_id'}
+    _cached_data_fields = ('name', 'active', 'sequence', 'currency_id', 'parent_id', 'partner_id')
 
     def copy(self, default=None):
         raise UserError(self.env._('Duplicating a company is not allowed. Please create a new company instead.'))
@@ -43,6 +46,10 @@ class ResCompany(models.Model):
             return base64.b64encode(file.read())
 
     def _default_currency_id(self):
+        if self.env.registry._init and not (set(self._cached_data_fields) <= table_columns(self.env.cr, self._table).keys()):
+            # The database is being initialized, _init_column calls and tries to
+            # access the cache.
+            return None
         return self.env.user.company_id.currency_id
 
     name = fields.Char(related='partner_id.name', string='Company Name', required=True, store=True, readonly=False)
@@ -60,9 +67,7 @@ class ResCompany(models.Model):
     company_details = fields.Html(string='Company Details', translate=True, help="Header text displayed at the top of all reports.")
     is_company_details_empty = fields.Boolean(compute='_compute_empty_company_details')
     logo = fields.Binary(related='partner_id.image_1920', default=_get_logo, string="Company Logo", readonly=False)
-    # logo_web: do not store in attachments, since the image is retrieved in SQL for
-    # performance reasons (see addons/web/controllers/main.py, Binary.company_logo)
-    logo_web = fields.Binary(compute='_compute_logo_web', store=True, attachment=False)
+    logo_web = fields.Binary(compute='_compute_logo_web', store=True)
     uses_default_logo = fields.Boolean(compute='_compute_uses_default_logo', store=True)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self._default_currency_id())
     user_ids = fields.Many2many('res.users', 'res_company_users_rel', 'cid', 'user_id', string='Accepted Users')
@@ -86,12 +91,18 @@ class ResCompany(models.Model):
     company_registry_placeholder = fields.Char(related='partner_id.company_registry_placeholder')
     paperformat_id = fields.Many2one('report.paperformat', 'Paper format', default=lambda self: self.env.ref('base.paperformat_euro', raise_if_not_found=False))
     external_report_layout_id = fields.Many2one('ir.ui.view', 'Document Template')
-    font = fields.Selection([("Lato", "Lato"), ("Roboto", "Roboto"), ("Open_Sans", "Open Sans"), ("Montserrat", "Montserrat"), ("Oswald", "Oswald"), ("Raleway", "Raleway"), ('Tajawal', 'Tajawal'), ('Fira_Mono', 'Fira Mono')], default="Lato")
+    report_tables_id = fields.Selection([
+        ('light', 'Light'),
+        ('boxed', 'Boxed'),
+        ('bold', 'Bold'),
+        ('striped', 'Striped'),
+        ('bubble', 'Bubble'),
+        ('column', 'Column'),
+    ], string='Table Design', default='light')
+    font = fields.Selection([("Lato", "Lato"), ("Roboto", "Roboto"), ("Open_Sans", "Open Sans"), ("Montserrat", "Montserrat"), ("Oswald", "Oswald"), ("Raleway", "Raleway"), ('Tajawal', 'Tajawal'), ('Noto_Sans_Mono', 'Noto Sans Mono')], default="Lato")
     primary_color = fields.Char()
     secondary_color = fields.Char()
     color = fields.Integer(compute='_compute_color', inverse='_inverse_color')
-    layout_background = fields.Selection([('Blank', 'Blank'), ('Demo logo', 'Demo logo'), ('Custom', 'Custom')], default="Blank", required=True)
-    layout_background_image = fields.Binary("Background Image")
     uninstalled_l10n_module_ids = fields.Many2many('ir.module.module', compute='_compute_uninstalled_l10n_module_ids')
 
     _name_uniq = models.Constraint(
@@ -298,7 +309,6 @@ class ResCompany(models.Model):
             partners = self.env['res.partner'].with_context(default_parent_id=False).create([
                 {
                     'name': vals['name'],
-                    'is_company': True,
                     'image_1920': vals.get('logo'),
                     'email': vals.get('email'),
                     'phone': vals.get('phone'),
@@ -319,7 +329,6 @@ class ResCompany(models.Model):
                 for fname in self._get_company_root_delegated_field_names():
                     vals.setdefault(fname, self._fields[fname].convert_to_write(parent[fname], parent))
 
-        self.env.registry.clear_cache()
         companies = super().create(vals_list)
 
         # The write is made on the user to set it automatically in the multi company group.
@@ -337,22 +346,6 @@ class ResCompany(models.Model):
 
         return companies
 
-    def cache_invalidation_fields(self):
-        # This list is not well defined and tests should be improved
-        return {
-            'active', # user._get_company_ids and other potential cached search
-            'sequence', # user._get_company_ids and other potential cached search
-        }
-
-    def unlink(self):
-        """
-        Unlink the companies and clear the cache to make sure that
-        _get_company_ids of res.users gets only existing company ids.
-        """
-        res = super().unlink()
-        self.env.registry.clear_cache()
-        return res
-
     def write(self, vals):
         if 'parent_id' in vals:
             raise UserError(self.env._("The company hierarchy cannot be changed."))
@@ -363,17 +356,13 @@ class ResCompany(models.Model):
                 currency.write({'active': True})
 
         res = super().write(vals)
-        invalidation_fields = self.cache_invalidation_fields()
-        asset_invalidation_fields = {'font', 'primary_color', 'secondary_color', 'external_report_layout_id'}
 
         companies_needs_l10n = (
             vals.get('country_id')
             and self.filtered(lambda company: not company.country_id)
         ) or self.browse()
-        if not invalidation_fields.isdisjoint(vals):
-            self.env.registry.clear_cache()
 
-        if not asset_invalidation_fields.isdisjoint(vals):
+        if any(self._ids) and not self._clear_asset_cache_on_fields.isdisjoint(vals):
             # this is used in the content of an asset (see asset_styles_company_report)
             # and thus needs to invalidate the assets cache when this is changed
             self.env.registry.clear_cache('assets')  # not 100% it is useful a test is missing if it is the case

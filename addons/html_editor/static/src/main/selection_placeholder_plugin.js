@@ -11,6 +11,7 @@ import {
     closestElement,
     getAdjacentNextSiblings,
     getAdjacentPreviousSiblings,
+    selectElements,
 } from "@html_editor/utils/dom_traversal";
 import { withSequence } from "@html_editor/utils/resource";
 
@@ -82,8 +83,8 @@ export class SelectionPlaceholderPlugin extends Plugin {
             return !!results.length && results.every(Boolean);
         };
         const isSelectionBlocker = (node) => checkPredicate("selection_blocker_predicates", node);
-        const placeholderParents = [this.editable, ...this.editable.querySelectorAll("*")].filter(
-            (container) => checkPredicate("selection_placeholder_container_predicates", container)
+        const placeholderParents = selectElements(this.editable, "*").filter((container) =>
+            checkPredicate("selection_placeholder_container_predicates", container)
         );
 
         const marginUpdates = [];

@@ -1,16 +1,19 @@
-from datetime import datetime
+import re
+from collections import defaultdict
 from markupsafe import Markup
 from lxml import etree
 
 from odoo import _, api, models
 from odoo.addons.account.tools import dict_to_xml
-from odoo.addons.base.models.res_bank import sanitize_account_number
 from odoo.exceptions import UserError, ValidationError
+from odoo.fields import Domain
 from odoo.tools import float_compare, float_is_zero, float_repr, html2plaintext
 from odoo.tools.float_utils import float_round
 from odoo.tools.translate import _lt
 from odoo.tools.misc import clean_context, formatLang, html_escape
 from odoo.tools.xml_utils import find_xml_value
+from datetime import datetime
+from copy import deepcopy
 
 # -------------------------------------------------------------------------
 # UNIT OF MEASURE
@@ -442,6 +445,13 @@ class AccountEdiCommon(models.AbstractModel):
             exemption reason, see https://docs.peppol.eu/poacc/billing/3.0/bis/#_calculation_of_vat
         """
 
+        # shortcut if the exemption reason is set on the tax
+        if tax and tax.ubl_cii_tax_exemption_reason_code and tax.ubl_cii_tax_exemption_reason:
+            return {
+                'tax_exemption_reason_code': tax.ubl_cii_tax_exemption_reason_code,
+                'tax_exemption_reason': tax.ubl_cii_tax_exemption_reason,
+            }
+
         if reason := tax and not tax.amount and self._get_belgian_cocontractant_note(customer, supplier):
             return {
                 'tax_exemption_reason_code': 'VATEX-EU-AE',
@@ -521,6 +531,140 @@ class AccountEdiCommon(models.AbstractModel):
             if not line.tax_ids:
                 return {'tax_on_line': _("Each invoice line should have at least one tax.")}
         return {}
+
+    @api.model
+    def _flatten_multilevel_constraints(self, constraints: dict):
+        """Flatten multilevel dict constraints
+
+        see `_get_flatten_multilevel_constraints_config` for config values.
+
+        Args:
+            constraints:
+                Arbitrary nested dict of simple constraints.
+
+                Special keys:
+                - ``_title``: title for this group (ignored in root)
+                - ``_config``: config dict (only applicable in root)
+                        Defaults to {
+                            'residual_title': _("Other Errors:"),
+                            'residual_key': 'other',
+                            'indent_suffix': '',
+                            'indent_suffix_on_root_titles': True,
+                        }
+                - Any key starting with ``_`` (except the above) is ignored
+
+                Example:
+                    {
+                        '_title': "Custom title for residual errors",
+                        'oth_err_1': "Some random error",
+                        '_ubl_20': {
+                            '_title': "UBL 2.0 Errors",
+                            'ubl20_supplier_name_required': "The field 'name' is required...",
+                        },
+                        'other_err_2': "Something is wrong",
+                        'important': {
+                            '_title': "Important Errors",
+                            'some_subtitle': {
+                                '_title': "Some Subtitle",
+                                'error_1': "Something is wrong with the thing",
+                            },
+                            'some_other_subtitle': {
+                                '_title': "Some Other Subtitle",
+                                'error_2': "Something is wrong with the other thing",
+                            },
+                        },
+                    }
+
+        Returns:
+            dict: Flattened dict where keys are group identifiers and values are formatted strings
+                  with titles and bullet-pointed messages, properly indented for nested groups.
+        """
+        def remove_non_flattable(dct: dict):
+            to_remove = []
+            for key, value in dct.items():
+                if not value or not isinstance(value, (str, dict)):
+                    to_remove.append(key)
+                elif isinstance(value, dict):
+                    remove_non_flattable(value)
+                    if not value or all(k.startswith('_') for k in value):
+                        to_remove.append(key)
+
+            for key in to_remove:
+                del dct[key]
+
+        def flatten_dict(dct: dict, level=0) -> str | None:
+            if '_title' not in dct:
+                raise UserError(_("Missing '_title' for multi-level constraints."))
+
+            title = dct.pop('_title')
+            simple_strings = []
+            children_strings = []
+
+            for v in dct.values():
+                if isinstance(v, str):
+                    simple_strings.append(v)
+                elif flattened_dict := flatten_dict(v, level + 1):
+                    children_strings.append(flattened_dict)
+
+            if not simple_strings and not children_strings:
+                return None
+
+            indent_suffix = config['indent_suffix']
+            indent = '\t' * (level + 1) + indent_suffix
+            if level == 0 and not config['indent_suffix_on_root_titles']:
+                strings = [f'{'\t' * level}{title}']
+            else:
+                strings = [f'{'\t' * level}{indent_suffix}{title}']
+
+            for string in simple_strings:
+                strings.append(f'{indent}{string}')
+
+            for string in children_strings:
+                strings.append(string)
+
+            return '\n'.join(strings)
+
+        new_constraints = deepcopy(constraints)
+
+        config = {
+            'residual_title': _("Other Errors:"),
+            'residual_key': 'other',
+            'indent_suffix': '',
+            'indent_suffix_on_root_titles': True,
+        }
+        custom_config = new_constraints.pop('_config', dict())
+        config.update(custom_config)
+
+        residuals = new_constraints.pop(config['residual_key'], dict())
+
+        # Remove values we can not flatten
+        remove_non_flattable(new_constraints)
+
+        if not residuals and all(isinstance(value, str) for value in new_constraints.values()):
+            # All values are strings
+            return new_constraints
+
+        # Aggregate residuals
+        to_remove = []
+        for key, value in new_constraints.items():
+            if isinstance(value, str):
+                residuals[key] = value
+                to_remove.append(key)
+
+        # Remove aggregated residuals from root dict
+        for key in to_remove:
+            del new_constraints[key]
+
+        # Add residuals to new constraints
+        if residuals:
+            if not new_constraints:
+                return residuals
+            else:
+                residuals['_title'] = config['residual_title']
+                new_constraints[config['residual_key']] = residuals
+
+        # Flatten children dicts
+        return {k: flattened for k, v in new_constraints.items() if (flattened := flatten_dict(v))}
 
     # -------------------------------------------------------------------------
     # Import invoice
@@ -773,8 +917,9 @@ class AccountEdiCommon(models.AbstractModel):
     def _import_lines(self, record, tree, xpath, document_type=False, tax_type=False, qty_factor=1):
         logs = []
         lines_values = []
+        vehicle = self._import_vehicle(tree, 'move', document_type, record.company_id)
         for line_tree in tree.iterfind(xpath):
-            line_values = self.with_company(record.company_id)._retrieve_invoice_line_vals(line_tree, document_type, qty_factor)
+            line_values = self.with_company(record.company_id)._retrieve_invoice_line_vals(record, line_tree, document_type, qty_factor)
             if line_values is None:
                 continue
 
@@ -782,6 +927,8 @@ class AccountEdiCommon(models.AbstractModel):
             logs += tax_logs
             if not line_values['product_uom_id']:
                 line_values.pop('product_uom_id')  # if no uom, pop it so it's inferred from the product_id
+            if self._need_vehicle_id(document_type):
+                line_values['vehicle_id'] = vehicle or self._import_vehicle(line_tree, 'line', document_type, record.company_id)
             lines_values.append(line_values)
             lines_values += self._retrieve_line_charges(record, line_values, line_values['tax_ids'])
         return lines_values, logs
@@ -821,7 +968,7 @@ class AccountEdiCommon(models.AbstractModel):
 
         return lines_values, logs
 
-    def _retrieve_invoice_line_vals(self, tree, document_type=False, qty_factor=1):
+    def _retrieve_invoice_line_vals(self, record, tree, document_type=False, qty_factor=1):
         # Start and End date (enterprise fields)
         xpath_dict = self._get_invoice_line_xpaths(document_type, qty_factor)
         deferred_values = {}
@@ -837,7 +984,7 @@ class AccountEdiCommon(models.AbstractModel):
                 'deferred_end_date': end_date,
             }
 
-        line_vals = self._retrieve_line_vals(tree, document_type, qty_factor)
+        line_vals = self._retrieve_line_vals(record, tree, document_type, qty_factor)
         if not line_vals.get('price_subtotal'):
             return None
 
@@ -887,7 +1034,7 @@ class AccountEdiCommon(models.AbstractModel):
         """
         return float(self._find_value(xpath_dict['basis_qty'], tree) or 1) or 1.0
 
-    def _retrieve_line_vals(self, tree, document_type=False, qty_factor=1):
+    def _retrieve_line_vals(self, record, tree, document_type=False, qty_factor=1):
         """
         Read the xml invoice, extract the invoice line values, compute the odoo values
         to fill an invoice line form: quantity, price_unit, discount, product_uom_id.
@@ -946,7 +1093,7 @@ class AccountEdiCommon(models.AbstractModel):
         # delivered_qty (mandatory)
         delivered_qty = 1
         product_vals = {k: self._find_value(v, tree) for k, v in xpath_dict['product'].items()}
-        product = self._import_product(**product_vals)
+        product = self._import_product(record.partner_id, **product_vals)
         product_uom = self.env['uom.uom']
         quantity_node = tree.find(xpath_dict['delivered_qty'])
         if quantity_node is not None:
@@ -1026,8 +1173,95 @@ class AccountEdiCommon(models.AbstractModel):
             'price_subtotal': price_subtotal,
         }
 
-    def _import_product(self, **product_vals):
+    def _import_product(self, partner, **product_vals):
         return self.env['product.product']._retrieve_product(**product_vals)
+
+    def _import_vehicle(self, tree, tree_type, document_type, company):
+        """
+        For xmls where the VIN is located somewhere in a tag under Invoice or InvoiceLine
+        :param tree: etree object
+        :param tree_type: 'line' if the tree root element is <InvoiceLine> or 'move' if it's <Invoice>
+        """
+        if not self._need_vehicle_id(document_type):
+            return False
+        default_parent_node_path = './{*}Item/{*}AdditionalItemProperty'
+        default_value_path = './{*}Value'
+        default_linked_field = 'vin_sn'
+
+        def default_condition(parent_node, node, value):
+            return parent_node.findtext('./{*}Name') == value
+        paths = [
+            # {
+            #   'path_type': 'line' or 'move'
+            #   'parent_node_path': 'path to the parent node',
+            #   'condition': lambda parent_node, node, value: 'where parent_node = parent node, node = node containing VIN Number, value = identifier',
+            #   'value_path': 'path to the node where the information is to be found',
+            #   'identifier': 'to be used in condition to perform a check, inner tex of a node allowing to identify the node to read',
+            #   'linked_field': the field to search in DB (vin_sn, license_plate),
+            #   'pattern': if the value to search is not in a field specific to it (with other words like in a description)
+            # }
+            {'path_type': 'line', 'identifier': 'SerialNumber'},  # VIN in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'SerialNumber'
+            {'path_type': 'line', 'identifier': 'VIN'},  # VIN in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'VIN'
+            {'path_type': 'line', 'identifier': 'PlateNumber', 'linked_field': 'license_plate'},  # LICENSE PLATE in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'PlateNumber'
+            {'path_type': 'line', 'identifier': 'LCPL-NO', 'linked_field': 'license_plate'},  # LICENSE PLATE in AdditionalItemProperty/Value with AdditionalItemProperty/Name == 'LCPL-NO'
+            {
+                # VIN in Item/Description
+                'path_type': 'line',
+                'parent_node_path': './{*}Item',
+                'condition': lambda parent_node, node, value: True,
+                'value_path': './{*}Description',
+                'pattern': r'[A-Za-z0-9]{17}',
+            },
+            {
+                # LICENSE PLATE in Item/Description
+                'path_type': 'line',
+                'parent_node_path': './{*}Item',
+                'condition': lambda parent_node, node, value: True,
+                'value_path': './{*}Description',
+                'linked_field': 'license_plate',
+                'pattern': r'\d-[A-Za-z]{3}-\d{3}',  # BE license plate format
+            },
+            {
+                # VIN in AdditionalDocumentReference/ID with schemeID == 'AKG' (1 vin for the whole invoice)
+                'path_type': 'move',
+                'parent_node_path': './{*}AdditionalDocumentReference',
+                'condition': lambda parent_node, node, value: node.get('schemeID') == 'AKG',
+                'value_path': './{*}ID',
+            },
+        ]
+
+        results = defaultdict(set)  # {field (vin_sn|license_plate): {'AZERTYUIOP', 'POIUYTREZA'}}
+        for path in [p for p in paths if p['path_type'] == tree_type]:
+            parent_nodes = tree.findall(path.get('parent_node_path', default_parent_node_path))
+            for parent_node in parent_nodes:
+                value_node = parent_node.find(path.get('value_path', default_value_path))
+                if value_node is None or not path.get('condition', default_condition)(parent_node, value_node, path.get('identifier', '')):
+                    continue
+                value = value_node.text
+                if value is None:
+                    continue
+                if path.get('pattern'):
+                    # we need to find the car identifier in the node
+                    if candidates := re.findall(path['pattern'], value or ''):
+                        results[path.get('linked_field', default_linked_field)].update(candidates)
+                else:
+                    # the car identifier is the full text of the node
+                    results[path.get('linked_field', default_linked_field)].add(value)
+
+        if len(results) == 0 or any(len(vals) != 1 for vals in results.values()):
+            return False
+
+        vehicles = self.env.get('fleet.vehicle').search([
+            ('company_id', '=', company.id),
+        ] + Domain.OR([
+            [(field, 'in', vals)] for field, vals in results.items()
+        ]), limit=2)
+        if len(vehicles) == 1:
+            return vehicles.id
+        return False
+
+    def _need_vehicle_id(self, document_type):
+        return document_type == 'in_invoice' and 'fleet.vehicle' in self.env
 
     def _retrieve_fixed_tax(self, company_id, fixed_tax_vals):
         """ Retrieve the fixed tax at import, iteratively search for a tax:

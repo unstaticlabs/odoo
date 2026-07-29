@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * sale_management
+# 	* sale_management
 #
 # Translators:
 # Bayarkhuu Bataa, 2022
@@ -14,22 +14,20 @@
 # hish, 2022
 # Martin Trigaux, 2022
 # Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2022
-# Bayarkhuu Bataa <bbayarkhuu@gmail.com>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 06:58+0000\n"
-"Last-Translator: Bayarkhuu Bataa <bbayarkhuu@gmail.com>\n"
-"Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-19/"
-"sale_management/mn/>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2022\n"
+"Language-Team: Mongolian (https://app.transifex.com/odoo/teams/41243/mn/)\n"
 "Language: mn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -78,11 +76,17 @@ msgid "Archived"
 msgstr "Архивласан"
 
 #. module: sale_management
-#: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Компаниуд"
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
 
 #. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model,name:sale_management.model_res_company
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -159,12 +163,6 @@ msgid "Display Type"
 msgstr "Харагдах хэлбэр"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Хандах эрх алга, энэ өгөгдлийг мэдээ илгээх имэйл жагсаалт руу хийхгүй"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
@@ -175,6 +173,18 @@ msgid "Gives the sequence order when displaying a list of sale quote lines."
 msgstr ""
 "Борлуулалтын үнийн саналын мөрүүдийг харуулах үед дэс дарааллын эрэмбийг "
 "өгнө."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -268,7 +278,7 @@ msgstr ""
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
+msgid "Optional Section"
 msgstr ""
 
 #. module: sale_management
@@ -338,6 +348,12 @@ msgstr "Үнийн саналын загвар"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
 msgstr ""
 
 #. module: sale_management
@@ -416,6 +432,8 @@ msgid ""
 msgstr ""
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
 msgstr ""
@@ -514,8 +532,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -525,8 +543,8 @@ msgstr ""
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
@@ -549,93 +567,3 @@ msgstr "өдөр"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
 msgstr ""
-
-#~ msgid "4 Person Desk"
-#~ msgstr "4 хүний ширээ"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Сонголтууд</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Сагсанд нэмэх"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Захиалгын мөр дээр нэмэх"
-
-#~ msgid "Category"
-#~ msgstr "Ангилал"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Хэмжих нэгжийг хооронд нь хөрвүүлэх явдал нь зөвхөн нэг ангилалд хамаарч "
-#~ "байвал л хийгдэнэ. Хөрвүүлэлт нь харьцаан дээр суурилж явагдана."
-
-#~ msgid "Disc.%"
-#~ msgstr "ХӨН.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Хөнгөлөлт (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Нэмэлт барааг жагсаалтанд харуулахдаа эрэмбэ дараалал тодорхойлно уу."
-
-#~ msgid "Group By"
-#~ msgstr "Бүлэглэлт"
-
-#~ msgid "Line"
-#~ msgstr "Мөр"
-
-#~ msgid "Office Chair"
-#~ msgstr "Оффисын сандал"
-
-#~ msgid "Optional Products"
-#~ msgstr "Нэмж санал болгох бараа"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Нэмэлт барааны мөрүүд"
-
-#~ msgid "Options"
-#~ msgstr "Сонголтууд"
-
-#~ msgid "Quantity:"
-#~ msgstr "Тоо хэмжээ:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Үнийн санал зохиомжлогч"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Үнийн саналын загварын сонголт"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Үнийн саналын хугацаа дуусах"
-
-#~ msgid "Remove"
-#~ msgstr "Хасах"
-
-#~ msgid "Sale Options"
-#~ msgstr "Борлуулалтын сонголтууд"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Борлуулалтын захиалгын холбоос"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Борлуулалтын үнийн саналын загварын мөр"
-
-#~ msgid "Unit Price"
-#~ msgstr "Нэгж үнэ"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Нэгж үнэ"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "UoM"
-#~ msgstr "Хэмжих нэгж"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Батлагдсан захиалга дээр сонголт нэмэх боломжгүй."

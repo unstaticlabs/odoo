@@ -159,20 +159,15 @@ class TestUBLROCommon(TestUBLCommon):
             'street': "Strada Kunst, 3",
         })
 
-        cls.bank = cls.env['res.bank'].create({
-            'name': 'Banca Trimitere EDI Global',
-            'country': cls.env.ref('base.ro').id,
-            'state': cls.env.ref('base.RO_CJ').id,
+        cls.env['res.partner.bank'].create({
+            'partner_id': cls.company_data['company'].partner_id.id,
+            'account_number': 'RO98RNCB1234567890123456',
+            'bank_name': 'Banca Trimitere EDI Global',
+            'country_id': cls.env.ref('base.ro').id,
+            'state_id': cls.env.ref('base.RO_CJ').id,
             'city': 'Cluj-Napoca',
             'zip': '400000',
             'street': 'Strada Global EDI Test',
-        })
-
-        cls.env['res.partner.bank'].create({
-            'acc_type': 'iban',
-            'partner_id': cls.company_data['company'].partner_id.id,
-            'acc_number': 'RO98RNCB1234567890123456',
-            'bank_id': cls.bank.id,
             'allow_out_payment': True,
         })
 
@@ -185,7 +180,7 @@ class TestUBLROCommon(TestUBLCommon):
             'vat': 'RO1234567897',
             'phone': '+40 123 456 780',
             'street': "Rolling Roast, 88",
-            'bank_ids': [(0, 0, {'acc_number': 'RO98RNCB1234567890123456', 'allow_out_payment': True})],
+            'bank_ids': [(0, 0, {'account_number': 'RO98RNCB1234567890123456', 'allow_out_payment': True})],
             'ref': 'ref_partner_a',
             'invoice_edi_format': 'ciusro',
         })
@@ -280,25 +275,26 @@ class TestUBLRO(TestUBLROCommon):
         attachment = self.get_attachment(invoice)
         self._assert_invoice_attachment(attachment, xpaths=None, expected_file_path='from_odoo/ciusro_out_invoice_defaults.xml')
 
-    def test_export_invoice_defaults_new(self):
-        self.env['ir.config_parameter'].set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', 'True')
-        self.test_export_invoice_no_vat_prefix()
-
     def test_export_no_vat_and_no_company_registry_raises_error(self):
         self.company_data['company'].write({'vat': False, 'company_registry': False})
         invoice = self.create_move("out_invoice", send=False)
         with self.assertRaisesRegex(UserError, "doesn't have a VAT nor Company ID"):
             invoice._generate_and_send(allow_fallback_pdf=False, template_id=self.move_template.id)
 
+    def test_export_invoice_cpv_code(self):
+        self.product_a.cpv_code_id = self.env.ref('l10n_ro_edi.030000001')
+        self.product_b.cpv_code_id = self.env.ref('l10n_ro_edi.031000002')
+        invoice = self.create_move("out_invoice", currency_id=self.company.currency_id.id)
+        attachment = self.get_attachment(invoice)
+        self._assert_invoice_attachment(attachment, xpaths=None, expected_file_path='from_odoo/ciusro_out_invoice_cpv_code.xml')
+
     def test_export_constraints(self):
+        self.company_data['company'].company_registry = False
         for required_field in ('city', 'street', 'state_id', 'vat'):
-            prev_val = self.company_data["company"][required_field]
-            self.company_data["company"][required_field] = False
-            invoice = self.create_move("out_invoice", send=False)
             with self.assertRaisesRegex(UserError, "required"):
-                self.company_data['company'].company_registry = False
+                self.company_data["company"][required_field] = False
+                invoice = self.create_move("out_invoice", send=False)
                 invoice._generate_and_send(allow_fallback_pdf=False, template_id=self.move_template.id)
-            self.company_data["company"][required_field] = prev_val
 
         self.company_data["company"].city = "Bucharest"
         invoice = self.create_move("out_invoice", send=False)
@@ -311,7 +307,6 @@ class TestUBLRO(TestUBLROCommon):
             - Item description: 200 characters limit
             - Note: 300 characters limit
         """
-        self.env['ir.config_parameter'].set_param('account_edi_ubl_cii.use_new_dict_to_xml_helpers', 'True')
         product = self._create_product(
             name='A product name that is longer than 100 characters in order to trigger a rejection of the invoice by the SPV.'
         )

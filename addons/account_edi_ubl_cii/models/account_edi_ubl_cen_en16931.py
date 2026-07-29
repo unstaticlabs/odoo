@@ -28,11 +28,11 @@ class AccountEdiUBLCenEn16931(models.AbstractModel):
         # Early payment discount lines should not appear as lines but as allowances/charges.
         # Cash rounding lines should not appear as lines but in PayableRoundingAmount.
         def new_filter_function(base_line):
-            if any([
-                self._ubl_is_early_payment_base_line(base_line),
-                self._ubl_is_global_discount_base_line(base_line),
-                self._ubl_is_cash_rounding_base_line(base_line),
-            ]):
+            if (
+                self._ubl_is_early_payment_base_line(base_line)
+                or self._ubl_is_global_discount_base_line(base_line)
+                or self._ubl_is_cash_rounding_base_line(base_line)
+            ):
                 return False
             return not filter_function or filter_function(base_line)
 
@@ -190,6 +190,22 @@ class AccountEdiUBLCenEn16931(models.AbstractModel):
             and dict_to_xml(document_node['cac:Delivery']['cac:DeliveryLocation']['cac:Address']['cac:Country']['cbc:IdentificationCode'], nsmap=nsmap, tag='cbc:IdentificationCode') is None
         ):
             constraints['cen_en16931_delivery_address'] = self._check_required_fields(invoice.partner_shipping_id, 'country_id')
+
+        if self.env.context.get('from_peppol'):
+            # [PEPPOL-EN16931-R010]
+            if not vals['document_node']['cac:AccountingCustomerParty']['cac:Party']['cbc:EndpointID']['_text']:
+                constraints['ubl_peppol_en16931-r010'] = _(
+                    "[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the customer '%s'.",
+                    vals['customer'].display_name,
+                )
+
+            # [PEPPOL-EN16931-R020]
+            if not vals['document_node']['cac:AccountingSupplierParty']['cac:Party']['cbc:EndpointID']['_text']:
+                constraints['ubl_peppol_en16931-r020'] = _(
+                    "[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the company '%s'.",
+                    vals['supplier'].display_name,
+                )
+
         return constraints
 
     def _init_invoice_export_values(self, invoice):

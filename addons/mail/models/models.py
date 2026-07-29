@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
@@ -8,11 +7,9 @@ from markupsafe import Markup
 
 from odoo import api, exceptions, models, tools, _
 from odoo.addons.mail.tools.alias_error import AliasError
-from odoo.tools import parse_contact_from_email
+from odoo.fields import Domain
+from odoo.tools import parse_contact_from_email, OrderedSet
 from odoo.tools.mail import email_normalize, email_split_and_format
-from odoo.tools.sql import column_exists
-
-from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
 
 import logging
 
@@ -47,13 +44,8 @@ class Base(models.AbstractModel):
         # Override unlink to delete records activities through (res_model, res_id)
         record_ids = self.ids if (not self._abstract and not self._transient) else []
         result = super().unlink()
-        if record_ids and (
-            # during uninstallation of module mail, the search below will crash
-            not self.env.context.get(MODULE_UNINSTALL_FLAG) or (
-                column_exists(self.env.cr, 'mail_activity', 'res_model')
-                and column_exists(self.env.cr, 'mail_activity', 'res_id')
-            )
-        ):
+        # during uninstallation of module mail, the search below will crash
+        if record_ids and 'mail' not in self.pool.uninstalling_modules:
             self.env['mail.activity'].with_context(active_test=False).sudo().search(
                 [('res_model', '=', self._name), ('res_id', 'in', record_ids)]
             ).unlink()
@@ -63,10 +55,34 @@ class Base(models.AbstractModel):
     # CHECK ACCESS
     # ------------------------------------------------------------
 
+    @api.model
     def _mail_get_operation_for_mail_message_operation(self, message_operation):
         """ Give document permission based on mail.message check permission.
         This is used when no other checks already granted permission (e.g.
-        being notified, being author, ...). """
+        being notified, being author, ...).
+
+        Return value is a list of tuples (domain, operation). The operation to
+        apply on a record is the first operation where the record satisfies the
+        domain.
+
+        A list ``[(dom1, op1), (dom2, op2)]`` is means that the operation to
+        check for a given document is equivalent to::
+
+            if record.sudo().filtered_domain(dom1):
+                return op1
+            if record.sudo().filtered_domain(dom2):
+                return op2
+
+        .. code-block:: python
+
+            for domain, operation in self._mail_get_operation_for_mail_message_operation(...):
+                if record.sudo().filtered_domain(domain):
+                    record.check_access(operation)
+                    break
+            else:
+                # should not happen in real live as we tend to end with Domain.TRUE
+                raise AccessError  # no matching operation
+        """
         valid_operations = {'read', 'write', 'unlink', 'create'}
         if message_operation not in valid_operations:
             raise ValueError('Invalid message operation, should be a valid ORM operation type')
@@ -80,16 +96,19 @@ class Base(models.AbstractModel):
             check_access = mail_post_access
         else:
             check_access = 'write'
-        return dict.fromkeys(self, check_access)
+        return ((Domain.TRUE, check_access),)
 
     def _mail_group_by_operation_for_mail_message_operation(self, message_operation):
         """ Globally reverse result of '_mail_get_operation_for_mail_message_operation'
         aka return documents for a given access to check on them. """
         document_operations = self._mail_get_operation_for_mail_message_operation(message_operation)
-        documents = self.browse(record.id for record in document_operations).with_prefetch(self._prefetch_ids)
-        operation_documents = documents.grouped(document_operations.__getitem__)
-        operation_documents.pop(None, None)  # discard documents without a permission
-        return operation_documents
+        operation_documents_ids = defaultdict(OrderedSet)
+        for record, record_operation in document_operations.items():
+            operation_documents_ids[record_operation].update(record.ids)
+        return {
+            operation: self.browse(ids).with_prefetch(self._prefetch_ids)
+            for operation, ids in operation_documents_ids.items()
+        }
 
     # ------------------------------------------------------------
     # FIELDS HELPERS
@@ -226,6 +245,8 @@ class Base(models.AbstractModel):
     def _mail_track(self, tracked_fields, initial_values):
         """ For a given record, fields to check (tuple column name, column info)
         and initial values, return a valid command to create tracking values.
+        The method accepts a single record or an empty one (where all field
+        values will be falsy).
 
         :param dict tracked_fields: fields_get of updated fields on which
           tracking is checked and performed;
@@ -240,7 +261,8 @@ class Base(models.AbstractModel):
 
         Override this method on a specific model to implement model-specific
         behavior. Also consider inheriting from ``mail.thread``. """
-        self.ensure_one()
+        if len(self) > 1:
+            raise ValueError(f"Expected empty or single record: {self}")
         updated = set()
         tracking_value_ids = []
 
@@ -272,7 +294,7 @@ class Base(models.AbstractModel):
                     )]
                     # Show the properties in the same order as in the definition
                     for property_ in initial_value[::-1]
-                    if property_['type'] not in ('separator', 'html') and property_.get('value')
+                    if property_['type'] not in ('separator', 'html', 'signature') and property_.get('value')
                 )
                 continue
 

@@ -1,11 +1,26 @@
-export function mockIndexedDB(_name, { fn }) {
-    return (requireModule, ...args) => {
+// ! WARNING: this module cannot depend on modules not ending with ".hoot" (except libs) !
+
+import { afterEach } from "@odoo/hoot";
+
+/**
+ * @param {string} name
+ * @param {OdooModuleFactory} factory
+ */
+export function mockIndexedDBFactory(name, { fn }) {
+    return function mockIndexedDB(requireModule, ...args) {
         const indexedDBModule = fn(requireModule, ...args);
 
         const { IndexedDB } = indexedDBModule;
+        let dbs = {};
+        afterEach(() => {
+            dbs = {};
+        });
         class MockedIndexedDB {
-            constructor() {
-                this.mockIndexedDB = {};
+            constructor(name) {
+                if (!dbs[name]) {
+                    dbs[name] = {};
+                }
+                this.mockIndexedDB = dbs[name];
             }
 
             async write(table, key, value) {
@@ -15,12 +30,16 @@ export function mockIndexedDB(_name, { fn }) {
                 this.mockIndexedDB[table][key] = value;
             }
 
+            async deleteDatabase() {
+                this.mockIndexedDB = {};
+            }
+
             async read(table, key) {
                 return this.mockIndexedDB[table]?.[key];
             }
 
-            async deleteDatabase() {
-                this.mockIndexedDB = {};
+            async getAllKeys(table) {
+                return Object.keys(this.mockIndexedDB[table] || {});
             }
 
             async invalidate(tables = null) {

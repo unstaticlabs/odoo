@@ -2,17 +2,18 @@
 # This file contains the translation of the following modules:
 # * website_event_exhibitor
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Chloe Wang (chwa)" <chwa@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 06:00+0000\n"
-"Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:51+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_event_exhibitor/zh_Hans/>\n"
+"projects/odoo-s19-2/website_event_exhibitor/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,7 +47,8 @@ msgstr ""
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
 msgid ""
 "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">Discover more</a>"
-msgstr "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">发现更多</a>"
+msgstr ""
+"<a href=\"#\" class=\"btn btn-primary o_translate_inline\">发现更多</a>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -59,8 +61,8 @@ msgid ""
 "<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"Arrow icon\" "
 "title=\"Arrow\"/>"
 msgstr ""
-"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"箭头图标\" title=\"箭"
-"头\"/>"
+"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"箭头图标\" title=\"箭头"
+"\"/>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_aside
@@ -101,6 +103,12 @@ msgstr "活动"
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "活动异常标示"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+#, fuzzy
+msgid "Activity Plans"
+msgstr "活动计划"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
@@ -165,6 +173,18 @@ msgstr "附件数量"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "与会者将能够加入，以满足"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Auto publish on"
+msgstr "自动发布于"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "在选定的日期和时间自动发布该页面。"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -659,6 +679,12 @@ msgid "Published"
 msgstr "已发布"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+#, fuzzy
+msgid "Published date"
+msgstr "发布日期"
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -949,6 +975,11 @@ msgid ""
 msgstr ""
 "已经结束了。\n"
 "               <br/>"
+
+#. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. odoo-javascript

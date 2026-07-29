@@ -6,23 +6,23 @@
 # Martin Trigaux, 2022
 # 徐 文郁, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 12:21+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-16 05:56+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/stock_landed_costs/zh_Hans/>\n"
+"projects/odoo-s19-1/stock_landed_costs/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -67,6 +67,11 @@ msgstr "活动"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "活动异常标示"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -142,10 +147,6 @@ msgstr "已取消"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "公司"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "公司"
@@ -367,7 +368,8 @@ msgstr "如果勾选此项， 某些消息将出现发送错误。"
 msgid ""
 "Indicates whether the product is a landed cost: when receiving a vendor "
 "bill, you can allocate this cost on preceding receipts."
-msgstr "指示产品是否为到岸成本：当收到供应商账单时，您可以在之前的收据上分配此成本。"
+msgstr ""
+"指示产品是否为到岸成本：当收到供应商账单时，您可以在之前的收据上分配此成本。"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__message_is_follower
@@ -564,6 +566,11 @@ msgid "Picking"
 msgstr "拣货"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -677,8 +684,11 @@ msgid "Total"
 msgstr "总计"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "调拨"
 
@@ -702,8 +712,8 @@ msgstr "已经验证的到岸成本不能被取消，但是您可以创建一个
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "估值调整明细行"
+msgid "Valuation Adjustment Line"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -751,34 +761,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
-msgstr "您不能改变产品类型或禁用到岸成本选项，因为该产品是在账户移动线中使用。"
-
-#~ msgid " already out"
-#~ msgstr " 已退订"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "可库存商品是指在库存中受存量管控的产品。 要使用此项目您必须安装库存模"
-#~ "块。\n"
-#~ "可消耗商品是指不受库存量管控的产品。\n"
-#~ "服务是指您提供的非产品类服务业务。"
-
-#~ msgid "Company related to this journal"
-#~ msgstr "日记账相关的公司"
-
-#~ msgid "Group By"
-#~ msgstr "分组"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "需要作业消息数量"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "显示所有的在今天之前的下一个行动日期的记录"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "库存计价层"
+"product is used in a journal item."
+msgstr ""

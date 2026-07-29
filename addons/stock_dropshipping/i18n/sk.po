@@ -7,15 +7,15 @@
 # Stefan Stieranka <stieranka@itec.sk>, 2022
 # Jan Prokop, 2022
 # Martin Trigaux, 2022
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 07:14+0000\n"
-"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 17:55+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_dropshipping/sk/>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
@@ -27,8 +27,9 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_res_company
-msgid "Companies"
-msgstr "Spoločnosti"
+#, fuzzy
+msgid "Company"
+msgstr "Spoločnosť"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_product_product__display_name
@@ -42,8 +43,9 @@ msgstr "Spoločnosti"
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__display_name
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_replenish_mixin__display_name
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_rule__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Zobrazovaný názov"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields.selection,name:stock_dropshipping.selection__stock_picking_type__code__dropship
@@ -78,8 +80,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_replenish_mixin__id
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_rule__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: stock_dropshipping
 #: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking__is_dropship
@@ -88,7 +91,13 @@ msgstr ""
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_lot
+#, fuzzy
 msgid "Lot/Serial"
+msgstr "Šarža/sériové"
+
+#. module: stock_dropshipping
+#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
+msgid "Operation Category"
 msgstr ""
 
 #. module: stock_dropshipping
@@ -98,18 +107,20 @@ msgstr "Typ výberu"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_replenish_mixin
+#, fuzzy
 msgid "Product Replenish Mixin"
-msgstr ""
+msgstr "Mixin na doplnenie produktu"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_product_product
+#, fuzzy
 msgid "Product Variant"
-msgstr ""
+msgstr "Varianta produktu"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order
 msgid "Purchase Order"
-msgstr "Nákupná objednávka"
+msgstr "Objednávka"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_purchase_order_line
@@ -119,7 +130,7 @@ msgstr "Riadok nákupnej objednávky"
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_sale_order
 msgid "Sales Order"
-msgstr "Predajná objednávka"
+msgstr "Objednávka "
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_sale_order_line
@@ -133,18 +144,11 @@ msgstr "Skladové pravidlo"
 
 #. module: stock_dropshipping
 #: model_terms:ir.ui.view,arch_db:stock_dropshipping.stock_picking_type_kanban
+#, fuzzy
 msgid "To Validate"
-msgstr ""
+msgstr "K overeniu"
 
 #. module: stock_dropshipping
 #: model:ir.model,name:stock_dropshipping.model_stock_picking
 msgid "Transfer"
 msgstr "Prevod"
-
-#. module: stock_dropshipping
-#: model:ir.model.fields,field_description:stock_dropshipping.field_stock_picking_type__code
-msgid "Type of Operation"
-msgstr ""
-
-#~ msgid "Procurement Group"
-#~ msgstr "Skupina obstarávania"

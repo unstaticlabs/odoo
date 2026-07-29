@@ -12,18 +12,27 @@
                 (4, ref('hr.group_hr_manager'))]"/>
         </record>
 
+        <record id="employee_admin" model="hr.employee">
+            <field name="name" eval="obj(ref('base.partner_admin')).name" model="res.partner"/>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="department_id" ref="dep_administration"/>
+            <field name="address_id" ref="base.main_partner"/>
+            <field name="image_1920" eval="obj(ref('base.partner_admin')).image_1920" model="res.partner"/>
+            <field name="structure_type_id" ref="hr.structure_type_employee"/>
+        </record>
+
         <!-- Resource Calendar -->
         <record id="resource_calendar_std_20h" model="resource.calendar">
             <field name="name">Standard 20 hours/week</field>
-            <field name="company_id" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
             <field name="hours_per_day">4.0</field>
             <field name="attendance_ids"
                 eval="[(5, 0, 0),
-                    (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                    (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                    (0, 0, {'name': 'Wednesday Morning', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                    (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                    (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'})
+                    (0, 0, {'dayofweek': '0', 'duration_hours': 4, 'hour_from': 0, 'hour_to': 0}),
+                    (0, 0, {'dayofweek': '1', 'duration_hours': 4, 'hour_from': 0, 'hour_to': 0}),
+                    (0, 0, {'dayofweek': '2', 'duration_hours': 4, 'hour_from': 0, 'hour_to': 0}),
+                    (0, 0, {'dayofweek': '3', 'duration_hours': 4, 'hour_from': 0, 'hour_to': 0}),
+                    (0, 0, {'dayofweek': '4', 'duration_hours': 4, 'hour_from': 0, 'hour_to': 0}),
                 ]"
             />
             <field name="full_time_required_hours">40</field>
@@ -53,15 +62,9 @@
             <field name="color" eval="10"/>
         </record>
 
-        <record id="dep_rd_be" model="hr.department">
-            <field name="name">R&amp;D USA</field>
-            <field name="parent_id" ref="dep_rd"/>
-            <field name="color" eval="10"/>
-        </record>
-
         <record id="dep_rd_ltp" model="hr.department">
             <field name="name">Long Term Projects</field>
-            <field name="parent_id" ref="dep_rd_be"/>
+            <field name="parent_id" ref="dep_rd"/>
             <field name="color" eval="10"/>
         </record>
 
@@ -174,6 +177,11 @@ You are ready to join a young and dynamic company, you are able to work in a “
 You are approachable, honest and a fun team player
 If you have development competencies, we can propose you specific traineeships</field>
         </record>
+        <!--Structure Type-->
+        <record id="structure_type_worker" model="hr.payroll.structure.type">
+            <field name="name">Worker</field>
+            <field name="country_id" eval="False"/>
+        </record>
 
         <!-- Work Locations -->
         <record id="work_location_1" model="hr.work.location">
@@ -226,8 +234,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="wage">7540.00</field>
             <field name="job_id" ref="hr.job_cto"/>
             <field name="department_id" ref="dep_management"/>
-            <field name="parent_id" ref="employee_admin"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="private_street">215 Vine St</field>
             <field name="private_city">Scranton</field>
             <field name="private_zip">18503</field>
@@ -236,6 +243,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">100</field>
         </record>
 
         <record id="work_contact_ngh" model="res.partner">
@@ -251,7 +259,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="parent_id" ref="employee_admin"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_2')])]"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_ngh"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_ngh-image.jpg"/>
@@ -262,6 +270,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="contract_date_end" eval="(DateTime.today() + relativedelta(months=2))"/>
             <field name="wage" eval="6000"/>
             <field name="structure_type_id" ref="hr.structure_type_worker"/>
+            <field name="hourly_cost">40</field>
         </record>
 
         <record id="employee_qdp" model="hr.employee">
@@ -277,7 +286,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_admin"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="private_street">361-7936 Feugiat St.</field>
             <field name="private_zip">58521</field>
             <field name="private_city">Williston</field>
@@ -288,6 +297,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
             <field name="distance_home_work">23</field>
+            <field name="hourly_cost">75</field>
         </record>
 
         <record id="work_contact_al" model="res.partner">
@@ -311,10 +321,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_cto"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_qdp"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">50</field>
         </record>
 
         <record id="work_contact_vad" model="res.partner">
@@ -339,10 +350,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_hrm"/>
             <field name="department_id" ref="dep_administration"/>
             <field name="parent_id" ref="employee_admin"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">35</field>
         </record>
 
         <record id="work_contact_hne" model="res.partner">
@@ -360,7 +372,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_title">Consultant</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">abigail.peterson33@example.com</field>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_hne"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_hne-image.jpg"/>
@@ -373,6 +385,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="contract_date_end" eval="(DateTime.today() + relativedelta(months=2))"/>
             <field name="wage" eval="6500"/>
             <field name="structure_type_id" ref="hr.structure_type_worker"/>
+            <field name="hourly_cost">10</field>
         </record>
 
         <record id="work_contact_fpi" model="res.partner">
@@ -401,9 +414,10 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_ngh"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
+            <field name="hourly_cost">50</field>
         </record>
 
         <function name="create_version" model="hr.employee">
@@ -429,12 +443,13 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="job_title">Marketing and Community Manager</field>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_lur"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_lur-image.jpg"/>
             <field name="date_version" eval="'2010-01-01'"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">35</field>
         </record>
 
         <record id="work_contact_jod" model="res.partner">
@@ -450,12 +465,13 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="job_title">Marketing and Community Manager</field>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_jod"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jod-image.jpg"/>
             <field name="date_version" eval="'2010-01-01'"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">55</field>
         </record>
 
         <record id="work_contact_fme" model="res.partner">
@@ -480,10 +496,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_al"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">45</field>
         </record>
 
         <record id="work_contact_jep" model="res.partner">
@@ -501,13 +518,14 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_title">Consultant</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">Doris.cole.LoveSong@example.com</field>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_jep"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jep-image.jpg"/>
             <field name="date_version" eval="'2010-01-01'"/>
             <field name="sex">female</field>
             <field name="distance_home_work">13</field>
+            <field name="hourly_cost">25</field>
         </record>
 
         <record id="work_contact_jgo" model="res.partner">
@@ -524,11 +542,12 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
             <field name="work_location_id" ref="work_location_1"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_contact_id" ref="hr.work_contact_jgo"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jgo-image.jpg"/>
             <field name="date_version" eval="'2010-01-01'"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">45</field>
         </record>
 
         <record id="work_contact_jth" model="res.partner">
@@ -557,6 +576,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">25</field>
         </record>
 
         <record id="work_contact_mit" model="res.partner">
@@ -579,15 +599,16 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="structure_type_id" ref="structure_type_employee"/>
             <field name="wage">4500.00</field>
             <field name="job_id" ref="hr.job_developer"/>
-            <field name="department_id" ref="dep_rd_be"/>
+            <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_fme"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_phone">(538)-672-3185</field>
             <field name="private_email">anita.oliver00@example.com</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">15</field>
         </record>
 
         <record id="work_contact_niv" model="res.partner">
@@ -612,10 +633,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_management"/>
             <field name="parent_id" ref="employee_qdp"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">45</field>
         </record>
 
         <record id="work_contact_stw" model="res.partner">
@@ -640,10 +662,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_qdp"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">65</field>
         </record>
 
         <record id="work_contact_chs" model="res.partner">
@@ -659,8 +682,8 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="work_contact_id" ref="hr.work_contact_chs"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_chs-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
-            <field name="date_version" eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-01'"/>
-            <field name="contract_date_start" eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-01'"/>
+            <field name="date_version" eval="(DateTime.today() - relativedelta(years=2)).strftime('%Y-%m')+'-01'"/>
+            <field name="contract_date_start" eval="(DateTime.today() - relativedelta(years=2)).strftime('%Y-%m')+'-01'"/>
             <field name="contract_date_end" eval="time.strftime('%Y')+'-12-1'"/>
             <field name="contract_type_id" ref="contract_type_permanent"/>
             <field name="structure_type_id" ref="structure_type_employee"/>
@@ -668,10 +691,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_fme"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">female</field>
+            <field name="hourly_cost">20</field>
         </record>
 
         <record id="work_contact_jve" model="res.partner">
@@ -695,10 +719,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd_ltp"/>
             <field name="parent_id" ref="employee_qdp"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">15</field>
         </record>
 
         <record id="work_contact_han" model="res.partner">
@@ -721,10 +746,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_id" ref="hr.job_developer"/>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_jve"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="hr_responsible_id" ref="base.user_admin"/>
             <field name="sex">male</field>
+            <field name="hourly_cost">35</field>
         </record>
 
         <record id="work_contact_jog" model="res.partner">
@@ -742,13 +768,14 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="job_title">Experienced Developer</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">beth.evans@example.com</field>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_contact_id" ref="hr.work_contact_jog"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jog-image.jpg"/>
             <field name="date_version" eval="'2010-01-01'"/>
             <field name="sex">female</field>
             <field name="distance_home_work">50</field>
+            <field name="hourly_cost">40</field>
         </record>
 
         <record id="work_contact_barty_mcbly" model="res.partner">
@@ -765,7 +792,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="contract_date_end">1885-09-07</field>
             <field name="contract_type_id" ref="contract_type_full_time"/>
             <field name="structure_type_id" ref="structure_type_employee"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
             <field name="wage">15.00</field>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="department_id" ref="dep_administration"/>
@@ -805,16 +832,6 @@ If you have development competencies, we can propose you specific traineeships</
         </function>
 
         <!-- Contract Templates -->
-        <record id="contract_template_us_developer" model="hr.version">
-            <field name="name">Developer USA</field>
-            <field name="contract_type_id" ref="contract_type_permanent"/>
-            <field name="structure_type_id" ref="structure_type_employee"/>
-            <field name="wage">3000.00</field>
-            <field name="job_id" ref="hr.job_developer"/>
-            <field name="department_id" ref="hr.dep_rd_be"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
-        </record>
-
         <record id="contract_template_hr_manager" model="hr.version">
             <field name="name">HR Manager</field>
             <field name="contract_type_id" ref="contract_type_permanent"/>
@@ -822,7 +839,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="wage">2000.00</field>
             <field name="job_id" ref="hr.job_hrm"/>
             <field name="department_id" ref="hr.dep_administration"/>
-            <field name="resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
+            <field name="resource_calendar_id" ref="resource.resource_calendar_std"/>
         </record>
 
         <!-- Assign manager for each department -->
@@ -838,7 +855,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="manager_id" ref="employee_qdp"/>
         </record>
 
-        <record id="dep_rd_be" model="hr.department">
+        <record id="dep_rd" model="hr.department">
             <field name="manager_id" ref="employee_al"/>
         </record>
 
@@ -848,15 +865,6 @@ If you have development competencies, we can propose you specific traineeships</
 
         <record id="dep_ps" model="hr.department">
             <field name="manager_id" ref="employee_vad"/>
-        </record>
-
-        <!-- Structure Types -->
-        <record id="structure_type_employee_cp200_pfi" model="hr.payroll.structure.type">
-            <field name="default_resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
-        </record>
-
-        <record id="structure_type_employee_cp200" model="hr.payroll.structure.type">
-            <field name="default_resource_calendar_id" ref="resource.resource_calendar_std_38h"/>
         </record>
     </data>
 </odoo>

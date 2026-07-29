@@ -4,9 +4,10 @@ from odoo import Command
 
 from odoo.fields import Domain
 from odoo.exceptions import UserError, ValidationError
-from odoo.tests import Form, TransactionCase
+from odoo.tests import tagged, Form, TransactionCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMultiCompany(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -199,7 +200,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': picking.location_id.id,
             'location_dest_id': picking.location_dest_id.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_uom_qty': 1.0,
             'picking_id': picking.id,
             'company_id': picking.company_id.id,
@@ -381,7 +382,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': self.stock_location_a.id,
             'location_dest_id': self.stock_location_a.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
         })
         with self.assertRaises(UserError):
             move._action_confirm()
@@ -403,7 +404,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': self.stock_location_a.id,
             'location_dest_id': self.stock_location_b.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
         })
         with self.assertRaises(UserError):
             move._action_confirm()
@@ -426,7 +427,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': self.stock_location_a.id,
             'location_dest_id': self.stock_location_a.id,
             'product_id': product.id,
-            'product_uom': product.uom_id.id,
+            'uom_id': product.uom_id.id,
         })
         with self.assertRaises(UserError):
             move._action_confirm()
@@ -482,7 +483,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': supplier_location.id,
             'location_dest_id': self.stock_location_a.id,
             'product_id': product_lot.id,
-            'product_uom': product_lot.uom_id.id,
+            'uom_id': product_lot.uom_id.id,
             'product_uom_qty': 0.1,
             'picking_type_id': self.warehouse_a.in_type_id.id,
         })
@@ -499,7 +500,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': self.stock_location_a.id,
             'location_dest_id': intercom_location.id,
             'product_id': product_lot.id,
-            'product_uom': product_lot.uom_id.id,
+            'uom_id': product_lot.uom_id.id,
             'product_uom_qty': 0.1,
             'picking_type_id': picking_type_to_transit.id,
             'route_ids': [(4, route.id)],
@@ -556,7 +557,7 @@ class TestMultiCompany(TransactionCase):
             'location_id': supplier_location.id,
             'location_dest_id': self.warehouse_b.lot_stock_id.id,
             'product_id': product_lot.id,
-            'product_uom': product_lot.uom_id.id,
+            'uom_id': product_lot.uom_id.id,
             'product_uom_qty': 1.0,
             'picking_type_id': self.warehouse_b.in_type_id.id,
         })
@@ -579,7 +580,7 @@ class TestMultiCompany(TransactionCase):
         move_wha_to_cus = self.env['stock.move'].create({
             'product_id': product_lot.id,
             'product_uom_qty': 1,
-            'product_uom': product_lot.uom_id.id,
+            'uom_id': product_lot.uom_id.id,
             'picking_id': picking_out.id,
             'location_id': self.stock_location_a.id,
             'location_dest_id': customer_location.id,
@@ -660,7 +661,7 @@ class TestMultiCompany(TransactionCase):
         self.assertEqual(out_move.state, 'cancel')
 
         # Propagate cancel
-        self.env['ir.config_parameter'].sudo().set_param('stock.cancel_moves_origin', True)
+        self.env['ir.config_parameter'].sudo().set_bool('stock.cancel_moves_origin', True)
         orderpoint._procure_orderpoint_confirm()
         moves = self.env['stock.move'].search([('product_id', '=', product.id), ('state', '!=', 'cancel')])
         self.assertEqual(len(moves), 2)

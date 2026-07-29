@@ -116,6 +116,7 @@ export function clickPlanButton() {
             run: "click",
         },
         ...waitRequest(),
+        ...waitForOrdersSync(),
     ];
 }
 export function startPoS() {
@@ -190,11 +191,14 @@ export function noFloatingOrder(name) {
 export function clickOrders() {
     return { trigger: ".pos-leftheader .orders-button", run: "click" };
 }
-export function selectPresetTimingSlotHour(hour) {
+export function clickPresetTimingSlot() {
+    return { trigger: ".pos-leftheader .preset-time-btn", run: "click" };
+}
+export function selectPresetTimingSlotHour({ title, hour } = {}) {
     return [
         {
             content: `Click on the slot hour ${hour} in the modal`,
-            trigger: `.modal:has(.modal-header:contains(select a preset)) button:contains('${hour}')`,
+            trigger: `.modal:has(.modal-header:contains(${title})) button:contains('${hour}')`,
             run: "click",
         },
         {
@@ -370,4 +374,31 @@ export function selectPresetDateButton(formattedDate) {
         trigger: `.modal-body button:contains("${formattedDate}")`,
         run: "click",
     };
+}
+
+export function waitForOrdersSync() {
+    return [
+        {
+            trigger: "body",
+            content: "Wait for the orders to be synced",
+            timeout: 15000,
+            async run({ waitUntil }) {
+                await waitUntil(() => !posmodel.syncingOrders.size, { timeout: 10000 });
+                await new Promise((resolve) => setTimeout(resolve));
+            },
+        },
+    ];
+}
+
+export function flushPendingOrdersSync() {
+    return [
+        {
+            trigger: "body",
+            content: "Flush pending PoS orders to the server (sync_all_orders)",
+            timeout: 15000,
+            async run() {
+                await posmodel.syncAllOrders({ force: true });
+            },
+        },
+    ];
 }

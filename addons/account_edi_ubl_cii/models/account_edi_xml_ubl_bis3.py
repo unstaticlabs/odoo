@@ -20,9 +20,9 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     * Official doc for EHF Billing 3.0 is the OpenPeppol BIS 3 doc +
       https://anskaffelser.dev/postaward/g3/spec/current/billing-3.0/norway/
 
-        "Based on work done in PEPPOL BIS Billing 3.0, Difi has included Norwegian rules in PEPPOL BIS Billing 3.0 and
+        "Based on work done in Peppol BIS Billing 3.0, Difi has included Norwegian rules in Peppol BIS Billing 3.0 and
         does not see a need to implement a different CIUS targeting the Norwegian market. Implementation of EHF Billing
-        3.0 is therefore done by implementing PEPPOL BIS Billing 3.0 without extensions or extra rules."
+        3.0 is therefore done by implementing Peppol BIS Billing 3.0 without extensions or extra rules."
 
     Thus, EHF 3 and Bis 3 are actually the same format. The specific rules for NO defined in Bis 3 are added in Bis 3.
 
@@ -44,6 +44,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     # -------------------------------------------------------------------------
     # EXPORT: BIS3 LAYER
     # -------------------------------------------------------------------------
+
     def _can_export_selfbilling(self):
         return bool(self._get_customization_id(process_type='selfbilling'))
 
@@ -241,6 +242,57 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         elif vals['document_type'] == 'credit_note':
             self._ubl_add_credit_note_line_nodes(sub_vals)
 
+    def _ubl_add_delivery_party_endpoint_id_node(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_endpoint_id_node(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cbc:EndpointID'] = {
+            '_text': None,
+            'schemeID': None,
+        }
+
+    def _ubl_add_delivery_party_identification_nodes(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_identification_nodes(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cac:PartyIdentification'] = []
+
+    def _ubl_add_delivery_party_postal_address_node(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_postal_address_node(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cac:PostalAddress'] = None
+
+    def _ubl_add_delivery_party_tax_scheme_nodes(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_tax_scheme_nodes(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cac:PartyTaxScheme'] = []
+
+    def _ubl_add_delivery_party_legal_entity_nodes(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_legal_entity_nodes(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cac:PartyLegalEntity'] = []
+
+    def _ubl_add_delivery_party_contact_node(self, vals):
+        # EXTENDS account.edi.ubl
+        super()._ubl_add_delivery_party_contact_node(vals)
+        if not vals.get('invoice'):
+            return
+
+        vals['party_node']['cac:Contact'] = None
+
     def _add_invoice_header_nodes(self, document_node, vals):
         # OVERRIDE
         sub_vals = {
@@ -294,6 +346,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _export_invoice_constraints(self, invoice, vals):
+        # EXTENDS account.edi.xml.ubl_21
         constraints = super()._export_invoice_constraints(invoice, vals)
         constraints.update(self._export_document_node_constraints(vals))
 
@@ -321,7 +374,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         constraints = {}
 
         if vals['supplier'].country_id.code == 'NO':
-            vat = vals['supplier'].vat
+            vat = vals['document_node']['cac:AccountingSupplierParty']['cac:Party']['cac:PartyTaxScheme'][0]['cbc:CompanyID']['_text']
             constraints.update({
                 # NO-R-001: For Norwegian suppliers, a VAT number MUST be the country code prefix NO followed by a
                 # valid Norwegian organization number (nine numbers) followed by the letters MVA.

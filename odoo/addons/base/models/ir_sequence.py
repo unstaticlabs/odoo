@@ -1,7 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from datetime import datetime, timedelta
 import logging
-import pytz
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -164,7 +163,7 @@ class IrSequence(models.Model):
 
     def unlink(self):
         _drop_sequences(self.env.cr, ["ir_sequence_%03d" % x.id for x in self])
-        return super(IrSequence, self).unlink()
+        return super().unlink()
 
     def write(self, vals):
         new_implementation = vals.get('implementation')

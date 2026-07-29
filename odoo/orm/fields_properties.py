@@ -10,16 +10,18 @@ from collections import abc, defaultdict
 from operator import attrgetter
 
 from odoo.exceptions import AccessError, UserError, MissingError
-from odoo.tools import SQL, OrderedSet, is_list_of, html_sanitize
+from odoo.tools import SQL, OrderedSet, is_list_of, html_sanitize, sql
 from odoo.tools.misc import frozendict, has_list_types
-from odoo.tools.translate import _
 
 from .domains import Domain
 from .fields import Field, _logger
+from .fields_temporal import BaseDate
 from .models import BaseModel
+from .query import Query
 from .utils import COLLECTION_TYPES, SQL_OPERATORS, parse_field_expr, regex_alphanumeric
+
 if typing.TYPE_CHECKING:
-    from odoo.tools import Query
+    from .query import FieldSQL, TableSQL
 
 NoneType = type(None)
 
@@ -79,7 +81,7 @@ class Properties(Field):
 
     ALLOWED_TYPES = (
         # standard types
-        'boolean', 'integer', 'float', 'text', 'char', 'html', 'date', 'datetime', 'monetary',
+        'boolean', 'integer', 'float', 'text', 'char', 'html', 'date', 'datetime', 'monetary', 'signature',
         # relational like types
         'many2one', 'many2many', 'selection', 'tags',
         # UI types
@@ -642,7 +644,7 @@ class Properties(Field):
             raise ValueError(f"Missing property name for {self}")
 
         def get_property(record):
-            property_value = self.__get__(record.with_context(property_selection_get_key=True))
+            property_value = self.__get__(record)
             value = property_value.get(property_name)
             if value:
                 return value
@@ -671,16 +673,129 @@ class Properties(Field):
             return lambda rec: getter(rec).filtered_domain(domain)
         return super().filter_function(records, field_expr, operator, value)
 
-    def property_to_sql(self, field_sql: SQL, property_name: str, model: BaseModel, alias: str, query: Query) -> SQL:
+    def property_to_sql_raw(self, field_sql: SQL, property_name: str) -> SQL:
         check_property_field_value_name(property_name)
         return SQL("(%s -> %s)", field_sql, property_name)
 
-    def condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
+    def property_to_sql(self, field_sql: FieldSQL, property_name: str) -> SQL:
+        # NOTE: This function misbehaves for groupby so that the query rowcount
+        # is duplicated when accessing multi-valued properties (like tags).
+        sql_property = self.property_to_sql_raw(field_sql, property_name)
+        fname = self.name
+        table = field_sql._table
+        model = table._model
+        definition = model.get_property_definition(f"{fname}.{property_name}")
+        property_type = definition.get('type')
+
+        # JOIN on the JSON array
+        if property_type in ('tags', 'many2many'):
+            property_alias = table._make_alias(f'{fname}_{property_name}')
+            sql_property = SQL(
+                """ CASE
+                        WHEN jsonb_typeof(%(property)s) = 'array'
+                        THEN %(property)s
+                        ELSE '[]'::jsonb
+                     END """,
+                property=sql_property,
+            )
+            if property_type == 'tags':
+                # ignore invalid tags
+                tags = [tag[0] for tag in definition.get('tags') or []]
+                # `->>0 : convert "JSON string" into string
+                condition = SQL(
+                    "%s->>0 = ANY(%s::text[])",
+                    property_alias, tags,
+                )
+            else:
+                comodel = model.env.get(definition.get('comodel'))
+                if comodel is None or comodel._transient or comodel._abstract:
+                    raise UserError(model.env._(
+                        "You cannot use “%(property_name)s” because the linked “%(model_name)s” model doesn't exist or is invalid",
+                        property_name=definition.get('string', property_name), model_name=definition.get('comodel'),
+                    ))
+
+                # check the existences of the many2many
+                condition = SQL(
+                    "%s::int IN (SELECT id FROM %s)",
+                    property_alias, SQL.identifier(comodel._table),
+                )
+
+            table._query.add_join(
+                "LEFT JOIN",
+                property_alias,
+                SQL("jsonb_array_elements(%s)", sql_property),
+                condition,
+            )
+
+            return property_alias
+
+        elif property_type == 'selection':
+            options = [option[0] for option in definition.get('selection') or ()]
+
+            # check the existence of the option
+            property_alias = table._make_alias(f'{fname}_{property_name}')
+            table._query.add_join(
+                "LEFT JOIN",
+                property_alias,
+                SQL("(SELECT unnest(%s::text[]) %s)", options, property_alias),
+                SQL("%s->>0 = %s", sql_property, property_alias),
+            )
+
+            return property_alias
+
+        elif property_type == 'many2one':
+            comodel = model.env.get(definition.get('comodel'))
+            if comodel is None or comodel._transient or comodel._abstract:
+                raise UserError(model.env._(
+                    "You cannot use “%(property_name)s” because the linked “%(model_name)s” model doesn't exist or is invalid",
+                    property_name=definition.get('string', property_name), model_name=definition.get('comodel'),
+                ))
+
+            return SQL(
+                """ CASE
+                        WHEN jsonb_typeof(%(property)s) = 'number'
+                         AND (%(property)s)::int IN %(table)s
+                        THEN %(property)s
+                        ELSE NULL
+                     END """,
+                property=sql_property,
+                table=Query(comodel).subselect(),
+            )
+
+        elif property_type == 'date':
+            return SQLWithProperty(
+                """ CASE
+                        WHEN jsonb_typeof(%(property)s) = 'string'
+                        THEN (%(property)s->>0)::DATE
+                        ELSE NULL
+                     END """,
+                property=sql_property,
+                property_func=lambda self, name: BaseDate._generic_property_to_sql('date', self, name, model),
+            )
+
+        elif property_type == 'datetime':
+            return SQLWithProperty(
+                """ CASE
+                        WHEN jsonb_typeof(%(property)s) = 'string'
+                        THEN to_timestamp(%(property)s->>0, 'YYYY-MM-DD HH24:MI:SS')
+                        ELSE NULL
+                     END """,
+                property=sql_property,
+                property_func=lambda self, name: BaseDate._generic_property_to_sql('datetime', self, name, model),
+            )
+
+        elif property_type == 'html':
+            raise UserError(model.env._('Grouping by HTML properties is not supported.'))
+
+        # if the key is not present in the dict, fallback to false instead of none
+        return SQL("COALESCE(%s, 'false')", sql_property)
+
+    def condition_to_sql(self, table: TableSQL, field_expr: str, operator: str, value) -> SQL:
         fname, property_name = parse_field_expr(field_expr)
         if not property_name:
             raise ValueError(f"Missing property name for {self}")
-        raw_sql_field = model._field_to_sql(alias, fname, query)
-        sql_left = model._field_to_sql(alias, field_expr, query)
+        raw_sql_field = table[fname]
+        sql_left = self.property_to_sql_raw(raw_sql_field, property_name)
 
         if operator in ('in', 'not in'):
             assert isinstance(value, COLLECTION_TYPES)
@@ -743,7 +858,7 @@ class Properties(Field):
         unaccent = lambda x: x  # noqa: E731
         if operator.endswith('like'):
             if operator.endswith('ilike'):
-                unaccent = model.env.registry.unaccent
+                unaccent = table._model.env.registry.unaccent
             if '=' in operator:
                 value = str(value)
             else:
@@ -770,6 +885,17 @@ class Properties(Field):
             "%s%s%s",
             unaccent(sql_left), sql_operator, unaccent(sql_right),
         )
+
+
+class SQLWithProperty(sql.LiteralSQL):
+    def __init__(self, code, /, *args, property_func, **kw):
+        super().__init__(code, *args, **kw)
+        self._property = property_func
+
+    def __getitem__(self, name):
+        return self._property(self, name)
+
+    __getattr__ = __getitem__
 
 
 class Property(abc.Mapping):
@@ -828,9 +954,10 @@ class Property(abc.Mapping):
             return self.record.env[prop.get('comodel')].browse(prop.get('value'))
 
         if prop.get('type') == 'selection' and prop.get('value'):
-            if self.record.env.context.get('property_selection_get_key'):
-                return next((sel[0] for sel in prop.get('selection') if sel[0] == prop['value']), False)
-            return next((sel[1] for sel in prop.get('selection') if sel[0] == prop['value']), False)
+            option = next((sel for sel in prop.get('selection') if sel[0] == prop['value']), False)
+            if not option:
+                return option
+            return option[1] if self.record.env.context.get('property_selection_get_label') else option[0]
 
         if prop.get('type') == 'tags' and prop.get('value'):
             return ', '.join(tag[1] for tag in prop.get('tags') if tag[0] in prop['value'])
@@ -857,7 +984,7 @@ class PropertiesDefinition(Field):
     ALLOWED_KEYS = (
         'name', 'string', 'type', 'comodel', 'default', 'suffix',
         'selection', 'tags', 'domain', 'view_in_cards', 'fold_by_default',
-        'currency_field'
+        'currency_field', 'hidden',
     )
     # those keys will be removed if the types does not match
     PROPERTY_PARAMETERS_MAP = {
@@ -867,6 +994,47 @@ class PropertiesDefinition(Field):
         'selection': {'selection'},
         'tags': {'tags'},
     }
+
+    def set_properties_visibility(self, definition, property_names, hidden: bool):
+        """
+        Set visibility of properties in the definition.
+        :param definition: List of property definitions
+        :param property_names: List of property names to modify (or single string)
+        :param hidden: True to hide properties, False to show them
+        :return: Updated definition with modified property visibility
+        """
+        if not definition:
+            return definition
+        if isinstance(property_names, str):
+            property_names = [property_names]
+        property_names_set = set(property_names)
+        new_def = []
+        current_sep = None
+        current_group = []
+
+        def flush_group():
+            if current_sep:
+                sep_copy = current_sep.copy()
+                sep_copy["hidden"] = bool(current_group) and all(p.get("hidden") for p in current_group)
+                new_def.append(sep_copy)
+            new_def.extend(current_group)
+
+        for prop in definition:
+            if prop.get("type") == "separator":
+                flush_group()
+                current_sep = prop
+                current_group = []
+            else:
+                prop_copy = prop.copy()
+                if prop_copy.get('name') in property_names_set:
+                    if hidden:
+                        prop_copy['hidden'] = True
+                    else:
+                        prop_copy.pop('hidden', None)
+                current_group.append(prop_copy)
+
+        flush_group()
+        return new_def
 
     def convert_to_column(self, value, record, values=None, validate=True):
         """Convert the value before inserting it in database.

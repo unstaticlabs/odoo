@@ -12,6 +12,8 @@ from odoo.fields import Domain
 from odoo.tools import is_html_empty
 from odoo.tools.urls import urljoin as url_join
 
+SURVEY_LEADERBOARD_MAX_PARTICIPANTS = 250
+
 
 class SurveySurvey(models.Model):
     """ Settings for a multi-page/multi-question survey. Each survey can have one or more attached pages
@@ -61,6 +63,7 @@ class SurveySurvey(models.Model):
         help="This message will be displayed when survey is completed")
     background_image = fields.Image("Background Image")
     background_image_url = fields.Char('Background Url', compute="_compute_background_image_url")
+    background_image_filename = fields.Char("Background Filename")
     active = fields.Boolean("Active", default=True)
     user_id = fields.Many2one(
         'res.users', string='Responsible',
@@ -156,6 +159,7 @@ class SurveySurvey(models.Model):
     # live sessions - current question fields
     session_question_id = fields.Many2one('survey.question', string="Current Question", copy=False,
         help="The current question of the survey session.")
+    session_question_can_answer = fields.Boolean("Can Answer Current Question", default=True, copy=False)
     session_start_time = fields.Datetime("Current Session Start Time", copy=False)
     session_question_start_time = fields.Datetime("Current Question Start Time", copy=False,
         help="The time at which the current question has started, used to handle the timer for attendees.")
@@ -382,12 +386,13 @@ class SurveySurvey(models.Model):
 
     @api.depends_context('uid')
     def _compute_allowed_survey_types(self):
-        self.allowed_survey_types = [
-            'survey',
-            'live_session',
-            'assessment',
-            'custom',
-        ] if self.env.user.has_group('survey.group_survey_user') else False
+        """Assign static mapping of allowed survey types and respective icons depending on users groups."""
+        self.allowed_survey_types = {
+            'survey': 'fa-edit',
+            'live_session': 'fa-bar-chart-o',
+            'assessment': "fa-mortar-board",
+            'custom': 'fa-paint-brush',
+        } if self.env.user.has_group('survey.group_survey_user') else {}
 
     @api.onchange('survey_type')
     def _onchange_survey_type(self):
@@ -983,7 +988,7 @@ class SurveySurvey(models.Model):
             'id',
             'nickname',
             'scoring_total',
-        ], limit=15, order="scoring_total desc")
+        ], limit=SURVEY_LEADERBOARD_MAX_PARTICIPANTS, order="scoring_total desc")
 
         if leaderboard and self.session_state == 'in_progress' and \
            any(answer.answer_score for answer in self.session_question_id.suggested_answer_ids):
@@ -997,17 +1002,23 @@ class SurveySurvey(models.Model):
                     question_scores.get(input_line['user_input_id'][0], 0) + input_line['answer_score']
 
             score_position = 0
+            max_question_score = sum(
+                score for score in self.session_question_id.suggested_answer_ids.mapped('answer_score')
+                if score > 0
+            ) or 1
+            min_current_score = max(min(
+                leaderboard_item['scoring_total'] - question_scores.get(leaderboard_item['id'], 0)
+                for leaderboard_item in leaderboard
+            ), 0)
             for leaderboard_item in leaderboard:
                 question_score = question_scores.get(leaderboard_item['id'], 0)
                 leaderboard_item.update({
                     'updated_score': leaderboard_item['scoring_total'],
                     'scoring_total': leaderboard_item['scoring_total'] - question_score,
                     'leaderboard_position': score_position,
-                    'max_question_score': sum(
-                        score for score in self.session_question_id.suggested_answer_ids.mapped('answer_score')
-                        if score > 0
-                    ) or 1,
-                    'question_score': question_score
+                    'max_question_score': max_question_score,
+                    'min_current_score': min_current_score,
+                    'question_score': question_score,
                 })
                 score_position += 1
             leaderboard = sorted(
@@ -1051,7 +1062,6 @@ class SurveySurvey(models.Model):
             self.env.context,
             default_survey_id=self.id,
             default_template_id=template and template.id or False,
-            default_email_layout_xmlid='mail.mail_notification_light',
             default_send_email=(self.access_mode != 'public'),
         )
         return {

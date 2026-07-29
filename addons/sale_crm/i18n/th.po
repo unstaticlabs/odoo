@@ -7,15 +7,16 @@
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Nusara Boonma <nuboo@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 20:05+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/sale_crm/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-07-07 08:15+0000\n"
+"Last-Translator: Nusara Boonma <nuboo@odoo.com>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-2/sale_crm/"
 "th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
@@ -33,16 +34,6 @@ msgstr "<span class=\"o_stat_text\">คำสั่งซื้อ</span>"
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__lead_id
 msgid "Associated Lead"
 msgstr "ลูกค้าเป้าหมายที่เกี่ยวข้อง"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Cancel"
-msgstr "ยกเลิก"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Confirm"
-msgstr "ยืนยัน"
 
 #. module: sale_crm
 #: model:ir.model.fields.selection,name:sale_crm.selection__crm_quotation_partner__action__create
@@ -99,6 +90,11 @@ msgid "Expected revenue has been updated based on the linked Sales Orders."
 msgstr "รายได้ที่คาดหวังได้รับการอัปเดตตามคำสั่งซื้อที่เชื่อมโยง"
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Go to Quotation"
+msgstr "ไปยังใบเสนอราคาใหม่"
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_team__id
@@ -132,9 +128,7 @@ msgid "My Quotations"
 msgstr "ใบเสนอราคาของฉัน"
 
 #. module: sale_crm
-#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
 msgid "New Quotation"
 msgstr "ใบเสนอราคาใหม่"
 
@@ -195,6 +189,11 @@ msgid "Sales Team"
 msgstr "ทีมขาย"
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Select a Customer"
+msgstr ""
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__sale_amount_total
 msgid "Sum of Orders"
 msgstr "จำนวนคำสั่งรวม"
@@ -205,25 +204,13 @@ msgid "Untaxed Total of Confirmed Orders"
 msgstr "ยอดรวมของคำสั่งที่ยืนยันแล้วและยังไม่รวมภาษี"
 
 #. module: sale_crm
+#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Who should be linked to this new Quotation?"
+msgstr ""
+
+#. module: sale_crm
 #. odoo-python
 #: code:addons/sale_crm/wizard/crm_opportunity_to_quotation.py:0
 msgid "You can only apply this action from a lead."
 msgstr "คุณสามารถใช้การดำเนินการนี้ได้เฉพาะจากลูกค้าเป้าหมายเท่านั้น"
-
-#~ msgid "Invoiced in Sales Orders Target"
-#~ msgstr "ออกใบแจ้งหนี้ในเป้าหมายคำสั่งขาย"
-
-#~ msgid "Last Modified on"
-#~ msgstr "แก้ไขครั้งล่าสุดเมื่อ"
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "ลูกค้าเป้าหมาย / โอกาส"
-
-#~ msgid "Log in the chatter from which opportunity the order originates"
-#~ msgstr "เข้าสู่ระบบการสนทนาจากโอกาสที่คำสั่งเริ่มต้น"
-
-#~ msgid "Sales: Untaxed Total"
-#~ msgstr "การขาย: ยอดทั้งหมดไม่รวมภาษี"
-
-#~ msgid "User"
-#~ msgstr "ผู้ใช้"

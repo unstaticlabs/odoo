@@ -1,4 +1,5 @@
 import { run } from "@point_of_sale/../tests/generic_helpers/utils";
+import { range } from "@web/core/utils/numbers";
 
 export function postMessage(message, description = "") {
     return run(() => {
@@ -33,10 +34,10 @@ export const ADD_PRODUCT_SELECTED =
 
 export const ADD_MULTI_PRODUCTS = (() => {
     const count = 20;
-    const lines = Array.from({ length: count }, (_, i) => {
+    const lines = range(1, count + 1).map((i) => {
         const price = (Math.random() * 100 + 1).toFixed(2);
         return {
-            productName: `Product ${i + 1}`,
+            productName: `Product ${i}`,
             price: `$${price}`,
             qty: "1.00",
             unit: "Units",
@@ -46,7 +47,7 @@ export const ADD_MULTI_PRODUCTS = (() => {
             comboParent: "",
             packLotLines: [],
             price_without_discount: `$${price}`,
-            isSelected: i === count - 1,
+            isSelected: i === count,
             imageSrc: "/web/image/product.product/855/image_128",
         };
     });
@@ -126,7 +127,6 @@ export const SEND_QR = {
     onlinePaymentData: {},
     qrPaymentData: {
         amount: "$ 2,972.75",
-        name: "CARD",
         qrCode: QR_URL,
     },
 };
@@ -183,4 +183,8 @@ export const PAID = {
     paymentLines: [{ name: "ONLINE", amount: "2,972.75" }],
     change: 0,
     onlinePaymentData: {},
+};
+
+export const SCREENSAVER = {
+    displayScreenSaver: true,
 };

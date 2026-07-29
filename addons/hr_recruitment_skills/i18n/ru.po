@@ -3,16 +3,15 @@
 # * hr_recruitment_skills
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:00+0000\n"
-"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "hr_recruitment_skills/ru/>\n"
 "Language: ru\n"
@@ -22,7 +21,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_recruitment_skills
 #: model:ir.model,name:hr_recruitment_skills.model_hr_applicant
@@ -39,6 +38,16 @@ msgstr "Откликнуться на вакансию"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "Category"
 msgstr "Категория"
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_file
+msgid "Certificate"
+msgstr ""
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_filename
+msgid "Certificate Filename"
+msgstr ""
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__color
@@ -137,6 +146,13 @@ msgid "Matching Skills"
 msgstr "Совпадающие навыки"
 
 #. module: hr_recruitment_skills
+#. odoo-javascript
+#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.view_hr_job_kanban
+msgid "Matching Talents"
+msgstr ""
+
+#. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__missing_skill_ids
 msgid "Missing Skills"
 msgstr "Отсутствующие навыки"
@@ -149,7 +165,7 @@ msgstr ""
 #. module: hr_recruitment_skills
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
-msgid "No Matching Applicants"
+msgid "No Matching Talents"
 msgstr ""
 
 #. module: hr_recruitment_skills
@@ -168,8 +184,6 @@ msgid "Progress from zero knowledge (0%) to fully mastered (100%)."
 msgstr "Прогресс от отсутствия знаний (0 %) до полного освоения (100 %)."
 
 #. module: hr_recruitment_skills
-#. odoo-javascript
-#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
 #: model:ir.actions.server,name:hr_recruitment_skills.action_applicant_search_applicant
 msgid "Search Matching Applicants"
 msgstr "Поиск подходящих кандидатов"
@@ -202,22 +216,24 @@ msgstr "Уровень квалификации соискателя"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__applicant_skill_ids
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search_bis
 msgid "Skills"
 msgstr "Навыки"
 
 #. module: hr_recruitment_skills
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "The end date must be after the start date."
-msgstr "Дата окончания должна быть позже даты начала."
+msgstr ""
 
 #. module: hr_recruitment_skills
 #. odoo-javascript
 #: code:addons/hr_recruitment_skills/static/src/fields/skill_match_gauge_field/skill_match_gauge_field.js:0
 msgid "This score reflects skills and degree match"
-msgstr "Этот балл отражает навыки и степень соответствия"
+msgstr ""
 
 #. module: hr_recruitment_skills
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
@@ -243,7 +259,7 @@ msgstr "Остановка действия"
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
 msgid ""
-"We do not have any applicants who meet the skill requirements for this job "
+"We do not have any talents who meet the skill requirements for this job "
 "position in the database at the moment."
 msgstr ""
 
@@ -256,15 +272,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "indefinite"
 msgstr ""
-
-#~ msgid "Is Interviewer"
-#~ msgstr "Интервьюер"
-
-#~ msgid "The skill %(name)s and skill type %(type)s doesn't match"
-#~ msgstr "Навык %(name)s и тип навыка %(type)s не совпадают"
-
-#~ msgid "The skill level %(level)s is not valid for skill type: %(type)s"
-#~ msgstr "Уровень навыка %(level)s не действителен для типа навыка: %(type)s"
-
-#~ msgid "Two levels for the same skill is not allowed"
-#~ msgstr "Два уровня для одного навыка не допускаются"

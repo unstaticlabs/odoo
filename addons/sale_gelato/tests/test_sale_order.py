@@ -8,11 +8,7 @@ from odoo.addons.sale_gelato.tests.common import GelatoCommon
 
 
 @tagged('post_install', '-at_install')
-class TestGelatoSaleOrder(GelatoCommon):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
+class TestSaleOrder(GelatoCommon):
     def test_allow_adding_generic_service_product_to_gelato_order(self):
         """Test that adding a non-gelato, service product to a Gelato order is allowed."""
         self.env['sale.order.line'].create({
@@ -50,5 +46,11 @@ class TestGelatoSaleOrder(GelatoCommon):
 
     def test_prevent_confirming_order_with_incomplete_partner_address(self):
         self.gelato_order.partner_id.street = ''
+        with self.assertRaises(ValidationError):
+            self.gelato_order.action_confirm()
+
+    def test_prevent_confirming_gelato_so_with_too_long_partner_address(self):
+        """Test that confirming Gelato SO is impossible if partner shipping address is too long."""
+        self.gelato_order.write({'partner_id': self.partner_street_too_long.id})
         with self.assertRaises(ValidationError):
             self.gelato_order.action_confirm()

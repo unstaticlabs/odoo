@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * google_gmail
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:35+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-11-07 18:36+0000\n"
+"PO-Revision-Date: 2025-11-08 19:07+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.odoo.com/projects/odoo-19/"
 "google_gmail/pt/>\n"
 "Language: pt\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: google_gmail
 #: model_terms:ir.ui.view,arch_db:google_gmail.fetchmail_server_view_form
@@ -328,16 +328,3 @@ msgstr "Utilizador"
 #: code:addons/google_gmail/tools.py:0
 msgid "You don't have an active subscription"
 msgstr ""
-
-#~ msgid "An error occur during the authentication process."
-#~ msgstr "Houve um erro durante o processo de autenticação."
-
-#~ msgid "Authorization Code"
-#~ msgstr "Código de autorização"
-
-#~ msgid ""
-#~ "Setup your Gmail API credentials in the general settings to link a Gmail "
-#~ "account."
-#~ msgstr ""
-#~ "Configure suas credenciais de API do Gmail nas configurações gerais para "
-#~ "vincular uma conta do Gmail."

@@ -4,25 +4,25 @@
 #
 # Translators:
 # Martin Trigaux, 2022
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023, 2025, 2026.
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023, 2025.
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-07-02 00:34+0000\n"
+"PO-Revision-Date: 2026-05-27 15:10+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/payment/nl/"
-">\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/payment/"
+"nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report_records
@@ -231,11 +231,6 @@ msgstr "<strong>Waarschuwing</strong> Je moet ingelogd zijn om te betalen."
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
 msgid "ACH Direct Debit"
 msgstr "ACH Direct Debit"
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
-msgstr "ACTIVEREN"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_abitab
@@ -621,6 +616,11 @@ msgid "CMR"
 msgstr "CMR"
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr "VERBINDEN"
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr "Cabal"
@@ -775,10 +775,6 @@ msgstr "Kleur"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "Bedrijven"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -799,12 +795,6 @@ msgstr "Configuratie-instellingen"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "Configuratie"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr "Bevestigen"
 
 #. module: payment
 #. odoo-javascript
@@ -981,12 +971,13 @@ msgstr "Ontdekken"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
 #: model:ir.model.fields,field_description:payment.field_res_partner__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_status
@@ -1224,6 +1215,7 @@ msgstr "Humm"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1478,7 +1470,7 @@ msgstr ""
 "uitgeschakeld."
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "Beheer je betaalmethodes"
 
@@ -1533,7 +1525,7 @@ msgid "Mercado Livre"
 msgstr "Mercado Livre"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr "Mercado Pago"
@@ -1553,6 +1545,11 @@ msgstr "Bericht"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Messages"
 msgstr "Berichten"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr "Minimumbedrag"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_momo
@@ -1705,6 +1702,7 @@ msgid "OmanNet"
 msgstr "OmanNet"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr "Onboarding betalingsmodule"
@@ -1830,6 +1828,16 @@ msgid "Pay Later"
 msgstr "Betaal later"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr "Label 'Later betalen'"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr "Label 'Nu betalen'"
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr "PayBright"
@@ -1923,6 +1931,7 @@ msgstr "Code betaalmethode"
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -2002,7 +2011,6 @@ msgstr "Betaalmethode"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr "Betaalmethodes"
 
@@ -2102,6 +2110,11 @@ msgid "Please wait..."
 msgstr "Even geduld..."
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr "Portaaltoegang"
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr "Nabewerking"
@@ -2197,7 +2210,7 @@ msgid "Ratepay"
 msgstr "Ratepay"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr "Razorpay"
@@ -2311,6 +2324,11 @@ msgid "Samsung Pay"
 msgstr "Samsung Pay"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr "Satispay"
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "Opslaan"
@@ -2412,7 +2430,7 @@ msgid "Status"
 msgstr "Status"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Stripe"
@@ -2665,6 +2683,24 @@ msgid "The internal reference of the transaction"
 msgstr "De interne referentie van de transactie"
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+"Het label dat moet worden weergegeven op de betalingsknoppen voor 'Later "
+"betalen'-betaalmethoden."
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+"Het label dat moet worden weergegeven op de betalingsknoppen voor 'Nu "
+"betalen'-betaalmethoden."
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2741,6 +2777,15 @@ msgstr ""
 msgid "The message displayed to explain and help the payment process"
 msgstr ""
 "Het weergegeven bericht om het betalingsproces uit te leggen en te helpen"
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
+msgstr ""
+"Het minimale betalingsbedrag waarvoor deze betaalprovider beschikbaar is. "
+"Laat dit veld leeg om het beschikbaar te maken voor elk betalingsbedrag."
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__support_manual_capture
@@ -3270,6 +3315,13 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr ""
+"Je kunt een betaalmethode die aan een Provider is gekoppeld niet verwijderen."
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
 msgstr "Je kunt de standaardbetaalmethode niet verwijderen."
 
@@ -3540,8 +3592,8 @@ msgstr "handmatige opname niet ondersteund"
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
-msgstr "maximaal bedrag overschreden"
+msgid "minimum or maximum amount exceeded"
+msgstr "minimum- of maximumbedrag overschreden"
 
 #. module: payment
 #. odoo-python
@@ -3586,513 +3638,3 @@ msgstr "tokenisatie zonder betaling niet ondersteund"
 
 #~ msgid "JazzCash"
 #~ msgstr "JazzCash"
-
-#~ msgid "ACTIVATE STRIPE"
-#~ msgstr "ACTIVATE STRIPE"
-
-#~ msgid " Data Fetched"
-#~ msgstr " Gegevens opgehaald"
-
-#~ msgid "<b>Amount:</b>"
-#~ msgstr "<b>Bedrag:</b>"
-
-#~ msgid "<b>Reference:</b>"
-#~ msgstr "<b>Referentie:</b>"
-
-#~ msgid ""
-#~ "<h3>Please make a payment to: </h3><ul><li>Bank: %s</li><li>Account "
-#~ "Number: %s</li><li>Account Holder: %s</li></ul>"
-#~ msgstr ""
-#~ "<h3>Maak een betaling naar: </h3><ul><li>Bank: %s</li><li>Rekeningnummer: "
-#~ "%s</li><li>Rekeninghouder: %s</li></ul>"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Terug naar mijn account"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> Verwijder"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Geen geschikte betalingsoptie gevonden.</strong><br/>\n"
-#~ "                                 Als je denkt dat het een fout is, neem "
-#~ "dan contact op met de beheerder van de website."
-
-#~ msgid "<strong>No suitable payment provider could be found.</strong>"
-#~ msgstr "<strong>Geen geschikte betalingsprovider gevonden.</strong>"
-
-#~ msgid ""
-#~ "<strong>Warning</strong> Make sure your are logged in as the right "
-#~ "partner before making this payment."
-#~ msgstr ""
-#~ "<strong>Waarschuwing</strong> Zorg ervoor dat je bent ingelogd als de "
-#~ "juiste relatie voordat je deze betaling uitvoert."
-
-#~ msgid ""
-#~ "A refund request of %(amount)s has been sent. The payment will be created "
-#~ "soon. Refund transaction reference: %(ref)s (%(provider_name)s)."
-#~ msgstr ""
-#~ "Er is een teruggaveverzoek van %(amount)s verzonden. De betaling wordt "
-#~ "binnenkort aangemaakt. Referentie transactie teruggave: %(ref)s (%"
-#~ "(provider_name)s)."
-
-#~ msgid "A token cannot be unarchived once it has been archived."
-#~ msgstr ""
-#~ "Een token kan niet uit het archief worden gehaald nadat het is "
-#~ "gearchiveerd."
-
-#~ msgid ""
-#~ "A transaction with reference %(ref)s has been initiated (%"
-#~ "(provider_name)s)."
-#~ msgstr ""
-#~ "Er is een transactie gestart met referentie %(ref)s (%(provider_name)s)."
-
-#~ msgid ""
-#~ "A transaction with reference %(ref)s has been initiated to save a new "
-#~ "payment method (%(provider_name)s)"
-#~ msgstr ""
-#~ "Er is een transactie gestart met referentie %(ref)s om een nieuwe "
-#~ "betaalmethode (%(provider_name)s) op te slaan"
-
-#~ msgid ""
-#~ "A transaction with reference %(ref)s has been initiated using the payment "
-#~ "method %(token)s (%(provider_name)s)."
-#~ msgstr ""
-#~ "Een transactie met referentie %(ref)s is gestart met de betaalmethode %"
-#~ "(token)s (%(provider_name)s)."
-
-#~ msgid "Account"
-#~ msgstr "Rekening"
-
-#~ msgid "Account Number"
-#~ msgstr "Rekeningnummer"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "Voeg extra kosten toe"
-
-#~ msgid "Allow Payment Provider"
-#~ msgstr "Betalingsprovider toestaan"
-
-#~ msgid "An error occurred during the processing of this payment."
-#~ msgstr "Er is een fout opgetreden tijdens de verwerking van deze betaling."
-
-#~ msgid "Apply"
-#~ msgstr "Toepassen"
-
-#~ msgid "Bank"
-#~ msgstr "Bank"
-
-#~ msgid "Bank Name"
-#~ msgstr "Naam bank"
-
-#~ msgid "Callback Document Model"
-#~ msgstr "Callback documentmodel"
-
-#~ msgid "Callback Done"
-#~ msgstr "Terugbellen gereed"
-
-#~ msgid "Callback Hash"
-#~ msgstr "Callback hash"
-
-#~ msgid "Callback Method"
-#~ msgstr "Callback methode"
-
-#~ msgid "Callback Record ID"
-#~ msgstr "ID terugbelopname"
-
-#~ msgid "Cancel"
-#~ msgstr "Annuleren"
-
-#~ msgid "Canceled Message"
-#~ msgstr "Geannuleerd bericht"
-
-#~ msgid "Canceled operations"
-#~ msgstr "Geannuleerde bewerkingen"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "Kies een betalinsgmethode"
-
-#~ msgid "Click here to be redirected to the confirmation page."
-#~ msgstr "Klik hier om doorverwezen te worden naar de bevestigingspagina."
-
-#~ msgid "Create a new payment provider"
-#~ msgstr "Een nieuwe betalingsprovider maken"
-
-#~ msgid "Credit & Debit Card"
-#~ msgstr "Creditcard / betaalkaart"
-
-#~ msgid "Credit & Debit Card, UPI (Powered by Razorpay)"
-#~ msgstr "Credit- en debetkaart, UPI (aangedreven door Razorpay)"
-
-#~ msgid "Credit & Debit card (via Stripe)"
-#~ msgstr "Creditcard en betaalpas (via Stripe)"
-
-#~ msgid "Credit Card (powered by Adyen)"
-#~ msgstr "Credit Card (aangeboden via Adyen)"
-
-#~ msgid "Credit Card (powered by Asiapay)"
-#~ msgstr "Creditcard (mogelijk gemaakt door Asiapay)"
-
-#~ msgid "Credit Card (powered by Authorize)"
-#~ msgstr "Credit Card (mogelijk gemaakt door Authorize)"
-
-#~ msgid "Credit Card (powered by Buckaroo)"
-#~ msgstr "Credit Card (aangeboden via Buckaroo)"
-
-#~ msgid "Credit Card (powered by Mercado Pago)"
-#~ msgstr "Creditcard (aangedreven door Mercado Pago)"
-
-#~ msgid "Credit Card (powered by Sips)"
-#~ msgstr "Credit Card (mogelijk gemaakt door Sips)"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "Aangepaste betaalinstructies"
-
-#~ msgid "Description of the provider for customers"
-#~ msgstr "Beschrijving van de provider voor klanten"
-
-#~ msgid "Dismiss"
-#~ msgstr "Afwijzen"
-
-#~ msgid "Displayed as"
-#~ msgstr "Weergegeven als"
-
-#~ msgid "Done"
-#~ msgstr "Gereed"
-
-#~ msgid "Error: %s"
-#~ msgstr "Fout: %s"
-
-#~ msgid "Express Checkout Supported"
-#~ msgstr "Express Checkout ondersteund"
-
-#~ msgid "Failed operations"
-#~ msgstr "Mislukte bewerkingen"
-
-#~ msgid "Fees"
-#~ msgstr "Vergoedingen"
-
-#~ msgid "Fees Supported"
-#~ msgstr "Ondersteunde kosten"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "Vaste huishoudelijke toeslagen"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "Vaste internationale vergoedingen"
-
-#~ msgid "From"
-#~ msgstr "Van"
-
-#~ msgid "Group By"
-#~ msgstr "Groepeer op"
-
-#~ msgid "Has Multiple Providers"
-#~ msgstr "Heeft meerdere providers"
-
-#~ msgid ""
-#~ "If a specific payment provider is selected, customers will only be "
-#~ "allowed to pay via this one. If 'All' is selected, customers can pay via "
-#~ "any available payment provider."
-#~ msgstr ""
-#~ "Als een specifieke betalingsprovider wordt geselecteerd, kunnen klanten "
-#~ "alleen via deze betalen. Als 'Alle' is geselecteerd, kunnen klanten "
-#~ "betalen via elke beschikbare betalingsprovider."
-
-#~ msgid "If not defined, the provider name will be used."
-#~ msgstr "Indien niet gedefinieerd, wordt de naam van de provider gebruikt."
-
-#~ msgid "If the payment hasn't been confirmed you can contact us."
-#~ msgstr "Indien de betaling niet bevestigd is kun je ons contacteren."
-
-#~ msgid "Image displayed on the payment form"
-#~ msgstr "Afbeelding dat wordt weergegeven in het betaalformulier"
-
-#~ msgid "Internal server error"
-#~ msgstr "Interne server fout"
-
-#~ msgid "Just done"
-#~ msgstr "Net gedaan"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "Beheer betaalmethodes"
-
-#~ msgid "Manual"
-#~ msgstr "Handmatig"
-
-#~ msgid "Method"
-#~ msgstr "Methode"
-
-#~ msgid "Multiple payment options selected"
-#~ msgstr "Meerdere betalingsopties geselecteerd"
-
-#~ msgid ""
-#~ "No manual payment method could be found for this company. Please create "
-#~ "one from the Payment Provider menu."
-#~ msgstr ""
-#~ "Er is geen handmatige betaalmethode gevonden voor dit bedrijf. Maak er "
-#~ "een aan in het menu Payment Provider."
-
-#~ msgid "No payment has been processed."
-#~ msgstr "Geen betaling is verwerkt."
-
-#~ msgid "No payment option selected"
-#~ msgstr "Geen betalingsoptie geselecteerd"
-
-#~ msgid "Not done"
-#~ msgstr "Niet gedaan"
-
-#~ msgid "Not verified"
-#~ msgstr "Niet geverifieerd"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "Alleen beheerders hebben toegang tot deze gegevens."
-
-#~ msgid "Operations in progress"
-#~ msgstr "Bewerkingen in uitvoering"
-
-#~ msgid "Other"
-#~ msgstr "Overige"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "PDT identiteitstoken"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "Betalingsinstructies"
-
-#~ msgid "Payment Providers Available"
-#~ msgstr "Betaalproviders beschikbaar"
-
-#~ msgid "Payment Ref"
-#~ msgstr "Betalingsreferentie"
-
-#~ msgid "Payment provider onboarding wizard"
-#~ msgstr "Onboarding-wizard voor betalingsproviders"
-
-#~ msgid "Please select a payment option."
-#~ msgstr "Selecteer een betalingsoptie."
-
-#~ msgid "Please select only one payment option."
-#~ msgstr "Selecteer slechts één betalingsoptie."
-
-#~ msgid "Please set an amount smaller than %s."
-#~ msgstr "Stel een bedrag in dat kleiner is dan %s."
-
-#~ msgid "Please wait ..."
-#~ msgstr "Even geduld ..."
-
-#~ msgid "Providers list"
-#~ msgstr "Lijst met aanbieders"
-
-#~ msgid "Reason: %s"
-#~ msgstr "Reden: %s"
-
-#~ msgid "Save Payment Method"
-#~ msgstr "Betaalmethode opslaan"
-
-#~ msgid "Save my payment details"
-#~ msgstr "Bewaar mijn betalingsgegevens"
-
-#~ msgid "Saving your payment method, please wait..."
-#~ msgstr "Opslaan van je betaalmethode, even geduld..."
-
-#~ msgid "Selected onboarding payment method"
-#~ msgstr "Selecteer onboarding betaalmethode"
-
-#~ msgid "Server Error"
-#~ msgstr "Serverfout"
-
-#~ msgid "Server error:"
-#~ msgstr "Serverfout:"
-
-#~ msgid "Show Allow Express Checkout"
-#~ msgstr "Toon Express Checkout toestaan"
-
-#~ msgid "Show Allow Tokenization"
-#~ msgstr "Toon Tokenisatie toestaan"
-
-#~ msgid "Show Auth Msg"
-#~ msgstr "Auth-bericht weergeven"
-
-#~ msgid "Show Cancel Msg"
-#~ msgstr "Toon Annuleer bericht"
-
-#~ msgid "Show Credentials Page"
-#~ msgstr "Pagina met inloggegevens weergeven"
-
-#~ msgid "Show Done Msg"
-#~ msgstr "Toon Klaar bericht"
-
-#~ msgid "Show Pending Msg"
-#~ msgstr "Bericht in behandeling tonen"
-
-#~ msgid "Show Pre Msg"
-#~ msgstr "Pre-bericht weergeven"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "State of the onboarding payment provider step"
-#~ msgstr "Status van de stap van de onboarding-betalingsprovider"
-
-#~ msgid "The access token is invalid."
-#~ msgstr "Het toegangstoken is ongeldig."
-
-#~ msgid "The fees amount; set by the system as it depends on the provider"
-#~ msgstr ""
-#~ "Het bedrag van de vergoedingen; ingesteld door het systeem omdat het "
-#~ "afhankelijk is van de provider"
-
-#~ msgid ""
-#~ "The message displayed if the order is canceled during the payment process"
-#~ msgstr ""
-#~ "Het bericht dat wordt weergegeven als de bestelling wordt geannuleerd "
-#~ "tijdens het betalingsproces"
-
-#~ msgid ""
-#~ "The payment should either be direct, with redirection, or made by a token."
-#~ msgstr ""
-#~ "De betaling moet ofwel direct zijn, met omleiding, ofwel met een token."
-
-#~ msgid "The provider reference of the token of the transaction"
-#~ msgstr "De providerreferentie van het token van de transactie"
-
-#~ msgid ""
-#~ "The transaction with reference %(ref)s for %(amount)s encountered an "
-#~ "error (%(provider_name)s)."
-#~ msgstr ""
-#~ "Er is een fout opgetreden bij de transactie met referentie %(ref)s voor %"
-#~ "(amount)s (%(provider_name)s)."
-
-#~ msgid ""
-#~ "The transaction with reference %(ref)s for %(amount)s has been authorized "
-#~ "(%(provider_name)s)."
-#~ msgstr ""
-#~ "De transactie met referentie %(ref)s voor %(amount)s is geautoriseerd (%"
-#~ "(provider_name)s)."
-
-#~ msgid ""
-#~ "The transaction with reference %(ref)s for %(amount)s has been confirmed "
-#~ "(%(provider_name)s)."
-#~ msgstr ""
-#~ "De transactie met referentie %(ref)s voor %(amount)s is bevestigd (%"
-#~ "(provider_name)s)."
-
-#~ msgid "The value of the payment amount must be positive."
-#~ msgstr "Het bedrag van de betaling moet positief zijn."
-
-#~ msgid ""
-#~ "This action will also archive %s tokens that are registered with this "
-#~ "provider. Archiving tokens is irreversible."
-#~ msgstr ""
-#~ "Deze actie zal ook %s tokens archiveren die bij deze provider zijn "
-#~ "geregistreerd. Het archiveren van tokens is onomkeerbaar."
-
-#~ msgid "This payment has been canceled."
-#~ msgstr "Deze betaling is geannuleerd."
-
-#~ msgid "This payment method has been verified by our system."
-#~ msgstr "Deze betaalmethode is geverifieerd door ons systeem."
-
-#~ msgid "This payment method has not been verified by our system."
-#~ msgstr "Deze betaalmethode is niet geverifieerd door ons systeem."
-
-#~ msgid "Tokenization Supported"
-#~ msgstr "Tokenisatie ondersteund"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Ondersteund type restitutie"
-
-#~ msgid "Unable to contact the Odoo server."
-#~ msgstr "Niet mogelijk om met de Odoo server contact op te nemen."
-
-#~ msgid "Variable fees must always be positive and below 100%."
-#~ msgstr ""
-#~ "Variabele vergoedingen moeten altijd positief zijn en lager dan 100%."
-
-#~ msgid "Verified"
-#~ msgstr "Geverifieerd"
-
-#~ msgid "Waiting for operations to process"
-#~ msgstr "Wachten op het verwerken van de bewerkingen"
-
-#~ msgid "We are not able to delete your payment method."
-#~ msgstr "We kunnen je betaalmethode niet verwijderen."
-
-#~ msgid "We are not able to find your payment, but don't worry."
-#~ msgstr "We konden je betaling niet vinden, maar maak je geen zorgen."
-
-#~ msgid "We are not able to process your payment."
-#~ msgstr "We kunnen je betaling niet verwerken."
-
-#~ msgid "We are not able to save your payment method."
-#~ msgstr "We kunnen je betaalmethode niet opslaan."
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "We verwerken je betaling, een moment geduld..."
-
-#~ msgid "We are waiting for the payment provider to confirm the payment."
-#~ msgstr "We wachten op de betalingsprovider om de betaling te bevestigen."
-
-#~ msgid "Whether the callback has already been executed"
-#~ msgstr "Of de callback al is uitgevoerd"
-
-#~ msgid "You cannot delete the payment provider %s; archive it instead."
-#~ msgstr ""
-#~ "Je kan de betalingsprovider %s niet verwijderen; archiveer hem in de "
-#~ "plaats."
-
-#~ msgid ""
-#~ "You should receive an email confirming your payment in a few minutes."
-#~ msgstr ""
-#~ "Je zou binnen een paar minuten een e-mail moeten ontvangen die je "
-#~ "betaling bevestigd."
-
-#~ msgid "You will be notified when the payment is confirmed."
-#~ msgstr "Je wordt verwittigd wanneer de betaling bevestigd is."
-
-#~ msgid "You will be notified when the payment is fully confirmed."
-#~ msgstr "Je ontvangt een bericht wanneer de betaling volledig bevestigd is."
-
-#~ msgid "Your payment has been received but need to be confirmed manually."
-#~ msgstr "Je betaling is ontvangen, maar moet handmatig bevestigd worden."
-
-#~ msgid ""
-#~ "Your payment has been successfully processed but is waiting for approval."
-#~ msgstr "Je betaling is succesvol verwerkt maar wacht op goedkeuring."
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "Je betaling is succesvol verwerkt. Bedankt!"
-
-#~ msgid "Your payment is being processed, please wait..."
-#~ msgstr "Je betaling wordt verwerkt, even geduld..."
-
-#~ msgid "Your payment is in pending state."
-#~ msgstr "Je betaling is in afwachting."
-
-#~ msgid "danger"
-#~ msgstr "gevaar"
-
-#~ msgid "info"
-#~ msgstr "info"
-
-#~ msgid "payment: post-process transactions"
-#~ msgstr "betaling: transacties na verwerking"
-
-#~ msgid "show less"
-#~ msgstr "laat minder zien"
-
-#~ msgid "show more"
-#~ msgstr "laat meer zien"
-
-#~ msgid "success"
-#~ msgstr "succes"
-
-#~ msgid "warning"
-#~ msgstr "waarschuwing"

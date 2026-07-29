@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -18,7 +17,6 @@
     'data': [
         'data/event_data.xml',
         'data/website_snippet_data.xml',
-        'views/event_snippets.xml',
         'views/snippets/s_events.xml',
         'views/snippets/s_event_upcoming_snippet_preview_data.xml',
         'views/snippets/snippets.xml',

@@ -1,7 +1,11 @@
 import { registries, chartHelpers } from "@odoo/o-spreadsheet";
 import { _t } from "@web/core/l10n/translation";
 import { OdooChart } from "./odoo_chart";
-import { onOdooChartItemHover, onOdooChartItemClick } from "./odoo_chart_helpers";
+import {
+    onOdooChartItemHover,
+    onOdooChartItemClick,
+    changeTypeToSpreadsheetChart,
+} from "./odoo_chart_helpers";
 
 const { chartRegistry } = registries;
 
@@ -46,7 +50,7 @@ chartRegistry.add("odoo_funnel", {
 
 function createOdooChartRuntime(chart, getters) {
     const definition = chart.getDefinition();
-    const background = chart.background || "#FFFFFF";
+
     let { datasets, labels } = chart.dataSource.getData();
     if (definition.cumulative) {
         datasets = makeDatasetsCumulative(datasets, "desc");
@@ -75,12 +79,16 @@ function createOdooChartRuntime(chart, getters) {
                 title: getChartTitle(definition, getters),
                 legend: { display: false },
                 tooltip: getFunnelChartTooltip(definition, chartData),
-                chartShowValuesPlugin: getChartShowValues(definition, chartData),
+                chartShowValuesPlugin: getChartShowValues(
+                    changeTypeToSpreadsheetChart(definition),
+                    chartData
+                ),
+                background: { color: chart.background },
             },
             onHover: onOdooChartItemHover(),
             onClick: onOdooChartItemClick(getters, chart),
         },
     };
 
-    return { background, chartJsConfig: config };
+    return { chartJsConfig: config };
 }

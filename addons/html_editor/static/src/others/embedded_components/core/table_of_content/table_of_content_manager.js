@@ -8,6 +8,7 @@ export class TableOfContentManager {
         this.containerRef = containerRef;
         this.structure = reactive({
             headings: [],
+            isNew: true,
         });
         this.batchedUpdateStructure = batched(this.updateStructure.bind(this));
     }
@@ -77,5 +78,6 @@ export class TableOfContentManager {
                 target: heading,
             };
         });
+        this.structure.isNew = false;
     }
 }

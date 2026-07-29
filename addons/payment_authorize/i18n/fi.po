@@ -7,15 +7,14 @@
 # Mikko Salmela <salmemik@gmail.com>, 2018
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2018
 # Veikko Väätäjä <veikko.vaataja@gmail.com>, 2018
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Saara Hakanen <sahak@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-13 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 06:32+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-03-20 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 15:26+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "payment_authorize/fi/>\n"
 "Language: fi\n"
@@ -23,29 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: payment_authorize
-#: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
-msgid ""
-"<select id=\"o_authorize_account_type\" required=\"\" class=\"form-"
-"select\">\n"
-"                        <option value=\"checking\">Personal Checking</"
-"option>\n"
-"                        <option value=\"savings\">Personal Savings</option>\n"
-"                        <option value=\"businessChecking\">Business "
-"Checking</option>\n"
-"                    </select>"
-msgstr ""
-"<select id=\"o_authorize_account_type\" required=\"\" class=\"form-select\">"
-"\n"
-"                        <option value=\"checking\">Henkilökohtainen "
-"šekkitili</option>\n"
-"                        <option value=\"savings\">Henkilökohtainen "
-"säästötili</option>\n"
-"                        <option value=\"businessChecking\">Business "
-"šekkitili</option>\n"
-"                    </select>"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_authorize
 #: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
@@ -96,6 +73,11 @@ msgstr "Pankkitilin tyyppi"
 #: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
 msgid "Bank Name"
 msgstr "Pankin nimi"
+
+#. module: payment_authorize
+#: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
+msgid "Business Checking"
+msgstr ""
 
 #. module: payment_authorize
 #: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
@@ -209,13 +191,21 @@ msgid "Payment processing failed"
 msgstr "Maksun käsittely epäonnistui"
 
 #. module: payment_authorize
+#: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
+msgid "Personal Checking"
+msgstr ""
+
+#. module: payment_authorize
+#: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form
+msgid "Personal Savings"
+msgstr ""
+
+#. module: payment_authorize
 #. odoo-python
 #: code:addons/payment_authorize/models/payment_transaction.py:0
 msgid ""
 "Received data with status code \"%(status)s\" and error code \"%(error)s\"."
 msgstr ""
-"Vastaanotettu data tilakoodilla \"%(status)s\" ja virhekoodilla \"%(error)"
-"s\"."
 
 #. module: payment_authorize
 #. odoo-python
@@ -278,7 +268,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/payment_authorize/controllers/main.py:0
 msgid "Transaction not found."
-msgstr "Tapahtumaa ei löytynyt."
+msgstr ""
 
 #. module: payment_authorize
 #: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form

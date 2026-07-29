@@ -7,7 +7,7 @@ from odoo.tools import SQL
 class AccountPayment(models.Model):
     _name = 'account.payment'
     _inherit = ['mail.thread.main.attachment', 'mail.activity.mixin']
-    _description = "Payments"
+    _description = "Payment"
     _order = "date desc, name desc"
     _check_company_auto = True
 
@@ -36,8 +36,8 @@ class AccountPayment(models.Model):
     state = fields.Selection(
         selection=[
             ('draft', "Draft"),
-            ('in_process', "In Process"),
             ('paid', "Paid"),
+            ('reconciled', "Reconciled"),
             ('canceled', "Canceled"),
             ('rejected', "Rejected"),
         ],
@@ -69,6 +69,14 @@ class AccountPayment(models.Model):
         index='btree_not_null',
         help="When an internal transfer is posted, a paired payment is created. "
         "They are cross referenced through this field", copy=False)
+
+    transaction_uuid = fields.Char(
+        string='Transaction ID',
+        compute='_compute_transaction_uuid',
+        store=True,
+        index=True,
+        help='Unique transaction identifier assigned by the initiating party',
+    )
 
     # == Payment methods fields ==
     payment_method_line_id = fields.Many2one('account.payment.method.line', string='Payment Method',
@@ -127,6 +135,8 @@ class AccountPayment(models.Model):
         index='btree_not_null',
         compute='_compute_outstanding_account_id',
         check_company=True)
+    outstanding_account_type = fields.Selection(
+        related='outstanding_account_id.account_type')
     destination_account_id = fields.Many2one(
         comodel_name='account.account',
         string='Destination Account',
@@ -255,7 +265,7 @@ class AccountPayment(models.Model):
         """ This method is used to know in which edition we are: Community or Enterprise
             and fetch the payment states accordingly.
         """
-        return ['in_process', 'paid'] if self.env['account.move']._get_invoice_in_payment_state() == 'paid' else ['in_process']
+        return ['paid', 'reconciled'] if self.env['account.move']._get_invoice_in_payment_state() == 'paid' else ['paid']
 
     def _get_aml_default_display_name_list(self):
         """ Hook allowing custom values when constructing the default label to set on the journal items.
@@ -414,7 +424,7 @@ class AccountPayment(models.Model):
     @api.depends('move_id.name', 'state')
     def _compute_name(self):
         for payment in self:
-            if payment.id and (not payment.name or payment.move_id and payment.name != payment.move_id.name) and payment.state in ('in_process', 'paid'):
+            if payment.id and (not payment.name or payment.move_id and payment.name != payment.move_id.name) and payment.state in ('paid', 'reconciled'):
                 payment.name = (
                     payment.move_id.name
                     or self.env['ir.sequence'].with_company(payment.company_id).next_by_code(
@@ -455,16 +465,22 @@ class AccountPayment(models.Model):
         for payment in self:
             if not payment.state:
                 payment.state = 'draft'
-            # in_process --> paid
-            if (move := payment.move_id) and payment.state in ('paid', 'in_process'):
+            # paid --> reconciled
+            if (move := payment.move_id) and payment.state in ('paid', 'reconciled'):
                 liquidity, _counterpart, _writeoff = payment._seek_for_lines()
                 payment.state = (
+                    'reconciled'
+                    if move.company_currency_id.is_zero(sum(liquidity.mapped('amount_residual'))) else
                     'paid'
-                    if move.company_currency_id.is_zero(sum(liquidity.mapped('amount_residual'))) or not any(liquidity.account_id.mapped('reconcile')) else
-                    'in_process'
                 )
-            if payment.state == 'in_process' and (moves := (payment.reconciled_invoice_ids | payment.reconciled_bill_ids)) and all(invoice.payment_state == 'paid' for invoice in moves):
-                payment.state = 'paid'
+            all_invoices_paid = payment.reconciled_invoice_ids and all(inv.payment_state == 'paid' for inv in payment.reconciled_invoice_ids)
+            all_bills_paid = payment.reconciled_bill_ids and all(bill.payment_state == 'paid' for bill in payment.reconciled_bill_ids)
+            if (
+                payment.state == 'paid'
+                and payment.outstanding_account_type != 'asset_cash'
+                and (all_invoices_paid or all_bills_paid)
+            ):
+                payment.state = 'reconciled'
 
     @api.depends('move_id.line_ids.amount_residual', 'move_id.line_ids.amount_residual_currency', 'move_id.line_ids.account_id', 'state')
     def _compute_reconciliation_status(self):
@@ -477,7 +493,7 @@ class AccountPayment(models.Model):
 
             if not pay.outstanding_account_id:
                 pay.is_reconciled = False
-                pay.is_matched = pay.state == 'paid'
+                pay.is_matched = pay.state == 'reconciled'
             elif not pay.currency_id or not pay.id or not pay.move_id:
                 pay.is_reconciled = False
                 pay.is_matched = False
@@ -495,6 +511,10 @@ class AccountPayment(models.Model):
 
                 reconcile_lines = (counterpart_lines + writeoff_lines).filtered(lambda line: line.account_id.reconcile)
                 pay.is_reconciled = pay.currency_id.is_zero(sum(reconcile_lines.mapped(residual_field)))
+
+    def _compute_transaction_uuid(self):
+        # TO BE OVERRIDDEN
+        pass
 
     @api.model
     def _get_method_codes_using_bank_account(self):
@@ -649,7 +669,7 @@ class AccountPayment(models.Model):
                  'payment_method_line_id', 'payment_type')
     def _compute_qr_code(self):
         for pay in self:
-            if pay.state in ('draft', 'in_process') \
+            if pay.state in ('draft', 'paid') \
                 and pay.partner_bank_id \
                 and pay.partner_bank_id.allow_out_payment \
                 and pay.payment_method_line_id.code == 'manual' \
@@ -786,7 +806,7 @@ class AccountPayment(models.Model):
         move_ids = self.env['account.move'].browse(value).reconciled_payment_ids.ids
         return [('id', 'in', move_ids)]
 
-    def _fetch_duplicate_reference(self, matching_states=('draft', 'in_process')):
+    def _fetch_duplicate_reference(self, matching_states=('draft', 'paid')):
         """ Retrieve move ids for possible duplicates of payments. Duplicates moves:
         - Have the same partner_id, amount and date as the payment
         - Are not reconciled
@@ -796,7 +816,7 @@ class AccountPayment(models.Model):
         - Are in the suspense account
         """
         # Does not perform unnecessary check if partner_id or amount are not set, nor if payment is posted
-        payments = self.filtered(lambda p: p.partner_id and p.amount and p.state != 'in_process')
+        payments = self.filtered(lambda p: p.partner_id and p.amount and p.state != 'paid')
         if not payments:
             return {}
 
@@ -945,7 +965,7 @@ class AccountPayment(models.Model):
         return outstanding_account
 
     def write(self, vals):
-        if vals.get('state') in ('in_process', 'paid') and not vals.get('move_id'):
+        if vals.get('state') in ('paid', 'reconciled') and not vals.get('move_id'):
             self.filtered(lambda p: not p.move_id)._generate_journal_entry()
             self.move_id.filtered(lambda m: m.state == 'draft').action_post()
 
@@ -1076,7 +1096,7 @@ class AccountPayment(models.Model):
         ]
         moves = self.env['account.move'].create(move_vals)
         for pay, move in zip(need_move, moves):
-            pay.write({'move_id': move.id, 'state': 'in_process'})
+            pay.write({'move_id': move.id, 'state': 'paid'})
 
     def _generate_move_vals(self, write_off_line_vals=None, force_balance=None, line_ids=None):
         """ Prepare the values needed to create a move for self. """
@@ -1138,13 +1158,17 @@ class AccountPayment(models.Model):
                     method_name=self.payment_method_line_id.name,
                     partner=payment.partner_id.display_name,
                 ))
-        self.filtered(lambda pay: pay.outstanding_account_id.account_type == 'asset_cash').state = 'paid'
         # Avoid going back one state when clicking on the confirm action in the payment list view and having paid expenses selected
         # We need to set values to each payment to avoid recomputation later
-        self.filtered(lambda pay: pay.state in {False, 'draft', 'in_process'}).state = 'in_process'
+        self.filtered(lambda pay: pay.state in {False, 'draft', 'paid'}).state = 'paid'
 
     def action_validate(self):
-        self.state = 'paid'
+        for payment in self:
+            if payment.outstanding_account_type == 'asset_cash':
+                raise UserError(_("Payments linked to an Asset Cash account cannot be reconciled."))
+            if payment.state != 'paid':
+                raise UserError(_("Payment must be in paid state to be reconciled."))
+            payment.state = 'reconciled'
 
     def action_reject(self):
         self.state = 'rejected'

@@ -10,7 +10,7 @@ from odoo.addons.sale_loyalty.tests.common import TestSaleCouponCommon
 class TestSaleAutoInvoice(TestSaleCouponCommon):
 
     def test_automatic_invoice_on_zero_amount_order(self):
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         # Create a loyalty program with 100% discount
         self.env['loyalty.program'].sudo().create({
             'name': '100discount',
@@ -43,7 +43,7 @@ class TestSaleAutoInvoice(TestSaleCouponCommon):
         )
 
     def test_automatic_invoice_email_on_zero_amount_order(self):
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', 'True')
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
 
         # Create a loyalty program with 100% discount
         self.env['loyalty.program'].sudo().create({
@@ -68,7 +68,7 @@ class TestSaleAutoInvoice(TestSaleCouponCommon):
             'model_id': self.env.ref('account.model_account_move').id,
             'auto_delete': False,
         })
-        self.env['ir.config_parameter'].sudo().set_param('sale.default_invoice_email_template', str(mail_template.id))
+        self.env['ir.config_parameter'].sudo().set_int('sale.default_invoice_email_template', mail_template.id)
 
         # Ensure partner has an email address
         self.empty_order.partner_id.email = "test@example.com"

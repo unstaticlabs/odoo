@@ -15,15 +15,14 @@ msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 11:20+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/sms/uz/>\n"
+"PO-Revision-Date: 2025-10-08 18:39+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_invalid_count
@@ -106,8 +105,8 @@ msgid ""
 "                                <span class=\"o_stat_text\">Context Action</"
 "span>"
 msgstr ""
-"<span class=\"o_stat_text\">Qo‘shish</span> <span class=\"o_stat_text\">"
-"Kontekst harakatni</span>"
+"<span class=\"o_stat_text\">Qo‘shish</span> <span "
+"class=\"o_stat_text\">Kontekst harakatni</span>"
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_view_form
@@ -123,8 +122,8 @@ msgid ""
 "                                <span class=\"o_stat_text\">Context Action</"
 "span>"
 msgstr ""
-"<span class=\"o_stat_text\">O‘chirish</span> <span class=\"o_stat_text\">"
-"Kontekst harakatni</span>"
+"<span class=\"o_stat_text\">O‘chirish</span> <span "
+"class=\"o_stat_text\">Kontekst harakatni</span>"
 
 #. module: sms
 #: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
@@ -206,6 +205,12 @@ msgid ""
 msgstr ""
 "Bu andoza bilan SMS yozuvchisini ochish uchun tegishli modelga kontekstli "
 "amal qo‘shing"
+
+#. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__alert
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__alert
+msgid "Alert"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,help:sms.field_sms_sms__uuid
@@ -292,10 +297,7 @@ msgid "Buy credits."
 msgstr "Kreditlar sotib oling."
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_code_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_account_phone_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_sms_view_tree
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_reset_view_form
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
 #, fuzzy
 msgid "Cancel"
@@ -336,9 +338,8 @@ msgstr "Yuboruvchi nomingizni tanlang"
 
 #. module: sms
 #: model:ir.model,name:sms.model_res_company
-#, fuzzy
-msgid "Companies"
-msgstr "Kompaniyalar"
+msgid "Company"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__composition_mode
@@ -442,13 +443,6 @@ msgid "Delivered"
 msgstr "Yetkazildi"
 
 #. module: sms
-#: model_terms:ir.ui.view,arch_db:sms.sms_composer_view_form
-#: model_terms:ir.ui.view,arch_db:sms.sms_template_preview_form
-#, fuzzy
-msgid "Discard"
-msgstr "Bekor qilish"
-
-#. module: sms
 #: model:ir.model.fields,field_description:sms.field_iap_account__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_actions_server__display_name
 #: model:ir.model.fields,field_description:sms.field_ir_model__display_name
@@ -472,9 +466,8 @@ msgstr "Ko‘rsatiladigan nom"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_followers
-#, fuzzy
-msgid "Document Followers"
-msgstr "Hujjat kuzatuvchilari"
+msgid "Document Follower"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__res_id
@@ -555,7 +548,8 @@ msgstr "Xatolik turi"
 #: model:ir.model.fields,help:sms.field_sms_template__template_fs
 #, fuzzy
 msgid "File from where the template originates. Used to reset broken template."
-msgstr "Andoza kelib chiqqan fayl. Buzilgan andozani tiklash uchun ishlatiladi."
+msgstr ""
+"Andoza kelib chiqqan fayl. Buzilgan andozani tiklash uchun ishlatiladi."
 
 #. module: sms
 #. odoo-python
@@ -619,9 +613,9 @@ msgstr "ID"
 #: model:ir.model.fields,help:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,help:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,help:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,help:sms.field_maintenance_request__message_has_sms_error
@@ -648,7 +642,8 @@ msgstr "Navbatda"
 #: model:ir.model.fields,help:sms.field_sms_composer__comment_single_recipient
 #, fuzzy
 msgid "Indicates if the SMS composer targets a single specific recipient"
-msgstr "SMS yozuvchisi bitta aniq qabul qiluvchiga yo‘naltirilganini ko‘rsatadi"
+msgstr ""
+"SMS yozuvchisi bitta aniq qabul qiluvchiga yo‘naltirilganini ko‘rsatadi"
 
 #. module: sms
 #. odoo-javascript
@@ -771,6 +766,12 @@ msgid "Marked for deletion"
 msgstr "O‘chirish uchun belgilangan"
 
 #. module: sms
+#: model:ir.model.fields.selection,name:sms.selection__sms_composer__sms_type__marketing
+#: model:ir.model.fields.selection,name:sms.selection__sms_sms__sms_type__marketing
+msgid "Marketing"
+msgstr ""
+
+#. module: sms
 #: model:ir.model,name:sms.model_mail_message
 #: model:ir.model.fields,field_description:sms.field_sms_composer__body
 #: model_terms:ir.ui.view,arch_db:sms.sms_tsms_view_form
@@ -780,9 +781,8 @@ msgstr "Xabar"
 
 #. module: sms
 #: model:ir.model,name:sms.model_mail_notification
-#, fuzzy
-msgid "Message Notifications"
-msgstr "Xabar xabarnomalar"
+msgid "Message Notification"
+msgstr ""
 
 #. module: sms
 #. odoo-javascript
@@ -795,9 +795,8 @@ msgstr "Raqam mavjud emas"
 
 #. module: sms
 #: model:ir.model,name:sms.model_ir_model
-#, fuzzy
-msgid "Models"
-msgstr "Modellar"
+msgid "Model"
+msgstr ""
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_template__name
@@ -888,8 +887,8 @@ msgid ""
 msgstr ""
 "Elektron pochta yuborishda tanlanadigan ixtiyoriy tarjima tili (ISO kodi). "
 "Agar belgilanmasa, asosiy hamkorning tili ishlatiladi. Bu odatda tegishli "
-"tilni ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan: {{ "
-"object.partner_id.lang }}."
+"tilni ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan: "
+"{{ object.partner_id.lang }}."
 
 #. module: sms
 #: model:ir.model,name:sms.model_sms_sms
@@ -1134,9 +1133,9 @@ msgstr "SMS hisobini tasdiqlash kodi yo‘riqnomasi"
 #: model:ir.model.fields,field_description:sms.field_mail_blacklist__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_blacklist__message_has_sms_error
-#: model:ir.model.fields,field_description:sms.field_mail_thread_cc__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_main_attachment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_thread_phone__message_has_sms_error
+#: model:ir.model.fields,field_description:sms.field_mail_thread_subject_suggested__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_mail_tracking_duration_mixin__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_equipment__message_has_sms_error
 #: model:ir.model.fields,field_description:sms.field_maintenance_request__message_has_sms_error
@@ -1456,6 +1455,12 @@ msgid "Sms Template"
 msgstr "SMS shabloni"
 
 #. module: sms
+#: model:ir.model.fields,field_description:sms.field_sms_composer__sms_type
+#: model:ir.model.fields,field_description:sms.field_sms_sms__sms_type
+msgid "Sms Type"
+msgstr ""
+
+#. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_composer__recipient_single_number
 #, fuzzy
 msgid "Stored Recipient Number"
@@ -1637,9 +1642,9 @@ msgstr ""
 "yozuvga kuzatuvchilarni qo‘shish yoki olib tashlash (Muhokama) - 'Yozuv "
 "yaratish': yangi qiymatlar bilan yangi yozuv yaratish - 'Kodni bajarish': "
 "bajariladigan Python kodi bloki - 'Veb-ilgak bildirishnomasi yuborish': "
-"tashqi tizimga POST so‘rovini yuborish, shuningdek Veb-ilgak deb ham "
-"ataladi - 'Ko‘p harakatlar': serverning boshqa bir nechta harakatlarini "
-"keltirib chiqaradigan harakatni aniqlash"
+"tashqi tizimga POST so‘rovini yuborish, shuningdek Veb-ilgak deb ham ataladi "
+"- 'Ko‘p harakatlar': serverning boshqa bir nechta harakatlarini keltirib "
+"chiqaradigan harakatni aniqlash"
 
 #. module: sms
 #: model:ir.model.fields,field_description:sms.field_sms_sms__uuid

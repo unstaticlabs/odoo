@@ -7,24 +7,24 @@
 # Jolien De Paepe, 2022
 # Martin Trigaux, 2023
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 10:06+0000\n"
+"POT-Creation-Date: 2026-04-03 18:38+0000\n"
+"PO-Revision-Date: 2026-04-28 14:39+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_timesheet/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: sale_timesheet
 #. odoo-python
@@ -120,7 +120,7 @@ msgstr "12 dagen / jaar, waarvan <br>6 naar keuze."
 #: model_terms:hr.job,job_details:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,job_details:sale_timesheet.job_labour
 msgid "2 open days"
-msgstr "2 opendeurdagen"
+msgstr "2 dagen"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,job_details:sale_timesheet.job_engineer
@@ -137,8 +137,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>LEES</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>LEES</b></small></a>"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
@@ -219,37 +219,46 @@ msgid "<span class=\"text-muted small\">Time to Answer</span>"
 msgstr "<span class=\"text-muted small\">Tijd om te antwoorden</span>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
+msgid ""
+"<span class=\"text-muted\">Timesheets without a sales order item are "
+"reported as</span>"
+msgstr ""
+"<span class=\"text-muted\">Urenstaten zonder een verkooporderitem worden "
+"gerapporteerd als</span>"
+
+#. module: sale_timesheet
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr "<strong class=\"s_rating_title\">Administratief werk</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr "<strong class=\"s_rating_title\">Autonomie</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr "<strong class=\"s_rating_title\">Klantrelatie</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr "<strong class=\"s_rating_title\">Persoonlijke ontwikkeling</strong>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr "<strong class=\"s_rating_title\">Technische expertise</strong>"
 
@@ -274,7 +283,7 @@ msgid "<strong>Sales Order:</strong>"
 msgstr "<strong>Verkooporder:</strong>"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_inherit
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_with_total_inherit
 msgid "<strong>Time Remaining on SO: </strong>"
 msgstr "<strong>Resterende tijd op verkooporder: </strong>"
 
@@ -305,11 +314,6 @@ msgstr ""
 "  - Urenstaat: het aantal is de som van de uren die zijn vastgelegd voor "
 "taken die aan deze verkoopregel zijn gekoppeld\n"
 "  - Voorraadverplaatsingen: het aantal komt van de bevestigd pickings\n"
-
-#. module: sale_timesheet
-#: model:ir.model,name:sale_timesheet.model_account_move_reversal
-msgid "Account Move Reversal"
-msgstr "Tegenboeking"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -356,41 +360,36 @@ msgid "Analytic lines"
 msgstr "Analytische boekingen"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,description:sale_timesheet.job_engineer
+#: model_terms:hr.job,description:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,description:sale_timesheet.job_labour
 msgid ""
 "As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br><br>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+"to create and deploy disruptive products.</b> Come work at a growing "
+"company\n"
+"that offers great benefits with opportunities to moving forward and learn\n"
+"alongside accomplished leaders. We're seeking an experienced and "
+"outstanding\n"
+"member of staff.\n"
+"<br><br>\n"
+"This position is both <b>creative and rigorous</b> by nature you need to "
+"think\n"
+"outside the box. We expect the candidate to be proactive and have a \"get it "
+"done\"\n"
+"spirit. To be successful, you will have solid solving problem skills."
 msgstr ""
-"Als werknemer van ons bedrijf <b>werk je samen met elke afdeling\n"
-"om ontwrichtende producten te maken en in te zetten. </b>Kom werken bij een "
-"groeiend bedrijf\n"
-"                     dat grote voordelen biedt met kansen om vooruit te "
-"komen en te leren\n"
-"                     naast bekwame leiders. We zoeken een ervaren en "
-"uitstekende\n"
-"                     werknemer.\n"
-"                     <br><br>\n"
-"                      Deze functie is zowel <b> creatief als rigoureus</b> "
-"van aard, je moet outside-the-box denken.\n"
-"                      We verwachten dat de sollicitant proactief is en een "
-"'get it done' mentaliteit heeft.\n"
-"                      Om succesvol te zijn, moet je beschikken over grote "
-"probleemoplossende vaardigheden."
+"Als werknemer van ons bedrijf werk je <b>samen met elke afdeling\n"
+"om baanbrekende producten te creëren en op de markt te brengen.</b> Kom "
+"werken bij een groeiend bedrijf\n"
+"dat uitstekende arbeidsvoorwaarden biedt, met kansen om te groeien en te "
+"leren\n"
+"van ervaren leiders. We zijn op zoek naar een ervaren en uitzonderlijke\n"
+"werknemer.\n"
+"<br><br>\n"
+"Deze functie is zowel <b>creatief als veeleisend</b>; je moet\n"
+"out-of-the-box kunnen denken. We verwachten dat de kandidaat proactief is en "
+"een \"get it done\"-mentaliteit\n"
+"heeft. Voor deze functie heb je een sterk probleemoplossende vermogen nodig."
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -407,6 +406,7 @@ msgstr "Op basis van urenstaten"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__allow_billable
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Billable"
 msgstr "Factureerbaar"
 
@@ -416,42 +416,10 @@ msgid "Billable Time"
 msgstr "Factureerbare tijd"
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_type
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__billable_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__billable_type
 msgid "Billable Type"
 msgstr "Factureerbaar soort"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_manual
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_manual
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed Manually"
-msgstr "Handmatig gefactureerd"
-
-#. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed at a Fixed Price"
-msgstr "Gefactureerd met een vaste prijs"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_fixed
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_fixed
-msgid "Billed at a Fixed price"
-msgstr "Gefactureerd met een vaste prijs"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_milestones
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_milestones
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Milestones"
-msgstr "Gefactureerd op mijlpalen"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_time
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_time
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Timesheets"
-msgstr "Gefactureerd op urenstaten"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
@@ -566,7 +534,7 @@ msgstr "Ontdek onze producten."
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_sale_page
@@ -616,6 +584,7 @@ msgstr "Liftinstallatie"
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_hr_employee
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__employee_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Employee"
 msgstr "Werknemer"
 
@@ -740,8 +709,7 @@ msgstr "Interieurontwerp"
 #. odoo-python
 #: code:addons/sale_timesheet/controllers/portal.py:0
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.report_timesheet_account_move
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
@@ -760,8 +728,7 @@ msgid "Invoice based on timesheets (delivered quantity)."
 msgstr "Facture gebaseerd op urenstaten (geleverde hoeveelheden)."
 
 #. module: sale_timesheet
-#: model:ir.model.fields,help:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 msgid "Invoice created from the timesheet"
 msgstr "Factuur aangemaakt van urenstaat"
 
@@ -790,6 +757,11 @@ msgstr "Is het verkooporderregel handmatig bewerkt"
 #: model:ir.model,name:sale_timesheet.model_account_move
 msgid "Journal Entry"
 msgstr "Boeking"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_account_move_reversal
+msgid "Journal Entry Reversal"
+msgstr "Tegenboeking"
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_move_line
@@ -860,12 +832,6 @@ msgid "Master demos of our software"
 msgstr "Beheers demo's van onze software"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Materials"
-msgstr "Materialen"
-
-#. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__qty_delivered_method
 msgid "Method to update delivered qty"
 msgstr "Methode om de geleverde hoeveelheid bij te werken"
@@ -876,11 +842,31 @@ msgid "Milestone services"
 msgstr "Mijlpaal diensten"
 
 #. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.hr_timesheet_line_search
+msgid "Mine"
+msgstr "Van mij"
+
+#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Must Have"
 msgstr "Vereist"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Department"
+msgstr "Mijn afdeling"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Projects"
+msgstr "Mijn projecten"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Team"
+msgstr "Mijn team"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -934,8 +920,6 @@ msgstr ""
 "autonomie"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__non_billable
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__non_billable
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Non-Billable"
 msgstr "Niet factureerbaar"
@@ -961,6 +945,15 @@ msgstr "Niet-factureerbare tijd"
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 msgid "Not Billed"
 msgstr "Niet gefactureerd"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
+msgid ""
+"Notify the salesperson about an upsell opportunity when completed work "
+"exceeds"
+msgstr ""
+"Breng de verkoper op de hoogte van een verkoopkans wanneer het voltooide "
+"werk meer bedraagt dan"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__timesheet_revenues
@@ -993,21 +986,14 @@ msgstr ""
 "toepassing) urenstaten zonder onderscheid gefactureerd."
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__order_id
-msgid "Order Reference"
-msgstr "Orderreferentie"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_costs
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_costs
-msgid "Other costs"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__12_other_costs
+msgid "Other Costs"
 msgstr "Andere kosten"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_revenues
-msgid "Other revenues"
-msgstr "Andere omzet"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__11_other_revenues
+msgid "Other Revenues"
+msgstr "Andere inkomsten"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -1075,6 +1061,7 @@ msgstr "Productvariant"
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__project_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Project"
 msgstr "Project"
 
@@ -1112,7 +1099,8 @@ msgstr "Offerte"
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Real responsibilities and challenges in a fast evolving company"
-msgstr "Echte verantwoordelijkheden en uitdagingen in een snel groeiend bedrijf"
+msgstr ""
+"Echte verantwoordelijkheden en uitdagingen in een snel groeiend bedrijf"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_task__remaining_hours_available
@@ -1126,6 +1114,27 @@ msgstr "Resterende uren beschikbaar"
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Responsibilities"
 msgstr "Verantwoordelijkheden"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__01_revenues_fixed
+msgid "Revenues (Fixed Price)"
+msgstr "Inkomsten (Vaste prijs)"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__07_revenues_manual
+msgid "Revenues (Manual)"
+msgstr "Inkomsten (Handmatig)"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__05_revenues_milestones
+msgid "Revenues (Milestones)"
+msgstr "Inkomsten (Mijlpalen)"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__03_timesheet_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__03_timesheet_revenues
+msgid "Revenues (Time & Material)"
+msgstr "Inkomsten (Tijd & materiaal)"
 
 #. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.timesheet_action_billing_report
@@ -1252,8 +1261,7 @@ msgid "Senior Architect (Invoice on Timesheets)"
 msgstr "Senior architect (Factureer op urenstaten)"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__service_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__service_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__10_service_revenues
 msgid "Service Revenues"
 msgstr "Omzet op diensten"
 
@@ -1316,6 +1324,7 @@ msgstr "Sterke analytische vaardighede"
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_task
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Task"
 msgstr "Taak"
 
@@ -1377,12 +1386,6 @@ msgstr ""
 "instellingen van de werknemer"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "This project is current linked to timesheet."
-msgstr "Dit project is momenteel gekoppeld aan een timesheet."
-
-#. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__service_upsell_threshold
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__service_upsell_threshold
 msgid "Threshold"
@@ -1419,6 +1422,12 @@ msgid "Timesheet"
 msgstr "Urenstaat"
 
 #. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__02_billable_fixed
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__02_billable_fixed
+msgid "Timesheet (Fixed price)"
+msgstr "Urenstaat (Vaste prijs)"
+
+#. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
 msgid "Timesheet Activities"
 msgstr "Urenstaat activiteiten"
@@ -1444,8 +1453,6 @@ msgstr "Urenstaatrapport"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__timesheet_revenues
 msgid "Timesheet Revenues"
 msgstr "Urenstaat omzet"
 
@@ -1470,34 +1477,10 @@ msgid "Timesheets"
 msgstr "Urenstaten"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed Manually)"
-msgstr "Urenstaten (handmatig gefactureerd)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Milestones)"
-msgstr "Urenstaten (gefactureerd op mijlpalen)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Timesheets)"
-msgstr "Urenstaten (gefactureerd op urenstaten)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Fixed Price)"
-msgstr "Urenstaten (vaste prijs)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__09_non_billable
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__09_non_billable
 msgid "Timesheets (Non-Billable)"
-msgstr "Urenstaten (niet factureerbaar)"
+msgstr "Urenstaten (Niet factureerbaar)"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheets_analysis_report_pivot_invoice_type
@@ -1536,12 +1519,6 @@ msgid "Timesheets on project (one fare per SO/Project)"
 msgstr "Urenstaten op project (één prijs per Verkooporder/Project)"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets revenues"
-msgstr "Omzet urenstaten"
-
-#. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__margin
 msgid "Timesheets revenues minus the costs"
 msgstr "Omzet uit urenstaten minus de kosten"
@@ -1558,9 +1535,22 @@ msgid "Timesheets taken when invoicing time spent"
 msgstr "Urenstaten genomen bij het factureren van bestede tijd"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
-msgid "Timesheets without a sales order item are reported as"
-msgstr "Urenstaten zonder verkooporderitem worden gerapporteerd als"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__08_billable_manual
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__08_billable_manual
+msgid "Timesheets (Manual) "
+msgstr "Urenstaten (Handmatig) "
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__06_billable_milestones
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__06_billable_milestones
+msgid "Timesheets (Milestones)"
+msgstr "Urenstaten (Mijlpalen)"
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__04_billable_time
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__04_billable_time
+msgid "Timesheets (Time & Materials)"
+msgstr "Urenstaten (Tijd & Materialen)"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheets_analysis_report_list_inherited
@@ -1652,13 +1642,6 @@ msgid "View Timesheets"
 msgstr "Urenstaten bekijken"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "Warn the salesperson for an upsell when work done exceeds"
-msgstr ""
-"Waarschuw de verkoper voor een upsell wanneer het uitgevoerde werk meer is "
-"dan"
-
-#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
@@ -1695,14 +1678,14 @@ msgstr ""
 #. module: sale_timesheet
 #. odoo-python
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot modify timesheets that are already invoiced."
+msgid "You cannot modify timsheets that are already invoiced."
 msgstr "Je kunt geen urenstaten wijzigen die al zijn gefactureerd."
 
 #. module: sale_timesheet
 #. odoo-python
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot remove a timesheet that has already been invoiced."
-msgstr "Je kunt een urenstaat die al is gefactureerd, niet verwijderen."
+msgid "You cannot remove timsheets that are already invoiced."
+msgstr "Je kunt geen urenstaten verwijderen die al zijn gefactureerd."
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__project_project__billing_type__manually
@@ -1722,8 +1705,8 @@ msgstr "niet factureerbaar"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "of hours sold."
-msgstr "aantal uren verkocht."
+msgid "of the hours sold."
+msgstr "van de verkochte uren."
 
 #. module: sale_timesheet
 #. odoo-python
@@ -1737,406 +1720,20 @@ msgstr "project_id"
 msgid "remaining"
 msgstr "resterend"
 
-#~ msgid " Candidate Orders"
-#~ msgstr " Sollicitant orders"
+#~ msgid "Billed Manually"
+#~ msgstr "Handmatig gefactureerd"
 
-#~ msgid ""
-#~ "% of timesheets that are billable compared to the total number of "
-#~ "timesheets linked to the AA of the project, rounded to the unit."
-#~ msgstr ""
-#~ "% van de urenstaten die factureerbaar zijn in vergelijking met het totale "
-#~ "aantal urenstaten gekoppeld aan de AA van het project, afgerond op de "
-#~ "eenheid."
+#~ msgid "Billed at a Fixed price"
+#~ msgstr "Gefactureerd met een vaste prijs"
 
-#~ msgid "%(amount)s %(label)s will be added to the new Sales Order."
-#~ msgstr "%(amount)s %(label)s wordt toegevoegd aan de nieuwe verkooporder."
+#~ msgid "Billed on Milestones"
+#~ msgstr "Gefactureerd op mijlpalen"
 
-#~ msgid ", for a revenue of"
-#~ msgstr ", voor een omzet van"
+#~ msgid "Billed on Timesheets"
+#~ msgstr "Gefactureerd op urenstaten"
 
-#~ msgid ", leading to a"
-#~ msgstr ", wat leidt tot een"
+#~ msgid "Revenues Timesheets"
+#~ msgstr "Inkomsten Urenstaten"
 
-#~ msgid "<strong>To invoice:</strong>"
-#~ msgstr "<strong>Te factureren:</strong>"
-
-#~ msgid "<u>Profitability</u>"
-#~ msgstr "<je>Winstgevendheid</je>"
-
-#~ msgid "About us"
-#~ msgstr "Over ons"
-
-#~ msgid "Allocated Hours"
-#~ msgstr "Toegewezen tijd"
-
-#~ msgid "Amount to invoice"
-#~ msgstr "Bedrag te factureren"
-
-#~ msgid ""
-#~ "As a leading professional services firm,\n"
-#~ "                                we know that success is all about the\n"
-#~ "                                commitment we put on strong services."
-#~ msgstr ""
-#~ "Als een toonaangevend professionele diensten bedrijf,\n"
-#~ "weten we dat het succes sterk afhangt van de\n"
-#~ "toeweiding die we hebben voor onze sterke diensten."
-
-#~ msgid "At least one line should be filled."
-#~ msgstr "Minimaal één regel moet ingevuld zijn."
-
-#~ msgid "Billable Hours"
-#~ msgstr "Facturabele uren"
-
-#~ msgid "Billable Percentage"
-#~ msgstr "Factureerbaar percentage"
-
-#~ msgid "Choose the Sales Order to invoice"
-#~ msgstr "Kies de verkooporder om te factureren"
-
-#~ msgid "Commercial Entity"
-#~ msgstr "Commerciële entiteit"
-
-#~ msgid "Company"
-#~ msgstr "Bedrijf"
-
-#~ msgid "Cost Currency"
-#~ msgstr "Kostprijs valuta"
-
-#~ msgid "Create Invoice"
-#~ msgstr "Maak factuur"
-
-#~ msgid "Create Invoice from project"
-#~ msgstr "Maak factuur vanuit project"
-
-#~ msgid "Create SO Line from project"
-#~ msgstr "Maak verkooporderregel vanuit project"
-
-#~ msgid "Create SO from project"
-#~ msgstr "Maak verkooporder vanuit project"
-
-#~ msgid "Create Sales Order"
-#~ msgstr "Maak verkooporder"
-
-#~ msgid "Create Sales Order from Project"
-#~ msgstr "Maak verkooporder vanuit project"
-
-#~ msgid "Create a Sales Order"
-#~ msgstr "Maak een verkooporder aan"
-
-#~ msgid "Customer of the sales order"
-#~ msgstr "Klant van het verkooporder"
-
-#~ msgid "Display Create Order"
-#~ msgstr "Toon order aanmaken"
-
-#~ msgid "Employee that has timesheets on the project."
-#~ msgstr "Werknemer die urenstaat heeft op het project."
-
-#~ msgid ""
-#~ "Great quotation templates will significantly\n"
-#~ "                                <strong>boost your success rate</strong>. "
-#~ "The\n"
-#~ "                                first section is usually about your "
-#~ "company,\n"
-#~ "                                your references, your methodology or\n"
-#~ "                                guarantees, your team, SLA, terms and "
-#~ "conditions, etc."
-#~ msgstr ""
-#~ "Geweldige offerte sjablonen zullen significant helpen\n"
-#~ "bij het<strong>vergroten van je succes</strong>. Het \n"
-#~ "eerste deel is meestal over je bedrijf,\n"
-#~ "je referenties, je methode/garanties, \n"
-#~ "je team, SLA, voorwaarden, etc."
-
-#~ msgid "Has Displayed Warning Upsell"
-#~ msgstr "Heeft waarschuwing upsell weergegeven"
-
-#~ msgid ""
-#~ "If you edit a quotation from the 'Preview' of a quotation, you will\n"
-#~ "                        update that quotation only. If you edit the "
-#~ "quotation\n"
-#~ "                        template (from the Configuration menu), all "
-#~ "future quotations will\n"
-#~ "                        use this modified template."
-#~ msgstr ""
-#~ "Wanneer een offerte wordt bewerkt in de 'voorbeeld weergave' van een "
-#~ "offerte, kun je\n"
-#~ "alleen deze offerte bijwerken. Wanneer je een offertesjabloon\n"
-#~ "bewerkt (vanuit het instellingen menu), zullen alle toekomstige offerte \n"
-#~ "het aangepaste sjabloon gebruiken."
-
-#~ msgid "Info Invoice"
-#~ msgstr "Factuurinformatie"
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity) on projects or tasks "
-#~ "you'll create later on."
-#~ msgstr ""
-#~ "Factureer op basis van urenstaten (geleverde hoeveelheid) op projecten of "
-#~ "taken die je later aanmaakt."
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create a project "
-#~ "for the order with a task for each sales order line to track the time "
-#~ "spent."
-#~ msgstr ""
-#~ "Factureer op basis van urenstaten (geleverde hoeveelheid) en maak een "
-#~ "project voor de order met een taak voor elke verkooporderregel om de "
-#~ "bestede tijd bij te houden."
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create a task in an "
-#~ "existing project to track the time spent."
-#~ msgstr ""
-#~ "Factureer op basis van urenstaten (geleverde hoeveelheid), en maak een "
-#~ "taak in een bestaand project om de bestede tijd bij te houden."
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create an empty "
-#~ "project for the order to track the time spent."
-#~ msgstr ""
-#~ "Factureer op basis van urenstaten (geleverde hoeveelheid), en maak een "
-#~ "leeg project voor de bestelling om de bestede tijd bij te houden."
-
-#~ msgid "Invoice your time and material to customers"
-#~ msgstr "Factureer je tijd en materiaal aan de klanten"
-
-#~ msgid "Invoiced"
-#~ msgstr "Gefactureerd"
-
-#~ msgid "Invoicing Timesheet Enabled"
-#~ msgstr "Urenstaat facturering ingeschakeld"
-
-#~ msgid "Is Cost Manually Changed"
-#~ msgstr "Worden kosten handmatig gewijzigd"
-
-#~ msgid "Lines"
-#~ msgstr "Regels"
-
-#~ msgid "No Sales Order"
-#~ msgstr "Geen verkooporder"
-
-#~ msgid "No Sales Order Item"
-#~ msgstr "Geen verkooporderregel"
-
-#~ msgid "Non Billable Tasks"
-#~ msgstr "Niet facturabele taken"
-
-#~ msgid "Non-billable Hours"
-#~ msgstr "Niet-factureerbare uren"
-
-#~ msgid "Number of timesheets"
-#~ msgstr "Aantal urenstaten"
-
-#~ msgid "Operation not supported"
-#~ msgstr "Bewerking niet ondersteund"
-
-#~ msgid "Ordered,"
-#~ msgstr "Besteld,"
-
-#~ msgid "Our Offer"
-#~ msgstr "Ons aanbod"
-
-#~ msgid "Our Quality"
-#~ msgstr "Onze kwaliteit"
-
-#~ msgid "Our Service"
-#~ msgstr "Onze diensten"
-
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgid ""
-#~ "Product of the sales order item. Must be a service invoiced based on "
-#~ "timesheets on tasks."
-#~ msgstr ""
-#~ "Het product van een verkooporderregel moet een dienst zijn, welke wordt "
-#~ "gefactureerd op basis van urenstaten op taken."
-
-#~ msgid ""
-#~ "Product quality is the foundation we\n"
-#~ "                                stand on; we build it with a relentless\n"
-#~ "                                focus on fabric, performance and "
-#~ "craftsmanship."
-#~ msgstr ""
-#~ "Productkwaliteit is het fundament waar wij\n"
-#~ "op staan; we bouwen het met een genadeloze\n"
-#~ "focus op stof, prestatie en vakmanschap."
-
-#~ msgid "Project Update"
-#~ msgstr "Projectupdate"
-
-#~ msgid "Project for which we are creating a sales order"
-#~ msgstr "Project waar we een verkooporder voor aanmaken"
-
-#~ msgid "Project to make billable"
-#~ msgstr "Project om factureerbaar te maken"
-
-#~ msgid "Remaining"
-#~ msgstr "Resterend"
-
-#~ msgid "Remaining Days on SO"
-#~ msgstr "Resterende dagen op SO"
-
-#~ msgid "Remaining Hours on SO"
-#~ msgstr "Resterende uren op verkooporder"
-
-#~ msgid "Remaining)"
-#~ msgstr "Resterend)"
-
-#~ msgid "Sale Order"
-#~ msgstr "Verkooporder"
-
-#~ msgid "Sale Order Analytic Account"
-#~ msgstr "Kostenplaats verkooporder"
-
-#~ msgid "Sale line/Employee map"
-#~ msgstr "Verkoopregel/Werknemer mapping"
-
-#~ msgid "Sales order to which the project is linked."
-#~ msgstr "Verkooporder waaraan het project is gerelateerd."
-
-#~ msgid "Search in Sales Order"
-#~ msgstr "Zoeken in verkooporder"
-
-#~ msgid "Select a non billable project on which tasks can be created."
-#~ msgstr ""
-#~ "Selecteer een niet factureerbaar project waarop taken kunnen worden "
-#~ "aangemaakt."
-
-#~ msgid "Service"
-#~ msgstr "Dienst"
-
-#~ msgid "Service Upsell Threshold Ratio"
-#~ msgstr "Drempelratio voor service-upsell"
-
-#~ msgid "Sold"
-#~ msgstr "Verkocht"
-
-#~ msgid "Task Recurrence"
-#~ msgstr "Taak herhaling"
-
-#~ msgid "Tasks"
-#~ msgstr "Taken"
-
-#~ msgid ""
-#~ "The %s product is required by the Timesheets app and cannot be archived "
-#~ "nor deleted."
-#~ msgstr ""
-#~ "Het %s-product is vereist voor de Timesheets-app en kan niet worden "
-#~ "gearchiveerd of verwijderd."
-
-#~ msgid ""
-#~ "The Sales Order cannot be created because you did not enter some "
-#~ "employees that entered timesheets on this project. Please list all the "
-#~ "relevant employees before creating the Sales Order.\n"
-#~ "Missing employee(s): %s"
-#~ msgstr ""
-#~ "De verkooporder kan niet worden aangemaakt omdat je geen werknemers heeft "
-#~ "ingevoerd die urenstaten voor dit project hebben ingevoerd. Vermeld alle "
-#~ "relevante werknemers voordat je de verkooporder maakt.\n"
-#~ "Ontbrekende werknemer (s): %s"
-
-#~ msgid "The cost of the project is now at"
-#~ msgstr "De kosten van het project bedragen nu"
-
-#~ msgid "The project has already a sale order."
-#~ msgstr "Het project heeft al een verkooporder."
-
-#~ msgid "The project is already linked to a sales order item."
-#~ msgstr "Het project is al gekoppeld aan een verkooporderregel."
-
-#~ msgid ""
-#~ "The sales order cannot be created because some timesheets of this project "
-#~ "are already linked to another sales order."
-#~ msgstr ""
-#~ "De verkooporder kan niet worden aangemaakt omdat sommige urenstaten van "
-#~ "dit project al aan een andere verkooporder zijn gekoppeld."
-
-#~ msgid "The selected Sales Order should contain something to invoice."
-#~ msgstr ""
-#~ "De geselecteerde verkooporder hoort iets te bevatten om te factureren."
-
-#~ msgid ""
-#~ "This is a <strong>sample quotation template</strong>. You should\n"
-#~ "                                customize it to fit your own needs from "
-#~ "the <i>Sales</i>\n"
-#~ "                                application, using the menu: "
-#~ "Configuration /\n"
-#~ "                                Quotation Templates."
-#~ msgstr ""
-#~ "Dit is een <strong>voorbeeld offertesjabloon</strong>. Je zou het moeten\n"
-#~ "personaliseren naar je eigen behoefte vanuit de <i>Verkoopbeheer</i>\n"
-#~ "applicatie, door het menu Configuratie /\n"
-#~ "Offertesjablonen te gebruiken."
-
-#~ msgid "Timesheet Encoding Unit"
-#~ msgstr "Urenstaat ingave eenheid"
-
-#~ msgid "Timesheet activities"
-#~ msgstr "Urenstaat activiteiten"
-
-#~ msgid "Timesheets (Non Billable)"
-#~ msgstr "Urenstaten (niet factureerbaar)"
-
-#~ msgid ""
-#~ "Total amount to invoice on the sales order, including all items "
-#~ "(services, storables, expenses, ...)"
-#~ msgstr ""
-#~ "Totaal te factureren bedrag op de verkooporder, inclusief alle items "
-#~ "(diensten, voorraadproducten, declaraties, ...)"
-
-#~ msgid "Total:"
-#~ msgstr "Totaal:"
-
-#~ msgid "Unit price of the sales order item."
-#~ msgstr "De prijs van het verkooporderregel."
-
-#~ msgid "Value does not exist in the pricing type"
-#~ msgstr "Waarde bestaat niet in het prijstype"
-
-#~ msgid "Warning Employee Rate"
-#~ msgstr "Waarschuwing werknemerstarief"
-
-#~ msgid ""
-#~ "We always ensure that our products are\n"
-#~ "                                set at a fair price so that you will be\n"
-#~ "                                happy to buy them."
-#~ msgstr ""
-#~ "We verzekeren ons er altijd van dat onze producten\n"
-#~ "een eerlijke prijs hebben zodat jij\n"
-#~ "ze met plezier koopt."
-
-#~ msgid "Wizard"
-#~ msgstr "Wizard"
-
-#~ msgid ""
-#~ "You can <strong>set a description per product</strong>. Odoo will\n"
-#~ "                        automatically create a quotation using the "
-#~ "descriptions\n"
-#~ "                        of all products in the proposal. The table of "
-#~ "content\n"
-#~ "                        on the left is generated automatically using the "
-#~ "styles you\n"
-#~ "                        used in your description (heading 1, heading "
-#~ "2, ...)"
-#~ msgstr ""
-#~ "Je kunt <strong>een omschrijving instellen per product</strong>. Odoo "
-#~ "zal\n"
-#~ "automatisch een offerte maken met behulp van de omschrijvingen\n"
-#~ "van alle producten in het voorstel. De inhoudsopgave\n"
-#~ "aan de linkerkant wordt automatisch gegenereerd met behulp van de stijlen "
-#~ "die je\n"
-#~ "gebruikt in je beschrijving (rubriek 1, rubriek 2, ...)"
-
-#~ msgid "You can only apply this action from a project."
-#~ msgstr "Je kunt deze actie alleen toepassen vanuit een project."
-
-#~ msgid "days"
-#~ msgstr "dagen"
-
-#~ msgid "hours"
-#~ msgstr "uren"
-
-#~ msgid "margin ("
-#~ msgstr "marge ("
+#~ msgid "Timesheets without a sales order item are reported as"
+#~ msgstr "Urenstaten zonder verkooporderitem worden gerapporteerd als"

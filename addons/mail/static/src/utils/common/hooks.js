@@ -3,6 +3,7 @@ import {
     onMounted,
     onPatched,
     onWillUnmount,
+    reactive,
     toRaw,
     useComponent,
     useEffect,
@@ -14,12 +15,18 @@ import {
 
 import { monitorAudio } from "@mail/utils/common/media_monitoring";
 import { browser } from "@web/core/browser/browser";
+import { _t } from "@web/core/l10n/translation";
 import { OVERLAY_SYMBOL } from "@web/core/overlay/overlay_container";
 import { Deferred } from "@web/core/utils/concurrency";
 import { makeDraggableHook } from "@web/core/utils/draggable_hook_builder_owl";
-import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 
+/**
+ * @param {() => HTMLElement} target
+ * @param {string} eventName
+ * @param {Function} handler
+ * @param {boolean|AddEventListenerOptions} [eventParams]
+ */
 export function useLazyExternalListener(target, eventName, handler, eventParams) {
     const boundHandler = handler.bind(useComponent());
     let t;
@@ -50,9 +57,9 @@ export function useLazyExternalListener(target, eventName, handler, eventParams)
     });
 }
 
-export function onExternalClick(refName, cb) {
+export function onExternalClick(refOrName, cb) {
     let downTarget, upTarget;
-    const ref = useRef(refName);
+    const ref = typeof refOrName === "string" ? useRef(refOrName) : refOrName;
     function onClick(ev) {
         if (ref.el && !ref.el.contains(ev.composedPath()[0])) {
             cb(ev, { downTarget, upTarget });
@@ -264,6 +271,63 @@ export class UseHoverOverlay extends Component {
 }
 
 /**
+ * Hook returning reactive scroll state for a given scrollable element.
+ *
+ * @param {string} refName - The t-ref name of the scrollable element.
+ * @returns {{
+ *   hasScrollbar: boolean,
+ *   canScrollBefore: boolean,
+ *   canScrollAfter: boolean
+ * }}
+ */
+export function useScrollState(refName) {
+    const ref = useRef(refName);
+    const state = useState({
+        hasScrollbar: false,
+        canScrollBefore: false,
+        canScrollAfter: false,
+    });
+    function computeState() {
+        const el = ref.el;
+        if (!el) {
+            return;
+        }
+        const hasVScroll = el.scrollHeight > el.clientHeight + 1;
+        const hasHScroll = el.scrollWidth > el.clientWidth + 1;
+        state.hasScrollbar = hasVScroll || hasHScroll;
+        if (hasVScroll) {
+            const scrollTop = el.scrollTop;
+            state.canScrollBefore = scrollTop > 0;
+            state.canScrollAfter = scrollTop + el.clientHeight < el.scrollHeight - 1;
+        } else if (hasHScroll) {
+            const scrollLeft = el.scrollLeft;
+            state.canScrollBefore = scrollLeft > 0;
+            state.canScrollAfter = scrollLeft + el.clientWidth < el.scrollWidth - 1;
+        } else {
+            state.canScrollBefore = false;
+            state.canScrollAfter = false;
+        }
+    }
+    useEffect(
+        (el) => {
+            if (!el) {
+                return;
+            }
+            computeState();
+            el.addEventListener("scroll", computeState);
+            const resizeObserver = new ResizeObserver(computeState);
+            resizeObserver.observe(el);
+            return () => {
+                el.removeEventListener("scroll", computeState);
+                resizeObserver.disconnect();
+            };
+        },
+        () => [ref.el]
+    );
+    return state;
+}
+
+/**
  * Hook that execute the callback function each time the scrollable element hit
  * the bottom minus the threshold.
  *
@@ -325,7 +389,7 @@ export function useVisible(refName, cb, { ready = true } = {}) {
  * @property {number|null} highlightedMessageId
  * @returns {MessageScrolling}
  */
-export function useMessageScrolling(duration = 2000) {
+export function useMessageScrolling(duration = 1500) {
     let timeout;
     const state = useState({
         clear() {
@@ -393,6 +457,27 @@ export function useMessageScrolling(duration = 2000) {
             return scrollPromise;
         },
         highlightedMessageId: null,
+    });
+    return state;
+}
+
+export function useMessageSelection() {
+    let selectedMessageId;
+    const state = useState({
+        _data: new Set(),
+        clearSelected() {
+            this._data.delete(selectedMessageId);
+        },
+        /** @param {import("models").Message} message */
+        isSelected(message) {
+            return this._data.has(message.id);
+        },
+        /** @param {import("models").Message} message */
+        setSelected(message) {
+            this.clearSelected();
+            this._data.add(message.id);
+            selectedMessageId = message.id;
+        },
     });
     return state;
 }
@@ -625,11 +710,15 @@ export function useLongPress(refName, { action, predicate = () => true } = {}) {
         clearTimeout(timer);
         timer = null;
     }
+    /** @param {TouchEvent} ev */
+    function isTouchTargetInside(ev) {
+        return ref.el?.contains(ev.target);
+    }
     useLazyExternalListener(
-        () => ref.el,
+        () => window,
         "touchstart",
         (ev) => {
-            if (!predicate()) {
+            if (!isTouchTargetInside(ev) || !predicate()) {
                 return;
             }
             const touch = ev.touches[0];
@@ -639,13 +728,14 @@ export function useLongPress(refName, { action, predicate = () => true } = {}) {
                 action();
                 reset();
             }, LONG_PRESS_DELAY);
-        }
+        },
+        true
     );
     useLazyExternalListener(
-        () => ref.el,
+        () => window,
         "touchmove",
         (ev) => {
-            if (!timer) {
+            if (!isTouchTargetInside(ev) || !timer) {
                 return;
             }
             const touch = ev.touches[0];
@@ -654,10 +744,29 @@ export function useLongPress(refName, { action, predicate = () => true } = {}) {
             if (Math.hypot(dx, dy) > MOVE_TRESHOLD) {
                 reset();
             }
-        }
+        },
+        true
     );
-    useLazyExternalListener(() => ref.el, "touchend", reset);
-    useLazyExternalListener(() => ref.el, "touchcancel", reset);
+    useLazyExternalListener(
+        () => window,
+        "touchend",
+        (ev) => {
+            if (isTouchTargetInside(ev)) {
+                reset();
+            }
+        },
+        true
+    );
+    useLazyExternalListener(
+        () => window,
+        "touchcancel",
+        (ev) => {
+            if (isTouchTargetInside(ev)) {
+                reset();
+            }
+        },
+        true
+    );
 }
 
 export const inDiscussCallViewProps = ["isPip?"];
@@ -670,4 +779,51 @@ export function useInDiscussCallView() {
             },
         },
     });
+}
+
+/** @typedef {import("@web/core/utils/hooks").useChildRef} useChildRef */
+
+/**
+ * Hook that works like `useChildRef()` but allow many refs that each child component can save using an id of their choice.
+ * @see useChildRef
+ */
+export function useChildRefs() {
+    return reactive(new Map());
+}
+
+export class UseForwardRefsToParent {
+    constructor(propName, getRefIdFn, ref) {
+        const component = useComponent();
+        this.ref = ref;
+        // Note: The `useChildRefs()` Map is shared with all children, using useEffect/willUnmount to ensure proper on/off life cycle hook calls for given child.
+        // If we use setup/willDestroy we can have 2 fiber nodes of same child component with one finalizing with willDestroy from cancelling duplicated fiber node.
+        useEffect(
+            (map, key) => {
+                this.registerRef(map, key);
+                return () => this.removeRef(map, key);
+            },
+            () => [component.props[propName], getRefIdFn(component.props)]
+        );
+    }
+
+    registerRef(map, key) {
+        map?.set(key, this.ref);
+    }
+
+    removeRef(map, key) {
+        map?.delete(key);
+    }
+}
+
+/** @typedef {import("@web/core/utils/hooks").useForwardRefToParent} useForwardRefToParent */
+/**
+ * Hook that works like `useForwardRefToParent()` but allow many refs that each child component can save using an id of their choice.
+ * @see useForwardRefToParent
+ *
+ * @param {string} propName name of prop that contains a `useChildRefs()` object
+ * @param {(Props) => any} getRefIdFn function whose evaluation returns the key in `useChildRefs()` object to save the `ref`, with props passed as param.
+ * @param {import("@web/core/utils/hooks").Ref} ref the `ref` that is saved in `useChildRefs()` at key from `getRefIdFn` function evaluation
+ */
+export function useForwardRefsToParent(propName, getRefIdFn, ref) {
+    new UseForwardRefsToParent(propName, getRefIdFn, ref);
 }

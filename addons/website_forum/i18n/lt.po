@@ -21,15 +21,15 @@
 # Martin Trigaux, 2022
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2022
 # Linas Versada <linaskrisiukenas@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 03:16+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "website_forum/lt/>\n"
 "Language: lt\n"
@@ -37,9 +37,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -2324,11 +2324,6 @@ msgid "Left 10 answers with score of 10 or more"
 msgstr "Paliko 10 atsakymų su įvertinimu 10 ar daugiau"
 
 #. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr ""
-
-#. module: website_forum
 #. odoo-javascript
 #: code:addons/website_forum/static/src/xml/public_templates.xml:0
 #: model_terms:ir.ui.view,arch_db:website_forum.post_display
@@ -3321,6 +3316,20 @@ msgid "The accepted answer is deleted"
 msgstr ""
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3700,6 +3709,13 @@ msgid "Website / Forum"
 msgstr "Svetainė / forumas"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3707,7 +3723,9 @@ msgid "Website Messages"
 msgstr "Interneto svetainės žinutės"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "Svetainės nuoroda"
 
@@ -3996,7 +4014,8 @@ msgstr "čia"
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "how to configure or customize Odoo to specific business needs,"
-msgstr "kaip konfigūruoti ar pritaikyti \"Odoo\" konkretiems verslo poreikiams,"
+msgstr ""
+"kaip konfigūruoti ar pritaikyti \"Odoo\" konkretiems verslo poreikiams,"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -4185,175 +4204,3 @@ msgstr "jūsų biografija gali būti matoma kaip paaiškinimas"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "jūsų el. paštas..."
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Įžeidžiantis]</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Atsakymas]</b>"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Pažymėtas\n"
-#~ "                </small>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>Pagal </span>"
-
-#~ msgid "About"
-#~ msgstr "Apie"
-
-#~ msgid "All Tags"
-#~ msgstr "Visos žymos"
-
-#~ msgid "Allow Bump"
-#~ msgstr "Leisti iškėlimą"
-
-#~ msgid "Answer"
-#~ msgstr "Atsakymas"
-
-#~ msgid "Back"
-#~ msgstr "Grįžti"
-
-#~ msgid "Bumped on"
-#~ msgstr "Iškeltas"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "Pažymėkite šį langelį, jei norite rodyti iššokantį langą įrašams, kurie "
-#~ "yra senesni nei 10 dienų ir neturi atsakymo. Iššokantis langas pasiūlys "
-#~ "pasidalinti juo socialiniuose tinkluose. Jei bus pasidalintas, klausimas "
-#~ "pakils į forumo viršų."
-
-#~ msgid "Close Post"
-#~ msgstr "Uždaryti įrašą"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Komentuoti šį įrašą..."
-
-#~ msgid "Comments"
-#~ msgstr "Komentarai"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Konvertuoti visus atsakymus į komentarus ir atvirkščiai"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "Paversti komentaru"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Paversti savo atsakymus komentarais ir atvirkščiai"
-
-#~ msgid "Following"
-#~ msgstr "Sekama"
-
-#~ msgid "Group By"
-#~ msgstr "Grupuoti pagal"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Slėpti įžangą"
-
-#~ msgid "Karma"
-#~ msgstr "Karma"
-
-#~ msgid "Last activity date"
-#~ msgstr "Paskutinio veiksmo data"
-
-#~ msgid "Menu"
-#~ msgstr "Meniu"
-
-#~ msgid "Moderation"
-#~ msgstr "Moderavimas"
-
-#~ msgid "More"
-#~ msgstr "Daugiau"
-
-#~ msgid "Most answered"
-#~ msgstr "Daugiausia atsakyta"
-
-#~ msgid "Most voted"
-#~ msgstr "Daugiausia balsuota"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "Iškelti šį klausimą į sąrašo viršų pasidalinant juo socialiniuose "
-#~ "tinkluose."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Žinučių, kurioms reikia jūsų veiksmo, skaičius"
-
-#~ msgid "Our forums"
-#~ msgstr "Mūsų forumai"
-
-#~ msgid "People"
-#~ msgstr "Žmonės"
-
-#~ msgid "Post Comment"
-#~ msgstr " Įrašo komentaras"
-
-#~ msgid "Register"
-#~ msgstr "Registruotis"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Apriboti skelbimą šioje svetainėje."
-
-#~ msgid "Return to the question list."
-#~ msgstr "Grįžti į klausimų sąrašą."
-
-#~ msgid "Show"
-#~ msgstr "Rodyti"
-
-#~ msgid "Sign in"
-#~ msgstr "Prisijungti"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "Atsiprašome, norėdami atlikti šį veiksmą, turite būti prisijungęs"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Atsiprašome, norėdami pažymėti įrašą, turite būti prisijungęs"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "Atsiprašome, norėdami balsuoti, turite būti prisijungęs"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr ""
-#~ "Atsiprašome, anoniminiai vartotojai negali pasirinkti teisingo atsakymo."
-
-#~ msgid "Teaser"
-#~ msgstr "Anonsas"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "Techninis laukas, leidžiantis iškelti klausimą į viršų. Įrašymas šiame "
-#~ "lauke sukels \"write\" funkciją \"write_date\" ir taip pakels įrašą. "
-#~ "Tiesioginis rašymas į \"write_date\" šiuo metu negalimas."
-
-#~ msgid "Toggle favorite status"
-#~ msgstr "Perjungti mėgstamiausių būseną"
-
-#~ msgid "Trending"
-#~ msgstr "Populiaru"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "Atsieti visus komentarus"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "Atsieti savo komentarus"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Laukia patvirtinimo"
-
-#~ msgid "Waiting post"
-#~ msgstr "Laukiantis įrašas"

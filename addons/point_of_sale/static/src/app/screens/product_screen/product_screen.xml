@@ -6,12 +6,10 @@
                 class="leftpane d-flex flex-column pb-2 border-end bg-view">
                 <OrderSummary />
                 <div class="pads px-2">
-                    <t t-if="!this.pos.isSmallProductScreen">
-                        <div class="control-buttons d-flex justify-content-between gap-2 w-100 pt-2">
-                            <ControlButtons onClickMore.bind="displayAllControlPopup"/>
-                        </div>
-                    </t>
-                    <div class="subpads d-flex flex-column gap-2 pt-2">
+                    <div class="control-buttons d-flex justify-content-between gap-2 w-100 py-2">
+                        <ControlButtons t-if="!this.pos.isSmallProductScreen" onClickMore.bind="displayAllControlPopup"/>
+                    </div>
+                    <div class="subpads d-flex flex-column gap-2">
                         <Numpad t-if="!currentOrder?.isEmpty() and pos.getOrder()?.uiState.selected_orderline_uuid" class="'d-grid'" buttons="getNumpadButtons()" onClick.bind="onNumpadClick"/>
                         <ActionpadWidget 
                             partner="currentOrder?.getPartner()" 
@@ -26,16 +24,17 @@
             </div>
             <div class="rightpane d-flex flex-grow-1 flex-column bg-secondary" t-if="!this.pos.isSmallProductScreen || pos.mobile_pane === 'right'">
                 <div class="position-relative d-flex flex-column flex-grow-1 overflow-hidden">
-                    <CategorySelector t-if="pos.productsToDisplay.length > 0 and (!this.pos.isSmallProductScreen || !pos.scanning)" />
+                    <CategorySelector t-if="pos.productToDisplayByCateg.length > 0 and (!this.pos.isSmallProductScreen || !pos.scanning)" />
                     <BarcodeVideoScanner t-if="pos.scanning" t-props="barcodeVideoScannerProps" />
                     <div t-elif="pos.productToDisplayByCateg.length > 0" class="overflow-y-auto" t-on-scroll="onScroll">
-                        <div t-foreach="pos.productToDisplayByCateg" t-as="productCateg" t-key="productCateg[0]" class="product-list d-grid gap-1 gap-lg-2 px-2 pt-0 pb-2">
+                        <div t-foreach="pos.productToDisplayByCateg" t-as="productCateg" t-key="productCateg[0]" class="product-list d-grid gap-1 gap-lg-2 px-2 py-2">
                             <ProductCard
                                 t-foreach="productCateg[1]" t-as="product" t-key="product.id"
                                 productId="product.id"
                                 product="product"
                                 class="pos.productViewMode"
                                 name="getProductName(product)"
+                                available="!pos.isProductSnoozed(product)"
                                 color="product.color || product.pos_categ_ids?.at(-1)?.color"
                                 imageUrl="pos.config.show_product_images and this.getProductImage(product)"
                                 onClick.bind="() => this.addProductToOrder(product)"
@@ -57,14 +56,14 @@
                                         <t t-if="doLoadSampleData.status === 'loading'">Loading...</t>
                                         <t t-else="">Load Sample</t>
                                      </button>
-                                    <button role="button" class="btn btn-lg btn-secondary" t-on-click="()=>pos.editProduct()">Create Manually</button>
+                                    <button class="btn btn-lg btn-secondary" t-on-click="()=>pos.editProduct()">Create Manually</button>
                                 </p>
                             </div>
                         </div>
                         <p t-else="">There are no products in this category.</p>
                     </div>
                     <div t-if="searchWord" class="search-more-button d-flex justify-content-center m-2">
-                        <button class="btn btn-primary btn-lg lh-lg" t-on-click="onPressEnterKey">Search more</button>
+                        <button class="btn btn-primary btn-lg lh-lg" t-on-click="() => this.pos.searchProductsFromDB()">Search more</button>
                     </div>
                 </div>
                 <t t-if="this.pos.isSmallProductScreen">

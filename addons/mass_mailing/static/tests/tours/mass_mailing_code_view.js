@@ -26,7 +26,7 @@ registry.category("web_tour.tours").add('mass_mailing_code_view_tour', {
             content: 'Select item from dropdown',
             run: 'click',
         }, {
-            trigger: 'div[name="body_arch"] .o_mailing_template_preview_wrapper [data-name="default"]',
+            trigger: 'div[name="body_arch"] :iframe .o_mailing_template_preview_wrapper [data-name="default"]',
             content: markup('Choose this <b>theme</b>.'),
             run: 'click',
         }, {
@@ -61,7 +61,7 @@ registry.category("web_tour.tours").add('mass_mailing_code_view_tour', {
             run: "click",
         },
         {
-            trigger: '[name="body_arch"] :iframe .o_editable h1',
+            trigger: '[name="body_arch"] :iframe .o_savable h1',
             content: 'Verify that the title was inserted properly in the editor',
         },
         ...stepUtils.discardForm(),

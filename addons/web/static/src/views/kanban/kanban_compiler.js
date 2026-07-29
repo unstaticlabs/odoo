@@ -31,7 +31,8 @@ export class KanbanCompiler extends ViewCompiler {
     setup() {
         this.compilers.push(
             { selector: "t[t-call]", fn: this.compileTCall },
-            { selector: "img", fn: this.compileImage }
+            { selector: "img", fn: this.compileImage },
+            { selector: "main", fn: this.compileMain }
         );
     }
 
@@ -95,6 +96,22 @@ export class KanbanCompiler extends ViewCompiler {
     }
 
     /**
+     * @returns {Element}
+     */
+    compileMain(el, params) {
+        const compiled = createElement("div");
+
+        for (const { name, value } of el.attributes) {
+            compiled.setAttribute(name, value);
+        }
+        combineAttributes(compiled, "class", ["o_record_main"]);
+        for (const child of el.childNodes) {
+            append(compiled, this.compileNode(child, params));
+        }
+        return compiled;
+    }
+
+    /**
      * @override
      */
     compileField(el, params) {
@@ -107,6 +124,7 @@ export class KanbanCompiler extends ViewCompiler {
             compiled = createElement("span", {
                 "t-out": params.formattedValueExpr || `__comp__.getFormattedValue("${fieldId}")`,
             });
+            this.copyFieldAttributes(compiled, el);
         } else {
             compiled = super.compileField(el, params);
             const fieldId = el.getAttribute("field_id");

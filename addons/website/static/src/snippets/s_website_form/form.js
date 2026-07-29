@@ -17,7 +17,7 @@ import {
     serializeDate,
     serializeDateTime,
 } from "@web/core/l10n/dates";
-import wUtils from "@website/js/utils";
+import { getParsedDataFor } from "@website/js/utils";
 
 const { DateTime } = luxon;
 
@@ -51,7 +51,17 @@ export class Form extends Interaction {
         },
         // Do not disable inputs that are required for the model.
         ".s_website_form_field:not(.s_website_form_model_required) .s_website_form_input": {
-            "t-att-disabled": (el) => !this.isInputVisible(el) || undefined,
+            "t-att-disabled": (el) => {
+                if (!this.isInputVisible(el)) {
+                    this.disabledInputEls.add(el);
+                    return true;
+                }
+                if (el.disabled && !this.disabledInputEls.has(el)) {
+                    return true;
+                }
+
+                this.disabledInputEls.delete(el);
+            },
         },
         ".s_website_form_datetime, .o_website_form_datetime, .s_website_form_date, .o_website_form_date":
             {
@@ -69,6 +79,7 @@ export class Form extends Interaction {
         this.disabledStates = new Map();
         this.visibilityFunctionByFieldEl = new Map();
         this.visibilityFunctionByFieldName = new Map();
+        this.disabledInputEls = new Set();
         this.inputEls = this.el.querySelectorAll(
             ".s_website_form_field.s_website_form_field_hidden_if .s_website_form_input"
         );
@@ -194,7 +205,7 @@ export class Form extends Interaction {
         // in edit mode to keep the form linked to its predefined server
         // values (e.g., the default `job_id` value on the application form
         // for a given job).
-        const dataForValues = wUtils.getParsedDataFor(this.el.id, document) || {};
+        const dataForValues = getParsedDataFor(this.el.id, document) || {};
         const initialValuesToReset = new Map(
             [...this.initialValues.entries()].filter(
                 ([input]) => !dataForValues[input.name] || input.name === "email_to"
@@ -226,6 +237,7 @@ export class Form extends Interaction {
                         onChange: () =>
                             inputEl.dispatchEvent(new Event("input", { bubbles: true })),
                         pickerProps: {
+                            showWeekNumbers: false,
                             type: fieldEl.matches(".s_website_form_date, .o_website_form_date")
                                 ? "date"
                                 : "datetime",
@@ -247,7 +259,7 @@ export class Form extends Interaction {
         // Because, using t-att- inside form make it non-editable
         // Data-fill-with attribute is given during registry and is used by
         // to know which user data should be used to prfill fields.
-        let dataForValues = wUtils.getParsedDataFor(this.el.id, document);
+        let dataForValues = getParsedDataFor(this.el.id, document);
         // On the "edit_translations" mode, a <span/> with a translated term
         // will replace the attribute value, leading to some inconsistencies
         // (setting again the <span> on the attributes after the editor's
@@ -258,7 +270,6 @@ export class Form extends Interaction {
             const fieldNames = [...this.el.querySelectorAll("[name]")]
                 .filter((el) => !["submit", "button", "image", "reset", "file"].includes(el.type))
                 .map((el) => el.name);
-
             // All types of inputs do not have a value property (eg:hidden),
             // for these inputs any function that is supposed to put a value
             // property actually puts a HTML value attribute. Because of
@@ -321,7 +332,12 @@ export class Form extends Interaction {
         }
 
         const formFields = [];
+        // List of placeholder values to ignore for submission
+        const valuesToIgnore = ["_other"];
         new FormData(this.el).forEach((value, key) => {
+            if (valuesToIgnore.includes(value)) {
+                return;
+            }
             const inputElement = this.el.querySelector(`[name="${CSS.escape(key)}"]`);
             if (inputElement && inputElement.type !== "file") {
                 formFields.push({ name: key, value: value });
@@ -505,7 +521,9 @@ export class Form extends Interaction {
                 this.updateStatus(
                     "error",
                     error.message && error.message === "Content too large"
-                        ? _t("Uploaded file is too large.")
+                        ? _t(
+                              "Your upload is too large for the server to accept. Please choose smaller files."
+                          )
                         : ""
                 );
             });
@@ -532,6 +550,7 @@ export class Form extends Interaction {
 
     checkErrorFields(errorFields) {
         let formValid = true;
+        let firstInvalidInput = null;
         // Loop on all fields
         for (const fieldEl of this.el.querySelectorAll(".form-field, .s_website_form_field")) {
             // !compatibility
@@ -626,8 +645,16 @@ export class Form extends Interaction {
                     });
                     popover.show();
                 }
+                if (!firstInvalidInput) {
+                    firstInvalidInput = invalidInputs[0] || controlEls[0];
+                }
                 formValid = false;
             }
+        }
+        // Highlight the first invalid field
+        if (firstInvalidInput) {
+            firstInvalidInput.focus();
+            firstInvalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
         }
         return formValid;
     }
@@ -737,7 +764,7 @@ export class Form extends Interaction {
      * @returns {string[]} List of user's field that have to be fetched.
      */
     getUserPreFillFields() {
-        return ["name", "phone", "email", "commercial_company_name"];
+        return ["name", "phone", "email", "parent_name"];
     }
 
     /**
@@ -759,12 +786,23 @@ export class Form extends Interaction {
         if (value === null) {
             value = "";
         }
+        const isContains = (comparable, value) => {
+            try {
+                comparable = JSON.parse(comparable);
+            } catch {
+                // not a JSON, keep original value
+            }
+            if (Array.isArray(comparable) && Array.isArray(value)) {
+                return comparable.some((comp) => value.includes(comp));
+            }
+            return value.includes(comparable);
+        };
 
         switch (comparator) {
             case "contains":
-                return value.includes(comparable);
+                return isContains(comparable, value);
             case "!contains":
-                return !value.includes(comparable);
+                return !isContains(comparable, value);
             case "substring":
                 return value.includes(comparable);
             case "!substring":
@@ -840,10 +878,19 @@ export class Form extends Interaction {
      *      recalculate the visibility of fieldEl
      */
     buildVisibilityFunction(fieldEl) {
-        const visibilityCondition = fieldEl.dataset.visibilityCondition;
         const dependencyName = fieldEl.dataset.visibilityDependency;
         const comparator = fieldEl.dataset.visibilityComparator;
         const between = fieldEl.dataset.visibilityBetween;
+        const dependencyEl = this.el.querySelector(
+            `.s_website_form_input[name="${dependencyName}"]`
+        );
+        const visibilityCondition = fieldEl.dataset.visibilityCondition;
+
+        const isMultiValueDependency =
+            ["contains", "!contains"].includes(comparator) &&
+            (["checkbox", "radio"].includes(dependencyEl.type) ||
+                dependencyEl.nodeName === "SELECT");
+
         return () => {
             // To be visible, at least one field with the dependency name must be visible.
             const dependencyVisibilityFunction =
@@ -854,8 +901,8 @@ export class Form extends Interaction {
                 return false;
             }
 
-            const currentValueOfDependency = ["contains", "!contains"].includes(comparator)
-                ? this.lastFormData.getAll(dependencyName).join()
+            const currentValueOfDependency = isMultiValueDependency
+                ? this.lastFormData.getAll(dependencyName)
                 : this.lastFormData.get(dependencyName);
             return this.compareTo(
                 comparator,

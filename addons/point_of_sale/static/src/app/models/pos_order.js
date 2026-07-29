@@ -1,8 +1,7 @@
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { computeComboItems } from "./utils/compute_combo_items";
-import { localization } from "@web/core/l10n/localization";
-import { formatDate, serializeDateTime } from "@web/core/l10n/dates";
+import { serializeDateTime } from "@web/core/l10n/dates";
 import { PosOrderAccounting } from "./accounting/pos_order_accounting";
 
 const { DateTime } = luxon;
@@ -33,7 +32,7 @@ export class PosOrder extends PosOrderAccounting {
         this.name = vals.name || "/";
         this.nb_print = vals.nb_print || 0;
         this.to_invoice = vals.to_invoice || false;
-        this.setShippingDate(vals.shipping_date);
+        this.shipping_date = vals.shipping_date;
         this.state = vals.state || "draft";
 
         if (!vals.last_order_preparation_change) {
@@ -43,6 +42,7 @@ export class PosOrder extends PosOrderAccounting {
                 general_customer_note: "",
                 internal_note: "",
                 sittingMode: 0,
+                print_history: [],
             };
         } else {
             this.last_order_preparation_change =
@@ -71,7 +71,6 @@ export class PosOrder extends PosOrderAccounting {
         // !!Keep all uiState in one object!!
         this.uiState = {
             unmerge: {},
-            lastPrints: [],
             lineToRefund: {},
             displayed: this.state !== "cancel",
             booked: false,
@@ -83,6 +82,7 @@ export class PosOrder extends PosOrderAccounting {
                 inputTipAmount: "",
             },
             requiredPartnerDetails: {},
+            tip: { value: false, type: false },
         };
     }
 
@@ -131,7 +131,7 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     get presetDate() {
-        return this.preset_time?.toFormat(localization.dateFormat) || "";
+        return this.formatDateOrTime("preset_time", "date");
     }
 
     get isFutureDate() {
@@ -140,7 +140,7 @@ export class PosOrder extends PosOrderAccounting {
 
     get presetTime() {
         return this.preset_time && this.preset_time.isValid
-            ? this.preset_time.toFormat("HH:mm")
+            ? this.formatDateOrTime("preset_time", "time")
             : false;
     }
 
@@ -151,8 +151,8 @@ export class PosOrder extends PosOrderAccounting {
     get presetDateTime() {
         return this.preset_time?.isValid
             ? this.preset_time.hasSame(this.date_order, "day")
-                ? this.preset_time.toFormat(localization.timeFormat)
-                : this.preset_time.toFormat(`${localization.dateFormat} ${localization.timeFormat}`)
+                ? this.formatDateOrTime("preset_time", "time")
+                : this.formatDateOrTime("preset_time")
             : false;
     }
 
@@ -195,6 +195,10 @@ export class PosOrder extends PosOrderAccounting {
 
     get isRefund() {
         return this.is_refund === true;
+    }
+
+    get adjustableTipLine() {
+        return this.payment_ids.find((p) => p.canBeAdjusted());
     }
 
     setPreset(preset) {
@@ -285,7 +289,7 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     assertEditable() {
-        if (this.finalized) {
+        if (this.finalized && (this.nb_print || this.state == "done")) {
             throw new Error("Finalized Order cannot be modified");
         }
         return true;
@@ -319,6 +323,13 @@ export class PosOrder extends PosOrderAccounting {
             }
             return 0;
         }
+    }
+
+    setTip(amount, tipType, tipValue) {
+        this.is_tipped = !!amount;
+        this.tip_amount = amount || false;
+        this.uiState.tip.type = tipType || false;
+        this.uiState.tip.value = tipValue || amount || false;
     }
 
     setPricelist(pricelist) {
@@ -357,27 +368,27 @@ export class PosOrder extends PosOrderAccounting {
         );
         for (const pLine of combo_parent_lines) {
             const { childLineFree, childLineExtra } = this.getFreeAndExtraChildLines(pLine);
-            attributes_prices[pLine.id] = computeComboItems(
+            attributes_prices[pLine.uuid] = computeComboItems(
                 pLine.product_id,
                 childLineFree,
                 pricelist,
                 this.models["decimal.precision"].getAll(),
                 this.models["product.template.attribute.value"].getAllBy("id"),
                 childLineExtra,
-                this.config_id.currency_id
+                this.currency
             );
         }
         const combo_children_lines = this.lines.filter(
             (line) => line.price_type === "original" && line.combo_parent_id
         );
         combo_children_lines.forEach((line) => {
-            const currentItem = attributes_prices[line.combo_parent_id.id].find(
+            const currentItem = attributes_prices[line.combo_parent_id.uuid].find(
                 (item) => item.combo_item_id.id === line.combo_item_id.id
             );
             line.setUnitPrice(currentItem.price_unit);
             // Removing to be able to have extras that are the same as free products
-            attributes_prices[line.combo_parent_id.id].splice(
-                attributes_prices[line.combo_parent_id.id].indexOf(currentItem),
+            attributes_prices[line.combo_parent_id.uuid].splice(
+                attributes_prices[line.combo_parent_id.uuid].indexOf(currentItem),
                 1
             );
         });
@@ -387,23 +398,32 @@ export class PosOrder extends PosOrderAccounting {
         const childLineFree = [];
         const childLineExtra = [];
         const comboRemainingFree = {};
+        const parentQty = pLine.getQuantity() || 1;
+
         for (const cLine of pLine.combo_line_ids) {
-            if (!(cLine.combo_item_id.combo_id.id in comboRemainingFree)) {
-                comboRemainingFree[cLine.combo_item_id.combo_id.id] =
-                    cLine.combo_item_id.combo_id.qty_free * pLine.qty;
+            const comboId = cLine.combo_item_id.combo_id.id;
+
+            if (!(comboId in comboRemainingFree)) {
+                comboRemainingFree[comboId] = cLine.combo_item_id.combo_id.qty_free * parentQty;
             }
-            const newQty = comboRemainingFree[cLine.combo_item_id.combo_id.id] - cLine.qty;
+
+            const childQty = cLine.getQuantity();
+            if (childQty <= 0) {
+                continue;
+            }
+
+            const newQty = comboRemainingFree[comboId] - childQty;
             const baseData = { combo_item_id: cLine.combo_item_id };
+
             if (cLine.attribute_value_ids) {
                 baseData.configuration = { attribute_value_ids: cLine.attribute_value_ids };
             }
-            if (cLine.qty) {
-                if (newQty >= 0) {
-                    comboRemainingFree[cLine.combo_item_id.combo_id.id] = newQty;
-                    childLineFree.push({ ...baseData, qty: cLine.qty, parentQty: pLine.qty });
-                } else {
-                    childLineExtra.push({ ...baseData, qty: cLine.qty });
-                }
+
+            if (newQty >= 0) {
+                comboRemainingFree[comboId] = newQty;
+                childLineFree.push({ ...baseData, qty: childQty / parentQty });
+            } else {
+                childLineExtra.push({ ...baseData, qty: childQty / parentQty });
             }
         }
         return { childLineFree, childLineExtra };
@@ -416,8 +436,19 @@ export class PosOrder extends PosOrderAccounting {
      * @param {Orderline} line
      * @returns {boolean} true if the line was removed, false otherwise
      */
-    removeOrderline(line) {
-        const linesToRemove = line.getAllLinesInCombo();
+    removeOrderline(line, deep = true) {
+        // Remove tip
+        if (this.config.iface_tipproduct && this.config.tip_product_id.id === line.product_id.id) {
+            this.setTip(false);
+        }
+
+        let linesToRemove = [];
+        if (deep) {
+            linesToRemove = line.getAllLinesInCombo();
+        } else {
+            linesToRemove = [line];
+        }
+
         for (const lineToRemove of linesToRemove) {
             if (lineToRemove.refunded_orderline_id?.uuid in this.uiState.lineToRefund) {
                 delete this.uiState.lineToRefund[lineToRemove.refunded_orderline_id.uuid];
@@ -551,8 +582,13 @@ export class PosOrder extends PosOrderAccounting {
         );
     }
 
-    isPaid() {
-        return this.orderHasZeroRemaining;
+    toBeValidate() {
+        // Return true if order has payment lines and no due is remaining.
+        if (this.payment_ids.length > 0) {
+            return this.orderHasZeroRemaining;
+        }
+        // Check if multiple payment methods are configured.
+        return this.config_id.payment_method_ids.length;
     }
 
     isRefundInProcess() {
@@ -685,16 +721,6 @@ export class PosOrder extends PosOrderAccounting {
         }
     }
 
-    /* ---- Ship later --- */
-    //FIXME remove this
-    setShippingDate(shippingDate) {
-        this.shipping_date = shippingDate;
-    }
-    //FIXME remove this
-    getShippingDate() {
-        return formatDate(this.shipping_date);
-    }
-
     getHasRefundLines() {
         for (const line of this.lines) {
             if (line.refunded_orderline_id) {
@@ -717,7 +743,7 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     canBeValidated() {
-        return this.isPaid() && this._isValidEmptyOrder() && !this.isCustomerRequired;
+        return this.toBeValidate() && this._isValidEmptyOrder() && !this.isCustomerRequired;
     }
 
     // NOTE: Overrided in pos_loyalty to put loyalty rewards at this end of array.
@@ -737,7 +763,7 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     get floatingOrderName() {
-        return this.floating_order_name || this.tracking_number?.toString() || "";
+        return this.floating_order_name || this.tracking_number.toString() || "";
     }
 
     sortBySequenceAndCategory(a, b) {
@@ -759,18 +785,10 @@ export class PosOrder extends PosOrderAccounting {
     }
 
     get globalDiscountPc() {
-        return this.discountLines?.[0]?.extra_tax_data?.discount_percentage || 0;
-    }
-
-    get isDirectSale() {
-        return false; // Overridden in pos_restaurant
-    }
-
-    get preparationName() {
-        if (this.isDirectSale) {
-            return this.floatingOrderName || this.pos_reference;
-        }
-        return this.getName();
+        return {
+            value: this.discountLines?.[0]?.extra_tax_data?.discount_value || 0,
+            type: this.discountLines?.[0]?.extra_tax_data?.discount_type || "",
+        };
     }
 
     getName() {
@@ -785,6 +803,16 @@ export class PosOrder extends PosOrderAccounting {
     }
     setInternalNote(note) {
         this.internal_note = note || "";
+    }
+
+    get lastPrints() {
+        return this.last_order_preparation_change.print_history || [];
+    }
+    pushLastPrints(data) {
+        if (!this.last_order_preparation_change.print_history) {
+            this.last_order_preparation_change.print_history = [];
+        }
+        this.last_order_preparation_change.print_history.push(data);
     }
 
     get showChange() {

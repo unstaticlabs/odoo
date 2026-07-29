@@ -11,7 +11,7 @@ from odoo.tests.common import HttpCase, new_test_user, tagged, users
 from odoo.tools.misc import mute_logger
 
 
-@tagged("RTC", "post_install", "-at_install")
+@tagged("RTC")
 class TestChannelRTC(MailCommon, HttpCase):
 
     @users('employee')
@@ -23,35 +23,54 @@ class TestChannelRTC(MailCommon, HttpCase):
         channel = self.env['discuss.channel']._create_channel(name='Test Channel', group_id=self.env.ref('base.group_user').id)
         channel_member = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == self.user_employee.partner_id)
         channel_member._rtc_join_call()
+        last_rtc_session_id = channel_member.rtc_session_ids.id
+        partner_data = {
+            "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
+            "id": channel_member.partner_id.id,
+            "im_status": channel_member.partner_id.im_status,
+            "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+            "main_user_id": self.user_employee.id,
+            "mention_token": channel_member.partner_id._get_mention_token(),
+            "name": channel_member.partner_id.name,
+            "write_date": fields.Datetime.to_string(channel_member.partner_id.write_date),
+        }
+        member_data = {
+            "channel_id": channel.id,
+            "id": channel_member.id,
+            "partner_id": channel_member.partner_id.id,
+        }
         with self.assertBus(
             [
-                # delete of old sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # end of old sessions
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # update history with duration of previous session
+                # delete of old sessions, update history with duration of previous session
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # insert new session
-                (self.cr.dbname, "discuss.channel", channel.id),
-                # message unread counter (message post)
+                # new_message_separator (message post)
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # start call notification message post
+                # start call notification (message post) (not asserted below)
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # new call history (not asserted below)
+                # insert new session, new call history
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {
                     "type": "discuss.channel.rtc.session/ended",
-                    "payload": {"sessionId": channel_member.rtc_session_ids.id},
+                    "payload": {"sessionId": last_rtc_session_id},
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
+                        "discuss.call.history": [
+                            {
+                                "duration_hour": 0.0,
+                                "end_dt": "2023-03-15 12:34:56",
+                                "id": channel.call_history_ids.id,
+                            },
+                        ],
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("DELETE", [channel_member.rtc_session_ids.id])],
+                                "rtc_session_ids": [("DELETE", [last_rtc_session_id])],
                             },
                         ],
                     },
@@ -62,36 +81,26 @@ class TestChannelRTC(MailCommon, HttpCase):
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("ADD", [channel_member.rtc_session_ids.id + 1])],
+                                "rtc_session_ids": [("ADD", [last_rtc_session_id + 1])],
                             },
                         ],
-                        "discuss.channel.member": [
-                            {
-                                "id": channel_member.id,
-                                "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
-                            },
-                        ],
+                        "discuss.channel.member": [member_data],
                         "discuss.channel.rtc.session": [
+                            {"channel_member_id": channel_member.id, "id": last_rtc_session_id + 1},
+                        ],
+                        "mail.message": [
                             {
-                                "channel_member_id": channel_member.id,
-                                "id": channel_member.rtc_session_ids.id + 1,
+                                "call_history_ids": [channel.call_history_ids.id + 1],
+                                "id": channel_member.new_message_separator,
                             },
                         ],
-                        "res.partner": self._filter_partners_fields(
+                        "res.partner": self._filter_partners_fields(partner_data),
+                        "res.users": self._filter_users_fields(
                             {
-                                "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
-                                "id": channel_member.partner_id.id,
-                                "im_status": channel_member.partner_id.im_status,
-                                "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
-                                "mention_token": channel_member.partner_id._get_mention_token(),
-                                "name": channel_member.partner_id.name,
-                                "write_date": fields.Datetime.to_string(
-                                    channel_member.partner_id.write_date
-                                ),
+                                "all_employee_ids": [],
+                                "id": self.user_employee.id,
+                                "employee_ids": [],
+                                "partner_id": self.partner_employee.id,
                             },
                         ),
                     },
@@ -101,12 +110,10 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "id": channel_member.id,
+                                **member_data,
                                 "new_message_separator": channel_member.new_message_separator + 1,
-                                "partner_id": channel_member.partner_id.id,
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"}
-                            }
-                        ]
+                            },
+                        ],
                     },
                 },
             ],
@@ -121,43 +128,27 @@ class TestChannelRTC(MailCommon, HttpCase):
                     {
                         "id": channel.id,
                         "rtc_session_ids": [
-                            ("ADD", [channel_member.rtc_session_ids.id]),
-                            ("DELETE", [channel_member.rtc_session_ids.id - 1]),
+                            ("ADD", [last_rtc_session_id + 1]),
+                            ("DELETE", [last_rtc_session_id]),
                         ],
                     },
                 ],
-                "discuss.channel.member": [
-                    {
-                        "id": channel_member.id,
-                        "partner_id": channel_member.partner_id.id,
-                        "channel_id": {
-                            "id": channel_member.channel_id.id,
-                            "model": "discuss.channel",
-                        },
-                    },
-                ],
+                "discuss.channel.member": [member_data],
                 "discuss.channel.rtc.session": [
-                    {
-                        "channel_member_id": channel_member.id,
-                        "id": channel_member.rtc_session_ids.id,
-                    },
+                    {"channel_member_id": channel_member.id, "id": last_rtc_session_id + 1},
                 ],
-                "res.partner": self._filter_partners_fields(
+                "res.partner": self._filter_partners_fields(partner_data),
+                "res.users": self._filter_users_fields(
                     {
-                        "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
-                        "id": channel_member.partner_id.id,
-                        "im_status": channel_member.partner_id.im_status,
-                        "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
-                        "mention_token": channel_member.partner_id._get_mention_token(),
-                        "name": channel_member.partner_id.name,
-                        "write_date": fields.Datetime.to_string(
-                            channel_member.partner_id.write_date
-                        ),
+                        "all_employee_ids": [],
+                        "id": self.user_employee.id,
+                        "employee_ids": [],
+                        "partner_id": self.partner_employee.id,
                     },
                 ),
                 "Rtc": {
                     "iceServers": False,
-                    "localSession": channel_member.rtc_session_ids.id,
+                    "localSession": last_rtc_session_id + 1,
                     "serverInfo": None,
                 },
             },
@@ -173,20 +164,19 @@ class TestChannelRTC(MailCommon, HttpCase):
         channel_member._rtc_join_call()
         last_rtc_session_id = channel_member.rtc_session_ids.id
         channel_member._rtc_leave_call()
-
         with self.assertBus(
             [
-                # update new session
+                # update channel interest date on first call participant
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # update new message separator
+                # update new message separator (message_post) (not asserted below)
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
                 # message_post "started a live conference" (not asserted below)
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # update call history (not asserted below)
+                # update new session, update call history
                 (self.cr.dbname, "discuss.channel", channel.id),
                 # incoming invitation
                 (self.cr.dbname, "res.partner", test_user.partner_id.id),
-                # update list of invitations
+                # update list of invitations (not asserted below)
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
@@ -201,12 +191,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member.id,
                                 "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
@@ -215,17 +202,30 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": last_rtc_session_id + 1,
                             },
                         ],
+                        "mail.message": [
+                            {
+                                "call_history_ids": [channel.call_history_ids.id + 1],
+                                "id": channel_member.new_message_separator,
+                            },
+                        ],
                         "res.partner": self._filter_partners_fields(
                             {
                                 "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
                                 "id": channel_member.partner_id.id,
                                 "im_status": channel_member.partner_id.im_status,
                                 "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+                                "main_user_id": self.user_employee.id,
                                 "mention_token": channel_member.partner_id._get_mention_token(),
                                 "name": channel_member.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": self.user_employee.id,
+                                "partner_id": self.partner_employee.id,
                             },
                         ),
                     },
@@ -241,12 +241,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "res.partner": self._filter_partners_fields(
@@ -255,11 +252,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -287,13 +291,13 @@ class TestChannelRTC(MailCommon, HttpCase):
 
         with self.assertBus(
             [
-                # update new session
+                # update channel interest date on first call participant
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # update new message separator
+                # update new message separator (not asserted below)
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
                 # message_post "started a live conference" (not asserted below)
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # update call history (not asserted below)
+                # update new session, update call history
                 (self.cr.dbname, "discuss.channel", channel.id),
                 # incoming invitation
                 (self.cr.dbname, "res.partner", test_user.partner_id.id),
@@ -314,12 +318,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member.id,
                                 "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
@@ -328,17 +329,30 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": last_rtc_session_id + 1,
                             },
                         ],
+                        "mail.message": [
+                            {
+                                "call_history_ids": [channel.call_history_ids.id + 1],
+                                "id": channel_member.new_message_separator,
+                            },
+                        ],
                         "res.partner": self._filter_partners_fields(
                             {
                                 "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
                                 "id": channel_member.partner_id.id,
                                 "im_status": channel_member.partner_id.im_status,
-                                "im_status_access_token":  channel_member.partner_id._get_im_status_access_token(),
+                                "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+                                "main_user_id": self.user_employee.id,
                                 "mention_token": channel_member.partner_id._get_mention_token(),
                                 "name": channel_member.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": self.user_employee.id,
+                                "partner_id": self.partner_employee.id,
                             },
                         ),
                     },
@@ -354,12 +368,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member.id,
                                 "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
@@ -368,17 +379,30 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": last_rtc_session_id + 1,
                             },
                         ],
+                        "mail.message": [
+                            {
+                                "call_history_ids": [channel.call_history_ids.id + 1],
+                                "id": channel_member.new_message_separator,
+                            },
+                        ],
                         "res.partner": self._filter_partners_fields(
                             {
                                 "avatar_128_access_token": channel_member.partner_id._get_avatar_128_access_token(),
                                 "id": channel_member.partner_id.id,
                                 "im_status": channel_member.partner_id.im_status,
                                 "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+                                "main_user_id": self.user_employee.id,
                                 "mention_token": channel_member.partner_id._get_mention_token(),
                                 "name": channel_member.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": self.user_employee.id,
+                                "partner_id": self.partner_employee.id,
                             },
                         ),
                     },
@@ -399,20 +423,14 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "mail.guest": [
@@ -433,11 +451,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -458,8 +483,8 @@ class TestChannelRTC(MailCommon, HttpCase):
         channel._add_members(guests=test_guest)
         channel_member = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == self.user_employee.partner_id)
         channel_member._rtc_join_call()
-
         channel_member_test_user = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == test_user.partner_id)
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         with self.assertBus(
             [
                 # update invitation
@@ -475,7 +500,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
                                 "rtc_inviting_session_id": False,
@@ -494,12 +519,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "res.partner": self._filter_partners_fields(
@@ -508,11 +530,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -523,23 +552,20 @@ class TestChannelRTC(MailCommon, HttpCase):
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("ADD", [channel_member.rtc_session_ids.id + 1])],
+                                "rtc_session_ids": [("ADD", [last_rtc_session_id + 1])],
                             },
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
                             {
                                 "channel_member_id": channel_member_test_user.id,
-                                "id": channel_member.rtc_session_ids.id + 1,
+                                "id": last_rtc_session_id + 1,
                             },
                         ],
                         "res.partner": self._filter_partners_fields(
@@ -548,11 +574,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -577,7 +610,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
                                 "id": channel_member_test_guest.id,
                                 "rtc_inviting_session_id": False,
@@ -596,12 +629,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "mail.guest": [
@@ -624,25 +654,20 @@ class TestChannelRTC(MailCommon, HttpCase):
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [
-                                    ("ADD", [channel_member.rtc_session_ids.id + 2])
-                                ],
+                                "rtc_session_ids": [("ADD", [last_rtc_session_id + 2])],
                             },
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
                             {
                                 "channel_member_id": channel_member_test_guest.id,
-                                "id": channel_member.rtc_session_ids.id + 2,
+                                "id": last_rtc_session_id + 2,
                             },
                         ],
                         "mail.guest": [
@@ -688,7 +713,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
                                 "rtc_inviting_session_id": False,
@@ -707,12 +732,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "res.partner": self._filter_partners_fields(
@@ -721,11 +743,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -748,7 +777,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
                                 "id": channel_member_test_guest.id,
                                 "rtc_inviting_session_id": False,
@@ -767,12 +796,9 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "mail.guest": [
@@ -795,6 +821,7 @@ class TestChannelRTC(MailCommon, HttpCase):
 
     @users('employee')
     @mute_logger('odoo.models.unlink')
+    @freeze_time("2023-03-15 12:34:56")
     def test_25_lone_call_participant_leaving_call_should_cancel_pending_invitations(self):
         test_user = self.env['res.users'].sudo().create({'name': "Test User", 'login': 'test'})
         test_guest = self.env['mail.guest'].sudo().create({'name': "Test Guest"})
@@ -805,7 +832,7 @@ class TestChannelRTC(MailCommon, HttpCase):
         channel_member_test_user = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == test_user.partner_id)
         channel_member_test_guest = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.guest_id == test_guest)
         channel_member._rtc_join_call()
-
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         with self.assertBus(
             [
                 # update invitation
@@ -814,24 +841,22 @@ class TestChannelRTC(MailCommon, HttpCase):
                 (self.cr.dbname, "mail.guest", test_guest.id),
                 # update list of invitations
                 (self.cr.dbname, "discuss.channel", channel.id),
-                # update sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # end session
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # update call history (not asserted below)
+                # update sessions, update call history
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {
                     "type": "discuss.channel.rtc.session/ended",
-                    "payload": {"sessionId": channel_member.rtc_session_ids.id},
+                    "payload": {"sessionId": last_rtc_session_id},
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
                                 "rtc_inviting_session_id": False,
@@ -844,7 +869,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {"id": channel.id, "model": "discuss.channel"},
+                                "channel_id": channel.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
                                 "id": channel_member_test_guest.id,
                                 "rtc_inviting_session_id": False,
@@ -868,20 +893,14 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "mail.guest": [
@@ -902,6 +921,7 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
@@ -909,15 +929,28 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 ),
                             },
                         ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
+                            },
+                        ),
                     },
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
+                        "discuss.call.history": [
+                            {
+                                "duration_hour": 0.0,
+                                "end_dt": "2023-03-15 12:34:56",
+                                "id": channel.call_history_ids.id,
+                            },
+                        ],
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("DELETE", [channel_member.rtc_session_ids.id])],
+                                "rtc_session_ids": [("DELETE", [last_rtc_session_id])],
                             },
                         ],
                     },
@@ -945,6 +978,7 @@ class TestChannelRTC(MailCommon, HttpCase):
 
         channel_member_test_user = channel.sudo().channel_member_ids.filtered(lambda member: member.partner_id == test_user.partner_id)
         channel_member_test_guest = channel.sudo().channel_member_ids.filtered(lambda member: member.guest_id == test_guest)
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         found_bus_notifs = self.assertBusNotifications(
             [
                 # mail.record/insert - discuss.channel (channel_name_member_ids)
@@ -976,27 +1010,21 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
                                 "rtc_inviting_session_id": channel_member_test_user.rtc_inviting_session_id.id,
                             },
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member.id,
                                 "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
                             {
                                 "channel_member_id": channel_member.id,
-                                "id": channel_member.rtc_session_ids.id,
+                                "id": last_rtc_session_id,
                                 "is_camera_on": channel_member.rtc_session_ids.is_camera_on,
                                 "is_deaf": channel_member.rtc_session_ids.is_deaf,
                                 "is_muted": channel_member.rtc_session_ids.is_muted,
@@ -1009,11 +1037,20 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member.partner_id.id,
                                 "im_status": channel_member.partner_id.im_status,
                                 "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+                                "main_user_id": self.user_employee.id,
                                 "mention_token": channel_member.partner_id._get_mention_token(),
                                 "name": channel_member.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "all_employee_ids": [],
+                                "id": self.user_employee.id,
+                                "employee_ids": [],
+                                "partner_id": self.partner_employee.id,
                             },
                         ),
                     },
@@ -1023,27 +1060,21 @@ class TestChannelRTC(MailCommon, HttpCase):
                     "payload": {
                         "discuss.channel.member": [
                             {
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
+                                "channel_id": channel.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
                                 "id": channel_member_test_guest.id,
                                 "rtc_inviting_session_id": channel_member_test_guest.rtc_inviting_session_id.id,
                             },
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member.id,
                                 "partner_id": channel_member.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "discuss.channel.rtc.session": [
                             {
                                 "channel_member_id": channel_member.id,
-                                "id": channel_member.rtc_session_ids.id,
+                                "id": last_rtc_session_id,
                                 "is_camera_on": channel_member.rtc_session_ids.is_camera_on,
                                 "is_deaf": channel_member.rtc_session_ids.is_deaf,
                                 "is_muted": channel_member.rtc_session_ids.is_muted,
@@ -1056,11 +1087,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member.partner_id.id,
                                 "im_status": channel_member.partner_id.im_status,
                                 "im_status_access_token": channel_member.partner_id._get_im_status_access_token(),
+                                "main_user_id": self.user_employee.id,
                                 "mention_token": channel_member.partner_id._get_mention_token(),
                                 "name": channel_member.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": self.user_employee.id,
+                                "partner_id": self.user_employee.partner_id.id,
                             },
                         ),
                     },
@@ -1081,20 +1119,14 @@ class TestChannelRTC(MailCommon, HttpCase):
                         ],
                         "discuss.channel.member": [
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_user.id,
                                 "partner_id": channel_member_test_user.partner_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_user.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                             {
+                                "channel_id": channel.id,
                                 "id": channel_member_test_guest.id,
                                 "guest_id": channel_member_test_guest.guest_id.id,
-                                "channel_id": {
-                                    "id": channel_member_test_guest.channel_id.id,
-                                    "model": "discuss.channel",
-                                },
                             },
                         ],
                         "mail.guest": [
@@ -1115,11 +1147,18 @@ class TestChannelRTC(MailCommon, HttpCase):
                                 "id": channel_member_test_user.partner_id.id,
                                 "im_status": channel_member_test_user.partner_id.im_status,
                                 "im_status_access_token": channel_member_test_user.partner_id._get_im_status_access_token(),
+                                "main_user_id": test_user.id,
                                 "mention_token": channel_member_test_user.partner_id._get_mention_token(),
                                 "name": channel_member_test_user.partner_id.name,
                                 "write_date": fields.Datetime.to_string(
                                     channel_member_test_user.partner_id.write_date
                                 ),
+                            },
+                        ),
+                        "res.users": self._filter_users_fields(
+                            {
+                                "id": test_user.id,
+                                "partner_id": test_user.partner_id.id,
                             },
                         ),
                     },
@@ -1130,31 +1169,39 @@ class TestChannelRTC(MailCommon, HttpCase):
 
     @users('employee')
     @mute_logger('odoo.models.unlink')
+    @freeze_time("2023-03-15 12:34:56")
     def test_40_leave_call_should_remove_existing_sessions_of_user_in_channel_and_return_data(self):
+        self.maxDiff = None
         channel = self.env['discuss.channel']._create_group(partners_to=self.user_employee.partner_id.ids)
         channel_member = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == self.user_employee.partner_id)
         channel_member._rtc_join_call()
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         with self.assertBus(
             [
-                # update list of sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # end session
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # update call history (not asserted below)
+                # update list of sessions, update call history
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {
                     "type": "discuss.channel.rtc.session/ended",
-                    "payload": {"sessionId": channel_member.rtc_session_ids.id},
+                    "payload": {"sessionId": last_rtc_session_id},
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
+                        "discuss.call.history": [
+                            {
+                                "duration_hour": 1.0,
+                                "end_dt": "2023-03-15 13:34:56",
+                                "id": channel.call_history_ids.id,
+                            },
+                        ],
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("DELETE", [channel_member.rtc_session_ids.id])],
+                                "rtc_session_ids": [["DELETE", [last_rtc_session_id]]],
                             },
                         ],
                     },
@@ -1162,11 +1209,12 @@ class TestChannelRTC(MailCommon, HttpCase):
             ],
         ):
             now = fields.Datetime.now()
-            with patch.object(fields.Datetime, 'now', lambda: now + relativedelta(seconds=5)):
+            with patch.object(fields.Datetime, 'now', lambda: now + relativedelta(hours=1)):
                 channel_member._rtc_leave_call()
 
     @users('employee')
     @mute_logger('odoo.models.unlink')
+    @freeze_time("2023-03-15 12:34:56")
     def test_50_garbage_collect_should_remove_old_sessions_and_notify_data(self):
         self.env["discuss.channel.rtc.session"].sudo().search([]).unlink()  # clean up before test
         channel = self.env['discuss.channel']._create_group(partners_to=self.user_employee.partner_id.ids)
@@ -1174,27 +1222,33 @@ class TestChannelRTC(MailCommon, HttpCase):
         channel_member._rtc_join_call()
         channel_member.rtc_session_ids.flush_model()
         channel_member.rtc_session_ids._write({'write_date': fields.Datetime.now() - relativedelta(days=2)})
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         with self.assertBus(
             [
-                # update list of sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # session ended
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # update call history duration
+                # update list of sessions, update call history duration
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {
                     "type": "discuss.channel.rtc.session/ended",
-                    "payload": {"sessionId": channel_member.rtc_session_ids.id},
+                    "payload": {"sessionId": last_rtc_session_id},
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
+                        "discuss.call.history": [
+                            {
+                                "duration_hour": 0.0,
+                                "end_dt": "2023-03-15 12:34:56",
+                                "id": channel.call_history_ids.id,
+                            },
+                        ],
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("DELETE", [channel_member.rtc_session_ids.id])],
+                                "rtc_session_ids": [("DELETE", [last_rtc_session_id])],
                             },
                         ],
                     },
@@ -1206,31 +1260,38 @@ class TestChannelRTC(MailCommon, HttpCase):
 
     @users('employee')
     @mute_logger('odoo.models.unlink')
+    @freeze_time("2023-03-15 12:34:56")
     def test_51_action_disconnect_should_remove_selected_session_and_notify_data(self):
         channel = self.env['discuss.channel']._create_group(partners_to=self.user_employee.partner_id.ids)
         channel_member = channel.sudo().channel_member_ids.filtered(lambda channel_member: channel_member.partner_id == self.user_employee.partner_id)
         channel_member._rtc_join_call()
+        last_rtc_session_id = channel_member.rtc_session_ids.id
         with self.assertBus(
             [
-                # update list of sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # session ended
                 (self.cr.dbname, "res.partner", self.user_employee.partner_id.id),
-                # update call history duration
+                # update list of sessions, update call history duration
                 (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {
                     "type": "discuss.channel.rtc.session/ended",
-                    "payload": {"sessionId": channel_member.rtc_session_ids.id},
+                    "payload": {"sessionId": last_rtc_session_id},
                 },
                 {
                     "type": "mail.record/insert",
                     "payload": {
+                        "discuss.call.history": [
+                            {
+                                "duration_hour": 0.0,
+                                "end_dt": "2023-03-15 12:34:56",
+                                "id": channel.call_history_ids.id,
+                            },
+                        ],
                         "discuss.channel": [
                             {
                                 "id": channel.id,
-                                "rtc_session_ids": [("DELETE", [channel_member.rtc_session_ids.id])],
+                                "rtc_session_ids": [("DELETE", [last_rtc_session_id])],
                             },
                         ],
                     },
@@ -1259,10 +1320,10 @@ class TestChannelRTC(MailCommon, HttpCase):
         unused_ids = [9998, 9999]
         with self.assertBus(
             [
-                # update list of sessions
-                (self.cr.dbname, "discuss.channel", channel.id),
                 # session ended
                 (self.cr.dbname, "mail.guest", test_guest.id),
+                # update list of sessions
+                (self.cr.dbname, "discuss.channel", channel.id),
             ],
             [
                 {

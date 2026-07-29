@@ -5,7 +5,7 @@ from markupsafe import Markup
 
 from odoo import api, fields, models, _
 from odoo.addons.mail.tools.parser import parse_res_ids
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import html2plaintext
 from odoo.tools.misc import format_date
@@ -65,6 +65,10 @@ class MailActivitySchedule(models.TransientModel):
         'Plan Date', compute='_compute_plan_date',
         store=True, readonly=False)
     # activity-based
+    activity_type_available_ids = fields.Many2many(
+        'mail.activity.type',
+        compute='_compute_activity_type_available_ids',
+        compute_sudo=True)
     activity_type_id = fields.Many2one(
         'mail.activity.type', string='Activity Type',
         compute='_compute_activity_type_id', store=True, readonly=False,
@@ -82,7 +86,8 @@ class MailActivitySchedule(models.TransientModel):
     activity_user_id = fields.Many2one(
         'res.users', 'Assigned to', compute='_compute_activity_user_id',
         readonly=False, store=True)
-    chaining_type = fields.Selection(related='activity_type_id.chaining_type', readonly=True)
+    # used in both (plan- and activity- based)
+    activity_user_id_fname = fields.Char('User Field', help="Field name of the user to choose on the record")
 
     @api.depends('res_model')
     def _compute_res_model_id(self):
@@ -209,6 +214,7 @@ class MailActivitySchedule(models.TransientModel):
                     if record.exists():
                         responsible_user = template._determine_responsible(
                             scheduler.plan_on_demand_user_id,
+                            scheduler.activity_user_id_fname,
                             record,
                         )['responsible']
 
@@ -223,33 +229,14 @@ class MailActivitySchedule(models.TransientModel):
                 # append main line before handling next activities
                 schedule_line_values_list.append(schedule_line_values)
 
-                activity_type = template.activity_type_id
-                if activity_type.triggered_next_type_id:
-                    next_activity = activity_type.triggered_next_type_id
-                    schedule_line_values = {
-                        'line_description': next_activity.summary or next_activity.name,
-                        'responsible_user_id': next_activity.default_user_id.id or False
-                    }
-                    if activity_date_deadline:
-                        schedule_line_values['line_date_deadline'] = next_activity.with_context(
-                            activity_previous_deadline=activity_date_deadline
-                        )._get_date_deadline()
-
-                    schedule_line_values_list.append(schedule_line_values)
-                elif activity_type.suggested_next_type_ids:
-                    for suggested in activity_type.suggested_next_type_ids:
-                        schedule_line_values = {
-                            'line_description': suggested.summary or suggested.name,
-                            'responsible_user_id': suggested.default_user_id.id or False,
-                        }
-                        if activity_date_deadline:
-                            schedule_line_values['line_date_deadline'] = suggested.with_context(
-                                activity_previous_deadline=activity_date_deadline
-                            )._get_date_deadline()
-
-                        schedule_line_values_list.append(schedule_line_values)
-
                 scheduler.plan_schedule_line_ids = [(5,)] + [(0, 0, values) for values in schedule_line_values_list]
+
+    @api.depends("res_model")
+    def _compute_activity_type_available_ids(self):
+        for scheduler in self:
+            scheduler.activity_type_available_ids = self.env["mail.activity.type"].search(
+                scheduler._get_activity_type_available_base_domain()
+            )
 
     @api.depends('res_model')
     def _compute_activity_type_id(self):
@@ -330,18 +317,20 @@ class MailActivitySchedule(models.TransientModel):
             body = _('The plan "%(plan_name)s" has been started', plan_name=self.plan_id.name)
             activity_descriptions = []
             for template in self._plan_filter_activity_templates_to_schedule():
-                if template.responsible_type == 'on_demand':
+                if template.responsible_type == 'on_demand' and self.plan_on_demand_user_id:
                     responsible = self.plan_on_demand_user_id
                 else:
-                    responsible = template._determine_responsible(self.plan_on_demand_user_id, record)['responsible']
+                    responsible = template._determine_responsible(self.plan_on_demand_user_id, self.activity_user_id_fname, record)['responsible']
                 date_deadline = template._get_date_deadline(self.plan_date)
                 record.activity_schedule(
                     activity_type_id=template.activity_type_id.id,
+                    activity_plan_id=template.plan_id.id,
                     automated=False,
+                    date_deadline=date_deadline,
                     summary=template.summary,
                     note=template.note,
                     user_id=responsible.id,
-                    date_deadline=date_deadline
+                    activity_template_id=template.id,
                 )
                 activity_descriptions.append(
                     _('%(activity)s, assigned to %(name)s, due on the %(deadline)s',
@@ -370,7 +359,7 @@ class MailActivitySchedule(models.TransientModel):
         self.ensure_one()
         return filter(
             None, [
-                activity_template._determine_responsible(self.plan_on_demand_user_id, record)['error']
+                activity_template._determine_responsible(self.plan_on_demand_user_id, self.activity_user_id_fname, record)['error']
                 for activity_template in self.plan_id.template_ids
                 for record in applied_on
             ]
@@ -380,7 +369,7 @@ class MailActivitySchedule(models.TransientModel):
         self.ensure_one()
         return filter(
             None, [
-                activity_template._determine_responsible(self.plan_on_demand_user_id, record)['warning']
+                activity_template._determine_responsible(self.plan_on_demand_user_id, self.activity_user_id_fname, record)['warning']
                 for activity_template in self.plan_id.template_ids
                 for record in applied_on
             ]
@@ -405,7 +394,8 @@ class MailActivitySchedule(models.TransientModel):
             summary=self.summary,
             note=self.note,
             user_id=self.activity_user_id.id,
-            date_deadline=self.date_deadline
+            date_deadline=self.date_deadline,
+            activity_user_id_fname=self.activity_user_id_fname
         )
 
     def _action_schedule_activities_personal(self):
@@ -451,6 +441,13 @@ class MailActivitySchedule(models.TransientModel):
     def _plan_filter_activity_templates_to_schedule(self):
         return self.plan_id.template_ids
 
+    def _get_activity_type_available_base_domain(self):
+        self.ensure_one()
+        return Domain.OR([
+            [('res_model', '=', False)],
+            [('res_model', '=', self.res_model)],
+        ])
+
     @api.onchange('activity_user_id', 'activity_type_id')
     def _onchange_activity_user_id(self):
         if self.activity_category != "upload_file":
@@ -458,12 +455,13 @@ class MailActivitySchedule(models.TransientModel):
         activity_user = self.activity_user_id
         model = self.res_model
         if model and activity_user:
-            try:
-                thread = self.with_user(activity_user).env[model].browse(self._evaluate_res_ids())
-                operations = thread._mail_group_by_operation_for_mail_message_operation('create')
-                for operation, records in operations.items():
-                    records.check_access(operation)
-            except AccessError:
+            accessible = False
+            thread = self.with_user(activity_user).env[model].browse(self._evaluate_res_ids())
+            for domain, operation in thread._mail_get_operation_for_mail_message_operation('create'):
+                if thread.sudo().filtered_domain(domain):
+                    accessible = thread.has_access(operation)
+                    break
+            if not accessible:
                 raise UserError(_("Selected user '%(user)s' cannot upload documents on model '%(model)s'",
                                     model=model,
                                     user=activity_user.display_name))

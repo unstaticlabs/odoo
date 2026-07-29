@@ -3,10 +3,11 @@
 
 
 from lxml import etree
-from odoo.tests import common
+from odoo.tests import tagged, common
 from odoo.tools.xml_utils import cleanup_xml_node
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestXMLTools(common.TransactionCase):
 
     def setUp(self):
@@ -106,21 +107,17 @@ _</h1>
         template_addresses = self.env['ir.ui.view'].create({
             'type': 'qweb',
             'arch_db': '''<t>
-    <street t-esc="address.get('street')"/>
-    <number t-esc="address.get('number')"/>
-    <city t-esc="address.get('city')"/>
+    <street t-out="address.get('street')"/>
+    <number t-out="address.get('number')"/>
+    <city t-out="address.get('city')"/>
 </t>
 '''})
         template_main = self.env['ir.ui.view'].create({
             'type': 'qweb',
             'arch_db': f'''<data>
-    <item t-foreach="items" t-as="item" t-esc="item"/>
-    <addressSender><t t-call='{template_addresses.id}'>
-        <t t-set="address" t-value="addressSender"/>
-    </t></addressSender>
-    <addressRecipient><t t-call='{template_addresses.id}'>
-        <t t-set="address" t-value="addressRecipient"/>
-    </t></addressRecipient>
+    <item t-foreach="items" t-as="item" t-out="item"/>
+    <addressSender><t t-call='{template_addresses.id}' address="addressSender"/></addressSender>
+    <addressRecipient><t t-call='{template_addresses.id}' address="addressRecipient"/></addressRecipient>
 </data>
 '''})
         expected = """<data>

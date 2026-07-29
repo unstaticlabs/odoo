@@ -3,16 +3,14 @@ import { MessagingMenu } from "@mail/core/public_web/messaging_menu";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 
-patch(MessagingMenu.prototype, {
+/** @type {MessagingMenu} */
+const messagingMenuPatch = {
     /**
      * @override
      */
     get _tabs() {
         const items = super._tabs;
-        const hasLivechats = Object.values(this.store.Thread.records).some(
-            ({ channel_type }) => channel_type === "livechat"
-        );
-        if (hasLivechats) {
+        if (this.store.show_livechat_category) {
             items.push({
                 counter: this.store.discuss.livechats.reduce(
                     (acc, channel) =>
@@ -28,4 +26,5 @@ patch(MessagingMenu.prototype, {
         }
         return items;
     },
-});
+};
+patch(MessagingMenu.prototype, messagingMenuPatch);

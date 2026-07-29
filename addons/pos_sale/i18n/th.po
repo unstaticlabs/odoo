@@ -6,22 +6,22 @@
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 21:59+0000\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-09-16 21:15+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/pos_sale/"
-"th/>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/pos_sale/th/"
+">\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: pos_sale
 #. odoo-python
@@ -45,6 +45,11 @@ msgstr "(รวมภาษี)"
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "<span style=\"margin: 0px 5px;\">:</span>"
 msgstr "<span style=\"margin: 0px 5px;\">:</span>"
+
+#. module: pos_sale
+#: model_terms:ir.ui.view,arch_db:pos_sale.pos_orderline_receipt_information
+msgid "<strong>Sale Order: </strong>"
+msgstr ""
 
 #. module: pos_sale
 #. odoo-javascript
@@ -105,12 +110,19 @@ msgid "Delivery Quantity"
 msgstr ""
 
 #. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid "Discard"
+msgstr ""
+
+#. module: pos_sale
 #: model:ir.model.fields,field_description:pos_sale.field_account_move__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_crm_team__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__display_name
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__display_name
@@ -177,6 +189,7 @@ msgstr "จาก"
 #: model:ir.model.fields,field_description:pos_sale.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_order_line__id
+#: model:ir.model.fields,field_description:pos_sale.field_pos_order_receipt__id
 #: model:ir.model.fields,field_description:pos_sale.field_pos_session__id
 #: model:ir.model.fields,field_description:pos_sale.field_product_template__id
 #: model:ir.model.fields,field_description:pos_sale.field_res_config_settings__id
@@ -199,6 +212,14 @@ msgstr "ออกใบแจ้งหนี้แล้ว"
 msgid ""
 "It seems that you didn't configure a down payment product in your point of "
 "sale. You can go to your point of sale configuration to choose one."
+msgstr ""
+
+#. module: pos_sale
+#. odoo-javascript
+#: code:addons/pos_sale/static/src/app/services/pos_store.js:0
+msgid ""
+"It seems that you didn't configure a down payment product in your point of "
+"sale. You can go to your point of sale settings to choose one."
 msgstr ""
 
 #. module: pos_sale
@@ -266,14 +287,19 @@ msgid "Point of Sale Configuration"
 msgstr "กำหนดค่าการขายหน้าร้าน"
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "รายการคำสั่งซื้อการขายหน้าร้าน"
+#: model:ir.model,name:pos_sale.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_sale
-#: model:ir.model,name:pos_sale.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "คำสั่งซื้อการขายหน้าร้าน"
+#: model:ir.model,name:pos_sale.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
+
+#. module: pos_sale
+#: model:ir.model,name:pos_sale.model_pos_order_receipt
+msgid "Point of Sale Order Receipt Generator"
+msgstr ""
 
 #. module: pos_sale
 #: model:ir.model,name:pos_sale.model_pos_session
@@ -453,91 +479,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:pos_sale.report_invoice_document
 msgid "x"
 msgstr ""
-
-#~ msgid "Back"
-#~ msgstr "กลับ"
-
-#~ msgid "Back to list"
-#~ msgstr "กลับไปที่รายการ"
-
-#~ msgid "Cancelled"
-#~ msgstr "ยกเลิก"
-
-#~ msgid "Customer"
-#~ msgstr "ลูกค้า"
-
-#~ msgid "Date"
-#~ msgstr "วันที่"
-
-#~ msgid "E.g. customer: Steward, date: 2020-05-09"
-#~ msgstr "เช่น ลูกค้า: Steward วันที่: 2020-05-09"
-
-#~ msgid "Locked"
-#~ msgstr "ล็อก"
-
-#~ msgid "New"
-#~ msgstr "ใหม่"
-
-#~ msgid "Next Order List"
-#~ msgstr "รายการคำสั่งถัดไป"
-
-#~ msgid "No"
-#~ msgstr "ไม่"
-
-#~ msgid "Open POS Sessions"
-#~ msgstr "เปิดเซสชั่น POS"
-
-#~ msgid "Previous Order List"
-#~ msgstr "รายการคำสั่งก่อนหน้า"
-
-#~ msgid "Products not available in POS"
-#~ msgstr "สินค้าไม่มีใน POS"
-
-#~ msgid "Quotation"
-#~ msgstr "ใบเสนอราคา"
-
-#~ msgid "Quotation Sent"
-#~ msgstr "ส่งใบเสนอราคาแล้ว"
-
-#~ msgid "Salesman"
-#~ msgstr "พนักงานขาย"
-
-#~ msgid "Salesperson"
-#~ msgstr "พนักงานขาย"
-
-#~ msgid "Session Running"
-#~ msgstr "เซสชั่นที่กำลังทำงาน"
-
-#~ msgid "Session Sale Amount"
-#~ msgstr "จำนวนเซสชั่นการขาย"
-
-#~ msgid "Sessions Running"
-#~ msgstr "เซสชั่นที่กำลังทำงาน"
-
-#~ msgid ""
-#~ "Some of the products in your Sale Order are not available in POS, do you "
-#~ "want to import them?"
-#~ msgstr "สินค้าบางรายการในคำสั่งขายของคุณไม่มีใน POS คุณต้องการนำเข้าหรือไม่?"
-
-#~ msgid "State"
-#~ msgstr "รัฐ"
-
-#~ msgid "Total"
-#~ msgstr "รวม"
-
-#~ msgid ""
-#~ "Transfered<br/>\n"
-#~ "                                from Sale"
-#~ msgstr ""
-#~ "โอน<br/>\n"
-#~ "                                จากการขาย"
-
-#~ msgid ""
-#~ "Transfered<br/>\n"
-#~ "                                to POS"
-#~ msgstr ""
-#~ "โอน<br/>\n"
-#~ "                                ไปที่ POS"
-
-#~ msgid "Yes"
-#~ msgstr "ใช่"

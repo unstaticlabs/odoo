@@ -68,7 +68,8 @@ export class IconPlugin extends Plugin {
                 // FEFF is directly adjacent to it.
                 const isIconRelatedNode = (node) => {
                     if (
-                        node.classList?.contains("fa") ||
+                        (node.classList?.contains("fa") &&
+                            this.dependencies.selection.isNodeEditable(node)) ||
                         node.parentElement?.classList.contains("fa") ||
                         (node.querySelector?.(":scope > .fa") && node.isContentEditable !== false)
                     ) {
@@ -79,14 +80,6 @@ export class IconPlugin extends Plugin {
                             node.nextElementSibling?.classList?.contains("fa") ||
                             node.previousElementSibling?.classList?.contains("fa")
                         );
-                    }
-                    // Node is applying style on the icon.
-                    if (
-                        isElement(node) &&
-                        node.children.length === 1 &&
-                        isIconElement(node.children[0])
-                    ) {
-                        return true;
                     }
                     return false;
                 };
@@ -150,12 +143,26 @@ export class IconPlugin extends Plugin {
                 text: _t("Replace"),
             },
         ],
+        click_overrides: this.onClickIcon.bind(this),
         /** Providers */
         selected_background_color_providers: withSequence(
             5,
             this.computeBackgroundColorForIcon.bind(this)
         ),
     };
+
+    onClickIcon(ev) {
+        const node = ev.target;
+        if (
+            isIconElement(closestElement(node)) &&
+            !this.dependencies.selection.isNodeEditable(node)
+        ) {
+            // We select around an icon inside non editable.
+            // This might, in case icon inside link, show the link
+            // popover to be able to open link.
+            this.dependencies.selection.selectElement(node);
+        }
+    }
 
     getTargetedIcon() {
         const targetedNodes = this.dependencies.selection.getTargetedNodes();

@@ -1,6 +1,5 @@
 import { BaseOptionComponent, useDomState } from "@html_builder/core/utils";
 import { toRatio } from "@html_builder/utils/utils";
-import { _t } from "@web/core/l10n/translation";
 import { ShapeSelector } from "@html_builder/plugins/shape/shape_selector";
 import { deepCopy } from "@web/core/utils/objects";
 import { loadImageInfo } from "@html_editor/utils/image_processing";
@@ -16,6 +15,7 @@ export class ImageShapeOption extends BaseOptionComponent {
     static defaultProps = {
         withAnimatedShapes: true,
     };
+    static components = { ShapeSelector };
     setup() {
         super.setup();
         this.customizeTabPlugin = this.dependencies.customizeTab;
@@ -26,6 +26,9 @@ export class ImageShapeOption extends BaseOptionComponent {
                 ? editingElement.dataset
                 : await loadImageInfo(editingElement);
             const shape = editingElement.dataset.shape;
+            const imageShapeColorNames = [0, 1, 2, 3, 4].map((i) =>
+                this.isShapeVisible(editingElement, i)
+            );
             const mimetype = await getMimetypeBeforeShape(editingElement);
             const isImgSupportedForProcessing = await isImageSupportedForProcessing(
                 editingElement,
@@ -34,11 +37,7 @@ export class ImageShapeOption extends BaseOptionComponent {
             return {
                 hasShape: !!shape && !this.imageShapeOption.isTechnicalShape(shape),
                 shapeLabel: this.imageShapeOption.getShapeLabel(shape),
-                showImageShape0: this.isShapeVisible(editingElement, 0),
-                showImageShape1: this.isShapeVisible(editingElement, 1),
-                showImageShape2: this.isShapeVisible(editingElement, 2),
-                showImageShape3: this.isShapeVisible(editingElement, 3),
-                showImageShape4: this.isShapeVisible(editingElement, 4),
+                imageShapeColorNames: imageShapeColorNames,
                 showImageShapeTransform: this.imageShapeOption.isTransformableShape(shape),
                 showImageShapeAnimation: this.imageShapeOption.isAnimableShape(shape),
                 togglableRatio:
@@ -81,17 +80,5 @@ export class ImageShapeOption extends BaseOptionComponent {
         }
         const colors = img.dataset.shapeColors.split(";");
         return colors[shapeIndex];
-    }
-    showImageShapes() {
-        this.customizeTabPlugin.openCustomizeComponent(
-            ShapeSelector,
-            this.env.getEditingElements(),
-            {
-                shapeActionId: "setImageShape",
-                buttonWrapperClassName: "o-hb-img-shape-btn",
-                selectorTitle: _t("Shapes"),
-                shapeGroups: this.getFilteredGroups(),
-            }
-        );
     }
 }

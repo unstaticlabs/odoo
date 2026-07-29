@@ -9,19 +9,19 @@
 # Noma Yuki, 2022
 # Yoshi Tashiro (Quartile) <tashiro@roomsfor.hk>, 2022
 # Andy Yiu, 2023
-# Ryoko Tsuda <ryoko@quartile.co>, 2023, 2025, 2026.
+# Ryoko Tsuda <ryoko@quartile.co>, 2023, 2025.
 # Martin Trigaux, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-07-01 07:36+0000\n"
-"Last-Translator: Ryoko Tsuda <ryoko@quartile.co>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/web/ja/"
-">\n"
+"PO-Revision-Date: 2026-06-13 13:33+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/web/"
+"ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -56,9 +56,22 @@ msgstr "%s レコード"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "%s to schedule"
+msgstr "予定未設定 %s"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/l10n/dates.js:0
 msgid "'%s' is not a correct date or datetime"
 msgstr "'%s' は正しい日付または日時ではありません。"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
+msgid "'Oh snap!'"
+msgstr "'ご確認ください!'"
 
 #. module: web
 #. odoo-javascript
@@ -85,13 +98,7 @@ msgid "(create)"
 msgstr "（作成）"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "(document name)"
 msgstr "(ドキュメント名)"
 
@@ -204,37 +211,18 @@ msgid "<i class=\"fa fa-repeat\"/> Reset"
 msgstr "<i class=\"fa fa-repeat\"/> 再設定"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
-msgid ""
-"<select class=\"form-select\" name=\"profile_aggregation_mode\" "
-"id=\"profile_aggregation_mode\">\n"
-"                                        <option value=\"tabs\">Separated "
-"(one per tab)</option>\n"
-"                                        <option value=\"temporal\">Temporal "
-"(experimental)</option>\n"
-"                                    </select>\n"
-"                                    <span id=\"temporal_warning\" "
-"class=\"alert alert-warning\" style=\"display:none\"><b>Warning:</b> "
-"Temporal mode will merge all samples.<br/>It can lead to partially invalid "
-"result in case of concurrent profiles.<br/>Use with caution </span>"
-msgstr ""
-"<select class=\"form-select\" name=\"profile_aggregation_mode\" "
-"id=\"profile_aggregation_mode\">\n"
-"                                        <option value=\"tabs\">分離 (タブごと"
-"に1つ)</option>\n"
-"                                        <option value=\"temporal\">時系列 (実"
-"験的)</option>\n"
-"                                    </select>\n"
-"                                    <span id=\"temporal_warning\" "
-"class=\"alert alert-warning\" style=\"display:none\"><b>警告:</b> 時系列モー"
-"ドでは、すべてのサンプルが統合されます。<br/>複数のプロファイルが同時に存在す"
-"る場合、結果が部分的に不正確になる可能性があります。<br/>使用には注意が必要で"
-"す</span>"
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">$ 3,613.50</span>"
+msgstr "<span class=\"text-nowrap\">3,613.50ドル</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span class=\"text-nowrap\">$ 2,887.50</span>"
-msgstr "<span class=\"text-nowrap\">$ 2,887.50</span>"
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">1,400.00</"
+"span></span>"
+msgstr ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">1,400.00</"
+"span></span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -243,6 +231,15 @@ msgid ""
 "span></span>"
 msgstr ""
 "<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">11,750.00</"
+"span></span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">240.00</"
+"span></span>"
+msgstr ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">240.00</"
 "span></span>"
 
 #. module: web
@@ -261,8 +258,18 @@ msgstr "<span class=\"text-nowrap\">1,500.00</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">12.00</span>"
+msgstr "<span class=\"text-nowrap\">12.00</span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span class=\"text-nowrap\">2,350.00</span>"
 msgstr "<span class=\"text-nowrap\">2,350.00</span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">70.00</span>"
+msgstr "<span class=\"text-nowrap\">70.00</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -274,13 +281,13 @@ msgstr "<span class=\"text-nowrap\">税 15%</span>"
 msgid ""
 "<span class=\"w-100 o_force_ltr\" itemprop=\"streetAddress\">77 Santa "
 "Barbara\n"
-"                                       Rd<br/>Pleasant Hill CA 94523<br/"
-">United States</span>"
+"                                Rd<br/>Pleasant Hill CA 94523<br/>United "
+"States</span>"
 msgstr ""
 "<span class=\"w-100 o_force_ltr\" itemprop=\"streetAddress\">77 Santa "
 "Barbara\n"
-"                                       Rd<br/>Pleasant Hill CA 94523<br/"
-">United States</span>"
+"                                Rd<br/>Pleasant Hill CA 94523<br/>United "
+"States</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -288,14 +295,76 @@ msgid "<span id=\"line_tax_ids\">15%</span>"
 msgstr "<span id=\"line_tax_ids\">15%</span>"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span itemprop=\"name\">Acme Corporation</span>"
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid ""
+"<span id=\"temporal_warning\" class=\"alert alert-warning\" "
+"style=\"display:none\"><b>Warning:</b> Temporal mode will merge all samples."
+"<br/>It can lead to partially invalid result in case of concurrent profiles."
+"<br/>Use with caution </span>"
 msgstr ""
+"<span id=\"temporal_warning\" class=\"alert alert-warning\" "
+"style=\"display:none\"><b>警告:</b> テンポラルモードでは、すべてのサンプルが"
+"統合されます。<br/>同時実行プロファイルの場合、結果が一部無効になる可能性があ"
+"ります。<br/>注意して使用してください。</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
-msgstr "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
+msgid "<span itemprop=\"name\">Acme Corporation</span>"
+msgstr "<span itemprop=\"name\">アクメ株式会社</span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        Chair floor protection<br/>\n"
+"                                        Office chairs can harm your floor: "
+"protect it\n"
+"                                    </span>"
+msgstr ""
+"<span>\n"
+"                                        チェア用フロア保護マット<br/>\n"
+"                                        オフィスチェアは床を傷める可能性があ"
+"ります：床を保護しましょう\n"
+"                                    </span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_7777] Office Chair<br/>\n"
+"                                        Comfortable yellow chair for daily "
+"work\n"
+"                                    </span>"
+msgstr ""
+"<span>\n"
+"                                        [FURN_7777] オフィスチェア<br/>\n"
+"                                        日常業務に快適なイエローチェア\n"
+"                                    </span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_8999] Three-Seat Sofa<br/>\n"
+"                                        Three Seater Sofa with Lounger in "
+"Steel Grey Colour\n"
+"                                    </span>"
+msgstr ""
+"<span>\n"
+"                                        [FURN_8999] 3人掛けソファ<br/"
+">                                        スチールグレーカラーのラウンジ付き3"
+"人掛けソファ\n"
+"                                   </span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>$ <span class=\"oe_currency_value\">24,090.00</span></span>"
+msgstr "<span> <span class=\"oe_currency_value\">24,090.00</span></span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>20.00</span>"
+msgstr "<span>20.00</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -316,10 +385,10 @@ msgstr "<span>説明</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>Invoice</span>\n"
-"                           <span>INV/2023/00003</span>"
+"                <span>INV/2023/00003</span>"
 msgstr ""
-"<span>請求書</span>\n"
-"                           <span>INV/2023/00003</span>"
+"<span>Invoice</span>\n"
+"                <span>INV/2023/00003</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -345,34 +414,25 @@ msgstr "<span>単価</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>[FURN_8220] Four Person Desk<br/>\n"
-"                                       Four person modern office "
-"workstation</span>"
+"                                    Four person modern office workstation</"
+"span>"
 msgstr ""
 "<span>[FURN_8220] 4人用デスク<br/>\n"
-"                                       4人用モダンオフィスワークステーション"
+"                                    4人用のモダンなオフィスワークステーション"
 "</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
-"<span>[FURN_8999] Three-Seat Sofa<br/>\n"
-"                                       Three Seater Sofa with Lounger in "
-"Steel Grey Colour</span>"
+"<strong class=\"text-nowrap\">\n"
+"                                                    $ <span "
+"class=\"oe_currency_value\">27,703.50</span>\n"
+"                                                </strong>"
 msgstr ""
-"<span>[FURN_8999] 3人掛ソファ<br/>\n"
-"                                       3人掛けソファ、ラウンジャー付き、ス"
-"チールグレーカラー</span>"
-
-#. module: web
-#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid ""
-"<strong class=\"text-nowrap\">$ <span class=\"oe_currency_value\">\n"
-"                                                       22,137.50</span></"
-"strong>"
-msgstr ""
-"<strong class=\"text-nowrap\">$ <span class=\"oe_currency_value\">\n"
-"                                                       22,137.50</span></"
-"strong>"
+"<strong class=\"text-nowrap\">\n"
+"                                                    $ <span "
+"class=\"oe_currency_value\">27,703.50</span>\n"
+"                                                </strong>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.address_layout
@@ -380,24 +440,12 @@ msgid "<strong>Address block</strong>"
 msgstr "<strong>住所ブロック</strong>"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company address block</strong>"
 msgstr "<strong>会社住所ブロック</strong>"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company details block</strong>"
 msgstr "<strong>会社詳細ブロック</strong>"
 
@@ -454,7 +502,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #. module: web
 #. odoo-javascript
@@ -479,10 +527,12 @@ msgstr "新しいアクションの名前が必要です。"
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid ""
 "A popup window has been blocked. You may need to change your browser "
-"settings to allow popup windows for this page."
+"settings to allow popup windows for this page. You can also copy the link "
+"and paste it in a new tab."
 msgstr ""
-"ポップアップウィンドウがブロックされています。このページのポップアップウィン"
-"ドウを許可するには、ブラウザ設定を変更してください。"
+"ポップアップウィンドウがブロックされました。このページでポップアップを許可す"
+"るよう、ブラウザの設定を変更する必要があるかもしれません。リンクをコピーして"
+"新しいタブに貼り付けることもできます。"
 
 #. module: web
 #. odoo-javascript
@@ -649,6 +699,7 @@ msgstr "写真を追加"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.xml:0
 msgid "Add Property"
 msgstr "プロパティを追加"
@@ -663,7 +714,7 @@ msgstr "追加:"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition_selection.xml:0
 msgid "Add a Value"
-msgstr "値を追加する"
+msgstr "値を追加"
 
 #. module: web
 #. odoo-javascript
@@ -903,12 +954,6 @@ msgstr "選択したレコードを本当にアーカイブしますか？"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
-msgid "Are you sure that you want to duplicate all the selected records?"
-msgstr "選択したレコードをすべて複製してもよろしいですか？"
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
 msgid "Are you sure that you want to remove this embedded action?"
 msgstr "本当にこの埋め込みアクションを削除しますか？"
@@ -983,7 +1028,7 @@ msgstr "アジア"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.xml:0
+#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.js:0
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
 msgid "Assign"
 msgstr "割当"
@@ -1049,7 +1094,7 @@ msgstr "アバター"
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #. module: web
 #. odoo-javascript
@@ -1086,16 +1131,6 @@ msgstr "“%s” に戻る"
 #: code:addons/web/static/src/search/breadcrumbs/breadcrumbs.js:0
 msgid "Back to “%s” form"
 msgstr "“%s” フォームに戻る"
-
-#. module: web
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
-msgid "Background"
-msgstr "背景"
-
-#. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background_image
-msgid "Background Image"
-msgstr "背景画像"
 
 #. module: web
 #. odoo-javascript
@@ -1168,8 +1203,8 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
 msgid "Binary file"
 msgstr "バイナリファイル"
 
@@ -1271,7 +1306,7 @@ msgstr "Bytes|Kb|Mb|Gb|Tb|Pb|Eb|Zb|Yb"
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #. module: web
 #. odoo-javascript
@@ -1347,12 +1382,14 @@ msgstr "値を編集可能"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
-#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Can't remove that search"
+msgstr "その検索は削除できません"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
-#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
-#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
-#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -1512,6 +1549,30 @@ msgstr "全て削除"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Clear search"
+msgstr "検索をクリア"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Click to check connection"
+msgstr "接続を確認するにはクリックしてください"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to collapse all groups"
+msgstr "クリックしてすべてのグループを折りたたむ"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to expand all groups"
+msgstr "クリックしてすべてのグループを展開"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Click to select"
 msgstr "クリックして選択"
@@ -1563,6 +1624,12 @@ msgstr "カラーピッカー"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Color dot tags"
+msgstr "カラードットタグ"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/badge/badge_field.js:0
 #: code:addons/web/static/src/views/fields/badge_selection/list_badge_selection_field.js:0
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
@@ -1584,11 +1651,11 @@ msgstr "不可視カラム:"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/burger_menu/mobile_switch_company_menu/mobile_switch_company_menu.xml:0
-#: model:ir.model,name:web.model_res_company
 msgid "Companies"
 msgstr "会社"
 
 #. module: web
+#: model:ir.model,name:web.model_res_company
 #: model:ir.model.fields,field_description:web.field_base_document_layout__company_id
 msgid "Company"
 msgstr "会社"
@@ -1624,12 +1691,10 @@ msgid "Company name"
 msgstr "会社名"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 msgid "Company tagline"
 msgstr "会社キャッチフレーズ"
@@ -1670,10 +1735,17 @@ msgstr "ドキュメントレイアウトを設定"
 #. odoo-javascript
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Confirm"
 msgstr "確定"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+#: model_terms:ir.ui.view,arch_db:web.check_identity
+msgid "Confirm access"
+msgstr "アクセスを確認"
 
 #. module: web
 #. odoo-javascript
@@ -1682,18 +1754,6 @@ msgstr "確定"
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Confirmation"
 msgstr "確認"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection lost. Trying to reconnect..."
-msgstr "接続が切れました。再接続を試みます..."
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection restored. You are back online."
-msgstr "接続が復活しました。オンラインです。"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
@@ -1712,24 +1772,12 @@ msgid "Contact Statistics"
 msgstr "連絡先統計"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company address."
 msgstr "会社住所を含む"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company details."
 msgstr "会社詳細を含む"
 
@@ -1777,6 +1825,7 @@ msgstr "複製対象"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/copy_clipboard/copy_clipboard_field.js:0
+#: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "Copy"
 msgstr "コピー"
 
@@ -1811,7 +1860,7 @@ msgstr "Copyright © 2004"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.js:0
+#: code:addons/web/static/src/core/signature/signature_viewer.js:0
 msgid "Could not display the selected image"
 msgstr "選択された画像を表示できませんでした"
 
@@ -1866,6 +1915,7 @@ msgstr "国"
 #: code:addons/web/static/src/views/calendar/calendar_year/calendar_year_popover.xml:0
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_record_quick_create.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create"
 msgstr "作成"
 
@@ -1883,9 +1933,15 @@ msgid "Create %s"
 msgstr "%sを作成する"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
+msgid "Create New"
+msgstr "新規作成"
+
+#. module: web
 #: model:ir.model,website_form_label:web.model_res_partner
 msgid "Create a Customer"
-msgstr "顧客を作成する"
+msgstr "顧客を作成"
 
 #. module: web
 #. odoo-javascript
@@ -1896,6 +1952,7 @@ msgstr "作成と編集"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/relational_utils.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create..."
 msgstr "作成..."
 
@@ -2044,6 +2101,7 @@ msgstr "テスト用にデータベースが安全化されました: メール�
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Date"
@@ -2066,6 +2124,12 @@ msgstr "日付書式"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 msgid "Date Range"
+msgstr "日付範囲"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Date range"
 msgstr "日付範囲"
 
 #. module: web
@@ -2164,6 +2228,16 @@ msgstr "デフォルト値："
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid ""
+"Defines the behavior when a tag is clicked. 'Edit color' requires a color "
+"field"
+msgstr ""
+"タグがクリックされたときの動作を定義します。「色を編集」にはカラーフィールド"
+"が必要です"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
 #: code:addons/web/static/src/views/fields/many2one/many2one_field.js:0
 msgid ""
 "Defines the minimum number of characters to perform the search. If not set, "
@@ -2180,8 +2254,10 @@ msgstr "ミリ秒単位でズーム画像の表示を遅らせる"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/tags_list/tags_list.xml:0
+#: code:addons/web/static/src/core/tags_list/avatar_tag.xml:0
+#: code:addons/web/static/src/core/tags_list/badge_tag.js:0
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
+#: code:addons/web/static/src/views/calendar/calendar_common/calendar_common_popover.xml:0
 #: code:addons/web/static/src/views/calendar/calendar_controller.js:0
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
@@ -2286,20 +2362,24 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
+#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
 #: code:addons/web/static/src/search/search_model.js:0
 #: code:addons/web/static/src/views/fields/dynamic_placeholder_popover.xml:0
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 #: code:addons/web/static/src/views/fields/relational_utils.xml:0
 #: code:addons/web/static/src/views/fields/translation_dialog.xml:0
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
+#: code:addons/web/static/src/views/view_button/view_button.js:0
 #: code:addons/web/static/src/views/view_components/multi_create_popover.xml:0
+#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
+#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_confirmation_dialog.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Discard"
 msgstr "破棄"
 
@@ -2349,12 +2429,6 @@ msgstr "カード形式で表示"
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
 msgid "Display presets"
 msgstr "プリセットを表示"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
-msgid "Display seconds"
-msgstr "秒を表示"
 
 #. module: web
 #. odoo-javascript
@@ -2458,6 +2532,12 @@ msgstr "しばしご辛抱を。"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Dot color field"
+msgstr "ドットカラーフィールド"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/file_viewer/file_viewer.xml:0
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.xml:0
@@ -2496,17 +2576,30 @@ msgstr "手書き"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.xml:0
+msgid "Drop here to unschedule"
+msgstr "ここにドロップして予定解除"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Dropdown menu"
 msgstr "ドロップダウンメニュー"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
 #: code:addons/web/static/src/views/form/form_controller.js:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.js:0
 #: code:addons/web/static/src/views/list/list_controller.js:0
 msgid "Duplicate"
 msgstr "複製"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid "Duplicate Records"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2579,8 +2672,8 @@ msgstr "プロパティを編集"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Edit Tags"
-msgstr "タグを編集"
+msgid "Edit color"
+msgstr "色を編集"
 
 #. module: web
 #. odoo-javascript
@@ -2974,11 +3067,27 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"For example, if the date is %(today)s and you enter \"+=2d\", \n"
+"            it will be updated to %(future)s."
+msgstr ""
+"たとえば、日付が%(today)s の場合、\"+=2d\" と入力すると、 \n"
+"            %(future)sに更新されます。"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "For example, if the value is \"1\" and you enter \"+=2\", it will be updated "
 "to \"3\"."
 msgstr "たとえば、値が「1」のときに「+=2」と入力すると、「3」に更新されます。"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Forgot password?"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3141,6 +3250,12 @@ msgid "Handle"
 msgstr "Handle"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Having problems ?"
+msgstr ""
+
+#. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__company_details
 msgid "Header text displayed at the top of all reports."
 msgstr "全てのレポートの上部に表示されるヘッダーテキスト。"
@@ -3197,6 +3312,7 @@ msgstr "技術詳細を非表示"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid "Hide trailing zeros"
 msgstr "末尾のゼロを非表示にする"
 
@@ -3210,6 +3326,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid ""
 "Hide zeros to the right of the last non-zero digit, e.g. 1.20 becomes 1.2"
 msgstr "末尾の0を非表示にします。例:1.20 → 1.2"
@@ -3231,6 +3348,12 @@ msgstr "ホームメニュー"
 #: code:addons/web/static/src/search/utils/dates.js:0
 msgid "Hour"
 msgstr "時間"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Hours"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -3319,18 +3442,6 @@ msgstr "TRUEの場合、URLはそのまま使用され、プレフィクスは�
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid ""
-"If checked, clicking on the tag will open the form that allows to directly "
-"edit it. Note that if a color field is also set, the tag edition will "
-"prevail. So, the color picker will not be displayed on click on the tag."
-msgstr ""
-"チェックを入れると、タグをクリックすると、タグを直接編集できるフォームが開き"
-"ます。色フィールドも設定されている場合、タグの編集が優先されることにご注意下"
-"さい。そのため、タグをクリックしても、カラーピッカーは表示されません。"
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/views/fields/json_checkboxes/json_checkboxes_field.js:0
 msgid ""
 "If checked, the checkboxes will be displayed in a column. Otherwise, they "
@@ -3408,10 +3519,13 @@ msgstr "継承元:"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_item.xml:0
+msgid "In Company"
+msgstr "会社内"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/record_selectors/record_selector.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
 msgid "Inaccessible/missing record ID: %s"
 msgstr "アクセス不可能/不明のレコードID: %s"
 
@@ -3479,7 +3593,6 @@ msgstr "整数"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
-#: code:addons/web/static/src/views/fields/properties/property_value.xml:0
 msgid "Internal link"
 msgstr "内部リンク"
 
@@ -3898,12 +4011,6 @@ msgid "Lack of inspiration?"
 msgstr "アイデアに行き詰まっていますか?"
 
 #. module: web
-#. odoo-python
-#: code:addons/web/controllers/session.py:0
-msgid "Languages"
-msgstr "言語"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
 #: code:addons/web/static/src/views/fields/image_url/image_url_field.js:0
@@ -3983,11 +4090,6 @@ msgid "Layout"
 msgstr "レイアウト"
 
 #. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background
-msgid "Layout Background"
-msgstr "レイアウト背景"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.js:0
 msgid "Leave Debug Mode"
@@ -4019,21 +4121,27 @@ msgstr "折れ線グラフ"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Link copied to clipboard"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Load"
 msgstr "ロード"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
-msgid "Load demo data"
-msgstr "デモデータをロード"
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.xml:0
+msgid "Load More"
+msgstr "さらに読み込む"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid "Load everything anyway."
-msgstr "とにかく全てを読込みます。"
+#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
+msgid "Load demo data"
+msgstr "デモデータをロード"
 
 #. module: web
 #. odoo-javascript
@@ -4051,7 +4159,6 @@ msgstr "さらに読み込む... ("
 #. odoo-javascript
 #: code:addons/web/static/src/core/file_viewer/file_viewer.xml:0
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
-#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
 msgid "Loading"
 msgstr "ロード中"
 
@@ -4068,6 +4175,12 @@ msgid "Loading..."
 msgstr "読込中..."
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
+msgid "Loading…"
+msgstr "ロード中…"
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Log in"
 msgstr "ログイン"
@@ -4080,23 +4193,23 @@ msgstr "スーパーユーザとしてログイン"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
-#: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "Log out"
 msgstr "ログアウト"
 
 #. module: web
 #. odoo-python
 #: code:addons/web/controllers/home.py:0
+#: model_terms:ir.ui.view,arch_db:web.login
 msgid "Login"
 msgstr "ログイン"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
+#: model_terms:ir.ui.view,arch_db:web.external_layout_dual
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
+#: model_terms:ir.ui.view,arch_db:web.external_layout_lines
 #: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 #: model_terms:ir.ui.view,arch_db:web.frontend_layout
 #: model_terms:ir.ui.view,arch_db:web.login_layout
@@ -4113,6 +4226,11 @@ msgstr "ロゴのメインカラー"
 #: model:ir.model.fields,field_description:web.field_base_document_layout__logo_secondary_color
 msgid "Logo Secondary Color"
 msgstr "ロゴ サブカラー"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.login_successful
+msgid "Logout"
+msgstr "ログアウト"
 
 #. module: web
 #. odoo-javascript
@@ -4193,6 +4311,12 @@ msgstr "多対1"
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 msgid "Match"
 msgstr "突合"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/gauge/gauge_field.js:0
+msgid "Max tooltip"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4300,6 +4424,12 @@ msgstr "最小精度"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 msgid "Minimum Digits"
+msgstr "最小桁数"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Minutes"
 msgstr ""
 
 #. module: web
@@ -4319,6 +4449,19 @@ msgstr "不明なアクション"
 #: code:addons/web/static/src/core/errors/error_dialogs.js:0
 msgid "Missing Record"
 msgstr "レコードが見つかりません"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
+msgid "Missing record"
+msgstr "レコードが見つかりません"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
+msgid "Missing record (ID: %s)"
+msgstr "レコードが見つかりません (ID:%s)"
 
 #. module: web
 #. odoo-python
@@ -4349,6 +4492,7 @@ msgstr "モード"
 #: code:addons/web/static/src/views/fields/domain/domain_field.js:0
 #: code:addons/web/static/src/views/fields/field_selector/field_selector_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: model:ir.model,name:web.model_ir_model
 msgid "Model"
 msgstr "モデル"
 
@@ -4356,7 +4500,7 @@ msgstr "モデル"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/debug_items.js:0
 msgid "Model Record Rules"
-msgstr "モデルレコードルール"
+msgstr "モデルレコード規則"
 
 #. module: web
 #. odoo-javascript
@@ -4381,11 +4525,6 @@ msgstr "モデル:"
 #: code:addons/web/static/src/webclient/actions/debug_items.js:0
 msgid "Model: %s"
 msgstr "モデル: %s"
-
-#. module: web
-#: model:ir.model,name:web.model_ir_model
-msgid "Models"
-msgstr "モデル"
 
 #. module: web
 #. odoo-javascript
@@ -4442,6 +4581,7 @@ msgstr "他のメニュー"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 #: code:addons/web/static/src/views/fields/statusbar/statusbar_field.xml:0
 msgid "More..."
@@ -4458,18 +4598,6 @@ msgstr "母"
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "Mount Fuji"
 msgstr "富士山"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property down"
-msgstr "この属性を下に移動する"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property up"
-msgstr "この属性を上に移動する"
 
 #. module: web
 #. odoo-javascript
@@ -4581,7 +4709,6 @@ msgstr "名称:"
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
-#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "New"
 msgstr "新規"
 
@@ -4665,6 +4792,7 @@ msgstr "来年"
 #. odoo-javascript
 #: code:addons/web/static/src/model/relational_model/utils.js:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
 #: code:addons/web/static/src/views/pivot/pivot_model.js:0
 msgid "No"
 msgstr "いいえ"
@@ -4718,7 +4846,7 @@ msgstr "表示するデータがありません"
 #. odoo-python
 #: code:addons/web/controllers/pivot.py:0
 msgid "No data to export"
-msgstr ""
+msgstr "エクスポートするデータがありません"
 
 #. module: web
 #. odoo-javascript
@@ -4797,12 +4925,6 @@ msgstr "設定が見つかりません"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
-msgid "No stages yet, let's create some!"
-msgstr "ステージが見つかりません。作成しましょう!"
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "No view of type '%s' could be found in the current action."
 msgstr "現在のアクションにタイプ '%s' のビューが見つかりません。"
@@ -4838,7 +4960,7 @@ msgstr "無効な %s"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid ""
 "Not possible to create monetary field because there is no currency on "
 "current model."
@@ -4848,9 +4970,22 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "Nothing to schedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.js:0
 msgid "Number of files"
 msgstr "ファイル数"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Numeric"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5013,18 +5148,18 @@ msgstr "オフライン"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
-msgid "Oh snap!"
-msgstr "ご確認ください！"
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/web/static/src/public/error_notifications.js:0
 #: code:addons/web/static/src/views/calendar/calendar_year/calendar_year_popover.xml:0
 #: code:addons/web/static/src/views/view_dialogs/form_view_dialog.xml:0
 msgid "Ok"
 msgstr "OK"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "On tag click"
+msgstr "タグをクリックすると"
 
 #. module: web
 #. odoo-python
@@ -5136,6 +5271,18 @@ msgstr "開発者ツールを開く"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "Open form"
+msgstr "フォームを開く"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Open form on tag click"
+msgstr "タグクリックでフォームを開く"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_renderer.xml:0
 msgid "Open in form view"
 msgstr "フォームビューを開く"
@@ -5228,13 +5375,12 @@ msgid "PDF file"
 msgstr "PDFファイル"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
+msgid "Page 1 / 1"
+msgstr "ページ 1 / 1"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "Page <span class=\"page\"/> / <span class=\"topage\"/>"
 msgstr "ページ <span class=\"page\"/> / <span class=\"topage\"/>"
 
@@ -5256,6 +5402,7 @@ msgstr "取引先"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/views/fields/password/password_field.js:0
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Password"
@@ -5410,12 +5557,6 @@ msgid "Press \"Enter\" to add criterion"
 msgstr "Enterキーを押して条件を追加"
 
 #. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Prevent color edition"
-msgstr "カラー編集を防ぐ"
-
-#. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__preview
 msgid "Preview"
 msgstr "プレビュー"
@@ -5544,9 +5685,22 @@ msgstr "プロパティベース定義"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Properties Definition"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 msgid "Property %s"
 msgstr "プロパティ%s"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Property 1"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5630,6 +5784,7 @@ msgstr "ラジオ"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/float_toggle/float_toggle_field.js:0
 msgid "Range"
 msgstr "範囲"
@@ -5651,15 +5806,14 @@ msgstr "読取専用"
 #. odoo-javascript
 #: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 msgid ""
-"Ready to make your record disappear into thin air? Are you sure?\n"
-"It will be gone forever!\n"
-"\n"
+"Ready to make your record disappear into thin air? Are you sure? It will be "
+"gone forever!\n"
+"    \n"
 "Think twice before you click that 'Delete' button!"
 msgstr ""
-"レコードを削除しますか？本当ですか？\n"
-"I削除すると、戻すことはできません。\n"
-"\n"
-"'削除'ボタンをクリックする前に、よく考えて下さい!"
+"レコードを削除しますか？本当ですか？削除すると、戻すことはできません。\n"
+"    \n"
+"'削除'ボタンをクリックする前に、よく考えて下さい！"
 
 #. module: web
 #. odoo-javascript
@@ -5671,7 +5825,7 @@ msgstr "レコード"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/debug_items.js:0
 msgid "Record Rules"
-msgstr "レコードルール"
+msgstr "レコード規則"
 
 #. module: web
 #. odoo-javascript
@@ -5776,8 +5930,8 @@ msgstr "削除"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Remove Cover Image"
-msgstr "カバーイメージを削除"
+msgid "Remove Cover"
+msgstr "カバー画像を削除"
 
 #. module: web
 #. odoo-javascript
@@ -5809,6 +5963,12 @@ msgstr "このリストからこのお気に入りを削除"
 #: code:addons/web/static/src/core/user_switch/user_switch.xml:0
 msgid "Remove user from switcher"
 msgstr "スイッチャーからユーザを削除"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
+msgid "Replace current file"
+msgstr "現在のファイルを置き換える"
 
 #. module: web
 #. odoo-javascript
@@ -5851,6 +6011,12 @@ msgstr "必須:"
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Reset"
 msgstr "リセット"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "Reset Filters"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5902,7 +6068,7 @@ msgstr "ユニットテストを実行"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 msgid "SIGNATURE"
 msgstr "署名"
 
@@ -6010,6 +6176,12 @@ msgstr "保存して新規"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/form/form_controller.js:0
+msgid "Save Properties"
+msgstr "プロパティを保存"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Save View"
 msgstr "保存ビュー"
@@ -6037,12 +6209,6 @@ msgstr "デフォルト値保存"
 #: code:addons/web/static/src/views/form/form_status_indicator/form_status_indicator.xml:0
 msgid "Save manually"
 msgstr "手動で保存"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/translation_button.js:0
-msgid "Save this record and its parent to translate"
-msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6122,6 +6288,7 @@ msgstr "ユーザーを検索..."
 #: code:addons/web/static/src/core/commands/command_palette.js:0
 #: code:addons/web/static/src/core/emoji_picker/emoji_picker.xml:0
 #: code:addons/web/static/src/core/model_field_selector/model_field_selector_popover.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_view.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
@@ -6149,6 +6316,12 @@ msgstr "サブカラー"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Seconds"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_basic.js:0
 msgid "Security"
 msgstr "セキュリティ"
@@ -6167,7 +6340,6 @@ msgstr "技術詳細を表示"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 #: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "Select"
 msgstr "選択"
@@ -6298,6 +6470,11 @@ msgid "Send Email"
 msgstr "メールを送信"
 
 #. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Separated (one per tab)"
+msgstr ""
+
+#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Separator"
@@ -6315,6 +6492,12 @@ msgstr "デフォルト値を設定"
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "Set a Cover Image"
 msgstr "カバーイメージを設定"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Set a char field that colors the dot on the tag."
+msgstr "タグ上のドットの色を設定する文字フィールドを設定します。"
 
 #. module: web
 #. odoo-javascript
@@ -6369,9 +6552,33 @@ msgstr "シャカ"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/burger_menu/burger_menu.xml:0
+msgid "Share URL"
+msgstr "URLを共有"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share the current view"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Shared"
 msgstr "共有"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Shared filters couldn't be applied"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6406,6 +6613,7 @@ msgstr "オプションを表示"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
 msgid "Show seconds"
 msgstr "秒を表示"
 
@@ -6426,6 +6634,24 @@ msgstr "時間を表示"
 #: code:addons/web/static/src/views/view_components/view_scale_selector.xml:0
 msgid "Show weekends"
 msgstr "週末を表示"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
+msgid "Signature"
+msgstr "署名"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Signed in as"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Single date"
+msgstr "単一の日付"
 
 #. module: web
 #. odoo-javascript
@@ -6668,6 +6894,16 @@ msgid "TV"
 msgstr "テレビ"
 
 #. module: web
+#: model:ir.model.fields,field_description:web.field_base_document_layout__report_tables_id
+msgid "Table Design"
+msgstr "表デザイン"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
+msgid "Tables"
+msgstr "テーブル"
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Tagline"
 msgstr "タグライン"
@@ -6718,13 +6954,7 @@ msgstr "牡牛座"
 
 #. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__vat
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Tax ID"
 msgstr "登録番号"
 
@@ -6739,6 +6969,11 @@ msgstr "Teal"
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Template:"
 msgstr "テンプレート："
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Temporal (experimental)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6883,16 +7118,6 @@ msgstr ""
 "ション設定は一意でなければなりません。"
 
 #. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid ""
-"There are too many data. The graph only shows a sample. Use the filters to "
-"refine the scope."
-msgstr ""
-"データが多すぎます。グラフはサンプルのみを表示しています。フィルタを使用して"
-"範囲を絞り込んで下さい。"
-
-#. module: web
 #. odoo-python
 #: code:addons/web/controllers/export.py:0
 msgid ""
@@ -6907,6 +7132,12 @@ msgstr ""
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "There is no available image to be set as cover."
 msgstr "カバーとして使用できる画像がありません。"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "There is no data to display offline for the given filters"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6943,18 +7174,6 @@ msgstr "このアクションは全体に関与してるため、全員から削
 #: code:addons/web/static/src/core/expression_editor/expression_editor.xml:0
 msgid "This expression is not supported."
 msgstr "この式はサポートされていません。"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already first"
-msgstr "このフィールドは既に最初です。"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already last"
-msgstr "このフィールドは既に最後です。"
 
 #. module: web
 #. odoo-javascript
@@ -7077,15 +7296,10 @@ msgstr "切替"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 msgid "Toggle Search Panel"
 msgstr "検索パネル切替"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
-msgid "Toggle date range mode"
-msgstr "日付範囲モードの切り替え"
 
 #. module: web
 #. odoo-javascript
@@ -7263,13 +7477,7 @@ msgid "URL"
 msgstr "URL"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "US12345671"
 msgstr "US12345671"
 
@@ -7315,6 +7523,12 @@ msgstr "未定義"
 #: code:addons/web/static/src/views/kanban/kanban_header.xml:0
 msgid "Unfold"
 msgstr "展開"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Unit"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7380,14 +7594,13 @@ msgstr "将来のバージョンへのアップグレード"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Upload and Set"
-msgstr "アップロードと設定"
+msgid "Upload New"
+msgstr "新規アップロード"
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/pdf_viewer/pdf_viewer_field.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Upload your file"
 msgstr "ファイルをアップロード"
 
@@ -7456,6 +7669,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"Use the operators \"+=\", \"-=\" to update the current date by days (%"
+"(days)s), \n"
+"            weeks (%(weeks)s), months (%(months)s), years (%(years)s), hours "
+"(%(hours)s), \n"
+"            minutes (%(minutes)s) and seconds (%(seconds)s)."
+msgstr ""
+"演算子\"+=\"、\"-=\" を使用して、現在の日付を日単位(%(days)s )、\n"
+"週単位(%(weeks)s )、月単位(%(months)s )、年単位(%(years)s )、時間単位(%"
+"(hours)s )、\n"
+"分単位(%(minutes)s )、秒単位(%(seconds)s )で更新します。"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "Use the operators \"+=\", \"-=\", \"*=\" and \"/=\" to update the current "
@@ -7490,6 +7718,12 @@ msgid ""
 msgstr ""
 "上下の矢印キーで明度を調整し、左右の矢印キーで彩度を調整できます。Controlキー"
 "（またはCommandキー）を同時に押すと、より細かい調整が可能です。"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Use your password"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7682,6 +7916,18 @@ msgid "Warning for future dates"
 msgstr "未来の日付の警告"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Warning: Link copied to clipboard might be too long for some browsers"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Warning: Not all shared filters applied"
+msgstr ""
+
+#. module: web
 #. odoo-python
 #: code:addons/web/models/models.py:0
 msgid "Warnings"
@@ -7763,6 +8009,12 @@ msgstr "ウィジェット:"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Working offline"
+msgstr "オフライン作業"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_controller.js:0
 msgid "Would you like to save your changes?"
 msgstr "変更を保存しますか？"
@@ -7831,6 +8083,14 @@ msgid "Yes"
 msgstr "はい"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid ""
+"You are about to create a copy of every selected record.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "You are logged in."
 msgstr "ログインしています。"
@@ -7861,6 +8121,15 @@ msgstr "そのフィールド定義を読み取ることはできません。"
 #. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__vat
 msgid "You can use '/' to indicate that the customer has no Tax ID."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid ""
+"You can use the link below to share the current view with its filters: \n"
+"\n"
+" %(url)s"
 msgstr ""
 
 #. module: web
@@ -8472,7 +8741,7 @@ msgstr "宇宙飛行士"
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
 #: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
 msgid "at"
-msgstr "於"
+msgstr ":"
 
 #. module: web
 #. odoo-javascript
@@ -15887,7 +16156,7 @@ msgstr "苦笑いの猫"
 #. odoo-javascript
 #: code:addons/web/static/src/core/tree_editor/tree_editor_operator_editor.js:0
 msgid "is equal to"
-msgstr "が次と一致する"
+msgstr "等しい"
 
 #. module: web
 #. odoo-javascript
@@ -18925,7 +19194,7 @@ msgstr "おでん"
 #. odoo-javascript
 #: code:addons/web/static/src/core/tree_editor/tree_editor.xml:0
 msgid "of the following rules:"
-msgstr "以下のルールの："
+msgstr "以下の規則の："
 
 #. module: web
 #. odoo-javascript
@@ -19022,6 +19291,12 @@ msgstr "年配の人"
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "om"
 msgstr "オーム"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "on"
+msgstr ":"
 
 #. module: web
 #. odoo-javascript
@@ -22096,6 +22371,7 @@ msgstr "シーフード"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 msgid "search"
 msgstr "検索"
@@ -25907,6 +26183,12 @@ msgstr "反時計回り"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "without currency"
+msgstr "通貨なし"
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "wizard"
 msgstr "魔法使い"
@@ -26645,6 +26927,12 @@ msgstr "円札"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
+msgid "yet, let's create some!"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "yin"
 msgstr "陰"
@@ -27100,565 +27388,3 @@ msgstr ""
 
 #~ msgid "No emoji matches your search"
 #~ msgstr "検索にマッチする絵文字がありません"
-
-#~ msgid "<span itemprop=\"name\">Deco Addict</span>"
-#~ msgstr "<span itemprop=\"name\">Deco Addict</span>"
-
-#~ msgid "Angle"
-#~ msgstr "角度"
-
-#~ msgid "Define a custom gradient"
-#~ msgstr "カスタムグラデーションを定義"
-
-#~ msgid "Error"
-#~ msgstr "エラー"
-
-#~ msgid "Extend to the closest corner"
-#~ msgstr "最も近い隅に伸ばす"
-
-#~ msgid "Extend to the closest side"
-#~ msgstr "最も近い側に伸ばす"
-
-#~ msgid "Extend to the farthest corner"
-#~ msgstr "最も遠い隅に伸ばす"
-
-#~ msgid "Extend to the farthest side"
-#~ msgstr "最も遠い側に伸ばす"
-
-#~ msgid "Gradient"
-#~ msgstr "グラデーション"
-
-#~ msgid "Invalid fields: "
-#~ msgstr "項目が無効です: "
-
-#~ msgid "Linear"
-#~ msgstr "線形"
-
-#~ msgid "Position X"
-#~ msgstr "ポジションX"
-
-#~ msgid "Position Y"
-#~ msgstr "ポジションY"
-
-#~ msgid "Radial"
-#~ msgstr "放射状"
-
-#~ msgid "Theme"
-#~ msgstr "テーマ"
-
-#~ msgid "deg"
-#~ msgstr "度"
-
-#~ msgid " records"
-#~ msgstr "レコード"
-
-#~ msgid "%d days ago"
-#~ msgstr "%d 日前"
-
-#~ msgid "%d hours ago"
-#~ msgstr "%d時間前"
-
-#~ msgid "%d minutes ago"
-#~ msgstr "%d分前"
-
-#~ msgid "%d months ago"
-#~ msgstr "%dヶ月前"
-
-#~ msgid "%d years ago"
-#~ msgstr "%d年前"
-
-#~ msgid "'%s' is not a correct date"
-#~ msgstr "'%s' は正しいフォーマット（date型）ではありません"
-
-#~ msgid "'%s' is not a correct date, datetime nor time"
-#~ msgstr "'%s' は正しいフォーマット（date/datetime/time）ではありません"
-
-#~ msgid "'%s' is not a correct datetime"
-#~ msgstr "'%s' は正しいフォーマット（datetime）ではありません"
-
-#~ msgid "'%s' is not a correct float"
-#~ msgstr "'%s' は正しいフォーマット（float）ではありません"
-
-#~ msgid "'%s' is not a correct integer"
-#~ msgstr "'%s' は正しいフォーマット（integer）ではありません"
-
-#~ msgid "'%s' is not a correct monetary field"
-#~ msgstr "'%s' は正しい金額項目ではありません"
-
-#~ msgid "'%s' is not convertible to date, datetime nor time"
-#~ msgstr "'%s' はdate/datetime/timeに変換可能なフォーマットではありません"
-
-#~ msgid "(nolabel)"
-#~ msgstr "（ラベルなし）"
-
-#~ msgid "<span id=\"line_tax_ids\">15.00%</span>"
-#~ msgstr "<span id=\"line_tax_ids\">15.00%</span>"
-
-#~ msgid "<strong>Due Date:</strong>"
-#~ msgstr "<strong>期日:</strong>"
-
-#~ msgid "<strong>Invoice Date:</strong>"
-#~ msgstr "<strong>請求日:</strong>"
-
-#~ msgid "<strong>Subtotal</strong>"
-#~ msgstr "<strong>小計</strong>"
-
-#~ msgid "ALL"
-#~ msgstr "すべて"
-
-#~ msgid "ANY"
-#~ msgstr "どれでも"
-
-#~ msgid "Activate Assets Debugging"
-#~ msgstr "アセットのデバッグを有効化"
-
-#~ msgid "Activate Tests Assets Debugging"
-#~ msgstr "テストアセットのデバッグを有効化"
-
-#~ msgid "Add Custom Filter"
-#~ msgstr "カスタムフィルタ追加"
-
-#~ msgid "Add Custom Group"
-#~ msgstr "カスタムグループ追加"
-
-#~ msgid "Add a Property"
-#~ msgstr "プロパティを追加"
-
-#~ msgid "Add a condition"
-#~ msgstr "条件追加"
-
-#~ msgid "Add branch"
-#~ msgstr "ブランチ追加"
-
-#~ msgid "Add filter"
-#~ msgstr "フィルタ追加"
-
-#~ msgid "Add new value"
-#~ msgstr "新しい値を追加"
-
-#~ msgid "Add node"
-#~ msgstr "ノード追加"
-
-#~ msgid "Add tag"
-#~ msgstr "タグ追加"
-
-#~ msgid "An error occurred"
-#~ msgstr "エラー発生"
-
-#~ msgid "Any"
-#~ msgstr "どれでも"
-
-#~ msgid ""
-#~ "Appears by default on the top right corner of your printed documents "
-#~ "(report header)."
-#~ msgstr "印刷された文書(レポートヘッダ)の右上隅にデフォルトで表示されます。"
-
-#~ msgid "Archive All"
-#~ msgstr "すべてアーカイブ"
-
-#~ msgid ""
-#~ "Are you sure that you want to archive all the records from this column?"
-#~ msgstr "本当にこのカラムの全レコードをアーカイブしますか？"
-
-#~ msgid "Are you sure that you want to remove this filter?"
-#~ msgstr "このフィルタを削除しますか？"
-
-#~ msgid "Are you sure you want to delete this record?"
-#~ msgstr "本当にこのレコードを削除しますか？"
-
-#~ msgid "Are you sure you want to perform the following update on those"
-#~ msgstr "本当に次の件数のレコードを更新しますか:"
-
-#~ msgid "Choose"
-#~ msgstr "選択"
-
-#~ msgid "Comparison"
-#~ msgstr "比較"
-
-#~ msgid "Could not connect to the server"
-#~ msgstr "サーバに接続できませんでした"
-
-#~ msgid "Could not serialize XML"
-#~ msgstr "XMLをシリアライズできませんでした"
-
-#~ msgid "Create \"<strong>%s</strong>\""
-#~ msgstr "\"<strong>%s</strong>\" を作成"
-
-#~ msgid "Create and Edit..."
-#~ msgstr "作成・編集..."
-
-#~ msgid "Create: "
-#~ msgstr "作成:"
-
-#~ msgid "Create: %s"
-#~ msgstr "作成: %s"
-
-#~ msgid "Current state"
-#~ msgstr "現在のステータス"
-
-#~ msgid "Dark blue"
-#~ msgstr "ダークブルー"
-
-#~ msgid "Dark purple"
-#~ msgstr "濃い紫"
-
-#~ msgid "Default text is used when no values are set"
-#~ msgstr "数値が設定されてない場合は、デフォルトテキストが使用されます"
-
-#~ msgid "Default value"
-#~ msgstr "デフォルト値"
-
-#~ msgid "Delete node"
-#~ msgstr "ノード削除"
-
-#~ msgid "Don't leave yet,<br />it's still loading..."
-#~ msgstr "しばしご辛抱を。<br />引き続き読込中です..."
-
-#~ msgid "Download PDF Preview"
-#~ msgstr "PDFプレビューをダウンロード"
-
-#~ msgid "Edit Action"
-#~ msgstr "アクションの編集"
-
-#~ msgid "Edit SearchView"
-#~ msgstr "検索ビューの編集"
-
-#~ msgid "Edit View: "
-#~ msgstr "ビュー編集："
-
-#~ msgid "Enter e-mail address"
-#~ msgstr "メールアドレスを入力してください"
-
-#~ msgid "Everybody's calendars"
-#~ msgstr "全員のカレンダー"
-
-#~ msgid "Everything"
-#~ msgstr "すべて"
-
-#~ msgid "External link"
-#~ msgstr "外部リンク"
-
-#~ msgid "FILTER"
-#~ msgstr "フィルタ"
-
-#~ msgid "File upload"
-#~ msgstr "ファイルのアップロード"
-
-#~ msgid "Filter with same name already exists."
-#~ msgstr "同名のフィルターが存在します。"
-
-#~ msgid "Graph"
-#~ msgstr "グラフ"
-
-#~ msgid "Hit DOWN to navigate to the list below"
-#~ msgstr "下矢印を押して下のリストに移動"
-
-#~ msgid "Hit ENTER to"
-#~ msgstr "Enterを押して"
-
-#~ msgid "Hit ENTER to CREATE"
-#~ msgstr "Enterを押して作成"
-
-#~ msgid "I am sure about this."
-#~ msgstr "間違いありません。"
-
-#~ msgid "In"
-#~ msgstr "に"
-
-#~ msgid ""
-#~ "Invalid database name. Only alphanumerical characters, underscore, hyphen "
-#~ "and dot are allowed."
-#~ msgstr ""
-#~ "データベース名が不正です。半角英数字、アンダースコア(_)、ハイフン(-)、ピリ"
-#~ "オド(.)のみ使えます。"
-
-#~ msgid "Leave the Developer Tools"
-#~ msgstr "開発者用ツールを終了"
-
-#~ msgid "Light blue"
-#~ msgstr "明るい青"
-
-#~ msgid "Loading, please wait..."
-#~ msgstr "ロード中です。お待ちください..."
-
-#~ msgid "Manage Attachments"
-#~ msgstr "添付を管理"
-
-#~ msgid "Manage Filters"
-#~ msgstr "フィルタを管理"
-
-#~ msgid "Match records with the following rule:"
-#~ msgstr "次のルールでレコードを特定:"
-
-#~ msgid "Medium blue"
-#~ msgstr "中くらいの青"
-
-#~ msgid "Modifiers:"
-#~ msgstr "修飾："
-
-#~ msgid "My Odoo.com account"
-#~ msgstr "Odoo.comアカウント"
-
-#~ msgid "Next page"
-#~ msgstr "次のページ"
-
-#~ msgid "No records found!"
-#~ msgstr "レコードがありません！"
-
-#~ msgid "Not active state"
-#~ msgstr "無効状態"
-
-#~ msgid "Not active state, click to change it"
-#~ msgstr "有効ステータスではありません。クリックして変更してください。"
-
-#~ msgid "On change:"
-#~ msgstr "変更:"
-
-#~ msgid "Open: "
-#~ msgstr "オープン:"
-
-#~ msgid ""
-#~ "Page:\n"
-#~ "                    <span class=\"page\"/>\n"
-#~ "                    of\n"
-#~ "                    <span class=\"topage\"/>"
-#~ msgstr ""
-#~ "ページ:\n"
-#~ "                    <span class=\"page\"/>\n"
-#~ "                    of\n"
-#~ "                    <span class=\"topage\"/>"
-
-#~ msgid "Page: <span class=\"page\"/> / <span class=\"topage\"/>"
-#~ msgstr "ページ: <span class=\"page\"/> / <span class=\"topage\"/>"
-
-#~ msgid "Pick a color"
-#~ msgstr "色を選択"
-
-#~ msgid "Pivot"
-#~ msgstr "ピボット"
-
-#~ msgid ""
-#~ "Please use the copy button to report the error to your support service."
-#~ msgstr "コピーボタンで内容コピーの上、サポート担当者に報告してください。"
-
-#~ msgid "Preferences"
-#~ msgstr "個人設定"
-
-#~ msgid "Previous Period"
-#~ msgstr "前期間"
-
-#~ msgid "Previous Year"
-#~ msgstr "昨年"
-
-#~ msgid "Previous menu"
-#~ msgstr "前のメニュー"
-
-#~ msgid "Previous page"
-#~ msgstr "前のページ"
-
-#~ msgid "Printing options"
-#~ msgstr "印刷オプション"
-
-#~ msgid "Regenerate Assets Bundles"
-#~ msgstr "アセットバンドルを再生成"
-
-#~ msgid "Remove tag"
-#~ msgstr "タグを削除"
-
-#~ msgid "Run Click Everywhere Test"
-#~ msgstr "Click Everywhereテストを実行"
-
-#~ msgid "Run JS Mobile Tests"
-#~ msgstr "JSモバイルテスト実行"
-
-#~ msgid "Run JS Tests"
-#~ msgstr "JSテスト実行"
-
-#~ msgid "SEE RESULT"
-#~ msgstr "結果を見る"
-
-#~ msgid "Salmon pink"
-#~ msgstr "サーモンピンク"
-
-#~ msgid "See details"
-#~ msgstr "詳細を見る"
-
-#~ msgid "Set Defaults"
-#~ msgstr "デフォルト値設定"
-
-#~ msgid "Share with all users"
-#~ msgstr "全ユーザと共有"
-
-#~ msgid "Shortcuts"
-#~ msgstr "ショートカット"
-
-#~ msgid "Size:"
-#~ msgstr "サイズ:"
-
-#~ msgid "Still loading...<br />Please be patient."
-#~ msgstr "引き続き読込中...<br />今しばらくお待ちください。"
-
-#~ msgid "Style"
-#~ msgstr "スタイル"
-
-#~ msgid "Styles"
-#~ msgstr "スタイル"
-
-#~ msgid "Support"
-#~ msgstr "サポート"
-
-#~ msgid "Syntax error"
-#~ msgstr "構文エラー"
-
-#~ msgid "Take a minute to get a coffee,<br />because it's loading..."
-#~ msgstr "ロード中です。<br />コーヒーでも飲んでお待ちください。"
-
-#~ msgid "The selected file exceed the maximum file size of %s."
-#~ msgstr "選択したファイルが最大ファイルサイズ%sを超えています。"
-
-#~ msgid "There was a problem while uploading your file"
-#~ msgstr "ファイルのアップロード中に問題が発生しました"
-
-#~ msgid "This date is on the future. Make sure it is what you expected."
-#~ msgstr "日付が将来になっています。これで間違いないかご確認ください。"
-
-#~ msgid ""
-#~ "This filter is global and will be removed for everybody if you continue."
-#~ msgstr "このフィルタはグローバルであり、続行すると全員分が削除されます。"
-
-#~ msgid "Tomorrow"
-#~ msgstr "明日"
-
-#~ msgid "True"
-#~ msgstr "True"
-
-#~ msgid ""
-#~ "Unable to find Wkhtmltopdf on this system. The report will be shown in "
-#~ "html."
-#~ msgstr ""
-#~ "システムにWkhtmltopdfが見つかりません。レポートはHTMLで表示されます。"
-
-#~ msgid "Unarchive All"
-#~ msgstr "すべてアーカイブ取消"
-
-#~ msgid "Unknown nonliteral type "
-#~ msgstr "不明な非リテラルタイプ"
-
-#~ msgid "Upgrade to enterprise"
-#~ msgstr "エンタープライズにアップグレード"
-
-#~ msgid "Use by default"
-#~ msgstr "デフォルト使用"
-
-#~ msgid "Variation"
-#~ msgstr "変化"
-
-#~ msgid "View %s"
-#~ msgstr "%sを見る"
-
-#~ msgid "View Access Rights"
-#~ msgstr "アクセス権を参照"
-
-#~ msgid "View Fields"
-#~ msgstr "項目を照会"
-
-#~ msgid "View Record Rules"
-#~ msgstr "レコード規則を参照"
-
-#~ msgid "View switcher"
-#~ msgstr "サブスクリプションはすでにデータベースにリンクされています。"
-
-#~ msgid "Web Mobile Tests"
-#~ msgstr "ウェブモバイルテスト"
-
-#~ msgid "Yesterday"
-#~ msgstr "昨日"
-
-#~ msgid ""
-#~ "You may not believe it,<br />but the application is actually loading..."
-#~ msgstr ""
-#~ "信じられないかもしれませんが、<br />アプリケーションはロード中です..."
-
-#~ msgid ""
-#~ "You need to save this new record before editing the translation. Do you "
-#~ "want to proceed?"
-#~ msgstr ""
-#~ "翻訳の編集をする前にこのレコードを保存する必要があります。先に進みますか？"
-
-#~ msgid ""
-#~ "You should upgrade your version of Wkhtmltopdf to at least 0.12.0 in "
-#~ "order to get a correct display of headers and footers as well as support "
-#~ "for table-breaking between pages."
-#~ msgstr ""
-#~ "ヘッダやフッタ、またテーブル分割が正しく表示されるように、Wkhtmltopdfの"
-#~ "バージョンを 0.12.0以上にしてください。"
-
-#~ msgid ""
-#~ "Your installation of Wkhtmltopdf seems to be broken. The report will be "
-#~ "shown in html."
-#~ msgstr ""
-#~ "Wkhtmltopdfのインストールに問題があるようです。レポートはHTMLで表示されま"
-#~ "す。"
-
-#~ msgid "a day ago"
-#~ msgstr "1日前"
-
-#~ msgid "about a minute ago"
-#~ msgstr "1分前"
-
-#~ msgid "about a month ago"
-#~ msgstr "1ヶ月前"
-
-#~ msgid "about a year ago"
-#~ msgstr "約1年前"
-
-#~ msgid "about an hour ago"
-#~ msgstr "1時間前"
-
-#~ msgid "days"
-#~ msgstr "日"
-
-#~ msgid "days ago"
-#~ msgstr "日前"
-
-#~ msgid "doesn't contain"
-#~ msgstr "が次を含まない"
-
-#~ msgid "greater than or equal to"
-#~ msgstr "が次以上"
-
-#~ msgid "is"
-#~ msgstr "が次である"
-
-#~ msgid "is after"
-#~ msgstr "が次より後である"
-
-#~ msgid "is after or equal to"
-#~ msgstr "が次以降である"
-
-#~ msgid "is before"
-#~ msgstr "が次より前である"
-
-#~ msgid "is before or equal to"
-#~ msgstr "が次以前である"
-
-#~ msgid "is between"
-#~ msgstr "が次の間である"
-
-#~ msgid "is not"
-#~ msgstr "が次ではない"
-
-#~ msgid "less than"
-#~ msgstr "が次より小さい"
-
-#~ msgid "less than a minute ago"
-#~ msgstr "数十秒前"
-
-#~ msgid "less than or equal to"
-#~ msgstr "が次以下"
-
-#~ msgid "to open in new tab"
-#~ msgstr "新しいタブで開く"
-
-#~ msgid "to open,"
-#~ msgstr "開く、"

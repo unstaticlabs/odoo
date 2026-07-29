@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * event_crm
 #
-# Oakarmin Iron <oakarminiron@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Oakarmin Iron <oakarminiron@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 22:51+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-11 17:18+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/"
 "event_crm/my/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_count
@@ -40,11 +40,6 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.crm_lead_view_form
 msgid "<span class=\"o_stat_text\"> Attendees</span>"
-msgstr ""
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
-msgid "<span class=\"o_stat_text\"> Leads</span>"
 msgstr ""
 
 #. module: event_crm
@@ -147,7 +142,7 @@ msgstr "ဖန်တီးသူ"
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__create_date
 msgid "Created on"
-msgstr "ဖန်တီးသည့်အချိန်"
+msgstr "တည်ဆောက်သည့်အချိန်"
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
@@ -211,9 +206,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__event_type_ids
-#, fuzzy
 msgid "Event Templates"
-msgstr "ပွဲပုံစံများ"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.actions.act_window,name:event_crm.event_lead_rule_answer_action
@@ -222,9 +216,8 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.actions.act_window,name:event_crm.event_registration_action_from_lead
-#, fuzzy
 msgid "Event registrations"
-msgstr "ပွဲ တက်ရောက်သူစာရင်းသွင်းခြင်းများ"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_crm_lead__event_id
@@ -234,11 +227,6 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.crm_lead_merge_summary_inherit_event_crm
 msgid "Event:"
-msgstr ""
-
-#. module: event_crm
-#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
-msgid "Execute Rule"
 msgstr ""
 
 #. module: event_crm
@@ -349,10 +337,9 @@ msgid "Lead Type"
 msgstr ""
 
 #. module: event_crm
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_event
-#: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_registration
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_ids
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__lead_ids
+#: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
 #: model_terms:ir.ui.view,arch_db:event_crm.event_view_form
 msgid "Leads"
 msgstr "ဖောက်သည်လောင်းများ"
@@ -374,12 +361,6 @@ msgid "New registrations"
 msgstr ""
 
 #. module: event_crm
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_event
-#: model_terms:ir.actions.act_window,help:event_crm.crm_lead_action_from_registration
-msgid "No leads found"
-msgstr ""
-
-#. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_registration_action_from_lead
 msgid "No registration found"
 msgstr ""
@@ -392,15 +373,14 @@ msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_type__opportunity
-#, fuzzy
 msgid "Opportunity"
-msgstr "အခွင့်အလမ်း"
+msgstr ""
 
 #. module: event_crm
 #. odoo-python
 #: code:addons/event_crm/models/event_registration.py:0
 msgid "Participants"
-msgstr "ပါဝင်သူများ"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_basis__attendee
@@ -468,6 +448,11 @@ msgid "Rule that created this lead"
 msgstr ""
 
 #. module: event_crm
+#: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
+msgid "Run Rule"
+msgstr ""
+
+#. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_sales_team_id
 msgid "Sales Team"
 msgstr "အရောင်း အဖွဲ့"
@@ -523,7 +508,7 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
 msgid "Visible to all"
-msgstr "အားလုံးမြင်နိုင်သည်"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_creation_trigger

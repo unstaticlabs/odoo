@@ -7,14 +7,14 @@
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 05:16+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 21:30+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/snailmail/"
 "th/>\n"
 "Language: th\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -115,10 +115,6 @@ msgstr "สี"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "บริษัท"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "บริษัท"
@@ -289,8 +285,8 @@ msgstr "ข้อความ"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "การแจ้งเตือนข้อความ"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -410,11 +406,6 @@ msgstr "Snailmail"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "สี Snailmail"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr ""
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -597,8 +588,8 @@ msgid ""
 msgstr ""
 "เมื่อสร้างจดหมายแล้ว สถานะจะเป็น 'รอดำเนินการ'\n"
 "หากจดหมายถูกส่งอย่างถูกต้อง สถานะจะเป็น 'ส่งแล้ว'\n"
-"ถ้าไม่เช่นนั้น จะอยู่ในสถานะ 'ข้อผิดพลาด' และข้อความแสดงข้อผิดพลาดจะแสดงขึ้นในช่อง 'ข้อความแส"
-"ดงข้อผิดพลาด'"
+"ถ้าไม่เช่นนั้น จะอยู่ในสถานะ 'ข้อผิดพลาด' และข้อความแสดงข้อผิดพลาดจะแสดงขึ้นในช่อง "
+"'ข้อความแสดงข้อผิดพลาด'"
 
 #. module: snailmail
 #. odoo-python
@@ -607,8 +598,8 @@ msgid ""
 "You don't have an IAP account registered for this service.<br>Please go to "
 "<a href=%s target=\"new\">iap.odoo.com</a> to claim your free credits."
 msgstr ""
-"คุณไม่มีบัญชี IAP ที่ลงทะเบียนสำหรับบริการนี้ <br>โปรดไปที่ <a href=%s target=\"new\">"
-"iap.odoo.com</a> เพื่อรับเครดิตฟรีของคุณ"
+"คุณไม่มีบัญชี IAP ที่ลงทะเบียนสำหรับบริการนี้ <br>โปรดไปที่ <a href=%s "
+"target=\"new\">iap.odoo.com</a> เพื่อรับเครดิตฟรีของคุณ"
 
 #. module: snailmail
 #. odoo-python
@@ -624,37 +615,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "รหัสไปรษณีย์"
-
-#~ msgid "Address"
-#~ msgstr "ที่อยู่"
-
-#~ msgid "Buy credits"
-#~ msgstr "ซื้อเครดิต"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Cancel notification in failure"
-
-#~ msgid "Canceled"
-#~ msgstr "ถูกยกเลิก"
-
-#~ msgid "Close"
-#~ msgstr "ปิด"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "ประเภทข้อความ: อีเมลสําหรับข้อความอีเมล, การแจ้งเตือนสําหรับข้อความของระบบ, "
-#~ "ข้อคิดเห็นสําหรับข้อความอื่น ๆ เช่นการตอบกลับของผู้ใช้"
-
-#~ msgid "Partner"
-#~ msgstr "พาร์ทเนอร์"
-
-#~ msgid "Street 2..."
-#~ msgstr "ถนน 2..."
-
-#~ msgid "Street..."
-#~ msgstr "ถนน..."
-
-#~ msgid "ZIP"
-#~ msgstr "รหัสไปรษณีย์"

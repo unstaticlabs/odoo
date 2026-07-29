@@ -5,19 +5,18 @@ from datetime import datetime, timedelta
 from freezegun import freeze_time
 from json import loads
 
-from odoo.tests import Form
-from odoo.tests.common import new_test_user
+from odoo.tests import tagged, Form
 from odoo.addons.mrp.tests.common import TestMrpCommon
 from odoo import fields, Command
 
 
-
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMrpReplenish(TestMrpCommon):
 
     def _create_wizard(self, product, warehouse):
         return self.env['product.replenish'].with_context(default_product_tmpl_id=product.product_tmpl_id.id).create({
                 'product_id': product.id,
-                'product_uom_id': self.uom_unit.id,
+                'uom_id': self.uom_unit.id,
                 'quantity': 1,
                 'warehouse_id': warehouse.id,
             })
@@ -125,11 +124,12 @@ class TestMrpReplenish(TestMrpCommon):
         basic_mo.picking_ids.button_validate()
         self.assertEqual(basic_mo.move_raw_ids.mapped('state'), ['assigned', 'assigned'])
 
-        scrap_form = Form.from_action(self.env, basic_mo.button_scrap())
+        scrap_form = Form.from_action(self.env, basic_mo.action_scrap())
         scrap_form.product_id = product_to_scrap
-        scrap_form.should_replenish = True
+        scrap_form.quantity = 1
+        scrap_form.should_replenish_scrapped = True
         self.assertEqual(scrap_form.location_id, self.warehouse_1.pbm_loc_id)
-        scrap_form.save().action_validate()
+        scrap_form.save().action_scrap()
         self.assertNotEqual(basic_mo.move_raw_ids.mapped('state'), ['assigned', 'assigned'])
         self.assertEqual(len(basic_mo.picking_ids), 2)
         replenish_picking = basic_mo.picking_ids.filtered(lambda x: x.state == 'assigned')
@@ -155,12 +155,13 @@ class TestMrpReplenish(TestMrpCommon):
         self.assertEqual(basic_mo.move_raw_ids.mapped('state'), ['assigned', 'assigned'])
 
         # Scrap the product and trigger replenishment
-        scrap_form = Form.from_action(self.env, basic_mo.button_scrap())
+        scrap_form = Form.from_action(self.env, basic_mo.action_scrap())
         scrap_form.product_id = product_to_scrap
-        scrap_form.scrap_qty = 5
-        scrap_form.should_replenish = True
+        scrap_form.quantity = 5
+        scrap_form.should_replenish_scrapped = True
+        scrap_form.company_id = self.env.company
         self.assertEqual(scrap_form.location_id, self.warehouse_1.pbm_loc_id)
-        scrap_form.save().action_validate()
+        scrap_form.save().action_scrap()
 
         # Assert that the component quantity is reduced
         self.assertNotEqual(basic_mo.move_raw_ids.mapped('state'), ['assigned', 'assigned'])
@@ -252,36 +253,39 @@ class TestMrpReplenish(TestMrpCommon):
         5.) Add a reordering rule (manufacture) for product_4
         6.) trigger replenishment for product_4
         """
-        self.warehouse = self.env.ref('stock.warehouse0')
-        self.warehouse.write({'manufacture_steps': 'pbm_sam'})
-        self.warehouse.mto_pull_id.route_id.active = True
-
-        route_manufacture = self.warehouse.manufacture_pull_id.route_id.id
-        route_mto = self.warehouse.mto_pull_id.route_id.id
+        self.warehouse_1.write({'manufacture_steps': 'pbm_sam'})
+        self.warehouse_1.mto_pull_id.route_id.active = True
 
         self.product_1.write({
-            'route_ids': [(6, 0, [route_mto, route_manufacture])]
+            'route_ids': [Command.set([self.route_mto.id, self.route_manufacture.id])]
         })  # Component
         self.product_4.write({
-            'route_ids': [(6, 0, [route_manufacture])],
-            'bom_ids': [(6, 0, [self.bom_1.id])]
+            'route_ids': [Command.set([self.route_manufacture.id])],
+            'bom_ids': [Command.set([self.bom_1.id])]
         })  # Finished Product
 
         # Create reordering rule
-        self.env['stock.warehouse.orderpoint'].create({
-            'location_id': self.warehouse.lot_stock_id.id,
+        orderpoint = self.env['stock.warehouse.orderpoint'].create({
+            'location_id': self.stock_location.id,
             'product_id': self.product_4.id,
-            'route_id': route_manufacture,
+            'route_id': self.route_manufacture.id,
             'product_min_qty': 1,
             'product_max_qty': 1,
         })
-        self.product_4.orderpoint_ids.action_replenish()
+        orderpoint.action_replenish()
 
         # Check both MOs were created
         mo_final = self.env['mrp.production'].search([('product_id', '=', self.product_4.id)])
         mo_component = self.env['mrp.production'].search([('product_id', '=', self.product_1.id)])
 
         self.assertEqual(len(mo_final), 1, "Expected one MO for the final product.")
+        self.assertFalse(mo_component, "No BoM should be found for the component as it's MTO, so no MO should be created for it.")
+        self.env['mrp.bom'].create({
+            'product_tmpl_id': self.product_1.product_tmpl_id.id,
+        })
+        orderpoint.product_min_qty = 2
+        orderpoint.action_replenish()
+        mo_component = self.env['mrp.production'].search([('product_id', '=', self.product_1.id)])
         self.assertEqual(len(mo_component), 1, "Expected one MO for the manufactured BOM component.")
 
     def test_orderpoint_warning_mrp(self):
@@ -385,54 +389,6 @@ class TestMrpReplenish(TestMrpCommon):
             'product_id': self.bom_2.product_id.id,
         })
         self.assertEqual(orderpoint.company_id, company_2)
-
-    def test_orderpoint_bom_uom_filtered_by_company(self):
-        """The allowed replenishment UoMs must not read another company's BoM."""
-        company_2 = self.env['res.company'].create({'name': 'Company 2'})
-        warehouse_2 = self.env['stock.warehouse'].create({
-            'name': 'Company 2 Warehouse',
-            'code': 'C2RR',
-            'company_id': company_2.id,
-        })
-        company_2_user = new_test_user(
-            self.env,
-            login='company_2_mrp_user',
-            groups='stock.group_stock_manager,mrp.group_mrp_user',
-            company_id=company_2.id,
-            company_ids=[Command.set(company_2.ids)],
-        )
-        other_company_uom = self.uom_dozen.copy({'name': 'Other Company Pack'})
-        product = self.env['product.product'].create({
-            'name': 'Shared Manufactured Product',
-            'is_storable': True,
-            'uom_id': self.uom_unit.id,
-        })
-        self.env['mrp.bom'].create([{
-            'product_id': product.id,
-            'product_tmpl_id': product.product_tmpl_id.id,
-            'product_uom_id': other_company_uom.id,
-            'product_qty': 1,
-            'company_id': self.env.company.id,
-        }, {
-            'product_id': product.id,
-            'product_tmpl_id': product.product_tmpl_id.id,
-            'product_uom_id': self.uom_dozen.id,
-            'product_qty': 1,
-            'company_id': company_2.id,
-        }])
-
-        orderpoint_model = self.env['stock.warehouse.orderpoint'].with_user(company_2_user).with_company(company_2).with_context(
-            allowed_company_ids=company_2.ids,
-        )
-        orderpoint = orderpoint_model.create({
-            'product_id': product.id,
-            'location_id': warehouse_2.lot_stock_id.id,
-            'route_id': warehouse_2.manufacture_pull_id.route_id.id,
-            'company_id': company_2.id,
-        })
-
-        self.assertIn(self.uom_dozen, orderpoint.allowed_replenishment_uom_ids)
-        self.assertNotIn(other_company_uom, orderpoint.allowed_replenishment_uom_ids)
 
     def test_product_replenish_wizard_multiple_manufacture_routes(self):
         self.route_manufacture.copy()

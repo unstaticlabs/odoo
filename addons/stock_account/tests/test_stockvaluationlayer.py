@@ -7,6 +7,7 @@ from odoo.tests import Form, tagged
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockValuationStandard(TestStockValuationCommon):
     @classmethod
     def setUpClass(cls):
@@ -47,7 +48,7 @@ class TestStockValuationStandard(TestStockValuationCommon):
             'move_id': move1.id,
             'product_id': move1.product_id.id,
             'quantity': 5,
-            'product_uom_id': move1.product_uom.id,
+            'uom_id': move1.uom_id.id,
             'location_id': move1.location_id.id,
             'location_dest_id': move1.location_dest_id.id,
         })
@@ -90,7 +91,7 @@ class TestStockValuationStandard(TestStockValuationCommon):
             'move_id': move1.id,
             'product_id': move1.product_id.id,
             'quantity': 10,
-            'product_uom_id': move1.product_uom.id,
+            'uom_id': move1.uom_id.id,
             'location_id': move1.location_id.id,
             'location_dest_id': move1.location_dest_id.id,
         })
@@ -133,7 +134,7 @@ class TestStockValuationStandard(TestStockValuationCommon):
                 'product_id': product.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
-                'product_uom': self.uom.id,
+                'uom_id': self.uom.id,
                 'product_uom_qty': 2,
                 'price_unit': 10,
                 'picking_type_id': self.picking_type_in.id,
@@ -242,6 +243,7 @@ class TestStockValuationStandard(TestStockValuationCommon):
         self.assertEqual(sub_loc_quant.quantity, 30)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockValuationAVCO(TestStockValuationCommon):
     @classmethod
     def setUpClass(cls):
@@ -506,6 +508,7 @@ class TestStockValuationAVCO(TestStockValuationCommon):
         self.assertEqual(self.product.qty_available, 2)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockValuationFIFO(TestStockValuationCommon):
     @classmethod
     def setUpClass(cls):
@@ -741,6 +744,7 @@ class TestStockValuationFIFO(TestStockValuationCommon):
         self.assertEqual(self.product.total_value, 0.0)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockValuationChangeCostMethod(TestStockValuationCommon):
     def test_standard_to_fifo_1(self):
         """ The accounting impact of this cost method change is neutral.
@@ -932,6 +936,7 @@ class TestStockValuationChangeValuation(TestStockValuationCommon):
             self.assertAlmostEqual(abs(move.value), 1123.39)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAngloSaxonAccounting(TestStockValuationCommon):
     def test_avco_and_credit_note(self):
         """

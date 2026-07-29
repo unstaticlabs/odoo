@@ -30,7 +30,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'income_account_id': 'l10n_my_41',
                 'expense_account_id': 'l10n_my_51',
                 'tax_calculation_rounding_method': 'round_per_line',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_my_1270',
             },
         }

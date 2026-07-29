@@ -9,15 +9,15 @@
 # Hanna Kheradroosta, 2023
 # Martin Trigaux, 2023
 # fardin mardani, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 06:06+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-10 14:27+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
 "sales_team/fa/>\n"
 "Language: fa\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sales_team
 #. odoo-python
@@ -40,7 +40,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr ""
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 msgid ""
 "<i class=\"fa fa-envelope me-1\" role=\"img\" aria-label=\"Email\" "
@@ -62,6 +61,12 @@ msgstr ""
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
+msgstr ""
+
+#. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
 msgstr ""
 
 #. module: sales_team
@@ -250,6 +255,7 @@ msgstr "نام نمایشی"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Email"
 msgstr "پست الکترونیک"
 
@@ -439,6 +445,7 @@ msgstr "دیگر"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Phone"
 msgstr "تلفن"
 
@@ -484,6 +491,7 @@ msgstr "فروشنده"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -725,11 +733,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
-"شما در حال تلاش برای ایجاد عضویت(های) تکراری هستید. ما دریافتیم که %"
-"(duplicates)s هم اکنون وجود دارد."
+"شما در حال تلاش برای ایجاد عضویت(های) تکراری هستید. ما دریافتیم که "
+"%(duplicates)s هم اکنون وجود دارد."
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
@@ -764,41 +772,3 @@ msgid ""
 "the user will have an access to the sales configuration as well as statistic "
 "reports."
 msgstr "کاربر به پیکربندی فروش و همچنین گزارشات آماری دسترسی خواهد داشت."
-
-#~ msgid "Contact"
-#~ msgstr "مخاطب"
-
-#~ msgid "Dashboard Graph Data"
-#~ msgstr "داده های نمودار داشبورد"
-
-#~ msgid ""
-#~ "Follow this salesteam to automatically track the events associated to "
-#~ "users of this team."
-#~ msgstr ""
-#~ "این تیم فروش را دنبال کنید تا به طور خودکار رویدادهای مرتبط با کاربران "
-#~ "این تیم را ردیابی کنید."
-
-#~ msgid "Group By"
-#~ msgstr "گروه‌بندی برمبنای"
-
-#~ msgid "Group By..."
-#~ msgstr "گروه بتدی بر اساس ..."
-
-#~ msgid ""
-#~ "If set, this Sales Team will be used for sales and assignments related to "
-#~ "this partner"
-#~ msgstr ""
-#~ "اگر تنظیم شود، این تیم فروش برای فروش و وظایف مربوط به این شریک استفاده "
-#~ "خواهد شد"
-
-#~ msgid "Mobile"
-#~ msgstr "موبایل"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "تعداد پیام ها که نیاز به عمل"
-
-#~ msgid "Sample data"
-#~ msgstr "داده های نمونه"
-
-#~ msgid "Undefined graph model for Sales Team: %s"
-#~ msgstr "مدل نمودار تعریف نشده برای تیم فروش: %s"

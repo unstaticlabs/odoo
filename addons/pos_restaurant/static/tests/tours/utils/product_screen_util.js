@@ -107,6 +107,13 @@ export function releaseTable() {
     ];
 }
 
+export function checkCourseAtIndex(index, courseName) {
+    return {
+        content: `Verify that course "${courseName}" exists at index ${index}`,
+        trigger: `.order-course-name:eq(${index}) > span:contains("${courseName}")`,
+    };
+}
+
 export function addCourse() {
     return {
         content: `click Course button`,
@@ -131,7 +138,7 @@ export function discardOrderWarningDialog() {
         {
             trigger: `.modal-dialog:contains("It seems that the order has not been sent. Would you like to send it to preparation?")`,
         },
-        Dialog.discard(),
+        Dialog.discard({ title: `Warning !` }),
     ];
 }
 

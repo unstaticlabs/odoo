@@ -2,15 +2,15 @@
 # This file contains the translation of the following modules:
 # * pos_pine_labs
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:20+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-12-03 08:36+0000\n"
+"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "pos_pine_labs/ru/>\n"
 "Language: ru\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: pos_pine_labs
 #: model:ir.model.fields,help:pos_pine_labs.field_pos_payment_method__pine_labs_client
@@ -66,7 +66,7 @@ msgstr "Карточка"
 #: model:ir.model.fields,field_description:pos_pine_labs.field_pos_payment__display_name
 #: model:ir.model.fields,field_description:pos_pine_labs.field_pos_payment_method__display_name
 msgid "Display Name"
-msgstr "Отображаемое название"
+msgstr ""
 
 #. module: pos_pine_labs
 #: model:ir.model.fields,field_description:pos_pine_labs.field_pos_payment__id
@@ -141,14 +141,14 @@ msgid "PineLabs Transaction ID"
 msgstr ""
 
 #. module: pos_pine_labs
-#: model:ir.model,name:pos_pine_labs.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Методы оплаты в POS"
+#: model:ir.model,name:pos_pine_labs.model_pos_payment
+msgid "Point of Sale Payment"
+msgstr ""
 
 #. module: pos_pine_labs
-#: model:ir.model,name:pos_pine_labs.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Платежи POS"
+#: model:ir.model,name:pos_pine_labs.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr ""
 
 #. module: pos_pine_labs
 #. odoo-javascript
@@ -195,6 +195,3 @@ msgstr "Операция прервана: превышено время ожи�
 #: model:ir.model.fields.selection,name:pos_pine_labs.selection__pos_payment_method__pine_labs_allowed_payment_mode__upi
 msgid "Upi"
 msgstr "UPI"
-
-#~ msgid "Pine Labs PlutusTransactionReferenceID"
-#~ msgstr "Pine Labs PlutusTransactionReferenceID"

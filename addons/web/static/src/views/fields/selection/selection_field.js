@@ -6,6 +6,7 @@ import { getFieldDomain } from "@web/model/relational_model/utils";
 import { useSpecialData } from "@web/views/fields/relational_utils";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { standardFieldProps } from "../standard_field_props";
+import { ConnectionLostError } from "@web/core/network/rpc";
 
 export class SelectionField extends Component {
     static components = {
@@ -29,13 +30,38 @@ export class SelectionField extends Component {
             this.specialData = useSpecialData((orm, props) => {
                 const { relation } = props.record.fields[props.name];
                 const domain = getFieldDomain(props.record, props.name, props.domain);
-                return orm.call(relation, "name_search", ["", domain]);
+                return orm.call(relation, "name_search", ["", domain]).catch((error) => {
+                    if (error instanceof ConnectionLostError) {
+                        if (this.props.record.data[this.props.name]) {
+                            return [Object.values(this.props.record.data[this.props.name])];
+                        }
+                        return [];
+                    }
+                    throw error;
+                });
             });
         }
     }
 
     get choices() {
-        return this.options.map(([value, label]) => ({ value, label }));
+        const choices = this.options.map(([value, label]) => ({ value, label }));
+
+        // For selection fields, if the current value is not in the options list,
+        // add it as a temporary choice so it can be displayed in the SelectMenu.
+        // Mark it as disabled so it appears in dropdown but cannot be selected.
+        if (this.type === "selection") {
+            const currentValue = this.value;
+            if (currentValue !== false && !choices.some((c) => c.value === currentValue)) {
+                // Add the unknown value as a disabled choice
+                choices.unshift({
+                    value: currentValue,
+                    label: String(currentValue),
+                    enabled: false, // Appears grayed out and cannot be selected
+                });
+            }
+        }
+
+        return choices;
     }
     get isBottomSheet() {
         return this.env.isSmall && hasTouch();
@@ -58,10 +84,12 @@ export class SelectionField extends Component {
                 return this.props.record.data[this.props.name]
                     ? this.props.record.data[this.props.name].display_name
                     : "";
-            case "selection":
-                return this.props.record.data[this.props.name] !== false
-                    ? this.options.find((o) => o[0] === this.props.record.data[this.props.name])[1]
+            case "selection": {
+                const value = this.props.record.data[this.props.name];
+                return value !== false
+                    ? this.options.find((o) => o[0] === value)?.[1] ?? value
                     : "";
+            }
             default:
                 return "";
         }

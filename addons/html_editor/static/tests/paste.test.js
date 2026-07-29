@@ -279,7 +279,7 @@ describe("Simple text", () => {
             });
         });
 
-        test("should paste text and understand \\n newlines within UNBREAKABLE node", async () => {
+        test("should paste text and understand \\n newlines within UNSPLITTABLE node", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable">[]<br></div>`,
                 stepFunction: async (editor) => {
@@ -289,7 +289,7 @@ describe("Simple text", () => {
             });
         });
 
-        test("should paste text and understand \\n newlines within UNBREAKABLE node(2)", async () => {
+        test("should paste text and understand \\n newlines within UNSPLITTABLE node(2)", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable"><span style="font-size: 9px;">a[]</span></div>`,
                 stepFunction: async (editor) => {
@@ -1652,7 +1652,7 @@ describe("Complex html p", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (1)", async () => {
+        test("should paste a text when selection leave a span unsplittable (1)", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable">1ab<span class="a">c[d</span>e]f</div>`,
                 stepFunction: async (editor) => {
@@ -1662,7 +1662,7 @@ describe("Complex html p", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (2)", async () => {
+        test("should paste a text when selection leave a spanunsplittable (2)", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable">2a[b<span class="a">c]d</span>ef</div>`,
                 stepFunction: async (editor) => {
@@ -1716,7 +1716,7 @@ describe("Complex html p", () => {
             });
         });
 
-        test("should paste a text when selection across two element (6) unbreakable", async () => {
+        test("should paste a text when selection across two element (6) unsplittable", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable">2a<span class="a">b[c</span><p>d]e</p>f</div>`,
                 stepFunction: async (editor) => {
@@ -1852,7 +1852,7 @@ describe("Complex html 3 p", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (1)", async () => {
+        test("should paste a text when selection leave a span unsplittable (1)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">1ab<span class="a">c[d</span>e]f</div>',
                 stepFunction: async (editor) => {
@@ -1863,7 +1863,7 @@ describe("Complex html 3 p", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (2)", async () => {
+        test("should paste a text when selection leave a spanunsplittable (2)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">2a[b<span class="a">c]d</span>ef</div>',
                 stepFunction: async (editor) => {
@@ -2041,7 +2041,7 @@ describe("Complex html p+i", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (1)", async () => {
+        test("should paste a text when selection leave a span unsplittable (1)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">1ab<span class="a">c[d</span>e]f</div>',
                 stepFunction: async (editor) => {
@@ -2052,7 +2052,7 @@ describe("Complex html p+i", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (2)", async () => {
+        test("should paste a text when selection leave a spanunsplittable (2)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">2a[b<span class="a">c]d</span>ef</div>',
                 stepFunction: async (editor) => {
@@ -2104,7 +2104,7 @@ describe("Complex html p+i", () => {
             });
         });
 
-        test("should paste a text when selection across two element (10) unbreakable", async () => {
+        test("should paste a text when selection across two element (10) unsplittable", async () => {
             await testEditor({
                 contentBefore: `<div class="oe_unbreakable">2a<span class="a">b[c</span><p>d]e</p>f</div>`,
                 stepFunction: async (editor) => {
@@ -2236,7 +2236,7 @@ describe("Complex html 3p+b", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (1)", async () => {
+        test("should paste a text when selection leave a span unsplittable (1)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">1ab<span class="a">c[d</span>e]f</div>',
                 stepFunction: async (editor) => {
@@ -2247,7 +2247,7 @@ describe("Complex html 3p+b", () => {
             });
         });
 
-        test("should paste a text when selection leave a span unbreakable (2)", async () => {
+        test("should paste a text when selection leave a spanunsplittable (2)", async () => {
             await testEditor({
                 contentBefore: '<div class="oe_unbreakable">2a[b<span class="a">c]d</span>ef</div>',
                 stepFunction: async (editor) => {
@@ -3006,8 +3006,7 @@ describe("link", () => {
 
         test("should replace link for new content when pasting in an empty link (collapsed)", async () => {
             await testEditor({
-                contentBefore:
-                    '<p><a href="http://test.test/" oe-zws-empty-inline="">[]\u200B</a></p>',
+                contentBefore: '<p><a href="http://test.test/">[]\u200B</a></p>',
                 stepFunction: async (editor) => {
                     pasteText(editor, "abc");
                 },
@@ -3016,8 +3015,7 @@ describe("link", () => {
         });
         test("should replace link for new content when pasting in an empty link (collapsed)(2)", async () => {
             await testEditor({
-                contentBefore:
-                    '<p>xy<a href="http://test.test/" oe-zws-empty-inline="">\u200B[]</a>z</p>',
+                contentBefore: '<p>xy<a href="http://test.test/">\u200B[]</a>z</p>',
                 stepFunction: async (editor) => {
                     pasteText(editor, "abc");
                 },
@@ -3027,7 +3025,7 @@ describe("link", () => {
 
         test("should replace link for new content (url) when pasting in an empty link (collapsed)", async () => {
             const { el, editor } = await setupEditor(
-                `<p>xy<a href="http://test.test/" oe-zws-empty-inline="">\u200B[]</a>z</p>`
+                `<p>xy<a href="http://test.test/">\u200B[]</a>z</p>`
             );
             pasteText(editor, "http://odoo.com");
             await animationFrame();
@@ -3055,7 +3053,7 @@ describe("link", () => {
 
         test("should replace link for new content (url) when pasting in an empty link (collapsed) (2)", async () => {
             const { el, editor } = await setupEditor(
-                `<p>xy<a href="http://test.test/" oe-zws-empty-inline="">\u200B[]</a>z</p>`
+                `<p>xy<a href="http://test.test/">\u200B[]</a>z</p>`
             );
             pasteText(editor, imgUrl);
             await animationFrame();
@@ -3226,17 +3224,17 @@ describe("link", () => {
     });
 
     describe("range not collapsed", () => {
-        test("should paste and transform an URL in a p (not collapsed)", async () => {
+        test("should paste and attach link on selected content in a p (not collapsed)", async () => {
             await testEditor({
                 contentBefore: "<p>ab[xxx]cd</p>",
                 stepFunction: async (editor) => {
                     pasteText(editor, "http://www.xyz.com");
                 },
-                contentAfter: '<p>ab<a href="http://www.xyz.com">http://www.xyz.com</a>[]cd</p>',
+                contentAfter: '<p>ab<a href="http://www.xyz.com">xxx</a>[]cd</p>',
             });
         });
 
-        test("should paste and transform an URL in a span (not collapsed)", async () => {
+        test("should paste and attach link on selected content in a span (not collapsed)", async () => {
             await testEditor({
                 contentBefore:
                     '<p>a<span class="a">b[x<a href="http://existing.com">546</a>x]c</span>d</p>',
@@ -3244,7 +3242,7 @@ describe("link", () => {
                     pasteText(editor, "http://www.xyz.com");
                 },
                 contentAfter:
-                    '<p>a<span class="a">b<a href="http://www.xyz.com">http://www.xyz.com</a>[]c</span>d</p>',
+                    '<p>a<span class="a">b<a href="http://www.xyz.com">x546x</a>[]c</span>d</p>',
             });
         });
 
@@ -3403,7 +3401,7 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteText(editor, "www.odoo.com");
                 },
-                contentAfter: '<p><a href="http://www.odoo.com">www.odoo.com</a>[]</p>',
+                contentAfter: '<p><a href="http://www.odoo.com">xyz</a>[]</p>',
             });
         });
 
@@ -3668,9 +3666,12 @@ describe("youtube video", () => {
             await press("Enter");
             // Wait for the getYoutubeVideoElement promise to resolve.
             await tick();
-            expect(getContent(el)).toBe(
-                `<p>ab</p><div data-oe-expression="${videoUrl}" class="media_iframe_video" contenteditable="false"><div class="css_editable_mode_display"></div><div class="media_iframe_video_size" contenteditable="false"></div><iframe frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="${videoUrl}"></iframe></div><p>[]cd</p>`
-            );
+            const expected = `<p>ab</p><div data-oe-expression="${videoUrl}" class="media_iframe_video" contenteditable="false">
+                <div class="css_editable_mode_display"></div>
+                <div class="media_iframe_video_size" contenteditable="false"></div>
+                <iframe loading="lazy" frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="${videoUrl}"></iframe>
+            </div><p>[]cd</p>`;
+            expect(getContent(el)).toBe(expected);
         });
 
         test("should paste and transform a youtube URL in a span (1)", async () => {
@@ -3684,9 +3685,12 @@ describe("youtube video", () => {
             await press("Enter");
             // Wait for the getYoutubeVideoElement promise to resolve.
             await tick();
-            expect(getContent(el)).toBe(
-                '<p>a<span class="a">b</span></p><div data-oe-expression="https://youtu.be/dQw4w9WgXcQ" class="media_iframe_video" contenteditable="false"><div class="css_editable_mode_display"></div><div class="media_iframe_video_size" contenteditable="false"></div><iframe frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="https://youtu.be/dQw4w9WgXcQ"></iframe></div><p><span class="a">[]c</span>d</p>'
-            );
+            const expected = `<p>a<span class="a">b</span></p><div data-oe-expression="https://youtu.be/dQw4w9WgXcQ" class="media_iframe_video" contenteditable="false">
+                <div class="css_editable_mode_display"></div>
+                <div class="media_iframe_video_size" contenteditable="false"></div>
+                <iframe loading="lazy" frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="https://youtu.be/dQw4w9WgXcQ"></iframe>
+            </div><p><span class="a">[]c</span>d</p>`;
+            expect(getContent(el)).toBe(expected);
         });
 
         test("should paste and not transform a youtube URL in a existing link", async () => {
@@ -3749,9 +3753,12 @@ describe("youtube video", () => {
             await press("Enter");
             // Wait for the getYoutubeVideoElement promise to resolve.
             await tick();
-            expect(getContent(el)).toBe(
-                '<p>ab</p><div data-oe-expression="https://youtu.be/dQw4w9WgXcQ" class="media_iframe_video" contenteditable="false"><div class="css_editable_mode_display"></div><div class="media_iframe_video_size" contenteditable="false"></div><iframe frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="https://youtu.be/dQw4w9WgXcQ"></iframe></div><p>[]cd</p>'
-            );
+            const expected = `<p>ab</p><div data-oe-expression="https://youtu.be/dQw4w9WgXcQ" class="media_iframe_video" contenteditable="false">
+                <div class="css_editable_mode_display"></div>
+                <div class="media_iframe_video_size" contenteditable="false"></div>
+                <iframe loading="lazy" frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="https://youtu.be/dQw4w9WgXcQ"></iframe>
+            </div><p>[]cd</p>`;
+            expect(getContent(el)).toBe(expected);
         });
 
         test("should paste and transform a youtube URL in a span (2)", async () => {
@@ -3766,9 +3773,12 @@ describe("youtube video", () => {
             await press("Enter");
             // Wait for the getYoutubeVideoElement promise to resolve.
             await tick();
-            expect(getContent(el)).toBe(
-                `<p>a<span class="a">b</span></p><div data-oe-expression="${videoUrl}" class="media_iframe_video" contenteditable="false"><div class="css_editable_mode_display"></div><div class="media_iframe_video_size" contenteditable="false"></div><iframe frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="${videoUrl}"></iframe></div><p><span class="a">[]c</span>d</p>`
-            );
+            const expected = `<p>a<span class="a">b</span></p><div data-oe-expression="${videoUrl}" class="media_iframe_video" contenteditable="false">
+                <div class="css_editable_mode_display"></div>
+                <div class="media_iframe_video_size" contenteditable="false"></div>
+                <iframe loading="lazy" frameborder="0" contenteditable="false" allowfullscreen="allowfullscreen" src="${videoUrl}"></iframe>
+            </div><p><span class="a">[]c</span>d</p>`;
+            expect(getContent(el)).toBe(expected);
         });
 
         test("should paste and not transform a youtube URL in a existing link", async () => {
@@ -4429,7 +4439,6 @@ ${"        "}
     </tbody></table>`,
         });
     });
-
     test("should apply default table classes (table, table-bordered, o_table) on paste", async () => {
         await testEditor({
             contentBefore: `
@@ -4460,7 +4469,6 @@ ${"        "}
             `),
         });
     });
-
     test("should move all rows from thead to tbody", async () => {
         await testEditor({
             contentBefore: "<p>[]<br></p>",
@@ -4630,7 +4638,7 @@ describe("onDrop", () => {
         await animationFrame();
 
         expect(getContent(el)).toBe(
-            `<p>ab<img src="${base64Image}" data-file-name="image.png" class="img-fluid">[]c</p>`
+            `<p>ab<img class="img-fluid" data-file-name="image.png" src="${base64Image}">[]c</p>`
         );
     });
     test("should drag and drop an image after another image", async () => {
@@ -4671,7 +4679,7 @@ describe("onDrop", () => {
         await animationFrame();
 
         expect(getContent(el)).toBe(
-            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image2}"><img src="${base64Image}" data-file-name="image.png" class="img-fluid">[]</p>`
+            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image2}"><img class="img-fluid" data-file-name="image.png" src="${base64Image}">[]</p>`
         );
     });
     test("should drag and drop third image after first image", async () => {
@@ -4711,7 +4719,7 @@ describe("onDrop", () => {
         await animationFrame();
 
         expect(getContent(el)).toBe(
-            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image1}"><img src="${base64Image3}" data-file-name="image.png" class="img-fluid">[]<img class="img-fluid" data-file-name="image.png" src="${base64Image2}"></p>`
+            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image1}"><img class="img-fluid" data-file-name="image.png" src="${base64Image3}">[]<img class="img-fluid" data-file-name="image.png" src="${base64Image2}"></p>`
         );
     });
     test("should drag and drop multiple images after another image", async () => {
@@ -4754,7 +4762,7 @@ describe("onDrop", () => {
         await animationFrame();
 
         expect(getContent(el)).toBe(
-            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image3}"><img src="${base64Image1}" data-file-name="image.png" class="img-fluid"><img src="${base64Image2}" data-file-name="image.png" class="img-fluid">[]</p>`
+            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image3}"><img class="img-fluid" data-file-name="image.png" src="${base64Image1}"><img class="img-fluid" data-file-name="image.png" src="${base64Image2}">[]</p>`
         );
     });
     test("should drag and drop banner", async () => {
@@ -4793,9 +4801,9 @@ describe("onDrop", () => {
 
         expect(getContent(el)).toBe(
             `<p><br></p><p>ca
-            </p><div role="status" contenteditable="false" data-oe-role="status" class="o_editor_banner user-select-none o-contenteditable-false lh-1 d-flex align-items-center alert alert-info pb-0 pt-3">
-                <i aria-label="Banner Info" data-oe-aria-label="Banner Info" class="o_editor_banner_icon mb-3 fst-normal">💡</i>
-                <div contenteditable="true" class="o_editor_banner_content o-contenteditable-true w-100 px-3">
+            </p><div class="o_editor_banner user-select-none o-contenteditable-false lh-1 d-flex align-items-center alert alert-info pb-0 pt-3" data-oe-role="status" contenteditable="false" role="status">
+                <i class="o_editor_banner_icon mb-3 fst-normal" data-oe-aria-label="Banner Info" aria-label="Banner Info">💡</i>
+                <div class="o_editor_banner_content o-contenteditable-true w-100 px-3" contenteditable="true">
                     <p>Test</p>
                 </div>
             </div><p>b[]</p>`

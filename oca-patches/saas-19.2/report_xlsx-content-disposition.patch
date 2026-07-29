@@ -1,0 +1,20 @@
+diff --git a/report_xlsx/controllers/main.py b/report_xlsx/controllers/main.py
+index 5430532..312729d 100644
+--- a/report_xlsx/controllers/main.py
++++ b/report_xlsx/controllers/main.py
+@@ -8,13 +8,11 @@ import logging
+ from werkzeug.urls import url_decode
+ 
+ from odoo.http import (
+-    content_disposition,
+     request,
+     route,
+ )
+-from odoo.http import (
+-    serialize_exception as _serialize_exception,
+-)
++from odoo.http.dispatcher import serialize_exception as _serialize_exception
++from odoo.http.stream import content_disposition
+ from odoo.tools import html_escape
+ from odoo.tools.safe_eval import safe_eval, time
+ 

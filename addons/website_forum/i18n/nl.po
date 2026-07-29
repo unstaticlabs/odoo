@@ -6,25 +6,25 @@
 # Yenthe Van Ginneken <yenthespam@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 07:06+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-04 13:08+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_forum/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -66,8 +66,8 @@ msgstr "# Weergaven"
 msgid ""
 "%(link_start)sRead the guidelines to know how to gain karma.%(link_end)s"
 msgstr ""
-"%(link_start)sLees de richtlijnen om te weten hoe je karma kunt verdienen.%"
-"(link_end)s"
+"%(link_start)sLees de richtlijnen om te weten hoe je karma kunt verdienen."
+"%(link_end)s"
 
 #. module: website_forum
 #. odoo-javascript
@@ -325,9 +325,9 @@ msgid ""
 "information."
 msgstr ""
 "<b>Antwoorden moeten niet gewoon verwijzen naar andere vragen</b>. Voeg in "
-"plaats daarvan een vraag reactie indicatie toe \"Mogelijk duplicaat "
-"van...\". Hoewel het wel ok is om links naar andere vragen of antwoorden bij "
-"te voegen die extra relevante informatie toevoegen."
+"plaats daarvan een vraag reactie indicatie toe \"Mogelijk duplicaat van..."
+"\". Hoewel het wel ok is om links naar andere vragen of antwoorden bij te "
+"voegen die extra relevante informatie toevoegen."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -366,9 +366,9 @@ msgid ""
 "You can search questions by their title or tags. It’s also OK to answer your "
 "own question."
 msgstr ""
-"<b>Controleer of er al een gelijkaardige vraag bestaat - voordat je ze "
-"stelt.</b> Je kunt vragen zoeken op hun titel of labels. Het is tevens OK om "
-"je eigen vraag te beantwoorden."
+"<b>Controleer of er al een gelijkaardige vraag bestaat - voordat je ze stelt."
+"</b> Je kunt vragen zoeken op hun titel of labels. Het is tevens OK om je "
+"eigen vraag te beantwoorden."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -706,7 +706,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid ""
 "<span class=\"flex-grow-1\">What kind of questions can I ask here?</span>"
-msgstr "<span class=\"flex-grow-1\">Wat voor vragen kan ik hier stellen?</span>"
+msgstr ""
+"<span class=\"flex-grow-1\">Wat voor vragen kan ik hier stellen?</span>"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -823,8 +824,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_forum.user_sidebar_header
 msgid "<span>You need to be registered to interact with the community.</span>"
 msgstr ""
-"<span>Je moet geregistreerd zijn om te kunnen communiceren met de "
-"community.</span>"
+"<span>Je moet geregistreerd zijn om te kunnen communiceren met de community."
+"</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_post_template_new_answer
@@ -1695,7 +1696,7 @@ msgstr "Bericht negeren"
 #: model:ir.model.fields,field_description:website_forum.field_res_users__display_name
 #: model:ir.model.fields,field_description:website_forum.field_website__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__karma_user_bio
@@ -2415,11 +2416,6 @@ msgstr "Lay-out"
 #: model_terms:gamification.badge,description:website_forum.badge_25
 msgid "Left 10 answers with score of 10 or more"
 msgstr "Heeft 10 antwoorden geplaatst met een score van 10 of meer"
-
-#. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "Link naar vragen met de label"
 
 #. module: website_forum
 #. odoo-javascript
@@ -3431,6 +3427,24 @@ msgid "The accepted answer is deleted"
 msgstr "Het aanvaard antwoord is verwijderd"
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+"De volledige absolute URL om toegang te krijgen tot het document via de "
+"website."
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+"De volledige relatieve URL om toegang te krijgen tot het document via de "
+"website."
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3464,7 +3478,8 @@ msgstr "Er zijn geen labels die overeenkomen met de geselecteerde filter"
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_index_tags
 msgid "There are no tags matching the selected search."
-msgstr "Er zijn geen labels die overeenkomen met de geselecteerde zoekopdracht."
+msgstr ""
+"Er zijn geen labels die overeenkomen met de geselecteerde zoekopdracht."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -3822,6 +3837,13 @@ msgid "Website / Forum"
 msgstr "Website / Forum"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr "Absolute URL van de website"
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3829,7 +3851,9 @@ msgid "Website Messages"
 msgstr "Websiteberichten"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "Website URL"
 
@@ -3838,7 +3862,7 @@ msgstr "Website URL"
 #: model:ir.model.fields,help:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,help:website_forum.field_forum_tag__website_message_ids
 msgid "Website communication history"
-msgstr "Website communicatie geschiedenis"
+msgstr "Website communicatiegeschiedenis"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_meta_description
@@ -4321,529 +4345,3 @@ msgstr "je biografie kan gezien worden als een tooltip"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "je e-mail..."
-
-#~ msgid ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> Return to questions "
-#~ "list</a>"
-#~ msgstr ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/>Terug naar vragenlijst</"
-#~ "a>"
-
-#~ msgid ""
-#~ "<a class=\"mb-2 o_translate_inline\" t-attf-href=\"/profile/users\" data-"
-#~ "bs-original-title=\"\" title=\"\" target=\"_blank\">Meet our community "
-#~ "members</a>"
-#~ msgstr ""
-#~ "<a class=\"mb-2 o_translate_inline\" t-attf-href=\"/profile/users\" data-"
-#~ "bs-original-title=\"\" title=\"\" target=\"_blank\">Ontmoet onze "
-#~ "communityleden</a>"
-
-#~ msgid "%d karma required to unlink a comment."
-#~ msgstr "%d karma vereist een om een reactie te ontkoppelen."
-
-#~ msgid "&amp;nbsp;and&amp;nbsp;"
-#~ msgstr "&amp;nbsp;and&amp;nbsp;"
-
-#~ msgid ", by"
-#~ msgstr ", door"
-
-#~ msgid ", consider <b>adding an example</b>."
-#~ msgstr ", overweeg om </b>een voorbeeld toe te voegen<b>."
-
-#~ msgid "0 Answers"
-#~ msgstr "0 antwoorden"
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [Beledigend]</b>"
-
-#~ msgid "<b>Tags</b> I Follow"
-#~ msgstr "<b>Labels</b> I Volg"
-
-#~ msgid ""
-#~ "<b>This forum is empty.</b><br/>\n"
-#~ "                    Be the first one asking a question"
-#~ msgstr ""
-#~ "<b>Dit forum is leeg.</b><br/>\n"
-#~ "Wordt de eerste om een vraag te stellen"
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>Wat voor soort vragen kan ik hier stellen?</b>"
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>Wat moet ik vermijden in mijn antwoorden?</b>"
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>Wat moet ik vermijden in mijn vragen?</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[Antwoord]</b>"
-
-#~ msgid ""
-#~ "<b>|</b>\n"
-#~ "                    <span class=\"fa fa-trophy bg-gold ms-2\" "
-#~ "role=\"img\" aria-label=\"Gold badge\" title=\"Gold badge\"/>"
-#~ msgstr ""
-#~ "<b>|</b>\n"
-#~ "                    <span class=\"fa fa-trophy bg-gold ms-2\" "
-#~ "role=\"img\" aria-label=\"Gouden badge\" title=\"Gouden badge\"/>"
-
-#~ msgid "<em class=\"d-block mb-2\">or</em>"
-#~ msgstr "<em class=\"d-block mb-2\">of</em>"
-
-#~ msgid "<i class=\" fa fa-comment text-muted me-1\"/>Comment"
-#~ msgstr "<i class=\" fa fa-comment text-muted me-1\"/>Commentaar"
-
-#~ msgid "<i class=\"fa fa-bell fa-fw\"/> Followed Posts"
-#~ msgstr "<i class=\"fa fa-bell fa-fw\"/> Gevolgde posts"
-
-#~ msgid "<i class=\"fa fa-bug\"/> Filter Tool"
-#~ msgstr "<i class=\"fa fa-bug\"/> Filter too"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>You've Completely Caught Up!</b><br/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>Gefeliciteerd, Je bent helemaal bij!</b><br/>"
-
-#~ msgid "<i class=\"fa fa-check-square-o fa-fw\"/> To Validate"
-#~ msgstr "<i class=\"fa fa-check-square-o fa-fw\"/> Te controleren"
-
-#~ msgid "<i class=\"fa fa-flag fa-fw\"/> Flagged"
-#~ msgstr "<i class=\"fa fa-flag fa-fw\"/> Gemarkeerd"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-flag ms-4 mr4\"/>\n"
-#~ "                                    Flagged"
-#~ msgstr ""
-#~ "<i class=\"fa fa-flag ms-4 mr4\"/>\n"
-#~ "                                    Gemarkeerd"
-
-#~ msgid "<i class=\"fa fa-question-circle-o fa-fw\"/> My Posts"
-#~ msgstr "<i class=\"fa fa-question-circle-o fa-fw\"/> Mijn berichten"
-
-#~ msgid "<i class=\"fa fa-reply me-1\"/>Answer"
-#~ msgstr "<i class=\"fa fa-reply me-1\"/>Antwoord"
-
-#~ msgid "<i class=\"fa fa-share-alt text-muted me-1\"/>Share"
-#~ msgstr "<i class=\"fa fa-share-alt text-muted me-1\"/>Delen"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Share"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Deel"
-
-#~ msgid "<i class=\"fa fa-star fa-fw\"/> Favourites"
-#~ msgstr "<i class=\"fa fa-star fa-fw\"/> Favorieten"
-
-#~ msgid "<i class=\"fa fa-tags fa-fw\"/> Followed Tags"
-#~ msgstr "<i class=\"fa fa-tags fa-fw\"/> Gevolgde labels"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> Terug"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "Gemarkeerd\n"
-#~ "</small>"
-
-#~ msgid "<span class=\"badge text-bg-info\">Closed</span>"
-#~ msgstr "<span class=\"badge text-bg-info\">Gesloten</span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-trophy bg-bronze ms-2\" role=\"img\" aria-"
-#~ "label=\"Bronze badge\" title=\"Bronze badge\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-trophy bg-bronze ms-2\" role=\"img\" aria-"
-#~ "label=\"Bronzen badge\" title=\"Bronzen badge\"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-trophy bg-silver ms-2\" role=\"img\" aria-"
-#~ "label=\"Silver badge\" title=\"Silver badge\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-trophy bg-silver ms-2\" role=\"img\" aria-"
-#~ "label=\"Zilveren badge\" title=\"Zilveren badge\"/>"
-
-#~ msgid "<span class=\"fw-bold\">No answer posted yet.</span>"
-#~ msgstr "<span class=\"fw-bold\">Nog geen antwoord gepost.</span>"
-
-#~ msgid "<span class=\"fw-bold\">No question posted yet.</span>"
-#~ msgstr "<span class=\"fw-bold\">Nog geen vraag gepost.</span>"
-
-#~ msgid "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-#~ msgstr "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-
-#~ msgid "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-#~ msgstr "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-
-#~ msgid "<span class=\"mx-1\">|</span>"
-#~ msgstr "<span class=\"mx-1\">|</span>"
-
-#~ msgid ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-#~ msgstr ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-
-#~ msgid "<span class=\"mx-3  mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-#~ msgstr "<span class=\"mx-3 mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-
-#~ msgid "<span class=\"navbar-text me-1\">Go to:</span>"
-#~ msgstr "<span class=\"navbar-text me-1\">Ga naar:</span>"
-
-#~ msgid "<span class=\"navbar-text me-3\">Show Tags Starting By</span>"
-#~ msgstr "<span class=\"navbar-text me-3\">Labels weergeven vanaf</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wforum_answer_correct_badge border small border-success "
-#~ "rounded-pill fw-bold text-success ms-2 px-2\">\n"
-#~ "                            Best Answer\n"
-#~ "                        </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wforum_answer_correct_badge border small border-success "
-#~ "rounded-pill fw-bold text-success ms-2 px-2\">\n"
-#~ "                            Beste antwoord\n"
-#~ "                        </span>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>Door </span>"
-
-#~ msgid "A clear, explicit and concise title"
-#~ msgstr "Een duidelijke, expliciete en beknopte titel"
-
-#~ msgid "About"
-#~ msgstr "Over"
-
-#~ msgid "All Forums"
-#~ msgstr "Alle forums"
-
-#~ msgid "All Tags"
-#~ msgstr "Alle labels"
-
-#~ msgid "Allow Bump"
-#~ msgstr "Sta bump toe"
-
-#~ msgid "Amazing! There are no unanswered questions left!"
-#~ msgstr "Geweldig! Er zijn geen onbeantwoorde vragen meer!"
-
-#~ msgid "Answer"
-#~ msgstr "Antwoord"
-
-#~ msgid "Back"
-#~ msgstr "Terug"
-
-#~ msgid "Be less specific in your wording for a wider search result"
-#~ msgstr ""
-#~ "Wees minder specifiek in je verwoording voor een breder zoekresultaat"
-
-#~ msgid "Browse All"
-#~ msgstr "Zoek alle"
-
-#~ msgid "Bumped on"
-#~ msgstr "Gebumpt op"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "Vink deze optie aan om een pop-up te tonen voor vragen die ouder dan 10 "
-#~ "dagen zijn en geen antwoord hebben. De pop-up vraagt om de vraag te delen "
-#~ "op social netwerken. Wanneer gedeeld wordt de vraag omhoog geduwd naar de "
-#~ "top van het forum."
-
-#~ msgid "Check your spelling and try again"
-#~ msgstr "Controleer je spelling en probeer opnieuw"
-
-#~ msgid "Click to answer."
-#~ msgstr "Klik om te antwoorden."
-
-#~ msgid "Close Post"
-#~ msgstr "Afsluiten bericht"
-
-#~ msgid "Comment this post..."
-#~ msgstr "Reageer op dit bericht..."
-
-#~ msgid "Comments"
-#~ msgstr "Opmerkingen"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "Converteer alle antwoorden naar reacties en visa versa"
-
-#~ msgid "Convert as a answer"
-#~ msgstr "Converteer naar antwoord"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "Converteer naar opmerking"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "Converteer eigen antwoorden naar reacties en visa versa"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "Datum (hoog naar laag)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "Datum (laag naar hoog)"
-
-#~ msgid "Edit Forum in Backend"
-#~ msgstr "Wijzig forum in backend"
-
-#~ msgid ""
-#~ "Example\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-#~ msgstr ""
-#~ "Voorbeeld\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-
-#~ msgid "Following"
-#~ msgstr "Volgend"
-
-#~ msgid "Group By"
-#~ msgstr "Groeperen op"
-
-#~ msgid "Hide Intro"
-#~ msgstr "Verberg intro"
-
-#~ msgid "I'm <b>Following</b>"
-#~ msgstr "Ik <b>volg</b>"
-
-#~ msgid "I'm Following"
-#~ msgstr "Ik volg"
-
-#~ msgid "Karma"
-#~ msgstr "Karma"
-
-#~ msgid "Last Post:"
-#~ msgstr "Laatste bericht:"
-
-#~ msgid "Last activity date"
-#~ msgstr "Laatste datum actief"
-
-#~ msgid "Menu"
-#~ msgstr "Menu"
-
-#~ msgid "Moderation"
-#~ msgstr "Moderatie"
-
-#~ msgid "More"
-#~ msgstr "Meer"
-
-#~ msgid "Most answered"
-#~ msgstr "Meest beantwoord"
-
-#~ msgid "Most voted"
-#~ msgstr "Meest gestemd"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "Plaats deze vraag terug bovenaan de top van de lijst door het te delen op "
-#~ "social netwerken."
-
-#~ msgid "My <b>Favourites</b>"
-#~ msgstr "Mijn <b>favorieten</b>"
-
-#~ msgid "My <b>Posts</b>"
-#~ msgstr "Mijn <b>berichten</b>"
-
-#~ msgid "My Favourites"
-#~ msgstr "Mijn favorieten"
-
-#~ msgid "No activities yet!"
-#~ msgstr "Nog geen actvititeiten!"
-
-#~ msgid "No favourite questions in this forum (yet).<br/>"
-#~ msgstr "Geen favoriete vragen in dit forum (nog niet).<br/>"
-
-#~ msgid "No flagged posts"
-#~ msgstr "Geen gemarkeerde berichten"
-
-#~ msgid "No post to be validated"
-#~ msgstr "Geen posts te controleren"
-
-#~ msgid "No tags"
-#~ msgstr "Geen labels"
-
-#~ msgid "No vote given by you yet!"
-#~ msgstr "Nog niet gestemd door jou!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Aantal berichten die actie vereisen"
-
-#~ msgid "Only one answer per question is allowed"
-#~ msgstr "Er is slechts één antwoord per vragen toegestaan"
-
-#~ msgid "Order by"
-#~ msgstr "Sorteer op"
-
-#~ msgid "Our forums"
-#~ msgstr "Onze forums"
-
-#~ msgid "People"
-#~ msgstr "Personen"
-
-#~ msgid "Post Comment"
-#~ msgstr "Verstuur een reactie"
-
-#~ msgid "Posts:"
-#~ msgstr "Berichten:"
-
-#~ msgid "Question by"
-#~ msgstr "Vraag door"
-
-#~ msgid "Read the guidelines to know how to gain karma."
-#~ msgstr "Lees de richtlijnen om te weten hoe je karma kunt krijgen."
-
-#~ msgid "Read: #{question.name}"
-#~ msgstr "Lees: #[question.name]"
-
-#~ msgid "Register"
-#~ msgstr "Registreer"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Publiceren op deze website beperken."
-
-#~ msgid "Return to the forum."
-#~ msgstr "Terugkeren naar het forum."
-
-#~ msgid "Return to the question list."
-#~ msgstr "Terugkeren naar de vragenlijst."
-
-#~ msgid "Search Tips"
-#~ msgstr "Zoek tips"
-
-#~ msgid "See"
-#~ msgstr "Bekijk"
-
-#~ msgid "Show"
-#~ msgstr "Toon"
-
-#~ msgid "Show Tags Starting By"
-#~ msgstr "Toon labels die starten met"
-
-#~ msgid "Sign in"
-#~ msgstr "Aanmelden"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "Sorry je moet ingelogd zijn om deze actie uit te voeren"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "Sorry je moet aangemeld zijn om een bericht te markeren"
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "Sorry je moet ingelogd zijn om te stemmen"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr "Sorry, anonieme gebruikers kunnen geen correct antwoord kiezen."
-
-#~ msgid "Sorry, we could not find any <b>%s</b> result <b>%s</b> %s%s%s."
-#~ msgstr "Sorry, we konden geen <b>%s</b> resultaat <b>%s</b> %s%s%s vinden."
-
-#~ msgid "Tags I Follow"
-#~ msgstr "Labels | Volgen"
-
-#~ msgid "Teaser"
-#~ msgstr "Teaser"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "Technische veld voor het bumpen van een vraag toe te staan. Schrijven op "
-#~ "dit velt doet een schrijfactie afgaan op write_date en bumpt daardoor de "
-#~ "vraag. Direct schrijven op write_datels is momenteel niet ondersteund en "
-#~ "dit veld is een tijdelijke oplossing."
-
-#~ msgid ""
-#~ "This community is for professional and enthusiast users, partners and "
-#~ "programmers."
-#~ msgstr ""
-#~ "Deze community is voor professionals en andere enthousiaste gebruikers, "
-#~ "relaties en programmeurs."
-
-#~ msgid "Toggle favorite status"
-#~ msgstr "Wissel favoriete status"
-
-#~ msgid "Topics"
-#~ msgstr "Onderwerpen"
-
-#~ msgid "Trending"
-#~ msgstr "Trending"
-
-#~ msgid "Try searching for one or two words"
-#~ msgstr "Probeer te zoeken op één of twee woorden"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "Alle reacties ontkoppelen"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "Ontkoppel eigen reacties"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "Wacht op bevestiging"
-
-#~ msgid "Waiting post"
-#~ msgstr "Wachtend bericht"
-
-#~ msgid "You have no posts in this forum (yet)."
-#~ msgstr "Je hebt (nog) geen berichten in dit forum."
-
-#~ msgid "You're not following any topic in this forum (yet).<br/>"
-#~ msgstr "Je volgt (nog) geen topic in dit forum.<br/>"
-
-#~ msgid "[Closed]"
-#~ msgstr "[Gesloten]"
-
-#~ msgid "[Deleted]"
-#~ msgstr "[Verwijderd]"
-
-#~ msgid "[Offensive]"
-#~ msgstr "[Beledigend]"
-
-#~ msgid "activity date"
-#~ msgstr "activiteitsdatum"
-
-#~ msgid "in your followed list"
-#~ msgstr "in je gevolgde lijst"
-
-#~ msgid "most answered"
-#~ msgstr "meest beantwoord"
-
-#~ msgid "most voted"
-#~ msgstr "meest gestemd"
-
-#~ msgid "newest"
-#~ msgstr "nieuwste"
-
-#~ msgid "solved"
-#~ msgstr "opgelost"
-
-#~ msgid "to partecipate"
-#~ msgstr "om deel te nemen"
-
-#~ msgid "trending"
-#~ msgstr "trending"
-
-#~ msgid "unanswered"
-#~ msgstr "niet beantwoord"
-
-#~ msgid "unsolved"
-#~ msgstr "niet opgelost"
-
-#~ msgid "| Flagged"
-#~ msgstr "| Gemarkeerd"
-
-#~ msgid "圾 Text"
-#~ msgstr "圾 Tekst"

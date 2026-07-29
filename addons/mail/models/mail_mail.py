@@ -5,13 +5,12 @@ import ast
 import datetime
 import json
 import logging
-import psycopg2
-import pytz
 import re
 import smtplib
 from collections import defaultdict
-
 from datetime import timedelta
+
+import psycopg2
 from dateutil.parser import parse
 
 from odoo import _, api, fields, models, modules, SUPERUSER_ID, tools
@@ -27,7 +26,7 @@ class MailMail(models.Model):
     """ Model holding RFC2822 email messages to send. This model also provides
         facilities to queue and send new email messages.  """
     _name = 'mail.mail'
-    _description = 'Outgoing Mails'
+    _description = 'Outgoing Mail'
     _inherits = {'mail.message': 'mail_message_id'}
     _order = 'id desc'
     _rec_name = 'subject'
@@ -97,6 +96,14 @@ class MailMail(models.Model):
     scheduled_date = fields.Datetime('Scheduled Send Date',
         help="If set, the queue manager will send the email after the date. If not set, the email will be send as soon as possible. Unless a timezone is specified, it is considered as being in UTC timezone.")
     fetchmail_server_id = fields.Many2one('fetchmail.server', "Inbound Mail Server", readonly=True, index='btree_not_null')
+
+    def _post_model_setup__(self):  # noqa: PLW3201
+        # Hack to make all inherited field computed in sudo because users may
+        # not have access to all fields.
+        for field in self._fields.values():
+            if field.inherited:
+                field.compute_sudo = True
+        return super()._post_model_setup__()
 
     @api.constrains('mail_message_id', 'mail_server_id')
     def _check_mail_server_id(self):
@@ -212,7 +219,7 @@ class MailMail(models.Model):
         ]
         if 'filters' in self.env.context:
             domain.extend(self.env.context['filters'])
-        batch_size = int(self.env['ir.config_parameter'].sudo().get_param('mail.mail.queue.batch.size', batch_size)) or batch_size
+        batch_size = self.env['ir.config_parameter'].sudo().get_int('mail.mail.queue.batch.size') or batch_size
         send_ids = self.search(domain, limit=batch_size if not email_ids else batch_size * 10).ids
         if not email_ids:
             ids_done = set()
@@ -313,10 +320,10 @@ class MailMail(models.Model):
         if parsed_datetime:
             parsed_datetime = parsed_datetime.replace(microsecond=0)
             if not parsed_datetime.tzinfo:
-                parsed_datetime = pytz.utc.localize(parsed_datetime)
+                parsed_datetime = parsed_datetime.replace(tzinfo=datetime.UTC)
             else:
                 try:
-                    parsed_datetime = parsed_datetime.astimezone(pytz.utc)
+                    parsed_datetime = parsed_datetime.astimezone(datetime.UTC)
                 except Exception:
                     pass
         return parsed_datetime
@@ -343,7 +350,7 @@ class MailMail(models.Model):
     def _filter_mail_mail_servers(self, mail_servers):
         if (
             len(self.mail_message_id.create_uid) > 1 or  # multiple create_uids -> subset that's allowed for all
-            self.env['ir.config_parameter'].sudo().get_param('mail.disable_personal_mail_servers', False)
+            self.env['ir.config_parameter'].sudo().get_bool('mail.disable_personal_mail_servers')
         ):
             return mail_servers.filtered(lambda server: not server.owner_user_id)
         return mail_servers.filtered(lambda server: server.owner_user_id in [self.env['res.users'], self.mail_message_id.create_uid])
@@ -497,9 +504,12 @@ class MailMail(models.Model):
         # `datas` (binary field) could bloat the browse cache, triggering
         # soft/hard mem limits with temporary data.
         # attachments sorted by increasing ID to match front-end and upload ordering
-        email_attachments = [(a['name'], a['raw'], a['mimetype'])
-                             for a in attachments.sudo().sorted('id').read(['name', 'raw', 'mimetype'])
-                             if a['raw'] is not False]
+        attachments.sudo().fetch(['name', 'raw', 'mimetype'])
+        email_attachments = [
+            (a.name, a.raw, a.mimetype)
+            for a in attachments.sudo().sorted('id')
+            if a.raw is not False
+        ]
 
         # Build final list of email values with personalized body for recipient
         results = []
@@ -572,7 +582,7 @@ class MailMail(models.Model):
 
             group_per_smtp_from[(mail_server_id, alias_domain_id, smtp_from)].extend(mail_ids)
 
-        batch_size = int(self.env['ir.config_parameter'].sudo().get_param('mail.session.batch.size')) or 1000
+        batch_size = self.env['ir.config_parameter'].sudo().get_int('mail.session.batch.size') or 1000
         for (mail_server_id, alias_domain_id, smtp_from), record_ids in group_per_smtp_from.items():
             for batch_ids in tools.split_every(batch_size, record_ids):
                 yield mail_server_id, alias_domain_id, smtp_from, batch_ids

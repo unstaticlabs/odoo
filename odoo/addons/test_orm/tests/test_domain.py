@@ -4,7 +4,7 @@ from itertools import combinations
 from unittest.mock import patch
 
 from odoo.fields import Command, Domain
-from odoo.tests import TransactionCase, users
+from odoo.tests import tagged, TransactionCase, users
 from odoo.tools import SQL, OrderedSet
 
 from odoo.addons.base.tests.test_expression import TransactionExpressionCase
@@ -396,6 +396,7 @@ class TestDomainComplement(TransactionExpressionCase):
             self._search(Model, [('parent_id', '>=', 'Par')])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestDomainOptimize(TransactionCase):
     number_domain = Domain('number', '>', 5)
 
@@ -574,18 +575,6 @@ class TestDomainOptimize(TransactionCase):
         self.assertEqual(
             Domain('important', 'not in', [True, False]).optimize_full(model),
             Domain.FALSE,
-        )
-        self.assertEqual(
-            Domain('important', 'in', [True, "yes"]).optimize(model),
-            is_important,
-        )
-        self.assertEqual(
-            Domain('important', 'in', ["yes"]).optimize(model),
-            is_important,
-        )
-        self.assertEqual(
-            Domain('important', 'in', [0, 2]).optimize_full(model),
-            Domain.TRUE,
         )
         self.assertEqual(
             list(Domain('active', 'in', [True, False]).optimize(model)),

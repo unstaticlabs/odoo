@@ -12,17 +12,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
-"hr_gamification/fa/>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2022-09-22 05:46+0000\n"
+"Last-Translator: Farid Hariri <fhari1234@gmail.com>, 2023\n"
+"Language-Team: Persian (https://app.transifex.com/odoo/teams/41243/fa/)\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -121,12 +119,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "نشان مستقیم"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr ""
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -291,35 +283,3 @@ msgstr "شما نمی‌توانید برای خود نشان ارسال کنی�
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr ""
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "نشان‌ها، پاداش کار خوب هستند. آن‌ها را به کسانی بدهید که باور دارید لياقتش "
-#~ "را دارند."
-
-#~ msgid "Basic Employee"
-#~ msgstr "کارمند پایه"
-
-#~ msgid "Cancel"
-#~ msgstr "لغو"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "به این کارمند اولین نشانش را اعطا کن"
-
-#~ msgid "Received Badges"
-#~ msgstr "نشان‌های دریافتی"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "نام کاربری مرتبط برای منبع برای مدیریت حق دسترسی آن."
-
-#~ msgid "Reward Employee"
-#~ msgstr "پاداش کارمند"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr ""
-#~ "شما می توانید نشان ها را فقط برای کارمندان مرتبط با یک کاربر ارسال کنید."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "برای پاداش دادن به این کارمند برای یک اقدام خوب"

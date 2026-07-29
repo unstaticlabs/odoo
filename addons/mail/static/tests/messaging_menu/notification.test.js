@@ -6,20 +6,10 @@ import {
     startServer,
     triggerEvents,
 } from "@mail/../tests/mail_test_helpers";
-import { rpcWithEnv } from "@mail/utils/common/misc";
 import { describe, expect, test } from "@odoo/hoot";
 import { mockDate } from "@odoo/hoot-mock";
-import {
-    asyncStep,
-    Command,
-    mockService,
-    serverState,
-    waitForSteps,
-    withUser,
-} from "@web/../tests/web_test_helpers";
-
-/** @type {ReturnType<import("@mail/utils/common/misc").rpcWithEnv>} */
-let rpc;
+import { Command, mockService, serverState, withUser } from "@web/../tests/web_test_helpers";
+import { rpc } from "@web/core/network/rpc";
 
 describe.current.tags("desktop");
 defineMailModels();
@@ -49,10 +39,10 @@ test("basic layout", async () => {
     await click(".o_menu_systray i[aria-label='Messages']");
     await contains(".o-mail-NotificationItem", {
         contains: [
-            [".o-mail-NotificationItem-name", { text: "Email Failure: Discussion Channel" }],
-            [".o-mail-NotificationItem-counter", { text: "2" }],
-            [".o-mail-NotificationItem-date", { text: "Jan 1" }],
-            [".o-mail-NotificationItem-text", { text: "An error occurred when sending an email" }],
+            [".o-mail-NotificationItem-name:text('Email Failure: Discussion Channel')"],
+            [".o-mail-NotificationItem-counter:text('2')"],
+            [".o-mail-NotificationItem-date:text('Jan 1')"],
+            [".o-mail-NotificationItem-text:text('An error occurred when sending an email')"],
         ],
     });
 });
@@ -72,15 +62,14 @@ test("mark as read", async () => {
     });
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
-    await triggerEvents(".o-mail-NotificationItem", ["mouseenter"], {
-        text: "Email Failure: Discussion Channel",
-    });
+    await triggerEvents(".o-mail-NotificationItem-name:text('Email Failure: Discussion Channel')", [
+        "mouseenter",
+    ]);
     await click(".o-mail-NotificationItem-markAsRead", {
-        parent: [".o-mail-NotificationItem", { text: "Email Failure: Discussion Channel" }],
+        parent: [".o-mail-NotificationItem:has(:text('Email Failure: Discussion Channel'))"],
     });
-    await contains(".o-mail-NotificationItem", {
+    await contains(".o-mail-NotificationItem-name:text('Email Failure: Discussion Channel')", {
         count: 0,
-        text: "Email Failure: Discussion Channel",
     });
 });
 
@@ -113,7 +102,7 @@ test("open non-channel failure", async () => {
     ]);
     mockService("action", {
         doAction(action) {
-            asyncStep("do_action");
+            expect.step("do_action");
             expect(action.name).toBe("Mail Failures");
             expect(action.type).toBe("ir.actions.act_window");
             expect(action.view_mode).toBe("kanban,list,form");
@@ -134,7 +123,7 @@ test("open non-channel failure", async () => {
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
     await click(".o-mail-NotificationItem");
-    await waitForSteps(["do_action"]);
+    await expect.waitForSteps(["do_action"]);
 });
 
 test("different discuss.channel are not grouped", async () => {
@@ -179,10 +168,10 @@ test("different discuss.channel are not grouped", async () => {
     ]);
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
-    await contains(".o-mail-NotificationItem-text", {
-        count: 2,
-        text: "An error occurred when sending an email",
-    });
+    await contains(
+        ".o-mail-NotificationItem-text:text('An error occurred when sending an email')",
+        { count: 2 }
+    );
 });
 
 test("multiple grouped notifications by model", async () => {
@@ -226,7 +215,7 @@ test("multiple grouped notifications by model", async () => {
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
     await contains(".o-mail-NotificationItem", { count: 2 });
-    await contains(".o-mail-NotificationItem-counter", { count: 2, text: "2" });
+    await contains(".o-mail-NotificationItem-counter:text('2')", { count: 2 });
 });
 
 test("non-failure notifications are ignored", async () => {
@@ -270,8 +259,8 @@ test("marked as read thread notifications are ordered by last message date", asy
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
     await contains(".o-mail-NotificationItem", { count: 2 });
-    await contains(":nth-child(1 of .o-mail-NotificationItem)", { text: "Channel 2020" });
-    await contains(":nth-child(2 of .o-mail-NotificationItem)", { text: "Channel 2019" });
+    await contains(".o-mail-NotificationItem-name:eq(0):text('Channel 2020')");
+    await contains(".o-mail-NotificationItem-name:eq(1):text('Channel 2019')");
 });
 
 test("thread notifications are re-ordered on receiving a new message", async () => {
@@ -303,8 +292,7 @@ test("thread notifications are re-ordered on receiving a new message", async () 
             res_id: channelId_2,
         },
     ]);
-    const env = await start();
-    rpc = rpcWithEnv(env);
+    await start();
     await click(".o_menu_systray i[aria-label='Messages']");
     await contains(".o-mail-NotificationItem", { count: 2 });
     await withUser(bobUserId, () =>
@@ -318,8 +306,8 @@ test("thread notifications are re-ordered on receiving a new message", async () 
             thread_model: "discuss.channel",
         })
     );
-    await contains(":nth-child(1 of .o-mail-NotificationItem)", { text: "Channel 2019" });
-    await contains(":nth-child(2 of .o-mail-NotificationItem)", { text: "Channel 2020" });
+    await contains(".o-mail-NotificationItem-name:eq(0):text('Channel 2019')");
+    await contains(".o-mail-NotificationItem-name:eq(1):text('Channel 2020')");
     await contains(".o-mail-NotificationItem", { count: 2 });
 });
 
@@ -352,7 +340,7 @@ test("messaging menu counter should ignore unread messages in channels that are 
     await contains(".o_menu_systray i[aria-label='Messages']");
     await contains(".o-mail-MessagingMenu-counter", { count: 0 });
     await click(".o_menu_systray i[aria-label='Messages']"); // fetch channels
-    await contains(".o-mail-NotificationItem", { text: "General" }); // ensure channels fetched
+    await contains(".o-mail-NotificationItem:text('General')"); // ensure channels fetched
     await contains(".o-mail-MessagingMenu-counter", { count: 0 });
 });
 
@@ -370,5 +358,5 @@ test("subtype description should be displayed when body is empty", async () => {
     });
     await start();
     await click(".o_menu_systray i[aria-label='Messages']");
-    await contains(".o-mail-NotificationItem-text", { text: "Partner1: hello" });
+    await contains(".o-mail-NotificationItem-text:text('Partner1: hello')");
 });

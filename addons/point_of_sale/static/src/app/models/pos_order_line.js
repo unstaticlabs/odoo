@@ -1,7 +1,7 @@
 import { registry } from "@web/core/registry";
 import { constructFullProductName, constructAttributeString } from "@point_of_sale/utils";
 import { parseFloat } from "@web/views/fields/parsers";
-import { formatFloat } from "@web/core/utils/numbers";
+import { formatFloat, range } from "@web/core/utils/numbers";
 import { _t } from "@web/core/l10n/translation";
 import { localization as l10n } from "@web/core/l10n/localization";
 import { PosOrderlineAccounting } from "./accounting/pos_order_line_accounting";
@@ -71,12 +71,11 @@ export class PosOrderline extends PosOrderlineAccounting {
         const unit = this.product_id.uom_id;
         const decimalPoint = l10n.decimalPoint;
 
+        const ProductUnit = this.models["decimal.precision"].find(
+            (dp) => dp.name === "Product Unit"
+        );
         if (unit) {
-            if (unit.rounding) {
-                const ProductUnit = this.models["decimal.precision"].find(
-                    (dp) => dp.name === "Product Unit"
-                );
-
+            if (ProductUnit.digits) {
                 if (this.qty % 1 === 0) {
                     unitPart = this.qty.toFixed(0);
                 } else {
@@ -165,11 +164,7 @@ export class PosOrderline extends PosOrderlineAccounting {
                 id: lotLine.id,
                 text: lotLine.lot_name,
             }))
-            .concat(
-                Array.from(Array(nExtraLines)).map((_) => ({
-                    text: "",
-                }))
-            );
+            .concat(range(nExtraLines).map(() => ({ text: "" })));
         return isAllowOnlyOneLot ? [tempLines[0]] : tempLines;
     }
 
@@ -236,6 +231,7 @@ export class PosOrderline extends PosOrderlineAccounting {
             quantity = -Math.abs(quantity);
         }
 
+        this.order_id.assertEditable();
         const quant =
             typeof quantity === "number" ? quantity : parseFloat("" + (quantity ? quantity : 0));
 
@@ -268,9 +264,7 @@ export class PosOrderline extends PosOrderlineAccounting {
             }
         }
 
-        const rounder =
-            this.product_id.uom_id ||
-            this.models["decimal.precision"].find((dp) => dp.name === "Product Unit");
+        const rounder = this.models["decimal.precision"].find((dp) => dp.name === "Product Unit");
 
         this.qty = rounder.round(quant);
 
@@ -340,6 +334,7 @@ export class PosOrderline extends PosOrderlineAccounting {
             (Boolean(orderline.getCustomerNote()) === false &&
                 Boolean(this.getCustomerNote()) === false) ||
             orderline.getCustomerNote() === this.getCustomerNote();
+        const getLotName = (line) => line.pack_lot_ids[0]?.lot_name;
 
         // only orderlines of the same product can be merged
         return (
@@ -353,7 +348,7 @@ export class PosOrderline extends PosOrderlineAccounting {
                     this.currency.round(order_line_price) -
                     orderline.getPriceExtra()
             ) &&
-            !this.isLotTracked() &&
+            (!this.isLotTracked() || getLotName(this) === getLotName(orderline)) &&
             this.full_product_name === orderline.full_product_name &&
             isSameCustomerNote &&
             !this.refunded_orderline_id &&
@@ -378,8 +373,13 @@ export class PosOrderline extends PosOrderlineAccounting {
     merge(orderline) {
         this.order_id.assertEditable();
         this.setQuantity(this.getQuantity() + orderline.getQuantity());
+        // Merge pack_lot_ids uniquely to avoid duplicates
+        const existingLotNames = new Set(this.pack_lot_ids.map((l) => l.lot_name));
+        const uniqueNewLots = orderline.pack_lot_ids.filter(
+            (lot) => !existingLotNames.has(lot.lot_name)
+        );
         this.update({
-            pack_lot_ids: [["link", ...orderline.pack_lot_ids]],
+            pack_lot_ids: [["link", ...uniqueNewLots]],
         });
     }
 
@@ -427,11 +427,6 @@ export class PosOrderline extends PosOrderlineAccounting {
         return tipProduct && this.product_id.id === tipProduct.id;
     }
 
-    isGlobalDiscountLine() {
-        const discountProduct = this.config.discount_product_id;
-        return discountProduct && this.product_id.id === discountProduct.id;
-    }
-
     getAllLinesInCombo() {
         if (this.combo_parent_id) {
             // having a `combo_parent_id` means that we are not
@@ -455,17 +450,24 @@ export class PosOrderline extends PosOrderlineAccounting {
         return Boolean(this.combo_parent_id || this.combo_line_ids?.length);
     }
 
+    get parentLine() {
+        if (this.combo_parent_id) {
+            return this.combo_parent_id.parentLine;
+        }
+        return this;
+    }
+
     get packLotLines() {
-        return this.pack_lot_ids.map(
-            (l) =>
-                `${l.pos_order_line_id.product_id.tracking == "lot" ? "Lot Number" : "SN"} ${
-                    l.lot_name
-                }`
-        );
+        const label = this.product_id.tracking === "lot" ? _t("Lot") : _t("SN");
+        return this.pack_lot_ids.map((l) => `${label} ${l.lot_name}`);
     }
 
     getDiscount() {
         return this.discount || 0;
+    }
+
+    get isValidForRefund() {
+        return this.qty - this.refundedQty > 0 && !this.combo_parent_id;
     }
 
     // FIXME all below should be removed

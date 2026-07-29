@@ -45,10 +45,12 @@
                     <header>
                         <button name="button_plan" type="object" string="Plan"/>
                         <button name="action_assign"  type="object" string="Check availability"/>
-                        <button name="action_cancel" type="object" string="Cancel" confirm="Are you sure you want to cancel these manufacturing orders?"/>
+                        <button name="action_cancel" type="object" string="Cancel"
+                            confirm="Are you sure you want to cancel these manufacturing orders?&#10;This action cannot be undone."
+                            confirm-title="Cancel Manufacturing Orders" confirm-label="Cancel these Orders"/>
                     </header>
                     <field name="company_id" column_invisible="True"/>
-                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                    <field name="priority" optional="show" widget="priority" nolabel="1" width="20px"/>
                     <field name="message_needaction" column_invisible="True"/>
                     <field name="name" decoration-bf="1"/>
                     <field name="date_start" optional="show" widget="remaining_days"/>
@@ -71,9 +73,9 @@
                         decoration-danger="reservation_state != 'assigned' and components_availability_state in ('late', 'unavailable')"/>
                     <field name="reservation_state" optional="hide" decoration-danger="reservation_state == 'confirmed'" decoration-success="reservation_state == 'assigned'"/>
                     <field name="product_qty" sum="Total Qty" string="Quantity" readonly="1" optional="show"/>
-                    <field name="product_uom_id" readonly="1" options="{'no_open':True,'no_create':True}" groups="uom.group_uom" widget="many2one_uom" optional="show"/>
-                    <field name="duration_expected" invisible="duration_expected == 0" groups="mrp.group_mrp_routings" widget="float_time" sum="Total expected duration" optional="hide"/>
-                    <field name="duration" invisible="duration == 0" groups="mrp.group_mrp_routings" widget="float_time" sum="Total real duration" optional="hide"/>
+                    <field name="uom_id" readonly="1" options="{'no_open':True,'no_create':True}" groups="uom.group_uom" widget="many2one_uom" optional="show"/>
+                    <field name="duration_expected" invisible="duration_expected == 0" groups="mrp.group_mrp_routings" widget="float_time" options="{'unit': 'minutes', 'show_seconds': True}" sum="Total expected duration" optional="hide"/>
+                    <field name="duration" invisible="duration == 0" groups="mrp.group_mrp_routings" widget="float_time" options="{'unit': 'minutes', 'show_seconds': True}" sum="Total real duration" optional="hide"/>
                     <field name="company_id" readonly="1" groups="base.group_multi_company" optional="show"/>
                     <field name="state"
                            decoration-success="state in ('done', 'to_close')"
@@ -86,6 +88,41 @@
                     <field name="delay_alert_date" column_invisible="True"/>
                     <field name="is_delayed" column_invisible="True"/>
                     <field nolabel="1" name="json_popover" widget="stock_rescheduling_popover" invisible="not json_popover"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="mrp_production_to_plan" model="ir.ui.view">
+            <field name="name">mrp.production.to.plan</field>
+            <field name="model">mrp.production</field>
+            <field name="priority">1000</field>
+            <field name="arch" type="xml">
+                <list string="Manufacturing Orders">
+                    <header>
+                        <button name="button_plan" type="object" string="Plan"/>
+                    </header>
+                    <field name="priority" optional="show" widget="priority" nolabel="1" width="20px"/>
+                    <field name="name" decoration-bf="1"/>
+                    <field name="date_start" optional="show" widget="remaining_days"/>
+                    <field name="date_finished" optional="hide" widget="remaining_days"/>
+                    <field name="product_id" readonly="1" optional="show"/>
+                    <field name="components_availability_state" column_invisible="True" options='{"lazy": true}'/>
+                    <field name="components_availability" options='{"lazy": true}'
+                        invisible="state not in ['confirmed', 'progress']"
+                        optional="show"
+                        decoration-success="reservation_state == 'assigned' or components_availability_state == 'available'"
+                        decoration-warning="reservation_state != 'assigned' and components_availability_state in ('expected', 'available')"
+                        decoration-danger="reservation_state != 'assigned' and components_availability_state in ('late', 'unavailable')"/>
+                    <field name="reservation_state" optional="hide" decoration-danger="reservation_state == 'confirmed'" decoration-success="reservation_state == 'assigned'"/>
+                    <field name="product_qty" sum="Total Qty" string="Quantity" readonly="1" optional="show"/>
+                    <field name="uom_id" readonly="1" options="{'no_open':True,'no_create':True}" groups="uom.group_uom" widget="many2one_uom" optional="show"/>
+                    <field name="state"
+                        decoration-success="state in ('done', 'to_close')"
+                        decoration-warning="state == 'progress'"
+                        decoration-info="state == 'confirmed'"
+                        decoration-danger="state == 'cancel'"
+                        decoration-muted="state == 'draft'"
+                        optional="show" widget="badge" class="text-dark"/>
                 </list>
             </field>
         </record>
@@ -131,7 +168,7 @@
             <field name="state">code</field>
             <field name="code">
             if records:
-                action = records.button_scrap()</field>
+                action = records.action_scrap()</field>
         </record>
 
         <record id="action_print_labels" model="ir.actions.server">
@@ -145,13 +182,13 @@
                 action = records.action_open_label_type()</field>
         </record>
 
-        <record id="action_plan_with_components_availability" model="ir.actions.server">
-            <field name="name">Plan based on Components Availability</field>
+        <record id="action_plan_at_date" model="ir.actions.server">
+            <field name="name">Plan at Date</field>
             <field name="model_id" ref="mrp.model_mrp_production"/>
             <field name="binding_model_id" ref="mrp.model_mrp_production"/>
             <field name="binding_view_types">list,kanban,form</field>
             <field name="state">code</field>
-            <field name="code">action = records.action_plan_with_components_availability()</field>
+            <field name="code">records.button_plan(as_soon_as_possible=False)</field>
         </record>
 
         <record id="action_production_order_merge" model="ir.actions.server">
@@ -193,7 +230,7 @@
                     <button name="button_mark_done" invisible="move_raw_ids or not show_produce_all" string="Produce All" type="object" class="oe_highlight" data-hotkey="g"
                             confirm="There are no components to consume. Are you still sure you want to continue?"/>
                     <button name="action_confirm" invisible="state != 'draft'" string="Confirm" type="object" class="oe_highlight" data-hotkey="q"/>
-                    <button name="button_plan" invisible="state not in ('confirmed', 'progress', 'to_close') or not workorder_ids or is_planned" type="object" string="Plan" class="oe_highlight" data-hotkey="z"/>
+                    <button name="button_plan" invisible="state not in ('confirmed', 'progress', 'to_close') or is_planned" type="object" string="Plan" class="oe_highlight" data-hotkey="z"/>
                     <button name="button_unplan" type="object" string="Unplan" invisible="not is_planned or state in ['cancel', 'done']" data-hotkey="z"/>
                     <button name="action_start"  type="object" string="Start" invisible="state != 'confirmed'"/>
                     <button name="action_assign" invisible="state in ('draft', 'done', 'cancel') or not reserve_visible" string="Check availability" type="object" data-hotkey="c"/>
@@ -201,9 +238,9 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
                     <button name="action_cancel" type="object" string="Cancel" data-hotkey="x"
                             invisible="not id or state in ('done', 'cancel')"
-                            confirm="Are you sure you want to cancel this manufacturing order?"
-                            confirm-label="Confirm"
-                            cancel-label="Discard"/>
+                            confirm="Are you sure you want to cancel this manufacturing order?&#10;This action cannot be undone."
+                            confirm-title="Cancel Manufacturing Order"
+                            confirm-label="Cancel this Order"/>
                     <button name="button_unbuild" type="object" string="Unbuild" invisible="state != 'done'" data-hotkey="shift+v"/>
                 </header>
                 <sheet>
@@ -213,7 +250,6 @@
                     <field name="qty_produced" invisible="1"/>
                     <field name="unreserve_visible" invisible="1"/>
                     <field name="reserve_visible" invisible="1"/>
-                    <field name="consumption" invisible="1"/>
                     <field name="is_planned" invisible="1"/>
                     <field name="show_allocation" invisible="1"/>
                     <field name="workorder_ids" invisible="1"/>
@@ -306,8 +342,8 @@
                                     context="{'default_mo_id': id}" class="oe_link oe_inline" style="margin: 0px; padding: 0px;" invisible="state in ('draft', 'done', 'cancel') or not id">
                                     <field name="product_qty" class="oe_inline" readonly="state != 'draft'"/>
                                 </button>
-                                <label for="product_uom_id" string="" class="oe_inline"/>
-                                <field name="product_uom_id" options="{'no_open': True, 'no_create': True, 'quantity_field': 'product_qty'}" groups="uom.group_uom" widget="many2one_uom" readonly="state != 'draft'" class="flex-grow-0" style="width:auto!important"/>
+                                <label for="uom_id" string="" class="oe_inline"/>
+                                <field name="uom_id" options="{'no_open': True, 'no_create': True, 'quantity_field': 'product_qty'}" groups="uom.group_uom" widget="many2one_uom" readonly="state != 'draft'" class="flex-grow-0" style="width:auto!important"/>
                                 <span name="to_produce" class='fw-bold text-nowrap'>To Produce</span>
                                 <button type="object" name="action_product_forecast_report" title="Forecast Report" icon="fa-area-chart" invisible="forecasted_issue"/>
                                 <button type="object" name="action_product_forecast_report" title="Forecast Report" icon="fa-area-chart" invisible="not forecasted_issue" class="text-danger"/>
@@ -330,7 +366,7 @@
                             </div>
                             <label for="lot_producing_ids" invisible="state in ('draft', 'cancel') or product_tracking in ('none', False) or (state == 'done' and product_tracking == 'serial' and product_qty > 1)"/>
                             <div class="o_row" invisible="state in ('draft', 'cancel') or product_tracking in ('none', False) or (state == 'done' and product_tracking == 'serial' and product_qty > 1)">
-                                <field name="lot_producing_ids" widget="many2many_tags" options="{'edit_tags': True}"
+                                <field name="lot_producing_ids" widget="many2many_tags" options="{'on_tag_click': 'open_form'}"
                                     invisible="product_tracking in ('none', False) or (product_tracking == 'serial' and (product_qty > 1 or serial_numbers_count > 1))"
                                     readonly="lot_producing_ids" force_save="1" context="{'default_product_id': product_id}"/>
                                 <button name="action_generate_serial" type="object" class="btn btn-primary o_right_alignment" string="Generate Serial" aria-label="Creates a new serial number" title="Creates a new serial number" role="img" invisible="product_tracking in ('none', 'lot', False) or lot_producing_ids"/>
@@ -365,7 +401,7 @@
                                 <list editable="bottom">
                                     <field name="product_id" readonly="state == 'done'"/>
                                     <field name="product_uom_qty" readonly="state == 'done'"/>
-                                    <field name="product_uom" groups="uom.group_uom" widget="many2one_uom"/>
+                                    <field name="uom_id" groups="uom.group_uom" widget="many2one_uom"/>
                                     <field name="operation_id"/>
                                     <field name="byproduct_id"/>
                                     <field name="date_deadline"/>
@@ -420,7 +456,7 @@
                                     <field name="forecast_availability" column_invisible="parent.state in ['done', 'cancel']" string="" widget="forecast_widget"/>
                                     <field name="location_id" string="From" readonly="1" force_save="1" groups="stock.group_stock_multi_locations" optional="hide"/>
                                     <!-- test_immediate_validate_uom_2, test_product_produce_different_uom -->
-                                    <field name="product_uom" column_invisible="True"/>
+                                    <field name="uom_id" column_invisible="True"/>
                                     <field name="propagate_cancel" column_invisible="True"/>
                                     <field name="price_unit" column_invisible="True"/>
                                     <field name="company_id" column_invisible="True"/>
@@ -453,7 +489,7 @@
                                         decoration-muted="not manual_consumption"
                                         decoration-bf="manual_consumption"
                                         force_save="1"/>
-                                    <field name="product_uom" readonly="state != 'draft' and id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom" widget="many2one_uom"/>
+                                    <field name="uom_id" readonly="state != 'draft' and id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom" widget="many2one_uom"/>
                                     <field name="picked" column_invisible="True"/>
                                     <field name="manual_consumption" column_invisible="True" force_save="1"/>
                                     <field name="show_details_visible" column_invisible="True"/>
@@ -465,25 +501,25 @@
                                         readonly="1"
                                         column_invisible="not parent.show_lot_ids or parent.state == 'draft'"
                                         invisible="not show_details_visible"
-                                        options="{'create': [('parent.use_create_components_lots', '!=', False)]}"
+                                        create="parent.use_create_components_lots"
                                         context="{'default_product_id': product_id}"
                                         domain="[('product_id','=',product_id)]"/>
-                                    <button name="action_show_details" type="object" title="Show Details" string="Details" context="{'default_product_uom_qty': 0}" invisible="not show_details_visible or has_tracking == 'none'"/>
-                                    <button class="o_optional_button btn" name="action_show_details" type="object" title="Show Details" string="Details" context="{'default_product_uom_qty': 0}" invisible="has_tracking != 'none' or not show_details_visible"/>
+                                    <button name="action_show_details" type="object" title="Show Details" string="Details" context="{'default_product_uom_qty': 0}" invisible="not show_details_visible or has_tracking not in ['lot', 'serial']"/>
+                                    <button class="o_optional_button btn" name="action_show_details" type="object" title="Show Details" string="Details" context="{'default_product_uom_qty': 0}" invisible="(has_tracking in ['lot', 'serial']) or not show_details_visible"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Work Orders" name="operations" groups="mrp.group_mrp_routings">
                             <field name="workorder_ids"
                                 context="{'list_view_ref': 'mrp.mrp_production_workorder_tree_editable_view_mo_form', 'from_manufacturing_order': True}"
-                                options="{'create': [('id', '!=', False), ('state', '!=', 'done')]}"
+                                create="id != False and state != 'done'"
                                 />
                         </page>
                         <page string="By-Products" name="finished_products" groups="mrp.group_mrp_byproducts">
                             <field name="move_byproduct_ids"
                                 context="{'default_date': date_finished, 'default_date_deadline': date_deadline, 'default_warehouse_id': warehouse_id, 'default_location_id': production_location_id, 'default_location_dest_id': location_dest_id, 'default_state': 'draft', 'default_production_id': id, 'default_picking_type_id': picking_type_id, 'default_company_id': company_id, 'form_view_ref': 'mrp.view_mrp_stock_move_operations'}"
-                                readonly="state == 'cancel' or (state == 'done' and is_locked)" options="{'delete': [('state', '=', 'draft')]}">
-                                <list decoration-muted="state in ['done', 'cancel']" editable="bottom">
+                                readonly="state == 'cancel' or (state == 'done' and is_locked)" delete="state == 'draft'">
+                                <list default_order="sequence, id" decoration-muted="state in ['done', 'cancel']" editable="bottom">
                                     <control>
                                         <create string="Add a line"/>
                                         <button name="action_add_from_catalog_byproduct" string="Catalog" type="object" class="px-4 btn-link" context="{'order_id': parent.id}"/>
@@ -508,9 +544,9 @@
                                     <field name="move_lines_count" column_invisible="True"/>
                                     <field name="state" column_invisible="True" force_save="1"/>
                                     <field name="product_uom_qty" string="To Produce" force_save="1" readonly="parent.state != 'draft' and ((parent.state not in ('confirmed', 'progress', 'to_close') and not parent.is_planned) or parent.is_locked)"/>
-                                    <field name="quantity" column_invisible="parent.state == 'draft'" readonly="has_tracking != 'none'"/>
+                                    <field name="quantity" column_invisible="parent.state == 'draft'" readonly="has_tracking in ['lot', 'serial']"/>
                                     <field name="picked" string="Produced" column_invisible="parent.state == 'draft'" optional="show"/>
-                                    <field name="product_uom" groups="uom.group_uom" widget="many2one_uom"/>
+                                    <field name="uom_id" groups="uom.group_uom" widget="many2one_uom"/>
                                     <field name="cost_share" optional="hide"/>
                                     <field name="show_details_visible" column_invisible="True"/>
                                     <field name="lot_ids" widget="many2many_tags"
@@ -521,11 +557,11 @@
                                         readonly="1"
                                         column_invisible="not parent.show_lot_ids or parent.state == 'draft'"
                                         invisible="not show_details_visible"
-                                        options="{'create': [('parent.use_create_components_lots', '!=', False)]}"
+                                        create="parent.use_create_components_lots"
                                         context="{'default_product_id': product_id}"
                                         domain="[('product_id','=',product_id)]"/>
-                                    <button name="action_show_details" type="object" title="Show Details" icon="fa-list" invisible="has_tracking == 'none' or not show_details_visible"/>
-                                    <button class="o_optional_button btn btn-light" name="action_show_details" type="object" title="Show Details" icon="fa-list" invisible="has_tracking != 'none' or not show_details_visible"/>
+                                    <button name="action_show_details" type="object" title="Show Details" icon="fa-list" invisible="has_tracking not in ['lot', 'serial'] or not show_details_visible"/>
+                                    <button class="o_optional_button btn btn-light" name="action_show_details" type="object" title="Show Details" icon="fa-list" invisible="has_tracking in ['lot', 'serial'] or not show_details_visible"/>
                                 </list>
                             </field>
                         </page>
@@ -544,6 +580,7 @@
                                     <field name="date_deadline"/>
                                     <field name="is_delayed" invisible="True"/>
                                     <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" readonly="state != 'draft'" force_save="1"/>
+                                    <field name="note" readonly="False"/>
                                 </group>
                             </group>
                         </page>
@@ -568,7 +605,7 @@
                                 <field name="priority" widget="priority"/>
                                 <field name="product_id" class="fw-bolder fs-6 ms-1"/>
                                 <field name="product_qty" class="ms-auto flex-shrink-0"/>
-                                <field name="product_uom_id" class="small ms-1 flex-shrink-0" groups="uom.group_uom"/>
+                                <field name="uom_id" class="small ms-1 flex-shrink-0" groups="uom.group_uom"/>
                             </div>
                             <footer class="text-muted">
                                 <div class="d-flex">
@@ -590,11 +627,12 @@
             <field name="model">mrp.production</field>
             <field eval="2" name="priority"/>
             <field name="arch" type="xml">
-                <calendar date_start="date_start" date_stop="date_finished"
-                          string="Manufacturing Orders" event_limit="5" quick_create="0">
+                <calendar js_class="mrp_calendar" date_start="date_start" date_stop="date_finished"
+                          string="Manufacturing Orders" event_limit="5" quick_create="0" color="product_id" hide_time="True">
                     <field name="user_id" avatar_field="avatar_128"/>
                     <field name="product_id"/>
                     <field name="product_qty"/>
+                    <field name="uom_id" invisible="1"/>  <!-- To show the unit next to the quantity -->
                 </calendar>
             </field>
         </record>
@@ -605,6 +643,13 @@
             <field name="arch" type="xml">
                 <pivot string="Manufacturing Orders" sample="1">
                     <field name="date_start" type="row"/>
+                    <field name="duration_expected" type="measure" groups="!mrp.group_mrp_routings" invisible="1"/>
+                    <field name="duration_expected" type="measure" string="Expected Duration" groups="mrp.group_mrp_routings"/>
+                    <field name="duration" type="measure" groups="!mrp.group_mrp_routings" invisible="1"/>
+                    <field name="duration" type="measure" string="Real Duration" groups="mrp.group_mrp_routings"/>
+                    <field name="qty_producing" type="measure" string="Quantity Produced"/>
+                    <field name="backorder_sequence" invisible="1"/>
+                    <field name="product_uom_qty" invisible="1"/>
                 </pivot>
             </field>
         </record>
@@ -615,10 +660,13 @@
             <field name="arch" type="xml">
                 <graph string="Manufacturing Orders" stacked="0" sample="1">
                     <field name="date_finished"/>
-                    <field name="product_uom_qty" type="measure"/>
-                    <field name="backorder_sequence" invisible="1"/>
+                    <field name="duration_expected" type="measure" groups="!mrp.group_mrp_routings" invisible="1"/>
+                    <field name="duration_expected" type="measure" string="Expected Duration" groups="mrp.group_mrp_routings"/>
+                    <field name="duration" type="measure" groups="!mrp.group_mrp_routings" invisible="1"/>
+                    <field name="duration" type="measure" string="Real Duration" groups="mrp.group_mrp_routings"/>
                     <field name="qty_producing" string="Quantity Produced"/>
-                    <field name="product_uom_qty" string= "Product Quantity"/>
+                    <field name="backorder_sequence" invisible="1"/>
+                    <field name="product_uom_qty" invisible="1"/>
                 </graph>
             </field>
         </record>
@@ -642,6 +690,7 @@
                     <filter string="Cancelled" name="filter_cancel" domain="[('state', '=', 'cancel')]"/>
                     <separator/>
                     <filter string="Starred" name="starred" domain="[('priority', '=', '1')]"/>
+                    <filter string="To Plan" name="filter_to_plan" domain="[('state', '=', 'confirmed'), ('is_planned', '=', False)]"/>
                     <separator/>
                     <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="Confirmed" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>

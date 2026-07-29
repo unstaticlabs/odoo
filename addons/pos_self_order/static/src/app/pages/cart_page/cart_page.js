@@ -1,19 +1,20 @@
 import { Component, useState, useRef } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 import { useSelfOrder } from "@pos_self_order/app/services/self_order_service";
-import { PopupTable } from "@pos_self_order/app/components/popup_table/popup_table";
 import { OrderWidget } from "@pos_self_order/app/components/order_widget/order_widget";
 import { PresetInfoPopup } from "@pos_self_order/app/components/preset_info_popup/preset_info_popup";
 import { useScrollShadow } from "../../utils/scroll_shadow_hook";
-import { useTrackedAsync } from "@point_of_sale/app/hooks/hooks";
-import { OrderReceipt } from "@point_of_sale/app/screens/receipt_screen/receipt/order_receipt";
 import { CancelPopup } from "@pos_self_order/app/components/cancel_popup/cancel_popup";
 import { _t } from "@web/core/l10n/translation";
 import { formatProductName } from "../../utils";
+import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
+import { PillsSelectionPopup } from "@pos_self_order/app/components/pills_selection_popup/pills_selection_popup";
+
+const { DateTime } = luxon;
 
 export class CartPage extends Component {
     static template = "pos_self_order.CartPage";
-    static components = { PopupTable, OrderWidget, PresetInfoPopup };
+    static components = { OrderWidget };
     static props = {};
 
     setup() {
@@ -21,14 +22,11 @@ export class CartPage extends Component {
         this.dialog = useService("dialog");
         this.router = useService("router");
         this.state = useState({
-            selectTable: false,
-            fillInformations: false,
-            cancelConfirmation: false,
+            showOrderNote: this.orderNote,
+            orderNoteValue: "",
         });
 
         this.scrollShadow = useScrollShadow(useRef("scrollContainer"));
-        this.renderer = useService("renderer");
-        this.sendReceipt = useTrackedAsync(this._sendReceiptToCustomer.bind(this));
     }
 
     get showCancelButton() {
@@ -37,6 +35,10 @@ export class CartPage extends Component {
             this.selfOrder.config.self_ordering_pay_after === "each" &&
             this.selfOrder.currentOrder.isSynced
         );
+    }
+
+    get orderNote() {
+        return this.selfOrder?.currentOrder?.general_customer_note || this.state?.orderNoteValue;
     }
 
     get lines() {
@@ -95,6 +97,10 @@ export class CartPage extends Component {
             config.use_presets && presets.length > 1
                 ? this.selfOrder.currentOrder.preset_id?.service_at
                 : config.self_ordering_service_mode;
+        const useTiming =
+            config.use_presets &&
+            presets.length > 0 &&
+            this.selfOrder.currentOrder.preset_id?.use_timing;
 
         if (this.selfOrder.rpcLoading || !this.selfOrder.verifyCart()) {
             return;
@@ -116,8 +122,32 @@ export class CartPage extends Component {
         });
 
         if (!isValidRequiredInfo && orderingMode !== "table") {
-            this.state.fillInformations = true;
-            return;
+            let result = null;
+
+            // Show timing selection popup only if preset uses timing
+            if (useTiming) {
+                result = await makeAwaitable(this.dialog, PillsSelectionPopup, {
+                    options: this.presetTimingOptions,
+                    title: _t("Select a hour"),
+                    subtitle: _t("Please choose a time slot for your order."),
+                    selectionType: "time",
+                });
+                if (!result) {
+                    return;
+                }
+                this.selfOrder.currentOrder.preset_time = DateTime.fromSQL(result);
+            }
+
+            // Always show preset info popup when requirements aren't filled
+            const infos = await makeAwaitable(this.dialog, PresetInfoPopup, {});
+            if (!infos) {
+                return;
+            }
+
+            const email = this.selfOrder.currentOrder.partner_id?.email || infos.email;
+            const mobile = this.selfOrder.currentOrder.mobile || infos.phone;
+            this.selfOrder.currentOrder.email = email;
+            this.selfOrder.currentOrder.mobile = mobile;
         }
 
         if (
@@ -126,51 +156,116 @@ export class CartPage extends Component {
             !this.selfOrder.currentTable &&
             this.selfOrder.config.module_pos_restaurant
         ) {
-            this.state.selectTable = true;
-            return;
+            const table = await makeAwaitable(this.dialog, PillsSelectionPopup, {
+                options: this.tableOptions,
+                title: _t("Select a table"),
+                subtitle: _t("Please choose a table for your order."),
+                selectionType: "table",
+            });
+            if (!table) {
+                return;
+            }
+
+            const tableRecord = this.selfOrder.models["restaurant.table"].get(table);
+            this.selectTableDependingOnMode(tableRecord);
+            this.router.addTableIdentifier(tableRecord);
         } else if (this.selfOrder.currentTable) {
             this.selectTableDependingOnMode(this.selfOrder.currentTable);
         }
-
+        const noteText = this.state.orderNoteValue.trim();
+        if (noteText) {
+            this.selfOrder.currentOrder.general_customer_note = noteText;
+        }
         this.selfOrder.rpcLoading = true;
         await this.selfOrder.confirmOrder();
         this.selfOrder.rpcLoading = false;
     }
 
-    async proceedInfos(state) {
-        this.state.fillInformations = false;
-        if (state) {
-            this.selfOrder.currentOrder.mobile =
-                this.selfOrder.currentOrder.partner_id?.phone || state.phone;
-            this.selfOrder.currentOrder.email =
-                this.selfOrder.currentOrder.partner_id?.email || state.email;
-            await this.pay();
+    get presetTimingOptions() {
+        const availabilities = this.selfOrder.currentOrder.preset_id.availabilities;
+        const options = {
+            categories: {},
+        };
+
+        for (const [date, slots] of Object.entries(availabilities)) {
+            options.categories[date] = {
+                id: date,
+                name: DateTime.fromISO(date).toLocaleString(DateTime.DATE_SHORT),
+                subCategories: {},
+            };
+
+            for (const slot of Object.values(slots)) {
+                if (!options.categories[date].subCategories[slot.periode]) {
+                    let periodeName = _t("Full Day");
+
+                    switch (slot.periode) {
+                        case "morning":
+                            periodeName = _t("Morning");
+                            break;
+                        case "afternoon":
+                            periodeName = _t("Afternoon");
+                            break;
+                        case "evening":
+                            periodeName = _t("Evening");
+                            break;
+                    }
+
+                    options.categories[date].subCategories[slot.periode] = {
+                        id: slot.periode,
+                        name: periodeName,
+                        options: [],
+                    };
+                }
+
+                options.categories[date].subCategories[slot.periode].options.push({
+                    id: slot.datetime.toFormat("yyyy-MM-dd HH:mm:ss"),
+                    name: this.selfOrder.getTime(slot.datetime),
+                });
+            }
         }
+
+        // Remove empty categories
+        for (const dateId of Object.keys(options.categories)) {
+            if (
+                Object.keys(options.categories[dateId].subCategories).length === 0 ||
+                Object.values(options.categories[dateId].subCategories).every(
+                    (subCateg) => subCateg.options.length === 0
+                )
+            ) {
+                delete options.categories[dateId];
+            }
+        }
+
+        return options;
     }
 
-    generateTicketImage = async (basicReceipt = false) =>
-        await this.renderer.toJpeg(
-            OrderReceipt,
-            {
-                order: this.selfOrder.currentOrder,
-                basic_receipt: basicReceipt,
-            },
-            { addClass: "pos-receipt-print p-3" }
-        );
+    get tableOptions() {
+        const options = {
+            categories: {},
+        };
 
-    async _sendReceiptToCustomer({ action, destination, mail_template_id }) {
-        const order = this.selfOrder.currentOrder;
-        const fullTicketImage = await this.generateTicketImage();
-        const basicTicketImage = this.selfOrder.config.basic_receipt
-            ? await this.generateTicketImage(true)
-            : null;
-        await this.selfOrder.data.call("pos.order", action, [
-            [order.id],
-            destination,
-            mail_template_id,
-            fullTicketImage,
-            basicTicketImage,
-        ]);
+        for (const table of this.selfOrder.models["restaurant.table"].getAll()) {
+            if (!options.categories[table.floor_id.id]) {
+                options.categories[table.floor_id.id] = {
+                    id: table.floor_id.id,
+                    name: table.floor_id.name,
+                    subCategories: {
+                        table: {
+                            id: table.floor_id.id + "odd",
+                            name: false,
+                            options: [],
+                        },
+                    },
+                };
+            }
+
+            options.categories[table.floor_id.id].subCategories.table.options.push({
+                id: table.id,
+                name: table.table_number,
+            });
+        }
+
+        return options;
     }
 
     selectTableDependingOnMode(table) {

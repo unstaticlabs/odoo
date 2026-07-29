@@ -6,8 +6,20 @@ patch(MessagingMenu.prototype, {
     /** @override */
     markAsRead(thread) {
         super.markAsRead(...arguments);
-        if (thread.model === "discuss.channel") {
+        if (thread.channel) {
             thread.markAsRead();
         }
+    },
+    onSwipeLeftThreadNotification(thread) {
+        const res = super.onSwipeLeftThreadNotification(...arguments);
+        if (this.hasTouch() && thread.channel?.canHide) {
+            return {
+                ...res,
+                action: () => thread.channel.unpinChannel(),
+                icon: "fa-times-circle",
+                bgColor: "bg-danger",
+            };
+        }
+        return res;
     },
 });

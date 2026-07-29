@@ -2,16 +2,15 @@
 # This file contains the translation of the following modules:
 # * microsoft_outlook
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 17:17+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-11-07 18:36+0000\n"
+"PO-Revision-Date: 2025-11-18 13:49+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "microsoft_outlook/sv/>\n"
 "Language: sv\n"
@@ -19,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: microsoft_outlook
 #: model_terms:ir.ui.view,arch_db:microsoft_outlook.fetchmail_server_view_form
@@ -324,16 +323,3 @@ msgstr "Okänt fel."
 #: model:ir.model,name:microsoft_outlook.model_res_users
 msgid "User"
 msgstr "Användare"
-
-#~ msgid "Go back to your mail server"
-#~ msgstr "Gå tillbaka till din e-postserver"
-
-#~ msgid "Is Outlook Credential Configured"
-#~ msgstr "Är Outlook-legitimationen konfigurerad"
-
-#~ msgid ""
-#~ "Setup your Outlook API credentials in the general settings to link a "
-#~ "Outlook account."
-#~ msgstr ""
-#~ "Ställ in dina Outlook API-autentiseringsuppgifter i de allmänna "
-#~ "inställningarna för att länka ett Outlook-konto."

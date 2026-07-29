@@ -18,10 +18,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-30 12:04+0000\n"
+"POT-Creation-Date: 2026-06-12 17:37+0000\n"
+"PO-Revision-Date: 2026-06-20 15:24+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "project_timesheet_holidays/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -44,8 +44,8 @@ msgstr "Pozycje analityczne"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_company
-msgid "Companies"
-msgstr "Firmy"
+msgid "Company"
+msgstr "Firma"
 
 #. module: project_timesheet_holidays
 #: model:ir.model,name:project_timesheet_holidays.model_res_config_settings
@@ -243,34 +243,3 @@ msgstr ""
 #: code:addons/project_timesheet_holidays/__init__.py:0
 msgid "allow_timesheets"
 msgstr "allow_timesheets"
-
-#~ msgid ""
-#~ "Both the internal project and task are required to generate a timesheet "
-#~ "for the time off %s. If you don't want a timesheet, you should leave the "
-#~ "internal project and task empty."
-#~ msgstr ""
-#~ "Zarówno projekt wewnętrzny, jak i zadanie są wymagane do wygenerowania "
-#~ "arkusza czasu pracy dla czasu wolnego %s. Jeśli nie chcesz karty czasu "
-#~ "pracy, powinieneś pozostawić projekt wewnętrzny i zadanie puste."
-
-#~ msgid "Generate Timesheet"
-#~ msgstr "Generuj Kartę czasu pracy"
-
-#~ msgid "Global Time Off"
-#~ msgstr "Globalny czas wolny"
-
-#~ msgid ""
-#~ "If checked, when validating a time off, timesheet will be generated in "
-#~ "the Vacation Project of the company."
-#~ msgstr ""
-#~ "Jeżeli jest zaznaczone, to przy zatwierdzaniu czasu wolnego zostanie "
-#~ "wygenerowana karta pracy w projekcie Wakacje w firmie."
-
-#~ msgid "Operation not supported"
-#~ msgstr "Operacja nie jest wspierana"
-
-#~ msgid "Time Off (%s/%s)"
-#~ msgstr "Czas wolny (%s/%s)"
-
-#~ msgid "Time Off Type"
-#~ msgstr "Typ dni wolnych"

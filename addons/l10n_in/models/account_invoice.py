@@ -106,7 +106,6 @@ class AccountMove(models.Model):
         compute='_compute_l10n_in_total_withholding_amount',
         help="Total withholding amount for the move",
     )
-    l10n_in_display_higher_tcs_button = fields.Boolean(string="Display higher TCS button", compute="_compute_l10n_in_display_higher_tcs_button")
     l10n_in_tds_feature_enabled = fields.Boolean(related='company_id.l10n_in_tds_feature')
     l10n_in_tcs_feature_enabled = fields.Boolean(related='company_id.l10n_in_tcs_feature')
 
@@ -260,22 +259,8 @@ class AccountMove(models.Model):
                     }
 
                 if applicable_sections := move._get_l10n_in_tds_tcs_applicable_sections():
-                    tds_tcs_applicable_lines = (
-                        move.move_type == 'out_invoice'
-                        and move._get_tcs_applicable_lines(move.invoice_line_ids)
-                        or move.invoice_line_ids
-                    )
                     warnings['tds_tcs_threshold_alert'] = {
                         'message': applicable_sections._get_warning_message(),
-                        'action': tds_tcs_applicable_lines.with_context(
-                            default_tax_type_use=True,
-                            move_type=move.move_type == 'in_invoice'
-                        )._get_records_action(
-                            name=action_name,
-                            domain=[('id', 'in', tds_tcs_applicable_lines.ids)],
-                            views=[(_xmlid_to_res_id("l10n_in.view_move_line_list_l10n_in_withholding"), "list")]
-                        ),
-                        'action_text': action_text,
                     }
 
             if (
@@ -374,17 +359,6 @@ class AccountMove(models.Model):
             else:
                 move.l10n_in_total_withholding_amount = 0.0
 
-    @api.depends('l10n_in_warning')
-    def _compute_l10n_in_display_higher_tcs_button(self):
-        for move in self:
-            if move.company_id.l10n_in_tcs_feature:
-                move.l10n_in_display_higher_tcs_button = (
-                    move.l10n_in_warning
-                    and move.l10n_in_warning.get('lower_tcs_tax')
-                )
-            else:
-                move.l10n_in_display_higher_tcs_button = False
-
     def action_l10n_in_withholding_entries(self):
         self.ensure_one()
         return {
@@ -394,23 +368,6 @@ class AccountMove(models.Model):
             'view_mode': 'list,form',
             'domain': [('id', 'in', self.l10n_in_withhold_move_ids.ids)],
         }
-
-    def action_l10n_in_apply_higher_tax(self):
-        self.ensure_one()
-        invalid_lines = self._get_l10n_in_invalid_tax_lines()
-        for line in invalid_lines:
-            updated_tax_ids = []
-            for tax in line.tax_ids:
-                if tax.l10n_in_tax_type == 'tcs':
-                    max_tax = max(
-                        tax.l10n_in_section_id.with_context(active_test=False).l10n_in_section_tax_ids,
-                        key=lambda t: abs(t.amount),
-                    )
-                    updated_tax_ids.append(max_tax.id)
-                else:
-                    updated_tax_ids.append(tax.id)
-            if set(line.tax_ids.ids) != set(updated_tax_ids):
-                line.write({'tax_ids': [Command.clear()] + [Command.set(updated_tax_ids)]})
 
     def _get_l10n_in_invalid_tax_lines(self):
         self.ensure_one()
@@ -485,7 +442,7 @@ class AccountMove(models.Model):
         def _group_by_section_alert(invoice_lines):
             group_by_lines = {}
             for line in invoice_lines:
-                group_key = line.account_id.sudo().l10n_in_tds_tcs_section_id
+                group_key = line.account_id.l10n_in_tds_tcs_section_id
                 if group_key and not line.company_currency_id.is_zero(line.price_total):
                     group_by_lines.setdefault(group_key, [])
                     group_by_lines[group_key].append(line)
@@ -602,7 +559,11 @@ class AccountMove(models.Model):
 
     def _generate_qr_code(self, silent_errors=False):
         self.ensure_one()
-        if self.company_id.country_code == 'IN' and self.company_id.l10n_in_upi_id:
+        if (
+            self.company_id.l10n_in_upi_id
+            and self.amount_residual
+            and self.move_type == 'out_invoice'
+        ):
             payment_url = 'upi://pay?pa=%s&pn=%s&am=%s&tr=%s&tn=%s' % (
                 self.company_id.l10n_in_upi_id,
                 self.company_id.name,

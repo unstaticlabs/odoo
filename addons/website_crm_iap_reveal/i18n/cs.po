@@ -10,16 +10,16 @@
 # karolína schusterová <karolina.schusterova@vdp.sk>, 2022
 # Jiří Podhorecký, 2022
 # Aleš Fiala <f.ales1@seznam.cz>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 21:00+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-04-04 13:04+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Czech <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_crm_iap_reveal/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: website_crm_iap_reveal
 #: model_terms:ir.ui.view,arch_db:website_crm_iap_reveal.crm_reveal_rule_form
@@ -60,8 +60,8 @@ msgstr "Archivováno"
 
 #. module: website_crm_iap_reveal
 #: model:ir.model,name:website_crm_iap_reveal.model_crm_reveal_rule
-msgid "CRM Lead Generation Rules"
-msgstr "CRM pravidlo pro generování prospektů"
+msgid "CRM Lead Generation Rule"
+msgstr ""
 
 #. module: website_crm_iap_reveal
 #: model:ir.model,name:website_crm_iap_reveal.model_crm_reveal_view
@@ -150,7 +150,7 @@ msgstr "Sledování dat"
 #: model:ir.model.fields,field_description:website_crm_iap_reveal.field_crm_reveal_view__display_name
 #: model:ir.model.fields,field_description:website_crm_iap_reveal.field_ir_http__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: website_crm_iap_reveal
 #. odoo-python
@@ -540,19 +540,3 @@ msgstr "zaměstnanci"
 #: model_terms:ir.ui.view,arch_db:website_crm_iap_reveal.crm_reveal_rule_form
 msgid "to"
 msgstr "k"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Naposled změněno"
-
-#~ msgid ""
-#~ "Lead Generation requires a GeoIP resolver which could not be found on "
-#~ "your system. Please consult https://pypi.org/project/GeoIP/."
-#~ msgstr ""
-#~ "Lead Generation vyžaduje GeoIP resolver, který ve vašem systému nebyl "
-#~ "nalezen. Navštivte prosím https://pypi.org/project/GeoIP/."
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Potenciální zákazník / příležitost"
-
-#~ msgid "Missing Library"
-#~ msgstr "Chybějící knihovna"

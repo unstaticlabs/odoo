@@ -5,16 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 # Sergio Zanchetta <primes2h@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 21:53+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-04-13 14:02+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-2/"
 "snailmail/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -56,8 +56,8 @@ msgstr ""
 #: code:addons/snailmail/models/snailmail_letter.py:0
 msgid "An error occurred when sending the document by post.<br>Error: %s"
 msgstr ""
-"Si è verificato un errore durante l'invio del documento per posta.<br>"
-"Errore: %s"
+"Si è verificato un errore durante l'invio del documento per posta."
+"<br>Errore: %s"
 
 #. module: snailmail
 #. odoo-python
@@ -120,10 +120,6 @@ msgstr "Colore"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Aziende"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Azienda"
@@ -294,8 +290,8 @@ msgstr "Messaggio"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Notifiche messaggio"
+msgid "Message Notification"
+msgstr "Notifica messaggio"
 
 #. module: snailmail
 #. odoo-javascript
@@ -417,11 +413,6 @@ msgstr "Posta ordinaria"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "Colore posta ordinaria"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "Copertina posta ordinaria di sola lettura"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -635,110 +626,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "CAP"
-
-#~ msgid "Address"
-#~ msgstr "Indirizzo"
-
-#~ msgid "An unknown error occurred. Please contact our"
-#~ msgstr "Si è verificato un errore sconosciuto. Contattare il nostro"
-
-#~ msgid "Buy credits"
-#~ msgstr "Acquista crediti"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "Annulla lettera"
-
-#~ msgid "Cancel letter"
-#~ msgstr "Annulla lettera"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Invalida notifiche di errore"
-
-#~ msgid "Canceled"
-#~ msgstr "Annullata"
-
-#~ msgid "Close"
-#~ msgstr "Chiudi"
-
-#~ msgid "Failed letter"
-#~ msgstr "Errore lettera"
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "Errore formato nell'invio di una lettera di posta ordinaria"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Tipo di messaggio: e-mail per messaggio di posta elettronica, notifica "
-#~ "per messaggio di sistema, commento per altri messaggi come le risposte "
-#~ "dell'utente"
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "Il servizio non riesce a interpretare la lettera a causa del suo formato."
-#~ "<br/>\n"
-#~ "                Modificarlo dal modello o aggiornare le impostazioni per "
-#~ "aggiungere\n"
-#~ "                automaticamente una pagina di copertina vuota a tutte le "
-#~ "lettere."
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Re-send letter"
-#~ msgstr "Reinvia lettera"
-
-#~ msgid "Street 2..."
-#~ msgstr "Indirizzo 2…"
-
-#~ msgid "Street..."
-#~ msgstr "Indirizzo…"
-
-#~ msgid ""
-#~ "The country to which you want to send the letter is not supported by our "
-#~ "service."
-#~ msgstr ""
-#~ "La nazione verso la quale si vuole inviare la lettera non è supportata "
-#~ "dal nostro servizio."
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "L'indirizzo del cliente non è completo, aggiornarlo e reinviare la "
-#~ "lettera."
-
-#~ msgid ""
-#~ "The letter could not be sent due to insufficient credits on your IAP "
-#~ "account."
-#~ msgstr ""
-#~ "Impossibile inviare la lettera, crediti non sufficienti nell'account IAP "
-#~ "(acquisti integrati)."
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "Aggiorna configurazione e reinvia"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "Aggiorna indirizzo e reinvia"
-
-#~ msgid "Update address of partner"
-#~ msgstr "Aggiornamento indirizzo del partner"
-
-#~ msgid "You need credits on your IAP account to send a letter."
-#~ msgstr ""
-#~ "Per inviare una lettera sono necessari crediti nell'account IAP (acquisti "
-#~ "integrati)."
-
-#~ msgid "ZIP"
-#~ msgstr "CAP"
-
-#~ msgid "for further assistance."
-#~ msgstr "per ulteriore assistenza."
-
-#~ msgid "support"
-#~ msgstr "supporto"

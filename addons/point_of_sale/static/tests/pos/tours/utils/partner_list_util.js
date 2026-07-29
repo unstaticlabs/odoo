@@ -1,39 +1,12 @@
 import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 
-export function partnerListTrigger(name = "") {
-    return `.modal .partner-list b:contains(${name})`;
-}
-
 export function clickPartner(name = "", { expectUnloadPage = false } = {}) {
-    if (!name) {
-        return [
-            {
-                content: `click partner from partner list screen`,
-                trigger: partnerListTrigger(),
-                run: "click",
-                expectUnloadPage,
-            },
-        ];
-    }
-    return [
-        {
-            isActive: ["mobile"],
-            content: `Click search field`,
-            trigger: `.modal .fa-search.undefined`,
-            run: `click`,
-        },
-        {
-            content: `Search for partner "${name}"`,
-            trigger: `.modal-dialog .input-group input`,
-            run: `edit ${name}`,
-        },
-        {
-            content: `click partner '${name}' from partner list screen`,
-            trigger: partnerListTrigger(name),
-            run: "click",
-            expectUnloadPage,
-        },
-    ];
+    return {
+        content: `click partner '${name}' from partner list screen`,
+        trigger: `.modal .partner-list b:contains(${name})`,
+        run: "click",
+        expectUnloadPage,
+    };
 }
 export function clickPartnerOptions(name) {
     return {
@@ -153,7 +126,7 @@ export function searchCustomerValue(val, pressEnter = false) {
         },
         {
             content: `Search customer with "${val}"`,
-            trigger: `.modal-dialog .input-group input`,
+            trigger: `.modal-header:has(.modal-title:contains(choose customer)) .input-group input`,
             run: `edit ${val}`,
         },
         {
@@ -167,8 +140,16 @@ export function searchCustomerValue(val, pressEnter = false) {
 
     if (pressEnter) {
         steps.push({
+            trigger: "body",
+            run: () =>
+                // wait 200ms so state.query can be updated with the new value before triggering keydown
+                new Promise((resolve) => {
+                    setTimeout(resolve, 200);
+                }),
+        });
+        steps.push({
             content: `Manually trigger keyup event`,
-            trigger: ".modal-header .input-group input",
+            trigger: ".modal-header:has(.modal-title:contains(choose customer)) .input-group input",
             run: function () {
                 document
                     .querySelector(".modal-header .input-group input")
@@ -177,7 +158,7 @@ export function searchCustomerValue(val, pressEnter = false) {
         });
         steps.push({
             content: `Press Enter to trigger "search more"`,
-            trigger: `.modal-dialog .input-group input`,
+            trigger: `.modal-header:has(.modal-title:contains(choose customer)) .input-group input`,
             run: function () {
                 document
                     .querySelector(".modal-dialog .input-group input")

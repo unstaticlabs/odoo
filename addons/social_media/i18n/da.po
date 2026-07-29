@@ -12,10 +12,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~14.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 23:38+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 17:15+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "social_media/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -26,8 +26,8 @@ msgstr ""
 
 #. module: social_media
 #: model:ir.model,name:social_media.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
+msgid "Company"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_discord
@@ -83,6 +83,3 @@ msgstr "X-konto"
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_youtube
 msgid "Youtube Account"
 msgstr "YouTube-konto"
-
-#~ msgid "Twitter Account"
-#~ msgstr "Twitter konto"

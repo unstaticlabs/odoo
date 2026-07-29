@@ -1,7 +1,8 @@
 import { WithLazyGetterTrap } from "@point_of_sale/lazy_getter";
 import { deepImmutable, RAW_SYMBOL } from "./utils";
 import { toRaw } from "@odoo/owl";
-const { DateTime } = luxon;
+import { formatDate, formatDateTime } from "@web/core/l10n/dates";
+import { getTimeUtil } from "@point_of_sale/utils";
 
 function rawValueConverter(value) {
     if (value instanceof Set) {
@@ -43,6 +44,7 @@ export class Base extends WithLazyGetterTrap {
      */
     setup(_vals) {
         this._dirty = !this.isSynced;
+        this._initialized = true;
     }
 
     /**
@@ -54,7 +56,11 @@ export class Base extends WithLazyGetterTrap {
      *  Restore state serialized from indexedDB
      */
     restoreState(uiState) {
-        this.uiState = uiState;
+        this.initState();
+        this.uiState = {
+            ...this.uiState,
+            ...uiState,
+        };
     }
 
     isDirty() {
@@ -63,9 +69,12 @@ export class Base extends WithLazyGetterTrap {
 
     formatDateOrTime(field, type = "datetime") {
         if (type === "date") {
-            return this[field].toLocaleString(DateTime.DATE_SHORT);
+            return formatDate(this[field]);
         }
-        return this[field].toLocaleString(DateTime.DATETIME_SHORT);
+        if (type === "time") {
+            return getTimeUtil(this[field]);
+        }
+        return formatDateTime(this[field]);
     }
 
     isEqual(other) {

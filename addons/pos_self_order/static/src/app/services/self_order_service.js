@@ -7,44 +7,50 @@ import { useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { cookie } from "@web/core/browser/cookie";
 import { formatDateTime, serializeDateTime } from "@web/core/l10n/dates";
-import { OrderReceipt } from "@point_of_sale/app/screens/receipt_screen/receipt/order_receipt";
-import { HWPrinter } from "@point_of_sale/app/utils/printer/hw_printer";
-import { renderToElement } from "@web/core/utils/render";
 import { TimeoutPopup } from "@pos_self_order/app/components/timeout_popup/timeout_popup";
 import { NetworkConnectionLostPopup } from "@pos_self_order/app/components/network_connectionLost_popup/network_connectionLost_popup";
 import { UnavailableProductsDialog } from "@pos_self_order/app/components/unavailable_product_dialog/unavailable_product_dialog";
 import {
     constructFullProductName,
-    deduceUrl,
     random5Chars,
     isValidPhone,
     isValidEmail,
     orderUsageUTCtoLocalUtil,
+    getTimeUtil,
 } from "@point_of_sale/utils";
 import { getOrderLineValues } from "./card_utils";
-import { EpsonPrinter } from "@point_of_sale/app/utils/printer/epson_printer";
 import { initLNA } from "@point_of_sale/app/utils/init_lna";
+import { GeneratePrinterData } from "@point_of_sale/app/utils/printer/generate_printer_data";
+import { SnoozedProductTracker } from "@point_of_sale/app/models/utils/snooze_tracker";
 
 const { DateTime } = luxon;
 
 export class SelfOrder extends Reactive {
+    static serviceDependencies = [
+        "notification",
+        "router",
+        "pos_data",
+        "pos_ticket_printer",
+        "barcode",
+        "bus_service",
+        "dialog",
+    ];
+
     constructor(...args) {
         super();
         this.ready = this.setup(...args).then(() => this);
     }
-    orderReceiptComponent = OrderReceipt;
 
     async setup(
         env,
-        { notification, router, printer, renderer, barcode, bus_service, dialog, pos_data }
+        { notification, router, pos_ticket_printer, barcode, bus_service, dialog, pos_data }
     ) {
         // services
         this.notification = notification;
         this.router = router;
         this.data = pos_data;
         this.env = env;
-        this.printer = printer;
-        this.renderer = renderer;
+        this.ticketPrinter = pos_ticket_printer;
         this.barcode = barcode;
         this.bus = bus_service;
         this.dialog = dialog;
@@ -67,11 +73,11 @@ export class SelfOrder extends Reactive {
         this.ordering = false;
         this.orderTakeAwayState = {};
         this.orderSubscribtion = new Set();
-        this.kitchenPrinters = [];
         this.productCategories = [];
         this.currentCategory = null;
         this.productByCategIds = {};
         this.availableCategories = [];
+        this.snoozedProductTracker = new SnoozedProductTracker();
 
         this.initData();
         if (this.config.self_ordering_mode === "kiosk") {
@@ -81,6 +87,19 @@ export class SelfOrder extends Reactive {
         }
 
         this.data.connectWebSocket("ORDER_STATE_CHANGED", () => this.getUserDataFromServer());
+        this.data.connectWebSocket("SNOOZE_CHANGED", async (payload) => {
+            const { deleted_ids, records } = payload;
+            if (deleted_ids) {
+                const snoozeModel = this.models["pos.product.template.snooze"];
+                snoozeModel.deleteMany(
+                    deleted_ids.map((id) => snoozeModel.get(id)).filter(Boolean)
+                );
+            }
+            if (records.length > 0) {
+                await this.models.connectNewData({ "pos.product.template.snooze": records });
+            }
+            this.snoozedProductTracker.setSnoozes(this.config.pos_snooze_ids);
+        });
         this.data.connectWebSocket("PRODUCT_CHANGED", (payload) => {
             const productTemplateIds = payload["product.template"].map((tmpl) => tmpl.id);
             const existingProductIds = this.models["product.template"].filter((tmpl) =>
@@ -93,8 +112,15 @@ export class SelfOrder extends Reactive {
             }
         });
         if (this.config.self_ordering_mode === "kiosk") {
-            this.data.connectWebSocket("STATUS", async ({ status }) => {
-                await this.handleKioskSessionStatusChange(status);
+            this.data.connectWebSocket("STATUS", ({ status }) => {
+                if (status === "closed") {
+                    this.pos_session = [];
+                    this.ordering = false;
+                } else {
+                    // reload to get potential new settings
+                    // more easier than RPC for now
+                    window.location.reload();
+                }
             });
             this.data.connectWebSocket("PAYMENT_STATUS", ({ payment_result, data }) => {
                 if (payment_result === "Success") {
@@ -150,26 +176,6 @@ export class SelfOrder extends Reactive {
             this.addToCart(productTemplate, 1, "", {}, {});
             this.router.navigate("cart");
         });
-
-        if (this.config.epson_printer_ip && this.config.other_devices) {
-            this.printer.setPrinter(new EpsonPrinter({ ip: this.config.epson_printer_ip }));
-        }
-
-        if (this.config.self_ordering_mode === "kiosk") {
-            initLNA(this.notification);
-        } else {
-            odoo.use_lna = false;
-        }
-    }
-    async handleKioskSessionStatusChange(status) {
-        if (status === "closed") {
-            this.pos_session = [];
-            this.ordering = false;
-        } else {
-            // reload to get potential new settings
-            // more easier than RPC for now
-            window.location.reload();
-        }
     }
 
     /**
@@ -270,7 +276,10 @@ export class SelfOrder extends Reactive {
         if (!this.kioskMode) {
             return product.isConfigurable();
         }
-        return product.attribute_line_ids.some((a) => a.product_template_value_ids.length > 1);
+        return product.attribute_line_ids.some(
+            (a) =>
+                a.product_template_value_ids.length > 1 || a.attribute_id.display_type === "multi"
+        );
     }
 
     async addToCart(
@@ -315,9 +324,6 @@ export class SelfOrder extends Reactive {
             orderAccessToken: access_token || this.currentOrder.access_token,
             screenMode: screen_mode,
         });
-        if (this.kioskMode) {
-            this.printKioskChanges(access_token);
-        }
         this.resetCategorySelection();
     }
 
@@ -329,24 +335,16 @@ export class SelfOrder extends Reactive {
     }
 
     hasPaymentMethod() {
-        return this.filterPaymentMethods(this.models["pos.payment.method"].getAll()).length > 0;
-    }
-
-    // TODO: Remove in master. This method is redundant as the same logic exists in _load_pos_self_data_domain.
-    filterPaymentMethods(pms) {
-        //based on _load_pos_self_data_domain from pos_payment_method.py
-        return this.config.self_ordering_mode === "kiosk"
-            ? pms.filter((rec) => ["adyen", "stripe"].includes(rec.use_payment_terminal))
-            : [];
+        return (
+            this.config.self_ordering_mode === "kiosk" &&
+            this.models["pos.payment.method"].filter((pm) => !pm.is_cash_count).length > 0
+        );
     }
 
     async confirmOrder() {
         const payAfter = this.config.self_ordering_pay_after; // each, meal
         const device = this.config.self_ordering_mode; // kiosk, mobile
         const service = this.selfService; // table, counter, delivery
-        const paymentMethods = this.filterPaymentMethods(
-            this.models["pos.payment.method"].getAll()
-        ); // Stripe, Adyen, Online
 
         let order = this.currentOrder;
         const orderHasChanges = Object.keys(order.changes).length > 0;
@@ -370,7 +368,7 @@ export class SelfOrder extends Reactive {
 
         // When no payment methods redirect to confirmation page
         // the client will be able to pay at counter
-        if (paymentMethods.length === 0) {
+        if (!this.hasPaymentMethod()) {
             let screenMode = "pay";
 
             if (orderHasChanges) {
@@ -393,30 +391,39 @@ export class SelfOrder extends Reactive {
     }
 
     get currentOrder() {
-        const orderAvailable = (o) => {
-            const isDraft = o.state === "draft";
-            const isPaid = o.state === "paid";
-            const isZeroAmount = o.amount_total === 0;
-            const isKiosk = this.config.self_ordering_mode === "kiosk";
-
-            return (
-                isDraft ||
-                (isPaid && isZeroAmount && isKiosk) ||
-                (isPaid && this.router.activeSlot === "confirmation")
-            );
-        };
-
-        const order = this.models["pos.order"].getBy("uuid", this.selectedOrderUuid);
-        if (order && orderAvailable(order)) {
-            return order;
+        const currentOrder = this.getOrder();
+        if (currentOrder) {
+            return currentOrder;
         }
 
-        const existingOrder = this.models["pos.order"].find((o) => orderAvailable(o));
+        const existingOrder = this.models["pos.order"].find((o) => this.isOrderAvailable(o));
         if (existingOrder) {
             this.selectedOrderUuid = existingOrder.uuid;
             return existingOrder;
         }
         return this.createNewOrder();
+    }
+
+    isOrderAvailable(order) {
+        const isDraft = order.state === "draft";
+        const isPaid = order.state === "paid";
+        const isZeroAmount = order.amount_total === 0;
+        const isKiosk = this.config.self_ordering_mode === "kiosk";
+
+        return (
+            isDraft ||
+            (isPaid && isZeroAmount && isKiosk) ||
+            (isPaid && this.router.activeSlot === "confirmation")
+        );
+    }
+
+    getOrder() {
+        const order = this.models["pos.order"].getBy("uuid", this.selectedOrderUuid);
+        if (order && this.isOrderAvailable(order)) {
+            return order;
+        } else {
+            return null;
+        }
     }
 
     createNewOrder() {
@@ -455,9 +462,7 @@ export class SelfOrder extends Reactive {
     }
 
     initProducts() {
-        this.productCategories = this.config.limit_categories
-            ? this.config.iface_available_categ_ids
-            : this.models["pos.category"].getAll();
+        this.productCategories = this.models["pos.category"].getAll();
         this.productByCategIds = this.models["product.template"].getAllBy("pos_categ_ids");
 
         const excludedProductTemplateIds = new Set(
@@ -486,17 +491,31 @@ export class SelfOrder extends Reactive {
         }
     }
 
-    initData() {
-        this.initProducts();
-        this._initLanguages();
+    initHardware() {
+        const orderingMode = this.config.self_ordering_mode;
+        if (!["kiosk", "mobile"].includes(orderingMode)) {
+            return;
+        }
 
-        for (const printerConfig of this.models["pos.printer"].getAll()) {
-            const printer = this.createPrinter(printerConfig);
-            if (printer) {
-                printer.config = printerConfig;
-                this.kitchenPrinters.push(printer);
+        for (const pm of this.models["pos.payment.method"].getAll()) {
+            const PaymentInterface = registry
+                .category("electronic_payment_interfaces")
+                .get(pm.use_payment_terminal, null);
+            if (PaymentInterface) {
+                pm.payment_terminal = new PaymentInterface(this, pm);
             }
         }
+
+        if (this.ticketPrinter.useLna) {
+            initLNA(this.notification);
+        }
+    }
+
+    initData() {
+        this.snoozedProductTracker.setSnoozes(this.config.pos_snooze_ids);
+        this.initProducts();
+        this._initLanguages();
+        this.initHardware();
     }
 
     _initLanguages() {
@@ -511,89 +530,14 @@ export class SelfOrder extends Reactive {
         });
         cookie.set("frontend_lang", this.currentLanguage?.code || "en_US");
     }
-
-    createPrinter(printer) {
-        if (printer.printer_type === "epson_epos") {
-            return new EpsonPrinter({ ip: printer.epson_printer_ip });
-        }
-        const url = deduceUrl(printer.proxy_ip || "");
-        return new HWPrinter({ url });
+    isProductSnoozed(product) {
+        return this.snoozedProductTracker.isProductSnoozed(product);
     }
 
-    _getKioskPrintingCategoriesChanges(order, categories) {
-        const prepCategoryIds = new Set(categories.map((c) => c.id));
-        const hasPreparationCategory = (product) => {
-            if (!product) {
-                return false;
-            }
-            return product.parentPosCategIds.some((id) => prepCategoryIds.has(id));
-        };
-        return order.lines.filter((line) => {
-            if (line.combo_line_ids?.length) {
-                return line.combo_line_ids.some((line) => hasPreparationCategory(line.product_id));
-            }
-            return hasPreparationCategory(line.product_id);
-        });
-    }
-
-    async printKioskChanges(access_token = "") {
-        const d = new Date();
-        let hours = "" + d.getHours();
-        hours = hours.length < 2 ? "0" + hours : hours;
-        let minutes = "" + d.getMinutes();
-        minutes = minutes.length < 2 ? "0" + minutes : minutes;
-        const order = access_token
-            ? this.models["pos.order"].find((o) => o.access_token === access_token)
-            : this.currentOrder;
-
-        for (const printer of this.kitchenPrinters) {
-            const orderlines = this._getKioskPrintingCategoriesChanges(
-                order,
-                Object.values(printer.config.product_categories_ids)
-            );
-            if (orderlines.length > 0) {
-                const printingChanges = {
-                    new: orderlines,
-                    tracker: order.table_stand_number,
-                    trackingNumber: order.tracking_number || "unknown number",
-                    name: order.pos_reference || "unknown order",
-                    time: {
-                        hours,
-                        minutes,
-                    },
-                    preset_name: order.preset_id?.name || "",
-                    preset_time: order.presetDateTime,
-                    config_name: this.config.name,
-                    table_number: this.currentTable?.table_number,
-                    floating_order_name: order.floating_order_name,
-                    getLineAttributeNames: (line) => {
-                        const result = (line.attribute_value_ids ?? []).map((a) => a.name);
-                        if (!line.combo_parent_id) {
-                            return result;
-                        }
-                        return [
-                            ...new Set([
-                                ...(line.product_id.product_template_variant_value_ids ?? []).map(
-                                    (a) => a.name
-                                ),
-                                ...result,
-                            ]),
-                        ];
-                    },
-                };
-                const receipt = renderToElement("pos_self_order.OrderChangeReceipt", {
-                    changes: printingChanges,
-                });
-                await printer.printReceipt(receipt);
-            }
-        }
-    }
     async initKioskData() {
         if (this.session && this.access_token) {
             this.ordering = true;
         }
-
-        await this.config.cacheReceiptLogo();
 
         window.addEventListener("click", (event) => {
             clearTimeout(this.idleTimout);
@@ -716,7 +660,7 @@ export class SelfOrder extends Reactive {
     }
 
     shouldUpdateLastOrderChange() {
-        return true;
+        return this.config.self_ordering_mode !== "kiosk";
     }
 
     async sendDraftOrderToServer() {
@@ -960,19 +904,29 @@ export class SelfOrder extends Reactive {
         });
         const companyName = this.company.name.replaceAll(" ", "_");
         link.download = `${companyName}-${currentDate}.png`;
-        const png = await this.renderer.toCanvas(
-            OrderReceipt,
-            {
-                order: order,
-            },
-            {}
-        );
-        link.href = png.toDataURL().replace("data:image/jpeg;base64,", "");
+
+        const template = "point_of_sale.pos_order_receipt";
+        const generator = new GeneratePrinterData({ models: this.data.models, order });
+        const data = generator.generateReceiptData();
+        const iframe = await this.ticketPrinter.generateIframe(template, data);
+        const image = await this.ticketPrinter.generateImage(iframe);
+
+        link.href = image.toDataURL().replace("data:image/jpeg;base64,", "");
         link.click();
     }
 
     hasPresets() {
         return this.config.use_presets && this.models["pos.preset"].length > 1;
+    }
+    getTime(date) {
+        return getTimeUtil(date);
+    }
+
+    getPendingPaymentLine(terminalName) {
+        const currentPaymentLine = this.getOrder()?.getSelectedPaymentline();
+        return currentPaymentLine?.payment_method_id?.use_payment_terminal === terminalName
+            ? currentPaymentLine
+            : null;
     }
 
     get orderLineNotSend() {
@@ -1004,16 +958,7 @@ export class SelfOrder extends Reactive {
 }
 
 export const selfOrderService = {
-    dependencies: [
-        "notification",
-        "router",
-        "pos_data",
-        "printer",
-        "renderer",
-        "barcode",
-        "bus_service",
-        "dialog",
-    ],
+    dependencies: SelfOrder.serviceDependencies,
     async start(env, services) {
         return new SelfOrder(env, services).ready;
     },

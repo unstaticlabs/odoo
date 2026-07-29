@@ -1,8 +1,7 @@
 export const addProductLineToOrder = async (
     store,
     order,
-    { templateId = 1, productId = 1, qty = 1, price_unit = 10, ...extraFields } = {},
-    opts = {}
+    { templateId = 1, productId = 1, qty = 1, price_unit = 10, ...extraFields } = {}
 ) => {
     const template = store.models["product.template"].get(templateId);
     const product = store.models["product.product"].get(productId);
@@ -15,7 +14,7 @@ export const addProductLineToOrder = async (
         ...extraFields,
     };
 
-    const line = await store.addLineToOrder(lineData, order, opts);
+    const line = await store.addLineToOrder(lineData, order);
 
     return line;
 };

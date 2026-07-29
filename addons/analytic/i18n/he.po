@@ -16,15 +16,15 @@
 # Martin Trigaux, 2023
 # Yihya Hugirat <hugirat@gmail.com>, 2023
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2023
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# or balmas <or@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:56+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
+"POT-Creation-Date: 2026-01-30 18:35+0000\n"
+"PO-Revision-Date: 2025-11-16 15:05+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/analytic/"
 "he/>\n"
 "Language: he\n"
@@ -33,7 +33,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: analytic
 #. odoo-python
@@ -61,11 +61,11 @@ msgstr "<span class=\"o_stat_text\">רווח גולמי</span>"
 #. odoo-python
 #: code:addons/analytic/models/analytic_plan.py:0
 msgid ""
-"A 'Project' plan needs to exist and its id needs to be set as "
-"`analytic.project_plan` in the system variables"
+"A 'Project' plan needs to exist and its id needs to be set as `analytic."
+"project_plan` in the system variables"
 msgstr ""
-"תוכנית 'פרויקט' צריכה להתקיים והמזהה שלה צריך להיות מוגדר כ-"
-"'analytic.project_plan' במשתני המערכת"
+"תוכנית 'פרויקט' צריכה להתקיים והמזהה שלה צריך להיות מוגדר כ-'analytic."
+"project_plan' במשתני המערכת"
 
 #. module: analytic
 #. odoo-javascript
@@ -215,6 +215,7 @@ msgid "Analytic Mixin"
 msgstr "מיקסין של פונקציות אנליטיות"
 
 #. module: analytic
+#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model:ir.model.fields,field_description:analytic.field_account_analytic_applicability__analytic_plan_id
 msgid "Analytic Plan"
 msgstr "כלל ברירת מחדל אנליטיים"
@@ -231,7 +232,6 @@ msgstr "יישומים לתכניות אנליטיות"
 
 #. module: analytic
 #: model:ir.actions.act_window,name:analytic.account_analytic_plan_action
-#: model:ir.model,name:analytic.model_account_analytic_plan
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_form_view
 #: model_terms:ir.ui.view,arch_db:analytic.account_analytic_plan_tree_view
 msgid "Analytic Plans"
@@ -1010,46 +1010,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:analytic.view_account_analytic_account_form
 msgid "e.g. Project XYZ"
 msgstr "למשל פרויקט XYZ"
-
-#~ msgid "Deco Addict"
-#~ msgstr "מכור לדקו"
-
-#~ msgid "Add a line"
-#~ msgstr "הוסף שורה"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Editing"
-#~ msgstr "עריכה"
-
-#~ msgid "Group By..."
-#~ msgstr "קבץ לפי..."
-
-#~ msgid "Invalid"
-#~ msgstr "לא תקין"
-
-#~ msgid "Loading..."
-#~ msgstr "טוען..."
-
-#~ msgid "No Analytic Accounts for this plan"
-#~ msgstr "אין חשבון אנליטי לכלל זה"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "OK"
-#~ msgstr "אישור"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "UoM Category"
-#~ msgstr "קטגורית יחידת מידה"
-
-#~ msgid "View"
-#~ msgstr "תצוגה"

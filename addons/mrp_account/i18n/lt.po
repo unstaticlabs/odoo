@@ -10,14 +10,14 @@
 # digitouch UAB <digitouchagencyeur@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Linas Versada <linaskrisiukenas@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 18:17+0000\n"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2025-11-08 17:50+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Lithuanian <https://translate.odoo.com/projects/odoo-19/"
 "mrp_account/lt/>\n"
@@ -26,9 +26,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < "
-"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 "
-": n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? "
+"1 : n % 1 != 0 ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mrp_account
 #. odoo-python
@@ -103,11 +103,6 @@ msgid "Account Move Line"
 msgstr ""
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr ""
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Analitinė sąskaita"
@@ -156,7 +151,7 @@ msgstr "Kategorija"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: mrp_account
@@ -224,11 +219,6 @@ msgstr "Data"
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__debit
 msgid "Debit"
 msgstr "Debetas"
-
-#. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "Atmesti"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
@@ -308,6 +298,11 @@ msgstr "Žurnalo įrašas"
 #: model:ir.model,name:mrp_account.model_account_move_line
 msgid "Journal Item"
 msgstr "Žurnalo įrašas"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
@@ -559,7 +554,7 @@ msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
+msgid "Wizard to post Manufacturing WIP journal entry"
 msgstr ""
 
 #. module: mrp_account
@@ -605,15 +600,3 @@ msgstr ""
 
 #~ msgid "2023-08-15"
 #~ msgstr "2023-08-15"
-
-#~ msgid "Bill of Material"
-#~ msgstr "Komplektavimo specifikacija"
-
-#~ msgid "Production Order"
-#~ msgstr "Gamybos užsakymas"
-
-#~ msgid "Stock Rule"
-#~ msgstr "Atsargų taisyklė"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "Darbo centro naudojimas"

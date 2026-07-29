@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rebuild_account_migration.AccountReviewStateSelectionBadge"
+       t-inherit="account_reports.AccountReviewStateSelectionBadgeField"
+       t-inherit-mode="extension">
+        <xpath expr="(//button)[1]" position="attributes">
+            <attribute name="t-att-class">{'o_account_review_state_selection_badge_unset': !value}</attribute>
+            <attribute name="t-att-title">
+                display
+                    ? 'Review status: ' + display + '. Select to change it.'
+                    : 'No review status is set. Select to mark this entry for review or record its review outcome.'
+            </attribute>
+            <attribute name="t-att-aria-label">
+                display ? 'Review status: ' + display : 'Review status: not set'
+            </attribute>
+        </xpath>
+        <xpath expr="(//button/div)[1]" position="replace">
+            <div t-esc="display || (this.env.config?.viewType === 'list' ? 'No review status' : 'Set review status')"/>
+        </xpath>
+        <xpath expr="//DropdownItem[@t-esc]" position="attributes">
+            <attribute name="t-esc">this.props.placeholder || 'Clear review status'</attribute>
+        </xpath>
+        <xpath expr="//button[@t-att-disabled]" position="attributes">
+            <attribute name="t-att-class">{'o_account_review_state_selection_badge_unset': !value}</attribute>
+            <attribute name="t-att-title">
+                display ? 'Review status: ' + display : 'No review status is set.'
+            </attribute>
+            <attribute name="t-att-aria-label">
+                display ? 'Review status: ' + display : 'Review status: not set'
+            </attribute>
+        </xpath>
+        <xpath expr="//button[@t-att-disabled]/div" position="replace">
+            <div t-esc="display || (this.env.config?.viewType === 'list' ? 'No review status' : 'Review status not set')"/>
+        </xpath>
+    </t>
+</templates>

@@ -6,18 +6,18 @@
 # Martin Trigaux, 2022
 # Foldi Robert <foldirobert@nexterp.ro>, 2022
 # Hongu Cosmin <cosmin513@gmail.com>, 2022
-# Dorin Hongu <dhongu@gmail.com>, 2023, 2025, 2026.
+# Dorin Hongu <dhongu@gmail.com>, 2023, 2025.
 # Cozmin Candea <office@terrabit.ro>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Adrian Cocos <adrian.cocos@capps.ai>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Adrian Cocos <adrian.cocos@capps.ai>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 11:47+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-11-27 09:04+0000\n"
+"Last-Translator: Adrian Cocos <adrian.cocos@capps.ai>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
 "website_hr_recruitment/ro/>\n"
 "Language: ro\n"
@@ -26,7 +26,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_hr_recruitment
 #. odoo-python
@@ -51,12 +51,6 @@ msgstr ""
 "            <span class=\"text-muted small\">Zile până la ofertă</span>\n"
 "            <h6>4 zile după interviu</h6>\n"
 "        "
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid " In case of issue, contact %(contact_infos)s"
-msgstr " În caz de problemă, contactați %(contact_infos)s"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
@@ -192,27 +186,27 @@ msgstr ""
 "Linkedin</span>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr ""
 
@@ -253,16 +247,6 @@ msgid "All websites"
 msgstr "Toate website-urile"
 
 #. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"An application already exists for %(value)s. Duplicates might be rejected. %"
-"(recruiter_contact)s"
-msgstr ""
-"O aplicație există deja pentru %(value)s. Duplicatele pot fi respinse. %"
-"(recruiter_contact)s"
-
-#. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_hr_applicant
 msgid "Applicant"
 msgstr "Candidat"
@@ -294,39 +278,14 @@ msgid "Apply for a Job"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
-msgid ""
-"As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br/><br/>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__publish_on
+msgid "Auto publish on"
 msgstr ""
-"Ca angajat al companiei noastre, veți <b>colabora cu fiecare departament\n"
-"                        pentru a crea și să implementa produse disruptive.</"
-"b> Vino să lucrezi la o companie în creștere\n"
-"                        care oferă beneficii excelente cu oportunități de a "
-"avansa și de a învăța\n"
-"                        alături de lideri desăvârșiți. Căutăm o experiență "
-"remarcabilă\n"
-"                        în noul membru.\n"
-"                        <br/><br/>\n"
-"                        Această poziție este atât <b>creativă și riguroasă</"
-"b> prin natura ta trebuie să gândești\n"
-"                        în afara cutiei. Ne așteptăm ca candidatul să fie "
-"proactiv și să aibă un spirit de\n"
-"                        \"putem s-o facem\". Pentru a avea succes, trebuie "
-"să aveți abilități solide de rezolvare a problemelor."
+
+#. module: website_hr_recruitment
+#: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -352,7 +311,8 @@ msgstr "Închide"
 #. module: website_hr_recruitment
 #: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__job_details
 msgid "Complementary information that will appear on the job submission page"
-msgstr "Informații suplimentare care vor apărea pe pagina de depunere a ofertei"
+msgstr ""
+"Informații suplimentare care vor apărea pe pagina de depunere a ofertei"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
@@ -475,11 +435,6 @@ msgid "Experience in writing online content"
 msgstr "Experiență în scrierea de conținut online"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Facebook"
-msgstr "Facebook"
-
-#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 msgid "Filter by country"
 msgstr "Filtrați după țară"
@@ -488,11 +443,6 @@ msgstr "Filtrați după țară"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.topbar_customizations
 msgid "Filters"
 msgstr "Filtre"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Follow us"
-msgstr "Urmărește-ne"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -581,6 +531,7 @@ msgid "Industries Filter"
 msgstr ""
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "Insert a Job Description..."
 msgstr "Introduceți o descriere a postului..."
@@ -648,11 +599,6 @@ msgstr "Pagină de posturi"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "Lead the entire sales cycle"
 msgstr "Conduce întregul ciclu de vânzări"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -731,7 +677,7 @@ msgstr "Altele"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
-msgid "Our Job Offers"
+msgid "Our Job Opportunities"
 msgstr ""
 
 #. module: website_hr_recruitment
@@ -771,6 +717,18 @@ msgid "Play any sport with colleagues, <br/>the bill is covered."
 msgstr "Practică orice sport cu colegii, <br/> factura este acoperită."
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Ongoing Application"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Refused Application"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__job_details
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_form_inherit
 msgid "Process Details"
@@ -780,6 +738,11 @@ msgstr "Detalii despre proces"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
 msgid "Products"
 msgstr "Produse"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Publish On"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -793,8 +756,8 @@ msgstr "Publicat"
 
 #. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__published_date
-msgid "Published Date"
-msgstr "Dată publicată"
+msgid "Published date"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -837,6 +800,12 @@ msgstr "Restricționează la un anumit website."
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__is_seo_optimized
 msgid "SEO optimized"
 msgstr "Optimizat SEO"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_website_inherit
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_pages_tree_view
+msgid "Scheduled"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -894,6 +863,22 @@ msgid "Strong analytical skills"
 msgstr "Abilități analitice puternice"
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following ongoing applications share an email address, phone number and/"
+"or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following recently refused applications share an email address, phone "
+"number and/or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr ""
@@ -912,8 +897,8 @@ msgstr "Linkul către job a fost copiat în clipboard."
 #. module: website_hr_recruitment
 #. odoo-python
 #: code:addons/website_hr_recruitment/models/hr_applicant.py:0
-msgid "The job offer has been closed."
-msgstr "Oferta de muncă a fost închisă."
+msgid "The job opportunity has been closed."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -954,6 +939,11 @@ msgid "Types"
 msgstr "Tipuri"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Unschedule"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base_mobile
 msgid "Unspecified"
@@ -981,27 +971,6 @@ msgstr ""
 "tuturor prin intermediul unor produse revoluționare.\n"
 "                                Construim produse extraordinare pentru a vă "
 "rezolva problemele de afaceri."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We found a recent application with a similar name, email, phone number. You "
-"can continue if it's not a mistake."
-msgstr ""
-"Am găsit o aplicație recentă cu un nume, email sau număr de telefon similar. "
-"Puteți continua dacă nu este o greșeală."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We've found a previous closed application in our system within the last 6 "
-"months. Please consider before applying in order not to duplicate efforts."
-msgstr ""
-"Am găsit o aplicație anterioară închisă în sistemul nostru în ultimele 6 "
-"luni. Vă rugăm să țineți cont de acest lucru înainte de a aplica pentru a nu "
-"dubla eforturile."
 
 #. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_website
@@ -1050,6 +1019,11 @@ msgid "Website opengraph image"
 msgstr "Imagine grafică deschisă a site-ului web"
 
 #. module: website_hr_recruitment
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__website_rating
+msgid "Website rating"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What We Offer"
 msgstr "Ce oferim"
@@ -1058,11 +1032,6 @@ msgstr "Ce oferim"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What's great in the job?"
 msgstr "Ce este bun in job?"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "X"
-msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
@@ -1100,10 +1069,8 @@ msgstr "breadcrumb"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_inherit_website
 msgid ""
 "e.g. Summarize the position in one or two lines that will be displayed on "
-"the Jobs list page..."
+"the job page and the jobs list page..."
 msgstr ""
-"ex. Rezumați poziția în una sau două rânduri care vor fi afișate pe pagina "
-"cu lista de joburi..."
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -1132,55 +1099,13 @@ msgstr "poziții libere"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
+msgid "scheduled"
+msgstr ""
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "unpublished"
 msgstr "nepublicat"
 
 #~ msgid "+1 (650) 555-0187"
 #~ msgstr "+1 (650) 555-0187"
-
-#~ msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-#~ msgstr "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-
-#~ msgid "<small><b>READ</b></small>"
-#~ msgstr "<small><b>CITIRE</b></small>"
-
-#~ msgid "Administrative Work"
-#~ msgstr "Muncă administrativă"
-
-#~ msgid "All Countries"
-#~ msgstr "Toate țările"
-
-#~ msgid "All Departments"
-#~ msgstr "Toate departamentele"
-
-#~ msgid "All Offices"
-#~ msgstr "Toate birourile"
-
-#~ msgid "Autonomy"
-#~ msgstr "Autonomie"
-
-#~ msgid "Customer Relationship"
-#~ msgstr "Relația cu clienții"
-
-#~ msgid "Not published"
-#~ msgstr "Nu este publicat"
-
-#~ msgid "Personal Evolution"
-#~ msgstr "Evoluție personală"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Limitați publicarea pe acest site web."
-
-#~ msgid "SEO Optimized"
-#~ msgstr "Optimizat SEO"
-
-#~ msgid "Technical Expertise"
-#~ msgstr "Expertiză tehnică"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr ""
-#~ "URL-ul complet pentru accesarea documentului prin intermediul site-ului "
-#~ "web."
-
-#~ msgid "Url Parameters"
-#~ msgstr "Parametri Url"

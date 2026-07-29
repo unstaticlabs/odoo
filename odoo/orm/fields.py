@@ -17,22 +17,23 @@ from operator import attrgetter
 from psycopg2.extras import Json as PsycopgJson
 
 from odoo.exceptions import AccessError, MissingError
-from odoo.tools import Query, SQL, reset_cached_properties, sql
+from odoo.tools import SQL, reset_cached_properties, sql
 from odoo.tools.constants import PREFETCH_MAX
-from odoo.tools.misc import SENTINEL, ReadonlyDict, Sentinel, unique
+from odoo.tools.misc import frozendict, SENTINEL, Sentinel, unique
 
 from .domains import Domain
-from .utils import COLLECTION_TYPES, SQL_OPERATORS, SUPERUSER_ID, expand_ids
+from .query import Query
+from .utils import COLLECTION_TYPES, SQL_OPERATORS, SUPERUSER_ID, expand_ids, parse_field_expr
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Collection, Iterable, Iterator, MutableMapping
+    from typing import Self
 
     from .environments import Environment
     from .identifiers import IdType
+    from .query import FieldSQL, TableSQL
     from .registry import Registry
-    from .types import BaseModel, DomainType, ModelType, Self, ValuesType
-    M = typing.TypeVar("M", bound=BaseModel)
-T = typing.TypeVar("T")
+    from .types import BaseModel, DomainType, ModelType, ValuesType
 
 IR_MODELS = (
     'ir.model', 'ir.model.data', 'ir.model.fields', 'ir.model.fields.selection',
@@ -89,7 +90,7 @@ def determine(needle, records: BaseModel, *args):
 _global_seq = itertools.count()
 
 
-class Field(typing.Generic[T]):
+class Field[T]:
     """The field descriptor contains the field definition, and manages accesses
     and assignments of the corresponding field on records. The following
     attributes may be provided when instantiating a field:
@@ -240,6 +241,10 @@ class Field(typing.Generic[T]):
         ``X`` has a dependency like ``parent_id.X``); declaring a field recursive
         must be explicit to guarantee that recomputation is correct
 
+    :param str compute_sql: name of a method that produces SQL for the field
+
+        .. seealso:: :ref:`Advanced Fields/Compute fields <reference/fields/compute>`
+
     :param str inverse: name of a method that inverses the field (optional)
 
     :param str related: sequence of field names
@@ -285,6 +290,7 @@ class Field(typing.Generic[T]):
     compute: str | Callable[[BaseModel], None] | None = None   # compute(recs) computes field on recs
     compute_sudo: bool = False          # whether field should be recomputed as superuser
     precompute: bool = False            # whether field has to be computed before creation
+    compute_sql: str | Callable[[BaseModel, TableSQL], SQL] | None = None      # compute_sql(model, alias, query) that gets the SQL for the field
     inverse: str | Callable[[BaseModel], None] | None = None  # inverse(recs) inverses field on recs
     search: str | Callable[[BaseModel, str, typing.Any], DomainType] | None = None  # search(recs, operator, value) searches on self
     related: str | None = None          # sequence of field names, for related fields
@@ -314,7 +320,7 @@ class Field(typing.Generic[T]):
     def __init__(self, string: str | Sentinel = SENTINEL, **kwargs):
         kwargs['string'] = string
         self._sequence = next(_global_seq)
-        self._args__ = ReadonlyDict({key: val for key, val in kwargs.items() if val is not SENTINEL})
+        self._args__ = frozendict({key: val for key, val in kwargs.items() if val is not SENTINEL})
 
     def __str__(self):
         if not self.name:
@@ -440,6 +446,11 @@ class Field(typing.Generic[T]):
         if name == 'state':
             # by default, `state` fields should be reset on copy
             attrs['copy'] = attrs.get('copy', False)
+        if attrs.get('compute_sql'):
+            if not attrs.get('compute'):
+                warnings.warn(f"compute_sql attribute makes sense only if {self} is a computed field")
+            if 'compute_sudo' not in attrs:
+                warnings.warn(f"compute_sql requires an explicit compute_sudo parameter on {self}")
         if attrs.get('compute'):
             # by default, computed fields are not stored, computed in superuser
             # mode if stored, not copied (unless stored and explicitly not
@@ -481,10 +492,6 @@ class Field(typing.Generic[T]):
             attrs['_depends'] = tuple(attrs.pop('depends'))
         if 'depends_context' in attrs:
             attrs['_depends_context'] = tuple(attrs.pop('depends_context'))
-
-        if 'group_operator' in attrs:
-            warnings.warn("Since Odoo 18, 'group_operator' is deprecated, use 'aggregator' instead", DeprecationWarning, stacklevel=2)
-            attrs['aggregator'] = attrs.pop('group_operator')
 
         return attrs
 
@@ -632,6 +639,19 @@ class Field(typing.Generic[T]):
         self.compute = self._compute_related
         if self.inherited or not (self.readonly or field.readonly):
             self.inverse = self._inverse_related
+        if (
+            not self.store
+            and all(
+                # representable in SQL
+                f.column_type
+                # and we know how to represent it
+                and (f.store or f.compute_sql)
+                # but we don't traverse a model with heavy permission checks (such as ir.attachment)
+                and (f is field_seq[-1] or not getattr(model.pool[f.model_name], '_access_domain_heavy', False))
+                for f in field_seq
+            )
+        ):
+            self.compute_sql = self._compute_sql_related
         if not self.store and all(f._description_searchable for f in field_seq):
             # allow searching on self only if the related field is searchable
             self.search = self._search_related
@@ -662,15 +682,6 @@ class Field(typing.Generic[T]):
             # being on the abstract model) are assigned an XML id
             delegate_field = model._fields[self.related.split('.')[0]]
             self._modules = tuple({*self._modules, *delegate_field._modules, *field._modules})
-
-    def traverse_related(self, record: BaseModel) -> tuple[BaseModel, Field]:
-        """ Traverse the fields of the related field `self` except for the last
-        one, and return it as a pair `(last_record, last_field)`. """
-        for name in self.related.split('.')[:-1]:
-            # take the first record when traversing
-            corecord = record[name]
-            record = next(iter(corecord), corecord)
-        return record, self.related_field
 
     def _compute_related(self, records: BaseModel) -> None:
         """ Compute the related field ``self`` on ``records``. """
@@ -703,7 +714,7 @@ class Field(typing.Generic[T]):
         values = list(records)
         for name in self.related.split('.')[:-1]:
             try:
-                values = [next(iter(val := value[name]), val) for value in values]
+                values = [value[name][:1] for value in values]
             except AccessError as e:
                 description = records.env['ir.model']._get(records._name).name
                 env = records.env
@@ -717,6 +728,25 @@ class Field(typing.Generic[T]):
         for record, value in zip(records, values):
             record[self.name] = self._process_related(value[self.related_field.name], record.env)
 
+    def _compute_sql_related(self, model, table: TableSQL) -> SQL:
+        # traverse_related
+        assert self.related and not self.store
+        assert model is table._model
+
+        env = table._model.env
+        if self.compute_sudo and not env.su:
+            table = table._sudo()
+        else:
+            env = None  # env not changed
+        sql = table
+        for fname in self.related.split('.'):
+            sql = sql[fname]
+        if env is not None:
+            # rebind the table to the original environment
+            table = sql._table
+            sql._table = table._with_model(table._model.with_env(env))
+        return sql
+
     def _process_related(self, value, env: Environment):
         """No transformation by default, but allows override."""
         return value
@@ -725,8 +755,13 @@ class Field(typing.Generic[T]):
         """ Inverse the related field ``self`` on ``records``. """
         # store record values, otherwise they may be lost by cache invalidation!
         record_value = {record: record[self.name] for record in records}
+        path = self.related.split('.')[:-1]
+        field = self.related_field
         for record in records:
-            target, field = self.traverse_related(record)
+            target = record
+            for name in path:
+                # take the first record when traversing
+                target = target[name][:1]
             # update 'target' only if 'record' and 'target' are both real or
             # both new (see `test_base_objects.py`, `test_basic`)
             if target and bool(target.id) == bool(record.id):
@@ -904,10 +939,10 @@ class Field(typing.Generic[T]):
 
     @property
     def _description_searchable(self) -> bool:
-        return bool(self.store or self.search)
+        return bool(self.store or self.search or self.compute_sql)
 
     def _description_sortable(self, env: Environment):
-        if self.column_type and self.store:  # shortcut
+        if self.column_type and (self.store or self.compute_sql):  # shortcut
             return True
         if self.inherited_field and self.inherited_field._description_sortable(env):
             # avoid compuation for inherited field
@@ -916,29 +951,28 @@ class Field(typing.Generic[T]):
         model = env[self.model_name]
         query = model._as_query(ordered=False)
         try:
-            model._order_field_to_sql(model._table, self.name, SQL(), SQL(), query)
+            model._order_field_to_sql(query.table, self.name, SQL(), SQL())
             return True
         except (ValueError, AccessError):
             return False
 
     def _description_groupable(self, env: Environment):
-        if self.column_type and self.store:  # shortcut
+        if self.column_type and (self.store or self.compute_sql):  # shortcut
             return True
         if self.inherited_field and self.inherited_field._description_groupable(env):
             # avoid compuation for inherited field
             return True
 
         model = env[self.model_name]
-        query = model._as_query(ordered=False)
         groupby = self.name if self.type not in ('date', 'datetime') else f"{self.name}:month"
         try:
-            model._read_group_groupby(model._table, groupby, query)
+            model._read_group_groupby(Query(model).table, groupby)
             return True
         except (ValueError, AccessError):
             return False
 
     def _description_aggregator(self, env: Environment):
-        if not self.aggregator or (self.column_type and self.store):  # shortcut
+        if not self.aggregator or (self.column_type and (self.store or self.compute_sql)):  # shortcut
             return self.aggregator
         if self.inherited_field and self.inherited_field._description_aggregator(env):
             # avoid compuation for inherited field
@@ -947,7 +981,7 @@ class Field(typing.Generic[T]):
         model = env[self.model_name]
         query = model._as_query(ordered=False)
         try:
-            model._read_group_select(f"{self.name}:{self.aggregator}", query)
+            model._read_group_select(query.table, f"{self.name}:{self.aggregator}")
             return self.aggregator
         except (ValueError, AccessError):
             return None
@@ -1169,10 +1203,9 @@ class Field(typing.Generic[T]):
                 if not field.required or not field.store:
                     return
                 if field.compute:
-                    records = model.browse(id_ for id_, in model.env.execute_query(SQL(
-                        "SELECT id FROM %s AS t WHERE %s IS NULL",
-                        SQL.identifier(model._table), model._field_to_sql('t', field.name),
-                    )))
+                    query = Query(model.sudo())
+                    query.add_where(SQL("%s IS NULL", query.table[field.name]))
+                    records = model.browse(id_ for id_, in model.env.execute_query(query.select()))
                     model.env.add_to_compute(field, records)
                 # Flush values before adding NOT NULL constraint.
                 model.flush_model([field.name])
@@ -1206,15 +1239,27 @@ class Field(typing.Generic[T]):
     # SQL generation methods
     #
 
-    def to_sql(self, model: BaseModel, alias: str) -> SQL:
+    def to_sql(self, table: TableSQL) -> SQL:
         """ Return an :class:`SQL` object that represents the value of the given
         field from the given table alias.
 
         The query object is necessary for fields that need to add tables to the query.
         """
+        model = table._model
+        model.check_field_access(self, 'read')
+        if self.compute_sql:
+            if self.compute_sudo:
+                model = model.sudo()
+                table = table._with_model(model)
+            sql_field = determine(self.compute_sql, model, table)
+            assert isinstance(sql_field, SQL), f"{self} invalid return of compute_sql"
+            return sql_field
         if not self.store or not self.column_type:
+            if self.related and not self.store:
+                # traverse_related
+                return self._compute_sql_related(model, table)
             raise ValueError(f"Cannot convert {self} to SQL because it is not stored")
-        sql_field = SQL.identifier(alias, self.name, to_flush=self)
+        sql_field = SQL.identifier(table._alias, self.name, to_flush=self)
         if self.company_dependent:
             fallback = self.get_company_dependent_fallback(model)
             fallback = self.convert_to_column(self.convert_to_write(fallback, model), model)
@@ -1238,7 +1283,7 @@ class Field(typing.Generic[T]):
 
         return sql_field
 
-    def property_to_sql(self, field_sql: SQL, property_name: str, model: BaseModel, alias: str, query: Query) -> SQL:
+    def property_to_sql(self, field_sql: FieldSQL, property_name: str) -> SQL:
         """ Return an :class:`SQL` object that represents the value of the given
         expression from the given table alias.
 
@@ -1246,7 +1291,7 @@ class Field(typing.Generic[T]):
         """
         raise ValueError(f"Invalid field property {property_name!r} on {self}")
 
-    def condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
+    def condition_to_sql(self, table: TableSQL, field_expr: str, operator: str, value) -> SQL:
         """ Return an :class:`SQL` object that represents the domain condition
         given by the triple ``(field_expr, operator, value)`` with the given
         table alias, and in the context of the given query.
@@ -1254,26 +1299,29 @@ class Field(typing.Generic[T]):
         This method should use the model to resolve the SQL and check access
         of the field.
         """
-        sql_expr = self._condition_to_sql(field_expr, operator, value, model, alias, query)
+        sql_expr = self._condition_to_sql(table, field_expr, operator, value)
         if self.company_dependent:
-            sql_expr = self._condition_to_sql_company(sql_expr, field_expr, operator, value, model, alias, query)
+            sql_expr = self._condition_to_sql_company(table, sql_expr, field_expr, operator, value)
         return sql_expr
 
-    def _condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
-        sql_field = model._field_to_sql(alias, field_expr, query)
+    def _condition_to_sql(self, table: TableSQL, field_expr: str, operator: str, value) -> SQL:
+        model = table._model
+        fname, property_name = parse_field_expr(field_expr)
+        sql_field = table[fname]
 
-        if field_expr == self.name:
+        if not property_name:
             def _value_to_column(v):
                 return self.convert_to_column(v, model, validate=False)
         else:
             # reading a property, keep value as-is
             def _value_to_column(v):
                 return v
+            sql_field = sql_field[property_name]
 
         # support for SQL value
         if operator in SQL_OPERATORS and isinstance(value, SQL):
-            warnings.warn("Since 19.0, use Domain.custom(to_sql=lambda model, alias, query: SQL(...))", DeprecationWarning)
-            return SQL("%s%s%s", sql_field, SQL_OPERATORS[operator], value)
+            condition = (field_expr, operator, value)
+            raise TypeError(f"Unexpected SQL in condition {condition}, use Domain.custom() instead")
 
         # nullability
         can_be_null = self not in model.env.registry.not_null_fields
@@ -1365,15 +1413,16 @@ class Field(typing.Generic[T]):
 
         raise NotImplementedError(f"Invalid operator {operator!r} for SQL in domain term {(field_expr, operator, value)!r}")
 
-    def _condition_to_sql_company(self, sql_expr: SQL, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
+    def _condition_to_sql_company(self, table: TableSQL, sql_expr: SQL, field_expr: str, operator: str, value) -> SQL:
         """ Add a not null condition on the field for company-dependent fields to use an existing index for better performance."""
+        model = table._model
         if (
             self.company_dependent
             and self.index == 'btree_not_null'
             and not (self.type in ('datetime', 'date') and field_expr != self.name)  # READ_GROUP_NUMBER_GRANULARITY is not supported
             and model.env['ir.default']._evaluate_condition_with_fallback(model._name, field_expr, operator, value) is False
         ):
-            return SQL('(%s IS NOT NULL AND %s)', SQL.identifier(alias, self.name), sql_expr)
+            return SQL('(%s IS NOT NULL AND %s)', SQL.identifier(table._alias, self.name), sql_expr)
         return sql_expr
 
     ############################################################################
@@ -1393,7 +1442,7 @@ class Field(typing.Generic[T]):
             return self.__get__
         raise ValueError(f"Expression not supported on {self}: {field_expr!r}")
 
-    def filter_function(self, records: M, field_expr: str, operator: str, value) -> Callable[[M], M]:
+    def filter_function[M: BaseModel](self, records: M, field_expr: str, operator: str, value) -> Callable[[M], M]:
         assert operator not in Domain.NEGATIVE_OPERATORS, "only positive operators are implemented"
         getter = self.expression_getter(field_expr)
         # assert not isinstance(value, (SQL, Query))
@@ -1644,11 +1693,9 @@ class Field(typing.Generic[T]):
         if record is None:
             return self         # the field is accessed through the owner class
 
+        # check field access
         env = record.env
-        if not (env.su or record._has_field_access(self, 'read')):
-            # optimization: we called _has_field_access() to avoid an extra
-            # function call in _check_field_access()
-            record._check_field_access(self, 'read')
+        env.su or self in env._field_access_memo or record.check_field_access(self, 'read')
 
         record_len = len(record._ids)
         if record_len != 1:

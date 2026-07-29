@@ -5,13 +5,13 @@
 # Translators:
 # Martin Trigaux, 2022
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 13:03+0000\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2025-11-17 12:54+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
 "phone_validation/uk/>\n"
@@ -19,11 +19,11 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: phone_validation
 #. odoo-python
@@ -112,8 +112,8 @@ msgid ""
 "Blocked by deletion of portal account %(portal_user_name)s by %(user_name)s "
 "(#%(user_id)s)"
 msgstr ""
-"Заблоковано видаленням портального облікового запису %(portal_user_name)s %"
-"(user_name)s (#%(user_id)s)"
+"Заблоковано видаленням портального облікового запису %(portal_user_name)s "
+"%(user_name)s (#%(user_id)s)"
 
 #. module: phone_validation
 #: model:ir.model,name:phone_validation.model_res_partner
@@ -136,11 +136,6 @@ msgstr "Створив"
 #: model:ir.model.fields,field_description:phone_validation.field_phone_blacklist_remove__create_date
 msgid "Created on"
 msgstr "Створено"
-
-#. module: phone_validation
-#: model_terms:ir.ui.view,arch_db:phone_validation.phone_blacklist_remove_view_form
-msgid "Discard"
-msgstr "Відмінити"
 
 #. module: phone_validation
 #: model:ir.model.fields,field_description:phone_validation.field_mail_thread_phone__display_name
@@ -443,39 +438,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:phone_validation.phone_blacklist_remove_view_form
 msgid "phone_blacklist_removal"
 msgstr "phone_blacklist_removal"
-
-#~ msgid " Please correct the number and try again."
-#~ msgstr "Виправте номер та спробуйте ще раз."
-
-#~ msgid "Blacklisted Phone Is Mobile"
-#~ msgstr "Телефон у чорному списку - це мобільний"
-
-#~ msgid "Confirm"
-#~ msgstr "Підтвердити"
-
-#~ msgid "Impossible number %s: probably invalid number of digits."
-#~ msgstr "Неможлива цифра %s: ймовірно, неправильна кількість цифр."
-
-#~ msgid ""
-#~ "Indicates if a blacklisted sanitized phone number is a mobile number. "
-#~ "Helps distinguish which number is blacklisted             when there is "
-#~ "both a mobile and phone field in a model."
-#~ msgstr ""
-#~ "Визначає, чи номер телефону у чорному списку є мобільним номером. "
-#~ "Допомагає розрізнити, який номер у чорному списку, коли в моделі є поле "
-#~ "як мобільного, так і телефону."
-
-#~ msgid "Main Attachment"
-#~ msgstr "Основне прикріплення"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Кількість повідомлень, які потебують дії"
-
-#~ msgid "Phone/Mobile"
-#~ msgstr "Телефон/мобільний"
-
-#~ msgid ""
-#~ "Please enter at least 3 characters when searching a Phone/Mobile number."
-#~ msgstr ""
-#~ "Будь ласка, введіть принаймні 3 символи під час пошуку номера телефону/"
-#~ "мобільного телефону."

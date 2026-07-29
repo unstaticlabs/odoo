@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Abe Manyo, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 06:41+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 09:29+0000\n"
 "Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_track/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -65,7 +65,7 @@ msgstr "%s Lamaran Acara Online"
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_main
 #: model_terms:ir.ui.view,arch_db:website_event_track.tracks_display_list
 msgid "(timezone:"
-msgstr ""
+msgstr "(zona waktu:"
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_7_track_17
@@ -126,14 +126,40 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
+"<div>\n"
+"    Kepada <t t-out=\"object.partner_id.name or object.partner_name or ''\">"
+"Brandon Freeman</t><br/>\n"
+"    Dengan senang hati kami informasikan bahwa proposal Anda <t t-"
+"out=\"object.name or ''\">What This Event Is All About</t> telah diterima "
+"dan dikonfirmasi untuk acara <t t-out=\"object.event_id.name or ''\">"
+"OpenWood Collection Online Reveal</t>.\n"
+"    <br/>\n"
+"    Detail selengkapnya dapat dilihat di sini:\n"
+"    <div style=\"margin: 16px 0px 16px 0px;\">\n"
+"        <a t-attf-href=\"/event/{{ object.event_id.id }}/track/{{ "
+"object.id }}\" t-attf-style=\"padding: 8px 16px 8px 16px; font-size: 14px; "
+"color: {{object.company_id.email_primary_color or '#FFFFFF'}}; text-"
+"decoration: none !important; background-color: {"
+"{object.company_id.email_secondary_color or '#875A7B'}}; border-radius:3px\">"
+"\n"
+"            Lihat Talkshow\n"
+"        </a>\n"
+"    </div>\n"
+"    <br/><br/>\n"
+"    Terima kasih,\n"
+"    <t t-if=\"user.signature\">\n"
+"        <br/>\n"
+"        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
+"    </t>\n"
+"</div>"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.track_card
@@ -648,11 +674,11 @@ msgstr ""
 "object.company_id.name\"/>\n"
 "                                </t>\n"
 "                            </td></tr>\n"
-"                            <tr><td colspan=\"2\" style=\"text-"
-"align:center;\">\n"
-"                              <hr width=\"100%\" style=\"background-color:rgb"
-"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
-"height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                            <tr><td colspan=\"2\" style=\"text-align:center;"
+"\">\n"
+"                              <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
 "                            </td></tr>\n"
 "                        </table>\n"
 "                    </td>\n"
@@ -663,8 +689,8 @@ msgstr ""
 "                        <table width=\"590\" border=\"0\" cellpadding=\"0\" "
 "cellspacing=\"0\" style=\"min-width: 590px; background-color: white; "
 "padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                            <tr><td valign=\"top\" style=\"font-size: "
-"14px;\">\n"
+"                            <tr><td valign=\"top\" style=\"font-size: 14px;"
+"\">\n"
 "                                <div>\n"
 "                                    Halo<t t-if=\"not user_id.is_public\" t-"
 "out=\"' ' + user_id.name\"/>,\n"
@@ -672,8 +698,8 @@ msgstr ""
 "                                    Anda akhir-akhir ini menunjukkan minat "
 "untuk talkshow\n"
 "                                    <a t-if=\"object.description or "
-"object.partner_biography\" t-attf-href=\"{{ object.get_base_url() }}{{ "
-"object.website_url }}\" style=\"font-weight:bold;color:#875A7B;text-"
+"object.partner_biography\" t-attf-href=\"{{ object.get_base_url() }}"
+"{{ object.website_url }}\" style=\"font-weight:bold;color:#875A7B;text-"
 "decoration:none;\" t-out=\"object.name or ''\">OpenWood Collection Online "
 "Reveal</a>\n"
 "                                    <span t-else=\"\" style=\"font-"
@@ -733,9 +759,9 @@ msgstr ""
 "                                </div>\n"
 "                            </td></tr>\n"
 "                            <tr><td style=\"text-align:center;\">\n"
-"                              <hr width=\"100%\" style=\"background-color:rgb"
-"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
-"height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                              <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
 "                            </td></tr>\n"
 "                        </table>\n"
 "                    </td>\n"
@@ -746,8 +772,8 @@ msgstr ""
 "                        <table width=\"590\" border=\"0\" cellpadding=\"0\" "
 "cellspacing=\"0\" style=\"min-width: 590px; background-color: white; "
 "padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
-"                            <tr><td valign=\"top\" style=\"font-size: "
-"14px;\">\n"
+"                            <tr><td valign=\"top\" style=\"font-size: 14px;"
+"\">\n"
 "                                <table style=\"width:100%;\">\n"
 "                                    <tr>\n"
 "                                        <td style=\"vertical-align:top;\">\n"
@@ -757,8 +783,8 @@ msgstr ""
 "                                        </td>\n"
 "                                        <td style=\"padding: 0px 10px 0px "
 "10px;width:50%;line-height:20px;vertical-align:top;\">\n"
-"                                            <div t-if=\"object.is_one_day\">"
-"\n"
+"                                            <div t-"
+"if=\"object.is_one_day\">\n"
 "                                                <t t-out=\"object.date\" t-"
 "options=\"{&quot;widget&quot;: &quot;datetime&quot;, &quot;date_only&quot;: "
 "True, &quot;tz_name&quot;: object.event_id.date_tz, &quot;format&quot;: "
@@ -766,8 +792,8 @@ msgstr ""
 "                                                <t t-out=\"object.date\" t-"
 "options=\"{&quot;widget&quot;: &quot;datetime&quot;, &quot;time_only&quot;: "
 "True, &quot;tz_name&quot;: object.event_id.date_tz, "
-"&quot;hide_seconds&quot;: True, &quot;format&quot;: &quot;short&quot;}\">"
-"7:00 AM</t>\n"
+"&quot;hide_seconds&quot;: True, &quot;format&quot;: &quot;short&quot;}"
+"\">7:00 AM</t>\n"
 "                                                 - <t t-"
 "out=\"object.date_end\" t-options=\"{&quot;widget&quot;: "
 "&quot;datetime&quot;, &quot;time_only&quot;: True, &quot;tz_name&quot;: "
@@ -793,14 +819,15 @@ msgstr ""
 "object.event_id.date_tz, &quot;format&quot;: &quot;long&quot;}\">Mei 6, "
 "2021</t>\n"
 "                                                 - <t t-"
-"out=\"object.date_end or object.event_id.date_end\" t-options=\""
-"{&quot;widget&quot;: &quot;datetime&quot;, &quot;time_only&quot;: True, "
-"&quot;tz_name&quot;: object.event_id.date_tz, &quot;hide_seconds&quot;: "
-"True, &quot;format&quot;: &quot;short&quot;}\">5:00 PM</t>\n"
+"out=\"object.date_end or object.event_id.date_end\" t-"
+"options=\"{&quot;widget&quot;: &quot;datetime&quot;, &quot;time_only&quot;: "
+"True, &quot;tz_name&quot;: object.event_id.date_tz, "
+"&quot;hide_seconds&quot;: True, &quot;format&quot;: &quot;short&quot;}"
+"\">5:00 PM</t>\n"
 "                                            </div>\n"
 "                                            <div style=\"font-"
-"size:12px;color:#9e9e9e\"><i><t t-out=\"object.event_id.date_tz or ''\">"
-"Eropa/Brussels</t></i></div>\n"
+"size:12px;color:#9e9e9e\"><i><t t-out=\"object.event_id.date_tz or "
+"''\">Eropa/Brussels</t></i></div>\n"
 "                                        </td>\n"
 "                                        <td style=\"vertical-align:top;\">\n"
 "                                            <t t-if=\"event_address or "
@@ -887,16 +914,16 @@ msgstr ""
 "                                </t>\n"
 "                            </td></tr>\n"
 "\n"
-"                            <tr><td valign=\"top\" style=\"font-size: "
-"14px;\">\n"
+"                            <tr><td valign=\"top\" style=\"font-size: 14px;"
+"\">\n"
 "                                <!-- CONTACT ORGANIZER -->\n"
 "                                <t t-if=\"object.event_id.organizer_id.name "
 "or object.event_id.company_id.name\">\n"
 "                                    <div>\n"
 "                                        <span style=\"font-"
 "weight:300;margin:10px 0px\">Pertanyaan mengenai talkshow ini?</span>\n"
-"                                        <div>Silakan hubungi organizer:</div>"
-"\n"
+"                                        <div>Silakan hubungi organizer:</"
+"div>\n"
 "                                        <ul>\n"
 "                                            <li t-"
 "out=\"object.event_id.organizer_id.name or object.event_id.company_id.name "
@@ -905,8 +932,8 @@ msgstr ""
 "if=\"event_organizer.email\">\n"
 "                                                <li>Email: <a t-attf-"
 "href=\"mailto:{{ event_organizer.email }}\" style=\"text-"
-"decoration:none;color:#875A7B;\" t-out=\"event_organizer.email or ''\"/></li>"
-"\n"
+"decoration:none;color:#875A7B;\" t-out=\"event_organizer.email or ''\"/></"
+"li>\n"
 "                                            </t>\n"
 "                                            <t t-"
 "if=\"object.event_id.organizer_id.phone or "
@@ -928,8 +955,8 @@ msgstr ""
 "margin: 16px 0px 16px 0px;\"/>\n"
 "                            </td></tr>\n"
 "\n"
-"                            <tr><td valign=\"top\" style=\"font-size: "
-"14px;\">\n"
+"                            <tr><td valign=\"top\" style=\"font-size: 14px;"
+"\">\n"
 "                                <!-- PWA MARKGETING -->\n"
 "                                <div t-if=\"is_online\">\n"
 "                                    <strong>Dapatkan pengalaman mobile "
@@ -946,8 +973,8 @@ msgstr ""
 "margin: 16px 0px 16px 0px;\"/>\n"
 "                            </td></tr>\n"
 "\n"
-"                            <tr><td valign=\"top\" style=\"font-size: "
-"14px;\">\n"
+"                            <tr><td valign=\"top\" style=\"font-size: 14px;"
+"\">\n"
 "                                <!-- GOOGLE MAPS LINK -->\n"
 "                                <table t-if=\"event_address and location\" "
 "style=\"width:100%;\"><tr><td>\n"
@@ -958,9 +985,9 @@ msgstr ""
 "maps.google.com/maps?q={{ location }}\" target=\"new\">\n"
 "                                            <img t-"
 "if=\"event_address.static_map_url and "
-"event_address.static_map_url_is_valid\" t-attf-src=\"{{ "
-"event_address.static_map_url }}\" style=\"vertical-align:bottom; width: "
-"100%;\" alt=\"Google Maps\"/>\n"
+"event_address.static_map_url_is_valid\" t-attf-"
+"src=\"{{ event_address.static_map_url }}\" style=\"vertical-align:bottom; "
+"width: 100%;\" alt=\"Google Maps\"/>\n"
 "                                            <span t-else=\"\">LIhat lokasi "
 "acara di Google Maps</span>\n"
 "                                        </a>\n"
@@ -979,15 +1006,15 @@ msgstr ""
 "cellpadding=\"0\" cellspacing=\"0\" style=\"min-width: 590px; background-"
 "color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
 "                  <tr><td style=\"text-align: center; font-size: 14px;\">\n"
-"                    Dikirim oleh <a target=\"_blank\" t-attf-href=\"{{ "
-"object.get_base_url() }}\" style=\"color: #875A7B;\" t-"
+"                    Dikirim oleh <a target=\"_blank\" t-attf-"
+"href=\"{{ object.get_base_url() }}\" style=\"color: #875A7B;\" t-"
 "out=\"object.event_id.organizer_id.name or object.event_id.company_id.name "
 "or ''\">YourCompany</a>\n"
 "                    <t t-if=\"'website_url' in object.event_id and "
 "object.event_id.website_url\">\n"
 "                        <br/>\n"
-"                        Temukan <a href=\"/event\" style=\"color:#875A7B;\">"
-"semua acara kami</a>.\n"
+"                        Temukan <a href=\"/event\" style=\"color:#875A7B;"
+"\">semua acara kami</a>.\n"
 "                    </t>\n"
 "                  </td></tr>\n"
 "                </table>\n"
@@ -1036,6 +1063,11 @@ msgid "Activity Exception Decoration"
 msgstr "Dekorasi Pengecualian Aktivitas"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Rencana-Rencana Kegiatan"
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Status Aktivitas"
@@ -1067,7 +1099,7 @@ msgstr "Tambahkan tahap baru di pipeline tugas"
 #. module: website_event_track
 #: model:mail.template,name:website_event_track.mail_template_data_track_reminder
 msgid "Add reminder via email"
-msgstr ""
+msgstr "Tambahkan pengingat melalui email"
 
 #. module: website_event_track
 #: model_terms:ir.actions.act_window,help:website_event_track.action_event_track_tag
@@ -1080,7 +1112,7 @@ msgstr ""
 #. module: website_event_track
 #: model:mail.template,description:website_event_track.mail_template_data_track_reminder
 msgid "Add talk reminder"
-msgstr ""
+msgstr "Tambahkan pengingat talkshow"
 
 #. module: website_event_track
 #: model:mail.template,subject:website_event_track.mail_template_data_track_reminder
@@ -1205,6 +1237,16 @@ msgstr "Hitungan Lampiran"
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
 msgstr "Audiens"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr "Publikasi otomatis pada"
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Secara otomatis publikasi halaman pada tanggal dan waktu yang dipilih."
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
@@ -1782,7 +1824,7 @@ msgstr "Ikon font awesome, misalnya fa-tasks"
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__footer_visible
 msgid "Footer Visible"
-msgstr "Footer Tampak"
+msgstr "Footer Terlihat"
 
 #. module: website_event_track
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_2
@@ -1803,7 +1845,7 @@ msgstr "Kegiatan - Kegiatan Mendatang"
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_confirmation_end_page_hook
 #: model_terms:ir.ui.view,arch_db:website_event_track.registration_complete
 msgid "Get prepared and"
-msgstr "Siap-siap dan"
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:event.track,description:website_event_track.event_7_track_18
@@ -1843,7 +1885,7 @@ msgstr "Memiliki Pesan"
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__header_visible
 msgid "Header Visible"
-msgstr "Header Tampak"
+msgstr "Header Terlihat"
 
 #. module: website_event_track
 #: model:ir.model.fields.selection,name:website_event_track.selection__event_track__priority__2
@@ -1858,7 +1900,7 @@ msgstr "Tertinggi"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.pwa_offline
 msgid "Home page"
-msgstr "Beranda"
+msgstr ""
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track21
@@ -2454,7 +2496,7 @@ msgstr "Jumlah kesalahan"
 #. module: website_event_track
 #: model:ir.model.fields,help:website_event_track.field_event_track__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr "Jumlah pesan yang membutuhkan tindakan"
+msgstr "Jumlah pesan yang memerlukan tindakan"
 
 #. module: website_event_track
 #: model:ir.model.fields,help:website_event_track.field_event_track__message_has_error_counter
@@ -2569,6 +2611,11 @@ msgstr "Ajukan talkshow"
 #: model_terms:ir.ui.view,arch_db:website_event_track.view_event_track_search
 msgid "Published"
 msgstr "Terpublikasi"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr "Tanggal publikasi"
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
@@ -3363,7 +3410,7 @@ msgstr "Website"
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__website_absolute_url
 msgid "Website Absolute URL"
-msgstr "URL Absolute Website"
+msgstr "URL Absolut Website"
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_website__app_icon
@@ -3565,7 +3612,7 @@ msgstr "menit setelah Track dimulai"
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_confirmation_end_page_hook
 #: model_terms:ir.ui.view,arch_db:website_event_track.registration_complete
 msgid "register to your favorites talks now."
-msgstr "daftar ke talk favorit Anda sekarang."
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_content
@@ -3578,176 +3625,12 @@ msgid "starts on"
 msgstr "dimulai pada"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr ""
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<b>Contact Information</b>"
-#~ msgstr "<b>Informasi Kontak</b>"
-
-#~ msgid "<b>Speaker Profile</b>"
-#~ msgstr "<b>Profil Pembicara</b>"
-
-#~ msgid "<b>Talk Intro</b>"
-#~ msgstr "<b>Intro Talkshow</b>"
-
-#~ msgid "<i class=\"fa fa-bell me-2 text-muted\"/> Favorite Talks"
-#~ msgstr "<i class=\"fa fa-bell me-2 text-muted\"/> Talkshow Favorit"
-
-#~ msgid "<i class=\"fa fa-folder-open\"/> Favorites"
-#~ msgstr "<i class=\"fa fa-folder-open\"/> Favorit"
-
-#~ msgid "<span class=\"d-none d-md-block ms-2\">&amp;bull;</span>"
-#~ msgstr "<span class=\"d-none d-md-block ms-2\">&amp;bull;</span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Introduction</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Pengantar Talkshow</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Title</span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Judui Talkshow</span>\n"
-#~ "                                            <span>*</span>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Talkshow Petir</strong>. Ini adalah talkshow 30 menit mengenai "
-#~ "banyak\n"
-#~ "                                    topik yang berbega. Hampir semua "
-#~ "topik diterima di talkshow petir."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>Talkshow Reguler</strong>. Ini adalah talkshow standar dengan "
-#~ "slide,\n"
-#~ "                                    dialokasikan pada slot selama 60 "
-#~ "menit."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Izinkan rekaman video dan audio presentasi\n"
-#~ "                                    mereka, untuk dipublikasikan pada "
-#~ "website kami."
-
-#~ msgid "Canceled Stage"
-#~ msgstr "Tahap Batal"
-
-#~ msgid "Error"
-#~ msgstr "Error!"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Filter Track..."
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "No results found"
-#~ msgstr "Tidak ada hasil yang ditemukan"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Jumlah pesan yang butuh tindakan"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "Proposal ditutup!"
-
-#~ msgid "Schedule some tracks to get started"
-#~ msgstr "Jadwalkan track untuk memulai"
-
-#~ msgid "Select categories"
-#~ msgstr "Pilih kategori"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Tampilkan semua dokumen dengan aksi berikut sebelum hari ini"
-
-#~ msgid "Speaker Email"
-#~ msgstr "Email Pembicara"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Berbicara proposal"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "Talk ditambahkan ke Favorit Anda"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "Talk sudah ada di Favorit Anda"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "URL lengkap untuk mengakses dokumen melalui website."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "Acara ini tidak menerima proposal."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Tepat waktu rilis dari bahan presentasi (slide), untuk penerbitan di "
-#~ "website kami."
-
-#~ msgid "We did not find any track matching your"
-#~ msgstr "Kami tidak menemukan track yang cocok sesuai dengan"
-
-#~ msgid ""
-#~ "We will accept a broad range of\n"
-#~ "                            presentations, from reports on academic and\n"
-#~ "                            commercial projects to tutorials and case\n"
-#~ "                            studies. As long as the presentation is\n"
-#~ "                            interesting and potentially useful to the\n"
-#~ "                            audience, it will be considered for\n"
-#~ "                            inclusion in the programme."
-#~ msgstr ""
-#~ "Kami akan menerima berbagai macam\n"
-#~ "                            presentasi, dari laporan akademis dan\n"
-#~ "                            project-project komersil dan studi\n"
-#~ "                            kasus. Selama presentasi menarik\n"
-#~ "                            dan berpotensi untuk berguna bagi\n"
-#~ "                            audiens, presentasi akan dianggap "
-#~ "dipertimbangkan\n"
-#~ "                            untuk disertakan dalam program."
-
-#~ msgid "search."
-#~ msgstr "cari."
-
-#~ msgid "tracks"
-#~ msgstr "track"

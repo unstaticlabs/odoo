@@ -20,7 +20,7 @@ class TestPosQris(AccountTestInvoicingHttpCommon):
         })
 
         cls.acc_qris_id = cls.env['res.partner.bank'].create({
-            'acc_number': '123456789012345678',
+            'account_number': '123456789012345678',
             'partner_id': cls.company_data['company'].partner_id.id,
             'l10n_id_qris_api_key': 'apikey',
             'l10n_id_qris_mid': 'mid',
@@ -234,4 +234,4 @@ class TestPosQris(AccountTestInvoicingHttpCommon):
         self.main_pos_config.current_session_id.set_opening_control(0, 'notes')
         with patch('odoo.addons.l10n_id.models.res_bank._l10n_id_make_qris_request', side_effect=_patched_make_qris_request) as patched:
             self.start_tour("/pos/ui/%d" % self.main_pos_config.id, 'PayementScreenQRISChangeAmount', login="pos_user")
-            self.assertEqual(patched.call_count, 2)
+            self.assertEqual(patched.call_count, 3)

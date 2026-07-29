@@ -13,10 +13,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-15 14:56+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-07-15 15:10+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_track/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -126,42 +126,13 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
-"<div>\n"
-"    Kære <t t-out=\"object.partner_id.name or object.partner_name or ''\">"
-"Brandon Freeman</t><br/>\n"
-"    Vi er glade for at kunne fortælle, at dit forslag <t t-out=\"object.name "
-"or ''\">Alt om dette arrangement</t> er blevet godkendt og bekræftet til "
-"arrangementet <t t-out=\"object.event_id.name or ''\">\"Onlinepræsentation "
-"af OpenWood-kollektionen\"</t>.\n"
-"    <br/>\n"
-"    Du kan finde flere oplysninger her:\n"
-"    <div style=\"margin: 16px 0px 16px 0px;\">\n"
-"        <a t-attf-href=\"/event/{{ object.event_id.id }}/track/{{ "
-"object.id }}\" t-attf-style=\"padding: 8px 16px 8px 16px; font-size: 14px; "
-"color: {{object.company_id.email_primary_color or '#FFFFFF'}}; text-"
-"decoration: none !important; background-color: {"
-"{object.company_id.email_secondary_color or '#875A7B'}}; border-radius:3px\">"
-"\n"
-"            Vis foredrag\n"
-"        </a>\n"
-"    </div>\n"
-"    <br/><br/>\n"
-"    Tak\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
-"        <br/>\n"
-"        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></div>"
-"\n"
-"    </t>\n"
-"</div>"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.track_card
@@ -688,6 +659,11 @@ msgid "Activity Exception Decoration"
 msgstr "Markering af undtagelsesaktivitet"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Aktivitetsstatus"
@@ -859,6 +835,16 @@ msgstr "Antal vedhæftninger"
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
 msgstr "Publikum"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
@@ -2224,6 +2210,11 @@ msgid "Published"
 msgstr "Offentliggjort"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
 msgid "Raising qualitive insights from your customers"
 msgstr "Indhent værdifuld viden fra dine kunder"
@@ -3242,102 +3233,12 @@ msgid "starts on"
 msgstr "begynder den"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr "x"
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<i class=\"fa fa-folder-open\"/> Favorites"
-#~ msgstr "<i class=\"fa fa-folder-open\"/> Favoritter"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Lynforedrag</strong>. Disse er 30 minutters foredrag om mange\n"
-#~ "                                    forskellige emner. De fleste emner "
-#~ "accepteres som lynforedrag."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>Almindelige foredrag</strong>. Disse er standardforedrag med "
-#~ "slides,\n"
-#~ "                                    og tildeles i tidsrammer af 60 "
-#~ "minutter."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Tillad video- og lydoptagelser af deres\n"
-#~ "præsentation, til udgivelse på vores hjemmeside."
-
-#~ msgid "Canceled Stage"
-#~ msgstr "Annulleret fase"
-
-#~ msgid "Error"
-#~ msgstr "Fejl"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Filtrer spor..."
-
-#~ msgid "Group By"
-#~ msgstr "Sortér efter"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Antal meddelser der kræver handling"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "Forslag er lukket"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Vis alle poster, hvor den næste aktivitetsdato er før i dag"
-
-#~ msgid "Speaker Email"
-#~ msgstr "Talers e-mail"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Forslag til foredrag"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "Tale tilføjet til dine Favoritter"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "Tale allerede blandt dine Favoritter"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Den fulde URL for at få adgang til dokumentet via hjemmesiden."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "Dette arrangement er ikke åben for forslag."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Rettidig frigivelse af præsentationsmateriale (slides),\n"
-#~ "                                    til offentliggørelse på vores "
-#~ "hjemmeside."
-
-#~ msgid "We did not find any track matching your"
-#~ msgstr "Vi fandt intet spor der matcher dine"
-
-#~ msgid "search."
-#~ msgstr "søg."
-
-#~ msgid "tracks"
-#~ msgstr "spor"

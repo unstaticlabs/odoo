@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Invoicing',
@@ -26,6 +25,7 @@ You could use this simplified accounting in case you work with an (external) acc
         'data/account_tour.xml',
         'data/ir_sequence.xml',
         'data/res_country_group.xml',
+        'data/portal_entry_data.xml',
         'views/account_payment_view.xml',
         'wizard/account_automatic_entry_wizard_views.xml',
         'wizard/account_autopost_bills_wizard.xml',
@@ -91,8 +91,8 @@ You could use this simplified accounting in case you work with an (external) acc
     ],
     'demo': [
         'demo/account_demo.xml',
+        'demo/res_partner_bank_demo.xml',
     ],
-    'installable': True,
     'application': True,
     'post_init_hook': '_account_post_init',
     'assets': {
@@ -117,6 +117,7 @@ You could use this simplified accounting in case you work with an (external) acc
             'account/static/src/js/tours/*',
             'account/static/src/js/search/search_bar/search_bar.js',
             'account/static/src/helpers/*.js',
+            'account/static/src/webclient/**/*',
         ],
         # Unit test files
         'web.assets_unit_tests': [

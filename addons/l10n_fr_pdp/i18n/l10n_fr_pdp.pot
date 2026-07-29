@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0+e\n"
+"Project-Id-Version: Odoo Server saas~19.2+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 18:05+0000\n"
-"PO-Revision-Date: 2026-07-17 18:05+0000\n"
+"POT-Creation-Date: 2026-07-24 18:08+0000\n"
+"PO-Revision-Date: 2026-07-24 18:08+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -55,6 +55,13 @@ msgstr ""
 msgid ""
 "<i class=\"fa fa-exclamation-triangle\"/>You can only send and receive <span"
 " class=\"o_form_label\">unregulated</span> messages currently."
+msgstr ""
+
+#. module: l10n_fr_pdp
+#: model_terms:ir.ui.view,arch_db:l10n_fr_pdp.pdp_registration_form
+msgid ""
+"<i class=\"fa fa-warning me-2\"/>Authentication in progress. Clicking "
+"\"Cancel\" will abort the process."
 msgstr ""
 
 #. module: l10n_fr_pdp
@@ -115,16 +122,6 @@ msgid "Account EDI proxy user"
 msgstr ""
 
 #. module: l10n_fr_pdp
-#: model:ir.model,name:l10n_fr_pdp.model_account_move_send
-msgid "Account Move Send"
-msgstr ""
-
-#. module: l10n_fr_pdp
-#: model:ir.model,name:l10n_fr_pdp.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr ""
-
-#. module: l10n_fr_pdp
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_pdp_config_wizard__account_peppol_edi_user
 msgid "Account Peppol Edi User"
 msgstr ""
@@ -160,6 +157,11 @@ msgstr ""
 #. module: l10n_fr_pdp
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_l10n_fr_pdp_reports_flow__activity_exception_decoration
 msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: l10n_fr_pdp
+#: model:ir.model.fields,field_description:l10n_fr_pdp.field_l10n_fr_pdp_reports_flow__activity_plans_ids
+msgid "Activity Plans"
 msgstr ""
 
 #. module: l10n_fr_pdp
@@ -403,10 +405,6 @@ msgstr ""
 
 #. module: l10n_fr_pdp
 #: model:ir.model,name:l10n_fr_pdp.model_res_company
-msgid "Companies"
-msgstr ""
-
-#. module: l10n_fr_pdp
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_l10n_fr_pdp_reports_flow__company_id
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_pdp_config_wizard__company_id
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_pdp_registration__company_id
@@ -1925,6 +1923,11 @@ msgid "Send Flow"
 msgstr ""
 
 #. module: l10n_fr_pdp
+#: model:ir.model,name:l10n_fr_pdp.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr ""
+
+#. module: l10n_fr_pdp
 #: model:ir.model,name:l10n_fr_pdp.model_l10n_fr_pdp_reports_send_wizard
 msgid "Send PDP Flow Wizard"
 msgstr ""
@@ -1985,6 +1988,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_account_bank_statement_line__l10n_fr_pdp_sent_in_flow_ids
 #: model:ir.model.fields,field_description:l10n_fr_pdp.field_account_move__l10n_fr_pdp_sent_in_flow_ids
 msgid "Sent in PDP Flows"
+msgstr ""
+
+#. module: l10n_fr_pdp
+#: model:ir.model,name:l10n_fr_pdp.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
 msgstr ""
 
 #. module: l10n_fr_pdp

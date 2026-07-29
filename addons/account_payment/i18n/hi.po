@@ -7,10 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:19+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:55+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
@@ -131,8 +131,7 @@ msgstr "ग्राहक के %s तक भुगतान करने प�
 msgid ""
 "A payment has already been made on this invoice, please make sure to not pay "
 "twice."
-msgstr ""
-"इस इनवॉइस पर पहले ही पेमेंट किया जा चुका है, कृपया दोबारा पेमेंट न करें।"
+msgstr "इस इनवॉइस पर पहले ही पेमेंट किया जा चुका है, कृपया दोबारा पेमेंट न करें।"
 
 #. module: account_payment
 #. odoo-python
@@ -145,6 +144,11 @@ msgstr "%s नंबर वाला पेमेंट पहले से ह�
 #: code:addons/account_payment/models/account_payment.py:0
 msgid "A token is required to create a new payment transaction."
 msgstr "एक नया पेमेंट ट्रांज़ैक्शन बनाने के लिए एक टोकन ज़रूरी है।"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
@@ -161,6 +165,11 @@ msgstr "रिफ़ंड के लिए उपलब्ध राशि"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "बकाया रकम"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -185,8 +194,9 @@ msgstr "अधिकृत लेन-देन"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "बैंक स्टेटमेंट लाइन"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -312,8 +322,7 @@ msgstr "आईडी"
 msgid ""
 "Impossible to pay all the overdue invoices if they don't share the same "
 "currency."
-msgstr ""
-"सभी बकाया इनवॉइस का भुगतान करना असंभव है, अगर उनकी मुद्रा एक जैसी नहीं है।"
+msgstr "सभी बकाया इनवॉइस का भुगतान करना असंभव है, अगर उनकी मुद्रा एक जैसी नहीं है।"
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_method_line__payment_provider_state
@@ -352,7 +361,7 @@ msgid "Invoices Count"
 msgstr "इनवॉइस काउंट"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "पेमेंट करने के लिए इनवॉइस"
 
@@ -410,6 +419,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "ऑनलाइन भुगतान विकल्प कॉन्फ़िगरेशन में चालू नहीं है।"
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -465,6 +481,7 @@ msgid "Pay overdue"
 msgstr "बाकी भुगतान चुकाएं"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -482,7 +499,17 @@ msgstr "पेमेंट जर्नल"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "पेमेंट के तरीके"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "पेमेंट मेथड लाइन"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "पेमेंट मेथड"
@@ -522,15 +549,16 @@ msgid "Payment Transactions"
 msgstr "पेमेंट ट्रांज़ैक्शन"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "पेमेंट"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "कृपया अपने बकाया इनवॉइस का भुगतान करने के लिए लॉग इन करें"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "कीमतों की सूची"
 
 #. module: account_payment
 #. odoo-python
@@ -667,14 +695,12 @@ msgstr ""
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
 msgid "There was an error processing your payment: transaction failed.<br/>"
-msgstr ""
-"आपके पेमेंट को प्रोसेस करते समय एक गड़बड़ी हुई: ट्रांज़ैक्शन फ़ेल हो गया.<br/>"
+msgstr "आपके पेमेंट को प्रोसेस करते समय एक गड़बड़ी हुई: ट्रांज़ैक्शन फ़ेल हो गया.<br/>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
 msgid "There was en error processing your payment: invalid credit card ID."
-msgstr ""
-"आपके पेमेंट को प्रोसेस करते समय एक गड़बड़ी हुई: अमान्य क्रेडिट कार्ड आईडी।"
+msgstr "आपके पेमेंट को प्रोसेस करते समय एक गड़बड़ी हुई: अमान्य क्रेडिट कार्ड आईडी।"
 
 #. module: account_payment
 #. odoo-python
@@ -778,6 +804,17 @@ msgid "has been applied."
 msgstr "लागू किया गया है।"
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "बकाया"
+
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

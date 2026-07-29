@@ -52,7 +52,8 @@ class WebsiteHrRecruitment(WebsiteForm):
             )
             if not all_fields or (
                 country_filter and not (
-                    job.address_id and job.address_id.country_id == country
+                    not job.address_id or
+                    (job.address_id and job.address_id.country_id == country)
                 )
             ):
                 return False
@@ -175,7 +176,13 @@ class WebsiteHrRecruitment(WebsiteForm):
         })
         return f"/jobs/{request.env['ir.http']._slug(job)}"
 
-    @http.route('''/jobs/detail/<model("hr.job"):job>''', type='http', auth="public", website=True, sitemap=True)
+    def sitemap_jobs_detail(env, rule, qs):
+        slug = env['ir.http']._slug
+        for job in env['hr.job'].search([('is_published', '=', True)]):
+            if not qs or qs.lower() in f'/jobs/{slug(job)}':
+                yield {'loc': f'/jobs/{slug(job)}'}
+
+    @http.route('''/jobs/detail/<model("hr.job"):job>''', type='http', auth="public", website=True, sitemap=sitemap_jobs_detail)
     def jobs_detail(self, job, **kwargs):
         redirect_url = f"/jobs/{request.env['ir.http']._slug(job)}"
         return request.redirect(redirect_url, code=301)
@@ -199,62 +206,6 @@ class WebsiteHrRecruitment(WebsiteForm):
             'error': error,
             'default': default,
         })
-
-    @http.route('/website_hr_recruitment/check_recent_application', type='jsonrpc', auth="public", website=True)
-    def check_recent_application(self, field, value, job_id):
-        def refused_applicants_condition(applicant):
-            return not applicant.active \
-                and applicant.job_id.id == int(job_id) \
-                and applicant.create_date >= (datetime.now() - relativedelta(months=6))
-
-        field_domain = {
-            'name': [('partner_name', '=ilike', escape_psql(value))],
-            'email': [('email_normalized', '=', email_normalize(value))],
-            'phone': [('partner_phone', '=', value)],
-            'linkedin': [('linkedin_profile', '=ilike', escape_psql(value))],
-        }.get(field, Domain.FALSE)
-
-        applications_by_status = http.request.env['hr.applicant'].sudo().search(Domain.AND([
-            field_domain,
-            [
-                ('job_id.website_id', 'in', [http.request.website.id, False]),
-                ('application_status', 'in', ['ongoing', 'refused']),
-            ]
-        ]), order='create_date DESC').grouped('application_status')
-        refused_applicants = applications_by_status.get('refused', http.request.env['hr.applicant'])
-        if any(applicant for applicant in refused_applicants if refused_applicants_condition(applicant)):
-            return {
-                'message':  _(
-                    'We\'ve found a previous closed application in our system within the last 6 months.'
-                    ' Please consider before applying in order not to duplicate efforts.'
-                )
-            }
-
-        if 'ongoing' not in applications_by_status:
-            return {'message': None}
-
-        ongoing_application = applications_by_status.get('ongoing')[0]
-        if ongoing_application.job_id.id == int(job_id):
-            recruiter_contact = "" if not ongoing_application.user_id else _(
-                ' In case of issue, contact %(contact_infos)s',
-                contact_infos=", ".join(
-                    [value for value in itemgetter('name', 'email', 'phone')(ongoing_application.user_id) if value]
-                ))
-            return {
-                'message':  _(
-                    'An application already exists for %(value)s.'
-                    ' Duplicates might be rejected. %(recruiter_contact)s',
-                    value=value,
-                    recruiter_contact=recruiter_contact
-                )
-            }
-
-        return {
-            'message':  _(
-                'We found a recent application with a similar name, email, phone number.'
-                ' You can continue if it\'s not a mistake.'
-            )
-        }
 
     def extract_data(self, model_sudo, values):
         short_introduction = values.get("short_introduction", None)

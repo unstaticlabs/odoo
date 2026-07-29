@@ -3,11 +3,12 @@
 
 import time
 
-from odoo.tests import Form, TransactionCase
+from odoo.tests import tagged, Form, TransactionCase
 from odoo.tools import mute_logger
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSaleMrpProcurement(TransactionCase):
 
     @classmethod
@@ -18,6 +19,8 @@ class TestSaleMrpProcurement(TransactionCase):
     def test_sale_mrp(self):
         # Required for `uom_id` to be visible in the view
         self.env.user.group_ids += self.env.ref('uom.group_uom')
+        # Required for `tracking` to be visible in the view
+        self.env.user.group_ids += self.env.ref('stock.group_production_lot')
         self.env.ref('stock.route_warehouse0_mto').active = True
         warehouse0 = self.env.ref('stock.warehouse0')
         # In order to test the sale_mrp module in OpenERP, I start by creating a new product 'Slider Mobile'
@@ -40,7 +43,7 @@ class TestSaleMrpProcurement(TransactionCase):
         product.categ_id = product_category_allproductssellable0
         product.list_price = 200.0
         product.name = 'Slider Mobile'
-        product.is_storable = True
+        product.tracking = 'none'
         product.uom_id = uom_unit
         product.route_ids.clear()
         product.route_ids.add(warehouse0.manufacture_pull_id.route_id)
@@ -88,6 +91,8 @@ class TestSaleMrpProcurement(TransactionCase):
         self.env.user.group_ids += self.env.ref('uom.group_uom')
         # Required for `manufacture_step` to be visible in the view
         self.env.user.group_ids += self.env.ref('stock.group_adv_location')
+        # Required for `tracking` to be visible in the view
+        self.env.user.group_ids += self.env.ref('stock.group_production_lot')
         self.env.ref('stock.route_warehouse0_mto').active = True
         # Create warehouse
         self.customer_location = self.env['ir.model.data']._xmlid_to_res_id('stock.stock_location_customers')
@@ -101,7 +106,7 @@ class TestSaleMrpProcurement(TransactionCase):
         # Create raw product for manufactured product
         product_form = Form(self.env['product.product'])
         product_form.name = 'Raw Stick'
-        product_form.is_storable = True
+        product_form.tracking = 'none'
         product_form.uom_id = self.uom_unit
         self.raw_product = product_form.save()
 
@@ -109,7 +114,7 @@ class TestSaleMrpProcurement(TransactionCase):
         product_form = Form(self.env['product.product'])
         product_form.name = 'Stick'
         product_form.uom_id = self.uom_unit
-        product_form.is_storable = True
+        product_form.tracking = 'none'
         product_form.route_ids.clear()
         product_form.route_ids.add(self.warehouse.manufacture_pull_id.route_id)
         product_form.route_ids.add(self.warehouse.mto_pull_id.route_id)
@@ -118,7 +123,7 @@ class TestSaleMrpProcurement(TransactionCase):
         # Create manifactured product which uses another manifactured
         product_form = Form(self.env['product.product'])
         product_form.name = 'Arrow'
-        product_form.is_storable = True
+        product_form.tracking = 'none'
         product_form.route_ids.clear()
         product_form.route_ids.add(self.warehouse.manufacture_pull_id.route_id)
         product_form.route_ids.add(self.warehouse.mto_pull_id.route_id)
@@ -127,7 +132,7 @@ class TestSaleMrpProcurement(TransactionCase):
         ## Create raw product for manufactured product
         product_form = Form(self.env['product.product'])
         product_form.name = 'Raw Iron'
-        product_form.is_storable = True
+        product_form.tracking = 'none'
         product_form.uom_id = self.uom_unit
         self.raw_product_2 = product_form.save()
 
@@ -213,7 +218,7 @@ class TestSaleMrpProcurement(TransactionCase):
         self.env['mrp.bom'].create({
             'product_id': product.id,
             'product_tmpl_id': product.product_tmpl_id.id,
-            'product_uom_id': product.uom_id.id,
+            'uom_id': product.uom_id.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -309,7 +314,7 @@ class TestSaleMrpProcurement(TransactionCase):
         self.env['mrp.bom'].create({
             'product_id': product.id,
             'product_tmpl_id': product.product_tmpl_id.id,
-            'product_uom_id': uom_gram.id,
+            'uom_id': uom_gram.id,
             'product_qty': 1.0,
             'type': 'normal',
             'bom_line_ids': [
@@ -333,11 +338,11 @@ class TestSaleMrpProcurement(TransactionCase):
 
         mo = self.env['mrp.production'].search([('product_id', '=', product.id)], order='id desc', limit=1)
         self.assertIn(so.name, mo.origin)
-        self.assertEqual(mo.product_uom_id, uom_gram)
+        self.assertEqual(mo.uom_id, uom_gram)
         self.assertEqual(mo.product_qty, 510)
 
         so.order_line.product_uom_qty = 510 * 2
-        self.assertEqual(mo.product_uom_id, uom_gram)
+        self.assertEqual(mo.uom_id, uom_gram)
         self.assertEqual(mo.product_qty, 1020)
 
     def test_sale_mrp_avoid_multiple_pickings(self):

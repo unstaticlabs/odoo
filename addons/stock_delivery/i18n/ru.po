@@ -3,13 +3,13 @@
 # * stock_delivery
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 21:03+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 02:33+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "stock_delivery/ru/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -58,11 +58,6 @@ msgstr "<strong>Перевозчик:</strong>"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Carrier</strong>"
 msgstr "<strong>Перевозчик</strong>"
-
-#. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr "<strong>Метод доставки:</strong>"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
@@ -114,8 +109,8 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
-msgstr "Применяется при способах доставки"
+msgid "Applicable on Delivery Methods"
+msgstr ""
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
@@ -160,12 +155,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr "Стоимость: %(price).2f %(currency)s"
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Мастер выбора курьера доставки"
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr "Способы доставки"
 
@@ -228,11 +229,6 @@ msgid "Exception:"
 msgstr "Исключение:"
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr "FedEx"
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -264,8 +260,8 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
-msgstr "Маршруты Склада"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_delivery_carrier__invoice_policy
@@ -395,8 +391,8 @@ msgstr "Отправить грузоотправителю"
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr ""
 "Груз отправлен перевозчику %(carrier_name)s для отправки с номером "
 "отслеживания %(ref)s"
@@ -410,12 +406,6 @@ msgstr "Стоимость доставки"
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
 msgstr "Информация о доставке"
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
-msgstr "Методы доставки"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__shipping_weight
@@ -641,84 +631,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.normal_zpl_label
 msgid "^FS"
 msgstr "^FS"
-
-#~ msgid " (Estimated Cost: %s )"
-#~ msgstr " (Сметная стоимость: %s )"
-
-#~ msgid "<strong>HS Code</strong>"
-#~ msgstr "<strong>ТН ВЭД</strong>"
-
-#~ msgid ""
-#~ "<strong>Total Weight:</strong>\n"
-#~ "                <br/>"
-#~ msgstr ""
-#~ "<strong>Общий вес:</strong>\n"
-#~ "                <br/>"
-
-#~ msgid "<strong>Tracking Number:</strong>"
-#~ msgstr "<strong>Номер отслеживания:</strong>"
-
-#~ msgid "Bulk Weight"
-#~ msgstr "Насыпной вес"
-
-#~ msgid "Company"
-#~ msgstr "Компания"
-
-#~ msgid "Created by"
-#~ msgstr "Создано"
-
-#~ msgid "Created on"
-#~ msgstr "Создано"
-
-#~ msgid "Delivery Package Selection Wizard"
-#~ msgstr "Мастер выбора пакета поставки"
-
-#~ msgid "Delivery Package Type"
-#~ msgstr "Тип пакета доставки"
-
-#~ msgid "Discard"
-#~ msgstr "Отменить"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Последнее обновление"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Последнее обновление"
-
-#~ msgid "Package Details"
-#~ msgstr "Сведения о пакете"
-
-#~ msgid "Packages"
-#~ msgstr "Пакеты"
-
-#~ msgid "Picking"
-#~ msgstr "Выбор"
-
-#~ msgid "Save"
-#~ msgstr "Сохранить"
-
-#~ msgid ""
-#~ "Standardized code for international shipping and goods declaration. At "
-#~ "the moment, only used for the FedEx shipping provider."
-#~ msgstr ""
-#~ "Стандартизированный код для международных перевозок и декларирования "
-#~ "товаров. На данный момент используется только для поставщика услуг по "
-#~ "доставке FedEx."
-
-#~ msgid ""
-#~ "Total weight of packages and products not in a package. Packages with no "
-#~ "shipping weight specified will default to their products' total weight. "
-#~ "This is the weight used to compute the cost of the shipping."
-#~ msgstr ""
-#~ "Общий вес пакетов и товаров, не входящих в пакет. Для пакетов, в которых "
-#~ "не указан вес доставки, по умолчанию будет указан общий вес товаров. "
-#~ "Именно этот вес используется для расчета стоимости доставки."
-
-#~ msgid "Total weight of products which are not in a package."
-#~ msgstr "Общий вес товаров, не входящих в упаковку."
-
-#~ msgid "Total weight of the package."
-#~ msgstr "Общий вес посылки."
-
-#~ msgid "Weight for Shipping"
-#~ msgstr "Вес для перевозкы груза"

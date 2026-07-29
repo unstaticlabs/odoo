@@ -74,7 +74,7 @@ class TestPurchaseOrderSuggest(PurchaseTestCommon, HttpCase):
                     'location_id': delivery_type.default_location_src_id.id,
                     'location_dest_id': delivery_type.default_location_dest_id.id,
                     'product_id': product.id,
-                    'product_uom': self.uom.id,
+                    'uom_id': self.uom.id,
                     'product_uom_qty': qty,
                 }) for (product, qty) in products_and_quantities],
             })
@@ -402,7 +402,7 @@ class TestPurchaseOrderSuggest(PurchaseTestCommon, HttpCase):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_id': self.product_1.id,
-                'product_uom': self.uom.id,
+                'uom_id': self.uom.id,
                 'product_uom_qty': 6,
             })],
         })
@@ -451,7 +451,7 @@ class TestPurchaseOrderSuggest(PurchaseTestCommon, HttpCase):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_id': product_ad.id,
-                'product_uom': self.uom.id,
+                'uom_id': self.uom.id,
                 'product_uom_qty': 4,
             })],
         })
@@ -660,4 +660,7 @@ class TestPurchaseOrderSuggest(PurchaseTestCommon, HttpCase):
         self._create_and_process_delivery_at_date(
             [(test_product, 1)], date=today - relativedelta(days=1), warehouse=other_warehouse
         )
-        self.start_tour('/odoo/purchase', "test_purchase_order_suggest_search_panel_ux", login='admin')
+        self.start_tour(
+            '/odoo/purchase', "test_purchase_order_suggest_search_panel_ux", login='admin',
+            cookies={"cids": f"{self.company.id}"},
+        )

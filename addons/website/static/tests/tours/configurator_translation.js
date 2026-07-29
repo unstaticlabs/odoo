@@ -79,7 +79,7 @@ function runConfiguratorFlow(industrySearchText, featureOrPageName) {
 registry.category("web_tour.tours").add("configurator_translation", {
     url: "/website/configurator",
     steps: () => [
-        ...runConfiguratorFlow("in fr", "Parseltongue_privacy"),
+        ...runConfiguratorFlow("in fr", "Parseltongue_pricing"),
         {
             content: "Check if the current interface language is active and monkey patch terms",
             trigger: "body",
@@ -93,9 +93,9 @@ registry.category("web_tour.tours").add("configurator_translation", {
         },
         ...clickOnEditAndWaitEditMode(),
         {
-            // Check the content of the save button to make sure the website is
-            // in Parseltongue. (The editor should be in the website's default
-            // language, which should be parseltongue in this test.)
+            // Check the content of the save button to make sure the website is in
+            // Parseltongue. (The editor should be in the website's default language,
+            // which should be parseltongue in this test.)
             content: "exit edit mode",
             trigger: ".o-snippets-top-actions button.btn-success:contains('Save_Parseltongue')",
             run: "click",
@@ -110,7 +110,7 @@ registry.category("web_tour.tours").add("configurator_translation", {
 registry.category("web_tour.tours").add("configurator_page_creation", {
     url: "/website/configurator",
     steps: () => [
-        ...runConfiguratorFlow("abbey", "Pricing"),
+        ...runConfiguratorFlow("abbey", "Pricing Plan"),
         // Verify configurator page templates exist in landing pages category.
         {
             content: "Open create content menu",

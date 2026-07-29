@@ -6,16 +6,16 @@
 # Martin Trigaux, 2018
 # Kostas Goutoudis <goutoudis@gmail.com>, 2018
 # George Tarasidis <george_tarasidis@yahoo.com>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Panagiotis karampaglis <panosdotk@gmail.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Panagiotis karampaglis <panosdotk@gmail.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:41+0000\n"
-"Last-Translator: Panagiotis karampaglis <panosdotk@gmail.com>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-08 21:55+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/"
 "stock_landed_costs/el/>\n"
 "Language: el\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -67,6 +67,11 @@ msgstr "Δραστηριότητες"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Δραστηριότητα Εξαίρεσης Διακόσμησης"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -142,10 +147,6 @@ msgstr "Ακυρώθηκε"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Εταιρίες"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Εταιρία"
@@ -557,6 +558,11 @@ msgid "Picking"
 msgstr "Συλλογή"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -672,8 +678,11 @@ msgid "Total"
 msgstr "Σύνολο"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Μετακινήσεις"
 
@@ -697,7 +706,7 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
+msgid "Valuation Adjustment Line"
 msgstr ""
 
 #. module: stock_landed_costs
@@ -744,14 +753,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Η εταιρία που σχετίζεται με το ημερολόγιο"
-
-#~ msgid "Group By"
-#~ msgstr "Ομαδοποίηση κατά"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Πλήθος μηνυμάτων που απαιτούν ενέργεια"

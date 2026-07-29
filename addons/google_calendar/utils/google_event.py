@@ -6,7 +6,7 @@ from collections import abc
 from typing import Iterator, Mapping
 
 from odoo.tools import email_normalize
-from odoo.tools.misc import ReadonlyDict
+from odoo.tools.misc import frozendict
 
 _logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class GoogleEvent(abc.Set):
                 _events[item.get('id')] = item
             else:
                 raise ValueError("Only %s or iterable of dict are supported" % self.__class__.__name__)
-        self._events = ReadonlyDict(_events)
+        self._events = frozendict(_events)
 
     def __iter__(self) ->  Iterator['GoogleEvent']:
         return iter(GoogleEvent([vals]) for vals in self._events.values())
@@ -93,7 +93,8 @@ class GoogleEvent(abc.Set):
         if unsure:
             unsure._load_odoo_ids_from_metadata(env, model)
 
-        return tuple(e._odoo_id for e in self)
+        # skip unmatched ids because we browse the result
+        return tuple(e._odoo_id for e in self if e._odoo_id)
 
     def _load_odoo_ids_from_metadata(self, env, model):
         unsure_odoo_ids = tuple(e._meta_odoo_id(env.cr.dbname) for e in self)

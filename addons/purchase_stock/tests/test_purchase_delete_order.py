@@ -3,11 +3,12 @@
 
 from odoo.exceptions import UserError
 from odoo.fields import Command
+from odoo.tests import tagged, users
 
-from odoo.tests import users
 from .common import PurchaseTestCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestDeleteOrder(PurchaseTestCommon):
 
     @users('purchase_user')
@@ -48,7 +49,7 @@ class TestDeleteOrder(PurchaseTestCommon):
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
             'product_uom_qty': 1,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'picking_type_id': self.picking_type_out.id,
@@ -62,7 +63,7 @@ class TestDeleteOrder(PurchaseTestCommon):
                 Command.create({
                     'product_id': self.product.id,
                     'product_qty': 1.0,
-                    'product_uom_id': self.product.uom_id.id,
+                    'uom_id': self.product.uom_id.id,
                     'propagate_cancel': False,
                 })],
         })

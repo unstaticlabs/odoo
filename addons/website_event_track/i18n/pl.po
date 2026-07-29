@@ -26,16 +26,16 @@
 # Dawid Prus, 2022
 # Paweł Wodyński <pw@myodoo.pl>, 2022
 # Maksym <ms@myodoo.pl>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 21:33+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-07-04 12:43+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_track/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -50,13 +50,13 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_event_track/models/website.py:0
 msgid "\"Events App Name\" field is required."
-msgstr "Pole \"Nazwa Wydarzenia\" jest wymagane."
+msgstr "pole \"Nazwa Wydarzenia\"  jest wymagane."
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__wishlist_visitor_count
 #: model:ir.model.fields,field_description:website_event_track.field_website_visitor__event_track_wishlisted_count
 msgid "# Wishlisted"
-msgstr "# Dodane do listy życzeń"
+msgstr "# Dodane Do listy Życzeń"
 
 #. module: website_event_track
 #. odoo-python
@@ -80,7 +80,7 @@ msgstr "%s Wydarzenia"
 #. odoo-python
 #: code:addons/website_event_track/controllers/webmanifest.py:0
 msgid "%s Online Events Application"
-msgstr "%s Aplikacje Wydarzenia Online"
+msgstr "%s Aplikacje na Wydarzenie Online"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_main
@@ -91,17 +91,17 @@ msgstr "(strefa czasowa:"
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_7_track_17
 msgid "10 DIY Furniture Ideas For Absolute Beginners"
-msgstr "10 Pomysłów na meble dla absolutnych amatorów"
+msgstr "10 DIY Pomysły na meble dla absolutnych amatorów"
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_7_track_18
 msgid "6 Woodworking tips and tricks for beginners"
-msgstr "6 Porad i trików w obróbce drewna dla początkujących"
+msgstr "6 Porad i Trików w obróbce drewna dla początkujących"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_template_new
 msgid "<b>Mail</b>:"
-msgstr "<b>E-mail</b>:"
+msgstr "<b>Adres e-mail</b>:"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_template_new
@@ -111,17 +111,17 @@ msgstr "<b>Telefon</b>:"
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_template_new
 msgid "<b>Proposed By</b>:"
-msgstr "<b>Zaproponowane przez</b>:"
+msgstr "<b>Zaproponowany przez</b>:"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_template_new
 msgid "<b>Speaker Biography</b>:"
-msgstr "<b>Biografia prelegenta</b>:"
+msgstr "<b>Biografia Mówcy</b>:"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_template_new
 msgid "<b>Talk Introduction</b>:"
-msgstr "<b>Wstęp do prelekcji</b>:"
+msgstr "<b>Wprowadzenie</b>:"
 
 #. module: website_event_track
 #: model:mail.template,body_html:website_event_track.mail_template_data_track_confirmation
@@ -147,41 +147,39 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
 "<div>\n"
 "    Dzień dobry <t t-out=\"object.partner_id.name or object.partner_name or "
 "''\">Brandon Freeman</t><br/>\n"
-"    Z przyjemnością informujemy Cię, że Twoja propozycja <t t-"
-"out=\"object.name or ''\">What This Event Is All About</t> została "
-"zaakceptowana i potwierdzona na wydarzenie <t t-out=\"object.event_id.name "
-"or ''\">OpenWood Collection Online Reveal</t>.\n"
-"    <br/>\n"
-"    Poniżej znajdziesz więcej szczegółów:\n"
-"    <div style=\"margin: 16px 0px 16px 0px;\">\n"
+"    Z przyjemnością informujemy, że Twoja propozycja <t t-out=\"object.name "
+"or ''\">O czym jest to wydarzenie</t> została przyjęta i potwierdzona na "
+"wydarzenie <t t-out=\"object.event_id.name or ''\">Prezentacja kolekcji "
+"OpenWood online</t>.\n"
+"   <br/> \n"
+"    Więcej szczegółów znajdziesz tutaj:\n"
+"   <div style=\"margin: 16px 0px 16px 0px;\">\n"
 "        <a t-attf-href=\"/event/{{ object.event_id.id }}/track/{{ "
 "object.id }}\" t-attf-style=\"padding: 8px 16px 8px 16px; font-size: 14px; "
 "color: {{object.company_id.email_primary_color or '#FFFFFF'}}; text-"
 "decoration: none !important; background-color: {"
-"{object.company_id.email_secondary_color or '#875A7B'}}; border-radius:3px\">"
-"\n"
+"{object.company_id.email_secondary_color or '#875A7B'}}; border-"
+"radius:3px\"> \n"
 "            Zobacz prelekcję\n"
-"        </a>\n"
-"    </div>\n"
-"    <br/><br/>\n"
+"       </a>\n"
+"    </div> \n"
+"   <br/><br/> \n"
 "    Dziękujemy,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
-"        <br/>\n"
-"        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></div>"
-"\n"
-"    </t>\n"
+"   <t t-if=\"user.signature\">\n"
+"        <br/> \n"
+"       <div data-o-mail-quote=\"1\"> --<br data-o-mail-quote=\"1\"/><t t-"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
+"   </t>\n"
 "</div>"
 
 #. module: website_event_track
@@ -1096,6 +1094,11 @@ msgid "Activity Exception Decoration"
 msgstr "Dekoracja wyjątku aktywności"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plany działań"
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Stan aktywności"
@@ -1269,6 +1272,16 @@ msgid "Audience"
 msgstr "Odbiorcy"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr "Automatyczna publikacja"
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Automatycznie opublikuj stronę w wybranym dniu i o wybranej godzinie."
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__allowed_track_tag_ids
 msgid "Available Track Tags"
 msgstr "Dostępne znaczniki śledzenia"
@@ -1420,7 +1433,7 @@ msgstr "Nazwa firmy"
 #. module: website_event_track
 #: model:ir.model,name:website_event_track.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfiguracja ustawień"
+msgstr "Ustawienia konfiguracji"
 
 #. module: website_event_track
 #. odoo-javascript
@@ -2007,8 +2020,8 @@ msgid ""
 "If checked, automatically publish tracks so that access links to customers "
 "are provided."
 msgstr ""
-"Jeśli zaznaczone, automatycznie publikuje wystąpienia, żeby linki z dostępem"
-"  zostały dostarczone do klientów"
+"Jeśli zaznaczone, automatycznie publikuje wystąpienia, żeby linki z "
+"dostępem  zostały dostarczone do klientów"
 
 #. module: website_event_track
 #: model:ir.model.fields,help:website_event_track.field_event_track__message_needaction
@@ -2453,17 +2466,17 @@ msgstr "Następna Czynność wydarzenia w kalendarzu"
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Termin kolejnej aktywności"
+msgstr "Termin kolejnej czynności"
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_summary
 msgid "Next Activity Summary"
-msgstr "Podsumowanie kolejnej aktywności"
+msgstr "Podsumowanie kolejnej czynności"
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_type_id
 msgid "Next Activity Type"
-msgstr "Typ następnej aktywności"
+msgstr "Typ następnej czynności"
 
 #. module: website_event_track
 #: model_terms:ir.actions.act_window,help:website_event_track.event_track_visitor_action
@@ -2634,6 +2647,11 @@ msgstr "Zaproponuj konferencję"
 #: model_terms:ir.ui.view,arch_db:website_event_track.view_event_track_search
 msgid "Published"
 msgstr "Opublikowano"
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr "Data opublikowania"
 
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
@@ -2932,7 +2950,8 @@ msgstr "Zadanie w trakcie. Naciśnij by oznaczyć jako zablokowane lub zrobione.
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_stage_view_form
 msgid "Task is blocked. Click to unblock or set as done."
-msgstr "Zadanie zablokowane. Naciśnij by odblokować lub oznaczyć jako wykonane."
+msgstr ""
+"Zadanie zablokowane. Naciśnij by odblokować lub oznaczyć jako wykonane."
 
 #. module: website_event_track
 #. odoo-javascript
@@ -3656,169 +3675,12 @@ msgid "starts on"
 msgstr "zaczyna się"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr "Ścieżka"
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr "x"
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid "<b>Contact Information</b>"
-#~ msgstr "<b>Informacje kontaktowe</b>"
-
-#~ msgid "<b>Speaker Profile</b>"
-#~ msgstr "<b>Profil Mówcy</b>"
-
-#~ msgid "<b>Talk Intro</b>"
-#~ msgstr "<b>Wprowadzenie</b>"
-
-#~ msgid "<i class=\"fa fa-folder-open\"/> Favorites"
-#~ msgstr "<i class=\"fa fa-folder-open\"/>Ulubione"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-globe\" title=\"Values set here are website-"
-#~ "specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "                                        <i class=\"fa fa-close mr4\" "
-#~ "role=\"img\" aria-label=\"Error\" title=\"Error\"/>\n"
-#~ "                                        <span "
-#~ "class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "                                    </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_error_section text-danger d-none ml8\">\n"
-#~ "<i class=\"fa fa-close mr4\" role=\"img\" aria-label=\"Error\" "
-#~ "title=\"Error\"/>\n"
-#~ "<span class=\"o_wetrack_proposal_error_message\"/>\n"
-#~ "</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Introduction</"
-#~ "span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Wprowadzenie</span>\n"
-#~ "<span>*</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Talk Title</span>\n"
-#~ "                                            <span>*</span>"
-#~ msgstr ""
-#~ "<span class=\"o_wetrack_proposal_label_content\">Tytuł Rozmowy\n"
-#~ "<span>*</span>"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Błyskawiczne rozmowy</strong>. Są to 30-minutowe rozmowy na "
-#~ "wiele\n"
-#~ "                                    różnych tematów. Większość tematów "
-#~ "jest akceptowana w błyskawicznych rozmowach."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>Regularne rozmowy</strong>. Są to standardowe rozmowy ze "
-#~ "slajdami,\n"
-#~ "                                    przydzielone w szczelinach 60 minut."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Zezwalaj na nagrywanie wideo i dźwięku ich\n"
-#~ "                                    prezentacji, do publikowania na "
-#~ "naszej stronie internetowej."
-
-#~ msgid "Canceled Stage"
-#~ msgstr "Anulowany etap"
-
-#~ msgid "Error"
-#~ msgstr "Błąd"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Filtruj ścieżki ..."
-
-#~ msgid "Group By"
-#~ msgstr "Grupuj wg"
-
-#~ msgid "No results found"
-#~ msgstr "Nic nie znaleziono"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Liczba wiadomości wymagających akcji"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "Propozycje są zamknięte!"
-
-#~ msgid "Schedule some tracks to get started"
-#~ msgstr "Zaplanuj wystąpienia by zacząć"
-
-#~ msgid "Select categories"
-#~ msgstr "Wybierz kategorie"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Pokaż wszystkie rekordy, których data kolejnej czynności przypada przed "
-#~ "dzisiaj"
-
-#~ msgid "Speaker Email"
-#~ msgstr "E-mail mówcy"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Propozycje rozmów"
-
-#~ msgid "Talk added to your Favorites"
-#~ msgstr "Rozmowa dodana do ulubionych"
-
-#~ msgid "Talk already in your Favorites"
-#~ msgstr "Rozmowa już się znajduje w ulubionych"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Pełny adres URL dostępu do dokumentu przez stronę."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "To wydarzenie nie przyjmuje propozycji."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Terminowe udostępnianie materiałów prezentacyjnych (slajdów)\n"
-#~ "                                    do publikacji na naszej stronie "
-#~ "internetowej."
-
-#~ msgid "We did not find any track matching your"
-#~ msgstr "Nie znaleźliśmy żadnych podobnych wystąpień do twoich"
-
-#~ msgid ""
-#~ "We will accept a broad range of\n"
-#~ "                            presentations, from reports on academic and\n"
-#~ "                            commercial projects to tutorials and case\n"
-#~ "                            studies. As long as the presentation is\n"
-#~ "                            interesting and potentially useful to the\n"
-#~ "                            audience, it will be considered for\n"
-#~ "                            inclusion in the programme."
-#~ msgstr ""
-#~ "Akceptujemy szeroki zakres o \n"
-#~ "prezentacji, od raportów na temat komercyjnych i akademickich projektów "
-#~ "na tutoriale oraz studium \n"
-#~ "przypadków. Tak długo jak prezentacja jest \n"
-#~ "interesująca i potencjalnie użyteczna dla \n"
-#~ "publiki, to zostanie rozważone \n"
-#~ "umieszczenie w programie"
-
-#~ msgid "search."
-#~ msgstr "Szukaj."
-
-#~ msgid "tracks"
-#~ msgstr "Wystąpienia"

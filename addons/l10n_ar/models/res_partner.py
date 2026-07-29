@@ -52,6 +52,28 @@ class ResPartner(models.Model):
         remaining = self - recs_ar_vat
         remaining.l10n_ar_vat = False
 
+    @api.depends('l10n_latam_identification_type_id', 'l10n_ar_vat')
+    def _compute_is_company(self):
+        "True if partner is considered a company in Argentina, based on Identification Type and CUIT prefix."
+        l10n_ar_partners = self.filtered(
+            lambda p: not p._is_vat_void(p.vat)
+                and p.l10n_latam_identification_type_id.l10n_ar_afip_code
+                and p.country_code == 'AR'
+        )
+        for partner in l10n_ar_partners:
+            afip_code = partner.l10n_latam_identification_type_id.l10n_ar_afip_code
+            prefix = (partner.l10n_ar_vat or '')[:2]
+
+            if (
+                afip_code == '80' and prefix in ('30', '33', '34', '51', '55')  # CUIT
+                and partner.commercial_partner_id == partner
+            ):
+                partner.is_company = True
+            else:
+                partner.is_company = False  # CUIL or DNI or Unknown type → default to individual
+
+        super(ResPartner, self - l10n_ar_partners)._compute_is_company()
+
     def _run_check_identification(self, validation='error'):
         """ Since we validate more documents than the vat for Argentinean partners (CUIT - VAT AR, CUIL, DNI) we
         extend this method in order to process it. """

@@ -13,7 +13,7 @@ class PosPayment(models.Model):
     """
 
     _name = 'pos.payment'
-    _description = "Point of Sale Payments"
+    _description = "Point of Sale Payment"
     _order = "id desc"
     _inherit = ['pos.load.mixin']
 
@@ -48,6 +48,15 @@ class PosPayment(models.Model):
     @api.model
     def _load_pos_data_domain(self, data, config):
         return [('pos_order_id', 'in', [order['id'] for order in data['pos.order']])]
+
+    @api.model
+    def _get_additional_payment_fields(self):
+        # This method is overridden by payment terminal modules to
+        # indicate additional fields that are safe to process from
+        # the Self Order Kiosk frontend.
+        # It is defined here rather than in `pos_self_order` so that
+        # the payment terminal modules don't need to depend on it.
+        return []
 
     @api.depends('amount', 'currency_id')
     def _compute_display_name(self):

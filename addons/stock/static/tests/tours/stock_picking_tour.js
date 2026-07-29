@@ -2,7 +2,7 @@ import { registry } from "@web/core/registry";
 
 registry.category("web_tour.tours").add('test_generate_serial_1', {  steps: () => [
     {
-        trigger: '.o_field_x2many_list_row_add > a',
+        trigger: '.o_field_x2many_list_row_add > button',
         run: "click",
     },
     {
@@ -42,7 +42,7 @@ registry.category("web_tour.tours").add('test_generate_serial_1', {  steps: () =
         run: "edit 5 && click body",
     },
     {
-        trigger: ".modal .btn-primary:contains('Generate')",
+        trigger: ".modal .btn-primary:contains('Validate')",
         run: "click",
     },
     {
@@ -97,7 +97,7 @@ registry.category("web_tour.tours").add('test_generate_serial_1', {  steps: () =
 
 registry.category("web_tour.tours").add('test_generate_serial_2', {  steps: () => [
     {
-        trigger: '.o_field_x2many_list_row_add > a',
+        trigger: '.o_field_x2many_list_row_add > button',
         run: "click",
     },
     {
@@ -149,7 +149,7 @@ registry.category("web_tour.tours").add('test_generate_serial_2', {  steps: () =
         run: "edit 50",
     },
     {
-        trigger: ".modal .modal-footer button.btn-primary:contains(Generate)",
+        trigger: ".modal .modal-footer button.btn-primary:contains(Validate)",
         run: "click",
     },
     {
@@ -186,7 +186,7 @@ registry.category("web_tour.tours").add('test_generate_serial_2', {  steps: () =
         run: "check",
     },
     {
-        trigger: ".modal .modal-footer button.btn-primary:contains(Generate)",
+        trigger: ".modal .modal-footer button.btn-primary:contains(Validate)",
         run: "click",
     },
     {
@@ -296,6 +296,7 @@ registry.category('web_tour.tours').add('test_inventory_adjustment_apply_all', {
 });
 
 registry.category("web_tour.tours").add("test_add_new_line_in_detailled_op", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () => [
         {
             trigger: ".o_list_view.o_field_x2many .o_data_row button[name='action_show_details']",
@@ -305,7 +306,7 @@ registry.category("web_tour.tours").add("test_add_new_line_in_detailled_op", {
             trigger: ".modal-content",
         },
         {
-            trigger: ".modal-content .o_field_x2many_list_row_add > a",
+            trigger: ".modal-content .o_field_x2many_list_row_add > button",
             run: "click",
         },
         {
@@ -324,7 +325,7 @@ registry.category("web_tour.tours").add("test_add_new_line_in_detailled_op", {
                 ".modal-content .o_data_row:has(.o_field_pick_from input:value(WH/Stock - LOT001)):has(.o_field_float[name=quantity] input:value(0.00))",
         },
         {
-            trigger: ".modal-content .o_field_x2many_list_row_add > a",
+            trigger: ".modal-content .o_field_x2many_list_row_add > button",
             run: "click",
         },
         {
@@ -402,7 +403,7 @@ registry.category("web_tour.tours").add("test_add_new_line_in_detailled_op", {
             trigger: ".modal-content .o_list_number:contains(18.00)",
         },
         {
-            trigger: ".modal-content .o_field_x2many_list_row_add > a",
+            trigger: ".modal-content .o_field_x2many_list_row_add > button",
             run: "click",
         },
         {
@@ -480,7 +481,7 @@ registry.category("web_tour.tours").add("test_add_new_line_in_detailled_op", {
             trigger: ".modal-content .o_list_number:contains(17.00)",
         },
         {
-            trigger: ".modal-content .o_field_x2many_list_row_add > a",
+            trigger: ".modal-content .o_field_x2many_list_row_add > button",
             run: "click",
         },
         {

@@ -5,15 +5,14 @@
 # Translators:
 # Martin Trigaux, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 23:14+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-09-16 15:21+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/base_import/zh_Hans/>\n"
 "Language: zh_CN\n"
@@ -21,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import
 #. odoo-javascript
@@ -133,12 +132,6 @@ msgstr "但是，您也可以使用 .csv 文件"
 
 #. module: base_import
 #. odoo-javascript
-#: code:addons/base_import/static/src/import_action/import_action.xml:0
-msgid "Cancel"
-msgstr "取消"
-
-#. module: base_import
-#. odoo-javascript
 #: code:addons/base_import/static/src/import_model.js:0
 msgid "Click 'Resume' to proceed with the import, resuming at line %s."
 msgstr "点击“继续”，以继续导入，在第%s行继续。"
@@ -153,8 +146,8 @@ msgstr "列%(column)s包含不正确的值（值：%(value)s）"
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
-"Column %(column)s contains incorrect values. Error in line %(line)d: %"
-"(error)s"
+"Column %(column)s contains incorrect values. Error in line %(line)d: "
+"%(error)s"
 msgstr "列%(column)s包含不正确的值。行%(line)d中有错误：%(error)s"
 
 #. module: base_import
@@ -242,6 +235,12 @@ msgid "Delay after each batch"
 msgstr "每批后的延迟"
 
 #. module: base_import
+#. odoo-javascript
+#: code:addons/base_import/static/src/import_action/import_action.xml:0
+msgid "Discard"
+msgstr ""
+
+#. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_import__display_name
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__display_name
 #: model:ir.model.fields,field_description:base_import.field_res_users__display_name
@@ -297,8 +296,8 @@ msgstr "导入记录时出错： 文本分隔符应为单字符。"
 #: code:addons/base_import/models/base_import.py:0
 msgid ""
 "Error while importing records: all rows should be of the same size, but the "
-"title row has %(title_row_entries)d entries while the first row has %"
-"(first_row_entries)d. You may need to change the separator character."
+"title row has %(title_row_entries)d entries while the first row has "
+"%(first_row_entries)d. You may need to change the separator character."
 msgstr ""
 "导入记录时出错：所有行应该大小相同，但标题行有%(title_row_entries)d 条记项，"
 "而第一行有%(first_row_entries)d 条记项。您可能需要更改分隔符。"
@@ -326,12 +325,6 @@ msgstr "建议使用Excel文件，因为格式是自动的。"
 #: code:addons/base_import/models/base_import.py:0
 msgid "External ID"
 msgstr "外部 ID"
-
-#. module: base_import
-#. odoo-python
-#: code:addons/base_import/models/base_import.py:0
-msgid "Field '%(field)s' does not accept date/time values."
-msgstr "字段 '%(field)s' 不接受日期/时间值。"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__field_name
@@ -367,8 +360,8 @@ msgstr "文件大小超出配置的最大值 (%s bytes)"
 
 #. module: base_import
 #: model:ir.model.fields,help:base_import.field_base_import_import__file
-msgid "File to check and/or import, raw binary (not base64)"
-msgstr "文件的检查或导入， 原始二进制编码（不是base64编码）"
+msgid "File to check and/or import"
+msgstr ""
 
 #. module: base_import
 #. odoo-javascript
@@ -513,8 +506,8 @@ msgid ""
 "Invalid cell format at row %(row)s, column %(col)s: %(cell_value)s, with "
 "format: %(cell_format)s, as (%(format_type)s) formats are not supported."
 msgstr ""
-"第%(row)s行、第%(col)s列的单元格格式无效：%(cell_value)s，格式为：%"
-"(cell_format)s，因为不支持 %(format_type)s格式。"
+"第%(row)s行、第%(col)s列的单元格格式无效：%(cell_value)s，格式为："
+"%(cell_format)s，因为不支持 %(format_type)s格式。"
 
 #. module: base_import
 #. odoo-python
@@ -793,13 +786,10 @@ msgstr "该文件将被分批导入"
 #. module: base_import
 #. odoo-python
 #: code:addons/base_import/models/base_import.py:0
-#, fuzzy
 msgid ""
 "There was an issue decoding the file using encoding “%s”.\n"
 "This encoding was automatically detected."
 msgstr ""
-"使用“%s”编码解码文件时出现问题。\n"
-"该编码是自动检测到的。"
 
 #. module: base_import
 #. odoo-python
@@ -987,37 +977,3 @@ msgstr "秒数"
 #: code:addons/base_import/models/base_import.py:0
 msgid "unknown error code %s"
 msgstr "未知编码错误 %s"
-
-#~ msgid "Column %s contains incorrect values (value: %s)"
-#~ msgstr "栏位 %s 包含非法数据(值: %s)"
-
-#~ msgid "Column %s contains incorrect values. Error in line %d: %s"
-#~ msgstr "栏位 %s 包含不正确的值。 出错行 %d: %s"
-
-#~ msgid "Error Parsing Date [%s:L%d]: %s"
-#~ msgstr "日期语法错误 [%s:L%d]: %s"
-
-#~ msgid ""
-#~ "Import timed out. Please retry. If you still encounter this issue, the "
-#~ "file may be too big for the system's configuration, try to split it "
-#~ "(import less records per file)."
-#~ msgstr ""
-#~ "导入超时。请重试。如果仍然遇到此问题，则该文件针对系统配置来说可能太大，请"
-#~ "尝试对其进行分割（每个文件导入更少的记录）。"
-
-#~ msgid "Imported file"
-#~ msgstr "导入文件"
-
-#~ msgid "Load File"
-#~ msgstr "加载文件"
-
-#~ msgid "Upload File"
-#~ msgstr "上传文件"
-
-#~ msgid "Upload an Excel or CSV file to import"
-#~ msgstr "上传要导入的 Excel 或 CSV 文件"
-
-#~ msgid ""
-#~ "You can not import images via URL, check with your administrator or "
-#~ "support for the reason."
-#~ msgstr "不能通过URL导入图像，请与管理员进行联系。"

@@ -5,13 +5,12 @@ from markupsafe import Markup
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError
-from odoo.tests.common import users, tagged
+from odoo.tests.common import users
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.addons.mail.tools.discuss import Store
 from odoo.addons.im_livechat.tests.chatbot_common import ChatbotCase
 
 
-@tagged('post_install', '-at_install')
 class TestImLivechatMessage(ChatbotCase, MailCommon):
     @classmethod
     def setUpClass(cls):
@@ -52,7 +51,7 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
             'livechat_username': 'edit me'
         })
         with self.assertRaises(AccessError):
-            self.env['res.users'].with_user(user).check_access('write')
+            user.with_user(user).login = 'updated name'
         user.with_user(user).livechat_username = 'New username'
         self.assertEqual(user.livechat_username, 'New username')
 
@@ -73,8 +72,9 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
             chatbot_script_answer=self.step_dispatch_buy_software
         )
         chatbot_message = discuss_channel.chatbot_message_ids.mail_message_id[:1]
+        store = Store().add(chatbot_message, "_store_message_fields")
         self.assertEqual(
-            Store().add(chatbot_message).get_result()["mail.message"],
+            store.get_result()["mail.message"],
             [
                 {
                     "attachment_ids": [],
@@ -92,6 +92,7 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                     "id": chatbot_message.id,
                     "incoming_email_cc": False,
                     "incoming_email_to": False,
+                    "is_bookmarked": False,
                     "message_link_preview_ids": [],
                     "message_type": "comment",
                     "model": "discuss.channel",
@@ -103,9 +104,9 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                     "rating_id": False,
                     "reactions": [],
                     "record_name": "Testing Bot",
+                    "reply_to": '"Testing Bot" <catchall.test@test.mycompany.com>',
                     "res_id": discuss_channel.id,
                     "scheduledDatetime": False,
-                    "starred": False,
                     "thread": {
                         "id": discuss_channel.id,
                         "model": "discuss.channel",
@@ -119,7 +120,7 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
         )
 
     @users('emp')
-    def test_message_to_store(self):
+    def test_store_add_message(self):
         im_livechat_channel = self.env['im_livechat.channel'].sudo().create({'name': 'support', 'user_ids': [Command.link(self.users[0].id)]})
         self.env["mail.presence"]._update_presence(self.users[0])
         self.authenticate(self.users[1].login, self.password)
@@ -149,7 +150,7 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
             rating_id=record_rating.id,
         )
         self.assertEqual(
-            Store().add(message).get_result(),
+            Store().add(message, "_store_message_fields").get_result(),
             {
                 "mail.message": self._filter_messages_fields(
                     {
@@ -165,6 +166,7 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                         "email_from": '"test1" <test1@example.com>',
                         "incoming_email_cc": False,
                         "incoming_email_to": False,
+                        "is_bookmarked": False,
                         "message_link_preview_ids": [],
                         "message_type": "notification",
                         "reactions": [],
@@ -177,9 +179,9 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                         "pinned_at": False,
                         "rating_id": record_rating.id,
                         "record_name": "test1 Ernest Employee",
+                        "reply_to": '"test1" <catchall.test@test.mycompany.com>',
                         "res_id": channel_livechat_1.id,
                         "scheduledDatetime": False,
-                        "starred": False,
                         "subject": False,
                         "subtype_id": self.env.ref("mail.mt_note").id,
                         "trackingValues": [],
@@ -194,7 +196,6 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                         "has_mail_thread": True,
                         "id": channel_livechat_1.id,
                         "model": "discuss.channel",
-                        "module_icon": "/mail/static/description/icon.png",
                         "rating_avg": 5.0,
                         "rating_count": 1,
                     },
@@ -306,7 +307,6 @@ class TestImLivechatMessage(ChatbotCase, MailCommon):
                                         "has_mail_thread": True,
                                         "id": channel.id,
                                         "model": "discuss.channel",
-                                        "module_icon": "/mail/static/description/icon.png",
                                         "rating_avg": 5.0,
                                         "rating_count": 1,
                                     },

@@ -7,14 +7,14 @@
         </record>
 
         <record id="mass_mail_1" model="mailing.mailing">
-            <field name="name">Newsletter 1</field>
             <field name="subject">Monthly Newsletter</field>
             <field name="state">done</field>
             <field name="user_id" ref="base.user_admin"/>
             <field name="email_from">info@yourcompany.example.com</field>
             <field name="sent_date" eval="(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M:%S')"/>
             <field name="campaign_id" ref="mass_mail_campaign_1"/>
-            <field name="source_id" ref="mass_mailing.utm_source_0"/>
+            <field name="medium_id" ref="utm.utm_medium_email"/>
+            <field name="source_id" ref="utm.utm_source_mailing"/>
             <field name="mailing_model_id" ref="base.model_res_partner"/>
             <field name="mailing_domain" eval="[('parent_id', '=', ref('base.res_partner_4'))]"/>
             <field name="reply_to_mode">new</field>
@@ -23,7 +23,7 @@
 <div class="o_layout o_default_theme oe_unremovable oe_unmovable" data-name="Mailing">
     <div class="container o_mail_wrapper oe_unremovable oe_unmovable" style="border-collapse:collapse;">
         <div class="row">
-            <div class="col o_mail_no_options o_mail_wrapper_td bg-white oe_structure o_editable" style="text-align:left;width:100%;">
+            <div class="col o_mail_no_options o_mail_wrapper_td bg-white oe_structure" style="text-align:left;width:100%;">
                 <div class="o_mail_block_header_logo" data-snippet="s_mail_block_header_logo">
                     <div class="o_mail_snippet_general" style="margin:0px auto 0px auto;background-color:rgb(255, 255, 255);max-width:600px;width:100%;">
                         <div class="container o_mail_h_padding" style="padding:0 20px 0 20px;width:100%;border-collapse:separate;">

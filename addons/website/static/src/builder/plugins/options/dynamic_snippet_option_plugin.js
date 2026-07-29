@@ -105,13 +105,6 @@ class DynamicSnippetOptionPlugin extends Plugin {
         if (snippetEl.matches(DynamicSnippetOption.selector)) {
             await this.setOptionsDefaultValues(snippetEl, this.modelNameFilter);
         }
-        // TODO (adapt for master): Dynamic snippets should display the
-        // placeholder by default. Their visibility should then be controlled
-        // by the interaction behavior.
-        if (snippetEl.classList.contains("s_dynamic")) {
-            snippetEl.classList.remove("o_dynamic_snippet_empty");
-            snippetEl.classList.add("o_dynamic_snippet_loading");
-        }
     }
     async setOptionsDefaultValues(snippetEl, modelNameFilter, contextualFilterDomain = []) {
         await this.fetchDynamicFilters({
@@ -190,18 +183,18 @@ class DynamicSnippetOptionPlugin extends Plugin {
         }
         el.classList.add(this.getTemplateClass(newTemplateKey));
 
-        if (template.numOfEl) {
-            el.dataset.numberOfElements = template.numOfEl;
+        if (template.numberOfElements) {
+            el.dataset.numberOfElements = template.numberOfElements;
         } else {
             delete el.dataset.numberOfElements;
         }
-        if (template.numOfElSm) {
-            el.dataset.numberOfElementsSmallDevices = template.numOfElSm;
+        if (template.numberOfElementsSmallDevices) {
+            el.dataset.numberOfElementsSmallDevices = template.numberOfElementsSmallDevices;
         } else {
             delete el.dataset.numberOfElementsSmallDevices;
         }
-        if (template.numOfElFetch) {
-            el.dataset.numberOfRecords = template.numOfElFetch;
+        if (template.numberOfRecords) {
+            el.dataset.numberOfRecords = template.numberOfRecords;
         }
         if (template.extraClasses) {
             el.dataset.extraClasses = template.extraClasses;

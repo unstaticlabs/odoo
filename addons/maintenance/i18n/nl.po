@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2022
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 00:38+0000\n"
+"POT-Creation-Date: 2026-05-22 17:40+0000\n"
+"PO-Revision-Date: 2026-06-06 13:45+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "maintenance/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -23,11 +23,6 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 2026.6.1\n"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "<span class=\"badge text-bg-warning float-end\">Cancelled</span>"
-msgstr "<span class=\"badge text-bg-warning float-end\">Geannuleerd</span>"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
@@ -74,7 +69,6 @@ msgstr "Actie gevraagd"
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__active
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__active
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 msgid "Active"
 msgstr "Actief"
 
@@ -89,6 +83,12 @@ msgstr "Activiteiten"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Activiteit uitzondering decoratie"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__activity_plans_ids
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Activiteitenplannen"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__activity_state
@@ -196,9 +196,10 @@ msgid "Another asset already exists with this serial number!"
 msgstr "Er bestaat reeds apparaat met dit partijnummer!"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__archive
-msgid "Archive"
-msgstr "Archiveren"
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__approved
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+msgid "Approved"
+msgstr "Goedgekeurd"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_form
@@ -237,20 +238,14 @@ msgid "Attachment Count"
 msgstr "Aantal bijlagen"
 
 #. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__blocked
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
-#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
-msgid "Blocked"
-msgstr "Vergrendeld"
-
-#. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
 msgid "Cancel"
 msgstr "Annuleren"
 
 #. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_kanban
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__cancelled
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "Cancelled"
 msgstr "Geannuleerd"
 
@@ -267,6 +262,13 @@ msgstr "Categorie"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_category_view_search
 msgid "Category Name"
 msgstr "Categorienaam"
+
+#. module: maintenance
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__changes_requested
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+msgid "Changes Requested"
+msgstr "Wijzigingen gevraagd"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__close_date
@@ -388,11 +390,6 @@ msgid "Dashboard"
 msgstr "Dashboard"
 
 #. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__request_date
-msgid "Date requested for the maintenance to happen"
-msgstr "Datum aangevraagd waarop het onderhoud moet gebeuren"
-
-#. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_request__schedule_date
 msgid ""
 "Date the maintenance team plans the maintenance.  It should not differ much "
@@ -440,6 +437,7 @@ msgid "Display Name"
 msgstr "Schermnaam"
 
 #. module: maintenance
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__done
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "Done"
@@ -477,12 +475,6 @@ msgstr "E-mailalias"
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__alias_id
 msgid "Email alias for this maintenance team."
 msgstr "E-mailalias voor dit onderhoudsteam."
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__email_cc
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Email cc"
-msgstr "E-mail cc"
 
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__alias_domain
@@ -579,7 +571,8 @@ msgstr "Verwachte tijd tussen storingen"
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_request__schedule_end
 msgid "Expected completion date and time of the maintenance request."
-msgstr "Verwachte voltooiingsdatum en -tijdstip van de aanvraag voor onderhoud."
+msgstr ""
+"Verwachte voltooiingsdatum en -tijdstip van de aanvraag voor onderhoud."
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment_category__fold
@@ -596,7 +589,8 @@ msgstr "Gevouwen in onderhoudsfases"
 #: model_terms:ir.actions.act_window,help:maintenance.maintenance_request_action_reports
 msgid ""
 "Follow the process of the request and communicate with the collaborator."
-msgstr "Volg het proces van het verzoek op en communiceer het aan de werknemer."
+msgstr ""
+"Volg het proces van het verzoek op en communiceer het aan de werknemer."
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__message_follower_ids
@@ -628,17 +622,6 @@ msgstr "Voor altijd"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_search
 msgid "Future Activities"
 msgstr "Toekomstige activiteiten"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_google_slide
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__google_slide
-msgid "Google Slide"
-msgstr "Google Slide"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Google Slide Link"
-msgstr "Google Slide link"
 
 #. module: maintenance
 #: model:maintenance.equipment,name:maintenance.equipment_printer1
@@ -724,16 +707,11 @@ msgstr ""
 "gebruikers verzonden in plaats van het standaardbericht."
 
 #. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__normal
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__normal
 #: model:maintenance.stage,name:maintenance.stage_1
-#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 msgid "In Progress"
 msgstr "In behandeling"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_type
-msgid "Instruction"
-msgstr "Instructie"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
@@ -756,11 +734,6 @@ msgstr "Interne notities"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__message_is_follower
 msgid "Is Follower"
 msgstr "Is een volger"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__kanban_state
-msgid "Kanban State"
-msgstr "Kanban status"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__write_uid
@@ -836,11 +809,6 @@ msgstr "MTTR"
 #: model_terms:ir.ui.view,arch_db:maintenance.res_config_settings_view_form
 msgid "Maintenance"
 msgstr "Onderhoud"
-
-#. module: maintenance
-#: model:ir.ui.menu,name:maintenance.menu_m_request_calendar
-msgid "Maintenance Calendar"
-msgstr "Onderhoudsagenda"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__maintenance_count
@@ -929,6 +897,7 @@ msgid "Maintenance Stages"
 msgstr "Onderhoudsfases"
 
 #. module: maintenance
+#: model:ir.model,name:maintenance.model_maintenance_team
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__maintenance_team_id
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_mixin__maintenance_team_id
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_view_form
@@ -938,7 +907,6 @@ msgstr "Onderhoudsteam"
 
 #. module: maintenance
 #: model:ir.actions.act_window,name:maintenance.maintenance_dashboard_action
-#: model:ir.model,name:maintenance.model_maintenance_team
 #: model:ir.ui.menu,name:maintenance.menu_maintenance_teams
 msgid "Maintenance Teams"
 msgstr "Onderhoudsteams"
@@ -1089,11 +1057,6 @@ msgid "Number of Requests"
 msgstr "Aantal aanvragen"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_block
-msgid "Number of Requests Blocked"
-msgstr "Aantal aanvragen vergrendeld"
-
-#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_date
 msgid "Number of Requests Scheduled"
 msgstr "Aantal aanvragen ingepland"
@@ -1107,6 +1070,11 @@ msgstr "Aantal aanvragen ongepland"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_high_priority
 msgid "Number of Requests in High Priority"
 msgstr "Aantal aanvragen met hoge prioriteit"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_changes_requested
+msgid "Number of Requests with Changes Requested"
+msgstr "Aantal verzoeken met gevraagde wijzigingen"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__message_has_error_counter
@@ -1128,6 +1096,12 @@ msgstr "Aantal berichten die actie vereisen"
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "Aantal berichten met leveringsfout"
+
+#. module: maintenance
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+msgid "Open"
+msgstr "Openen"
 
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__alias_force_thread_id
@@ -1154,12 +1128,6 @@ msgid "Owner"
 msgstr "Eigenaar"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_pdf
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__pdf
-msgid "PDF"
-msgstr "PDF"
-
-#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__alias_parent_model_id
 msgid "Parent Model"
 msgstr "Bovenliggend model"
@@ -1180,15 +1148,6 @@ msgstr ""
 "bevat,\n"
 "is niet noodzakelijk het model dat door alias_model_id wordt gegeven "
 "(bijvoorbeeld: project (parent_model) en taak (model))"
-
-#. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__instruction_google_slide
-msgid ""
-"Paste the url of your Google Slide. Make sure the access to the document is "
-"public."
-msgstr ""
-"Plak de URL van je Google Slide. Zorg ervoor dat de toegang tot het document "
-"openbaar is."
 
 #. module: maintenance
 #: model:maintenance.equipment.category,name:maintenance.equipment_phone
@@ -1236,16 +1195,6 @@ msgstr "Productinformatie"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_search
 msgid "Properties"
 msgstr "Eigenschappen"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
-msgid "Ready"
-msgstr "Gereed"
-
-#. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__done
-msgid "Ready for next stage"
-msgstr "Klaar voor volgende fase"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_kanban
@@ -1302,23 +1251,6 @@ msgid "Request Created"
 msgstr "Verzoek aangemaakt"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__request_date
-msgid "Request Date"
-msgstr "Aanvraagdatum"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__done
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_stage__done
-msgid "Request Done"
-msgstr "Aanvraag uitgevoerd"
-
-#. module: maintenance
-#. odoo-python
-#: code:addons/maintenance/models/maintenance.py:0
-msgid "Request planned for %s"
-msgstr "Verzoek gepland voor %s"
-
-#. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
 msgid "Requested By"
 msgstr "Aangevraagd door"
@@ -1364,6 +1296,15 @@ msgid "Scheduled Date"
 msgstr "Geplande datum"
 
 #. module: maintenance
+#. odoo-python
+#: code:addons/maintenance/models/maintenance.py:0
+msgid ""
+"Scheduled Date and Scheduled End must either both be set or both be empty."
+msgstr ""
+"Geplande datum en Geplande einddatum moeten beide worden ingevuld of beide "
+"leeg blijven."
+
+#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__schedule_end
 msgid "Scheduled End"
 msgstr "Gepland einde"
@@ -1396,14 +1337,6 @@ msgid "Serial Number"
 msgstr "Serienummer"
 
 #. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__archive
-msgid ""
-"Set archive to true to hide the maintenance request without deleting it."
-msgstr ""
-"Vink de optie actief aan om de onderhoudsopdracht te verbergen zonder ze te "
-"verwijderen."
-
-#. module: maintenance
 #: model:ir.actions.act_window,name:maintenance.action_maintenance_configuration
 #: model:ir.ui.menu,name:maintenance.menu_maintenance_config
 msgid "Settings"
@@ -1430,6 +1363,11 @@ msgstr "Fase"
 #: model:ir.actions.act_window,name:maintenance.hr_equipment_stage_action
 msgid "Stages"
 msgstr "Fases"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__state
+msgid "State"
+msgstr "Status"
 
 #. module: maintenance
 #: model:mail.message.subtype,name:maintenance.mt_req_status
@@ -1497,7 +1435,6 @@ msgstr "Technicus"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_text
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__text
 msgid "Text"
 msgstr "Tekst"
 
@@ -1541,7 +1478,6 @@ msgstr ""
 "berekenen."
 
 #. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "To Do"
 msgstr "Te doen"
@@ -1601,11 +1537,6 @@ msgstr "Niet gepland"
 #: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__repeat_type__until
 msgid "Until"
 msgstr "T/m"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Upload your PDF file."
-msgstr "Upload je PDF bestand."
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__partner_id
@@ -1695,98 +1626,3 @@ msgstr "bijv. Scherm werkt niet"
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_view_form
 msgid "e.g. mycompany.com"
 msgstr "bijv. mycompany.com"
-
-#~ msgid "<b>Category:</b>"
-#~ msgstr "<b>Categorie:</b>"
-
-#~ msgid "<b>Model Number:</b>"
-#~ msgstr "<b>Modelnummer:</b>"
-
-#~ msgid "<b>Request to:</b>"
-#~ msgstr "<b>Aanvraag aan:</b>"
-
-#~ msgid "<b>Serial Number:</b>"
-#~ msgstr "<b>Serienummer:</b>"
-
-#~ msgid "<span class=\"badge text-bg-warning float-end\">Canceled</span>"
-#~ msgstr "<span class=\"badge text-bg-warning float-end\">Geannuleerd</span>"
-
-#~ msgid "<span class=\"ml8\">hours</span>"
-#~ msgstr "<span class=\"ml8\">uren</span>"
-
-#~ msgid "<strong>Maintenance:</strong>"
-#~ msgstr "<strong>Onderhoud:</strong>"
-
-#~ msgid "Alias domain"
-#~ msgstr "Aliasdomein"
-
-#~ msgid ""
-#~ "Date at which the equipment became effective. This date will be used to "
-#~ "compute the Mean Time Between Failure."
-#~ msgstr ""
-#~ "Datum waarop de apparatuur effectief werd. Deze datum wordt gebruikt om "
-#~ "de MTBF te berekenen."
-
-#~ msgid "Date of the next preventive maintenance"
-#~ msgstr "Datum van het volgende preventieve onderhoud"
-
-#~ msgid "Days between each preventive maintenance"
-#~ msgstr "Dagen tussen ieder preventief onderhoud"
-
-#~ msgid ""
-#~ "Email alias for this equipment category. New emails will automatically "
-#~ "create a new equipment under this category."
-#~ msgstr ""
-#~ "E-mail alias voor deze apparatuurcategorie. Nieuwe e-mails maken "
-#~ "automatisch een nieuw apparaat aan onder deze categorie."
-
-#~ msgid "Group by..."
-#~ msgstr "Groepeer op..."
-
-#~ msgid "Location"
-#~ msgstr "Locatie"
-
-#~ msgid "Maintenance Duration"
-#~ msgstr "Duur onderhoud"
-
-#~ msgid "Maintenance Duration in hours."
-#~ msgstr "Duur onderhoud in uren."
-
-#~ msgid "Maintenance: generate preventive maintenance requests"
-#~ msgstr "Onderhoud: genereer preventieve onderhoudsaanvragen"
-
-#~ msgid "Next Preventive Maintenance"
-#~ msgstr "Volgende preventief onderhoud"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Aantal berichten die actie vereisen"
-
-#~ msgid "Preventive Maintenance - %s"
-#~ msgstr "Preventief onderhoud - %s"
-
-#~ msgid "Preventive Maintenance Frequency"
-#~ msgstr "Preventief onderhoud frequency"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Toon alle records welke een actiedatum voor vandaag hebben"
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "De eigenaar van de regels welke zijn aangemaakt bij het ontvangen van de "
-#~ "e-mails op deze alias. Indien dit veld niet is ingesteld zal het systeem "
-#~ "proberen om de juiste eigenaar te vinden op basis van het verzend (van) "
-#~ "adres. Indien geen gebruiker wordt gevonden, wordt de Administrator "
-#~ "gebruiker gebruikt."
-
-#~ msgid "Used in location"
-#~ msgstr "Gebruikt in locatie"
-
-#~ msgid "hours"
-#~ msgstr "uren"
-
-#~ msgid "maintenance Request"
-#~ msgstr "Onderhoudsopdracht"

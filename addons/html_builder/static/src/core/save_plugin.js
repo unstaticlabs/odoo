@@ -1,4 +1,3 @@
-import { escapeTextNodes } from "@html_builder/utils/escaping";
 import { Plugin } from "@html_editor/plugin";
 import { withSequence } from "@html_editor/utils/resource";
 import { groupBy } from "@web/core/utils/arrays";
@@ -8,7 +7,6 @@ import { uniqueId } from "@web/core/utils/functions";
 /**
  * @typedef { Object } SaveShared
  * @property { SavePlugin['save'] } save
- * @property { SavePlugin['saveView'] } saveView
  * @property { SavePlugin['ignoreDirty'] } ignoreDirty
  * @property { SavePlugin['groupElements'] } groupElements
  */
@@ -30,13 +28,11 @@ import { uniqueId } from "@web/core/utils/functions";
  * @typedef {((cleanedEls: HTMLElement[]) => Promise<boolean>)[]} save_elements_overrides
  *
  * @typedef {(() => HTMLElement[] | NodeList)[]} get_dirty_els
- *
- * @typedef {CSSSelector[]} savable_selectors
  */
 
 export class SavePlugin extends Plugin {
     static id = "savePlugin";
-    static shared = ["save", "saveView", "ignoreDirty", "groupElements"];
+    static shared = ["save", "ignoreDirty", "groupElements"];
     static dependencies = ["history"];
 
     /** @type {import("plugins").BuilderResources} */
@@ -44,18 +40,12 @@ export class SavePlugin extends Plugin {
         handleNewRecords: this.handleMutations.bind(this),
         start_edition_handlers: this.startObserving.bind(this),
         // Resource definitions:
-        savable_selectors: [
-            "#wrapwrap .oe_structure[data-oe-xpath][data-oe-id]",
-            "#wrapwrap [data-oe-field]:not([data-oe-sanitize-prevent-edition])",
-            "#wrapwrap .s_cover[data-res-model]",
-        ],
         clean_for_save_handlers: [
             // ({root}) => {
             //     clean DOM before save (leaving edit mode)
             //     root is the clone of a node that was o_dirty
             // }
         ],
-        save_element_handlers: [this.saveView.bind(this)],
         get_dirty_els: () => this.editable.querySelectorAll(".o_dirty"),
         // Do not change the sequence of this resource, it must stay the first
         // one to avoid marking dirty when not needed during the drag and drop.
@@ -64,7 +54,6 @@ export class SavePlugin extends Plugin {
 
     setup() {
         this.canObserve = false;
-        this.savableSelector = this.getResource("savable_selectors").join(", ");
     }
 
     groupElements(toGroupEls) {
@@ -133,36 +122,6 @@ export class SavePlugin extends Plugin {
         this.dependencies.history.reset();
     }
 
-    /**
-     * Saves one (dirty) element of the page.
-     *
-     * @param {HTMLElement} el - the element to save.
-     */
-    saveView(el, delayTranslations = true) {
-        const viewID = Number(el.dataset["oeId"]);
-        if (!viewID) {
-            return;
-        }
-
-        let context = {};
-        if (this.services.website) {
-            const delay = delayTranslations ? { delay_translations: true } : {};
-            context = {
-                website_id: this.services.website.currentWebsite.id,
-                lang: this.services.website.currentWebsite.metadata.lang,
-                ...delay,
-            };
-        }
-
-        escapeTextNodes(el);
-        return this.services.orm.call(
-            "ir.ui.view",
-            "save",
-            [viewID, el.outerHTML, (!el.dataset["oeExpression"] && el.dataset["oeXpath"]) || null],
-            { context }
-        );
-    }
-
     startObserving() {
         this.canObserve = true;
     }
@@ -195,7 +154,7 @@ export class SavePlugin extends Plugin {
             if (!targetEl) {
                 continue;
             }
-            const savableEl = targetEl.closest(this.savableSelector);
+            const savableEl = targetEl.closest(".o_savable");
             if (
                 !savableEl ||
                 savableEl.classList.contains("o_dirty") ||

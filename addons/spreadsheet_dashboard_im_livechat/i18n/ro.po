@@ -1,24 +1,20 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * spreadsheet_dashboard_im_livechat
+# 	* spreadsheet_dashboard_im_livechat
 #
-# Busoi Cristina <elena.busoi@capps.ai>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 07:11+0000\n"
-"Last-Translator: Busoi Cristina <elena.busoi@capps.ai>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
-"spreadsheet_dashboard_im_livechat/ro/>\n"
+"POT-Creation-Date: 2025-09-11 14:02+0000\n"
+"PO-Revision-Date: 2024-10-25 07:49+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
-"20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -26,7 +22,7 @@ msgstr ""
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Agent"
-msgstr "Agent"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -34,62 +30,62 @@ msgstr "Agent"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Agents"
-msgstr "Agenți"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Avg. Rating"
-msgstr "Evaluare medie"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Avg. number of messages"
-msgstr "Numărul mediu de mesaje"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Avg. session duration"
-msgstr "Durata medie sesiune"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Avg. time to respond"
-msgstr "Timpul mediu de răspuns"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Call"
-msgstr "Apel"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Call Duration"
-msgstr "Durata apelului"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Calls"
-msgstr "Apeluri"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Calls by Agents"
-msgstr "Apeluri efectuate de agenți"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -97,7 +93,7 @@ msgstr "Apeluri efectuate de agenți"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Channels"
-msgstr "Canale"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -105,7 +101,7 @@ msgstr "Canale"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Chatbot Answer"
-msgstr "Răspunsul chatbotului"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -113,7 +109,7 @@ msgstr "Răspunsul chatbotului"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Countries"
-msgstr "Țări"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -121,7 +117,7 @@ msgstr "Țări"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Country"
-msgstr "Țarǎ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -130,7 +126,7 @@ msgstr "Țarǎ"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Current"
-msgstr "Actual"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -139,12 +135,12 @@ msgstr "Actual"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Escalated"
-msgstr "Escaladat"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:ir.ui.menu,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_escalated_menu
 msgid "Escalated Sessions"
-msgstr "Sesiuni escaladate"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -152,7 +148,7 @@ msgstr "Sesiuni escaladate"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Expertise"
-msgstr "Expertiză"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -160,7 +156,7 @@ msgstr "Expertiză"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Expertises"
-msgstr "Expertize"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -169,7 +165,7 @@ msgstr "Expertize"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Handled by Agent"
-msgstr "Gestionat de agent"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -178,7 +174,7 @@ msgstr "Gestionat de agent"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Handled by Bot"
-msgstr "Gestionat de Bot"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -187,7 +183,7 @@ msgstr "Gestionat de Bot"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "KPI"
-msgstr "KPI"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -195,7 +191,7 @@ msgstr "KPI"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Language"
-msgstr "Limbǎ"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -203,56 +199,56 @@ msgstr "Limbǎ"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Languages"
-msgstr "Limbi"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:spreadsheet.dashboard,name:spreadsheet_dashboard_im_livechat.spreadsheet_dashboard_livechat
 msgid "Live Chat"
-msgstr "Chat Live"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:spreadsheet.dashboard,name:spreadsheet_dashboard_im_livechat.spreadsheet_dashboard_livechat_ongoing
 msgid "Live Chat - Ongoing Sessions"
-msgstr "Chat live - Sesiuni în curs"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Messages per Session"
-msgstr "Mesaje pe sesiune"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Messages per session"
-msgstr "Mesaje pe sesiune"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 msgid "Minutes"
-msgstr "Minute"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "No One Available"
-msgstr "Nimeni disponibil"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Not Answered"
-msgstr "Fără răspuns"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:ir.ui.menu,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_agents_in_call_menu
 msgid "Ongoing Call Sessions"
-msgstr "Sesiuni de apeluri în curs"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -260,48 +256,48 @@ msgstr "Sesiuni de apeluri în curs"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 #: model:ir.ui.menu,name:spreadsheet_dashboard_im_livechat.ongoing_session_all_menu
 msgid "Ongoing Sessions"
-msgstr "Sesiuni în curs"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Period"
-msgstr "Perioadă"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Previous"
-msgstr "Anterior"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Rating (%)"
-msgstr "Evaluare (%)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Response Time (sec)"
-msgstr "Timp de răspuns (secunde)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Session Duration"
-msgstr "Durata sesiunii"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Session Duration (min)"
-msgstr "Durata sesiunii (min)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -315,17 +311,17 @@ msgstr "Durata sesiunii (min)"
 #: model:ir.actions.act_window,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_handle_by_agent_action
 #: model:ir.actions.act_window,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_handle_by_bot_action
 msgid "Sessions"
-msgstr "Sesiuni"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:ir.ui.menu,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_handle_by_agent_menu
 msgid "Sessions Handled by Agent"
-msgstr "Sesiuni gestionate de agent"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #: model:ir.ui.menu,name:spreadsheet_dashboard_im_livechat.ongoing_sessions_handle_by_bot_menu
 msgid "Sessions Handled by Bot"
-msgstr "Sesiuni gestionate de bot"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -334,62 +330,62 @@ msgstr "Sesiuni gestionate de bot"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Sessions by Agent"
-msgstr "Sesiuni după agent"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Sessions by Day"
-msgstr "Sesiuni pe zile"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Sessions by Day of Week"
-msgstr "Sesiuni pe zile ale săptămânii"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 msgid "Sessions by Hour of Day"
-msgstr "Sesiuni pe ore din zi"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Sessions by Minute"
-msgstr "Sesiuni pe minut"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Sessions with Calls (#)"
-msgstr "Sesiuni cu apeluri (#)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Sessions with Calls (%)"
-msgstr "Sesiuni cu apeluri (%)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Time to Respond"
-msgstr "Timp de răspuns"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Time to Respond (sec)"
-msgstr "Timpul de răspuns (secunde)"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -398,7 +394,7 @@ msgstr "Timpul de răspuns (secunde)"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Top Agents"
-msgstr "Agenți de top"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -406,7 +402,7 @@ msgstr "Agenți de top"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Top Chatbot Answers"
-msgstr "Cele mai populare răspunsuri ale chatbotului"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -414,21 +410,21 @@ msgstr "Cele mai populare răspunsuri ale chatbotului"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Top Countries"
-msgstr "Țările de top"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_ongoing_dashboard.json:0
 msgid "Top Expertise"
-msgstr "Expertiză de vârf"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Top Expertises"
-msgstr "Expertiză de vârf"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
@@ -436,18 +432,18 @@ msgstr "Expertiză de vârf"
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_ongoing_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "Top Languages"
-msgstr "Limbi principale"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "last period"
-msgstr "perioada anterioară"
+msgstr ""
 
 #. module: spreadsheet_dashboard_im_livechat
 #. odoo-javascript
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_dashboard.json:0
 #: code:addons/spreadsheet_dashboard_im_livechat/data/files/livechat_sample_dashboard.json:0
 msgid "since last period"
-msgstr "de la ultima perioadă"
+msgstr ""

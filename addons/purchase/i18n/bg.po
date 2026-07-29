@@ -19,24 +19,24 @@
 # Rosen Vladimirov <vladimirov.rosen@gmail.com>, 2023
 # aleksandar ivanov, 2023
 # Ivo Matev <ivo.matev@lensin.eu>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Toma Tomov <toma.tomov@gmail.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 21:43+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
+"PO-Revision-Date: 2026-01-15 20:33+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-s19-1/"
 "purchase/bg/>\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: purchase
 #: model:ir.actions.report,print_report_name:purchase.action_report_purchase_order
@@ -47,9 +47,9 @@ msgid ""
 "                'Purchase Order - %s' % (object.name))"
 msgstr ""
 "\n"
-"                (object.state in ('draft', 'sent') and 'Запитване за "
-"Оферта - %s' % (object.name) or\n"
-"                'Поръчка - %s' % (object.name))"
+"                (object.state in ('draft', 'sent') и 'Искане за оферта - %s' "
+"% (object.name) или\n"
+"                'Поръчка за покупка - %s' % (object.name))"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__partner_bill_count
@@ -141,12 +141,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -186,12 +184,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -220,12 +216,10 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
@@ -272,8 +266,6 @@ msgid ""
 "<i class=\"fa fa-lock\"/>\n"
 "                        Locked"
 msgstr ""
-"<i class=\"fa fa-lock\"/>\n"
-"                        Заключен"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -297,7 +289,7 @@ msgid ""
 "<span class=\"d-none d-md-inline\">Purchase Order #</span>\n"
 "                          <span class=\"d-block d-md-none\">Ref.</span>"
 msgstr ""
-"<span class=\"d-none d-md-inline\">Поръчка #</span>\n"
+"<span class=\"d-none d-md-inline\">Поръчка за покупка №</span>\n"
 "                          <span class=\"d-block d-md-none\">Реф.</span>"
 
 #. module: purchase
@@ -306,8 +298,8 @@ msgid ""
 "<span class=\"d-none d-md-inline\">Request for Quotation #</span>\n"
 "                        <span class=\"d-block d-md-none\">Ref.</span>"
 msgstr ""
-"<span class=\"d-none d-md-inline\">Запитване за Оферта #</span>\n"
-"                        <span class=\"d-block d-md-none\">Реф.</span>"
+"<span class=\"d-none d-md-inline\">Заявка за оферта #</span>\n"
+"                        <span class=\"d-block d-md-none\">Референция</span>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -317,10 +309,10 @@ msgid ""
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Purchase Order </span>"
 msgstr ""
-"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')\">"
-"Запитване за Оферта </span>\n"
+"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')"
+"\">Заявка за оферта </span>\n"
 "                        <span class=\"o_form_label\" invisible=\"state in "
-"('draft', 'sent')\">Поръчка </span>"
+"('draft', 'sent')\">Поръчка за покупка </span>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -330,7 +322,7 @@ msgstr "<span class=\"o_stat_text\">Съвпадение на фактурата
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "<span class=\"o_stat_text\">Price Comparison</span>"
-msgstr "<span class=\"o_stat_text\">Сравнение на цените</span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_move_form_inherit_purchase
@@ -344,9 +336,18 @@ msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Закупено</span>"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "<span> day(s) before</span>"
-msgstr "<span> дни преди</span>"
+msgstr "<span> ден/дни преди</span>"
 
 #. module: purchase
 #: model_terms:web_tour.tour,rainbow_man_message:purchase.purchase_tour
@@ -363,7 +364,7 @@ msgstr "<span>Стойност</span>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "<span>Ask confirmation</span>"
-msgstr "<span>Потвърждение</span>"
+msgstr "<span>Поискайте потвърждение</span>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -373,7 +374,7 @@ msgstr "<span>Данъци</span>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "<span>Warning: this order might be a duplicate of</span>"
-msgstr "<span>Внимание: тази Поръчка може да е дубликат на</span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -386,10 +387,15 @@ msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Фактури</strong>"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "<strong class=\"d-block mt-3\">Shipping address</strong>"
-msgstr "<strong class=\"d-block mt-3\">Адрес за доставка</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -400,7 +406,7 @@ msgstr "<strong class=\"mr16\">Междинно</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "<strong>Amount</strong>"
-msgstr "<strong>К-во</strong>"
+msgstr "<strong>Количество</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -421,12 +427,12 @@ msgstr "<strong>Описание</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "<strong>Disc.</strong>"
-msgstr "<strong>Отст.</strong>"
+msgstr "<strong>Отстъпка</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "<strong>Expected Arrival:</strong>"
-msgstr "<strong>Пристига на:</strong>"
+msgstr "<strong>Очаквано пристигане:</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
@@ -453,7 +459,7 @@ msgstr "<strong>Условия на плащане: </strong>"
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "<strong>Qty</strong>"
-msgstr "<strong>К-во</strong>"
+msgstr "<strong>Количество</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -463,12 +469,12 @@ msgstr "<strong>Получена на:</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong>Request For Quotation Date:</strong>"
-msgstr "<strong>Дата на Запитване за Оферта:</strong>"
+msgstr "<strong>Дата на заявка за оферта:</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "<strong>Requested Ship Date:</strong>"
-msgstr "<strong>Дата на доставка:</strong>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -478,7 +484,7 @@ msgstr "<strong>Такси</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.track_po_line_template
 msgid "<strong>The ordered quantity has been updated.</strong>"
-msgstr "<strong>Количествата в поръчката бяха обновени.</strong>"
+msgstr "<strong>Количествата в поръчката бяха обновени</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.track_po_line_qty_received_template
@@ -543,7 +549,7 @@ msgstr "Преместване на акаунт"
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.action_accrued_expense_entry
 msgid "Accrued Expense Entry"
-msgstr "Начисляване на разход"
+msgstr "Запис за натрупани разходи"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -568,12 +574,17 @@ msgstr "Дейности"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 msgid "Activities of"
-msgstr "Дейности на"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Декорация за изключение на дейност"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -608,7 +619,7 @@ msgstr "Добави бележка"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Add a product"
-msgstr "Добави ред"
+msgstr "Добавяне на нов продукт"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -618,7 +629,7 @@ msgstr "Добави секция"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Add several variants to the purchase order from a grid"
-msgstr "Добавяне на няколко варианта към Поръчка от таблица"
+msgstr "Добавяне на няколко варианта към поръчката за покупка от мрежа"
 
 #. module: purchase
 #. odoo-javascript
@@ -630,18 +641,18 @@ msgstr "Добавете някои продукти или услуги към 
 #: model_terms:ir.ui.view,arch_db:purchase.bill_to_po_wizard_form
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
 msgid "Add to PO"
-msgstr "Добави към Поръчка"
+msgstr "Добави към поръчката за покупка"
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_bill_line_match.py:0
 msgid "Add to Purchase Order"
-msgstr "Добави към Поръчка"
+msgstr "Добави към поръчката за покупка"
 
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.mail_followers_edit_action_from_purchase
 msgid "Add/Remove Followers"
-msgstr "Добавяне/Премахване на Последователи"
+msgstr ""
 
 #. module: purchase
 #: model:res.groups,name:purchase.group_purchase_manager
@@ -660,37 +671,37 @@ msgstr "Всички"
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Days to Order"
-msgstr "Оставащи дни до поръчка"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Draft RFQs"
-msgstr "Всички Чернови RFQs"
+msgstr "Всички чернови на заявки за оферта"
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Late RFQs"
-msgstr "Всички Закъснели RFQs"
+msgstr "Всички закъснели заявки за оферта"
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Late Receipt POs"
-msgstr "Всички поръчки със закъсняла доставка"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Not Acknowledged POs"
-msgstr "Всички непотвърдени поръчки"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "All Sent RFQs"
-msgstr "Всички Изпратени RFQs"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_res_config_settings__group_send_reminder
@@ -707,7 +718,7 @@ msgstr "Позволете редактиране на поръчки за по�
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__allowed_uom_ids
 msgid "Allowed Uom"
-msgstr "Позволени мерни единици"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__aml_id
@@ -719,7 +730,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__amount_to_invoice_at_date
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Amount"
-msgstr "Стойност"
+msgstr "Количество"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_report__delay_pass
@@ -733,7 +744,8 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_report__delay
 msgid "Amount of time between purchase approval and order by date."
-msgstr "Периодът от време между одобрението на покупката и датата на поръчката."
+msgstr ""
+"Периодът от време между одобрението на покупката и датата на поръчката."
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_account_analytic_account
@@ -743,7 +755,7 @@ msgstr "Аналитична Сметка"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__analytic_distribution
 msgid "Analytic Distribution"
-msgstr "Анал. разпределение"
+msgstr "Аналитично разпределение"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_account_analytic_applicability
@@ -764,7 +776,8 @@ msgstr "Одобрете поръчка"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_kpis_tree
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
 msgid "Are you sure you want to cancel the selected RFQs/Orders?"
-msgstr "Сигурни ли сте, че искате да анулирате избраните RFQs/Поръчки?"
+msgstr ""
+"Сигурни ли сте, че искате да анулирате избраните заявки за оферта/поръчки?"
 
 #. module: purchase
 #. odoo-python
@@ -774,10 +787,6 @@ msgid ""
 "been used for this product, the change of unit of measure can not be done.If "
 "you want to change it, please archive the product and create a new one."
 msgstr ""
-"Като други мерни единици (ex : %(problem_uom)s) когато %(uom)s вече са били "
-"използвани за този продукт, промяната на мерната единица не може да се "
-"извърши. Ако искате да я промените, моля, архивирайте продукта и създайте "
-"нов."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_attachment_count
@@ -801,24 +810,16 @@ msgid "Auto-Complete"
 msgstr "Auto-Complete"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Автоматично попълване"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
-msgstr "Автоматично попълване от предишна Поръчка."
+msgstr "Автоматично попълване от предишна поръчка за покупка."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_vendor_bill_id
 msgid "Auto-complete from a previous bill, refund, or purchase order."
 msgstr ""
-"Автоматично попълване от предишна фактура, възстановяване на сума или "
-"Поръчка."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -867,7 +868,7 @@ msgstr "Съвпадение на фактури"
 #. module: purchase
 #: model:ir.model,name:purchase.model_bill_to_po_wizard
 msgid "Bill to Purchase Order"
-msgstr "Фактура към Поръчка"
+msgstr "Фактура към поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_invoiced_at_date
@@ -884,7 +885,7 @@ msgstr "Фактурирана сума без данъци"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_invoiced
 msgid "Billed Qty"
-msgstr "Фактурирано К-во"
+msgstr "Фактурирано количество"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -946,13 +947,14 @@ msgstr "Отменен"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "Cancelled Purchase Order #"
-msgstr "Анулирана Поръчка #"
+msgstr "Анулирана поръчка за покупка #"
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Cannot delete a purchase order line which is in state “%s”."
-msgstr "Не може да се изтрие ред от Поръчка, която е в състояние “%s”."
+msgstr ""
+"Не може да се изтрие ред от поръчка за покупка, която е в състояние “%s”."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -981,10 +983,6 @@ msgstr "История на комуникацията"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Фирми"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1019,12 +1017,12 @@ msgstr "Конфигурация"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Confirm Order"
-msgstr "Потвърди"
+msgstr "Потвърдете поръчка"
 
 #. module: purchase
 #: model:ir.actions.server,name:purchase.action_confirm_rfqs
 msgid "Confirm RFQ"
-msgstr "Потвърди RFQ"
+msgstr "Потвърдете заявка за оферта"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_double_validation__one_step
@@ -1038,17 +1036,11 @@ msgid "Confirm your purchase."
 msgstr "Потвърдете вашата покупка."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Дата на потвърждение"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr "Дата на потвърждение миналата година"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1095,7 +1087,7 @@ msgstr "Създаване на фактури"
 #. module: purchase
 #: model:ir.model,website_form_label:purchase.model_res_partner
 msgid "Create a Customer"
-msgstr "Създаване на клиент"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.product_product_action
@@ -1144,7 +1136,7 @@ msgstr "URL адрес на клиентския портал"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
 msgid "Date"
-msgstr "Дата"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1178,7 +1170,7 @@ msgstr "Дни за потвърждение"
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "Days to Order"
-msgstr "Дни до поръчка"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__delay_pass
@@ -1207,7 +1199,7 @@ msgstr "Единица по подразбиране за всички скла�
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Define your terms and conditions ..."
-msgstr "Определете вашите условия и правила ..."
+msgstr "Определете вашите условия и правила..."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_planned
@@ -1220,15 +1212,6 @@ msgstr ""
 "това на текущата дата."
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Дата на доставка, обещана от доставчика. Тази дата се използва за определяне "
-"на очакваното пристигане на продуктите."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 msgid ""
@@ -1236,7 +1219,7 @@ msgid ""
 "converted into a purchase order."
 msgstr ""
 "Показва датата, в рамките на която офертата трябва да бъде потвърдена и "
-"преобразувана в Поръчка."
+"преобразувана в поръчка за покупка."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__name
@@ -1247,7 +1230,7 @@ msgstr "Описание"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "Disc.%"
-msgstr "Отст.%"
+msgstr "Отстъпка.%"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__discount
@@ -1258,6 +1241,12 @@ msgstr "Отстъпка (%)"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Discount:"
 msgstr "Отстъпка:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1305,7 +1294,7 @@ msgstr "Двойна сума за потвърждение"
 #. odoo-python
 #: code:addons/purchase/wizard/bill_to_po_wizard.py:0
 msgid "Down Payment (ref: %(ref)s)"
-msgstr "Авансово плащане (ref: %(ref)s)"
+msgstr "Авансово плащане (референция:%(ref)s )"
 
 #. module: purchase
 #. odoo-python
@@ -1316,7 +1305,7 @@ msgstr "Предплащания"
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_report__state__draft
 msgid "Draft RFQ"
-msgstr "Чернова"
+msgstr "Чернова заявка за оферта"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -1340,13 +1329,19 @@ msgstr "Дублирани документи"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__duplicated_order_ids
 msgid "Duplicated Order"
-msgstr "Дублирана поръчка"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_planned
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_planned
 msgid "Expected Arrival"
 msgstr "Очаквано пристигане"
+
+#. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -1361,12 +1356,12 @@ msgid "Fiscal Position"
 msgstr "Фискална позиция"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr "Проследявайте поръчките, които трябва да изпълните"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr "Проследявайте вашите запитвания за оферта"
 
@@ -1378,7 +1373,7 @@ msgstr "Последователи"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Последователи (Партньори)"
+msgstr "Последователи (партньори)"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__activity_type_icon
@@ -1389,7 +1384,7 @@ msgstr "Икона, примерно fa-tasks"
 #: model:ir.model.constraint,message:purchase.constraint_purchase_order_line_non_accountable_null_fields
 msgid "Forbidden values on non-accountable purchase order line"
 msgstr ""
-"Забранени стойности на ред от поръчката за покупка, която не е отговорна"
+"Забранени стойности на ред от поръчката за покупка, която не е отговорна."
 
 #. module: purchase
 #. odoo-python
@@ -1409,6 +1404,11 @@ msgid "Fully Billed"
 msgstr "Пълно фактуриране"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Future Activities"
@@ -1418,7 +1418,7 @@ msgstr "Бъдещи дейности"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Generated Orders"
-msgstr "Генерирани поръчки"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_double_validation__two_step
@@ -1525,13 +1525,13 @@ msgstr "Импортиране на шаблон за Продукти"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Import Template for Requests for Quotation"
-msgstr "Импортиране на шаблон - Запитване за оферти"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "In order to delete a purchase order, you must cancel it first."
-msgstr "За да изтриете една Поръчка, първо трябва да я отмените."
+msgstr "За да изтриете поръчка за покупка, трябва първо да я отмените."
 
 #. module: purchase
 #. odoo-python
@@ -1540,7 +1540,8 @@ msgid ""
 "In selected purchase order to merge these details must be same\n"
 "Vendor, currency, destination, dropship address and agreement"
 msgstr ""
-"В избраната Поръчка, за да се слеят тези детайли, те трябва да са еднакви: \n"
+"В избраната поръчка за покупка, за да се слеят тези детайли, те трябва да са "
+"еднакви: \n"
 "Доставчик, валута, дестинация, адрес за директно доставяне и споразумение"
 
 #. module: purchase
@@ -1565,8 +1566,6 @@ msgstr "Посочете количеството на продукта, кое�
 #: model:ir.model.fields,help:purchase.field_purchase_order__purchase_warning_text
 msgid "Internal warning for the partner or the products as set by the user."
 msgstr ""
-"Вътрешно предупреждение за партньора или продуктите, както е зададено от "
-"потребителя."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__incoterm_id
@@ -1591,7 +1590,7 @@ msgstr "Счетоводно отчитане"
 #: model:ir.model.fields,field_description:purchase.field_account_move_line__is_downpayment
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__is_downpayment
 msgid "Is Downpayment"
-msgstr "Аванс"
+msgstr "Е авансово плащане"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_is_follower
@@ -1606,7 +1605,7 @@ msgstr "В поръчката за покупка"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__is_late
 msgid "Is Late"
-msgstr "Е Закъснял"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__is_purchase_matched
@@ -1619,7 +1618,7 @@ msgstr "Съчетано е с покупката"
 msgid ""
 "It indicates that the vendor has acknowledged the receipt of the purchase "
 "order."
-msgstr "Това показва, че продавачът е потвърдил получаването на Поръчка."
+msgstr ""
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_account_move
@@ -1660,24 +1659,24 @@ msgstr "Последни дейности"
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "Late RFQ"
-msgstr "По-късно RFQ"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "Late Receipt"
-msgstr "Закъсняла доставка"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Late Receipts"
-msgstr "Закъснели доставки"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Let's create your first request for quotation."
-msgstr "Нека създадем вашето първо Запитване за Оферта."
+msgstr "Нека създадем вашето първо запитване за оферта."
 
 #. module: purchase
 #. odoo-javascript
@@ -1715,6 +1714,11 @@ msgid "Line Uom"
 msgstr "Мерна единица на реда"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Lock"
 msgstr "Заключете"
@@ -1732,7 +1736,7 @@ msgstr "Заключен"
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__locked
 msgid "Locked Purchase Orders cannot be modified."
-msgstr "Заключените поръчки не могат да бъдат променяни."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -1770,13 +1774,13 @@ msgstr "Съгласувай"
 #. module: purchase
 #: model:ir.actions.server,name:purchase.action_merger
 msgid "Merge RFQs"
-msgstr "Обедини RFQs"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Merged RFQs"
-msgstr "Обединени RFQs"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_has_error
@@ -1787,13 +1791,13 @@ msgstr "Грешка при доставката на съобщение"
 #: model:ir.model.fields,field_description:purchase.field_res_partner__purchase_warn_msg
 #: model:ir.model.fields,field_description:purchase.field_res_users__purchase_warn_msg
 msgid "Message for Purchase Order"
-msgstr "Съобщение за Поръчка"
+msgstr "Съобщение за поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchase_line_warn_msg
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchase_line_warn_msg
 msgid "Message for Purchase Order Line"
-msgstr "Съобщение за ред от Поръчка"
+msgstr "Съобщение за ред на поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_ids
@@ -1814,13 +1818,13 @@ msgstr "Минимална сума, за която се изисква дво�
 #. module: purchase
 #: model:ir.model.constraint,message:purchase.constraint_purchase_order_line_accountable_required_fields
 msgid "Missing required fields on accountable purchase order line."
-msgstr "Липсват задължителни полета в счетоводният ред на Поръчката."
+msgstr "Липсват задължителни полета в отговорния ред на поръчката за покупка."
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My"
-msgstr "Моя"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1837,19 +1841,19 @@ msgstr "Краен срок за моята дейност"
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My Days to Order"
-msgstr "Оставащи дни до Поръчка"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My Draft RFQs"
-msgstr "Моите Чернови RFQs"
+msgstr "Моите чернови на заявки за оферта"
 
 #. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My Late RFQs"
-msgstr "Моите Закъснели RFQs"
+msgstr "Моите закъснели заявки за оферта"
 
 #. module: purchase
 #. odoo-javascript
@@ -1861,7 +1865,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My Not Acknowledged POs"
-msgstr "Моите непотвърдени Поръчки"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1877,7 +1881,7 @@ msgstr "Моите покупки"
 #. odoo-javascript
 #: code:addons/purchase/static/src/views/purchase_dashboard.xml:0
 msgid "My Waiting RFQs"
-msgstr "Моите Чакащи RFQs"
+msgstr "Моите заявки за оферта в очакване"
 
 #. module: purchase
 #. odoo-python
@@ -1934,7 +1938,7 @@ msgstr "Вид на следващо действие"
 #. odoo-javascript
 #: code:addons/purchase/static/src/product_catalog/kanban_renderer.xml:0
 msgid "No Products for the selected Vendor."
-msgstr "Няма продукти за избрания доставчик."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.action_purchase_order_report_all
@@ -1955,7 +1959,7 @@ msgstr "Не е намерен продукт. Нека създадем еди�
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.purchase_form_action
 msgid "No purchase order found. Let's create one!"
-msgstr "Няма намерена Поръчка. Нека създадем една!"
+msgstr "Няма намерена поръчка за покупка. Нека създадем една!"
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.action_purchase_history
@@ -1965,7 +1969,7 @@ msgstr "Все още не са направени поръчки за поку�
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.purchase_rfq
 msgid "No request for quotation found. Let's create one!"
-msgstr "Няма намерено Запитване за Оферта. Нека създадем едно!"
+msgstr "Няма намерено запитване за оферта. Нека създадем едно!"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__priority__0
@@ -1978,6 +1982,11 @@ msgstr "Нормален"
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Not Acknowledged"
 msgstr "Не e потвърдено"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -2061,8 +2070,8 @@ msgid ""
 "Once you get the price from the vendor, you can complete the purchase order "
 "with the right price."
 msgstr ""
-"След като получите цена от доставчика, можете да завършите Поръчката с "
-"правилната цена."
+"След като получите цената от доставчика, можете да завършите поръчката за "
+"покупка с правилната цена."
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.purchase_form_action
@@ -2070,8 +2079,8 @@ msgid ""
 "Once you ordered your products to your supplier, confirm your request for "
 "quotation and it will turn into a purchase order."
 msgstr ""
-"След като поръчате продуктите си на вашият доставчика, потвърдете "
-"Запитването за Оферта и то ще се превърне в Поръчка."
+"След като поръчате продуктите си на доставчика, потвърдете запитването за "
+"оферта и то ще се превърне в поръчка за покупка."
 
 #. module: purchase
 #. odoo-python
@@ -2083,37 +2092,39 @@ msgid "Order"
 msgstr "Поръчка"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
-msgstr "Дата на Поръчка"
+msgstr "Дата на поръчка"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
-msgstr "Дата на Поръчката: Последните 365 дни"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
-msgstr "Краен срок за Поръчка"
+msgstr "Краен срок за поръчката"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
 msgid "Order Lines"
-msgstr "Редове от Поръчка"
+msgstr "Редове на поръчка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__name
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__order_id
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
 msgid "Order Reference"
-msgstr "Референция за Поръчка"
+msgstr "Референция за поръчка"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.track_po_line_template
@@ -2130,22 +2141,27 @@ msgstr "Поръчки"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Order due %(date)s"
-msgstr "Краен срок за Поръчка %(date)s"
+msgstr "Краен срок на поръчката %(date)s"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Друга информация"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr "Нашите поръчки"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
-msgstr "Родител на избраната линия"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_bill_to_po_wizard__partner_id
@@ -2162,7 +2178,7 @@ msgstr "Държава на контрагент"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__payment_term_id
 msgid "Payment Terms"
-msgstr "Срок за плащане"
+msgstr "Срокове за плащане"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -2176,14 +2192,14 @@ msgid ""
 "Please select at least two purchase orders with state RFQ and RFQ sent to "
 "merge."
 msgstr ""
-"Моля, изберете поне две поръчки за покупка със състояние RFQ и RFQ "
-"Изпратено, за да ги слеете."
+"Моля, изберете поне две поръчки за покупка със състояние \"Запитване за "
+"оферта\" и \"Запитване за оферта изпратено\", за да ги слеете."
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_bill_line_match.py:0
 msgid "Please select bill lines with the same vendor."
-msgstr "Моля, изберете редове от фактури със същия доставчик."
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__pol_id
@@ -2261,7 +2277,7 @@ msgstr "Мерна единица на продукта и цена"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_qty
 msgid "Product Uom Qty"
-msgstr "Количество в м.ед. на продукта"
+msgstr "Количество в мерни единици на продукта"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_product_product
@@ -2300,7 +2316,6 @@ msgstr "Осигурете двоен механизъм за потвържда
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Покупка"
@@ -2309,6 +2324,11 @@ msgstr "Покупка"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Purchase Agreements"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2332,7 +2352,7 @@ msgstr "Редове на фактура за покупка"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Purchase Comparison for %s"
-msgstr "Сравнение на покупки за %s"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_supplier_inherit
@@ -2354,7 +2374,7 @@ msgstr "История на покупките за %s"
 #: model:ir.model.fields,field_description:purchase.field_account_move_line__purchase_line_warn_msg
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__purchase_line_warn_msg
 msgid "Purchase Line Warn Msg"
-msgstr "Ред от покупка - Съобщение за предупреждение"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_line_match
@@ -2397,12 +2417,12 @@ msgstr "Поръчка"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "Purchase Order #"
-msgstr "Поръчка #"
+msgstr "Поръчка за покупка №"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__po_order_approval
 msgid "Purchase Order Approval"
-msgstr "Одобрение на Поръчка"
+msgstr "Одобрение на поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__purchase_order_count
@@ -2420,7 +2440,7 @@ msgstr "Брой поръчки за покупка"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_form2
 msgid "Purchase Order Line"
-msgstr "Ред от Поръчка"
+msgstr "Ред на поръчка за покупка"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -2432,12 +2452,12 @@ msgstr "Редове на поръчки за покупки"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__lock_confirmed_po
 #: model:ir.model.fields,field_description:purchase.field_res_company__po_lock
 msgid "Purchase Order Modification"
-msgstr "Корекция на Поръчка"
+msgstr "Корекция на поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__po_lock
 msgid "Purchase Order Modification *"
-msgstr "Корекция на Поръчка *"
+msgstr "Корекция на поръчка за покупка *"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__lock_confirmed_po
@@ -2447,14 +2467,14 @@ msgid ""
 "Purchase Order Modification used when you want to purchase order editable "
 "after confirm"
 msgstr ""
-"До корекция на Поръчка се прибягва, когато желаете Поръчка да може да се "
-"редактира след потвърждение"
+"До корекция на поръчка за покупка се прибягва, когато желаете поръчката за "
+"покупка да може да се редактира след потвърждение"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_order_name
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_order_name
 msgid "Purchase Order Name"
-msgstr "Име на Поръчка"
+msgstr "Име на поръчка за покупка"
 
 #. module: purchase
 #. odoo-python
@@ -2468,7 +2488,7 @@ msgstr "Име на Поръчка"
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Purchase Orders"
-msgstr "Поръчки"
+msgstr "Поръчки за покупки"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_report
@@ -2476,11 +2496,17 @@ msgid "Purchase Report"
 msgstr "Отчет Доставки"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
 msgid "Purchase Warning"
-msgstr "Предупреждение за покупка"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_warning_purchase
@@ -2490,7 +2516,7 @@ msgstr "Предупреждения за покупка"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 msgid "Purchase orders that have been invoiced."
-msgstr "Поръчки за покупки, които са били фактурирани."
+msgstr "Поръчки за покупки, които са беле фактурирани."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -2510,12 +2536,12 @@ msgstr "Покупка на варианти на продукт чрез атр
 #. module: purchase
 #: model:mail.template,name:purchase.email_template_edi_purchase_done
 msgid "Purchase: Purchase Order"
-msgstr "Покупка: Поръчка"
+msgstr "Покупка: Поръчка за покупка"
 
 #. module: purchase
 #: model:mail.template,name:purchase.email_template_edi_purchase
 msgid "Purchase: Request For Quotation"
-msgstr "Покупка: Запитване за Оферта"
+msgstr "Покупка: Запитване за оферта"
 
 #. module: purchase
 #: model:mail.template,name:purchase.email_template_edi_purchase_reminder
@@ -2525,15 +2551,19 @@ msgstr "Покупка: Напомняне за доставчик"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Закупен"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Закупено последните 365 дни"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2546,7 +2576,7 @@ msgstr "Покупки"
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
 msgid "Purchases & Bills Union"
-msgstr "Обединение на покупки и фактури"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -2554,8 +2584,8 @@ msgid ""
 "Put an address if you want to deliver directly from the vendor to the "
 "customer. Otherwise, keep empty to deliver to your own company."
 msgstr ""
-"Добавете адрес, ако желаете да доставяте директно от доставчика към клиента. "
-"В противен случай, дръжте мястото празно, за да доставяте на собствената си "
+"Дайте адрес, ако желаете да доставяте директно от доставчика към клиента. В "
+"противен случай, дръжте мястото празно, за да доставяте на собствената си "
 "компания."
 
 #. module: purchase
@@ -2586,7 +2616,7 @@ msgstr "Количество, което ще се фактурира"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__qty_to_invoice
 msgid "Qty to invoice"
-msgstr "К-во за фактуриране"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_qty
@@ -2594,7 +2624,7 @@ msgstr "К-во за фактуриране"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_history_tree
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "Quantity"
-msgstr "Колич."
+msgstr "Количество"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -2604,17 +2634,17 @@ msgstr "Количество:"
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__state__draft
 msgid "RFQ"
-msgstr "Запитване"
+msgstr "Заявка за оферта"
 
 #. module: purchase
 #: model:mail.message.subtype,name:purchase.mt_rfq_approved
 msgid "RFQ Approved"
-msgstr "Одобрен"
+msgstr "Одобрена заявка за оферта"
 
 #. module: purchase
 #: model:mail.message.subtype,name:purchase.mt_rfq_confirmed
 msgid "RFQ Confirmed"
-msgstr "Потвърден"
+msgstr "Потвърдена заявка за оферта"
 
 #. module: purchase
 #. odoo-javascript
@@ -2623,24 +2653,24 @@ msgstr "Потвърден"
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_report__state__sent
 #: model:mail.message.subtype,name:purchase.mt_rfq_sent
 msgid "RFQ Sent"
-msgstr "Изпратено"
+msgstr "Извършена заявка за оферта"
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "RFQ merged with %(oldest_rfq_name)s and %(cancelled_rfq)s"
-msgstr "RFQ обединена с %(oldest_rfq_name)s и %(cancelled_rfq)s"
+msgstr "Заявка за оферта обединена с %(oldest_rfq_name)s и %(cancelled_rfq)s"
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "RFQ merged with %s"
-msgstr "RFQ обединена с %s"
+msgstr "Заявка за оферта обединена с %s"
 
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.act_res_partner_2_purchase_order
 msgid "RFQs and Purchases"
-msgstr "RFQs и Покупки"
+msgstr "Заявки за оферти и покупки"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__rating_ids
@@ -2656,6 +2686,7 @@ msgstr "Прочетете документацията"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr "Напомняне за разписка"
 
@@ -2663,6 +2694,17 @@ msgstr "Напомняне за разписка"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
 msgstr "Имейл за напомняне за разписка"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -2673,12 +2715,12 @@ msgstr "Получено"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received
 msgid "Received Qty"
-msgstr "Получено к-во"
+msgstr "Получено количество"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_method
 msgid "Received Qty Method"
-msgstr "Метод Получени к-ва"
+msgstr "Метод Получени кол-ва"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -2709,10 +2751,10 @@ msgstr "Индетификатор"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
 msgid "Reference Document"
-msgstr "Референтен документ"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Референтна Мерна единица"
 
@@ -2722,8 +2764,8 @@ msgid ""
 "Reference of the document that generated this purchase order request (e.g. a "
 "sales order)"
 msgstr ""
-"Препратка към документа, генерирал тази заявка за Поръчка (напр. поръчка за "
-"продажба)"
+"Препратка към документа, генерирал тази заявка за поръчка за покупка (напр. "
+"поръчка за продажба)"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__partner_ref
@@ -2769,17 +2811,17 @@ msgstr "Изискване от мениджърите да одобряват �
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Requests For Quotation"
-msgstr "Запитване за Оферта"
+msgstr "Заявки за оферта"
 
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
-msgstr "Запитване за Оферта"
+msgstr "Заявки за оферта"
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.purchase_rfq
@@ -2789,11 +2831,12 @@ msgid ""
 "                Once an agreement has been found with the supplier, they "
 "will be confirmed and turned into purchase orders."
 msgstr ""
-"Запитване за Оферта са документи, които ще бъдат изпратени до вашите "
-"доставчици, за да поискате цени за различни продукти, които смятате да "
-"закупуите.\n"
-"                След като бъде постигнато споразумение с доставчика, те ще "
-"бъдат потвърдени и превърнати в Поръчки."
+"Заявките за оферта са документи, които ще бъдат изпратени на вашите "
+"доставчици, за да поискат цени за различни продукти, които смятате да "
+"купувате.\n"
+"                Заявките за оферта са документи, които ще бъдат изпратени на "
+"вашите доставчици, за да поискат цени за различни продукти, които смятате да "
+"купувате."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_user_id
@@ -2815,12 +2858,12 @@ msgstr "Насрочена дата"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Search Purchase Order"
-msgstr "Потърсете Поръчка"
+msgstr "Потърсете поръчка за покупка"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
 msgid "Search Reference Document"
-msgstr "Търсене на референтен документ"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2848,7 +2891,8 @@ msgstr "Символ за сигурност"
 #: code:addons/purchase/models/purchase_bill_line_match.py:0
 msgid "Select Vendor Bill lines to add to a Purchase Order"
 msgstr ""
-"Изберете редове от фактурата на доставчика, които да добавите към Поръчка"
+"Изберете редове от фактурата на доставчика, които да добавите към поръчка за "
+"покупка"
 
 #. module: purchase
 #. odoo-javascript
@@ -2859,27 +2903,27 @@ msgstr "Изберете продукт или създайте нов в дви
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_move_form_inherit_purchase
 msgid "Select a purchase document"
-msgstr "Изберете документ за покупка"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__selected_seller_id
 msgid "Selected Seller"
-msgstr "Избраният Продавач"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Sell and purchase products in different units of measure or packagings"
-msgstr "Продавайте и купувайте продукти в различни мерни единици или опаковки"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Send PO"
-msgstr "Изпрати PO"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Send RFQ"
-msgstr "Изпрати"
+msgstr ""
 
 #. module: purchase
 #: model:ir.actions.server,name:purchase.action_purchase_send_reminder
@@ -2891,6 +2935,11 @@ msgstr "Изпращане на напомняне"
 msgid "Send an automatic reminder email to confirm delivery"
 msgstr ""
 "Изпращане на автоматичен имейл за напомняне за потвърждаване на доставка"
+
+#. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2911,7 +2960,7 @@ msgstr "Изпратено ръчно до доставчика за заявк�
 #. module: purchase
 #: model:mail.template,description:purchase.email_template_edi_purchase_done
 msgid "Sent to vendor with the purchase order in attachment"
-msgstr "Изпратено до доставчика с Поръчка в прикачения файл"
+msgstr "Изпратено до доставчика с поръчката за покупка в прикачения файл"
 
 #. module: purchase
 #: model:mail.template,description:purchase.email_template_edi_purchase_reminder
@@ -2919,7 +2968,7 @@ msgid ""
 "Sent to vendors before expected arrival, based on the purchase order setting"
 msgstr ""
 "Изпратено до доставчиците преди очакваното пристигане, въз основа на "
-"настройката за Поръчка"
+"настройката на поръчката за покупка"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__sequence
@@ -2945,13 +2994,18 @@ msgstr "Споделете"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__show_comparison
 msgid "Show Comparison"
-msgstr "Показване на сравнение"
+msgstr ""
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Show all records whose next activity date is past"
-msgstr "Показване на всички записи, чиято следваща дата на активност е отминала"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2960,8 +3014,6 @@ msgid ""
 "Some order lines are missing a product, you need to correct them before "
 "going further."
 msgstr ""
-"В някои редове на Поръчката липсва продукт, трябва да го коригирате, преди "
-"да продължите."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__reference
@@ -3010,12 +3062,12 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order_line__display_type__line_subsection
 msgid "Subsection"
-msgstr "Подраздел"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Subsection Name"
-msgstr "Наименование на Подраздел"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__price_subtotal
@@ -3104,12 +3156,12 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__display_type
 msgid "Technical field for UX purpose."
-msgstr "Техническо поле за целите на потребителското изживяване."
+msgstr "Техническо поле за целите на потребителското изживяване"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__technical_price_unit
 msgid "Technical field for price computation"
-msgstr "Техническо поле за изчисляване на цена"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__tax_country_id
@@ -3124,8 +3176,6 @@ msgstr ""
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__selected_seller_id
 msgid "Technical field to get the vendor pricelist used to generate this line"
 msgstr ""
-"Техническо поле за получаване на ценовата листа на доставчика, използвана за "
-"генериране на този ред"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -3149,7 +3199,15 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__price_unit_product_uom
 msgid "The Price of one unit of the product's Unit of Measure"
-msgstr "Цената на една единица от мерната единица на продукта"
+msgstr ""
+
+#. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
@@ -3161,8 +3219,8 @@ msgid ""
 msgstr ""
 "Заявката за оферта е първата стъпка от процеса по осъществяване на покупки. "
 "Веднъж\n"
-"                    конвертирана в Поръчка, ще можете да контролирате "
-"касовата бележка\n"
+"                    конвертирана в поръчка за покупка, ще можете да "
+"контролирате касовата бележка\n"
 "                    на продуктите и фактурата за покупка."
 
 #. module: purchase
@@ -3173,14 +3231,16 @@ msgstr "В момента няма поръчки за покупка за ва�
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "There are currently no requests for quotation for your account."
-msgstr "В момента няма Запитвания за оферти за вашия акаунт."
+msgstr "В момента няма заявки за оферти за вашия акаунт."
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/wizard/bill_to_po_wizard.py:0
 msgid ""
 "There are no products to add to the Purchase Order. Are these Down Payments?"
-msgstr "Няма продукти за добавяне към Поръчка. Това авансови плащания ли са?"
+msgstr ""
+"Няма продукти за добавяне към поръчката за покупка. Това авансови плащания "
+"ли са?"
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.action_purchase_order_report_all
@@ -3193,13 +3253,13 @@ msgstr ""
 "Този анализ ви позволява лесно да проверявате и анализирате историята на "
 "покупките и ефективността на вашата компания.\n"
 "                Можете да проследявате ефективността на вашите преговори, "
-"ефективността на доставките на вашите доставчици и т.н"
+"ефективността на доставките на вашите доставчици и т.н."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_res_partner__property_purchase_currency_id
 #: model:ir.model.fields,help:purchase.field_res_users__property_purchase_currency_id
 msgid "This currency will be used for purchases from the current partner"
-msgstr "Тази валута ще бъде използвана за покупки от настоящия партньор"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_supplier_inherit
@@ -3221,7 +3281,7 @@ msgstr "Тази фактура от доставчик е променена о
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
 msgid "This vendor has no purchase order. Create a new RfQ"
-msgstr "Към този доставчик няма Поръчка. Създайте ново RFQ"
+msgstr "Този доставчик няма поръчка за покупка. Създайте ново RfQ"
 
 #. module: purchase
 #: model:digest.tip,name:purchase.digest_tip_purchase_0
@@ -3233,7 +3293,7 @@ msgstr "Съвет: Как да държите под контрол закъс�
 #: model:digest.tip,name:purchase.digest_tip_purchase_1
 #: model_terms:digest.tip,tip_description:purchase.digest_tip_purchase_1
 msgid "Tip: Never miss a purchase order"
-msgstr "Съвет: Никога не пропускайте Поръчка"
+msgstr "Съвет: Никога не пропускайте поръчка за покупка"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__state__to_approve
@@ -3261,7 +3321,7 @@ msgstr "Днешни дейности"
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__price_total
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_orders
 msgid "Total"
-msgstr "Общо"
+msgstr "Общ"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
@@ -3305,7 +3365,7 @@ msgstr "Обща сума"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__amount_total_cc
 msgid "Total in currency"
-msgstr "Общо във валута"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_history_pivot
@@ -3321,7 +3381,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/purchase/static/src/product_catalog/kanban_renderer.xml:0
 msgid "Try removing the top filter to broaden your search"
-msgstr "Опитайте да премахнете горния филтър, за да разширите търсенето си"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__activity_exception_decoration
@@ -3343,31 +3403,29 @@ msgstr ""
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Unable to cancel purchase order(s): %s. You must first unlock them."
 msgstr ""
-"Невъзможно е да се анулират поръчки за покупка: %s. Първо трябва да ги "
-"отключите."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
-msgstr "М. ед."
+msgstr "Единица"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__price_unit
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_history_tree
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "Unit Price"
-msgstr "Ед. цена"
+msgstr "Единична цена"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__price_unit_discounted
 msgid "Unit Price (Discounted)"
-msgstr "Ед. цена (отст.)"
+msgstr "Единична цена (Намалена)"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__price_unit_product_uom
 msgid "Unit Price Product UoM"
-msgstr "Ед. цена на Продукт UoM"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -3378,7 +3436,7 @@ msgstr "Ед. цена:"
 #: model:ir.ui.menu,name:purchase.menu_purchase_uom_form_action
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Units & Packagings"
-msgstr "Единици и Опаковки"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -3389,7 +3447,7 @@ msgstr "Отключете"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Unsupported operator"
-msgstr "Неподдържан оператор"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_kpis_tree
@@ -3412,7 +3470,7 @@ msgstr "Общо без данъци"
 #. odoo-javascript
 #: code:addons/purchase/static/src/components/purchase_file_uploader/purchase_file_uploader.xml:0
 msgid "Upload Bill"
-msgstr "Качване на сметка"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__priority__1
@@ -3426,7 +3484,7 @@ msgid ""
 "format."
 msgstr ""
 "Използвайте горния REST URL адрес, за да получите структурирани данни на "
-"Поръчка във формат UBL."
+"поръчката за покупка във формат UBL."
 
 #. module: purchase
 #: model:res.groups,name:purchase.group_purchase_user
@@ -3463,7 +3521,7 @@ msgstr "Търговец"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
 msgid "Vendor Bill"
-msgstr "Фактура за покупка"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3471,7 +3529,7 @@ msgstr "Фактура за покупка"
 msgid "Vendor Bill lines can only be added to one Purchase Order."
 msgstr ""
 "Редовете от фактурата на доставчика могат да бъдат добавени само към една "
-"Поръчка."
+"поръчка за покупка."
 
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.act_res_partner_2_supplier_invoices
@@ -3488,7 +3546,7 @@ msgstr "Държава на доставчика"
 #. module: purchase
 #: model:ir.ui.menu,name:purchase.menu_product_pricelist_action2_purchase
 msgid "Vendor Pricelists"
-msgstr "Ценови листи"
+msgstr "Ценови листи на търговец"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__partner_ref
@@ -3513,7 +3571,7 @@ msgstr ""
 "                    покупки или касови бележки. Това Ви позволява да "
 "контролирате фактурите за покупка,\n"
 "                    които получавате от доставчика си според чернова\n"
-"                    документа в Odoo."
+"                     документа в Odoo."
 
 #. module: purchase
 #. odoo-python
@@ -3557,12 +3615,12 @@ msgstr "Искате ли да импортирате този документ 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_supplier_inherit
 msgid "Warning on Purchase Orders"
-msgstr "Предупреждение относно Поръчки за Покупка"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_partner_view_purchase_buttons
 msgid "Warning on Purchase Orders and Bills"
-msgstr "Предупреждение относно Поръчки за Покупка и Фактури"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -3591,9 +3649,9 @@ msgid ""
 "dates and keep you informed in case of any delays. To get the vendor's "
 "performance statistics, click on the OTD rate."
 msgstr ""
-"Когато създавате Поръчка, погледнете коефициента на доставчика за <i>"
-"навременна доставка</i> : процентът на продуктите, изпратени навреме. Ако е "
-"твърде ниско, активирайте <i>автоматизираните напомняния</i>. Няколко дни "
+"Когато създавате поръчка за покупка, погледнете коефициента на доставчика за "
+"<i>навременна доставка</i> : процентът на продуктите, изпратени навреме. Ако "
+"е твърде ниско, активирайте <i>автоматизираните напомняния</i>. Няколко дни "
 "преди крайната доставка системата ще изпрати на доставчика имейл, за да "
 "поиска потвърждение на датите на доставка и ще ви информира, в случай на "
 "закъснения. За да получите статистически данни за ефективността на "
@@ -3607,10 +3665,11 @@ msgid ""
 "clicking on a button in the email, the information is added on the purchase "
 "order. Use filters to track orders that have not been acknowledged."
 msgstr ""
-"Когато изпраща Поръчка по имейл, системата иска от продавача да потвърди "
-"получаването на поръчката. Когато продавачът потвърди поръчката, като щракне "
-"върху бутон в имейла, информацията се добавя към поръчката за покупка. "
-"Използвайте филтри за проследяване на поръчки, които не са били потвърдени."
+"Когато изпраща поръчка за покупка по имейл, системата иска от продавача да "
+"потвърди получаването на поръчката. Когато продавачът потвърди поръчката, "
+"като щракне върху бутон в имейла, информацията се добавя към поръчката за "
+"покупка. Използвайте филтри за проследяване на поръчки, които не са били "
+"потвърдени."
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__partner_id
@@ -3626,7 +3685,7 @@ msgstr ""
 #: code:addons/purchase/models/purchase_order.py:0
 #: code:addons/purchase/static/src/components/purchase_file_uploader/purchase_file_uploader.js:0
 msgid "You can only upload a bill for a single vendor at a time."
-msgstr "Вие можете да качвате по една фактура за доставчик."
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3635,8 +3694,8 @@ msgid ""
 "You cannot change the type of a purchase order line. Instead you should "
 "delete the current line and create a new line of the proper type."
 msgstr ""
-"Не можете да промените типа на реда в Поръчката. Вместо това трябва да "
-"изтриете текущия ред и да създадете нов ред от правилния тип."
+"Не можете да промените типа на реда на поръчка за покупка. Вместо това "
+"трябва да изтриете текущия ред и да създадете нов ред от правилния тип."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -3649,8 +3708,8 @@ msgid ""
 "You must define a product for everything you sell or purchase,\n"
 "                whether it's a storable product, a consumable or a service."
 msgstr ""
-"Трябва да определите продукт за всичко, което продавате или купувате,\n"
-"                независимо дали е складируем продукт, консуматив или услуга."
+"Трябва да определите продукт за всичко, което продавате или купувате, "
+"независимо дали е складируем продукт, консуматив или услуга."
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.product_normal_action_puchased
@@ -3668,8 +3727,8 @@ msgstr ""
 msgid ""
 "You must select at least one Purchase Order line to match or create bill."
 msgstr ""
-"Трябва да изберете поне един ред от Поръчката, за да извършите съвпадение "
-"или създадете фактура."
+"Трябва да изберете поне един ред на поръчка за покупка, за да извършите "
+"съвпадение или създадете фактура."
 
 #. module: purchase
 #. odoo-python
@@ -3680,11 +3739,16 @@ msgid ""
 " Please change the company of your quotation or remove the products from "
 "other companies (%(bad_products)s)."
 msgstr ""
-"Вашето Запитване за Оферта съдържа продукти от компанията %(product_company)"
-"s като самото запитване за оферта принадлежи на компанията %(quote_company)"
-"s. \n"
+"YВашето запитване за оферта съдържа продукти от компанията %"
+"(product_company)s окато самото запитване за оферта принадлежи на компанията "
+"%(quote_company)s. \n"
 "Моля, променете компанията на вашето запитване за оферта или премахнете "
 "продуктите от други компании (%(bad_products)s)."
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -3694,12 +3758,12 @@ msgstr "ден/дни преди"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_supplier_inherit
 msgid "e.g. There is a newer version of this product."
-msgstr "има по-нова версия на този продукт.."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_partner_view_purchase_buttons
 msgid "e.g. This vendor is on vacation until the end of August."
-msgstr "този доставчик е в отпуск до края на Август."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.bill_to_po_wizard_form
@@ -3711,6 +3775,11 @@ msgstr "или създай нов"
 #: code:addons/purchase/models/account_invoice.py:0
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
 msgstr ""
 
 #. module: purchase
@@ -3743,6 +3812,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr "да научите всички начини за свързване на вашия софтуер с"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3754,184 +3828,3 @@ msgstr "с"
 #: model:mail.template,subject:purchase.email_template_edi_purchase_reminder
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr "{{ object.company_id.name }} Поръчка (Ref {{ object.name or 'n/a' }})"
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "Изпрати съобщение"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> Свали"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "Платено"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "Очаква плащане"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Печат"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Дата на заявка</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Адрес за шипинг:</strong>"
-
-#~ msgid "Accept"
-#~ msgstr "Приемете"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Блокиращо Съобщение"
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "Не може да изтриете поръчка за покупка, която е в състояние '%s'."
-
-#~ msgid "Category"
-#~ msgstr "Категория"
-
-#~ msgid "Confirm"
-#~ msgstr "Потвърждение"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Преобразуването на мерните единици може да възникне, само ако те "
-#~ "принадлежат към една и съща категория. Преобразуването ще се извърши въз "
-#~ "основа на съотношенията."
-
-#~ msgid "Days"
-#~ msgstr "Дни"
-
-#~ msgid "Done"
-#~ msgstr "Извършен"
-
-#~ msgid "Download"
-#~ msgstr "Изтеглете от системата"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Помощник за създаване на имейли"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Разширени филтри"
-
-#~ msgid "Group By"
-#~ msgstr "Групиране по"
-
-#~ msgid "History"
-#~ msgstr "История"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Марж на грешка за времената на търговските лийдове. Когато системата "
-#~ "създава поръчки за покупки за доставни продукти, те ще бъдат насрочени "
-#~ "достатъчно дни по-рано, за да се справят с неочаквани забавяния от страна "
-#~ "на доставчика."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Буфер за грешката в сроковете за доставка. Когато системата създава "
-#~ "поръчки за повторни покупки, те ще бъдат насрочени с толкова дни по-рано, "
-#~ "за да отразят неочаквани забавяния от страна на доставчика."
-
-#~ msgid "No Message"
-#~ msgstr "Без съобщение"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Брой съобщения, които изискват внимание"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Поръчани количества"
-
-#~ msgid "Packaging"
-#~ msgstr "Опаковане"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Принтирайте заявка за оферта"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Продуктови атрибути"
-
-#~ msgid "Product Categories"
-#~ msgstr "Продуктови категории"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Продуктово опаковане"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Време на лийд за покупка"
-
-#~ msgid "RFQ Done"
-#~ msgstr "Извършена заявка за оферта"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "При избор на опция \"Предупреждение\" потребителят ще бъде уведомен със "
-#~ "съобщение, при избор на \"Блокиращо съобщение\" , заедно със съобщението "
-#~ "ще бъде наложен отвод  и ще се прекъсне работният ход. Съобщението трябва "
-#~ "да бъде въведено в следващото поле."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "Изпратете поръчка за покупка по имейл"
-
-#~ msgid "Send by Email"
-#~ msgstr "Изпратете по имейл"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Показване на всички записи, на които следващата дата на действие е преди "
-#~ "днес"
-
-#~ msgid "Source Document"
-#~ msgstr "Документ-източник"
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "Тази валута ще бъде изполвана вместо стандартната - за покупки от "
-#~ "настоящия контрагент"
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Тази фактурата за покупка е създадена от: %s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr "Тази фактура за покупка е коригирана от: %s"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Мерна единица"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Мерни единици"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Мерни единици"
-
-#~ msgid "UoM"
-#~ msgstr "Мерна единица"
-
-#~ msgid "Waiting"
-#~ msgstr "Изчакващ"
-
-#~ msgid "Warning"
-#~ msgstr "Внимание"
-
-#~ msgid "Warning for %s"
-#~ msgstr "Предупреждение за %s"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Предупреждение за поръчка за покупка"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Предупреждение при покупка този продукт"
-
-#~ msgid "close"
-#~ msgstr "затваряне"

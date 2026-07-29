@@ -151,6 +151,7 @@ export class TOTPEnable extends Interaction {
             body: markup(body.outerHTML),
             onInput: ({ inputEl }) => { inputEl.setCustomValidity("") },
             confirmLabel: _t("Activate"),
+            size: "md",
             confirm: async ({ inputEl }) => {
                 if (!inputEl.reportValidity()) {
                     inputEl.classList.add("is-invalid");

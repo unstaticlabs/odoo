@@ -19,15 +19,15 @@
 # Anna, 2023
 # JanaAvalah, 2023
 # Martin Trigaux, 2023
-# Birgit Vijar <birgit@avalah.ee>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Birgit Vijar <birgit@avalah.ee>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-07-01 17:54+0000\n"
-"Last-Translator: Birgit Vijar <birgit@avalah.ee>\n"
+"PO-Revision-Date: 2025-11-08 19:12+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense/et/>\n"
 "Language: et\n"
@@ -35,7 +35,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -87,6 +87,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
 msgstr "(sisaldab"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -148,6 +153,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr "<span>Kogusumma ei vasta algsele summale.</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Konto"
@@ -182,6 +197,11 @@ msgstr "Tegevused"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Tegevuse erandlik kohendus"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -259,8 +279,10 @@ msgstr "Kulukonto on nõutud"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "Sama kategooria, summa ja kuupäevaga kulu on juba olemas."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -383,14 +405,6 @@ msgid "Can Reset"
 msgstr "Võib lähtestada"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Tühista"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -419,10 +433,6 @@ msgstr "Selgitus"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Ettevõtted"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -507,7 +517,6 @@ msgstr "Valuutakurss"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Tere"
 
@@ -596,12 +605,6 @@ msgid "Domain"
 msgstr "Domeen"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Laadige meie rakendus"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -613,6 +616,12 @@ msgstr "Mustand"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Dubleeritud kulud"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -647,6 +656,18 @@ msgid "Employee Expenses"
 msgstr "Töötaja kulud"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -655,6 +676,8 @@ msgstr ""
 "Sisestage nimi, seejärel valige kategooria ja seadistage oma kulusumma."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -689,7 +712,6 @@ msgstr "Kulude kinnitamise duplikaat"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Kulude kinnitaja"
 
@@ -799,11 +821,6 @@ msgid "Expense split"
 msgstr "Kulude jagamine"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -837,11 +854,6 @@ msgid "Expenses Report"
 msgstr "Kuluaruanne"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -853,6 +865,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Sinu tiimiliikme kulud"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr ""
@@ -941,14 +954,14 @@ msgid "Guideline"
 msgstr "Juhend"
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "On sõnum"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1115,6 +1128,11 @@ msgid "Label Currency Rate"
 msgstr "Sildi valuutakurss"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1256,13 +1274,6 @@ msgstr "Nimi"
 #. odoo-python
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
-msgstr ""
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
 msgstr ""
 
 #. module: hr_expense
@@ -1470,6 +1481,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Maksemeetod"
@@ -1496,11 +1512,6 @@ msgstr "Makseviis"
 msgid "Payment methods available for expenses paid by company"
 msgstr ""
 "Saadaval makseviis, mida kasutatatakse juhul kui kulu eest tasus ettevõte."
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Maksed"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1699,6 +1710,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Restoranid, ärilõunad jne."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Sõnumi kohaletoimetamise veateade"
@@ -1726,10 +1742,10 @@ msgid "Scan"
 msgstr "Lisa"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Odoo rakenduse hankimiseks skannige see QR-kood:"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1817,11 +1833,6 @@ msgid "Split Possible"
 msgstr "Jagamine võimalik"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Hinna uuenduse hoiatus"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1847,6 +1858,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Esita"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1920,6 +1937,11 @@ msgstr "Maksud"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "Meeskonna kinnitaja"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2010,12 +2032,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"Selles kategoorias on postitamata kulutusi. Uuendates kategooria kulu, "
-"muutuvad kulutuste summad. Veenduge, et soovite seda teha."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2134,9 +2153,9 @@ msgid "Untaxed Amount"
 msgstr "Maksudeta summa"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
 msgstr ""
 
 #. module: hr_expense
@@ -2172,11 +2191,6 @@ msgstr "Tarnija"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Vaata kulu"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2225,12 +2239,6 @@ msgstr "Kas valitud tootele on maksumäär lisatud"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Nõustaja"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2330,6 +2338,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2358,16 +2371,6 @@ msgstr ""
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Pead käsitsi lisama maksemeetodi järgmisele andmikule (%s)."
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Jätkamiseks peab Teil olema vähemalt üks kategooria, mille saab Teie "
-"andmebaasis kuludesse kanda!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2453,381 +2456,3 @@ msgstr "sama tšekiga juba eksisteerib."
 
 #~ msgid "2023-08-11"
 #~ msgstr "2023-08-11"
-
-#~ msgid "View Attachments"
-#~ msgstr "Vaata manuseid"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Raamatupidamise seadistused"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Esmalt peaksite installima maksukeskkond."
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-
-#~ msgid ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Use this reference "
-#~ "as a subject prefix when submitting by email.</i></span>"
-#~ msgstr ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Use this reference "
-#~ "as a subject prefix when submitting by email.</i></span>"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Kuupäev:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Kirjeldus:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Töötaja: </strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Maksis:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Kokku</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Kinnitas:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Kõik kuluaruanded"
-
-#~ msgid "All Reports"
-#~ msgstr "Kõik aruanded"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr "Kuluaruanne peab sisaldama ainult ühe ettevõtte ridu."
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple'i rakenduste pood"
-
-#~ msgid "Approve Report"
-#~ msgstr "Kinnita aruanne"
-
-#~ msgid "Approved By"
-#~ msgstr "Kinnitatud (kelle poolt?)"
-
-#~ msgid "Approved On"
-#~ msgstr "Kinnitatud"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Ostuarve number"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Kulutoode"
-
-#~ msgid "Categories"
-#~ msgstr "Kategooriad"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Sertifitseeritud ja vastav, <br/>(kuupäev ja allkiri).<br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Ühikute vaheline konversioon on võimalik ainult siis, kui ühikud kuuluvad "
-#~ "samasse kategooriasse. Konverteerimist tehakse määrade järgi."
-
-#~ msgid "Create Report"
-#~ msgstr "Loo aruanne"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Looge uus kuluaruanne"
-
-#~ msgid "Create a report to submit one or more expenses to your manager."
-#~ msgstr ""
-#~ "Kulude kompenseerimiseks looge kuluaruanne ja esitage see oma juhile "
-#~ "kinnitamiseks."
-
-#~ msgid "Date"
-#~ msgstr "Kuupäev"
-
-#~ msgid "Default Journals"
-#~ msgstr "Vaikimisi andmikud"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Kas proovisite mobiilirakendust?"
-
-#~ msgid "Done"
-#~ msgstr "Tehtud"
-
-#~ msgid "Drag and drop files to create expenses"
-#~ msgstr "Kulude loomiseks tõmmake ja lohistage faile"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Töötaja kodune aadress"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Kuluandmik"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Kuluread"
-
-#~ msgid "Expense Lines Are Editable By Current User"
-#~ msgstr "Kuluread on muudetavad kasutaja poolt"
-
-#~ msgid "Expense Report"
-#~ msgstr "Kuluaruanne"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Kuluaruande kokkuvõte"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Kuluaruanded"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Kuluaruannete analüüs"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Kinnitamist ootavad kuluaruanded"
-
-#~ msgid "Expense Sheet"
-#~ msgstr "Kululeht"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Kuluaruanne on heaks kiidetud"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Kuluaruande eest on tasutud"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Kuluaruanne on tagasi lükatud"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Kuluaruannetes koondatakse kõik konkreetse sündmuse käigus tehtud "
-#~ "kulutused."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Kinnitamist ootavad kuluaruanded"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Kulud kuupäeva järgi"
-
-#~ msgid "Former Employees"
-#~ msgstr "Endised töötajad"
-
-#~ msgid "General Information"
-#~ msgstr "Üldine info"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play pood"
-
-#~ msgid "Group By"
-#~ msgstr "Rühmitamine"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Kasutage ridadel erinevaid valuutasid"
-
-#~ msgid "Internal Note"
-#~ msgstr "Sisemised märkused"
-
-#~ msgid "Label Convert Rate"
-#~ msgstr "Label Convert Rate"
-
-#~ msgid ""
-#~ "Managers can approve the report here, then an accountant can post the "
-#~ "accounting entries."
-#~ msgstr ""
-#~ "Siin saavad juhid aruande kinnitada, seejärel saab raamatupidaja "
-#~ "raamatupidamiskanded postitada."
-
-#~ msgid "My Reports"
-#~ msgstr "Minu kuluaruanded"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Uus kuluaruanne"
-
-#~ msgid "New Expense Reports"
-#~ msgstr "Uued kuluaruanded"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr "Töötajal %s ei leitud kodust aadressi, palun seadista üks."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Ühtegi kuluaruannet ei leitud. Loome ühe!"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Kuluaruandeid ei leitud. Loome ühe!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Tegutsemist nõudvate sõnumite arv"
-
-#~ msgid ""
-#~ "Once your <b>Expense Report</b> is ready, you can submit it to your "
-#~ "manager and wait for approval."
-#~ msgstr ""
-#~ "Kui teie <b>kuluaruanne</b> on valmis, saate selle esitada oma haldurile "
-#~ "ja oodata kinnitamist."
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr ""
-#~ "Mustandiks lähtestamise õigus on ainult personalitöötajal või konkreetsel "
-#~ "töötajal."
-
-#~ msgid "Or"
-#~ msgstr "või"
-
-#~ msgid "Others"
-#~ msgstr "Muud"
-
-#~ msgid "Partial"
-#~ msgstr "Osaline"
-
-#~ msgid "Payment Status"
-#~ msgstr "Maksestaatus"
-
-#~ msgid "Price"
-#~ msgstr "Hind"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Hind ettevõtte valuutas"
-
-#~ msgid "Qty"
-#~ msgstr "Kogus"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Kulu tagasilükkamise põhjus"
-
-#~ msgid "Ref."
-#~ msgstr "Viide"
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "Viidet saab redigeerida praegune kasutaja"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Tagasi lükatud kulud"
-
-#~ msgid "Register Payment"
-#~ msgstr "Lisa makse"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Hüvita kulud palgalehtedel"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Lähtesta mustandiks"
-
-#~ msgid "Sample"
-#~ msgstr "Näidis"
-
-#~ msgid ""
-#~ "Selected Unit of Measure for expense %(expense)s does not belong to the "
-#~ "same category as the Unit of Measure of product %(product)s."
-#~ msgstr ""
-#~ "Kulu %(expense)s valitud mõõtühik ei kuulu samasse kategooriasse toote %"
-#~ "(product)s mõõtühikuga."
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Seadista oma domeeni alias"
-
-#~ msgid "Sheet"
-#~ msgstr "Leht"
-
-#~ msgid "Sheet Is Editable"
-#~ msgstr "Leht on muudetav"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Näita kõiki andmeid, mille järgmise tegevuse kuupäev on enne tänast "
-#~ "kuupäeva"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Tehke oma kviitungitest pilte ja laske Odool<br> automaatselt Teie eest "
-#~ "kulud luua."
-
-#~ msgid "Specify expense journal to generate accounting entries."
-#~ msgstr "Määrake raamatupidamiskirjete genereerimiseks kuluandmik."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Andmik tuleb seada postitatud kulule"
-
-#~ msgid ""
-#~ "This note will be shown to users when they select this expense product."
-#~ msgstr ""
-#~ "Seda märkust näidatakse kasutajatele, kui nad valivad selle kulutoote."
-
-#~ msgid "To Report"
-#~ msgstr "Esitamiseks"
-
-#~ msgid "Unit Price Display"
-#~ msgstr "Ühikuhinna kuva"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mõõtühik"
-
-#~ msgid "UoM Category"
-#~ msgstr "Mõõtühikute kategooria"
-
-#~ msgid "User"
-#~ msgstr "Kasutaja"
-
-#~ msgid "View Report"
-#~ msgstr "Vaata aruannet"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr ""
-#~ "Kulutate aega oma kulutšekkide salvestamisele? Proovime paremat võimalust."
-
-#~ msgid ""
-#~ "When the cost of an expense product is different than 0, then the user "
-#~ "using this product won't be able to change the amount of the expense, "
-#~ "only the quantity. Use a cost different than 0 for expense categories "
-#~ "funded by the company at fixed cost like allowances for mileage, per "
-#~ "diem, accommodation or meal."
-#~ msgstr ""
-#~ "Kui kulutoote maksumus erineb 0-st, siis seda toodet kasutav kasutaja ei "
-#~ "saa muuta kulu suurust, vaid ainult kogust. Kasutage 0-st erinevat kulu "
-#~ "kulukategooriate puhul, mida ettevõte rahastab fikseeritud kuludega, nagu "
-#~ "läbisõidu, päevaraha, majutuse või toitlustuse hüvitis."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr "Teil ei ole õigust selle kuluaruande viidet muuta."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Teil ei ole õigust seda kuluaruannet redigeerida."
-
-#~ msgid "You can not create report without category."
-#~ msgstr "Ilma kategooriata ei saa aruannet luau."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr ""
-#~ "Teil on võimalik luua raamatupidamiskanne ainult kinnitatud kulu(de)le."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "Teise töötaja kulusid ei saa lisada."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "Te ei saa kustutada postitatud või makstud kulu."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr "Samas aruandes ei saa kajastada erinevate töötajate kulusid."
-
-#~ msgid "You cannot report the expenses without amount!"
-#~ msgstr "Ilma summata kulusid kajastada ei saa!"
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Te ei saa esitada sama rida kaks korda!"
-
-#~ msgid "You have no expense to report"
-#~ msgstr "Teil ei ole aruande esitamiseks mingeid kulusid"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "nt reis New Yorki"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "hüvitamisel"
-
-#~ msgid "under validation"
-#~ msgstr "kinnitamisel"

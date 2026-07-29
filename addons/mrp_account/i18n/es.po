@@ -5,17 +5,17 @@
 # Translators:
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
 # Martin Trigaux, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-30 03:10+0000\n"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2026-06-06 13:36+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "mrp_account/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -98,13 +98,6 @@ msgid "Account Move Line"
 msgstr "Línea de movimiento de la cuenta|"
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr ""
-"Asiento de la cuenta a crear al registrar el asiento de la cuenta de trabajo "
-"en curso"
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Cuenta analítica"
@@ -153,8 +146,8 @@ msgstr "Categoría"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
-msgstr "Empresas"
+msgid "Company"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.actions.server,name:mrp_account.action_compute_price_bom_product
@@ -222,11 +215,6 @@ msgstr "Fecha"
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__debit
 msgid "Debit"
 msgstr "Debe"
-
-#. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "Descartar"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
@@ -306,6 +294,11 @@ msgstr "Asiento contable"
 #: model:ir.model,name:mrp_account.model_account_move_line
 msgid "Journal Item"
 msgstr "Apunte contable"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
@@ -568,9 +561,8 @@ msgstr "Asiento de trabajo en curso"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
+msgid "Wizard to post Manufacturing WIP journal entry"
 msgstr ""
-"Asistente para publicar los asientos del trabajo de fabricación en curso"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -630,35 +622,3 @@ msgstr "[Centro de trabajo] %s"
 
 #~ msgid "2023-08-15"
 #~ msgstr "15-08-2023"
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take        place "
-#~ "for financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Cuenta analítica en la que se producirán los asientos de costos e "
-#~ "ingresos        para la gestión financiera de la orden de fabricación."
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take place for "
-#~ "financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Cuenta analítica en la que se producirán los asientos de costos e "
-#~ "ingresos para la gestión financiera de la orden de fabricación."
-
-#~ msgid "Bill of Material"
-#~ msgstr "Lista de materiales"
-
-#~ msgid "Production Order"
-#~ msgstr "Orden de producción"
-
-#~ msgid "Stock Rule"
-#~ msgstr "Regla de Inventario"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "Utilización del centro de producción"
-
-#~ msgid "Workcenters"
-#~ msgstr "Centros de trabajo"
-
-#~ msgid "[Raw] %s"
-#~ msgstr "[Materia prima] %s"

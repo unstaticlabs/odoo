@@ -2,17 +2,16 @@
 # This file contains the translation of the following modules:
 # * crm_iap_mine
 #
-# Odoo Translation Bot <c3p@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Zvonimir Galić <zvonimir.galic@viavista.ba>, 2026.
+# Odoo Translation Bot <c3p@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:19+0000\n"
-"Last-Translator: Zvonimir Galić <zvonimir.galic@viavista.ba>\n"
-"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-01-16 05:39+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-s19-1/"
 "crm_iap_mine/bs/>\n"
 "Language: bs\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: crm_iap_mine
 #. odoo-python
@@ -28,6 +27,12 @@ msgstr ""
 msgid ""
 "%(credit_count)d credits will be consumed to find %(company_count)d "
 "companies."
+msgstr ""
+
+#. module: crm_iap_mine
+#. odoo-python
+#: code:addons/crm_iap_mine/models/crm_iap_lead_helpers.py:0
+msgid "%s's opportunity"
 msgstr ""
 
 #. module: crm_iap_mine
@@ -134,13 +139,14 @@ msgid "CRM Lead Mining Request"
 msgstr ""
 
 #. module: crm_iap_mine
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-msgid "Cancel"
-msgstr "Otkaži"
-
-#. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_162
 msgid "Capital Goods"
+msgstr ""
+
+#. module: crm_iap_mine
+#. odoo-javascript
+#: code:addons/crm_iap_mine/static/src/js/tours/crm_iap_lead.js:0
+msgid "Click here to generate some leads."
 msgstr ""
 
 #. module: crm_iap_mine
@@ -339,25 +345,20 @@ msgstr "Od"
 #. module: crm_iap_mine
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_case_kanban_view_leads
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_lead
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_opportunity
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.view_crm_lead_kanban
 msgid "Generate Leads"
-msgstr "Generiraj potencijale"
+msgstr ""
 
 #. module: crm_iap_mine
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
 msgid "Generate new leads based on their country, industry, size, etc."
 msgstr ""
-"Generiraj nove potencijale temeljene na državama, idustriji, veličini..."
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_mining_request__lead_ids
 msgid "Generated Lead / Opportunity"
-msgstr "Generiraj Potencijal / Priliku"
+msgstr ""
 
 #. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_160
@@ -559,7 +560,7 @@ msgstr ""
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_mining_request__lead_count
 msgid "Number of Generated Leads"
-msgstr "Broj generiranih potencijala"
+msgstr ""
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_mining_request__lead_number
@@ -786,8 +787,8 @@ msgstr "Tip"
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
 msgid ""
-"Up to %(credit_count)d additional credits will be consumed to identify %"
-"(contact_count)d contacts per company."
+"Up to %(credit_count)d additional credits will be consumed to identify "
+"%(contact_count)d contacts per company."
 msgstr ""
 
 #. module: crm_iap_mine

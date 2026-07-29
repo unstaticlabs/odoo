@@ -134,7 +134,6 @@ export const DEFAULT_MONEY_FIELD_VALUES = {
 export const DEFAULT_RELATIONAL_FIELD_VALUES = {
     many2many: () => [],
     many2one: () => false,
-    many2one_reference: () => false,
     one2many: () => [],
 };
 export const DEFAULT_SELECTION_FIELD_VALUES = {
@@ -152,6 +151,7 @@ export const DEFAULT_STANDARD_FIELD_VALUES = {
     number: () => 0,
     image: () => false,
     integer: () => 0,
+    many2one_reference: () => false,
     json: () => false,
     properties: () => false,
     properties_definition: () => false,
@@ -211,7 +211,7 @@ export const Many2one = makeFieldGenerator("many2one", {
 });
 
 export const Many2oneReference = makeFieldGenerator("many2one_reference", {
-    requiredKeys: ["model_field", "relation"],
+    requiredKeys: ["model_field"],
 });
 
 export const Monetary = makeFieldGenerator("monetary", {

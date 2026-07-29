@@ -4,6 +4,7 @@ import {
     registerWebsitePreviewTour,
     insertSnippet,
     changeOptionInPopover,
+    unfoldOptionsGroup,
 } from "@website/js/tours/tour_utils";
 
 registerWebsitePreviewTour(
@@ -128,6 +129,7 @@ registerWebsitePreviewTour(
             trigger: ":iframe .s_donation_donate_btn",
             run: "click",
         },
+        ...unfoldOptionsGroup("Donation Button"),
         ...changeOptionInPopover("Donation Button", "Custom Amount", "[data-action-param='slider']"),
         ...clickOnSave(),
     ]
@@ -146,6 +148,15 @@ registry.category("web_tour.tours").add("donation_snippet_use_2", {
             trigger: ".s_donation_donate_btn.o_ready_to_donate",
             run: "click",
             expectUnloadPage: true,
+        },
+        {
+            // At this point, we are about to submit the donation form. However,
+            // the pre-filled fields such as name and email are still empty,
+            // which would cause an `is-invalid` error on the email field during
+            // submission. Since pre-filling values will take additional time to
+            // implement.
+            content: "Wait until the partner name field is pre-filled, then submit the form",
+            trigger: "input#partner_name:not(:empty)"
         },
         {
             content: "Click on the 'Amount to donate' input field",

@@ -11,6 +11,9 @@ class PosPaymentMethod(models.Model):
     def _get_payment_terminal_selection(self):
         return super()._get_payment_terminal_selection() + [("mollie", "Mollie")]
 
+    def _allowed_actions_in_self_order(self):
+        return super()._allowed_actions_in_self_order() + ["mollie_create_payment", "mollie_create_refund", "mollie_cancel_payment", "mollie_get_payment"]
+
     mollie_terminal_id = fields.Char("Mollie Terminal ID", copy=False)
     mollie_payment_provider_id = fields.Many2one("payment.provider", domain=[("code", "=", "mollie")])
 

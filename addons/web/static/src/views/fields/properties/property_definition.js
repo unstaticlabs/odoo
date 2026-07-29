@@ -1,19 +1,84 @@
-import { _t } from "@web/core/l10n/translation";
-import { PropertyValue } from "./property_value";
+import { Component, onWillUpdateProps, useEffect, useRef, useState } from "@odoo/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
-import { DomainSelector } from "@web/core/domain_selector/domain_selector";
 import { Domain } from "@web/core/domain";
+import { DomainSelector } from "@web/core/domain_selector/domain_selector";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { _t } from "@web/core/l10n/translation";
 import { ModelSelector } from "@web/core/model_selector/model_selector";
+import { SelectMenu } from "@web/core/select_menu/select_menu";
+import { useOwnedDialogs, useService } from "@web/core/utils/hooks";
+import { uuid } from "@web/core/utils/strings";
 import { Many2XAutocomplete } from "@web/views/fields/relational_utils";
-import { useService, useOwnedDialogs } from "@web/core/utils/hooks";
+import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
 import { PropertyDefinitionSelection } from "./property_definition_selection";
 import { PropertyTags } from "./property_tags";
-import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
-import { uuid } from "@web/core/utils/strings";
+import { PropertyValue } from "./property_value";
 
-import { Component, useState, onWillUpdateProps, useEffect, useRef } from "@odoo/owl";
+export const PROPERTIES_INFO = {
+    char: {
+        label: _t("Text"),
+        parameters: [],
+    },
+    text: {
+        label: _t("Multiline Text"),
+        parameters: [],
+    },
+    html: {
+        label: _t("HTML"),
+        parameters: [],
+    },
+    boolean: {
+        label: _t("Checkbox"),
+        parameters: [],
+    },
+    integer: {
+        label: _t("Integer"),
+        parameters: [],
+    },
+    float: {
+        label: _t("Decimal"),
+        parameters: [],
+    },
+    monetary: {
+        label: _t("Monetary"),
+        parameters: ["currency_field"],
+    },
+    date: {
+        label: _t("Date"),
+        parameters: [],
+    },
+    datetime: {
+        label: _t("Date & Time"),
+        parameters: [],
+    },
+    selection: {
+        label: _t("Selection"),
+        parameters: ["selection"],
+    },
+    tags: {
+        label: _t("Tags"),
+        parameters: ["tags"],
+    },
+    many2one: {
+        label: _t("Many2one"),
+        parameters: ["comodel", "domain"],
+    },
+    many2many: {
+        label: _t("Many2many"),
+        parameters: ["comodel", "domain"],
+    },
+    signature: {
+        label: _t("Signature"),
+        parameters: [],
+    },
+    separator: {
+        label: _t("Separator"),
+        parameters: [],
+    },
+};
+export const PROPERTY_TYPES = Object.keys(PROPERTIES_INFO);
+const PROPERTY_PARAMETERS = new Set(Object.values(PROPERTIES_INFO).flatMap((info) => info.parameters));
 
 export class PropertyDefinition extends Component {
     static template = "web.PropertyDefinition";
@@ -27,6 +92,7 @@ export class PropertyDefinition extends Component {
         ModelSelector,
         PropertyDefinitionSelection,
         PropertyTags,
+        SelectMenu,
     };
     static props = {
         fieldName: { type: String },
@@ -36,23 +102,14 @@ export class PropertyDefinition extends Component {
         context: { type: Object },
         isNewlyCreated: { type: Boolean, optional: true },
         // index and number of properties, to hide the move arrows when needed
-        propertyIndex: { type: Number },
         propertiesSize: { type: Number },
         // events
         onChange: { type: Function, optional: true },
         onDelete: { type: Function, optional: true },
-        onPropertyMove: { type: Function, optional: true },
         // prop needed by the popover service
         close: { type: Function, optional: true },
         record: { type: Object, optional: true },
     };
-    static _propertyParametersMap = new Map([
-        ["comodel", ["many2one", "many2many"]],
-        ["currency_field", ["monetary"]],
-        ["domain", ["many2one", "many2many"]],
-        ["selection", ["selection"]],
-        ["tags", ["tags"]],
-    ]);
 
     setup() {
         this.orm = useService("orm");
@@ -73,11 +130,10 @@ export class PropertyDefinition extends Component {
 
         this.state = useState({
             propertyDefinition: propertyDefinition,
-            typeLabel: this._typeLabel(propertyDefinition.type),
+            typeLabel: PROPERTIES_INFO[propertyDefinition.type].label,
             resModel: "",
             resModelDescription: "",
             matchingRecordsCount: undefined,
-            propertyIndex: this.props.propertyIndex,
         });
 
         this._syncStateWithProps(propertyDefinition);
@@ -115,22 +171,16 @@ export class PropertyDefinition extends Component {
      * @returns {array}
      */
     get availablePropertyTypes() {
-        return [
-            ["char", _t("Text")],
-            ["text", _t("Multiline Text")],
-            ["html", _t("HTML")],
-            ["boolean", _t("Checkbox")],
-            ["integer", _t("Integer")],
-            ["float", _t("Decimal")],
-            ["monetary", _t("Monetary")],
-            ["date", _t("Date")],
-            ["datetime", _t("Date & Time")],
-            ["selection", _t("Selection")],
-            ["tags", _t("Tags")],
-            ["many2one", _t("Many2one")],
-            ["many2many", _t("Many2many")],
-            ["separator", _t("Separator")],
-        ];
+        const defaultCurrencyField = this.defaultCurrencyField;
+        return Object.entries(PROPERTIES_INFO).map(([value, { label }]) => {
+            const isEnabled = value !== "monetary" || !!defaultCurrencyField;
+            return {
+                enabled: isEnabled,
+                label,
+                tooltip: isEnabled ? "" : _t("Not possible to create monetary field because there is no currency on current model."),
+                value,
+            };
+        });
     }
 
     get currencyFields() {
@@ -142,20 +192,6 @@ export class PropertyDefinition extends Component {
     get defaultCurrencyField() {
         const currencyFields = this.currencyFields.map((fieldDef) => fieldDef.name);
         return currencyFields.includes("currency_id") ? "currency_id" : currencyFields[0] || false;
-    }
-
-    /**
-     * Return True if the current properties is the first one in the list.
-     */
-    get isFirst() {
-        return this.state.propertyIndex === 0;
-    }
-
-    /**
-     * Return True if the current properties is the last one in the list.
-     */
-    get isLast() {
-        return this.state.propertyIndex === this.props.propertiesSize - 1;
     }
 
     /**
@@ -248,11 +284,15 @@ export class PropertyDefinition extends Component {
             propertyDefinition.fold_by_default = true;
         }
 
-        PropertyDefinition._propertyParametersMap.forEach((types, param) => {
-            if (!types.includes(propertyDefinition.type)) {
+        if (newType === "signature") {
+            delete propertyDefinition.suffix;
+        }
+
+        for (const param of PROPERTY_PARAMETERS) {
+            if (!PROPERTIES_INFO[propertyDefinition.type].parameters.includes(param)) {
                 delete propertyDefinition[param];
             }
-        });
+        }
 
         this.props.onChange(propertyDefinition);
         this.state.propertyDefinition = propertyDefinition;
@@ -260,7 +300,7 @@ export class PropertyDefinition extends Component {
             this.state.resModel = "";
             this.state.resModelDescription = "";
         }
-        this.state.typeLabel = this._typeLabel(newType);
+        this.state.typeLabel = PROPERTIES_INFO[propertyDefinition.type].label;
     }
 
     /**
@@ -317,20 +357,6 @@ export class PropertyDefinition extends Component {
             domain: new Domain(this.state.propertyDefinition.domain || "[]").toList(),
             context: this.props.context || {},
         });
-    }
-
-    /**
-     * Move the current property up or down.
-     *
-     * @param {string} direction, either 'up' or 'down'
-     */
-    onPropertyMove(direction) {
-        if (direction === "up") {
-            this.state.propertyIndex--;
-        } else {
-            this.state.propertyIndex++;
-        }
-        this.props.onPropertyMove(direction);
     }
 
     /**
@@ -425,7 +451,7 @@ export class PropertyDefinition extends Component {
 
         this.state.propertyDefinition = propertyDefinition;
         this.state.resModel = propertyDefinition.comodel;
-        this.state.typeLabel = this._typeLabel(propertyDefinition.type);
+        this.state.typeLabel = PROPERTIES_INFO[propertyDefinition.type].label;
         this.state.resModel = newModel;
 
         if (newModel && newModel !== currentModel) {
@@ -468,16 +494,5 @@ export class PropertyDefinition extends Component {
         } else {
             this.state.matchingRecordsCount = undefined;
         }
-    }
-
-    /**
-     * Return the property label corresponding to the property type.
-     *
-     * @param {string} propertyType
-     * @returns {string}
-     */
-    _typeLabel(propertyType) {
-        const allTypes = this.availablePropertyTypes;
-        return allTypes.find((type) => type[0] === propertyType)[1];
     }
 }

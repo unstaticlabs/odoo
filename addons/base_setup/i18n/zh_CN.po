@@ -6,17 +6,17 @@
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
 # Martin Trigaux, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:02+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:37+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/base_setup/zh_Hans/>\n"
+"projects/odoo-s19-2/base_setup/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -153,11 +153,6 @@ msgstr "添加语言"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Add fun feedback and motivate your employees"
 msgstr "增加有趣的反馈并激励员工"
-
-#. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
-msgstr "允许与邮件插件集成"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_calendar
@@ -376,11 +371,6 @@ msgstr "导入和 导出"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
-msgstr "与邮件客户端插件集成"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Integrations"
 msgstr "集成"
 
@@ -396,8 +386,9 @@ msgstr "是母公司"
 
 #. module: base_setup
 #: model:ir.model,name:base_setup.model_kpi_provider
+#, fuzzy
 msgid "KPI Provider"
-msgstr ""
+msgstr "KPI提供者"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_auth_ldap
@@ -414,11 +405,6 @@ msgstr "语言"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
 msgstr "布局"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
-msgstr "邮件插件"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -523,8 +509,9 @@ msgstr "使用 CF Turnstile 保护您的表单。"
 #. module: base_setup
 #. odoo-javascript
 #: code:addons/base_setup/static/src/views/module_views.xml:0
+#, fuzzy
 msgid "Reset Updating States"
-msgstr ""
+msgstr "重置更新状态"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_sms
@@ -633,48 +620,3 @@ msgstr "您必须安装 Discuss 应用程序才能使用此功能。"
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_recaptcha
 msgid "reCAPTCHA"
 msgstr "验证码"
-
-#~ msgid "Asterisk (VoIP)"
-#~ msgstr "Asterisk (开源VoIP平台)"
-
-#~ msgid ""
-#~ "Automatically generate counterpart documents for orders/invoices between "
-#~ "companies"
-#~ msgstr "自动产生公司间订单/结算单的对应文档"
-
-#~ msgid ""
-#~ "By default, new users get highest access rights for all installed apps."
-#~ msgstr "默认情况下，新用户获得所有安装的应用程序的最高访问权限。"
-
-#~ msgid "Default User Template not found."
-#~ msgstr "没有找到默认的用户模板。"
-
-#~ msgid "Documentation"
-#~ msgstr "文档"
-
-#~ msgid "Geo Localization"
-#~ msgstr "地理定位"
-
-#~ msgid "GeoLocalize your partners"
-#~ msgstr "定位您的合作伙伴"
-
-#~ msgid "Get product pictures using barcode"
-#~ msgstr "使用条形码获取产品图片"
-
-#~ msgid "Google Calendar"
-#~ msgstr "Google日历"
-
-#~ msgid "On Apple Store"
-#~ msgstr "在苹果应用商店"
-
-#~ msgid "On Google Play"
-#~ msgstr "在谷歌应用市场"
-
-#~ msgid "Outlook Calendar"
-#~ msgstr "Outlook日历"
-
-#~ msgid "Synchronize your calendar with Google Calendar"
-#~ msgstr "将日历与Google日历同步"
-
-#~ msgid "Synchronize your calendar with Outlook"
-#~ msgstr "将日历与 Outlook 同步"

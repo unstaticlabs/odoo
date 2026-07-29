@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * sale_crm
+# 	* sale_crm
 #
 # Translators:
 # Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
@@ -10,23 +10,21 @@
 # Jan Prokop, 2022
 # Martin Trigaux, 2022
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 17:45+0000\n"
-"Last-Translator: Tomáš Píšek <Tomas.Pisek@seznam.cz>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/sale_crm/"
-"sk/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Rastislav Brencic <rastislav.brencic@azet.sk>, 2022\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: sale_crm
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
@@ -36,27 +34,17 @@ msgstr "<span class=\"o_stat_text\"> Objednávky</span>"
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__lead_id
 msgid "Associated Lead"
-msgstr "Súvisiaci potenciálny zákazník"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Cancel"
-msgstr "Zrušiť"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Confirm"
-msgstr "Potvrdiť"
+msgstr "Pridružený vedúci"
 
 #. module: sale_crm
 #: model:ir.model.fields.selection,name:sale_crm.selection__crm_quotation_partner__action__create
 msgid "Create a new customer"
-msgstr "Vytvoriť nového zákazníka"
+msgstr "Vytvorte nového zákazníka"
 
 #. module: sale_crm
 #: model:ir.model,website_form_label:sale_crm.model_crm_lead
 msgid "Create an Opportunity"
-msgstr "Vytvoriť príležitosť"
+msgstr ""
 
 #. module: sale_crm
 #: model:ir.model,name:sale_crm.model_crm_quotation_partner
@@ -67,7 +55,7 @@ msgstr ""
 #. module: sale_crm
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
 msgid "Create new quotation"
-msgstr "Vytvoriť novú ponuku"
+msgstr ""
 
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__create_uid
@@ -102,8 +90,11 @@ msgstr "Nepripájať ku zákazníkovi"
 #: code:addons/sale_crm/models/crm_lead.py:0
 msgid "Expected revenue has been updated based on the linked Sales Orders."
 msgstr ""
-"Očakávané tržby boli aktualizované na základe prepojených predajných "
-"objednávok."
+
+#. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Go to Quotation"
+msgstr ""
 
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__id
@@ -126,7 +117,7 @@ msgstr "Naposledy upravované"
 #. module: sale_crm
 #: model:ir.model,name:sale_crm.model_crm_lead
 msgid "Lead"
-msgstr "Potenciálna príležitosť"
+msgstr ""
 
 #. module: sale_crm
 #: model:ir.model.fields.selection,name:sale_crm.selection__crm_quotation_partner__action__exist
@@ -136,12 +127,10 @@ msgstr "Pripojiť k existujúcemu zákazníkovi"
 #. module: sale_crm
 #: model:ir.ui.menu,name:sale_crm.sale_order_menu_quotations_crm
 msgid "My Quotations"
-msgstr "Moje ponuky"
+msgstr "Moje cenové ponuky"
 
 #. module: sale_crm
-#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
 msgid "New Quotation"
 msgstr "Nová cenová ponuka"
 
@@ -153,7 +142,7 @@ msgstr "Počet cenových ponúk"
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__sale_order_count
 msgid "Number of Sale Orders"
-msgstr "Počet objednávok"
+msgstr "Počet Objednávok"
 
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_sale_order__opportunity_id
@@ -183,7 +172,7 @@ msgstr "Cenové ponuky"
 #. module: sale_crm
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_lead_merge_summary_inherit_sale_crm
 msgid "Sale Orders"
-msgstr "Predajné objednávky"
+msgstr "Objednávky predaja"
 
 #. module: sale_crm
 #. odoo-python
@@ -194,12 +183,17 @@ msgstr "Analýza predaja"
 #. module: sale_crm
 #: model:ir.model,name:sale_crm.model_sale_order
 msgid "Sales Order"
-msgstr "Predajná objednávka"
+msgstr "Objednávka "
 
 #. module: sale_crm
 #: model:ir.model,name:sale_crm.model_crm_team
 msgid "Sales Team"
 msgstr "Obchodný tím"
+
+#. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Select a Customer"
+msgstr ""
 
 #. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__sale_amount_total
@@ -212,25 +206,13 @@ msgid "Untaxed Total of Confirmed Orders"
 msgstr "Celková suma potvrdených objednávok bez dane"
 
 #. module: sale_crm
+#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Who should be linked to this new Quotation?"
+msgstr ""
+
+#. module: sale_crm
 #. odoo-python
 #: code:addons/sale_crm/wizard/crm_opportunity_to_quotation.py:0
 msgid "You can only apply this action from a lead."
 msgstr "Túto akciu môžete použiť iba z Potenciálnej príležitosti."
-
-#~ msgid "Invoiced in Sales Orders Target"
-#~ msgstr "Fakturované v súlade s objednávkou"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Posledná úprava"
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Potenciálna príležitosť / obchodný prípad"
-
-#~ msgid "Log in the chatter from which opportunity the order originates"
-#~ msgstr "Prihláste sa do obchodného prípadu, z ktorého objednávka pochádza"
-
-#~ msgid "Sales: Untaxed Total"
-#~ msgstr "Predaj: Nezdanené celkom"
-
-#~ msgid "User"
-#~ msgstr "Užívateľ"

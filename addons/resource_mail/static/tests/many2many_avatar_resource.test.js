@@ -7,10 +7,10 @@ import {
     start,
     startServer,
 } from "@mail/../tests/mail_test_helpers";
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { queryAll, queryFirst } from "@odoo/hoot-dom";
+import { contains as webContains } from "@web/../tests/web_test_helpers";
+import { animationFrame, beforeEach, describe, expect, test } from "@odoo/hoot";
+import { queryAll, queryFirst, waitFor } from "@odoo/hoot-dom";
 import { defineResourceMailModels } from "./resource_mail_test_helpers";
-import { onRpc } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
 const data = {};
@@ -74,20 +74,6 @@ beforeEach(async () => {
             data.resourcePierreId,
         ],
     }]);
-
-    onRpc("resource.resource", "get_avatar_card_data", (params) => {
-        const resourceIdArray = params.args[0];
-        const resourceId = resourceIdArray[0];
-        const resources = pyEnv['resource.resource'].read([resourceId]);
-        const result = resources.map(resource => ({
-            name: resource.name,
-            role_ids: resource.role_ids,
-            email:resource.email,
-            phone: resource.phone,
-            user_id: resource.user_id,
-        }));
-        return result;
-    });
 });
 test("many2many_avatar_resource widget in form view", async () => {
     await start();
@@ -115,7 +101,7 @@ test("many2many_avatar_resource widget in form view", async () => {
 
     // 2. Clicking on human resource's avatar with no user associated
     await click(".many2many_tags_avatar_field_container .o_tag img:first");
-    await contains(".o_card_user_infos span", { text: "Marie" });
+    await contains(".o-mail-avatar-card-name", { text: "Marie" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -128,7 +114,7 @@ test("many2many_avatar_resource widget in form view", async () => {
     );
     // 3. Clicking on human resource's avatar with one user associated
     await click(queryAll(".many2many_tags_avatar_field_container .o_tag img")[1]);
-    await contains(".o_card_user_infos span", { text: "Pierre" });
+    await contains(".o-mail-avatar-card-name", { text: "Pierre" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -185,7 +171,7 @@ test("many2many_avatar_resource widget in list view", async () => {
     await contains(".o_avatar_card", { count: 0 });
     // 2. Clicking on human resource's avatar with no user associated
     await click(tagMarie);
-    await contains(".o_card_user_infos span", { text: "Marie" });
+    await contains(".o-mail-avatar-card-name", { text: "Marie" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -198,7 +184,7 @@ test("many2many_avatar_resource widget in list view", async () => {
     );
     // 3. Clicking on human resource's avatar with one user associated
     await click(tagPierre);
-    await contains(".o_card_user_infos span", { text: "Pierre" });
+    await contains(".o-mail-avatar-card-name", { text: "Pierre" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -251,6 +237,11 @@ test("many2many_avatar_resource widget in kanban view", async () => {
         { count: 0, target: card1 },
         "No text should be displayed on any avatar",
     );
+    await waitFor(
+        ".o_kanban_record:nth-child(1) .o_field_many2many_avatar_resource .o_quick_assign",
+        { visible: false },
+        "Quick assign button should be displayed on the card"
+    );
 
     await contains(
         "img.o_m2m_avatar",
@@ -262,6 +253,17 @@ test("many2many_avatar_resource widget in kanban view", async () => {
         { count: 0, target: card2 },
         "No text should be displayed on the avatar",
     );
+    await webContains(
+        ".o_kanban_record:nth-child(2) .o_field_many2many_avatar_resource .o_quick_assign",
+        { visible: false },
+        "Quick assign button should be displayed on the card"
+    ).click();
+    await animationFrame();
+    expect(".o-overlay-container input").toBeFocused();
+    expect(".o-overlay-container .o_tag").toHaveCount(1);
+    expect(".o-overlay-container .o_avatar_many2x_autocomplete").toHaveCount(3);
+    expect(".o-overlay-container .o_avatar_many2x_autocomplete i.o_material_resource.fa-wrench").toHaveCount(1);
+    expect(".o-overlay-container .o_avatar_many2x_autocomplete img").toHaveCount(2);
 
     // Second and third records in widget should display employee avatars
     const [ tagMarie, tagPierre ] = document.querySelectorAll(".many2many_tags_avatar_field_container .o_tag img");
@@ -272,7 +274,7 @@ test("many2many_avatar_resource widget in kanban view", async () => {
     await contains(".o_avatar_card", { count: 0 });
     // 2. Clicking on human resource's avatar with no user associated
     await click(tagMarie);
-    await contains(".o_card_user_infos span", { text: "Marie" });
+    await contains(".o-mail-avatar-card-name", { text: "Marie" });
     await contains(
         ".o_avatar_card",
         { count: 1 },
@@ -285,7 +287,7 @@ test("many2many_avatar_resource widget in kanban view", async () => {
     );
     // 3. Clicking on human resource's avatar with one user associated
     await click(tagPierre);
-    await contains(".o_card_user_infos span", { text: "Pierre" });
+    await contains(".o-mail-avatar-card-name", { text: "Pierre" });
     await contains(
         ".o_avatar_card",
         { count: 1 },

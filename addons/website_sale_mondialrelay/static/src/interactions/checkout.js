@@ -6,6 +6,7 @@ import { Checkout } from '@website_sale/interactions/checkout';
 // temporary for OnNoResultReturned bug
 import { registry } from '@web/core/registry';
 import { ThirdPartyScriptError } from '@web/core/errors/error_service';
+
 const errorHandlerRegistry = registry.category('error_handlers');
 
 function corsIgnoredErrorHandler(env, error) {
@@ -25,8 +26,7 @@ patch(Checkout.prototype, {
         const useDeliveryAsBillingLabel = this.el.querySelector('#use_delivery_as_billing_label');
         if (useDeliveryAsBillingLabel) {
             this.useDeliveryAsBillingTooltip = window.Tooltip
-                .getOrCreateInstance(useDeliveryAsBillingLabel);
-            this.registerCleanup(() => this.useDeliveryAsBillingTooltip.dispose());
+                .getInstance(useDeliveryAsBillingLabel);
         }
         this._adaptUseDeliveryAsBillingToggle();
     },
@@ -109,8 +109,11 @@ patch(Checkout.prototype, {
         // add modal to body and bind 'save' button
         this.renderAt('website_sale_mondialrelay', {}, document.querySelector('body'));
         this.mondialRelayModal = document.querySelector('#modal_mondialrelay');
-        this.mondialRelayModal.querySelector('#btn_confirm_relay').addEventListener(
-            'click', this.onClickBtnConfirmRelay.bind(this)
+        const confirmRelayButton = this.mondialRelayModal.querySelector('#btn_confirm_relay');
+        const boundConfirmRelay = this.onClickBtnConfirmRelay.bind(this);
+        confirmRelayButton.addEventListener('click', boundConfirmRelay);
+        this.registerCleanup(
+            () => confirmRelayButton.removeEventListener('click', boundConfirmRelay)
         );
 
         // load mondial relay script

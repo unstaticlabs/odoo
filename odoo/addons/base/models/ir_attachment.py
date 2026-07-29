@@ -14,12 +14,14 @@ from collections import defaultdict
 from collections.abc import Collection
 
 import psycopg2
-import werkzeug
+import werkzeug.security
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.http import Stream, request, root
+from odoo.http import request
+from odoo.http.router import root
+from odoo.http.stream import Stream
 from odoo.tools import (
     OrderedSet,
     config,
@@ -75,6 +77,7 @@ class IrAttachment(models.Model):
     _name = 'ir.attachment'
     _description = 'Attachment'
     _order = 'id desc'
+    _access_domain_heavy = True
 
     def _compute_res_name(self):
         for attachment in self:
@@ -86,7 +89,7 @@ class IrAttachment(models.Model):
 
     @api.model
     def _storage(self):
-        return self.env['ir.config_parameter'].sudo().get_param('ir_attachment.location', 'file')
+        return self.env['ir.config_parameter'].sudo().get_str('ir_attachment.location') or 'file'
 
     @api.model
     def _filestore(self):
@@ -268,7 +271,7 @@ class IrAttachment(models.Model):
             if attach.store_fname:
                 attach.raw = attach._file_read(attach.store_fname)
             else:
-                attach.raw = attach.db_datas
+                attach.raw = attach.db_datas or b''
 
     def _get_pdf_raw(self):
         self.ensure_one()
@@ -363,59 +366,58 @@ class IrAttachment(models.Model):
         if not mimetype and values.get('url'):
             mimetype = mimetypes.guess_type(values['url'].split('?')[0])[0]
         if not mimetype or mimetype == 'application/octet-stream':
-            raw = None
-            if values.get('raw'):
-                raw = values['raw']
-            elif values.get('datas'):
-                raw = base64.b64decode(values['datas'])
-            if raw:
+            if raw := values.get('raw'):
+                assert isinstance(raw, bytes), f"Expecting raw bytes, got {type(raw)}"
                 mimetype = guess_mimetype(raw)
-        return mimetype and mimetype.lower() or 'application/octet-stream'
+        return mimetype.lower() if mimetype else 'application/octet-stream'
 
     def _postprocess_contents(self, values):
-        ICP = self.env['ir.config_parameter'].sudo().get_param
-        supported_subtype = ICP('base.image_autoresize_extensions', 'png,jpeg,bmp,tiff').split(',')
+        ICP = self.env['ir.config_parameter'].sudo()
+        supported_subtype = (ICP.get_str('base.image_autoresize_extensions') or 'png,jpeg,bmp,tiff').split(',')
 
-        mimetype = values['mimetype'] = self._compute_mimetype(values)
-        _type, _match, _subtype = mimetype.partition('/')
-        is_image_resizable = _type == 'image' and _subtype in supported_subtype
-        if is_image_resizable and (values.get('datas') or values.get('raw')):
-            is_raw = values.get('raw')
+        type_, subtype = values['mimetype'].split('/', 1)
+        if type_ != 'image' or subtype not in supported_subtype:
+            return values
+        raw = values.get('raw')
+        if not raw:
+            return values
 
-            # Can be set to 0 to skip the resize
-            max_resolution = ICP('base.image_autoresize_max_px', '1920x1920')
-            if str2bool(max_resolution, True):
-                try:
-                    if is_raw:
-                        img = image.ImageProcess(values['raw'], verify_resolution=False)
-                    else:  # datas
-                        img = image.ImageProcess(base64.b64decode(values['datas']), verify_resolution=False)
+        # Can be set to 0 to skip the resize
+        max_resolution = ICP.get_str('base.image_autoresize_max_px') or '1920x1920'
+        if str2bool(max_resolution, True):
+            try:
+                img = image.ImageProcess(raw, verify_resolution=False)
 
-                    if not img.image:
-                        _logger.info('Post processing ignored : Empty source, SVG, or WEBP')
-                        return values
+                if not img.image:
+                    _logger.info('Post processing ignored : Empty source, SVG, or WEBP')
+                    return values
 
-                    w, h = img.image.size
-                    nw, nh = map(int, max_resolution.split('x'))
-                    if w > nw or h > nh:
-                        img = img.resize(nw, nh)
-                        if _subtype == 'jpeg':  # Do not affect PNGs color palette
-                            quality = int(ICP('base.image_autoresize_quality', 80))
-                        else:
-                            quality = 0
-                        image_data = img.image_quality(quality=quality)
-                        if is_raw:
-                            values['raw'] = image_data
-                        else:
-                            values['datas'] = base64.b64encode(image_data)
-                except UserError as e:
-                    # Catch error during test where we provide fake image
-                    # raise UserError(_("This file could not be decoded as an image file. Please try with a different file."))
-                    msg = str(e)  # the exception can be lazy-translated, resolve it here
-                    _logger.info('Post processing ignored : %s', msg)
+                w, h = img.image.size
+                nw, nh = map(int, max_resolution.split('x'))
+                if w > nw or h > nh:
+                    img = img.resize(nw, nh)
+                    if subtype == 'jpeg':  # Do not affect PNGs color palette
+                        quality = ICP.get_int('base.image_autoresize_quality', 80)
+                        values['raw'] = img.image_quality(quality)
+                    else:
+                        values['raw'] = img.image_quality()
+            except UserError as e:
+                # Catch error during test where we provide fake image
+                # raise UserError(_("This file could not be decoded as an image file. Please try with a different file."))
+                msg = str(e)  # the exception can be lazy-translated, resolve it here
+                _logger.info('Post processing ignored : %s', msg)
         return values
 
     def _check_contents(self, values):
+        if d := values.pop('datas', None):
+            warnings.warn(
+                "Passing `datas` to `_check_contents` is deprecated, decode and move it to `raw`",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            if not values.get('raw'):
+                values['raw'] = base64.b64decode(d)
+
         mimetype = values['mimetype'] = self._compute_mimetype(values)
         xml_like = 'ht' in mimetype or ( # hta, html, xhtml, etc.
                 'xml' in mimetype and    # other xml (svg, text/xml, etc)
@@ -561,7 +563,7 @@ class IrAttachment(models.Model):
                     except KeyError:
                         # field does not exist
                         field = None
-                    if field is None or not self._has_field_access(field, operation):
+                    if field is None or not self.has_field_access(field, operation):
                         forbidden_ids.add(att_id)
                         continue
             if res_model and res_id:
@@ -632,6 +634,8 @@ class IrAttachment(models.Model):
         domain = domain.optimize(self)
         if self.env.su or bypass_access or domain.is_false():
             return super()._search(domain, offset, limit, order, active_test=active_test, bypass_access=bypass_access)
+        if self.env.context.get('_generating_sql_for_fields'):
+            raise ValueError("Cannot generate SQL for whole ir.attachment")
 
         # General access rules
         # - public == True are always accessible
@@ -668,7 +672,7 @@ class IrAttachment(models.Model):
                         field.name
                         for field in comodel._fields.values()
                         if field.type == 'binary' or (field.relational and field.comodel_name == self._name)
-                        if comodel._has_field_access(field, 'read')
+                        if comodel.has_field_access(field, 'read')
                     ]
                     accessible_fields.append(False)
                     codomain &= Domain('res_field', 'in', accessible_fields)
@@ -723,6 +727,9 @@ class IrAttachment(models.Model):
         for field in ('file_size', 'checksum', 'store_fname'):
             vals.pop(field, False)
         if 'mimetype' in vals or 'datas' in vals or 'raw' in vals:
+            if d := vals.pop('datas', None):
+                if not vals.get('raw'):
+                    vals['raw'] = base64.b64decode(d)
             vals = self._check_contents(vals)
         res = super().write(vals)
         if 'url' in vals or 'type' in vals:
@@ -766,7 +773,7 @@ class IrAttachment(models.Model):
         for values in vals_list:
             # needs to be popped in all cases to bypass `_inverse_datas`
             datas = values.pop('datas', None)
-            if raw := values.get('raw'):
+            if raw := (values.get('raw') or values.get('db_datas')):
                 if isinstance(raw, str):
                     values['raw'] = raw.encode()
             elif datas:
@@ -914,7 +921,7 @@ class IrAttachment(models.Model):
         """ Create a :class:`~Stream`: from an ir.attachment record. """
         self.ensure_one()
 
-        stream = Stream(
+        kw = dict(
             mimetype=self.mimetype,
             download_name=self.name,
             etag=self.checksum,
@@ -922,20 +929,17 @@ class IrAttachment(models.Model):
         )
 
         if self.store_fname:
-            stream.type = 'path'
-            stream.path = werkzeug.security.safe_join(
+            path = werkzeug.security.safe_join(
                 os.path.abspath(config.filestore(request.db)),
                 self.store_fname
             )
-            stat = os.stat(stream.path)
-            stream.last_modified = stat.st_mtime
-            stream.size = stat.st_size
-
-        elif self.db_datas:
-            stream.type = 'data'
-            stream.data = self.raw
-            stream.last_modified = self.write_date
-            stream.size = len(stream.data)
+            stat = os.stat(path)
+            kw.update(
+                type='path',
+                path=path,
+                last_modified=stat.st_mtime,
+                size=stat.st_size,
+            )
 
         elif self.url:
             # When the URL targets a file located in an addon, assume it
@@ -946,17 +950,20 @@ class IrAttachment(models.Model):
                 host=request.httprequest.environ.get('HTTP_HOST', '')
             )
             if static_path:
-                stream = Stream.from_path(static_path, public=True)
+                return Stream.from_path(static_path, public=True)
             else:
-                stream.type = 'url'
-                stream.url = self.url
+                kw.update(type='url', url=self.url)
 
         else:
-            stream.type = 'data'
-            stream.data = b''
-            stream.size = 0
+            data = self.raw or b''
+            kw.update(
+                type='data',
+                data=data,
+                last_modified=self.write_date,
+                size=len(data),
+            )
 
-        return stream
+        return Stream(**kw)
 
     def _is_remote_source(self):
         self.ensure_one()

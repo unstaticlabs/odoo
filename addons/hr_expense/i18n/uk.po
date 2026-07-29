@@ -5,15 +5,15 @@
 # Translators:
 # Martin Trigaux, 2023
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 03:42+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"PO-Revision-Date: 2025-11-08 19:06+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense/uk/>\n"
 "Language: uk\n"
@@ -24,7 +24,7 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -75,6 +75,11 @@ msgstr ""
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
 msgstr ""
 
 #. module: hr_expense
@@ -135,6 +140,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Рахунок"
@@ -169,6 +184,11 @@ msgstr "Дії"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Оформлення виключення дії"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -246,8 +266,10 @@ msgstr "Рахунок витрат очікується"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "Витрати тієї ж категорії, суми та дати вже існують."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -370,14 +392,6 @@ msgid "Can Reset"
 msgstr "Можна скинути"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "Скасувати"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -406,10 +420,6 @@ msgstr "Зв'язок"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Компанії"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -494,7 +504,6 @@ msgstr "Курс валюти"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Шановний"
 
@@ -581,12 +590,6 @@ msgid "Domain"
 msgstr "Домен"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Завантажте наш додаток"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -598,6 +601,12 @@ msgstr "Чернетка"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Дублювати витрати"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -632,6 +641,18 @@ msgid "Employee Expenses"
 msgstr "Витрати співробітників"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -639,6 +660,8 @@ msgid ""
 msgstr "Введіть назву, виберіть категорію та налаштуйте суму своїх витрат."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -673,7 +696,6 @@ msgstr "Дублікат схвалення витрат"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Затверджувач витрат"
 
@@ -783,11 +805,6 @@ msgid "Expense split"
 msgstr "Розділення витрат"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -821,11 +838,6 @@ msgid "Expenses Report"
 msgstr "Звіт про витрати"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -837,6 +849,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Витрати члена вашої команди"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr ""
@@ -925,14 +938,14 @@ msgid "Guideline"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "Є повідомлення"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1099,6 +1112,11 @@ msgid "Label Currency Rate"
 msgstr "Позначте курс валюти"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1242,13 +1260,6 @@ msgstr "Назва"
 #. odoo-python
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
-msgstr ""
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
 msgstr ""
 
 #. module: hr_expense
@@ -1458,6 +1469,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Спосіб оплати"
@@ -1483,11 +1499,6 @@ msgstr "Способи оплати"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr "Доступні способи оплати витрат, оплачених компанією"
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Платежі"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1686,6 +1697,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Ресторани, бізнес ланчі тощо."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Помилка доставки SMS"
@@ -1713,10 +1729,10 @@ msgid "Scan"
 msgstr "Сканування"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Відскайнуйте цей QR-код, щоб отримати модуль Odoo:"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1806,11 +1822,6 @@ msgid "Split Possible"
 msgstr "Розділення можливе"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Попередження про оновлення стандартної ціни"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1836,6 +1847,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Розглянути"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1909,6 +1926,11 @@ msgstr "Податки"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "Затверджуючий команди"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2001,12 +2023,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"Є неподані витрати, пов’язані з цією категорією. Оновлення вартості "
-"категорії змінить суми витрат. Переконайтеся, що це те, що ви хочете зробити."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2125,9 +2144,9 @@ msgid "Untaxed Amount"
 msgstr "Сума без податків"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
 msgstr ""
 
 #. module: hr_expense
@@ -2163,11 +2182,6 @@ msgstr "Постачальник"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Переглянути витрати"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2216,12 +2230,6 @@ msgstr "Чи визначено податок на вибраний товар"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Помічник"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2322,6 +2330,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2350,16 +2363,6 @@ msgstr ""
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Вам потрібно додати спосіб оплати вручну в журналі (%s)"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Щоб продовжити, у вашій базі даних має бути принаймні одна категорія, яку "
-"можна витратити!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2445,391 +2448,3 @@ msgstr ""
 
 #~ msgid "2023-08-11"
 #~ msgstr "2023-08-11"
-
-#~ msgid "View Attachments"
-#~ msgstr "Переглянути прикріплення"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Налаштування бухобілку"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Спершу вам необхідно встановити схему оподаткування."
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'Витрати - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-
-#~ msgid ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Use this reference "
-#~ "as a subject prefix when submitting by email.</i></span>"
-#~ msgstr ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Використовуйте це "
-#~ "посилання як префікс теми під час надсилання електронною поштою.</i></"
-#~ "span>"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Дата:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Опис:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Співробітник:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Оплата:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Всього</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Підтвердив:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Усі звіти про витрати"
-
-#~ msgid "All Reports"
-#~ msgstr "Усі звіти"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr "Звіт про витрати повинен містити рядки лише з тієї ж компанії."
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple App Store"
-
-#~ msgid "Approve Report"
-#~ msgstr "Затвердити звіт"
-
-#~ msgid "Approved By"
-#~ msgstr "Затверджено"
-
-#~ msgid "Approved On"
-#~ msgstr "Затверджено"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Референс рахунку"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Може бути відшкодовано"
-
-#~ msgid "Categories"
-#~ msgstr "Категорії"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Звіт складено вірно,<br/>(дата і підпис).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Перетворення між одиницями вимірювання може відбуватися лише у тому "
-#~ "випадку, якщо вони належать до однієї і тієї ж категорії. Конвертація "
-#~ "буде здійснюватися на основі співвідношення."
-
-#~ msgid "Create Report"
-#~ msgstr "Створити звіт"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Створіть новий звіт витрат"
-
-#~ msgid "Create a report to submit one or more expenses to your manager."
-#~ msgstr "Створіть звіт, щоб надіслати менеджеру одну або кілька витрат."
-
-#~ msgid "Date"
-#~ msgstr "Дата"
-
-#~ msgid "Default Journals"
-#~ msgstr "Типові журнали"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Ви пробували мобільний додаток?"
-
-#~ msgid "Done"
-#~ msgstr "Виконано"
-
-#~ msgid "Drag and drop files to create expenses"
-#~ msgstr "Перетягніть файли, щоб створити витрати"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Домашня адреса працівника"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Журнал витрат"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Рядки витрат"
-
-#~ msgid "Expense Lines Are Editable By Current User"
-#~ msgstr "Поточний користувач може редагувати рядки витрат"
-
-#~ msgid "Expense Report"
-#~ msgstr "Звіт про витрати"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Опис звіту про витрати"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Звіти про витрати"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Аналіз звітів про витрати"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Звіти про витрати на затвердження"
-
-#~ msgid "Expense Sheet"
-#~ msgstr "Лист витрат"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Затверджений звіт про витрати"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Оплачений звіт про витрати"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Відхилений звіт про витрати"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Звіти про витрати перегрупують усі витрати, понесені під час конкретної "
-#~ "події."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Звіти про витрати на затвердження"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Витрати по даті"
-
-#~ msgid "Former Employees"
-#~ msgstr "Колишні співробітники"
-
-#~ msgid "General Information"
-#~ msgstr "Загальна інформація"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Магазин Google Play "
-
-#~ msgid "Group By"
-#~ msgstr "Групувати за"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Ручні рядки з різними валютами"
-
-#~ msgid "Internal Note"
-#~ msgstr "Внутрішня примітка"
-
-#~ msgid "Label Convert Rate"
-#~ msgstr "Ставка конвертування мітки"
-
-#~ msgid ""
-#~ "Managers can approve the report here, then an accountant can post the "
-#~ "accounting entries."
-#~ msgstr ""
-#~ "Менеджери можуть затвердити звіт тут, а потім бухгалтер може опублікувати "
-#~ "бухгалтерські проводки."
-
-#~ msgid "My Reports"
-#~ msgstr "Мої звіти"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Новий звіт про витрати"
-
-#~ msgid "New Expense Reports"
-#~ msgstr "Нові звіти витрат"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr ""
-#~ "Не вказано домашню адресу для співробітника %s, будь ласка, вкажіть її."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Звіт про витрати не знайдено. Давайте створимо його!"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Звіт про витрати не знайдено. Давайте створимо його!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Кількість повідомлень, які потебують дії"
-
-#~ msgid ""
-#~ "Once your <b>Expense Report</b> is ready, you can submit it to your "
-#~ "manager and wait for approval."
-#~ msgstr ""
-#~ "Після того як ваш <b>Звіт про витрати</b> буде готовим, ви можете "
-#~ "надіслати його у вашому менеджеру і чекати затвердження."
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr ""
-#~ "Лише працівники відділу кадрів або зацікавлений працівник можуть "
-#~ "повернути до чернетки."
-
-#~ msgid "Or"
-#~ msgstr "Або"
-
-#~ msgid "Others"
-#~ msgstr "Інші"
-
-#~ msgid "Partial"
-#~ msgstr "Частинами"
-
-#~ msgid "Payment Status"
-#~ msgstr "Статус платежу"
-
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Ціна у валюті компанії"
-
-#~ msgid "Qty"
-#~ msgstr "К-сть"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Причина відхилення витрат"
-
-#~ msgid "Ref."
-#~ msgstr "Посилання"
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "Референс редагується поточним користувачем"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Відхилені витрати"
-
-#~ msgid "Register Payment"
-#~ msgstr "Зареєструвати платіж"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Відшкодування витрат у розрахунковому листі"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Зробити чернеткою"
-
-#~ msgid "Sample"
-#~ msgstr "Зразок"
-
-#~ msgid ""
-#~ "Selected Unit of Measure for expense %(expense)s does not belong to the "
-#~ "same category as the Unit of Measure of product %(product)s."
-#~ msgstr ""
-#~ "Обрана одиниця вимірювання для витрат %(expense)s не належить до тієї ж "
-#~ "категорії, що й одиниця вимірювання товару %(product)s."
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Встановіть псевдонім для вашого домену"
-
-#~ msgid "Sheet"
-#~ msgstr "Табель"
-
-#~ msgid "Sheet Is Editable"
-#~ msgstr "Таблиця редагується"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Показати всі записи, які мають дату наступної дії до сьогоднішньої"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Зробіть фото ваших квитанцій і дозвольте Odoo<br> автоматично створити "
-#~ "для вас витрати."
-
-#~ msgid "Specify expense journal to generate accounting entries."
-#~ msgstr "Вкажіть журнал витрат для створення бухгалтерських проведень."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Журнал повинен бути встановлений за опублікованими витратами"
-
-#~ msgid ""
-#~ "This note will be shown to users when they select this expense product."
-#~ msgstr ""
-#~ "Ця примітка буде показана користувачам, коли вони виберуть цей витратний "
-#~ "товар."
-
-#~ msgid "To Report"
-#~ msgstr "До звіту"
-
-#~ msgid "Unit Price Display"
-#~ msgstr "Відображення ціни за одиницю"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Одиниця вимірювання"
-
-#~ msgid "UoM Category"
-#~ msgstr "Категорія одиниці вимірювання"
-
-#~ msgid "User"
-#~ msgstr "Користувач"
-
-#~ msgid "View Report"
-#~ msgstr "Переглянути звіт"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr ""
-#~ "Витрачаєте час на запис своїх квитанцій? Давайте спробуємо кращий спосіб."
-
-#~ msgid ""
-#~ "When the cost of an expense product is different than 0, then the user "
-#~ "using this product won't be able to change the amount of the expense, "
-#~ "only the quantity. Use a cost different than 0 for expense categories "
-#~ "funded by the company at fixed cost like allowances for mileage, per "
-#~ "diem, accommodation or meal."
-#~ msgstr ""
-#~ "Якщо вартість витратного товару відрізняється від 0, тоді користувач, "
-#~ "який використовує його, не зможе змінити суму витрат, лише кількість. "
-#~ "Використовуйте вартість, відмінну від 0, для категорій витрат, які "
-#~ "фінансуються компанією за фіксованою вартістю, як-от надбавки за пробіг, "
-#~ "добові, проживання чи харчування."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr ""
-#~ "Ви не авторизовані, щоби редагувати референс цього звіту про витрати."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Ви не авторизовані, щоби редагувати цей звіт про витрати."
-
-#~ msgid "You can not create report without category."
-#~ msgstr "Ви не можете створити звіт без категорії."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr "Ви можете робити проведення тільки для затверджених звітів(у). "
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "Ви не можете додати витрати іншого співробітника."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "Ви не можете видалити опубліковані або оплачені витрати."
-
-#~ msgid ""
-#~ "You cannot do this modification since the payment is linked to an expense "
-#~ "report."
-#~ msgstr ""
-#~ "Ви не можете внести цю зміну, оскільки платіж пов’язано зі звітом про "
-#~ "витрати."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr ""
-#~ "Ви не можете звітувати про витрати для різних співробітників в одному "
-#~ "звіті."
-
-#~ msgid "You cannot report the expenses without amount!"
-#~ msgstr "Ви не можете звітувати про витрати без суми!"
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Ви не можете звітувати двічі той же рядок!"
-
-#~ msgid "You have no expense to report"
-#~ msgstr "У вас немає витрат для звіту"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "наприклад, подорож до Нью-Йорку"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "підлягає відшкодуванню"
-
-#~ msgid "under validation"
-#~ msgstr "в стадії підтвердження"

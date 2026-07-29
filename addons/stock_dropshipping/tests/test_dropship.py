@@ -10,6 +10,7 @@ from odoo.tests import common, tagged, Form
 from odoo.tools import mute_logger
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestDropship(common.TransactionCase):
 
     @classmethod
@@ -353,7 +354,7 @@ class TestDropship(common.TransactionCase):
         po.order_line = [(0, 0, {
             'product_id': self.dropship_product.id,
             'product_qty': 1.00,
-            'product_uom_id': self.dropship_product.uom_id.id,
+            'uom_id': self.dropship_product.uom_id.id,
         })]
         po.button_confirm()
         dropship = po.picking_ids

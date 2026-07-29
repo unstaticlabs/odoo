@@ -41,7 +41,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'default_cash_difference_income_account_id': 'chart711',
                 'default_cash_difference_expense_account_id': 'chart811',
                 'tax_calculation_rounding_method': 'round_per_line',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'chart152',
                 'account_journal_suspense_account_id': 'chart1121',
             },

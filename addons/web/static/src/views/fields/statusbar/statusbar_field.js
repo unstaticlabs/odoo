@@ -10,6 +10,7 @@ import { throttleForAnimation } from "@web/core/utils/timing";
 import { getFieldDomain } from "@web/model/relational_model/utils";
 import { useSpecialData } from "@web/views/fields/relational_utils";
 import { standardFieldProps } from "../standard_field_props";
+import { ConnectionLostError } from "@web/core/network/rpc";
 
 /**
  * @typedef {import("../standard_field_props").StandardFieldProps & {
@@ -102,15 +103,17 @@ export class StatusBarField extends Component {
                 if (foldField) {
                     fieldNames.push(foldField);
                 }
-                const value = record.data[fieldName];
                 let domain = getFieldDomain(record, fieldName, props.domain);
                 domain = Domain.and([this.getDomain(props), domain]).toList();
-                if (domain.length && value) {
-                    domain = Domain.or([[["id", "=", value.id]], domain]).toList(
-                        record.evalContext
-                    );
-                }
-                const res = orm.searchRead(relation, domain, fieldNames, { context });
+                const res = await orm.searchRead(relation, domain, fieldNames, { context }).catch((error) => {
+                    if (error instanceof ConnectionLostError) {
+                        if (this.props.record.data[this.props.name]) {
+                            return [this.props.record.data[this.props.name]];
+                        }
+                        return [];
+                    }
+                    throw error;
+                });
                 forceRecomputeItems = true;
                 return res;
             });
@@ -179,7 +182,7 @@ export class StatusBarField extends Component {
      * Override this to change the fields to fetch
      */
     getFieldNames(props) {
-        return ["display_name"];
+        return ['display_name'];
     }
 
     /**
@@ -271,12 +274,22 @@ export class StatusBarField extends Component {
         const currentValue = record.data[name];
         if (this.field.type === "many2one") {
             // Many2one
-            return this.specialData.data.map((option) => ({
+            const items = this.specialData.data.map((option) => ({
                 value: option.id,
                 label: option.display_name,
                 isFolded: option[foldField],
                 isSelected: Boolean(currentValue && option.id === currentValue.id),
             }));
+
+            if (currentValue && !items.find((item) => item.value === currentValue.id)) {
+                items.unshift({
+                    value: currentValue.id,
+                    label: currentValue.display_name,
+                    isFolded: false,
+                    isSelected: true,
+                });
+            }
+            return items;
         } else {
             // Selection
             let { selection } = this.field;

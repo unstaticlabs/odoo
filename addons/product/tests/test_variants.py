@@ -300,6 +300,108 @@ class TestVariants(ProductVariantsCommon):
             one_variant_template.with_company(company_b).standard_price
         )
 
+    def test_variant_extra_price_when_lst_price_set_manually(self):
+        variant = self.product_sofa_red
+        template_price = variant.list_price
+        self.assertEqual(variant._get_attributes_extra_price(), 0)
+        variant.lst_price = 500
+        self.assertEqual(variant.product_tmpl_id.list_price, template_price)
+        self.assertEqual(variant._get_attributes_extra_price(), 500 - template_price)
+
+    def test_manual_lst_price_preserved_on_single_value_attribute(self):
+        """Adding a single-value attribute to a template with existing variants
+        must not reset manually-set lst_price on those variants.
+        """
+        template = self.env['product.template'].create({
+            'name': 'Cable',
+            'list_price': 1.0,
+            'attribute_line_ids': [Command.create({
+                'attribute_id': self.size_attribute.id,
+                'value_ids': [Command.set([
+                    self.size_attribute_s.id,
+                    self.size_attribute_m.id,
+                    self.size_attribute_l.id,
+                ])],
+            })],
+        })
+        variants = template.product_variant_ids
+        self.assertEqual(len(variants), 3)
+        for variant, price in zip(variants, [10.0, 20.0, 30.0]):
+            variant.lst_price = price
+        variant_ids_before = set(variants.ids)
+        prices_before = {v.id: v.lst_price for v in variants}
+
+        brand_attribute = self.env['product.attribute'].create({
+            'name': 'Brand',
+            'value_ids': [Command.create({'name': 'Acme'})],
+        })
+        template.write({
+            'attribute_line_ids': [Command.create({
+                'attribute_id': brand_attribute.id,
+                'value_ids': [Command.set(brand_attribute.value_ids.ids)],
+            })],
+        })
+
+        variants_after = template.product_variant_ids
+        self.assertEqual(set(variants_after.ids), variant_ids_before)
+        self.assertDictEqual(
+            {v.id: v.lst_price for v in variants_after},
+            prices_before,
+        )
+
+    def test_lst_price_on_single_value_attribute_with_price_extra(self):
+        """When the added single-value attribute has a non-zero price_extra,
+        overridden variants must keep their override, while non-overridden
+        variants must pick up the new price_extra via the recompute.
+        """
+        # Template with two size variants. price_extra(M)=2.0 to distinguish
+        # overridden vs computed cases.
+        template = self.env['product.template'].create({
+            'name': 'Cable',
+            'list_price': 1.0,
+            'attribute_line_ids': [Command.create({
+                'attribute_id': self.size_attribute.id,
+                'value_ids': [Command.set([
+                    self.size_attribute_s.id,
+                    self.size_attribute_m.id,
+                ])],
+            })],
+        })
+        ptav_m = template.attribute_line_ids.product_template_value_ids.filtered(
+            lambda ptav: ptav.product_attribute_value_id == self.size_attribute_m,
+        )
+        ptav_m.price_extra = 2.0
+        variant_s = template.product_variant_ids.filtered(
+            lambda v: v.product_template_attribute_value_ids.product_attribute_value_id == self.size_attribute_s,
+        )
+        variant_m = template.product_variant_ids.filtered(
+            lambda v: v.product_template_attribute_value_ids.product_attribute_value_id == self.size_attribute_m,
+        )
+        # S gets a manual override; M is left at the computed value (1 + 2 = 3).
+        variant_s.lst_price = 100.0
+        self.assertEqual(variant_m.lst_price, 3.0)
+
+        # Add a single-value Brand attribute that itself carries a price_extra.
+        # `default_extra_price` propagates to the ptav at creation time, so the
+        # extra is set atomically with the line write — before _create_variant_ids
+        # runs and the snapshot is taken.
+        brand_attribute = self.env['product.attribute'].create({
+            'name': 'Brand',
+            'value_ids': [Command.create({'name': 'Acme', 'default_extra_price': 5.0})],
+        })
+        template.write({
+            'attribute_line_ids': [Command.create({
+                'attribute_id': brand_attribute.id,
+                'value_ids': [Command.set(brand_attribute.value_ids.ids)],
+            })],
+        })
+
+        # Override is preserved verbatim.
+        self.assertEqual(variant_s.lst_price, 100.0)
+        # Non-overridden variant correctly picks up the new ptav's price_extra:
+        # list_price (1) + size_M extra (2) + Brand extra (5) = 8.
+        self.assertEqual(variant_m.lst_price, 8.0)
+
     @mute_logger('odoo.models.unlink')
     def test_archive_variant(self):
         template = self.env['product.template'].create({
@@ -1412,6 +1514,14 @@ class TestVariantsArchive(ProductVariantsCommon):
         self.assertEqual(len(variants), 1)
         self.assertFalse(variants[0].product_template_attribute_value_ids)
 
+    def test_lst_price_sync_on_variant_creation(self):
+        lst_price = 20
+        variant = self.env['product.product'].create({
+            'name': 'Test Product',
+            'lst_price': lst_price
+        })
+        self.assertEqual(variant.product_tmpl_id.list_price, lst_price)
+
     @mute_logger('odoo.models.unlink')
     def test_unlink_and_archive_multiple_variants(self):
         """
@@ -1478,26 +1588,26 @@ class TestVariantsArchive(ProductVariantsCommon):
         for variant in all_variants:
             self.assertFalse(variant.active, "Variants should remain archived when template is archived")
 
-@tagged('post_install', '-at_install')
-class TestVariantWrite(TransactionCase):
-
     def test_active_one2many(self):
-        template = self.env['product.template'].create({'name': 'Foo', 'description': 'Foo'})
-        self.assertEqual(len(template.product_variant_ids), 1)
+        template = self.template
 
         # check the consistency of one2many field product_variant_ids w.r.t. active variants
-        variant1 = template.product_variant_ids
-        variant2 = self.env['product.product'].create({'product_tmpl_id': template.id})
-        self.assertEqual(template.product_variant_ids, variant1 + variant2)
+        variant1, variant2 = template.product_variant_ids[:2]
+        other = template.product_variant_ids[2:]
+        self.assertEqual(template.product_variant_ids, variant1 + variant2 + other)
 
         variant2.active = False
-        self.assertEqual(template.product_variant_ids, variant1)
+        self.assertEqual(template.product_variant_ids, variant1 + other)
 
         variant2.active = True
-        self.assertEqual(template.product_variant_ids, variant1 + variant2)
+        self.assertEqual(template.product_variant_ids, variant1 + variant2 + other)
 
         variant1.active = False
-        self.assertEqual(template.product_variant_ids, variant2)
+        self.assertEqual(template.product_variant_ids, variant2 + other)
+
+
+@tagged('post_install', '-at_install')
+class TestVariantWrite(TransactionCase):
 
     def test_write_inherited_field(self):
         product = self.env['product.product'].create({'name': 'Foo', 'sequence': 1})
@@ -1569,16 +1679,13 @@ class TestVariantsExclusion(ProductVariantsCommon):
     def test_variants_1_exclusion(self):
         # Create one exclusion for Smartphone S
         self.smartphone_s.write({
-            'exclude_for': [Command.create({
-                'product_tmpl_id': self.smartphone.id,
-                'value_ids': [(6, 0, [self.smartphone_256.id])]
-            })]
+            'excluded_value_ids': [Command.link(self.smartphone_256.id)]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 3, 'With exclusion {s: [256]}, the smartphone should have 3 active different variants')
 
         # Delete exclusion
         self.smartphone_s.write({
-            'exclude_for': [(2, self.smartphone_s.exclude_for.id, 0)]
+            'excluded_value_ids': [Command.clear()]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 4, 'With no exclusion, the smartphone should have 4 active different variants')
 
@@ -1586,25 +1693,22 @@ class TestVariantsExclusion(ProductVariantsCommon):
     def test_variants_2_exclusions_same_line(self):
         # Create two exclusions for Smartphone S on the same line
         self.smartphone_s.write({
-            'exclude_for': [Command.create({
-                'product_tmpl_id': self.smartphone.id,
-                'value_ids': [(6, 0, [self.smartphone_128.id, self.smartphone_256.id])]
-            })]
+            'excluded_value_ids': [
+                Command.link(self.smartphone_128.id),
+                Command.link(self.smartphone_256.id),
+            ]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 2, 'With exclusion {s: [128, 256]}, the smartphone should have 2 active different variants')
 
         # Delete one exclusion of the line
         self.smartphone_s.write({
-            'exclude_for': [(1, self.smartphone_s.exclude_for.id, {
-                'product_tmpl_id': self.smartphone.id,
-                'value_ids': [(6, 0, [self.smartphone_128.id])]
-            })]
+            'excluded_value_ids': [Command.set([self.smartphone_128.id])]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 3, 'With exclusion {s: [128]}, the smartphone should have 3 active different variants')
 
         # Delete exclusion
         self.smartphone_s.write({
-            'exclude_for': [(2, self.smartphone_s.exclude_for.id, 0)]
+            'excluded_value_ids': [Command.clear()]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 4, 'With no exclusion, the smartphone should have 4 active different variants')
 
@@ -1612,55 +1716,20 @@ class TestVariantsExclusion(ProductVariantsCommon):
     def test_variants_2_exclusions_different_lines(self):
         # add 1 exclusion
         self.smartphone_s.write({
-            'exclude_for': [Command.create({
-                'product_tmpl_id': self.smartphone.id,
-                'value_ids': [(6, 0, [self.smartphone_128.id])]
-            })]
+            'excluded_value_ids': [Command.link(self.smartphone_128.id)]
         })
 
         # add 1 exclusion on a different line
         self.smartphone_s.write({
-            'exclude_for': [Command.create({
-                'product_tmpl_id': self.smartphone.id,
-                'value_ids': [(6, 0, [self.smartphone_256.id])]
-            })]
+            'excluded_value_ids': [Command.link(self.smartphone_256.id)]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 2, 'With exclusion {s: [128, 256]}, the smartphone should have 2 active different variants')
 
         # delete one exclusion line
         self.smartphone_s.write({
-            'exclude_for': [(2, self.smartphone_s.exclude_for.ids[0], 0)]
+            'excluded_value_ids': [Command.set([self.smartphone_s.excluded_value_ids.ids[0]])]
         })
         self.assertEqual(len(self.smartphone.product_variant_ids), 3, 'With one exclusion, the smartphone should have 3 active different variants')
-
-    @mute_logger('odoo.models.unlink')
-    def test_exclusions_crud(self):
-        """ Make sure that exclusions creation, update & delete are correctly handled.
-
-        Exclusions updates are not necessarily done from a specific template.
-        """
-        PTAE = self.env['product.template.attribute.exclusion']
-
-        exclude = PTAE.create({
-            'product_tmpl_id': self.smartphone.id,
-            'product_template_attribute_value_id': self.smartphone_s.id,
-            'value_ids': [Command.set(self.smartphone_256.ids)]
-        })
-        self.assertEqual(len(self.smartphone.product_variant_ids), 3)
-        self.assertNotIn(
-            self.smartphone_s + self.smartphone_256,
-            [product.product_template_attribute_value_ids for product in self.smartphone.product_variant_ids],
-        )
-
-        exclude.value_ids = [Command.set(self.smartphone_128.ids)]
-        self.assertEqual(len(self.smartphone.product_variant_ids), 3)
-        self.assertNotIn(
-            self.smartphone_s + self.smartphone_128,
-            [product.product_template_attribute_value_ids for product in self.smartphone.product_variant_ids],
-        )
-
-        exclude.unlink()
-        self.assertEqual(len(self.smartphone.product_variant_ids), 4)
 
     @mute_logger('odoo.models.unlink')
     def test_dynamic_variants_unarchive(self):

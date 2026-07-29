@@ -25,14 +25,14 @@
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
 # Martin Trigaux, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Saara Hakanen <sahak@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Saara Hakanen <sahak@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-07-01 23:59+0000\n"
+"POT-Creation-Date: 2026-05-22 17:40+0000\n"
+"PO-Revision-Date: 2025-12-02 14:48+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "maintenance/fi/>\n"
@@ -41,12 +41,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "<span class=\"badge text-bg-warning float-end\">Cancelled</span>"
-msgstr "<span class=\"badge text-bg-warning float-end\">Peruutettu</span>"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
@@ -93,7 +88,6 @@ msgstr "Vaatii toimenpiteitä"
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__active
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__active
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 msgid "Active"
 msgstr "Aktiivinen"
 
@@ -108,6 +102,12 @@ msgstr "Toimenpiteet"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Toimenpiteen poikkeuksen tyyli"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__activity_plans_ids
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__activity_state
@@ -212,12 +212,13 @@ msgstr "Kaikki"
 #. module: maintenance
 #: model:ir.model.constraint,message:maintenance.constraint_maintenance_equipment_serial_no
 msgid "Another asset already exists with this serial number!"
-msgstr "Tällä sarjanumerolla on jo olemassa omaisuuserä!"
+msgstr "Tällä sarjanumerolla on jo olemassa laite"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__archive
-msgid "Archive"
-msgstr "Arkistoi"
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__approved
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+msgid "Approved"
+msgstr ""
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_form
@@ -256,20 +257,14 @@ msgid "Attachment Count"
 msgstr "Liitteiden määrä"
 
 #. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__blocked
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
-#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
-msgid "Blocked"
-msgstr "Estetty"
-
-#. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
 msgid "Cancel"
 msgstr "Peruuta"
 
 #. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_kanban
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__cancelled
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "Cancelled"
 msgstr "Peruttu"
 
@@ -286,6 +281,13 @@ msgstr "Kategoria"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_category_view_search
 msgid "Category Name"
 msgstr "Tuoteryhmän nimi"
+
+#. module: maintenance
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__changes_requested
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+msgid "Changes Requested"
+msgstr ""
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__close_date
@@ -368,7 +370,7 @@ msgstr "Luonut"
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__owner_user_id
 msgid "Created by User"
-msgstr "Luonut käyttäjä"
+msgstr "Luotu käyttäjän toimesta"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__create_date
@@ -404,12 +406,7 @@ msgstr "Mukautetut työraporttimallit"
 #. module: maintenance
 #: model:ir.ui.menu,name:maintenance.menu_m_dashboard
 msgid "Dashboard"
-msgstr "Koontinäyttö"
-
-#. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__request_date
-msgid "Date requested for the maintenance to happen"
-msgstr "Toivottu huoltopäivämäärä"
+msgstr "Työpöytä"
 
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_request__schedule_date
@@ -459,6 +456,7 @@ msgid "Display Name"
 msgstr "Näyttönimi"
 
 #. module: maintenance
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__done
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "Done"
@@ -472,7 +470,7 @@ msgstr "Kesto"
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_request__duration
 msgid "Duration in hours."
-msgstr "Kesto tunteina."
+msgstr "Kesto tunneissa"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_kanban
@@ -498,12 +496,6 @@ msgid "Email alias for this maintenance team."
 msgstr "Sähköpostialias tälle huoltotiimille."
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__email_cc
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Email cc"
-msgstr "Sähköpostin kopio"
-
-#. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__alias_domain
 msgid "Email domain e.g. 'example.com' in 'odoo@example.com'"
 msgstr ""
@@ -518,7 +510,7 @@ msgstr "Päättymispäivä"
 #. odoo-python
 #: code:addons/maintenance/models/maintenance.py:0
 msgid "End date cannot be earlier than start date."
-msgstr "Lopetuspäivä ei voi olla aloituspäivää ennen."
+msgstr ""
 
 #. module: maintenance
 #: model:ir.actions.act_window,name:maintenance.hr_equipment_action
@@ -599,7 +591,7 @@ msgstr "Odotettu keskimääräinen vikaantumisaika (MTBF)"
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_request__schedule_end
 msgid "Expected completion date and time of the maintenance request."
-msgstr "Huoltopyynnön odotettu valmistumispäivä ja -aika."
+msgstr ""
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment_category__fold
@@ -648,17 +640,6 @@ msgstr "Ikuisesti"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_search
 msgid "Future Activities"
 msgstr "Tulevat toimenpiteet"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_google_slide
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__google_slide
-msgid "Google Slide"
-msgstr "Google Slide"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Google Slide Link"
-msgstr "Google Slide-linkki"
 
 #. module: maintenance
 #: model:maintenance.equipment,name:maintenance.equipment_printer1
@@ -744,16 +725,11 @@ msgstr ""
 "oletusviestin sijasta."
 
 #. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__normal
+#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__state__normal
 #: model:maintenance.stage,name:maintenance.stage_1
-#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 msgid "In Progress"
 msgstr "Käynnissä"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_type
-msgid "Instruction"
-msgstr "Ohje"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
@@ -776,11 +752,6 @@ msgstr "Sisäiset kommentit"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__message_is_follower
 msgid "Is Follower"
 msgstr "On seuraaja"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__kanban_state
-msgid "Kanban State"
-msgstr "Kanban-tila"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__write_uid
@@ -856,11 +827,6 @@ msgstr "MTTR"
 #: model_terms:ir.ui.view,arch_db:maintenance.res_config_settings_view_form
 msgid "Maintenance"
 msgstr "Huolto"
-
-#. module: maintenance
-#: model:ir.ui.menu,name:maintenance.menu_m_request_calendar
-msgid "Maintenance Calendar"
-msgstr "Huoltokalenteri"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__maintenance_count
@@ -949,6 +915,7 @@ msgid "Maintenance Stages"
 msgstr "Huollon tilat"
 
 #. module: maintenance
+#: model:ir.model,name:maintenance.model_maintenance_team
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__maintenance_team_id
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_mixin__maintenance_team_id
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_view_form
@@ -958,7 +925,6 @@ msgstr "Huoltotiimi"
 
 #. module: maintenance
 #: model:ir.actions.act_window,name:maintenance.maintenance_dashboard_action
-#: model:ir.model,name:maintenance.model_maintenance_team
 #: model:ir.ui.menu,name:maintenance.menu_maintenance_teams
 msgid "Maintenance Teams"
 msgstr "Huoltotiimit"
@@ -1109,11 +1075,6 @@ msgid "Number of Requests"
 msgstr "Pyyntöjen määrä"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_block
-msgid "Number of Requests Blocked"
-msgstr "Hylättyjen pyyntöjen määrä"
-
-#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_date
 msgid "Number of Requests Scheduled"
 msgstr "Ajoitettujen pyyntöjen määrä"
@@ -1127,6 +1088,11 @@ msgstr "Ajastamattomien pyyntöjen määrä"
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_high_priority
 msgid "Number of Requests in High Priority"
 msgstr "Korkean prioriteetin pyyntöjen määrä"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_team__todo_request_count_changes_requested
+msgid "Number of Requests with Changes Requested"
+msgstr ""
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__message_has_error_counter
@@ -1148,6 +1114,12 @@ msgstr "Toimenpiteitä vaativien viestien määrä"
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "Toimitusvirheellisten viestien määrä"
+
+#. module: maintenance
+#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
+msgid "Open"
+msgstr ""
 
 #. module: maintenance
 #: model:ir.model.fields,help:maintenance.field_maintenance_team__alias_force_thread_id
@@ -1174,12 +1146,6 @@ msgid "Owner"
 msgstr "Omistaja"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_pdf
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__pdf
-msgid "PDF"
-msgstr "PDF"
-
-#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_team__alias_parent_model_id
 msgid "Parent Model"
 msgstr "Ylätason malli"
@@ -1199,15 +1165,6 @@ msgstr ""
 "Aliaksen hallussa oleva emomalli. Alias-viittauksen sisältävä malli ei "
 "välttämättä ole alias_model_id:llä annettu malli (esimerkki: project "
 "(parent_model) ja task (model))"
-
-#. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__instruction_google_slide
-msgid ""
-"Paste the url of your Google Slide. Make sure the access to the document is "
-"public."
-msgstr ""
-"Liitä Googlen dian url-osoite. Varmista, että asiakirjan käyttöoikeus on "
-"julkinen."
 
 #. module: maintenance
 #: model:maintenance.equipment.category,name:maintenance.equipment_phone
@@ -1254,16 +1211,6 @@ msgstr "Tuotetiedot"
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_search
 msgid "Properties"
 msgstr "Ominaisuudet"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
-msgid "Ready"
-msgstr "Valmis siirrettäväksi"
-
-#. module: maintenance
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__kanban_state__done
-msgid "Ready for next stage"
-msgstr "Valmis seuraavaan vaiheeseen"
 
 #. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_view_kanban
@@ -1320,23 +1267,6 @@ msgid "Request Created"
 msgstr "Pyyntö luotu"
 
 #. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__request_date
-msgid "Request Date"
-msgstr "Pyyntö pvm"
-
-#. module: maintenance
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__done
-#: model:ir.model.fields,field_description:maintenance.field_maintenance_stage__done
-msgid "Request Done"
-msgstr "Pyyntö valmis"
-
-#. module: maintenance
-#. odoo-python
-#: code:addons/maintenance/models/maintenance.py:0
-msgid "Request planned for %s"
-msgstr "Suunniteltu pyyntö %s"
-
-#. module: maintenance
 #: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
 msgid "Requested By"
 msgstr "Pyytänyt"
@@ -1382,9 +1312,16 @@ msgid "Scheduled Date"
 msgstr "Suunniteltu päivämäärä"
 
 #. module: maintenance
+#. odoo-python
+#: code:addons/maintenance/models/maintenance.py:0
+msgid ""
+"Scheduled Date and Scheduled End must either both be set or both be empty."
+msgstr ""
+
+#. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__schedule_end
 msgid "Scheduled End"
-msgstr "Suunniteltu loppu"
+msgstr ""
 
 #. module: maintenance
 #: model:maintenance.stage,name:maintenance.stage_4
@@ -1406,20 +1343,12 @@ msgstr "Hae"
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_stage__sequence
 msgid "Sequence"
-msgstr "Sekvenssi"
+msgstr "Järjestys"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__serial_no
 msgid "Serial Number"
 msgstr "Sarjanumero"
-
-#. module: maintenance
-#: model:ir.model.fields,help:maintenance.field_maintenance_request__archive
-msgid ""
-"Set archive to true to hide the maintenance request without deleting it."
-msgstr ""
-"Aseta archive arvoksi true, jos haluat piilottaa huoltopyynnön poistamatta "
-"sitä."
 
 #. module: maintenance
 #: model:ir.actions.act_window,name:maintenance.action_maintenance_configuration
@@ -1450,6 +1379,11 @@ msgstr "Vaihe"
 #: model:ir.actions.act_window,name:maintenance.hr_equipment_stage_action
 msgid "Stages"
 msgstr "Vaiheet"
+
+#. module: maintenance
+#: model:ir.model.fields,field_description:maintenance.field_maintenance_request__state
+msgid "State"
+msgstr ""
 
 #. module: maintenance
 #: model:mail.message.subtype,name:maintenance.mt_req_status
@@ -1517,7 +1451,6 @@ msgstr "Teknikko"
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_request__instruction_text
-#: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__instruction_type__text
 msgid "Text"
 msgstr "Teksti"
 
@@ -1560,7 +1493,6 @@ msgstr ""
 "Tätä päivämäärää käytetään vikojen välisen keskimääräisen ajan laskemiseen."
 
 #. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_search
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_kanban
 msgid "To Do"
 msgstr "Tehtävät"
@@ -1621,11 +1553,6 @@ msgstr "Ajastamaton"
 #: model:ir.model.fields.selection,name:maintenance.selection__maintenance_request__repeat_type__until
 msgid "Until"
 msgstr "Kunnes"
-
-#. module: maintenance
-#: model_terms:ir.ui.view,arch_db:maintenance.hr_equipment_request_view_form
-msgid "Upload your PDF file."
-msgstr "Lataa PDF-tiedosto."
 
 #. module: maintenance
 #: model:ir.model.fields,field_description:maintenance.field_maintenance_equipment__partner_id
@@ -1715,88 +1642,3 @@ msgstr "esim. Näyttö ei toimi"
 #: model_terms:ir.ui.view,arch_db:maintenance.maintenance_team_view_form
 msgid "e.g. mycompany.com"
 msgstr "esim. mycompany.com"
-
-#~ msgid "<b>Category:</b>"
-#~ msgstr "<b>Kategoria:</b>"
-
-#~ msgid "<b>Model Number:</b>"
-#~ msgstr "<b>Mallinumero:</b>"
-
-#~ msgid "<b>Request to:</b>"
-#~ msgstr "<b>Huoltopyyntö:</b>"
-
-#~ msgid "<b>Serial Number:</b>"
-#~ msgstr "<b>Sarjanumero:</b>"
-
-#~ msgid "<span class=\"ml8\">hours</span>"
-#~ msgstr "<span class=\"ml8\">tuntia</span>"
-
-#~ msgid "<strong>Maintenance:</strong>"
-#~ msgstr "<strong>Huolto:</strong>"
-
-#~ msgid "Alias domain"
-#~ msgstr "Alias domain"
-
-#~ msgid ""
-#~ "Date at which the equipment became effective. This date will be used to "
-#~ "compute the Mean Time Between Failure."
-#~ msgstr ""
-#~ "Päivä jolloin laite tuli käyttöön. Tätä käytetään kun lasketaan "
-#~ "keskiaikaa ennen hajoamista."
-
-#~ msgid "Date of the next preventive maintenance"
-#~ msgstr "Seuraavan ennaltaehkäisevän huollon päivämäärä"
-
-#~ msgid "Days between each preventive maintenance"
-#~ msgstr "Ennaltaehkäisevän huollon aikaväli päivissä"
-
-#~ msgid "Group by..."
-#~ msgstr "Ryhmittele..."
-
-#~ msgid "Location"
-#~ msgstr "Sijainti"
-
-#~ msgid "Maintenance Duration"
-#~ msgstr "Huollon kesto"
-
-#~ msgid "Maintenance Duration in hours."
-#~ msgstr "Huollon kesto tunneissa."
-
-#~ msgid "Maintenance: generate preventive maintenance requests"
-#~ msgstr "Huolto: luo ennaltaehkäisevän huollon pyyntöjä"
-
-#~ msgid "Next Preventive Maintenance"
-#~ msgstr "Seuraava ennaltaehkäisevä huolto"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Toimenpiteitä vaativien viestien määrä"
-
-#~ msgid "Preventive Maintenance - %s"
-#~ msgstr "Ennaltaehkäisevä huolto - %s"
-
-#~ msgid "Preventive Maintenance Frequency"
-#~ msgstr "Ennaltaehkäisevän huollon taajuus"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Näytä kaikki tietueet joissa on toimenpide myöhässä."
-
-#~ msgid ""
-#~ "The owner of records created upon receiving emails on this alias. If this "
-#~ "field is not set the system will attempt to find the right owner based on "
-#~ "the sender (From) address, or will use the Administrator account if no "
-#~ "system user is found for that address."
-#~ msgstr ""
-#~ "Tämän aliaksen sähköpostiviestien vastaanottamisen yhteydessä luotujen "
-#~ "tietueiden omistaja. Jos tätä kenttää ei ole asetettu, järjestelmä "
-#~ "yrittää löytää oikean omistajan lähettäjän (From) -osoitteen perusteella "
-#~ "tai käyttää järjestelmänvalvojan tiliä, jos kyseisestä osoitteesta ei "
-#~ "löydy järjestelmän käyttäjää."
-
-#~ msgid "Used in location"
-#~ msgstr "Käytetty sijainnissa"
-
-#~ msgid "hours"
-#~ msgstr "tunti;tuntia"
-
-#~ msgid "maintenance Request"
-#~ msgstr "huoltopyyntö"

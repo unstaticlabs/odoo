@@ -11,15 +11,15 @@
 # matjaz k <matjaz@mentis.si>, 2022
 # Martin Trigaux, 2022
 # Tadej Lupšina <tadej@hbs.si>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:55+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-16 15:05+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Slovenian <https://translate.odoo.com/projects/odoo-19/"
 "barcodes/sl/>\n"
 "Language: sl\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
 "n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: barcodes
 #. odoo-python
@@ -51,8 +51,8 @@ msgid ""
 msgstr ""
 "<i>Nomenklature črtnih kod</i> določite, kako se črtne kode prepoznavajo in "
 "kategorizirajo.\n"
-"                                Ko je črtna koda skenirana, je povezana z <i>"
-"prvim</i> pravilom ujemajočim se z\n"
+"                                Ko je črtna koda skenirana, je povezana z "
+"<i>prvim</i> pravilom ujemajočim se z\n"
 "                                vzorcem. Sintaksa vzorca je regularni izraz, "
 "črtna koda pa se ujema\n"
 "                                če se regularni izraz ujema s predpono črtne "
@@ -111,11 +111,6 @@ msgid "Barcode"
 msgstr "Črtna koda"
 
 #. module: barcodes
-#: model:ir.model,name:barcodes.model_barcodes_barcode_events_mixin
-msgid "Barcode Event Mixin"
-msgstr "Mešanje dogodkov s črtno kodo"
-
-#. module: barcodes
 #: model:ir.model,name:barcodes.model_barcode_nomenclature
 #: model:ir.model.fields,field_description:barcodes.field_barcode_nomenclature__name
 #: model:ir.model.fields,field_description:barcodes.field_barcode_rule__barcode_nomenclature_id
@@ -141,11 +136,6 @@ msgid "Barcode Rule"
 msgstr "Pravilo črtne kode"
 
 #. module: barcodes
-#: model:ir.model.fields,field_description:barcodes.field_barcodes_barcode_events_mixin___barcode_scanned
-msgid "Barcode Scanned"
-msgstr "Skenirana črtna koda"
-
-#. module: barcodes
 #. odoo-javascript
 #: code:addons/barcodes/static/src/barcode_handlers.js:0
 msgid "Barcode: %(barcode)s"
@@ -153,8 +143,8 @@ msgstr "Črtna koda: %(barcode)s"
 
 #. module: barcodes
 #: model:ir.model,name:barcodes.model_res_company
-msgid "Companies"
-msgstr "Podjetja"
+msgid "Company"
+msgstr ""
 
 #. module: barcodes
 #: model:ir.model.fields,field_description:barcodes.field_barcode_nomenclature__create_uid
@@ -171,7 +161,6 @@ msgstr "Ustvarjeno"
 #. module: barcodes
 #: model:ir.model.fields,field_description:barcodes.field_barcode_nomenclature__display_name
 #: model:ir.model.fields,field_description:barcodes.field_barcode_rule__display_name
-#: model:ir.model.fields,field_description:barcodes.field_barcodes_barcode_events_mixin__display_name
 #: model:ir.model.fields,field_description:barcodes.field_ir_http__display_name
 #: model:ir.model.fields,field_description:barcodes.field_res_company__display_name
 msgid "Display Name"
@@ -211,21 +200,10 @@ msgstr "HTTP usmerjanje"
 #. module: barcodes
 #: model:ir.model.fields,field_description:barcodes.field_barcode_nomenclature__id
 #: model:ir.model.fields,field_description:barcodes.field_barcode_rule__id
-#: model:ir.model.fields,field_description:barcodes.field_barcodes_barcode_events_mixin__id
 #: model:ir.model.fields,field_description:barcodes.field_ir_http__id
 #: model:ir.model.fields,field_description:barcodes.field_res_company__id
 msgid "ID"
 msgstr "ID"
-
-#. module: barcodes
-#. odoo-python
-#: code:addons/barcodes/models/barcode_events_mixin.py:0
-msgid ""
-"In order to use barcodes.barcode_events_mixin, method on_barcode_scanned "
-"must be implemented"
-msgstr ""
-"Za uporabo črtnih kod.barcode_events_mixin, method on_barcode_skenirano mora "
-"biti izvedeno"
 
 #. module: barcodes
 #: model:ir.model.fields,field_description:barcodes.field_barcode_nomenclature__write_uid
@@ -266,14 +244,14 @@ msgid ""
 msgstr ""
 "Vzorci lahko določajo tudi, kako se lahko prikažejo numerične vrednosti, kot "
 "sta teža ali cena\n"
-"                                kodirane v črtno kodo. Označene so z <code>"
-"{ŠŠŠ}</code>kjer Š'ka\n"
+"                                kodirane v črtno kodo. Označene so z "
+"<code>{ŠŠŠ}</code>kjer Š'ka\n"
 "                                določa, kje so kodirane števke števila. "
 "Podprte so tudi plavajoče številske vrednosti za\n"
 "                                decimalna števila, označena z D-ji, kot na "
 "primer <code>{ŠŠŠDD}</code>. V teh primerih,\n"
-"                                mora polje s črtno kodo na povezanih  <i>"
-"zapisih\n"
+"                                mora polje s črtno kodo na povezanih  "
+"<i>zapisih\n"
 "</i> prikazati te številke kot\n"
 "                                ničle."
 
@@ -319,7 +297,8 @@ msgstr "Vzorec ujemanja črtne kode"
 #: code:addons/barcodes/models/barcode_rule.py:0
 msgid ""
 "The barcode pattern %(pattern)s does not lead to a valid regular expression."
-msgstr "Vzorec črtne kode %(pattern)s ne vodi do veljavnega regularnega izraza."
+msgstr ""
+"Vzorec črtne kode %(pattern)s ne vodi do veljavnega regularnega izraza."
 
 #. module: barcodes
 #: model:ir.model.fields,help:barcodes.field_barcode_nomenclature__rule_ids
@@ -356,7 +335,8 @@ msgstr ""
 #: code:addons/barcodes/models/barcode_rule.py:0
 msgid ""
 "There is a syntax error in the barcode pattern %(pattern)s: empty braces."
-msgstr "V vzorcu črtne kode je sintaktična napaka %(pattern)s: prazne oklepaje."
+msgstr ""
+"V vzorcu črtne kode je sintaktična napaka %(pattern)s: prazne oklepaje."
 
 #. module: barcodes
 #: model:ir.model.fields,help:barcodes.field_barcode_rule__encoding
@@ -413,11 +393,6 @@ msgid "Used to order rules such that rules with a smaller sequence match first"
 msgstr ""
 "Uporablja se za naročanje takšnih pravil, da se pravila z manjšim zaporedjem "
 "najprej ujemajo"
-
-#. module: barcodes
-#: model:ir.model.fields,help:barcodes.field_barcodes_barcode_events_mixin___barcode_scanned
-msgid "Value of the last barcode scanned."
-msgstr "Vrednost zadnje skenirane črtne kode."
 
 #. module: barcodes
 #. odoo-python

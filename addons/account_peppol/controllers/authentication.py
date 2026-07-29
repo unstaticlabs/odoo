@@ -43,7 +43,7 @@ class PeppolAuthentication(http.Controller):
             return redirect('failure', partner=partner)
 
         peppol_identifier = connect_data['peppol_identifier']
-        db_uuid = request.env['ir.config_parameter'].get_param('database.uuid')
+        db_uuid = request.env['ir.config_parameter'].get_str('database.uuid')
         company = connect_data['company']
         try:
             request.env['peppol.registration'].sudo()._create_connection(peppol_identifier, db_uuid, company, auth_token=auth_token)
@@ -69,7 +69,7 @@ class PeppolAuthentication(http.Controller):
         if company.sudo().account_peppol_edi_user:
             return request.make_json_response({'status': 'already_connected'})
 
-        db_uuid = request.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        db_uuid = request.env['ir.config_parameter'].sudo().get_str('database.uuid')
         try:
             request.env['peppol.registration'].sudo()._create_connection(
                 connect_data['peppol_identifier'], db_uuid, company, auth_token=auth_token,

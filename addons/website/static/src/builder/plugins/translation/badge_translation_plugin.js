@@ -1,6 +1,7 @@
 import { Plugin } from "@html_editor/plugin";
+import { registry } from "@web/core/registry";
 
-export class BadgeTranslationPlugin extends Plugin {
+class BadgeTranslationPlugin extends Plugin {
     static id = "badgeTranslation";
     /** @type {import("plugins").WebsiteResources} */
     resources = {
@@ -8,3 +9,5 @@ export class BadgeTranslationPlugin extends Plugin {
         unsplittable_node_predicates: (node) => node.classList?.contains("s_badge"),
     };
 }
+
+registry.category("translation-plugins").add(BadgeTranslationPlugin.id, BadgeTranslationPlugin);

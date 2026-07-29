@@ -3,7 +3,6 @@
     'category': 'Sales/Point of Sale',
     'summary': 'Integrate your POS with a cash matic automatic cash payment device',
     'depends': ['point_of_sale'],
-    'installable': True,
     'data': [
         'views/pos_payment_method_views.xml',
     ],

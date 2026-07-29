@@ -299,7 +299,7 @@ class DockerTgz(Docker):
             f'su odoo -s /bin/bash -c "/var/lib/odoo/odoovenv/bin/python3 -m pip install /data/src/odoo_{VERSION}.{TSTAMP}.tar.gz"',
             'su odoo -s /bin/bash -c "createdb mycompany"',
             'su odoo -s /bin/bash -c "/var/lib/odoo/odoovenv/bin/odoo -d mycompany -i base --stop-after-init"',
-            'su odoo -s /bin/bash -c "/var/lib/odoo/odoovenv/bin/odoo -d mycompany --pidfile=/data/src/odoo.pid"',
+            'su odoo -s /bin/bash -c "/var/lib/odoo/odoovenv/bin/odoo -d mycompany --pidfile=/data/src/odoo.pid --http-interface 0.0.0.0"',
         ]
         self.run(' && '.join(cmds), self.args.build_dir, 'odoo-src-test-%s' % TSTAMP, user='root', detach=True, exposed_port=8069, timeout=300)
         self.test_odoo()
@@ -329,7 +329,7 @@ class DockerDeb(Docker):
             'service postgresql start',
             '/usr/bin/apt-get update -y',
             f'/usr/bin/apt-get install -y /data/src/odoo_{VERSION}.{TSTAMP}_all.deb',
-            'su odoo -s /bin/bash -c "odoo -d mycompany -i base --pidfile=/data/src/odoo.pid"',
+            'su odoo -s /bin/bash -c "odoo -d mycompany -i base --pidfile=/data/src/odoo.pid --http-interface 0.0.0.0"',
         ]
         self.run(' && '.join(cmds), self.args.build_dir, 'odoo-deb-test-%s' % TSTAMP, user='root', detach=True, exposed_port=8069, timeout=300)
         self.test_odoo()
@@ -369,7 +369,7 @@ class DockerRpm(Docker):
             'su odoo -c "createdb mycompany"',
             'dnf install -q /data/src/odoo_%s.%s.rpm -y' % (VERSION, TSTAMP),
             'su odoo -s /bin/bash -c "odoo -c /etc/odoo/odoo.conf -d mycompany -i base --stop-after-init"',
-            'su odoo -s /bin/bash -c "odoo -c /etc/odoo/odoo.conf -d mycompany --pidfile=/data/src/odoo.pid"',
+            'su odoo -s /bin/bash -c "odoo -c /etc/odoo/odoo.conf -d mycompany --pidfile=/data/src/odoo.pid --http-interface 0.0.0.0"',
         ]
         self.run(' && '.join(cmds), args.build_dir, 'odoo-rpm-test-%s' % TSTAMP, user='root', detach=True, exposed_port=8069, timeout=300)
         self.test_odoo()
@@ -428,7 +428,7 @@ class DockerIot(DockerWine):
         self.nt_service_name = "odoo-iot"
 
     def build_image(self):
-        shutil.copy(os.path.join(self.args.build_dir, 'odoo/addons/iot_box_image/configuration/requirements.txt'), self.docker_dir / 'requirements-iot.txt')
+        shutil.copy(os.path.join(self.args.build_dir, 'setup/iot_box_builder/configuration/requirements.txt'), self.docker_dir / 'requirements-iot.txt')
         self.tag = f'{self.tag}-iot'
         super().build_image()
 

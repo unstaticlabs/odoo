@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from odoo import api, Command, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.addons.base.models.res_bank import sanitize_account_number
+from odoo.addons.base.models.res_partner_bank import sanitize_account_number
 from odoo.tools import email_normalize, email_normalize_all, groupby, urls
 from odoo.tools.misc import hash_sign
 from collections import defaultdict
@@ -16,26 +16,20 @@ _logger = logging.getLogger(__name__)
 class AccountJournalGroup(models.Model):
     _name = 'account.journal.group'
     _description = "Account Journal Group"
-    _check_company_auto = True
-    _check_company_domain = models.check_company_domain_parent_of
 
     name = fields.Char("Ledger group", required=True, translate=True)
-    company_id = fields.Many2one(
-        comodel_name='res.company',
-        help="Define which company can select the multi-ledger in report filters. If none is provided, available for all companies",
-        default=lambda self: self.env.company,
-    )
-    excluded_journal_ids = fields.Many2many(
-        comodel_name='account.journal',
-        domain='company_id and [("company_id", "parent_of", company_id)] or []',
-        string="Excluded Journals",
+
+    included_journal_ids = fields.One2many(
+        'account.journal',
+        'journal_group_id',
+        string="Included Journals",
         context={'active_test': False},
     )
     sequence = fields.Integer(default=10)
 
     _uniq_name = models.Constraint(
-        'unique(company_id, name)',
-        'A Ledger group name must be unique per company.',
+        'unique(name)',
+        'A Ledger group name must be unique.',
     )
 
 
@@ -62,11 +56,8 @@ class AccountJournal(models.Model):
     def _default_outbound_payment_methods(self):
         return self.env.ref('account.account_payment_method_manual_out')
 
-    def __get_bank_statements_available_sources(self):
-        return [('undefined', _('Undefined Yet'))]
-
     def _get_bank_statements_available_sources(self):
-        return self.__get_bank_statements_available_sources()
+        return [('undefined', _('Undefined Yet'))]
 
     def _default_invoice_reference_model(self):
         """Get the invoice reference model according to the company's country."""
@@ -250,18 +241,23 @@ class AccountJournal(models.Model):
         index='btree_not_null',
         check_company=True,
         domain="[('partner_id','=', company_partner_id)]")
-    bank_statements_source = fields.Selection(selection=_get_bank_statements_available_sources, string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
-    bank_acc_number = fields.Char(related='bank_account_id.acc_number', readonly=False)
-    bank_id = fields.Many2one('res.bank', related='bank_account_id.bank_id', readonly=False)
+    bank_statements_source = fields.Selection(selection='_get_bank_statements_available_sources', string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
+    bank_name = fields.Char(related='bank_account_id.bank_name', readonly=False)
+    bank_account_number = fields.Char(related='bank_account_id.account_number', readonly=False)
+    bank_bic = fields.Char(related='bank_account_id.bank_bic', readonly=False)
 
     # alias configuration for journals
     alias_name = fields.Char(help="Send one separate email for each invoice.\n"
                                   "Any file extension will be accepted.\n"
                                   "Only PDF and XML files will be interpreted by Odoo")
 
-    journal_group_ids = fields.Many2many('account.journal.group',
-        check_company=True,
-        string="Ledger Group")
+    journal_group_id = fields.Many2one(
+        comodel_name='account.journal.group',
+        string="Ledger",
+        index='btree_not_null',
+        help="By default, all journals post to the Statutory Ledger (Local GAAP). \n"
+             "Specifying a ledger allows you to isolate IFRS, Tax, or Intercompany adjustments without affecting local statutory accounts.",
+    )
 
     available_payment_method_ids = fields.Many2many(
         comodel_name='account.payment.method',
@@ -293,6 +289,9 @@ class AccountJournal(models.Model):
     _code_company_uniq = models.Constraint(
         'unique (company_id, code)',
         'Journal codes must be unique per company.',
+    )
+    has_ledger = fields.Boolean(
+        related='company_id.has_ledger',
     )
 
     def _compute_has_invalid_statements(self):
@@ -730,7 +729,7 @@ class AccountJournal(models.Model):
                 bank_accounts += bank_account
         self.env['account.payment.method.line'].search([('journal_id', 'in', self.ids)]).unlink()
         ret = super(AccountJournal, self).unlink()
-        bank_accounts.unlink()
+        bank_accounts.action_archive()
         return ret
 
     def copy_data(self, default=None):
@@ -783,9 +782,6 @@ class AccountJournal(models.Model):
                         'company_id': company.id,
                         'partner_id': company.partner_id.id,
                     })
-            if 'currency_id' in vals:
-                if journal.bank_account_id:
-                    journal.bank_account_id.currency_id = vals['currency_id']
             if 'bank_account_id' in vals:
                 if vals.get('bank_account_id'):
                     bank_account = self.env['res.partner.bank'].browse(vals['bank_account_id'])
@@ -817,10 +813,10 @@ class AccountJournal(models.Model):
                 journal.default_account_id.currency_id = journal.currency_id
 
         # Create the bank_account_id if necessary
-        if 'bank_acc_number' in vals:
+        if 'bank_account_number' in vals:
             for journal in self.filtered(lambda r: r.type == 'bank' and not r.bank_account_id):
-                journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
-        if 'bank_acc_number' in vals or 'bank_account_id' in vals:
+                journal.set_bank_account(vals.get('bank_account_number'), vals.get('bank_bic'))
+        if 'bank_account_number' in vals or 'bank_account_id' in vals:
             for bank in self.filtered(lambda r: r.type == 'bank').bank_account_id:
                 if bank._user_can_trust():
                     bank.allow_out_payment = True
@@ -981,7 +977,7 @@ class AccountJournal(models.Model):
             has_loss_account = vals.get('loss_account_id')
 
             # === Fill missing name ===
-            vals['name'] = vals.get('name') or vals.get('bank_acc_number') or vals.get('name_placeholder')
+            vals['name'] = vals.get('name') or vals.get('bank_account_number') or vals.get('name_placeholder')
 
             # === Fill missing accounts ===
             if not has_liquidity_accounts:
@@ -1038,23 +1034,22 @@ class AccountJournal(models.Model):
         for journal, vals in zip(journals, vals_list):
             # Create the bank_account_id if necessary
             if journal.type == 'bank':
-                if not journal.bank_account_id and vals.get('bank_acc_number'):
-                    journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
+                if not journal.bank_account_id and vals.get('bank_account_number'):
+                    journal.set_bank_account(vals.get('bank_account_number'), vals.get('bank_bic'))
                 if journal.bank_account_id and journal.bank_account_id._user_can_trust():
                     journal.bank_account_id.allow_out_payment = True
 
         return journals
 
-    def set_bank_account(self, acc_number, bank_id=None):
+    def set_bank_account(self, account_number, bank_bic=None):
         """ Create a res.partner.bank (if not exists) and set it as value of the field bank_account_id """
         self.ensure_one()
         self.bank_account_id = self.env['res.partner.bank']._find_or_create_bank_account(
-            account_number=acc_number,
+            account_number=account_number,
             partner=self.company_id.partner_id, allow_company_account_creation=True,
             company=self.company_id,
             extra_create_vals={
-                'bank_id': bank_id,
-                'currency_id': self.currency_id.id,
+                'bank_bic': bank_bic,
                 'journal_id': self,
             }
         )
@@ -1065,6 +1060,8 @@ class AccountJournal(models.Model):
             name = journal.name
             if journal.currency_id and journal.currency_id != journal.company_id.sudo().currency_id:
                 name = f"{name} ({journal.currency_id.name})"
+            if len(self.env.companies) > 1 and self.env.context.get('show_company_journal'):
+                name = f"{journal.company_id.name} - {name}"
             journal.display_name = name
 
     def action_configure_bank_journal(self):
@@ -1170,20 +1167,14 @@ class AccountJournal(models.Model):
         :return: A recordset with all the account.account used by this journal for inbound transactions.
         """
         self.ensure_one()
-        account_ids = set()
-        for line in self.inbound_payment_method_line_ids:
-            account_ids.add(line.payment_account_id.id)
-        return self.env['account.account'].browse(account_ids)
+        return self.inbound_payment_method_line_ids.payment_account_id
 
     def _get_journal_outbound_outstanding_payment_accounts(self):
         """
         :return: A recordset with all the account.account used by this journal for outbound transactions.
         """
         self.ensure_one()
-        account_ids = set()
-        for line in self.outbound_payment_method_line_ids:
-            account_ids.add(line.payment_account_id.id)
-        return self.env['account.account'].browse(account_ids)
+        return self.outbound_payment_method_line_ids.payment_account_id
 
     def _get_available_payment_method_lines(self, payment_type):
         """

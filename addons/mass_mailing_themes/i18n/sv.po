@@ -7,14 +7,14 @@
 # Daniel Osser <danielosser@gmail.com>, 2022
 # Kim Asplund <kim.asplund@gmail.com>, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Hanna Kharraziha <hakha@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-30 15:42+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-19 10:37+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "mass_mailing_themes/sv/>\n"
@@ -23,15 +23,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "&amp;nbsp; &amp;nbsp;"
-msgstr "&amp;nbsp; &amp;nbsp;"
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "&amp;nbsp;&amp;nbsp;"
 msgstr "&amp;nbsp;&amp;nbsp;"
@@ -164,7 +158,8 @@ msgstr "<font style=\"background-color: rgb(57, 123, 33);\">FOOD</font>"
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
 msgid "<font style=\"color: rgb(173, 173, 173);\">Unsubscribe</font>"
-msgstr "<font style=\"color: rgb(173, 173, 173);\">Avsluta prenumeration</font>"
+msgstr ""
+"<font style=\"color: rgb(173, 173, 173);\">Avsluta prenumeration</font>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_event_template
@@ -414,8 +409,8 @@ msgid ""
 "span>"
 msgstr ""
 "<span style=\"font-style: italic;\"><font class=\"text-600\">De första 20 "
-"deltagarna kommer att få ett gratis exemplar av vårt affärsspel \"Scale-"
-"Up\".</font></span>"
+"deltagarna kommer att få ett gratis exemplar av vårt affärsspel \"Scale-Up\"."
+"</font></span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_promotion_template
@@ -433,7 +428,8 @@ msgstr ""
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "<span style=\"font-weight: bolder;\">25 September 2022 - 4:30 PM</span>"
-msgstr "<span style=\"font-weight: bolder;\">25 September 2022 - 4:30 PM</span>"
+msgstr ""
+"<span style=\"font-weight: bolder;\">25 September 2022 - 4:30 PM</span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coupon_template
@@ -820,10 +816,7 @@ msgstr ""
 "presentationer och demonstrationer."
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Facebook"
 msgstr "Facebook"
 
@@ -892,7 +885,8 @@ msgstr "Här är några bilder som togs under evenemanget:"
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_roadshow2_template
 msgid "Here are the links to our sponsors' websites if you wish to meet them:"
-msgstr "Här är länkarna till våra sponsorers webbplatser om du vill träffa dem:"
+msgstr ""
+"Här är länkarna till våra sponsorers webbplatser om du vill träffa dem:"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
@@ -1018,10 +1012,7 @@ msgid "Infographic: Our Company Throughout The Generations"
 msgstr "Infografik: Vårt företag genom generationerna"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Instagram"
 msgstr "Instagram"
 
@@ -1090,12 +1081,6 @@ msgid "Link 4"
 msgstr "Länk 4"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
-msgid "LinkedIn"
-msgstr "LinkedIn"
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.email_designer_themes
 msgid "Magazine"
 msgstr "Magasin"
@@ -1123,8 +1108,8 @@ msgid ""
 "\">Customer Service</span>"
 msgstr ""
 "Michael Fletcher<br/>\n"
-"                   <span style=\"font-size: 12px; font-weight: bolder;\">"
-"Customer Service</span>"
+"                   <span style=\"font-size: 12px; font-weight: bolder;"
+"\">Customer Service</span>"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
@@ -1433,11 +1418,6 @@ msgstr ""
 "vara en BigERP än en TinyERP. Kan du föreställa dig hur liten du känner dig"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "TikTok"
-msgstr "TikTok"
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid ""
 "To fuel my motivation, I had to pick someone to fight against. In business, "
@@ -1671,10 +1651,7 @@ msgid "Woman having breakfast in bed"
 msgstr "Kvinna äter frukost i sängen"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "X"
 msgstr ""
 
@@ -1821,19 +1798,3 @@ msgstr "vi ändrade vår affärsmodell"
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "with 1549% growth of the turnover between 2007 and 2011)."
 msgstr "med en omsättningstillväxt på 1549% mellan 2007 och 2011)."
-
-#~ msgid ""
-#~ "<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);"
-#~ "\">&amp;nbsp;10% OFF&amp;nbsp;</font>\n"
-#~ "                    <br/>\n"
-#~ "                        <font style=\"font-size: 62px; background-color: "
-#~ "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
-#~ msgstr ""
-#~ "<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);"
-#~ "\">&amp;nbsp;10% OFF&amp;nbsp;</font>\n"
-#~ "                    <br/>\n"
-#~ "                        <font style=\"font-size: 62px; background-color: "
-#~ "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
-
-#~ msgid "Twitter"
-#~ msgstr "Twitter"

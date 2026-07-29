@@ -31,7 +31,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'tax_dom_purchase_goods_25_5',
                 'expense_account_id': 'account_4000',
                 'income_account_id': 'account_3000',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'account_1501',
             },
         }

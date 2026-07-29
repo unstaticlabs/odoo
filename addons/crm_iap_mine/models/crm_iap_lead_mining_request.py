@@ -236,7 +236,7 @@ class CrmIapLeadMiningRequest(models.Model):
         self.error_type = False
         server_payload = self._prepare_iap_payload()
         reveal_account = self.env['iap.account'].get('reveal')
-        dbuuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        dbuuid = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
         reveal_ids = [lead['reveal_id'] for lead in self.env['crm.lead'].search_read([('reveal_id', '!=', False)], ['reveal_id'])]
         params = {
             'account_token': reveal_account.sudo().account_token,
@@ -264,7 +264,7 @@ class CrmIapLeadMiningRequest(models.Model):
             raise UserError(_("Your request could not be executed: %s", e))
 
     def _iap_contact_mining(self, params, timeout=300):
-        endpoint = self.env['ir.config_parameter'].sudo().get_param('reveal.endpoint', DEFAULT_ENDPOINT) + '/api/dnb/1/search_by_criteria'
+        endpoint = self.env['ir.config_parameter'].sudo().get_str('reveal.endpoint', DEFAULT_ENDPOINT) + '/api/dnb/1/search_by_criteria'
         return iap_tools.iap_jsonrpc(endpoint, params=params, timeout=timeout)
 
     def _create_leads_from_response(self, result):

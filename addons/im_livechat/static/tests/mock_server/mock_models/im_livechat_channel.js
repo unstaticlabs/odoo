@@ -64,7 +64,7 @@ export class LivechatChannel extends models.ServerModel {
         const guest = ResUsers._is_public(this.env.uid) && MailGuest._get_guest_from_context();
         if (guest) {
             membersToAdd.push(
-                Command.create({ guest_id: guest.id, livechat_member_type: "visitor" })
+                Command.create({ livechat_member_type: "visitor", guest_id: guest.id })
             );
         }
         let visitorUser;
@@ -84,7 +84,6 @@ export class LivechatChannel extends models.ServerModel {
         return {
             channel_partner_ids: [agent.partner_id],
             channel_member_ids: membersToAdd,
-            livechat_operator_id: agent.partner_id,
             livechat_channel_id: id,
             livechat_status: "in_progress",
             channel_type: "livechat",

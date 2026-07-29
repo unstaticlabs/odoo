@@ -6,24 +6,24 @@
 # Martin Trigaux, 2022
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 03:45+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-05-16 16:40+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_customer/zh_Hans/>\n"
+"projects/odoo-s19-2/website_customer/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -84,6 +84,16 @@ msgid "Archived"
 msgstr "已归档"
 
 #. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
 msgid "Back to references list"
 msgstr "返回成功案例列表"
@@ -123,7 +133,7 @@ msgstr "联系人"
 #. odoo-javascript
 #: code:addons/website_customer/static/src/website_builder/customer_filter_option.xml:0
 msgid "Countries Filter"
-msgstr "国家/地区筛选"
+msgstr "国家/地区筛选器"
 
 #. module: website_customer
 #: model:ir.model,website_form_label:website_customer.model_res_partner
@@ -192,7 +202,7 @@ msgstr "按标签筛选"
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country_list
 msgid "Filter by country"
-msgstr "按国家筛选"
+msgstr "按国家/地区筛选"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_industry_list
@@ -276,6 +286,11 @@ msgstr "合作伙伴标签 - 这些标签可用于在网站按部门找客户，
 #: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__partner_ids
 msgid "Partners"
 msgstr "合作伙伴"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr ""
 
 #. module: website_customer
 #. odoo-python
@@ -369,43 +384,3 @@ msgstr "站点标签"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "地界地图"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "执行者"
-
-#~ msgid "Last Modified on"
-#~ msgstr "最后修改时间"
-
-#~ msgid "No result found"
-#~ msgstr "找不到结果"
-
-#~ msgid "Our References"
-#~ msgstr "我们的参考"
-
-#~ msgid "References Page"
-#~ msgstr "参考网页"
-
-#~ msgid "References by Country"
-#~ msgstr "按国家参考"
-
-#~ msgid "References by Industries"
-#~ msgstr "行业案例"
-
-#~ msgid "References by Tag"
-#~ msgstr "通过标记引用"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "通过网站访问文档的完整网址。"
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "备受全世界百万人的信任"
-
-#~ msgid "reference(s))"
-#~ msgstr "参考"

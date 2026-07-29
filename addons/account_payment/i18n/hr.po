@@ -10,18 +10,17 @@
 # Tina Milas, 2022
 # Karolina Tonković <karolina.tonkovic@storm.hr>, 2022
 # Bole <bole@dajmi5.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Zvonimir Galić <zvonimir.galic@viavista.ba>, 2025, 2026.
-# Boris Peko <boris.peko@ecodica.eu>, 2026.
+# Zvonimir Galić <zvonimir.galic@viavista.ba>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:22+0000\n"
-"Last-Translator: Zvonimir Galić <zvonimir.galic@viavista.ba>\n"
-"Language-Team: Croatian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 14:39+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Croatian <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/hr/>\n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
@@ -34,6 +33,7 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
+#, fuzzy
 msgid ""
 "#%(number)s - Installment of <strong>%(amount)s</strong> due on <strong "
 "class=\"text-primary\">%(date)s</strong>"
@@ -44,6 +44,7 @@ msgstr ""
 #. module: account_payment
 #. odoo-javascript
 #: code:addons/account_payment/static/src/interactions/portal_my_invoices_payment_list.js:0
+#, fuzzy
 msgid "%s day(s) overdue"
 msgstr "%s dan(a) kašnjenja"
 
@@ -68,6 +69,7 @@ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Plati odmah"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
+#, fuzzy
 msgid ""
 "<i class=\"fa fa-fw fa-check\"/>\n"
 "                <span class=\"d-none d-md-inline\"> Authorized</span>"
@@ -77,6 +79,7 @@ msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
+#, fuzzy
 msgid ""
 "<i class=\"fa fa-fw fa-check\"/>\n"
 "                <span class=\"d-none d-md-inline\"> Paid</span>"
@@ -96,21 +99,25 @@ msgstr "<i class=\"fa fa-fw fa-check-circle\"/> U tijeku"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_page_inherit_payment
+#, fuzzy
 msgid "<i class=\"fa fa-fw fa-check-circle\"/> Processing Payment"
 msgstr "<i class=\"fa fa-fw fa-check-circle\"/> Obrada plaćanja"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
+#, fuzzy
 msgid "<span class=\"d-none d-md-inline\"> Pending</span>"
 msgstr "<span class=\"d-none d-md-inline\"> Na čekanju</span>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "<strong>Full Amount</strong><br/>"
 msgstr "<strong>Puni iznos</strong><br/>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid ""
 "<strong>Installment</strong>\n"
 "                                        <br/>"
@@ -120,6 +127,7 @@ msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.payment_refund_wizard_view_form
+#, fuzzy
 msgid ""
 "<strong>Warning!</strong> There is a refund pending for this payment.\n"
 "                        Wait a moment for it to be processed. If the refund "
@@ -136,11 +144,13 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
+#, fuzzy
 msgid "A discount will be applied if the customer pays before %s included."
 msgstr "Popust će biti primijenjen ako kupac plati prije %s uključujući."
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid ""
 "A payment has already been made on this invoice, please make sure to not pay "
 "twice."
@@ -160,6 +170,11 @@ msgid "A token is required to create a new payment transaction."
 msgstr "Token je potreban za kreiranje nove transakcije."
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
 msgid "Amount"
@@ -174,6 +189,11 @@ msgstr "Iznos raspoloživ za povrat"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "Dospjeli iznos"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -198,8 +218,9 @@ msgstr "Autorizirane transkacije"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Stavka bankovnog izvatka"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -216,7 +237,7 @@ msgstr "Zatvori"
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfiguracijske postavke"
+msgstr "Postavke"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__create_uid
@@ -252,10 +273,11 @@ msgstr "Datum popusta"
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__display_name
 #: model:ir.model.fields,field_description:account_payment.field_res_config_settings__display_name
 msgid "Display Name"
-msgstr "Naziv za prikaz"
+msgstr "Naziv"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__display_open_installments
+#, fuzzy
 msgid "Display Open Installments"
 msgstr "Prikaži otvorene rate"
 
@@ -269,11 +291,13 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__epd_info
+#, fuzzy
 msgid "Early Payment Discount Information"
 msgstr "Informacije o popustu za rano plaćanje"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "Early Payment Discount of"
 msgstr "Popust za rano plaćanje od"
 
@@ -294,6 +318,7 @@ msgstr "Generiraj link za plaćanje"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__has_eligible_epd
+#, fuzzy
 msgid "Has Eligible Epd"
 msgstr "Ima prihvatljiv popust za rano plaćanje"
 
@@ -321,6 +346,7 @@ msgstr "ID"
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
+#, fuzzy
 msgid ""
 "Impossible to pay all the overdue invoices if they don't share the same "
 "currency."
@@ -328,6 +354,7 @@ msgstr "Nije moguće platiti sve zakašnjele račune ako ne dijele istu valutu."
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_method_line__payment_provider_state
+#, fuzzy
 msgid ""
 "In test mode, a fake payment is processed through a test payment interface.\n"
 "This mode is advised when setting up the provider."
@@ -364,7 +391,8 @@ msgid "Invoices Count"
 msgstr "Broj računa"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
+#, fuzzy
 msgid "Invoices to pay"
 msgstr "Računi za plaćanje"
 
@@ -381,25 +409,28 @@ msgstr "Temeljnica"
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__write_uid
 msgid "Last Updated by"
-msgstr "Posljednju izmjenu izvršio"
+msgstr "Promijenio"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__write_date
 msgid "Last Updated on"
-msgstr "Posljednja izmjena"
+msgstr "Vrijeme promjene"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__amount_available_for_refund
+#, fuzzy
 msgid "Maximum Refund Allowed"
 msgstr "Maksimalni dopušteni povrat"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.payment_link_wizard__form_inherit_account_payment
+#, fuzzy
 msgid "Next Installments"
 msgstr "Sljedeće rate"
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment__payment_token_id
+#, fuzzy
 msgid ""
 "Note that only tokens from providers allowing to capture the amount are "
 "available."
@@ -409,6 +440,7 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_register__payment_token_id
+#, fuzzy
 msgid ""
 "Note that tokens from providers set to only authorize transactions (instead "
 "of capturing the amount) are not available."
@@ -419,24 +451,35 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_link_wizard.py:0
+#, fuzzy
 msgid "Online payment option is not enabled in Configuration."
 msgstr "Opcija online plaćanja nije omogućena u konfiguraciji."
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
+#, fuzzy
 msgid "Overdue invoices should share the same company."
 msgstr "Zakašnjeli računi moraju dijeliti istu tvrtku."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
+#, fuzzy
 msgid "Overdue invoices should share the same currency."
 msgstr "Zakašnjeli računi moraju dijeliti istu valutu."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
+#, fuzzy
 msgid "Overdue invoices should share the same partner."
 msgstr "Zakašnjeli računi moraju dijeliti istog partnera."
 
@@ -453,6 +496,7 @@ msgstr "Plati"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment_paid
+#, fuzzy
 msgid "Pay Invoice"
 msgstr "Plati račun"
 
@@ -474,10 +518,12 @@ msgstr "Plati odmah"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_overdue_invoice
+#, fuzzy
 msgid "Pay overdue"
 msgstr "Plati zakašnjelo"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -495,7 +541,17 @@ msgstr "Dnevnik partnera"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+#, fuzzy
+msgid "Payment Method"
+msgstr "Način plaćanja"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+#, fuzzy
+msgid "Payment Method Line"
+msgstr "Stavka metode plaćanja"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Načini plaćanja"
@@ -509,10 +565,11 @@ msgstr "Pružatelj usluge naplate"
 #. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_provider_menu
 msgid "Payment Providers"
-msgstr "Pružatelji plaćanja"
+msgstr "Pružatelj usluge naplate"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_payment_refund_wizard
+#, fuzzy
 msgid "Payment Refund Wizard"
 msgstr "Čarobnjak za povrat plaćanja"
 
@@ -535,15 +592,16 @@ msgid "Payment Transactions"
 msgstr "Transakcija plaćanja"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Plaćanja"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "Molimo prijavite se kako biste platili dospjele račune"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Cjenici"
 
 #. module: account_payment
 #. odoo-python
@@ -568,11 +626,13 @@ msgstr "Odobrenje"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__amount_to_refund
+#, fuzzy
 msgid "Refund Amount"
 msgstr "Iznos povrata"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__refunded_amount
+#, fuzzy
 msgid "Refunded Amount"
 msgstr "Iznos povrata"
 
@@ -583,6 +643,7 @@ msgstr "Povrati"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__refunds_count
+#, fuzzy
 msgid "Refunds Count"
 msgstr "Broj povrata"
 
@@ -593,27 +654,31 @@ msgstr "POSTAVKE"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__payment_token_id
+#, fuzzy
 msgid "Saved Payment Token"
 msgstr "Spremljeni token plaćanja"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment_register__payment_token_id
+#, fuzzy
 msgid "Saved payment token"
 msgstr "Spremljeni token plaćanja"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__source_payment_id
+#, fuzzy
 msgid "Source Payment"
 msgstr "Izvorno plaćanje"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment_method_line__payment_provider_state
 msgid "State"
-msgstr "Status"
+msgstr "Županija/fed.država"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__suitable_payment_token_ids
 #: model:ir.model.fields,field_description:account_payment.field_account_payment_register__suitable_payment_token_ids
+#, fuzzy
 msgid "Suitable Payment Token"
 msgstr "Prikladan token plaćanja"
 
@@ -626,18 +691,21 @@ msgstr "Token pristupa nije ispravan."
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/wizards/payment_refund_wizard.py:0
+#, fuzzy
 msgid ""
 "The amount to be refunded must be positive and cannot be superior to %s."
 msgstr "Iznos za povrat mora biti pozitivan i ne smije biti veći od %s."
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_payment_provider__journal_id
+#, fuzzy
 msgid "The journal in which the successful transactions are posted."
 msgstr "Dnevnik u koji se knjiže uspješne transakcije."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/payment_transaction.py:0
+#, fuzzy
 msgid "The payment related to transaction %(ref)s has been posted: %(link)s"
 msgstr "Plaćanje povezano s transakcijom %(ref)s je knjiženo: %(link)s"
 
@@ -649,28 +717,33 @@ msgstr "Parametri nisu valjani."
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment__source_payment_id
+#, fuzzy
 msgid "The source payment of related refund payments"
 msgstr "Izvorno plaćanje povezanih plaćanja povrata"
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "There are pending transactions for this invoice."
 msgstr "Postoje transakcije na čekanju za ovaj račun."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "There is no amount to be paid."
 msgstr "Nema iznosa za plaćanje."
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
+#, fuzzy
 msgid "There was an error processing your payment: invalid invoice."
 msgstr "Došlo je do pogreške pri obradi plaćanja: neispravan račun."
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
+#, fuzzy
 msgid ""
 "There was an error processing your payment: issue with credit card ID "
 "validation."
@@ -680,12 +753,14 @@ msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
+#, fuzzy
 msgid "There was an error processing your payment: transaction failed.<br/>"
 msgstr ""
 "Došlo je do pogreške pri obradi plaćanja: transakcija nije uspjela.<br/>"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_error
+#, fuzzy
 msgid "There was en error processing your payment: invalid credit card ID."
 msgstr ""
 "Došlo je do pogreške pri obradi plaćanja: neispravan ID kreditne kartice."
@@ -693,30 +768,35 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "This invoice cannot be paid online."
 msgstr "Ovaj račun ne može se platiti online."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "This invoice has already been paid."
 msgstr "Ovaj račun je već plaćen."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "This invoice isn't posted."
 msgstr "Ovaj račun nije knjižen."
 
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_move.py:0
+#, fuzzy
 msgid "This is not an outgoing invoice."
 msgstr "Ovo nije izlazni račun."
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__transaction_count
 #: model:ir.model.fields,field_description:account_payment.field_account_move__transaction_count
+#, fuzzy
 msgid "Transaction Count"
 msgstr "Broj transakcija"
 
@@ -734,6 +814,7 @@ msgstr "Nepodržano"
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__use_electronic_payment_method
 #: model:ir.model.fields,field_description:account_payment.field_account_payment_register__use_electronic_payment_method
+#, fuzzy
 msgid "Use Electronic Payment Method"
 msgstr "Koristi elektroničku metodu plaćanja"
 
@@ -745,6 +826,7 @@ msgstr "Poništi transakciju"
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_payment_method_line.py:0
+#, fuzzy
 msgid ""
 "You can't delete a payment method that is linked to a provider in the "
 "enabled or test state.\n"
@@ -757,6 +839,7 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/payment_provider.py:0
+#, fuzzy
 msgid ""
 "You cannot uninstall this module as payments using this payment method "
 "already exist."
@@ -767,6 +850,7 @@ msgstr ""
 #. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/models/account_journal.py:0
+#, fuzzy
 msgid ""
 "You must first deactivate a payment provider before deleting its journal.\n"
 "Linked providers: %s"
@@ -778,30 +862,35 @@ msgstr ""
 #. module: account_payment
 #. odoo-javascript
 #: code:addons/account_payment/static/src/interactions/portal_my_invoices_payment_list.js:0
+#, fuzzy
 msgid "due in %s day(s)"
 msgstr "dospijeva za %s dan(a)"
 
 #. module: account_payment
 #. odoo-javascript
 #: code:addons/account_payment/static/src/interactions/portal_my_invoices_payment_list.js:0
+#, fuzzy
 msgid "due today"
 msgstr "dospijeva danas"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+#, fuzzy
 msgid "has been applied."
 msgstr "je primijenjeno."
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "dospjelo"
 
-#~ msgid "Code"
-#~ msgstr "Šifra"
-
-#~ msgid "Pay with"
-#~ msgstr "Plati putem"
-
-#~ msgid "Register Payment"
-#~ msgstr "Registriraj plaćanje"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

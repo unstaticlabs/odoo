@@ -18,16 +18,17 @@ class TestLeaveAttendanceReport(TestHrHolidaysCommon):
             'date_to': '2026-02-10 18:00:00',
             'resource_id': False
         })
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
+            'code': 'LEAVE',
             'name': 'Ignore Public Holiday Leave',
+            'count_as': 'absence',
             'requires_allocation': False,
-            'company_id': self.company.id,
             'include_public_holidays_in_duration': True,
         })
         leave = self.env['hr.leave'].create({
             'name': 'Some leave',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': "2026-02-09",
             'request_date_to': "2026-02-11",
         })

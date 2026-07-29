@@ -33,7 +33,7 @@ test("should add an icon from the media modal dialog", async () => {
     await insertText(editor, "/image");
     await animationFrame();
     await contains(".o-we-command").click();
-    await contains(".modal .modal-body .nav-item:nth-child(3) a").click();
+    await contains(".modal .modal-body .nav-item:nth-child(3) button").click();
     await contains(".modal .modal-body .fa-heart").click();
     expect(p).toHaveInnerHTML(`x<span class="fa fa-heart" contenteditable="false">\u200b</span>`);
 });
@@ -110,7 +110,7 @@ test("should preserve iframe in the toolbar's font size input", async () => {
         focusNode: p2.firstChild,
         focusOffset: 9,
     });
-    await waitFor(".o-we-toolbar");
+    await waitFor(".o-we-toolbar [name='font_size_selector'] iframe");
     // Get the font size selector input.
     let iframeEl = queryOne(".o-we-toolbar [name='font_size_selector'] iframe");
     let inputEl = iframeEl.contentWindow.document?.querySelector("input");
@@ -152,7 +152,7 @@ test("should apply default table classes on paste", async () => {
         anchorOffset: 0,
     });
     pasteHtml(editor, `<table><tr><td>1234</td></tr></table>`);
-    expect(editor.document.querySelector("table")).toHaveClass("table table-bordered");
+    expect(editor.document.querySelector("table")).toHaveClass("table table-bordered o_table");
 });
 
 test("Reset transform button should appear after transforming image", async () => {
@@ -188,6 +188,7 @@ test("Reset transform button should appear after transforming image", async () =
     });
     expect(img.style.transform).not.toEqual("");
     await expectElementCount("[data-action-id=resetTransformImage]", 1);
+    await animationFrame();
     await click("button.fa-undo");
     expect(img.style.transform).toEqual("");
 });
@@ -315,8 +316,8 @@ describe("font types", () => {
         expect(editor.editable.querySelector("p")).toHaveClass("small");
     });
 
-    test("Should not be able to change tag of `o_editable` element", async () => {
-        const { getEditor } = await setupHTMLBuilder(`<h1 class="o_editable">abcd</h1>`);
+    test("Should not be able to change tag of `o_savable` element", async () => {
+        const { getEditor } = await setupHTMLBuilder(`<h1 class="o_savable">abcd</h1>`);
         const editor = getEditor();
         const h1 = editor.editable.querySelector("h1");
         setSelection({ anchorNode: h1, anchorOffset: 0, focusOffset: 1 });

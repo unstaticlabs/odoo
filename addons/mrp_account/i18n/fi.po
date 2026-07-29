@@ -11,17 +11,17 @@
 # Svante Suominen <svante.suominen@web-veistamo.fi>, 2022
 # Martin Trigaux, 2023
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 20:50+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2026-06-24 16:20+0000\n"
+"Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "mrp_account/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -103,11 +103,6 @@ msgid "Account Move Line"
 msgstr "Tilikirjauksen rivi"
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr "Tilikirjauksen rivi, joka luodaan WIP-tilikirjauksen yhteydessä"
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Kustannuspaikka"
@@ -156,8 +151,8 @@ msgstr "Kategoria"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
-msgstr "Yritykset"
+msgid "Company"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.actions.server,name:mrp_account.action_compute_price_bom_product
@@ -226,11 +221,6 @@ msgid "Debit"
 msgstr "Debit"
 
 #. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "Hylkää"
-
-#. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_applicability__display_name
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_line__display_name
@@ -265,7 +255,7 @@ msgstr "Verkkotunnus"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_workcenter__expense_account_id
 msgid "Expense Account"
-msgstr "Kulutili"
+msgstr "Menotili"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_production__extra_cost
@@ -308,6 +298,11 @@ msgstr "Päiväkirjan kirjaus"
 #: model:ir.model,name:mrp_account.model_account_move_line
 msgid "Journal Item"
 msgstr "Kirjausrivi"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
@@ -410,7 +405,7 @@ msgstr "Tuoteryhmä"
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_product_product
 msgid "Product Variant"
-msgstr "Tuotevariantti"
+msgstr "Tuotevariaatio"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__production_ids
@@ -482,8 +477,8 @@ msgid ""
 "If not set, it is the expense account of the final product that will be used "
 "instead."
 msgstr ""
-"Kulu kirjataan, kun tuotantotilaus merkitään valmiiksi. Jos ei määritetty, "
-"sen sijaan käytetään lopputuotteen kulutiliä."
+"Kulu kirjataan, kun tuotantotilaus merkitään tehdyksi. Jos sitä ei ole "
+"määritetty, sen sijaan käytetään lopputuotteen menotiliä."
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_product_category__property_stock_account_production_cost_id
@@ -569,8 +564,8 @@ msgstr "KET-siirto"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
-msgstr "Ohjattu tuotannon käynnissä olevan työn tilikirjaustoiminto"
+msgid "Wizard to post Manufacturing WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -630,42 +625,3 @@ msgstr "[WC] %s"
 
 #~ msgid "2023-08-15"
 #~ msgstr "2023-08-15"
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take        place "
-#~ "for financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Analyyttinen tili, jolle tehdään kustannus- ja tulokirjaukset "
-#~ "valmistustilauksen taloushallintoa varten."
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take place for "
-#~ "financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Analyyttinen tili, jolle tehdään kustannus- ja tulokirjaukset "
-#~ "valmistustilauksen taloushallintoa varten."
-
-#~ msgid "Bill of Material"
-#~ msgstr "Osaluettelo"
-
-#~ msgid ""
-#~ "Posts analytical accounting entries in real time for both component and "
-#~ "operational costs."
-#~ msgstr ""
-#~ "Kirjoittaa analyyttiset kirjanpitomerkinnät reaaliaikaisesti sekä "
-#~ "komponentti- että toimintakustannusten osalta."
-
-#~ msgid "Production Order"
-#~ msgstr "Valmistustilaus"
-
-#~ msgid "Stock Rule"
-#~ msgstr "Varaston sääntö"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "Työpisteen käyttäminen"
-
-#~ msgid "Workcenters"
-#~ msgstr "Työpisteet"
-
-#~ msgid "[Raw] %s"
-#~ msgstr "[Raw] %s"

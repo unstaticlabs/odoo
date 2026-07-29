@@ -16,7 +16,12 @@ import { MAIN_EMBEDDINGS } from "@html_editor/others/embedded_components/embeddi
 import { closestElement } from "@html_editor/utils/dom_traversal";
 import { setupEditor, testEditor } from "./_helpers/editor";
 import { unformat } from "./_helpers/format";
-import { deleteBackward, deleteForward, insertText } from "./_helpers/user_actions";
+import {
+    deleteBackward,
+    deleteForward,
+    ensureDistinctHistoryStep,
+    insertText,
+} from "./_helpers/user_actions";
 import { cleanHints } from "./_helpers/dispatch";
 import { getContent, setSelection } from "./_helpers/selection";
 import { expectElementCount } from "./_helpers/ui_expectations";
@@ -368,6 +373,7 @@ test("undo in a caption undoes the last caption action then returns to regular e
         contentBefore: `<p><img class="img-fluid test-image o_editable_media" src="${base64Img}" data-caption="${caption}"></p><h1>[]Heading</h1>`,
         stepFunction: async (editor) => {
             await insertText(editor, "a");
+            await ensureDistinctHistoryStep();
             const heading = queryOne("h1");
             expect(heading.textContent).toBe("aHeading");
             await toggleCaption();
@@ -378,6 +384,7 @@ test("undo in a caption undoes the last caption action then returns to regular e
             await editor.document.execCommand("insertText", false, "b");
             await editor.document.execCommand("insertText", false, "c");
             await editor.document.execCommand("insertText", false, "d");
+            await ensureDistinctHistoryStep();
             await editor.document.execCommand("delete", false, null); // Backspace.
             expect(input.value).toBe(`${caption}bc`);
 
@@ -620,7 +627,7 @@ test("remove caption when replacing an image with other media", async () => {
     await waitFor(".o-we-toolbar button[name='replace_image']");
     await click("button[name='replace_image']");
     await waitFor(".o_select_media_dialog");
-    await click(".modal .modal-body .nav-item:nth-child(3) a"); // Icons
+    await click(".modal .modal-body .nav-item:nth-child(3) button"); // Icons
     await waitFor(".modal .modal-body .fa-heart");
     await click(".modal .modal-body .fa-heart");
     expect("img[src='/web/static/img/logo.png']").toHaveCount(0);
@@ -1041,8 +1048,8 @@ test("should drag and drop image with its caption(1)", async () => {
             <p>a</p>
             <p>b</p>
             <figure contenteditable="false">
-                <img data-caption="${caption}" data-caption-id="${captionId}" src="${base64Img}" class="img-fluid test-image o_editable_media">
-                <figcaption placeholder="${caption}" data-embedded-props='{"id":"${captionId}","focusInput":false}' class="mt-2" contenteditable="false" data-oe-protected="true" data-embedded="caption">
+                <img class="img-fluid test-image o_editable_media" src="${base64Img}" data-caption-id="${captionId}" data-caption="${caption}">
+                <figcaption ${getFigcaptionAttributes(captionId, caption)}>
                     <input ${CAPTION_INPUT_ATTRIBUTES}>
                 </figcaption>
             </figure>
@@ -1094,8 +1101,8 @@ test("should drag and drop image with its caption(2)", async () => {
             <p>a</p>
             <p>b</p>
             <figure contenteditable="false">
-                <img data-caption="${caption}" data-caption-id="${captionId}" src="${base64Img}" class="img-fluid test-image o_editable_media">
-                <figcaption placeholder="${caption}" data-embedded-props='{"id":"${captionId}","focusInput":false}' class="mt-2" contenteditable="false" data-oe-protected="true" data-embedded="caption">
+                <img class="img-fluid test-image o_editable_media" src="${base64Img}" data-caption-id="${captionId}" data-caption="${caption}">
+                <figcaption ${getFigcaptionAttributes(captionId, caption)}>
                     <input ${CAPTION_INPUT_ATTRIBUTES}>
                 </figcaption>
             </figure>
@@ -1144,8 +1151,8 @@ test("should drag and drop image with caption along with selected text", async (
             <p><br></p>
             <p>ca</p>
             <figure contenteditable="false">
-                <img data-caption="${caption}" data-caption-id="${captionId}" src="${base64Img}" class="img-fluid test-image o_editable_media">
-                <figcaption placeholder="${caption}" data-embedded-props='{"id":"${captionId}","focusInput":false}' class="mt-2" contenteditable="false" data-oe-protected="true" data-embedded="caption">
+                <img class="img-fluid test-image o_editable_media" src="${base64Img}" data-caption-id="${captionId}" data-caption="${caption}">
+                <figcaption ${getFigcaptionAttributes(captionId, caption)}>
                     <input ${CAPTION_INPUT_ATTRIBUTES}>
                 </figcaption>
             </figure>

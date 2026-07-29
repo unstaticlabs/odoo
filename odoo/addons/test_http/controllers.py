@@ -8,7 +8,9 @@ from psycopg2.errors import SerializationFailure
 
 from odoo import http
 from odoo.exceptions import AccessError, ConcurrencyError, UserError
-from odoo.http import fragment_to_query_string, request
+from odoo.http import request
+from odoo.http.requestlib import fragment_to_query_string
+from odoo.http.session import touch
 from odoo.tools import replace_exceptions, str2bool
 
 from odoo.addons.web.controllers.utils import ensure_db
@@ -62,18 +64,23 @@ class TestHttp(http.Controller):
     def wsgi_environ(self):
         environ = {
             key: val for key, val in request.httprequest.environ.items()
-            if (key.startswith('HTTP_')  # headers
-             or key.startswith('REMOTE_')
-             or key.startswith('REQUEST_')
-             or key.startswith('SERVER_')
-             or key.startswith('werkzeug.proxy_fix.')
-             or key in WSGI_SAFE_KEYS)
+            if (key.startswith(('HTTP_', 'REMOTE_', 'REQUEST_', 'SERVER_', 'werkzeug.proxy_fix.')) or key in WSGI_SAFE_KEYS)
         }
 
         return request.make_response(
             json.dumps(environ, indent=4),
             headers=list(CT_JSON.items())
         )
+
+    @http.route('/test_http/raise-exception', type='http', auth='public')
+    def raise_exception(self):
+        raise Exception('Exception in logic')  # noqa: TRY002, EM101
+
+    @http.route('/test_http/trigger-retrying', type='http', auth='public')
+    def trigger_retrying(self):
+        sf = SerializationFailure()
+        sf.__setstate__({'pgcode': SERIALIZATION_FAILURE})
+        raise sf
 
     # =====================================================
     # Echo-Reply
@@ -152,9 +159,17 @@ class TestHttp(http.Controller):
     def cors_http_verbs(self, **kwargs):
         return "Hello"
 
+    @http.route('/test_http/cors_http_auth', type="http", auth="thing", methods=('GET', 'OPTIONS'), cors="*")
+    def cors_http_auth(self):
+        raise "Hello"
+
     @http.route('/test_http/cors_json', type='jsonrpc', auth='none', cors='*')
     def cors_json(self, **kwargs):
         return {}
+
+    @http.route('/test_http/cors_json_auth', type="jsonrpc", auth="thing", cors="*")
+    def cors_json_auth(self):
+        raise {}
 
     # =====================================================
     # Dual nodb/db
@@ -182,7 +197,12 @@ class TestHttp(http.Controller):
 
     @http.route('/test_http/save_session', type='http', auth='none')
     def touch(self):
-        request.session.touch()
+        touch(request.session)
+        return ''
+
+    @http.route('/test_http/no_save_session', type='http', auth='none', save_session=False)
+    def no_touch(self):
+        touch(request.session)
         return ''
 
     # =====================================================
@@ -218,7 +238,7 @@ class TestHttp(http.Controller):
 
     @http.route("/test_http/upload_file", methods=["POST"], type="http", auth="none", csrf=False)
     def upload_file_retry(self, ufile):
-        global should_fail  # pylint: disable=W0603
+        global should_fail  # pylint: disable=W0603  # noqa: PLW0603
         if should_fail is None:
             raise ValueError("should_fail should be set.")
 
@@ -259,9 +279,9 @@ class TestHttp(http.Controller):
     # =====================================================
     # fragment to query string
     # =====================================================
-    @http.route('/test_http/f2qs')
+    @http.route('/test_http/f2qs/testing-api')
     @fragment_to_query_string
-    def f2qs(self, **kwargs):
+    def f2qs_testing_api(self, **kwargs):
         return request.make_json_response(kwargs)
 
     @http.route('/test_http/f2qs/step1/no-operation-to-perform', type='http', auth='none')

@@ -24,18 +24,15 @@ declare module "models" {
         onLinkFollowed: (fromThread: Thread) => void;
         onUpdateActivityGroups: () => void;
         scheduleActivity: (resModel: string, resIds: number[], defaultActivityTypeId: number|undefined) => Promise<void>;
-        starred: Thread;
-        unstarAll: () => Promise<void>;
+        bookmarkBox: Thread;
+        removeAllBookmarks: () => Promise<void>;
         updateAppBadge: () => void;
     }
     export interface Thread {
-        activities: Activity[];
         follow: () => Promise<void>;
-        isDisplayedInDiscussAppDesktop: boolean;
         loadMoreFollowers: () => Promise<void>;
         loadMoreRecipients: () => Promise<void>;
-        recipients: Follower[];
-        recipientsCount: number|undefined;
+        openRecordActionRequest: Readonly<object>;
         recipientsFullyLoaded: Readonly<boolean>;
     }
 }

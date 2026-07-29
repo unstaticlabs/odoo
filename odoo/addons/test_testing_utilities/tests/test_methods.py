@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import itertools
 from unittest import mock, TestCase
@@ -7,13 +6,15 @@ import psycopg2
 
 from odoo.exceptions import AccessError
 from odoo.sql_db import BaseCursor
-from odoo.tests import common
+from odoo.tests import tagged, common
 from odoo.tools import mute_logger
 
 
 class CustomError(Exception):
     ...
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestBasic(common.TransactionCase):
     def test_assertRecordValues(self):
         X1 = {'f1': "X", 'f2': 1}
@@ -120,6 +121,13 @@ First differing element 0:
         self.env.cr.execute("SHOW test_testing_utilities.a_flag")
         self.assertEqual(self.env.cr.fetchone(), ('',))
 
+        with self.assertRaisesRegex(CustomError, 'Blabla'):
+            self.env.cr.execute("SET LOCAL test_testing_utilities.a_flag = 'yes'")
+            raise CustomError('Blabla')
+
+        self.env.cr.execute("SHOW test_testing_utilities.a_flag")
+        self.assertEqual(self.env.cr.fetchone(), ('',))
+
     def test_assertRaises_error_at_setup(self):
         """Checks that an exception raised during the *setup* of assertRaises
         bubbles up correctly.
@@ -161,11 +169,66 @@ First differing element 0:
             if next(call_count) == 0:
                 self.env.cr.execute('select nonsense')
 
-        with mock.patch.object(BaseCursor, 'clear', side_effect=clear),\
-             TestCase.assertRaises(self, psycopg2.Error):
+        from odoo.orm.environments import Transaction  # noqa: PLC0415
+        with (
+            mock.patch.object(Transaction, 'clear', side_effect=clear),
+            TestCase.assertRaises(self, psycopg2.Error),
+        ):
             with self.assertRaises(AccessError):
                 raise NotImplementedError
 
         # check that the transaction has been rolled back and we can perform
         # queries again
         self.env.cr.execute('select 1')
+
+    def test_assertQueries(self):
+        query = 'select f1 from "test_testing_utilities_a" where id=%s  order by id'
+        params = [42]
+
+        with self.assertQueries(["""
+            SELECT f1
+            FROM "test_testing_utilities_a"
+            WHERE id = %s
+            ORDER BY id
+        """, """
+            SELECT ... FROM "test_testing_utilities_a" WHERE ... ORDER BY id
+        """]):
+            self.env.cr.execute(query, params)
+            self.env.cr.execute(query, params)
+
+        # less queries than expected
+        expected = 'SELECT f1 FROM "test_testing_utilities_a" WHERE id = %s ORDER BY id'
+        msg = (
+            f"Not the expected queries : \n"
+            f"=== {query}\n"
+            f"--- {expected}"
+        )
+        with self.assertRaisesRegex(AssertionError, msg):
+            with self.assertQueries([expected, expected]):
+                self.env.cr.execute(query, params)
+
+        # more queries than expected
+        msg = (
+            f"Not the expected queries : \n"
+            f"=== {query}\n"
+            fr"\+\+\+ {query}"
+        )
+        with self.assertRaisesRegex(AssertionError, msg):
+            with self.assertQueries([expected]):
+                self.env.cr.execute(query, params)
+                self.env.cr.execute(query, params)
+
+        # non-matching queries
+        msg = (
+            f"Not the expected queries : \n"
+            f"=== {query}\n"
+            f'--- SELECT ... FROM "test_testing_utilities_a" ORDER BY id\n'
+            fr"\+\+\+ {query}"
+        )
+        with self.assertRaisesRegex(AssertionError, msg):
+            with self.assertQueries([
+                'SELECT ... FROM "test_testing_utilities_a" WHERE id = %s ORDER BY id',
+                'SELECT ... FROM "test_testing_utilities_a" ORDER BY id',
+            ]):
+                self.env.cr.execute(query, params)
+                self.env.cr.execute(query, params)

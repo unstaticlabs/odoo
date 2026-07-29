@@ -81,12 +81,12 @@
                 </t>
             </div>
             <!-- 'Search Box' -->
-            <t t-call="website.website_search_box_input">
-                <t t-set="_form_classes" t-valuef="#{not len(blogs) &gt; 1 and 'ms-auto'} flex-grow-1 flex-lg-grow-0"/>
-                <t t-set="search_type" t-valuef="blogs"/>
-                <t t-set="action" t-value="blog_url(tag=tag,search=search)"/>
-                <t t-set="display_description" t-valuef="true"/>
-                <t t-set="display_detail" t-valuef="false"/>
+            <t t-call="website.website_search_box_input"
+                _form_classes.f="#{not len(blogs) &gt; 1 and 'ms-auto'} flex-grow-1 flex-lg-grow-0"
+                search_type.f="blogs"
+                action="blog_url(tag=tag,search=search)"
+                display_description.f="true"
+                display_detail.f="false">
                 <input type="hidden" name="tag" t-att-value="tag"/>
                 <input type="hidden" name="date_begin" t-att-value="date_begin"/>
                 <input type="hidden" name="date_end" t-att-value="date_end"/>
@@ -105,7 +105,7 @@
                 <span t-if="dismissibleBtn and tag.id in active_tag_ids" t-attf-class="align-items-baseline d-inline-flex ps-2 rounded mb-2 o_filter_tag #{'o_color_%s' % tag.color}">
                     <i class="fa fa-tag me-2"/>
                     <t t-out="tag.name"/>
-                    <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, tag.id))}" class="btn border-0 py-1 post_link text-reset" t-att-rel="len(active_tag_ids) and 'nofollow'">&#215;</a>
+                    <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, tag.id))}" class="btn border-0 py-1 post_link text-reset" t-att-rel="len(active_tag_ids) and 'nofollow'">×</a>
                 </span>
                 <a t-elif="showInactive" t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, tag.id))}" t-attf-class="badge mb-2 mw-100 text-truncate text-decoration-none o_tag o_color_#{tag.color} post_link" t-att-rel="len(active_tag_ids) and 'nofollow'" t-out="tag.name"/>
             </t>
@@ -116,16 +116,16 @@
 <!-- ======   Template: Date Selector   ========================================
 ============================================================================ -->
 <template id="date_selector">
-    <!-- TODO: remove oninput in master -->
-    <select name="archive" oninput="location = this.value;" class="form-select">
-        <!-- TODO: remove in master -->
-        <option t-if="False" t-att-value="blog_url(date_begin=False, date_end=False) if blog else '/blog'"
-                t-att="[('selected' if (not date_begin) else 'unselected' ) , 'true' ]">
-                -- All dates
-        </option>
+    <select name="archive" class="form-select post_link">
         <option t-att-value="blog_url(date_begin=False, date_end=False, tag=tag)"
                 t-att="[('selected' if (not date_begin) else 'unselected' ) , 'true' ]">
                 All dates
+        </option>
+        <option t-att-value="blog_url(state='unpublished')" groups="website.group_website_designer">
+            -- Unpublished
+        </option>
+        <option t-att-value="blog_url(state='scheduled')" groups="website.group_website_designer">
+            -- Scheduled
         </option>
 
         <optgroup t-foreach="nav_list" t-as="year" t-attf-label="#{year}">
@@ -142,15 +142,19 @@
 <!-- ======   Template: Post Author   ==========================================
 ============================================================================ -->
 <template id="post_author">
-    <div t-attf-class="o_not_editable align-items-center position-relative #{additionnal_classes or ''}">
+    <div t-attf-class="align-items-center position-relative #{additionnal_classes or ''}">
         <div t-if="blog_post.author_avatar"
              t-field="blog_post.author_avatar"
              style="line-height:1"
-             t-options='{"widget": "image", "class": "rounded-circle " + "o_wblog_author_avatar me-1" if hide_date else  "o_wblog_author_avatar_date me-2"}' />
+             class="o_not_editable"
+             t-options='{"widget": "image", "alt": "", "class": "rounded-circle " + "o_wblog_author_avatar me-1" if hide_date else  "o_wblog_author_avatar_date me-2"}' />
         <div t-att-class="not hide_date and 'small fw-bold'" style="line-height:1">
             <span t-if="editable" t-field="blog_post.author_id" t-options='{ "widget": "contact", "fields": ["name"]}'/>
-            <span t-else="" t-out="blog_post.author_name"/>
-            <small t-if="not hide_date" t-field="blog_post.post_date" t-options="{'format': 'long', 'date_only': 'true'}"/>
+            <span t-else="" class="o_not_editable" t-out="blog_post.author_name"/>
+            <t t-if="not hide_date">
+                <small t-if="blog_post.published_date" t-field="blog_post.published_date" t-options="{'format': 'long', 'date_only': 'true'}"/>
+                <small t-elif="blog_post.publish_on" t-field="blog_post.publish_on" t-options="{'format': 'long', 'date_only': 'true'}"/>
+            </t>
         </div>
     </div>
 </template>
@@ -173,12 +177,12 @@
 <template id="blog_post_info" name="Blog Post Info">
     <div id="o_wblog_post_info" class="text-muted mb-2">
         <i class="fa fa-clock-o fa-fw"/>
-        <span t-field="blog_post.post_date" class="text-muted" t-options="{'format': 'long', 'date_only': 'true'}"/>
+        <span t-if="blog_post.published_date" t-field="blog_post.published_date" class="text-muted" t-options="{'format': 'long', 'date_only': 'true'}"/>
+        <span t-elif="blog_post.publish_on" t-field="blog_post.publish_on" class="text-muted" t-options="{'format': 'long', 'date_only': 'true'}"/>
         <span style="display: inline-flex">by
-            <t t-call="website_blog.post_author">
-                <t t-set="additionnal_classes" t-value="'d-inline-flex me-2 ms-2'"/>
-                <t t-set="hide_date" t-value="True"/>
-            </t>
+            <t t-call="website_blog.post_author"
+                additionnal_classes.f="d-inline-flex me-2 ms-2"
+                hide_date="True"/>
         </span>
         <t t-if="is_view_active('website_blog.opt_blog_post_comment')">
             <span t-if="blog_post.message_ids" class="text-nowrap o_not_editable">|
@@ -225,11 +229,10 @@ Options:
             </div>
             <t t-snippet-call="website.s_social_media"/>
 
-            <t t-call="website_mail.follow" t-if="blog">
-                <t t-set="email" t-value="user_id.email"/>
-                <t t-set="object" t-value="blog"/>
-                <t t-set="div_class" t-value="'pt-2'"/>
-            </t>
+            <t t-call="website_mail.follow" t-if="blog"
+                email="user_id.email"
+                object="blog"
+                div_class.f="pt-2"/>
         </div>
         <div class="oe_structure" id="oe_structure_blog_sidebar_index_3"/>
     </xpath>
@@ -258,22 +261,20 @@ Options:
             </div>
             <div class="h5">
                 <t t-foreach="tag_category" t-as="nav_tag_category">
-                    <t t-call="website_blog.tags_list">
-                        <t t-set='categ_title' t-value="nav_tag_category.name"/>
-                        <t t-set='tags' t-value='nav_tag_category.tag_ids' />
-                        <t t-set="showInactive" t-value="True"/>
-                    </t>
+                    <t t-call="website_blog.tags_list"
+                        categ_title="nav_tag_category.name"
+                        tags="nav_tag_category.tag_ids"
+                        showInactive="True"/>
                 </t>
-                <t t-call="website_blog.tags_list">
-                    <t t-set='hide_title' t-value='not len(tag_category)' />
-                    <t t-set='categ_title'>Others</t>
-                    <t t-set='tags' t-value='other_tags'/>
-                    <t t-set="showInactive" t-value="True"/>
-                </t>
+                <t t-call="website_blog.tags_list"
+                    hide_title="not len(tag_category)"
+                    categ_title.translate="Others"
+                    tags="other_tags"
+                    showInactive="True"/>
             </div>
         </div>
 
-        <div t-else="" groups="website.group_website_designer" class="o_wblog_sidebar_block pb-5">
+        <div t-else="" groups="website_blog.group_website_blog_manager" class="o_wblog_sidebar_block pb-5">
             <h6 class="text-uppercase pb-2 mb-4 border-bottom fw-bold">Tags</h6>
             <em t-ignore="True" class="text-muted">No tags defined yet.</em>
         </div>
@@ -296,9 +297,7 @@ Display a sidebar beside the post content.
 <template id="opt_blog_post_author_avatar_display" name="Author" inherit_id="website_blog.blog_post_sidebar" active="True" priority="1">
     <xpath expr="//div[@id='o_wblog_post_sidebar']" position="inside">
         <div class="o_wblog_sidebar_block pb-5">
-            <t t-call="website_blog.post_author">
-                <t t-set="additionnal_classes" t-value="'h5 d-flex align-items-center'"/>
-            </t>
+            <t t-call="website_blog.post_author" additionnal_classes.f="h5 d-flex align-items-center"/>
         </div>
         <div class="oe_structure" id="oe_structure_blog_post_sidebar_2"/>
     </xpath>
@@ -312,12 +311,7 @@ Display a sidebar beside the post content.
                 <h6 class="text-uppercase pb-3 mb-4 border-bottom fw-bold">Share this post</h6>
             </div>
 
-            <div class="o_wblog_social_links d-flex flex-wrap mx-n1 o_not_editable">
-                <t t-set="classes" t-translation="off">bg-100 border mx-1 mb-2 rounded-circle d-flex align-items-center justify-content-center text-decoration-none</t>
-                <a href="#" aria-label="Facebook" title="Share on Facebook" t-attf-class="o_facebook #{classes}"><i class="fa fa-facebook-square text-facebook"/></a>
-                <a href="#" aria-label="Twitter" title="Share on X" t-attf-class="o_twitter #{classes}"><i class="fa fa-twitter text-twitter" aria-label="X" title="X"/></a>
-                <a href="#" aria-label="LinkedIn" title="Share on LinkedIn" t-attf-class="o_linkedin #{classes}"><i class="fa fa-linkedin text-linkedin" aria-label="LinkedIn" title="LinkedIn"/></a>
-            </div>
+            <t t-snippet-call="website.s_share"/>
         </div>
 
         <div class="oe_structure" id="oe_structure_blog_post_sidebar_3"/>
@@ -339,7 +333,7 @@ Display a sidebar beside the post content.
                 </div>
             </t>
             <t t-else="">
-                <div class="mb-4 bg-100 py-2 px-3 border" groups="website.group_website_designer">
+                <div class="mb-4 bg-100 py-2 px-3 border" groups="website_blog.group_website_blog_manager">
                     <h6 class="text-muted o_not_editable"><em>No tags defined</em></h6>
                     <a role="menuitem" t-attf-href="/odoo/website/{{main_object._name}}/{{main_object.id}}"
                         title='Edit in backend' id="edit-in-backend" class="css_editable_mode_hidden">Add some</a>

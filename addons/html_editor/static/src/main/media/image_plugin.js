@@ -214,6 +214,13 @@ export class ImagePlugin extends Plugin {
         selectionchange_handlers: withSequence(READ, this.updateImageParams.bind(this)),
         post_undo_handlers: this.updateImageParams.bind(this),
         post_redo_handlers: this.updateImageParams.bind(this),
+        on_media_dialog_saved_handlers: async (elements) => {
+            for (const element of elements) {
+                if (element && element.tagName === "IMG") {
+                    this.resetImageTransformation(element, { addStep: false });
+                }
+            }
+        },
 
         /** Providers */
         paste_media_url_command_providers: this.getCommandForImageUrlPaste.bind(this),
@@ -380,7 +387,7 @@ export class ImagePlugin extends Plugin {
         this.dependencies.history.addStep();
     }
 
-    resetImageTransformation(image) {
+    resetImageTransformation(image, { addStep = true } = {}) {
         const stylePropertiesToRemove = [
             "transform",
             "transform-box",
@@ -392,7 +399,9 @@ export class ImagePlugin extends Plugin {
         for (const styleProperty of stylePropertiesToRemove) {
             image.style.removeProperty(styleProperty);
         }
-        this.dependencies.history.addStep();
+        if (addStep) {
+            this.dependencies.history.addStep();
+        }
     }
 
     getImageTransformProps() {

@@ -6,24 +6,24 @@
 # JH CHOI <hwangtog@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Sarah Park, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 10:32+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-01-24 12:41+0000\n"
+"Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-1/"
 "website_forum/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -65,8 +65,8 @@ msgstr "# 조회수"
 msgid ""
 "%(link_start)sRead the guidelines to know how to gain karma.%(link_end)s"
 msgstr ""
-"%(link_start)s 카르마를 받는 방법을 알아보려면 가이드를 확인해 보세요: %"
-"(link_end)s"
+"%(link_start)s 카르마를 받는 방법을 알아보려면 가이드를 확인해 보세요: "
+"%(link_end)s"
 
 #. module: website_forum
 #. odoo-javascript
@@ -295,8 +295,8 @@ msgid ""
 "<b>Answers should not comment other answers</b>. Instead add a comment on "
 "the other answers."
 msgstr ""
-"<b>답변은 다른 답변을 언급해서는 안됩니다</b>. 대신 다른 답변에 의견을 "
-"추가하십시오."
+"<b>답변은 다른 답변을 언급해서는 안됩니다</b>. 대신 다른 답변에 의견을 추가하"
+"십시오."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -308,8 +308,8 @@ msgid ""
 "use commenting facility."
 msgstr ""
 "<b>답변은 토론을 시작해서는 안됩니다.</b> 이 커뮤니티 Q&amp;A는 토론 그룹이 "
-"아닙니다. 질문과 답변의 본질을 희석시키는 경향이 있으므로 답변에 토론을 "
-"포함시키지 마십시오. 간단한 토론을 하려면 주석 기능을 사용하십시오."
+"아닙니다. 질문과 답변의 본질을 희석시키는 경향이 있으므로 답변에 토론을 포함"
+"시키지 마십시오. 간단한 토론을 하려면 주석 기능을 사용하십시오."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -320,9 +320,9 @@ msgid ""
 "to include links to other questions or answers providing relevant additional "
 "information."
 msgstr ""
-"<b>답변이 다른 질문을 지목해서는 안됩니다</b>. 대신 \"가능한 복제 가능 "
-"항목...\"이라는 질문 주석 표시를 추가하십시오. 그러나 관련 추가 정보를 "
-"제공하는 다른 질문이나 답변에 대한 링크를 포함해도 됩니다."
+"<b>답변이 다른 질문을 지목해서는 안됩니다</b>. 대신 \"가능한 복제 가능 항"
+"목...\"이라는 질문 주석 표시를 추가하십시오. 그러나 관련 추가 정보를 제공하"
+"는 다른 질문이나 답변에 대한 링크를 포함해도 됩니다."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -333,9 +333,9 @@ msgid ""
 "include links to other questions or answers providing relevant additional "
 "information."
 msgstr ""
-"<b>답변은 다른 질문을 지목해서는 안됩니다</b>. 대신 <i>\"가능한 복제 가능 "
-"항목...\"</i>이라는 질문 주석 표시를 추가하십시오. 그러나 관련 추가 정보를 "
-"제공하는 다른 질문이나 답변에 대한 링크를 포함해도됩니다."
+"<b>답변은 다른 질문을 지목해서는 안됩니다</b>. 대신 <i>\"가능한 복제 가능 항"
+"목...\"</i>이라는 질문 주석 표시를 추가하십시오. 그러나 관련 추가 정보를 제공"
+"하는 다른 질문이나 답변에 대한 링크를 포함해도됩니다."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -346,9 +346,9 @@ msgid ""
 "Links are welcome, but should be complementary to answer, referring sources "
 "or additional reading."
 msgstr ""
-"<b>답변은 단지 솔루션 링크를 제공해서는 안됩니다</b>. 대신 복사/붙여넣기인 "
-"경우에도 답에 솔루션 설명 텍스트를 제공하십시오. 링크는 환영하지만 답변, "
-"추천 소스 또는 추가 자료를 보완하려면 보완 적이어야합니다."
+"<b>답변은 단지 솔루션 링크를 제공해서는 안됩니다</b>. 대신 복사/붙여넣기인 경"
+"우에도 답에 솔루션 설명 텍스트를 제공하십시오. 링크는 환영하지만 답변, 추천 "
+"소스 또는 추가 자료를 보완하려면 보완 적이어야합니다."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -358,8 +358,8 @@ msgid ""
 "You can search questions by their title or tags. It’s also OK to answer your "
 "own question."
 msgstr ""
-"<b>문의하기 전에 유사한 질문을 검색하십시오.</b> 제목이나 태그별로 질문을 "
-"검색할 수 있습니다. 자신의 질문에 대답해도 됩니다."
+"<b>문의하기 전에 유사한 질문을 검색하십시오.</b> 제목이나 태그별로 질문을 검"
+"색할 수 있습니다. 자신의 질문에 대답해도 됩니다."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -382,12 +382,12 @@ msgid ""
 "<b>don't forget to vote</b>\n"
 "            - it really helps to select the best questions and answers!"
 msgstr ""
-"<b>실질적인 답변을 하도록 노력하세요.</b> 질문이나 답변에 대해 댓글을 달려면 "
-"\n"
-"              <b>댓글 도구</b>를 사용합니다. 항상 <b>답변을 수정</b>할 수 "
-"있다는 것을 기억하세요.\n"
-"               - 같은 질문에 두 번 대답할 필요가 없습니다. 그리고 <b>꼭 "
-"투표</b>해주세요.\n"
+"<b>실질적인 답변을 하도록 노력하세요.</b> 질문이나 답변에 대해 댓글을 달려"
+"면 \n"
+"              <b>댓글 도구</b>를 사용합니다. 항상 <b>답변을 수정</b>할 수 있"
+"다는 것을 기억하세요.\n"
+"               - 같은 질문에 두 번 대답할 필요가 없습니다. 그리고 <b>꼭 투표"
+"</b>해주세요.\n"
 "              - 최고의 질문과 답변을 선택하는 데 정말 도움이 됩니다!"
 
 #. module: website_forum
@@ -466,7 +466,8 @@ msgstr ""
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.no_results_message
 msgid "<i class=\"fa fa-check fa-fw me-1\"/>Check your spelling and try again."
-msgstr "<i class=\"fa fa-check fa-fw me-1\"/>철자를 확인하고 다시 시도해 주세요."
+msgstr ""
+"<i class=\"fa fa-check fa-fw me-1\"/>철자를 확인하고 다시 시도해 주세요."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.no_results_message
@@ -490,8 +491,8 @@ msgstr "<i class=\"fa fa-check\"/> 수락"
 msgid ""
 "<i class=\"fa fa-check\"/> How to configure TPS and TVQ's canadian taxes?"
 msgstr ""
-"<i class=\"fa fa-check\"/> TPS 및 TVQ의 캐나다 세금을 구성하는 방법은 "
-"무엇입니까?"
+"<i class=\"fa fa-check\"/> TPS 및 TVQ의 캐나다 세금을 구성하는 방법은 무엇입"
+"니까?"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.moderation_queue
@@ -580,8 +581,8 @@ msgid ""
 "<i class=\"fa fa-thumbs-down text-danger ms-3\" role=\"img\" aria-"
 "label=\"Negative votes\" title=\"Negative votes\"/>"
 msgstr ""
-"<i class=\"fa fa-thumbs-down text-danger ms-3\" role=\"img\" aria-"
-"label=\"부정적 투표\" title=\"부정적 투표\"/>"
+"<i class=\"fa fa-thumbs-down text-danger ms-3\" role=\"img\" aria-label=\"부"
+"정적 투표\" title=\"부정적 투표\"/>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.user_profile_content
@@ -674,8 +675,8 @@ msgid ""
 "<span class=\"fa fa-trophy o-text-bronze ms-2\" role=\"img\" aria-"
 "label=\"Bronze badge\" title=\"Bronze badge\"/>"
 msgstr ""
-"<span class=\"fa fa-trophy o-text-bronze ms-2\" role=\"img\" aria-"
-"label=\"동배지\" title=\"동배지\"/>"
+"<span class=\"fa fa-trophy o-text-bronze ms-2\" role=\"img\" aria-label=\"동"
+"배지\" title=\"동배지\"/>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.contact
@@ -683,8 +684,8 @@ msgid ""
 "<span class=\"fa fa-trophy o-text-silver ms-2\" role=\"img\" aria-"
 "label=\"Silver badge\" title=\"Silver badge\"/>"
 msgstr ""
-"<span class=\"fa fa-trophy o-text-silver ms-2\" role=\"img\" aria-"
-"label=\"은배지\" title=\"은배지\"/>"
+"<span class=\"fa fa-trophy o-text-silver ms-2\" role=\"img\" aria-label=\"은"
+"배지\" title=\"은배지\"/>"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -697,13 +698,15 @@ msgstr "<span class=\"flex-grow-1\">여기에서 어떤 질문을 할 수 있나
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "<span class=\"flex-grow-1\">What should I avoid in my answers?</span>"
-msgstr "<span class=\"flex-grow-1\">답변에서 피해야 할 사항은 무엇인가요?</span>"
+msgstr ""
+"<span class=\"flex-grow-1\">답변에서 피해야 할 사항은 무엇인가요?</span>"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "<span class=\"flex-grow-1\">What should I avoid in my questions?</span>"
-msgstr "<span class=\"flex-grow-1\">질문에서 피해야 할 사항은 무엇인가요?</span>"
+msgstr ""
+"<span class=\"flex-grow-1\">질문에서 피해야 할 사항은 무엇인가요?</span>"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -742,8 +745,8 @@ msgid ""
 "<span class=\"form-text small text-muted d-block\">use '/' to insert images."
 "</span>"
 msgstr ""
-"<span class=\"form-text small text-muted d-block\">'/'를 사용하여 이미지를 "
-"삽입합니다.</span>"
+"<span class=\"form-text small text-muted d-block\">'/'를 사용하여 이미지를 삽"
+"입합니다.</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.edit_post
@@ -797,8 +800,8 @@ msgid ""
 "<span>Please wait for a moderator to validate your previous post to be "
 "allowed to reply to questions.</span>"
 msgstr ""
-"<span>운영자가 이전 게시물을 승인할 때까지 기다려야 질문에 답변할 수 "
-"있습니다.</span>"
+"<span>운영자가 이전 게시물을 승인할 때까지 기다려야 질문에 답변할 수 있습니"
+"다.</span>"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.user_sidebar_header
@@ -1481,7 +1484,8 @@ msgstr "새 태그 만들기"
 msgid ""
 "Create an account today to enjoy exclusive features and engage with our "
 "awesome community!"
-msgstr "지금 바로 가입하여 독점 서비스를 이용해보고 특별한 커뮤니티와 소통하세요!"
+msgstr ""
+"지금 바로 가입하여 독점 서비스를 이용해보고 특별한 커뮤니티와 소통하세요!"
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__karma_tag_create
@@ -1835,8 +1839,8 @@ msgid ""
 "Field to keep track of a post's last activity. Updated whenever it is "
 "replied to, or when a comment is added on the post or one of its replies."
 msgstr ""
-"필드를 사용하여 게시물의 마지막 활동을 추적합니다. 댓글이 달리거나 추가 "
-"댓글이 달릴 때마다 업데이트됩니다."
+"필드를 사용하여 게시물의 마지막 활동을 추적합니다. 댓글이 달리거나 추가 댓글"
+"이 달릴 때마다 업데이트됩니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.moderation_queue
@@ -1926,12 +1930,12 @@ msgid ""
 "accumulated for a question or answer per day. The table given at the end "
 "explains reputation point requirements for each type of moderation task."
 msgstr ""
-"예를 들어, 흥미로운 질문이나 유용한 답변을 제공하면 해당 의견은 찬성투표를 "
-"받게 됩니다. 반면 답변에 오해의 소지가 있는 경우, 해당 답변은 반대투표를 "
-"받게 됩니다. 찬성투표를 받을 때마다 10점을 획득하게 되며, 반대투표를 받을 "
-"때마다 2점이 차감됩니다. 각각의 질문 또는 답변에 대해 누적되는 포인트는 하루 "
-"총 200점으로 제한되어 있습니다. 마지막에 제시된 표에서 각 유형에 대한 점수 "
-"요건을 확인할 수 있습니다."
+"예를 들어, 흥미로운 질문이나 유용한 답변을 제공하면 해당 의견은 찬성투표를 받"
+"게 됩니다. 반면 답변에 오해의 소지가 있는 경우, 해당 답변은 반대투표를 받게 "
+"됩니다. 찬성투표를 받을 때마다 10점을 획득하게 되며, 반대투표를 받을 때마다 2"
+"점이 차감됩니다. 각각의 질문 또는 답변에 대해 누적되는 포인트는 하루 총 200점"
+"으로 제한되어 있습니다. 마지막에 제시된 표에서 각 유형에 대한 점수 요건을 확"
+"인할 수 있습니다."
 
 #. module: website_forum
 #. odoo-python
@@ -2127,8 +2131,8 @@ msgstr "도움말"
 #: model_terms:ir.ui.view,arch_db:website_forum.user_votes
 msgid "Help moderating the forums by upvoting and downvoting posts. <br/>"
 msgstr ""
-"게시글에 대한 찬성표와 반대표를 던져 게시판을 중재하는 데 도움을 줍니다. "
-"<br/>"
+"게시글에 대한 찬성표와 반대표를 던져 게시판을 중재하는 데 도움을 줍니다. <br/"
+">"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -2201,10 +2205,10 @@ msgid ""
 "motivation is “I would like others to explain ______ to me”, then you are "
 "probably OK."
 msgstr ""
-"다음 예시 중 한 가지에 해당하는 경우 혹은 질문 사유가 “______ 관련 회의에 "
-"참여하고 싶습니다” 인 경우에는, 여기보다는 저희 메일링 리스트를 통해 "
-"질문해해 주시기 바랍니다. 하지만, 다만 질문 사유가 “______ 관련된 다른 "
-"분들의 설명을 듣고 싶습니다” 인 경우에는, 여기를 통해 질문하셔도 무방합니다."
+"다음 예시 중 한 가지에 해당하는 경우 혹은 질문 사유가 “______ 관련 회의에 참"
+"여하고 싶습니다” 인 경우에는, 여기보다는 저희 메일링 리스트를 통해 질문해해 "
+"주시기 바랍니다. 하지만, 다만 질문 사유가 “______ 관련된 다른 분들의 설명을 "
+"듣고 싶습니다” 인 경우에는, 여기를 통해 질문하셔도 무방합니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.mark_as_offensive
@@ -2386,11 +2390,6 @@ msgstr "배치"
 #: model_terms:gamification.badge,description:website_forum.badge_25
 msgid "Left 10 answers with score of 10 or more"
 msgstr "10점 이상으로 10개의 답변을 남겼습니다."
-
-#. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "태그가 포함된 질문 링크"
 
 #. module: website_forum
 #. odoo-javascript
@@ -3211,8 +3210,8 @@ msgid ""
 "Share this content to increase your chances to be featured on the front page "
 "and attract more visitors."
 msgstr ""
-"이 콘텐츠를 공유하여 첫 페이지에 게재될 기회를 늘리고 더 많은 방문자를 "
-"유치하십시오."
+"이 콘텐츠를 공유하여 첫 페이지에 게재될 기회를 늘리고 더 많은 방문자를 유치하"
+"십시오."
 
 #. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__allow_share
@@ -3365,8 +3364,8 @@ msgid ""
 "Tap into the collective knowledge of our community by asking your questions "
 "in our forums,<br/> where helpful members are ready to assist you."
 msgstr ""
-"도움이 필요한 회원들은 게시판에<br/> 질문을 남겨 커뮤니티 구성원의 "
-"집단지성을 활용할 수 있습니다."
+"도움이 필요한 회원들은 게시판에<br/> 질문을 남겨 커뮤니티 구성원의 집단지성"
+"을 활용할 수 있습니다."
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_32
@@ -3395,6 +3394,20 @@ msgid "The accepted answer is deleted"
 msgstr "채택된 답변 삭제됨"
 
 #. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -3402,8 +3415,8 @@ msgid ""
 "The goal of this site is create a relevant knowledge base that would answer "
 "questions related to Odoo."
 msgstr ""
-"이 사이트의 목표는 Odoo와 관련된 질문에 답변 할 수 있는 관련 기술 자료를 "
-"만드는 것입니다."
+"이 사이트의 목표는 Odoo와 관련된 질문에 답변 할 수 있는 관련 기술 자료를 만드"
+"는 것입니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.post_description_full
@@ -3440,10 +3453,9 @@ msgid ""
 "base content. Such privileges are granted based on user karma level: you "
 "will be able to do the same once your karma gets high enough."
 msgstr ""
-"따라서 본 사이트의 숙련된 사용자가 질문과 답변을 위키 페이지처럼 편집하여 "
-"전반적인 기술 자료 내용을 개선할 수 있습니다. 이러한 권한은 사용자의 명성 "
-"수준에 따라 부여됩니다. 명성이 충분히 높아지면 동일한 작업을 수행할 수 "
-"있습니다."
+"따라서 본 사이트의 숙련된 사용자가 질문과 답변을 위키 페이지처럼 편집하여 전"
+"반적인 기술 자료 내용을 개선할 수 있습니다. 이러한 권한은 사용자의 명성 수준"
+"에 따라 부여됩니다. 명성이 충분히 높아지면 동일한 작업을 수행할 수 있습니다."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -3452,8 +3464,8 @@ msgid ""
 "This community is for professional and enthusiast users, partners and "
 "programmers. You can ask questions about:"
 msgstr ""
-"이 커뮤니티는 전문적이며 열정적인 사용자들과 협력사, 그리고 프로그래머들을 "
-"위해 마련되었습니다. 다음 내용에 대해 질문이 가능합니다:"
+"이 커뮤니티는 전문적이며 열정적인 사용자들과 협력사, 그리고 프로그래머들을 위"
+"해 마련되었습니다. 다음 내용에 대해 질문이 가능합니다:"
 
 #. module: website_forum
 #: model:forum.forum,description:website_forum.forum_help
@@ -3462,9 +3474,9 @@ msgid ""
 "services. Share and discuss the best content and new marketing ideas, build "
 "your professional profile and become a better marketer together."
 msgstr ""
-"이 커뮤니티는 NAT 제품 및 서비스의 전문가와 매니아를 위한 커뮤니티입니다. "
-"최고의 컨텐츠와 새로운 마케팅 아이디어를 공유하고 업무 협의하고, 프로페셔널 "
-"프로필을 구축하고, 함께 더 나은 마케팅 전문가가 될 수 있습니다."
+"이 커뮤니티는 NAT 제품 및 서비스의 전문가와 매니아를 위한 커뮤니티입니다. 최"
+"고의 컨텐츠와 새로운 마케팅 아이디어를 공유하고 업무 협의하고, 프로페셔널 프"
+"로필을 구축하고, 함께 더 나은 마케팅 전문가가 될 수 있습니다."
 
 #. module: website_forum
 #: model:ir.model.fields,help:website_forum.field_forum_forum__relevancy_post_vote
@@ -3473,8 +3485,8 @@ msgid ""
 "represents number of votes for a post, and 'days' is number of days since "
 "the post creation"
 msgstr ""
-"이 공식은 관련성을 기준으로 정렬하기 위해 사용됩니다. 변수 'votes'는 "
-"게시물의 투표 수를 나타내며, 'days'는 게시물 작성 후 지난 일 수입니다."
+"이 공식은 관련성을 기준으로 정렬하기 위해 사용됩니다. 변수 'votes'는 게시물"
+"의 투표 수를 나타내며, 'days'는 게시물 작성 후 지난 일 수입니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.header
@@ -3565,8 +3577,8 @@ msgid ""
 "To prevent your question from being flagged and possibly removed, avoid "
 "asking subjective questions where …"
 msgstr ""
-"질문이 신고되거나 제거되지 않도록 하려면 여기에선 주관적인 질문을 하지 "
-"마십시오…"
+"질문이 신고되거나 제거되지 않도록 하려면 여기에선 주관적인 질문을 하지 마십시"
+"오…"
 
 #. module: website_forum
 #: model:forum.post.reason,name:website_forum.reason_9
@@ -3784,6 +3796,13 @@ msgid "Website / Forum"
 msgstr "웹사이트 / 포럼"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr "웹사이트 절대 URL"
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3791,7 +3810,9 @@ msgid "Website Messages"
 msgstr "웹사이트 메시지"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "웹 사이트 URL"
 
@@ -3851,10 +3872,10 @@ msgid ""
 "rough measure of the community trust to him/her. Various moderation tasks "
 "are gradually assigned to the users based on those points."
 msgstr ""
-"질문이나 답변이 상향 조정되면 이를 게시한 사용자가 어느 정도 점수를 얻게 "
-"되는데, 이를 \"명성 포인트\"라고 합니다. 이러한 점들은 그/그녀에 대한 "
-"지역사회의 신뢰의 대략적인 척도로 작용합니다. 이러한 점에 따라 다양한 조정 "
-"작업이 점차 사용자에게 할당됩니다."
+"질문이나 답변이 상향 조정되면 이를 게시한 사용자가 어느 정도 점수를 얻게 되는"
+"데, 이를 \"명성 포인트\"라고 합니다. 이러한 점들은 그/그녀에 대한 지역사회의 "
+"신뢰의 대략적인 척도로 작용합니다. 이러한 점에 따라 다양한 조정 작업이 점차 "
+"사용자에게 할당됩니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.new_question
@@ -3936,9 +3957,9 @@ msgid ""
 "that you face. Chatty, open-ended questions diminish the usefulness of this "
 "site and push other questions off the front page."
 msgstr ""
-"여러분은 여러분이 직면하고 있는 실제 문제들에 근거해서만 실용적이고 대답 "
-"가능한 질문을 해야 합니다. 수다스럽고 열린 질문은 이 사이트의 유용성을 "
-"떨어뜨리고 다른 질문들을 첫페이지에서 밀어냅니다."
+"여러분은 여러분이 직면하고 있는 실제 문제들에 근거해서만 실용적이고 대답 가능"
+"한 질문을 해야 합니다. 수다스럽고 열린 질문은 이 사이트의 유용성을 떨어뜨리"
+"고 다른 질문들을 첫페이지에서 밀어냅니다."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.display_post_question_block
@@ -4064,8 +4085,8 @@ msgid ""
 "has been posted and require your validation. Click here to access the "
 "question :"
 msgstr ""
-"게시되었으며 승인 검사가 필요합니다. 다음 질문에 접근하려면 여기를 "
-"클릭하세요."
+"게시되었으며 승인 검사가 필요합니다. 다음 질문에 접근하려면 여기를 클릭하세"
+"요."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_post_template_new_answer
@@ -4218,8 +4239,8 @@ msgid ""
 "there is no actual problem to be solved: “I’m curious if other people feel "
 "like I do.”"
 msgstr ""
-"실제로 해결해야 할 문제는 없습니다 : “다른 사람들이 저처럼 느끼는 지 "
-"궁금해요.”"
+"실제로 해결해야 할 문제는 없습니다 : “다른 사람들이 저처럼 느끼는 지 궁금해"
+"요.”"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.faq_karma
@@ -4243,7 +4264,8 @@ msgstr "사용"
 msgid ""
 "we are being asked an open-ended, hypothetical question: “What if ______ "
 "happened?”"
-msgstr "우리는 개방형의 가상의 질문을 받습니다 : “______가 발생하면 어떻게 됩니까?”"
+msgstr ""
+"우리는 개방형의 가상의 질문을 받습니다 : “______가 발생하면 어떻게 됩니까?”"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -4275,393 +4297,3 @@ msgstr "툴팁으로 귀하의 이력을 볼 수 있습니다"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "귀하의 이메일..."
-
-#~ msgid ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> Return to questions "
-#~ "list</a>"
-#~ msgstr ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/>질문 목록으로 돌아가기</"
-#~ "a>"
-
-#~ msgid "%d karma required to unlink a comment."
-#~ msgstr "댓글 링크를 해제하려면 %d 명성이 필요합니다."
-
-#~ msgid "&amp;nbsp;and&amp;nbsp;"
-#~ msgstr "&amp;nbsp;및&amp;nbsp;"
-
-#~ msgid ", by"
-#~ msgstr ", 작성자"
-
-#~ msgid ", consider <b>adding an example</b>."
-#~ msgstr ", <b>예제 추가</b>를 고려하십시오."
-
-#~ msgid "0 Answers"
-#~ msgstr "답변 0"
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [불쾌함]</b>"
-
-#~ msgid "<b>Tags</b> I Follow"
-#~ msgstr "내가 팔로잉하는 <b>태그</b>"
-
-#~ msgid ""
-#~ "<b>This forum is empty.</b><br/>\n"
-#~ "                    Be the first one asking a question"
-#~ msgstr ""
-#~ "<b>이 게시판을 비었습니다.</b><br/>\n"
-#~ "                    질문하는 첫 번째 사람이 되어 보세요."
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[답변]</b>"
-
-#~ msgid "<em class=\"d-block mb-2\">or</em>"
-#~ msgstr "<em class=\"d-block mb-2\">또는</em>"
-
-#~ msgid "<i class=\"fa fa-bell fa-fw\"/> Followed Posts"
-#~ msgstr "<i class=\"fa fa-bell fa-fw\"/> 팔로우된 게시물"
-
-#~ msgid "<i class=\"fa fa-bug\"/> Filter Tool"
-#~ msgstr "<i class=\"fa fa-bug\"/> 필터 도구"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>You've Completely Caught Up!</b><br/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>완전히 잡혔어요!</b><br/>"
-
-#~ msgid "<i class=\"fa fa-check-square-o fa-fw\"/> To Validate"
-#~ msgstr "<i class=\"fa fa-check-square-o fa-fw\"/> 승인"
-
-#~ msgid "<i class=\"fa fa-flag fa-fw\"/> Flagged"
-#~ msgstr "<i class=\"fa fa-flag fa-fw\"/> 신고함"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Share"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                공유"
-
-#~ msgid "<i class=\"fa fa-star fa-fw\"/> Favourites"
-#~ msgstr "<i class=\"fa fa-star fa-fw\"/> 즐겨찾기"
-
-#~ msgid "<i class=\"fa fa-tags fa-fw\"/> Followed Tags"
-#~ msgstr "<i class=\"fa fa-tags fa-fw\"/> 팔로우된 태그"
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> 뒤로"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    신고함\n"
-#~ "                </small>"
-
-#~ msgid "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-#~ msgstr "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>By </span>"
-
-#~ msgid "About"
-#~ msgstr "소개"
-
-#~ msgid "All Forums"
-#~ msgstr "모든 포럼"
-
-#~ msgid "All Tags"
-#~ msgstr "모든 태그"
-
-#~ msgid "Allow Bump"
-#~ msgstr "끌어올리기 허용"
-
-#~ msgid "Answer"
-#~ msgstr "답변"
-
-#~ msgid "Back"
-#~ msgstr "뒤로"
-
-#~ msgid "Be less specific in your wording for a wider search result"
-#~ msgstr "더 넓은 검색 결과를 위한 덜 구체적인 표현"
-
-#~ msgid "Browse All"
-#~ msgstr "모두 찾아보기"
-
-#~ msgid "Bumped on"
-#~ msgstr "끌어올린 날"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "답변이 없이 10일이 지난 게시물에 대해 팝업을 표시하려면이 상자를 선택하십"
-#~ "시오. 팝업은 소셜 네트워크에서 공유하도록 제안합니다. 공유되면 포럼 상단으"
-#~ "로 질문이 끌어 올려집니다."
-
-#~ msgid "Check your spelling and try again"
-#~ msgstr "철자를 확인하고 다시 시도하십시오"
-
-#~ msgid "Comment this post..."
-#~ msgstr "이 게시물의 댓글..."
-
-#~ msgid "Comments"
-#~ msgstr "의견"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "모든 답변을 댓글로 변환하거나 그 반대로 변환"
-
-#~ msgid "Convert as a answer"
-#~ msgstr "답변으로 변환"
-
-#~ msgid "Convert as a comment"
-#~ msgstr "댓글로 변환"
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "자신의 답변을 댓글로 변환하거나 그 반대로 변환"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "날짜 (내림차순)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "날짜 (오름차순)"
-
-#~ msgid "Edit Forum in Backend"
-#~ msgstr "백엔드에서 게시판 편집하기"
-
-#~ msgid ""
-#~ "Example\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-#~ msgstr ""
-#~ "예제\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-
-#~ msgid "Following"
-#~ msgstr "팔로잉"
-
-#~ msgid "Group By"
-#~ msgstr "그룹별"
-
-#~ msgid "Hide Intro"
-#~ msgstr "소개 숨기기"
-
-#~ msgid "I'm <b>Following</b>"
-#~ msgstr "<b>팔로우하는 중</b>"
-
-#~ msgid "I'm Following"
-#~ msgstr "팔로우하는 중"
-
-#~ msgid "Karma"
-#~ msgstr "명성"
-
-#~ msgid "Last activity date"
-#~ msgstr "최근 활동일"
-
-#~ msgid "Menu"
-#~ msgstr "메뉴"
-
-#~ msgid "Moderation"
-#~ msgstr "중재중"
-
-#~ msgid "More"
-#~ msgstr "더 보기"
-
-#~ msgid "Most answered"
-#~ msgstr "최고의 답변"
-
-#~ msgid "Most voted"
-#~ msgstr "최고 득표"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr ""
-#~ "이 질문을 소셜 네트워크에서 공유하여 목록의 맨 위로 끌어 올리십시오."
-
-#~ msgid "My <b>Favourites</b>"
-#~ msgstr "<b>즐겨찾기</b>"
-
-#~ msgid "My Favourites"
-#~ msgstr "개인 즐겨찾기"
-
-#~ msgid "No activities yet!"
-#~ msgstr "아직 활동이 없습니다!"
-
-#~ msgid "No favourite questions in this forum (yet).<br/>"
-#~ msgstr "이 게시판에는 즐겨찾기한 질문이 없습니다.<br/>"
-
-#~ msgid "No flagged posts"
-#~ msgstr "신고한 게시물이 없습니다"
-
-#~ msgid "No post to be validated"
-#~ msgstr "확인할 게시물이 없습니다"
-
-#~ msgid "No tags"
-#~ msgstr "태그 없음"
-
-#~ msgid "No vote given by you yet!"
-#~ msgstr "아직 투표권이 없습니다!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "조치가 필요한 메시지 수"
-
-#~ msgid "Only one answer per question is allowed"
-#~ msgstr "질문당 하나의 답변만 허용됩니다"
-
-#~ msgid "Order by"
-#~ msgstr "주문자"
-
-#~ msgid "Our forums"
-#~ msgstr "우리의 게시판"
-
-#~ msgid "People"
-#~ msgstr "사용자"
-
-#~ msgid "Question by"
-#~ msgstr "질문자"
-
-#~ msgid "Read the guidelines to know how to gain karma."
-#~ msgstr "이 지침을 읽고 명성을 얻는 방법을 알아보세요."
-
-#~ msgid "Read: #{question.name}"
-#~ msgstr "읽기 : #{question.name}"
-
-#~ msgid "Register"
-#~ msgstr "등록하기"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "이 웹 사이트로의 게시를 제한합니다."
-
-#~ msgid "Return to the forum."
-#~ msgstr "게시판으로 돌아갑니다."
-
-#~ msgid "Return to the question list."
-#~ msgstr "질문 목록으로 돌아갑니다."
-
-#~ msgid "Search Tips"
-#~ msgstr "검색 팁"
-
-#~ msgid "See"
-#~ msgstr "보기"
-
-#~ msgid "Show"
-#~ msgstr "보기"
-
-#~ msgid "Show Tags Starting By"
-#~ msgstr "다음으로 시작하는 태그 보기"
-
-#~ msgid "Sign in"
-#~ msgstr "로그인"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "이 작업을 수행하려면 로그인해야 합니다"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "게시물을 신고하려면 로그인해야 합니다."
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "투표하려면 로그인해야 합니다."
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr "익명 사용자는 정답을 선택할 수 없습니다."
-
-#~ msgid "Tags I Follow"
-#~ msgstr "내가 팔로우하는 태그"
-
-#~ msgid "Teaser"
-#~ msgstr "티저"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "질문을 끌어 올릴 수 있는 기술 필드. 이 필드에 쓰면 write_date에 쓰기가 시"
-#~ "작되어 게시물이 끌어 올려집니다. write_date에 직접 쓰는 것은 현재 지원되"
-#~ "지 않으며 이 필드는 해결 방법입니다."
-
-#~ msgid ""
-#~ "This community is for professional and enthusiast users, partners and "
-#~ "programmers."
-#~ msgstr ""
-#~ "이 커뮤니티는 전문가 및 애호가, 파트너 및 프로그래머를 위한 커뮤니티입니"
-#~ "다."
-
-#~ msgid "Toggle favorite status"
-#~ msgstr "즐겨찾기 상태 전환"
-
-#~ msgid "Topics"
-#~ msgstr "주제"
-
-#~ msgid "Trending"
-#~ msgstr "경향"
-
-#~ msgid "Try searching for one or two words"
-#~ msgstr "한두 단어로 검색"
-
-#~ msgid "Unlink all comments"
-#~ msgstr "모든 댓글 링크 해제"
-
-#~ msgid "Unlink own comments"
-#~ msgstr "자신의 댓글 링크 해제"
-
-#~ msgid "Waiting for validation"
-#~ msgstr "승인 대기중"
-
-#~ msgid "Waiting post"
-#~ msgstr "게시 대기중"
-
-#~ msgid "You're not following any topic in this forum (yet).<br/>"
-#~ msgstr "이 게시판엔 아직 주제가 없습니다.<br/>"
-
-#~ msgid "[Closed]"
-#~ msgstr "[마감됨]"
-
-#~ msgid "[Deleted]"
-#~ msgstr "[삭제됨]"
-
-#~ msgid "[Offensive]"
-#~ msgstr "[모욕]"
-
-#~ msgid "activity date"
-#~ msgstr "활동 날짜"
-
-#~ msgid "in your followed list"
-#~ msgstr "귀하가 팔로우하는 목록에서"
-
-#~ msgid "most answered"
-#~ msgstr "최고의 답변"
-
-#~ msgid "most voted"
-#~ msgstr "최고 득표"
-
-#~ msgid "newest"
-#~ msgstr "최신"
-
-#~ msgid "solved"
-#~ msgstr "해결됨"
-
-#~ msgid "to partecipate"
-#~ msgstr "참여하기"
-
-#~ msgid "trending"
-#~ msgstr "경향"
-
-#~ msgid "unanswered"
-#~ msgstr "미답변"
-
-#~ msgid "unsolved"
-#~ msgstr "미해결"
-
-#~ msgid "| Flagged"
-#~ msgstr "| 신고했습니다"
-
-#~ msgid "圾 Text"
-#~ msgstr "圾 문자"

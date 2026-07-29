@@ -54,6 +54,10 @@ class SaleReport(models.Model):
                 / MIN({self._case_value_or_one('pos.currency_rate')})
                 * {self._case_value_or_one('account_currency_table.rate')}
             AS amount_invoiced,
+            (CASE WHEN pos.account_move IS NOT NULL THEN SUM(l.price_unit * l.qty_delivered) ELSE 0 END)
+                / MIN({self._case_value_or_one('pos.currency_rate')})
+                * {self._case_value_or_one('account_currency_table.rate')}
+            AS untaxed_delivered_amount,
             count(*) AS nbr,
             pos.name AS name,
             pos.date_order AS date,
@@ -65,6 +69,7 @@ class SaleReport(models.Model):
             NULL AS campaign_id,
             NULL AS medium_id,
             NULL AS source_id,
+            NULL AS utm_reference,
             t.categ_id AS categ_id,
             pos.pricelist_id AS pricelist_id,
             pos.crm_team_id AS team_id,

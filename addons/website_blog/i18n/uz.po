@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:20+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"website_blog/uz/>\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2025-10-08 18:39+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website_blog
 #. odoo-python
@@ -47,7 +45,12 @@ msgstr "'. Quyidagi so‘rov bo‘yicha natijalar:"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.date_selector
-msgid "-- All dates"
+msgid "-- Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.date_selector
+msgid "-- Unpublished"
 msgstr ""
 
 #. module: website_blog
@@ -218,22 +221,6 @@ msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
 msgstr "<i class=\"fa fa-globe me-1\" title=\"Veb-sayt\"/>"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-msgstr ""
-"<i class=\"fa fa-linkedin text-linkedin\" aria-label=\"LinkedIn\" "
-"title=\"LinkedIn\"/>"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-msgstr "<i class=\"fa fa-twitter text-twitter\" aria-label=\"X\" title=\"X\"/>"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.s_dynamic_snippet_blog_posts_single_aside_preview_data
 #: model_terms:ir.ui.view,arch_db:website_blog.s_dynamic_snippet_blog_posts_single_circle_preview_data
 #: model_terms:ir.ui.view,arch_db:website_blog.s_dynamic_snippet_blog_posts_single_full_preview_data
@@ -258,8 +245,8 @@ msgid ""
 "<span class=\"bg-o-color-3 h6 d-inline-block py-1 px-2 rounded-1\">Read "
 "Next</span>"
 msgstr ""
-"<span class=\"bg-o-color-3 h6 d-inline-block py-1 px-2 rounded-1\">"
-"Keyingisini o‘qing</span>"
+"<span class=\"bg-o-color-3 h6 d-inline-block py-1 px-2 "
+"rounded-1\">Keyingisini o‘qing</span>"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_read_next
@@ -618,6 +605,16 @@ msgid "Author Name"
 msgstr "Muallif ismi"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_post__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
+
+#. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__author_avatar
 #, fuzzy
 msgid "Avatar"
@@ -701,13 +698,20 @@ msgstr "Ko‘zdan tashqari"
 #: model:ir.model,name:website_blog.model_blog_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__blog_id
 #: model:ir.ui.menu,name:website_blog.menu_website_blog_root_global
+#: model:res.groups.privilege,name:website_blog.res_groups_privilege_blog
 #: model:website.menu,name:website_blog.menu_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_blog_view_search
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_blog_form
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_search
+#: model_terms:ir.ui.view,arch_db:website_blog.website_blog
 #, fuzzy
 msgid "Blog"
 msgstr "Blog"
+
+#. module: website_blog
+#: model:res.groups,name:website_blog.group_website_blog_manager
+msgid "Blog Manager"
+msgstr ""
 
 #. module: website_blog
 #: model:ir.model.fields,field_description:website_blog.field_blog_blog__name
@@ -789,6 +793,11 @@ msgid "Blog Tags"
 msgstr "Blog teglari"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Blog Teaser"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_cover_post_fullwidth_design
 #, fuzzy
 msgid "Blog Title"
@@ -841,6 +850,11 @@ msgstr "Quyi qism"
 #, fuzzy
 msgid "Breadcrumb"
 msgstr "Yo‘l ko‘rsatkich"
+
+#. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__breadcrumb_visible
+msgid "Breadcrumb Visible"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_3
@@ -1154,12 +1168,6 @@ msgstr "Sarlavhangizni tahrirlang, taglavha ixtiyoriy."
 #, fuzzy
 msgid "Enter your post's title"
 msgstr "Yozuvingiz sarlavhasini kiriting"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "Facebook"
-msgstr "Facebook"
 
 #. module: website_blog
 #: model:blog.post,subtitle:website_blog.blog_post_3
@@ -1633,12 +1641,6 @@ msgstr ""
 #, fuzzy
 msgid "Leisure Facilities"
 msgstr "Dam olish imkoniyatlari"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_blog
 #. odoo-javascript
@@ -2129,7 +2131,13 @@ msgid "Publication Date"
 msgstr "Nashr sanasi"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Publish on"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 #, fuzzy
 msgid "Published"
 msgstr "Chop etilgan"
@@ -2141,12 +2149,6 @@ msgid "Published ("
 msgstr "Nashr etilgan ("
 
 #. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
-#, fuzzy
-msgid "Published Date"
-msgstr "E'lon qilingan sana"
-
-#. module: website_blog
 #: model:mail.message.subtype,description:website_blog.mt_blog_blog_published
 #: model:mail.message.subtype,name:website_blog.mt_blog_blog_published
 #, fuzzy
@@ -2154,16 +2156,15 @@ msgid "Published Post"
 msgstr "Chop etilgan post"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_post__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
 #, fuzzy
 msgid "Publishing Options"
 msgstr "Nashr etish parametrlari"
-
-#. module: website_blog
-#: model:ir.model.fields,field_description:website_blog.field_blog_post__post_date
-#, fuzzy
-msgid "Publishing date"
-msgstr "Nashr sanasi"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.sidebar_blog_index
@@ -2258,6 +2259,17 @@ msgid "Satellites"
 msgstr "Sun'iy yo‘ldoshlar"
 
 #. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.blog_post_view_kanban
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_list
+msgid "Scheduled"
+msgstr ""
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
+msgid "Scheduled ("
+msgstr ""
+
+#. module: website_blog
 #. odoo-javascript
 #: code:addons/website_blog/static/src/tours/website_blog.js:0
 #, fuzzy
@@ -2347,26 +2359,13 @@ msgstr "Havolalarni ulashish"
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
 #, fuzzy
-msgid "Share on Facebook"
-msgstr "Facebook orqali ulashish"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "Share on LinkedIn"
-msgstr "LinkedIn orqali ulashish"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "Share on X"
-msgstr "X orqali ulashish"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
 msgid "Share this post"
 msgstr "Ushbu postni ulashish"
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Shown as a preview on the /blog page"
+msgstr ""
 
 #. module: website_blog
 #. odoo-javascript
@@ -2738,16 +2737,6 @@ msgid "The best time to view the moon."
 msgstr "Oyni kuzatish uchun eng qulay vaqt."
 
 #. module: website_blog
-#: model:ir.model.fields,help:website_blog.field_blog_post__post_date
-#, fuzzy
-msgid ""
-"The blog post will be visible for your visitors as of this date on the "
-"website if it is set as published."
-msgstr ""
-"Blog posti, agar u e'lon qilingan deb belgilangan bo‘lsa, tashrif "
-"buyuruvchilaringizga aynan shu sanadan boshlab veb-saytda ko‘rinadi."
-
-#. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_2
 #, fuzzy
 msgid ""
@@ -2762,12 +2751,14 @@ msgstr ""
 "ko‘rish uchun juda arziydi."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_absolute_url
 #, fuzzy
 msgid "The full absolute URL to access the document through the website."
 msgstr "Veb-sayt orqali hujjatga kirish uchun to‘liq mutlaq URL manzili."
 
 #. module: website_blog
+#: model:ir.model.fields,help:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,help:website_blog.field_blog_post__website_url
 #, fuzzy
 msgid "The full relative URL to access the document through the website."
@@ -2887,8 +2878,8 @@ msgid ""
 "usual option!"
 msgstr ""
 "Bu jihatlar haqiqatan ham muhim va har qanday yaxshi mehmonxona "
-"ma'lumotnomasi sizga yotoqxonalar haqida shunday ma'lumotlarni berishi "
-"kerak - nafaqat odatdagidek xonalar soni haqida!"
+"ma'lumotnomasi sizga yotoqxonalar haqida shunday ma'lumotlarni berishi kerak "
+"- nafaqat odatdagidek xonalar soni haqida!"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
@@ -3018,16 +3009,15 @@ msgid "Travel"
 msgstr "Sayohat"
 
 #. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.opt_blog_post_share_links_display
-#, fuzzy
-msgid "Twitter"
-msgstr "Tvitter"
-
-#. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
 #, fuzzy
 msgid "Unpublished ("
 msgstr "Chop etilmagan ("
+
+#. module: website_blog
+#: model_terms:ir.ui.view,arch_db:website_blog.view_blog_post_form
+msgid "Unschedule"
+msgstr ""
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.post_heading
@@ -3090,6 +3080,7 @@ msgid "Website"
 msgstr "Veb-sayt"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_absolute_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_absolute_url
 #, fuzzy
 msgid "Website Absolute URL"
@@ -3115,6 +3106,7 @@ msgid "Website Snippet Filter"
 msgstr "Veb-sayt qismlarini filtrlash"
 
 #. module: website_blog
+#: model:ir.model.fields,field_description:website_blog.field_blog_blog__website_url
 #: model:ir.model.fields,field_description:website_blog.field_blog_post__website_url
 #, fuzzy
 msgid "Website URL"
@@ -3193,7 +3185,8 @@ msgstr "Manzara bilan"
 #: model_terms:ir.ui.view,arch_db:website_blog.sidebar_blog_index
 #, fuzzy
 msgid "Write a small text here to describe your blog or company."
-msgstr "Bu yerga blogingiz yoki kompaniyangizni tasvirlovchi qisqa matn yozing."
+msgstr ""
+"Bu yerga blogingiz yoki kompaniyangizni tasvirlovchi qisqa matn yozing."
 
 #. module: website_blog
 #: model_terms:blog.post,content:website_blog.blog_post_3
@@ -3304,12 +3297,6 @@ msgstr "teleskoplar"
 #, fuzzy
 msgid "to leave a comment"
 msgstr "izoh qoldirish uchun"
-
-#. module: website_blog
-#: model_terms:ir.ui.view,arch_db:website_blog.posts_loop
-#, fuzzy
-msgid "unpublished"
-msgstr "e'lon qilinmagan"
 
 #. module: website_blog
 #: model_terms:ir.ui.view,arch_db:website_blog.blog_post_info

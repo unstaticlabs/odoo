@@ -13,6 +13,7 @@
             <field name="use_default_to" eval="True"/>
             <field name="subject">{{ object.company_id.name }} Invoice (Ref {{ object.name or 'n/a' }})</field>
             <field name="description">Sent to customers with their invoices in attachment</field>
+            <field name="email_layout_xmlid">mail.mail_notification_layout_with_responsible_signature</field>
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
     <p style="margin: 0px; padding: 0px; font-size: 13px;">
@@ -50,7 +51,7 @@
                 <br /><br />
                 Please use the following communication for your payment: <strong t-out="object.payment_reference or ''">INV/2021/05/0005</strong>
                 <t t-if="object.partner_bank_id">
-                    on the account <strong t-out="object.partner_bank_id.acc_number"/>
+                    on the account <strong t-out="object.partner_bank_id.account_number"/>
                 </t>
                 .
             </t>
@@ -79,6 +80,7 @@
             <field name="partner_to" eval="False"/>
             <field name="use_default_to" eval="True"/>
             <field name="description">Sent manually to customer when clicking on 'Send receipt by email' in payment action</field>
+            <field name="email_layout_xmlid">mail.mail_notification_light</field>
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
     <p style="margin: 0px; padding: 0px; font-size: 13px;">
@@ -109,6 +111,7 @@
             <field name="use_default_to" eval="True"/>
             <field name="subject">{{ object.company_id.name }} Credit Note (Ref {{ object.name or 'n/a' }})</field>
             <field name="description">Sent to customers with the credit note in attachment</field>
+            <field name="email_layout_xmlid">mail.mail_notification_layout_with_responsible_signature</field>
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
     <p style="margin: 0px; padding: 0px; font-size: 13px;">
@@ -257,11 +260,11 @@
         <li>For new invoices, please ensure a PDF or electronic invoice file is attached</li>
         <li>To add information to a previously sent invoice, reply to your "sent" email</li>
     </ul>
-    For any other question, write to <t t-esc="company_email"/>.
+    For any other question, write to <t t-out="company_email"/>.
     <br/>
     --
     <br/>
-    <t t-esc="company_name"/>
+    <t t-out="company_name"/>
 </p>
         </template>
        <record id="mail_template_einvoice_notification" model="mail.template">

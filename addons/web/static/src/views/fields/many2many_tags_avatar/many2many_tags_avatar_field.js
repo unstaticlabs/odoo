@@ -1,20 +1,28 @@
 import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { registry } from "@web/core/registry";
+import { AvatarTag } from "@web/core/tags_list/avatar_tag";
+import { imageUrl } from "@web/core/utils/urls";
 import {
     many2ManyTagsField,
     Many2ManyTagsField,
 } from "@web/views/fields/many2many_tags/many2many_tags_field";
-import { TagsList } from "@web/core/tags_list/tags_list";
-import { imageUrl } from "@web/core/utils/urls";
 
 export class Many2ManyTagsAvatarField extends Many2ManyTagsField {
     static template = "web.Many2ManyTagsAvatarField";
     static optionTemplate = "web.Many2ManyTagsAvatarField.option";
+    static components = {
+        ...super.components,
+        Tag: AvatarTag,
+    };
     static props = {
         ...Many2ManyTagsField.props,
         withCommand: { type: Boolean, optional: true },
     };
+
+    get assignBtnTooltip() {
+        return _t("Assign");
+    }
 
     get specification() {
         return {};
@@ -22,8 +30,12 @@ export class Many2ManyTagsAvatarField extends Many2ManyTagsField {
 
     getTagProps(record) {
         return {
-            ...super.getTagProps(record),
-            img: imageUrl(this.relation, record.resId, "avatar_128"),
+            imageUrl: imageUrl(this.relation, record.resId, "avatar_128", {
+                unique: record.data.write_date,
+            }),
+            onDelete: !this.props.readonly ? () => this.deleteTag(record.id) : undefined,
+            text: record.data.display_name,
+            tooltip: record.data.display_name,
         };
     }
 }
@@ -31,6 +43,11 @@ export class Many2ManyTagsAvatarField extends Many2ManyTagsField {
 export const many2ManyTagsAvatarField = {
     ...many2ManyTagsField,
     component: Many2ManyTagsAvatarField,
+    relatedFields: (fieldInfo) => {
+        const relatedFields = many2ManyTagsField.relatedFields(fieldInfo);
+        relatedFields.push({ name: "write_date", type: "datetime" });
+        return relatedFields;
+    },
     extractProps({ viewType }, dynamicInfo) {
         const props = many2ManyTagsField.extractProps(...arguments);
         props.withCommand = viewType === "form" || viewType === "list";
@@ -56,6 +73,7 @@ export class Many2ManyTagsAvatarFieldPopover extends Many2ManyTagsAvatarField {
     static template = "web.Many2ManyTagsAvatarFieldPopover";
     static props = {
         ...Many2ManyTagsAvatarField.props,
+        specification: Object,
         close: { type: Function },
     };
 
@@ -86,68 +104,50 @@ export class Many2ManyTagsAvatarFieldPopover extends Many2ManyTagsAvatarField {
     }
 }
 
-export const many2ManyTagsAvatarFieldPopover = {
-    ...many2ManyTagsAvatarField,
-    component: Many2ManyTagsAvatarFieldPopover,
-};
-registry.category("fields").add("many2many_tags_avatar_popover", many2ManyTagsAvatarFieldPopover);
-
-export class KanbanMany2ManyTagsAvatarFieldTagsList extends TagsList {
-    static template = "web.KanbanMany2ManyTagsAvatarFieldTagsList";
-
+export class KanbanMany2ManyTagsAvatarField extends Many2ManyTagsAvatarField {
     static props = {
-        ...TagsList.props,
-        popoverProps: { type: Object },
-        readonly: { type: Boolean, optional: true },
+        ...super.props,
+        isEditable: { type: Boolean, optional: true },
     };
+    static PopoverClass = Many2ManyTagsAvatarFieldPopover;
+    visibleItemsLimit = 3;
+
     setup() {
         super.setup();
-        this.popover = usePopover(Many2ManyTagsAvatarFieldPopover, {
+        this.popover = usePopover(this.constructor.PopoverClass, {
             popoverClass: "o_m2m_tags_avatar_field_popover",
             closeOnClickAway: (target) => !target.closest(".modal"),
         });
     }
 
+    get canDisplayQuickAssignAvatar() {
+        return this.props.isEditable;
+    }
+
+    get popoverProps() {
+        const props = { ...this.props, specification: this.specification };
+        delete props.isEditable;
+        delete props.relation;
+        return props;
+    }
+
+    get tags() {
+        return super.tags.reverse();
+    }
+
+    get placeholder() {
+        return _t("Search users...");
+    }
+
     openPopover(ev) {
-        if (this.props.readonly) {
-            return;
-        }
         this.popover.open(ev.currentTarget.parentElement, {
-            ...this.props.popoverProps,
+            ...this.popoverProps,
             readonly: false,
             canCreate: false,
             canCreateEdit: false,
             canQuickCreate: false,
-            placeholder: _t("Search users..."),
+            placeholder: this.placeholder,
         });
-    }
-    get canDisplayQuickAssignAvatar() {
-        return !this.props.readonly;
-    }
-}
-
-export class KanbanMany2ManyTagsAvatarField extends Many2ManyTagsAvatarField {
-    static template = "web.KanbanMany2ManyTagsAvatarField";
-    static components = {
-        ...Many2ManyTagsAvatarField.components,
-        TagsList: KanbanMany2ManyTagsAvatarFieldTagsList,
-    };
-    static props = {
-        ...Many2ManyTagsAvatarField.props,
-        isEditable: { type: Boolean, optional: true },
-    };
-    visibleItemsLimit = 3;
-
-    get popoverProps() {
-        const props = {
-            ...this.props,
-            readonly: false,
-        };
-        delete props.isEditable;
-        return props;
-    }
-    get tags() {
-        return super.tags.reverse();
     }
 }
 

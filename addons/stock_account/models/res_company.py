@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, time
 from dateutil.relativedelta import relativedelta
 
 from odoo import Command, _, api, fields, models
@@ -69,12 +70,13 @@ class ResCompany(models.Model):
         moves_vals = {
             'journal_id': self.account_stock_journal_id.id,
             'date': at_date or fields.Date.today(),
+            'closing_datetime': datetime.combine(at_date, time.max) if at_date else fields.Datetime.now(),
             'ref': _('Stock Closing'),
+            'inventory_closing': True,
             'line_ids': [Command.create(aml_vals) for aml_vals in aml_vals_list],
             'company_id': self.id,
         }
         account_move = self.env['account.move'].create(moves_vals)
-        self._save_closing_id(account_move.id)
         if auto_post:
             account_move._post()
 
@@ -102,7 +104,7 @@ class ResCompany(models.Model):
         if not accounts_by_product:
             accounts_by_product = self._get_accounts_by_product()
         account_data = defaultdict(float)
-        stock_valuation_accounts_ids = {accounts['valuation'].id for accounts in accounts_by_product.values()}
+        stock_valuation_accounts_ids = {accounts['valuation'].id for accounts in accounts_by_product.values() if accounts['valuation']}
         stock_valuation_accounts = self.env['account.account'].browse(stock_valuation_accounts_ids)
         domain = Domain([
             ('account_id', 'in', stock_valuation_accounts.ids),
@@ -339,32 +341,14 @@ class ResCompany(models.Model):
 
     def _get_last_closing_date(self):
         self.ensure_one()
-        key = f'{self.id}.stock_valuation_closing_ids'
-        closing_ids = self.env['ir.config_parameter'].sudo().get_param(key)
-        closing_ids = closing_ids.split(',') if closing_ids else []
-        closing = self.env['account.move']
-        while not closing and closing_ids:
-            closing_id = closing_ids.pop(-1)
-            closing_id = int(closing_id)
-            closing = self.env['account.move'].browse(closing_id).exists().filtered(lambda am: am.state == 'posted')
+        closing = self.env['account.move'].search_fetch([
+            ('inventory_closing', '=', True),
+            ('state', '=', 'posted'),
+            ('company_id', '=', self.id),
+        ], ['closing_datetime'], limit=1, order='closing_datetime desc, id desc')
         if not closing:
             return False
-        am_state_field = self.env['ir.model.fields'].sudo().search([('model', '=', 'account.move'), ('name', '=', 'state')], limit=1)
-        state_tracking = closing.message_ids.sudo().tracking_value_ids.filtered(lambda t: t.field_id == am_state_field).sorted('id')
-        create_date = state_tracking[-1:].create_date
-        if create_date and create_date.date() == closing.date:
-            return create_date
-        return fields.Datetime.to_datetime(closing.date)
-
-    def _save_closing_id(self, move_id):
-        self.ensure_one()
-        key = f'{self.id}.stock_valuation_closing_ids'
-        closing_ids = self.env['ir.config_parameter'].sudo().get_param(key)
-        ids = closing_ids.split(',') if closing_ids else []
-        ids.append(str(move_id))
-        if len(ids) > 10:
-            ids = ids[1:]
-        self.env['ir.config_parameter'].sudo().set_param(key, ','.join(ids))
+        return closing.closing_datetime
 
     def _set_category_defaults(self):
         super()._set_category_defaults()

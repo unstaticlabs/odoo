@@ -64,12 +64,12 @@ class StockQuant(models.Model):
                 continue
             quant.value = quant.quantity * value / quantity
 
-    def _read_group_select(self, aggregate_spec, query):
+    def _read_group_select(self, table, aggregate_spec):
         # flag value as aggregatable, and manually sum the values from the
         # records in the group
         if aggregate_spec in ('value:sum', 'value:sum_currency'):
-            return super()._read_group_select('id:recordset', query)
-        return super()._read_group_select(aggregate_spec, query)
+            aggregate_spec = 'id:recordset'
+        return super()._read_group_select(table, aggregate_spec)
 
     def _read_group_postprocess_aggregate(self, aggregate_spec, raw_values):
         if aggregate_spec in ('value:sum', 'value:sum_currency'):
@@ -91,7 +91,7 @@ class StockQuant(models.Model):
         if not self.env.context.get('inventory_name'):
             force_period_date = self.env.context.get('force_period_date', False)
             if force_period_date:
-                if self.product_uom_id.is_zero(qty):
+                if self.uom_id.is_zero(qty):
                     name = _('Product Quantity Confirmed')
                 else:
                     name = _('Product Quantity Updated')

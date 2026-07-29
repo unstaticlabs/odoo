@@ -8,6 +8,7 @@ from odoo.tests.common import warmup
 
 
 @tagged('mail_thread')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMenuRootLookupByModel(MailCommon):
     """ Test the determination of the best menu root for a given model.
 
@@ -157,6 +158,6 @@ class TestMenuRootLookupByModel(MailCommon):
 
     @warmup
     def test_look_for_non_existing_menu_root(self):
-        with (self.patch_get_backend_root_menu_ids(self.env['res.bank'], []),
+        with (self.patch_get_backend_root_menu_ids(self.env['res.partner.bank'], []),
               self.assertQueryCount(__system__=2)):
-            self.assertEqual(self.env['ir.ui.menu']._get_best_backend_root_menu_id_for_model('res.bank'), None)
+            self.assertEqual(self.env['ir.ui.menu']._get_best_backend_root_menu_id_for_model('res.partner.bank'), None)

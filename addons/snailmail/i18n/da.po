@@ -11,11 +11,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 23:25+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-06-23 15:33+0000\n"
 "Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/snailmail/"
-"da/>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
+"snailmail/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -116,10 +116,6 @@ msgstr "Farve"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Virksomhed"
@@ -290,8 +286,8 @@ msgstr "Besked"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Beskednotifikationer"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -412,11 +408,6 @@ msgstr "Almindelig post"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "Farve på postforsendelsen"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "Konvolutten til postforsendelsen er skrivebeskyttet"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -632,102 +623,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "Postnummer"
-
-#~ msgid "Address"
-#~ msgstr "Adresse"
-
-#~ msgid "An unknown error occurred. Please contact our"
-#~ msgstr "Der skete en ukendt fejl. Kontakt venligst vores"
-
-#~ msgid "Buy credits"
-#~ msgstr "Køb point"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "Annuller brev"
-
-#~ msgid "Cancel letter"
-#~ msgstr "Annuller brev"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Aflys notifikation i fejl"
-
-#~ msgid "Canceled"
-#~ msgstr "Annulleret"
-
-#~ msgid "Close"
-#~ msgstr "Luk"
-
-#~ msgid "Failed letter"
-#~ msgstr "Fejlslagen brev"
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "Format fejl ved afsendelse af almen post brev"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Meddelelsestype: e-mail for e-mail, underretning til system besked, "
-#~ "kommentar til andre meddelelser såsom brugernes svar"
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "Vores service kan ikke læse dit brev pga. dets format.<br/>\n"
-#~ "Vær venlig at redigere formatet på skabelonen, eller opdater dine "
-#~ "indstillinger for automatisk at tilføje et blankt cover page til alle "
-#~ "breve."
-
-#~ msgid "Partner"
-#~ msgstr "Kontakt"
-
-#~ msgid "Re-send letter"
-#~ msgstr "Gensend brev"
-
-#~ msgid "Street 2..."
-#~ msgstr "Gade 2..."
-
-#~ msgid "Street..."
-#~ msgstr "Gade..."
-
-#~ msgid ""
-#~ "The country to which you want to send the letter is not supported by our "
-#~ "service."
-#~ msgstr ""
-#~ "Landet hvortil du vil sende brevet er ikke understøttet af vores tjeneste."
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "Kunde adressen er ikke komplet. Opdater adressen her og send brevet igen."
-
-#~ msgid ""
-#~ "The letter could not be sent due to insufficient credits on your IAP "
-#~ "account."
-#~ msgstr ""
-#~ "Brevet kunne ikke afsendes grundet utilstrækkelig kredit på din IAP konto."
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "Opdater konfiguration og send igen"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "Opdater adresse og send igen"
-
-#~ msgid "Update address of partner"
-#~ msgstr "Opdater partners adresse"
-
-#~ msgid "You need credits on your IAP account to send a letter."
-#~ msgstr "Du skal have kredit på din IAP konto for at sende et brev."
-
-#~ msgid "ZIP"
-#~ msgstr "Post nr."
-
-#~ msgid "for further assistance."
-#~ msgstr "for yderligere assistance."
-
-#~ msgid "support"
-#~ msgstr "support"

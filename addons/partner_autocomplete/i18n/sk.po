@@ -1,19 +1,19 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* partner_autocomplete
+# * partner_autocomplete
 #
 # Translators:
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
 # Martin Trigaux, 2022
-#
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 06:58+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 14:19+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-s19-2/"
 "partner_autocomplete/sk/>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
@@ -36,8 +36,9 @@ msgstr "Kúp viac kreditov"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_company
-msgid "Companies"
-msgstr "Spoločnosti"
+#, fuzzy
+msgid "Company"
+msgstr "Spoločnosť"
 
 #. module: partner_autocomplete
 #: model:ir.model,name:partner_autocomplete.model_res_config_settings
@@ -51,8 +52,9 @@ msgstr "Kontakt"
 
 #. module: partner_autocomplete
 #: model:ir.model,website_form_label:partner_autocomplete.model_res_partner
+#, fuzzy
 msgid "Create a Customer"
-msgstr ""
+msgstr "Vytvoriť zákazníka"
 
 #. module: partner_autocomplete
 #: model:ir.model.fields,field_description:partner_autocomplete.field_iap_autocomplete_api__display_name
@@ -137,44 +139,12 @@ msgstr "Nastavte token účtu"
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/iap_autocomplete_api.py:0
+#, fuzzy
 msgid "Test mode"
-msgstr ""
+msgstr "Testovací režim"
 
 #. module: partner_autocomplete
 #. odoo-python
 #: code:addons/partner_autocomplete/models/res_partner.py:0
 msgid "Unable to enrich company (no credit was consumed)."
 msgstr ""
-
-#~ msgid "Additional info"
-#~ msgstr "Dodatočná informácia"
-
-#~ msgid "Company database ID"
-#~ msgstr "ID spoločnosti v databáze"
-
-#~ msgid "Created by"
-#~ msgstr "Vytvoril"
-
-#~ msgid "Created on"
-#~ msgstr "Vytvorené"
-
-#~ msgid "Is synched"
-#~ msgstr "Je zosynchronizovaný"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Naposledy upravoval"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Naposledy upravované"
-
-#~ msgid "Partner"
-#~ msgstr "Partner"
-
-#~ msgid "Partner Autocomplete Sync"
-#~ msgstr "Synchronizácia partnera s automatickým dopĺňaním"
-
-#~ msgid "Partner created by Odoo Partner Autocomplete Service"
-#~ msgstr "Partner vytvorený pomocou Odoo partner autocomplete service"
-
-#~ msgid "Placeholder"
-#~ msgstr "Vlastník"

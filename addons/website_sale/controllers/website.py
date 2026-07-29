@@ -10,8 +10,8 @@ from odoo.addons.website.controllers import main
 from odoo.addons.website.controllers.form import WebsiteForm
 from odoo.addons.website_sale.models.website import (
     FISCAL_POSITION_SESSION_CACHE_KEY,
+    PRICELIST_SELECTED_SESSION_CACHE_KEY,
     PRICELIST_SESSION_CACHE_KEY,
-    PRICELIST_SELECTED_SESSION_CACHE_KEY
 )
 
 
@@ -42,6 +42,15 @@ class WebsiteSaleForm(WebsiteForm):
 
         return json.dumps({'id': order_sudo.id})
 
+    def extract_data(self, model_sudo, values):
+        parent_name = values.pop('parent_name', None)
+        data = super().extract_data(model_sudo, values)
+        if model_sudo.model == 'res.partner' and parent_name:
+            # `parent_name` is a non-stored field, passing it in the record
+            # allows to create the parent company during record creation.
+            data['record']['parent_name'] = parent_name
+        return data
+
 
 class Website(main.Website):
 
@@ -59,12 +68,6 @@ class Website(main.Website):
         if 'display_currency' not in options:
             options['display_currency'] = request.website.currency_id
         return super().autocomplete(search_type, term, order, limit, max_nb_chars, options)
-
-    @route()
-    def theme_customize_data(self, is_view_data, enable=None, disable=None, reset_view_arch=False):
-        super().theme_customize_data(is_view_data, enable, disable, reset_view_arch)
-        if any(key in enable or key in disable for key in ['website_sale.products_list_view', 'website_sale.add_grid_or_list_option']):
-            request.session.pop('website_sale_shop_layout_mode', None)
 
     @route()
     def get_current_currency(self, **kwargs):

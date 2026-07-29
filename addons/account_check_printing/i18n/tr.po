@@ -14,15 +14,15 @@
 # Murat Kaplan <muratk@projetgrup.com>, 2022
 # Umur Akın <umura@projetgrup.com>, 2022
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 06:08+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-11-20 13:20+0000\n"
 "Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "account_check_printing/tr/>\n"
@@ -31,7 +31,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_check_printing
 #. odoo-python
@@ -74,11 +74,6 @@ msgstr "Yazı ile Tutar"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "Bills"
 msgstr "Tedarikçi Faturaları"
-
-#. module: account_check_printing
-#: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
-msgid "Cancel"
-msgstr "İptal"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__bank_check_printing_layout
@@ -163,8 +158,8 @@ msgstr "Yazdırılacak Çekler"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
+msgid "Company"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
@@ -306,19 +301,15 @@ msgid "None"
 msgstr "Hiçbiri"
 
 #. module: account_check_printing
-#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
-msgid "Payment Method"
-msgstr "Ödeme Yöntemi"
+#: model:ir.model,name:account_check_printing.model_account_payment
+msgid "Payment"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_account_payment_method
-msgid "Payment Methods"
-msgstr "Ödeme Yöntemleri"
-
-#. module: account_check_printing
-#: model:ir.model,name:account_check_printing.model_account_payment
-msgid "Payments"
-msgstr "Ödemeler"
+#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
+msgid "Payment Method"
+msgstr "Ödeme Yöntemi"
 
 #. module: account_check_printing
 #. odoo-python
@@ -419,8 +410,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_check_printing/models/account_journal.py:0
 msgid ""
-"The check number you entered (%(num)s) exceeds the maximum allowed value of %"
-"(max)d. Please enter a smaller number."
+"The check number you entered (%(num)s) exceeds the maximum allowed value of "
+"%(max)d. Please enter a smaller number."
 msgstr ""
 "Girdiğiniz çek numarası (%(num)s) izin verilen maksimum %(max)d değerini "
 "aşıyor. Lütfen daha küçük bir sayı girin."
@@ -522,53 +513,3 @@ msgstr "out_refund"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "sep"
 msgstr "sep"
-
-#~ msgid "Contact"
-#~ msgstr "Kontak"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Yevmiye Kaydı"
-
-#~ msgid ""
-#~ "Manual: Pay or Get paid by any method outside of Odoo.\n"
-#~ "Payment Providers: Each payment provider has its own Payment Method. "
-#~ "Request a transaction on/to a card thanks to a payment token saved by the "
-#~ "partner when buying or subscribing online.\n"
-#~ "Check: Pay bills by check and print it from Odoo.\n"
-#~ "Batch Deposit: Collect several customer checks at once generating and "
-#~ "submitting a batch deposit to your bank. Module account_batch_payment is "
-#~ "necessary.\n"
-#~ "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit "
-#~ "Transfer file to your bank. Module account_sepa is necessary.\n"
-#~ "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your "
-#~ "partner will have granted to you. Module account_sepa is necessary.\n"
-#~ msgstr ""
-#~ "Manuel: Odoo dışında herhangi bir yöntemle ödeme yapın veya ödeme alın.\n"
-#~ "Ödeme Sağlayıcıları: Her ödeme sağlayıcısının kendi Ödeme Yöntemi vardır. "
-#~ "Çevrimiçi satın alırken veya abone olurken iş ortağı tarafından "
-#~ "kaydedilen bir ödeme belirteci sayesinde bir kart üzerinde / karta işlem "
-#~ "talep edin.\n"
-#~ "Çek: Faturaları çek ile ödeyin ve Odoo'dan yazdırın.\n"
-#~ "Toplu Para Yatırma: Aynı anda birkaç müşteri çeki toplayın ve bankanıza "
-#~ "bir toplu para yatırma işlemi oluşturun ve gönderin. "
-#~ "account_batch_payment modülü gereklidir.\n"
-#~ "SEPA Kredi Transferi: Bankanıza bir SEPA Kredi Transferi dosyası "
-#~ "göndererek SEPA bölgesinde ödeme yapın. Modül account_sepa gereklidir.\n"
-#~ "SEPA Doğrudan Borçlandırma: İş Ortağınızın size vereceği bir yetki "
-#~ "sayesinde SEPA bölgesinde ödeme alın. Modül account_sepa gereklidir.\n"
-
-#~ msgid "Preferred Payment Method"
-#~ msgstr "Tercih Edilen Ödeme Yöntemi"
-
-#~ msgid ""
-#~ "Preferred payment method when paying this vendor. This is used to filter "
-#~ "vendor bills by preferred payment method to register payments in mass. "
-#~ "Use cases: create bank files for batch wires, check runs."
-#~ msgstr ""
-#~ "Bu satıcıya ödeme yaparken tercih edilen ödeme yöntemi. Bu, ödemeleri "
-#~ "toplu olarak kaydetmek için satıcı faturalarını tercih edilen ödeme "
-#~ "yöntemine göre filtrelemek için kullanılır. Kullanım örnekleri: toplu "
-#~ "işler için banka dosyaları oluşturun, çalıştırmaları kontrol edin."
-
-#~ msgid "Register Payment"
-#~ msgstr "Ödeme Kaydet"

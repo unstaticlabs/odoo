@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * account_edi_ubl_cii
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-07-01 00:14+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-24 16:18+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_edi_ubl_cii/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -92,16 +92,6 @@ msgstr "AE - btw verlegging"
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__as
 msgid "AS2 exchange"
 msgstr "AS2 exchange"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
-msgid "Account Move Send"
-msgstr "Boeking verzenden"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr "Wizard voor Boeking verzenden"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9923
@@ -831,6 +821,12 @@ msgid "Malta VAT"
 msgstr "Malta BTW"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Missing '_title' for multi-level constraints."
+msgstr "Ontbrekende '_title' voor beperkingen met meerdere niveaus."
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9940
 msgid "Monaco VAT"
 msgstr "Monaco BTW"
@@ -884,6 +880,12 @@ msgstr "O.F.T.P. (ODETTE File Transfer Protocol)"
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
 msgid "Odoo"
 msgstr "Odoo"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Other Errors:"
+msgstr "Overige fouten:"
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.view_partner_property_form
@@ -1010,9 +1012,19 @@ msgid "San Marino VAT"
 msgstr "San Marino BTW"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr "Wizard voor het verzenden van facturen"
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9948
 msgid "Serbia VAT"
 msgstr "Servië BTW"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr "Gedeelde functies voor wizard voor verzenden van facturen"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__ubl_sg
@@ -1074,6 +1086,11 @@ msgstr "Btw '%(tax_name)s' is niet geldig: %(error_message)s"
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_category_code
 msgid "Tax Category Code"
 msgstr "Code belastingcategorie"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason
+msgid "Tax Exemption Reason"
+msgstr "Reden voor belastingvrijstelling"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason_code
@@ -2173,6 +2190,26 @@ msgid "Z - Zero rated goods"
 msgstr "Z - Goederen met nulclassificatie"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
+"customer '%s'."
+msgstr ""
+"[PEPPOL-EN16931-R010] Voor de klant '%s' moet een elektronisch adres (EAS) "
+"worden vermeld."
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
+"company '%s'."
+msgstr ""
+"[PEPPOL-EN16931-R020] Voor het bedrijf '%s' moet een elektronisch adres "
+"(EAS) worden vermeld."
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_partner__invoice_edi_format
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_users__invoice_edi_format
 msgid "eInvoice format"
@@ -2215,9 +2252,6 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ msgid "EN 16931"
 #~ msgstr "EN 16931"
 
-#~ msgid "1.0"
-#~ msgstr "1.0"
-
 #~ msgid ""
 #~ "VATEX-FR-CGI261D-3 - Exempt based on 3° of article 261 D of the Code "
 #~ "Général des Impôts (CGI ; General tax code)"
@@ -2225,13 +2259,11 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ "VATEX-FR-CGI261D-3 - Vrijgesteld op grond van artikel 261 D, lid 3, van "
 #~ "de Code Général des Impôts (CGI; Algemene belastingwet)"
 
+#~ msgid "1.0"
+#~ msgstr "1.0"
+
 #~ msgid "Articles 226 items 11 to 15 Directive 2006/112/EN"
 #~ msgstr "Artikelen 226 punten 11 tot 15 Richtlijn 2006/112/EN"
-
-#~ msgid ""
-#~ "No gross price, net price nor line subtotal amount found for line in xml"
-#~ msgstr ""
-#~ "Geen brutoprijs, nettoprijs of subtotaal gevonden voor de regel in xml"
 
 #~ msgid "Ungrouped lines from origin file"
 #~ msgstr "Gedegroepeerde regels van oorspronkelijke bestand"
@@ -2242,29 +2274,6 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ "(leveranciersfactuur)"
 
 #~ msgid ""
-#~ "The following bank account numbers got retrieved during the import : %s"
+#~ "No gross price, net price nor line subtotal amount found for line in xml"
 #~ msgstr ""
-#~ "De volgende bankrekeningnummers zijn tijdens het importeren opgehaald: %s"
-
-#~ msgid ""
-#~ "[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
-#~ "customer '%s'."
-#~ msgstr ""
-#~ "[PEPPOL-EN16931-R010] Voor de klant '%s' moet een elektronisch adres "
-#~ "(EAS) worden vermeld."
-
-#~ msgid ""
-#~ "[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
-#~ "company '%s'."
-#~ msgstr ""
-#~ "[PEPPOL-EN16931-R020] Voor het bedrijf '%s' moet een elektronisch adres "
-#~ "(EAS) worden vermeld."
-
-#~ msgid "Your endpoint"
-#~ msgstr "Je eindpunt"
-
-#~ msgid "Australia BIS Billing 3.0 A-NZ"
-#~ msgstr "Australië BIS Billing 3.0 A-NZ"
-
-#~ msgid "Singapore BIS Billing 3.0 SG"
-#~ msgstr "Singapore BIS Billing 3.0 SG"
+#~ "Geen brutoprijs, nettoprijs of subtotaal gevonden voor de regel in xml"

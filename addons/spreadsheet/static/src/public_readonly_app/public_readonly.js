@@ -1,4 +1,4 @@
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, markRaw, onWillStart, useState } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 
 import { useSpreadsheetNotificationStore } from "@spreadsheet/hooks";
@@ -14,6 +14,7 @@ spreadsheet.registries.topbarMenuRegistry.addChild("download_public_excel", ["fi
     isReadonlyAllowed: true,
     icon: "o-spreadsheet-Icon.DOWNLOAD",
     isVisible: (env) => env.canDownloadExcel?.(),
+    isEnabledOnLockedSheet: true,
 });
 
 export class PublicReadonlySpreadsheet extends Component {
@@ -62,6 +63,7 @@ export class PublicReadonlySpreadsheet extends Component {
             },
             this.data.revisions || []
         );
+        markRaw(this.model);
         if (this.env.debug) {
             // eslint-disable-next-line no-import-assign
             spreadsheet.__DEBUG__ = spreadsheet.__DEBUG__ || {};

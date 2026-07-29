@@ -24,23 +24,23 @@
 # Konsta Aavaranta, 2023
 # Jesse Järvi <me@jessejarvi.net>, 2023
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 20:32+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-01-16 06:55+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/portal/"
-"fi/>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-1/"
+"portal/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -52,6 +52,11 @@ msgstr "\" vahvistamaan toimintasi."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s päivää yli määräajan"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -79,11 +84,8 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> "
-"Kirjaudu ulos"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
@@ -135,16 +137,6 @@ msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 msgstr ""
 "<i title=\"Dokumentaatio\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">Maa...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">Osavaltio / maakunta...</option>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -275,7 +267,7 @@ msgstr "Lisää tekstirivi"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.my_addresses
 msgid "Add an address"
-msgstr "Lisää osoite"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -294,7 +286,7 @@ msgid "Add extra content to display in the email"
 msgstr "Lisää sisältöä joka näytetään sähköpostissa"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "Lisää, poista tai muuta osoitteita"
 
@@ -309,8 +301,8 @@ msgid "Address Management"
 msgstr "Osoitteiden hallinta"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "Osoitteet"
 
@@ -347,10 +339,9 @@ msgid "Billing address"
 msgstr "Laskutusosoite"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "Peruuta"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -409,12 +400,17 @@ msgid "Company Name"
 msgstr "Yrityksen nimi"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "Asetukset"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "Määrittele, miten haluat kirjautua"
 
@@ -431,7 +427,11 @@ msgid "Confirm Password"
 msgstr "Vahvista salasana"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "Yhteys &amp; Turvallisuus"
@@ -459,7 +459,7 @@ msgstr "Yhteystiedot"
 #. odoo-javascript
 #: code:addons/portal/static/src/interactions/portal_composer.js:0
 msgid "Could not save file %s"
-msgstr "Tiedoston %s tallentaminen ei onnistunut"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -467,11 +467,17 @@ msgid "Country"
 msgstr "Maa"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "Luo asiakas"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -479,6 +485,7 @@ msgid "Created by"
 msgstr "Luonut"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -533,6 +540,11 @@ msgid "Description"
 msgstr "Kuvaus"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "Tiedot"
@@ -561,11 +573,17 @@ msgstr ""
 "                                       </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -681,6 +699,7 @@ msgstr "Aloitussivu"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -707,6 +726,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "Jos haluat muokata sitä, päivitä"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -773,6 +797,7 @@ msgstr ""
 "                ja täydellinen,"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -780,6 +805,7 @@ msgid "Last Updated by"
 msgstr "Viimeksi päivittänyt"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -810,7 +836,7 @@ msgstr "Kirjaudu ulos kaikista laitteista"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_card
 msgid "Main Address"
-msgstr "Pääosoite"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_mail_message
@@ -821,8 +847,8 @@ msgstr "Viesti"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
 "Malli %(model_name)s ei tue tunnuksella allekirjoittamista, koska sillä ei "
 "ole %(field_name)s -kenttää."
@@ -915,6 +941,11 @@ msgid "Phone"
 msgstr "Puhelin"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -931,6 +962,11 @@ msgstr "Portaalin käyttöoikeuksien hallinta"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "Portaalin osoite"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -999,7 +1035,7 @@ msgstr "Liittyvä dokumenttimalli"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_card
 msgid "Remove this address"
-msgstr "Poista tämä osoite"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
@@ -1087,6 +1123,11 @@ msgid "Show As Optional Inherit"
 msgstr "Näytä valinnaisena periytymisenä"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "Kirjaudu sisään"
@@ -1117,6 +1158,11 @@ msgid "State / Province"
 msgstr "Osavaltio / provinssi"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "Tila"
@@ -1125,6 +1171,11 @@ msgstr "Tila"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "Katu ja numero"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1264,6 +1315,11 @@ msgstr ""
 "Tämä teksti liitetään uudelle portaalikäyttäjälle lähetettävään sähköpostiin."
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
 msgstr "Kytke suotimet"
@@ -1277,7 +1333,7 @@ msgstr "Käyttäjä"
 #. odoo-python
 #: code:addons/portal/controllers/portal.py:0
 msgid "User Dashboard"
-msgstr "Käyttäjän koontinäyttö"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__user_ids
@@ -1330,9 +1386,9 @@ msgstr "Näytä"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1368,9 +1424,9 @@ msgstr "Verkkosivun ilmoitukset"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1405,7 +1461,7 @@ msgstr "Kirjoita viesti..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "Kirjoita viesti.."
 
@@ -1448,6 +1504,12 @@ msgstr "Sinun pitäisi kirjoittaa \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "Sinun tulisi ensin myöntää portaalin käyttöoikeus kumppanille \"%s\"."
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1497,9 +1559,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "salasana"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1517,144 +1579,3 @@ msgstr "käyttäjätilillesi, on erittäin tärkeää säilyttää se turvallise
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "tilisi tiedot"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> My Account"
-#~ msgstr "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> Oma tili"
-
-#~ msgid "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> Logout"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> Kirjaudu ulos"
-
-#~ msgid "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> Apps"
-#~ msgstr "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> Sovellukset"
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>Muokkaa suojausasetuksia"
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> Muokkaa"
-
-#~ msgid ""
-#~ "<small class=\"form-text text-muted\">Changing company name or VAT number "
-#~ "is not allowed once document(s) have been issued for your account. <br/"
-#~ ">Please contact us directly for this operation.</small>"
-#~ msgstr ""
-#~ "<small class=\"form-text text-muted\">Yrityksen nimen tai ALV-numeron "
-#~ "muuttaminen ei ole sallittua, kun tiliäsi koskevat asiakirjat on "
-#~ "asetettu. <br/>Ota meihin suoraan yhteyttä tätä toimenpidettä varten.</"
-#~ "small>"
-
-#~ msgid "Account Security"
-#~ msgstr "Tilin tietoturva"
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "Jokaisella liitteellä on oltava pääsytunniste."
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "Yrityksen nimen muuttaminen ei ole sallittua sen jälkeen kun dokumentti "
-#~ "on liitetty tiliisi. Jos tämä toiminto täytyy tehdä, ota meihin yhteyttä."
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr ""
-#~ "Vahvista\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "Tallentaminen epäonnistui tiedostolle <strong>%s</strong>"
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr ""
-#~ "Tämä dokumentti on tällä hetkellä kaikkien katselijoiden nähtävillä. "
-#~ "Klikkaa, jos haluat rajoittaa katseluoikeudet sisäisiin työntekijöihin."
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr ""
-#~ "Tämä dokumentti on tällä hetkellä rajoitettu sisäisille työntekijöille. "
-#~ "Klikkaa, jos haluat, että se on kaikkien nähtävillä."
-
-#~ msgid "Discard"
-#~ msgstr "Hylkää"
-
-#~ msgid "Documents"
-#~ msgstr "Dokumentit"
-
-#~ msgid "Employees Only"
-#~ msgstr "Vain työntekijät"
-
-#~ msgid "Internal Note"
-#~ msgstr "Sisäinen muistiinpano"
-
-#~ msgid "Internal notes are only displayed to internal users."
-#~ msgstr "Sisäiset muistiinpanot näkyvät vain sisäisille käyttäjille."
-
-#~ msgid "Invitation email to contacts to create a user account"
-#~ msgstr "Kutsu sähköpostitse yhteystietoja käyttäjätilin luomista varten"
-
-#~ msgid "Name"
-#~ msgstr "Nimi"
-
-#~ msgid "No Documents to display"
-#~ msgstr "Ei näytettäviä asiakirjoja"
-
-#~ msgid "Portal: User Invite"
-#~ msgstr "Portaali: Kutsu käyttäjä"
-
-#~ msgid "Prev"
-#~ msgstr "Edellinen"
-
-#~ msgid "Published on %s"
-#~ msgstr "Julkaistu %s"
-
-#~ msgid "Street"
-#~ msgstr "Katuosoite"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr ""
-#~ "Liitettä %s ei ole olemassa, tai sinulla ei ole oikeuksia nähdä sitä."
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr ""
-#~ "Dokumenttia ei ole olemassa, tai sinulla ei ole oikeuksia nähdä sitä."
-
-#~ msgid "There are no comments for now."
-#~ msgstr "Ei kommentteja tällä hetkellä."
-
-#~ msgid "VAT Number"
-#~ msgstr "Y-tunnus"
-
-#~ msgid "Visible"
-#~ msgstr "Näytetään"
-
-#~ msgid "You are invited to access %s"
-#~ msgstr "Sinulle on myönnetty pääsy %s"
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "Sinut on kutsuttu seuraamaan dokumenttia:"
-
-#~ msgid "Your account at {{ object.user_id.company_id.name }}"
-#~ msgstr "Tilisi {{ object.user_id.company_id.name }}"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "Postinumero"
-
-#~ msgid "avatar"
-#~ msgstr "avatar"
-
-#~ msgid "comment"
-#~ msgstr "kommentti"
-
-#~ msgid "comments"
-#~ msgstr "kommenttia"

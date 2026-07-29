@@ -3,7 +3,7 @@ import { ProductAttribute } from "@point_of_sale/../tests/unit/data/product_attr
 ProductAttribute._records = [
     ...ProductAttribute._records,
     {
-        id: 9,
+        id: 101,
         name: "Packaging",
         display_type: "radio",
         template_value_ids: [],

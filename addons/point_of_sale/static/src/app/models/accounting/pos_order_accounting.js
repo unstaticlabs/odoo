@@ -81,8 +81,7 @@ export class PosOrderAccounting extends Base {
      */
     get remainingDue() {
         const isNegative = this.totalDue < 0;
-        const total = this.totalDue;
-        const remaining = this.currency.round(total - this.amountPaid);
+        const remaining = this.currency.round(this.totalDue - this.amountPaid);
 
         // Amount paid covers the total due
         if ((isNegative && remaining >= 0) || (!isNegative && remaining <= 0)) {
@@ -101,7 +100,7 @@ export class PosOrderAccounting extends Base {
         const roundingSanatizer = this.orderIsRounded ? this.appliedRounding : 0;
         const remaining = this.totalDue - this.amountPaid;
 
-        // Amount paid covers the total due
+        // Amount paid does not exceed total due
         if ((isNegative && remaining <= 0) || (!isNegative && remaining >= 0)) {
             return 0;
         }
@@ -159,9 +158,6 @@ export class PosOrderAccounting extends Base {
     }
     get priceIncl() {
         return this.prices.taxDetails.total_amount_no_rounding;
-    }
-    get roundedPriceIncl() {
-        return this.prices.taxDetails.total_amount_currency;
     }
     get priceExcl() {
         return this.prices.taxDetails.base_amount;
@@ -257,9 +253,7 @@ export class PosOrderAccounting extends Base {
      */
     _constructPriceData(opts = {}) {
         const data = this._computeAllPrices(opts);
-        const addedBlOpts = opts.baseLineOpts || {};
-        const ndBaseLineOpts = { ...addedBlOpts, discount: 0.0 };
-        const noDiscount = this._computeAllPrices({ ...opts, baseLineOpts: ndBaseLineOpts });
+        const noDiscount = this._computeAllPrices({ baseLineOpts: { discount: 0.0 }, ...opts });
         const currency = this.currency;
 
         for (const key of Object.keys(data.baseLineByLineUuids)) {
@@ -268,6 +262,7 @@ export class PosOrderAccounting extends Base {
 
             Object.assign(data.baseLineByLineUuids[key].tax_details, {
                 discount_amount: currency.round(ndData.total_included - dData.total_included),
+                no_discount_price_unit: ndData.price_unit_currency,
                 no_discount_total_excluded: ndData.total_excluded,
                 no_discount_total_included: ndData.total_included,
                 no_discount_total_included_currency: ndData.total_included_currency,

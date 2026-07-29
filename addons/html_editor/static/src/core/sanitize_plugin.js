@@ -34,7 +34,7 @@ export class SanitizePlugin extends Plugin {
         }
         elem = this.DOMPurify.sanitize(elem, {
             IN_PLACE: true,
-            ADD_TAGS: ["#document-fragment", "fake-el"],
+            ADD_TAGS: ["#document-fragment", "fake-el", "t"],
             ADD_ATTR: ["contenteditable", "t-field", "t-out", "t-esc"],
         });
         for (const cb of this.getResource("after_sanitize_processors")) {

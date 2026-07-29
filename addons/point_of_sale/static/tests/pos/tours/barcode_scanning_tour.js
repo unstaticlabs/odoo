@@ -3,6 +3,7 @@ import * as ProductConfiguratorPopup from "@point_of_sale/../tests/pos/tours/uti
 import * as Order from "@point_of_sale/../tests/generic_helpers/order_widget_util";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
+import * as Notification from "@point_of_sale/../tests/generic_helpers/notification_util";
 import { registry } from "@web/core/registry";
 import { scan_barcode } from "@point_of_sale/../tests/generic_helpers/utils";
 import { inLeftSide } from "@point_of_sale/../tests/pos/tours/utils/common";
@@ -111,6 +112,10 @@ registry.category("web_tour.tours").add("BarcodeScanPartnerTour", {
             // scan the customer barcode
             scan_barcode("0421234567890"),
             ProductScreen.customerIsSelected("John Doe"),
+            scan_barcode("0241234567890"),
+            Notification.has(
+                "Unknown Barcode 0241234567890. The Point of Sale could not find any product, customer, employee or action associated with the scanned barcode."
+            ),
             Chrome.endTour(),
         ].flat(),
 });

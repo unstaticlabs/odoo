@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'eLearning',
     'version': '2.7',
@@ -24,10 +23,12 @@ Featuring
         'website',
         'website_mail',
         'website_profile',
+        'digest'
     ],
     'data': [
         'security/website_slides_security.xml',
         'security/ir.model.access.csv',
+        'views/digest_views.xml',
         'views/gamification_karma_tracking_views.xml',
         'views/mail_activity_views.xml',
         'views/res_config_settings_views.xml',
@@ -51,10 +52,10 @@ Featuring
         'views/website_pages_views.xml',
         'views/slide_channel_add.xml',
         'wizard/slide_channel_invite_views.xml',
+        'data/digest_data.xml',
         'data/gamification_data.xml',
         'data/mail_message_subtype_data.xml',
         'data/mail_template_data.xml',
-        'data/mail_templates.xml',
         'data/slide_data.xml',
         'data/website_data.xml',
         'data/slides_tour.xml',
@@ -67,11 +68,9 @@ Featuring
         'data/slide_user_demo.xml',
         'data/slide_user_gamification_demo.xml',
     ],
-    'installable': True,
     'application': True,
     'assets': {
         'web.assets_backend': [
-            'website_slides/static/src/activity/**/*',
             'website_slides/static/src/core/**/*',
             'website_slides/static/src/slide_category_one2many_field.js',
             'website_slides/static/src/slide_category_list_renderer.js',
@@ -83,21 +82,16 @@ Featuring
         ],
         'web.assets_frontend': [
             'website_slides/static/src/interactions/**/*',
+            'website_slides/static/src/js/slides_course_service.js',
+            'website_slides/static/src/js/utils.js',
             'website_slides/static/src/scss/website_slides.scss',
             'website_slides/static/src/scss/website_slides_profile.scss',
             'website_slides/static/src/scss/slides_slide_fullscreen.scss',
-            'website_slides/static/src/js/slides_course_page.js',
-            'website_slides/static/src/js/slides_course_slides_list.js',
-            'website_slides/static/src/js/slides_course_fullscreen_player.js',
-            'website_slides/static/src/js/slides_course_join.js',
-            'website_slides/static/src/js/slides_course_quiz.js',
-            'website_slides/static/src/js/slides_course_quiz_question_form.js',
             'website_slides/static/src/xml/website_slides_sidebar.xml',
             'website_slides/static/src/xml/website_slides_fullscreen.xml',
             'website_slides/static/src/xml/slide_management.xml',
             'website_slides/static/src/xml/slide_course_join.xml',
             'website_slides/static/src/xml/slide_course_prerequisite.xml',
-            'website_slides/static/src/xml/slide_quiz_create.xml',
             'website_slides/static/src/xml/slide_quiz.xml',
             'website_slides/static/src/js/public/**/*',
         ],
@@ -120,11 +114,9 @@ Featuring
 
             ('include', 'web._assets_bootstrap_frontend'),
 
-            'web/static/src/libs/fontawesome/css/font-awesome.css',
-            'web/static/lib/odoo_ui_icons/*',
+            ('include', 'web.icons_fonts'),
             'web/static/src/webclient/navbar/navbar.scss',
             'web/static/src/scss/animation.scss',
-            'web/static/src/scss/fontawesome_overridden.scss',
             'web/static/src/scss/mimetypes.scss',
             'web/static/src/scss/ui.scss',
             'web/static/src/core/color_picker/color_picker.scss',
@@ -136,6 +128,7 @@ Featuring
             'web/static/src/session.js',
 
             'web/static/lib/luxon/luxon.js',
+            'web/static/src/libs/luxon.js',
             'web/static/lib/owl/owl.js',
             'web/static/lib/owl/odoo_module.js',
             'web/static/lib/jquery/jquery.js',
@@ -184,6 +177,8 @@ Featuring
         'web.assets_unit_tests_setup': [
             'website_slides/static/src/interactions/**/*',
             'website_slides/static/src/js/public/**/*',
+            'website_slides/static/src/js/slides_course_service.js',
+            'website_slides/static/src/js/utils.js',
         ],
         'website.website_builder_assets': [
             'website_slides/static/src/website_builder/**/*',
@@ -195,7 +190,7 @@ Featuring
             "website_slides/static/src/core/common/**/*",
         ],
         'portal.assets_chatter': [
-            'website_slides/static/src/chatter/frontend/**/*',
+            'website_slides/static/src/chatter/portal/**/*',
         ],
         "portal.assets_chatter_helpers": [
             "website_slides/static/src/core/common/**/*",

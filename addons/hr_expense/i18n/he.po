@@ -25,14 +25,13 @@
 # שהאב חוסיין <shhab89@gmail.com>, 2023
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025.
-# or balmas <or@laylinetech.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-07-01 03:54+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"PO-Revision-Date: 2025-11-08 21:52+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense/he/>\n"
 "Language: he\n"
@@ -41,7 +40,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -91,6 +90,11 @@ msgstr ""
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
 msgstr ""
 
 #. module: hr_expense
@@ -151,6 +155,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr "<span>הסכום הכולל לא תואם לסכום המקורי.</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "חשבון"
@@ -185,6 +199,11 @@ msgstr "פעילויות"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "סימון פעילות חריגה"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -262,7 +281,9 @@ msgstr "צפוי חשבון הוצאות"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
 msgstr ""
 
 #. module: hr_expense
@@ -384,14 +405,6 @@ msgid "Can Reset"
 msgstr "יכול לאפס"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "בטל"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -420,10 +433,6 @@ msgstr "אסמכתה"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "חברות"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -508,7 +517,6 @@ msgstr "שער מטבע"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "יקר"
 
@@ -595,12 +603,6 @@ msgid "Domain"
 msgstr "דומיין"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "הורד את האפליקציה"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -612,6 +614,12 @@ msgstr "טיוטה"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "הוצאה כפולה"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -646,6 +654,18 @@ msgid "Employee Expenses"
 msgstr "הוצאות עובד"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -653,6 +673,8 @@ msgid ""
 msgstr ""
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -687,7 +709,6 @@ msgstr "אשר הוצאות כפולות"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "אישור הוצאות"
 
@@ -797,11 +818,6 @@ msgid "Expense split"
 msgstr "פיצול הוצאה"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -835,11 +851,6 @@ msgid "Expenses Report"
 msgstr "דוח הוצאות"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -851,6 +862,7 @@ msgid "Expenses of Your Team Member"
 msgstr "הוצאות של חבר הצוות שלך"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr ""
@@ -939,14 +951,14 @@ msgid "Guideline"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "יש הודעה"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1113,6 +1125,11 @@ msgid "Label Currency Rate"
 msgstr "תווית שער מטבע"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1254,13 +1271,6 @@ msgstr "שם"
 #. odoo-python
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
-msgstr ""
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
 msgstr ""
 
 #. module: hr_expense
@@ -1468,6 +1478,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "אמצעי תשלום"
@@ -1493,11 +1508,6 @@ msgstr "אמצעי תשלום"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr ""
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "תשלומים"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1694,6 +1704,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "שגיאה בשליחת SMS"
@@ -1721,9 +1736,9 @@ msgid "Scan"
 msgstr "סרוק"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
 msgstr ""
 
 #. module: hr_expense
@@ -1805,11 +1820,6 @@ msgid "Split Possible"
 msgstr ""
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1835,6 +1845,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "שלח"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1908,6 +1924,11 @@ msgstr "מיסים"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "מאשר צוות"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -1993,9 +2014,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
 
 #. module: hr_expense
@@ -2115,9 +2135,9 @@ msgid "Untaxed Amount"
 msgstr "סכום ללא מע\"מ"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
 msgstr ""
 
 #. module: hr_expense
@@ -2153,11 +2173,6 @@ msgstr "ספק"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "הצג הוצאה"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2206,12 +2221,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "אשף"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr ""
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2311,6 +2320,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr ""
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2338,14 +2352,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
-msgstr ""
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
 msgstr ""
 
 #. module: hr_expense
@@ -2420,249 +2426,3 @@ msgstr ""
 
 #~ msgid "2023-08-11"
 #~ msgstr "11/08/2023"
-
-#~ msgid "View Attachments"
-#~ msgstr "צפה בקבצים מצורפים"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "הגדרות חשבונאות"
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'הוצאות - %s - %s' % (object.employee_id.name, (object.name).replace('/', "
-#~ "''))"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>תאריך:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>תיאור:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>עובד:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>שולם ע\"י:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>סה\"כ</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>אושר ע\"י:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "כל דוחות ההוצאות"
-
-#~ msgid "All Reports"
-#~ msgstr "כל הדיווחים"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr "דוח הוצאות צריך להכיל רק שורות מאותה חברה."
-
-#~ msgid "Apple App Store"
-#~ msgstr "חנות היישומים של אפל"
-
-#~ msgid "Approve Report"
-#~ msgstr "דוח אישור"
-
-#~ msgid "Bill Reference"
-#~ msgstr "מזהה חשבונית"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "ניתן לרשום כהוצאה"
-
-#~ msgid "Categories"
-#~ msgstr "קטגוריות"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "מוסמך כנה ומתאים,<br/>(תאריך ויחידה).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Create Report"
-#~ msgstr "צור דוח"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "צור דוח הוצאה חדש"
-
-#~ msgid "Date"
-#~ msgstr "תאריך"
-
-#~ msgid "Done"
-#~ msgstr "בוצע"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "כתובת הבית של העובד"
-
-#~ msgid "Expense Journal"
-#~ msgstr "יומן הוצאות"
-
-#~ msgid "Expense Lines"
-#~ msgstr "שורות הוצאה"
-
-#~ msgid "Expense Report"
-#~ msgstr "דוח הוצאות"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "תיאור דוח הוצאות"
-
-#~ msgid "Expense Reports"
-#~ msgstr "דוחות הוצאות"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "ניתוח נתוני דוחות הוצאות"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "דוחות הוצאות לאישור"
-
-#~ msgid "Expense report approved"
-#~ msgstr "דוח הוצאות אושר"
-
-#~ msgid "Expense report paid"
-#~ msgstr "דוח הוצאות שולם"
-
-#~ msgid "Expense report refused"
-#~ msgstr "דוח ההוצאות נדחה"
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "דוחות הוצאות לאישור"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "הוצאות לפי תאריך"
-
-#~ msgid "Former Employees"
-#~ msgstr "עובדים לשעבר"
-
-#~ msgid "General Information"
-#~ msgstr "מידע כללי"
-
-#~ msgid "Google Play Store"
-#~ msgstr "חנות היישומים של גוגל"
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "טפל בשורות עם מטבעות שונים"
-
-#~ msgid "Internal Note"
-#~ msgstr "הערה פנימית"
-
-#~ msgid "My Reports"
-#~ msgstr "הדוחות שלי"
-
-#~ msgid "New Expense Report"
-#~ msgstr "דוח הוצאות חדש"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr "לא נמצאה כתובת בית של העובד %s, אנא הגדר אחת."
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "מספר הודעות המחייבות פעולה"
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr "רק עובדי משאבי אנוש או העובד הנוגע בדבר יכולים לאפס לטיוטה."
-
-#~ msgid "Or"
-#~ msgstr "או"
-
-#~ msgid "Others"
-#~ msgstr "אחר"
-
-#~ msgid "Partial"
-#~ msgstr "חלקי"
-
-#~ msgid "Payment Status"
-#~ msgstr "סטטוס תשלום"
-
-#~ msgid "Price"
-#~ msgstr "מחיר"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "מחיר במטבע החברה"
-
-#~ msgid "Qty"
-#~ msgstr "כמות"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "סיבה לדחיית הוצאות"
-
-#~ msgid "Ref."
-#~ msgstr "מזהה"
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "מזהה ניתן לעריכה על ידי המשתמש הנוכחי"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "הוצאות שנדחו"
-
-#~ msgid "Register Payment"
-#~ msgstr "רשום תשלום"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "החזר הוצאות בתלושי שכר"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "החזר לטיוטה"
-
-#~ msgid "Sample"
-#~ msgstr "דגימה"
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "הגדר את כינוי הדומיין שלך"
-
-#~ msgid "Sheet"
-#~ msgstr "גליון"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "הצג את כל הרשומות שתאריך הפעולה הבא שלהן הוא עד היום"
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "יש לקבוע את היומן בהוצאות שנרשמו"
-
-#~ msgid "To Report"
-#~ msgstr "לדווח"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "UoM Category"
-#~ msgstr "קטגורית יחידת מידה"
-
-#~ msgid "User"
-#~ msgstr "משתמש"
-
-#~ msgid "View Report"
-#~ msgstr "הצג דוח"
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr "אינך מורשה לערוך את המזהה לדוח הוצאות זה."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "אינך מורשה לערוך דוח הוצאות זה."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr "אתה יכול ליצור פקודות יומן רק עבור הוצאה(ות) מאושרות."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "אינך יכול להוסיף הוצאות של עובד אחר."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "אינך יכול למחוק הוצאה שנרשמה או שולמה."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr "אינך יכול לדווח על הוצאות עבור עובדים שונים באותו דוח."
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "אינך יכול לדווח פעמיים על אותה שורה!"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "למשל טיול בניו יורק"

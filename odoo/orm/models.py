@@ -23,14 +23,12 @@ from __future__ import annotations
 
 import collections
 import contextlib
-import datetime
 import functools
 import inspect
 import itertools
 import io
 import json
 import logging
-import pytz
 import re
 import typing
 import uuid
@@ -40,23 +38,21 @@ from collections.abc import Callable, Mapping
 from inspect import getmembers
 from operator import attrgetter, itemgetter
 
-import babel
-import babel.dates
 import psycopg2.errors
 import psycopg2.extensions
 from psycopg2.extras import Json
 
 from odoo.exceptions import AccessError, LockError, MissingError, ValidationError, UserError
 from odoo.tools import (
-    clean_context, date_utils,
-    DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, format_list,
+    clean_context, format_list,
     frozendict, get_lang, OrderedSet,
-    ormcache, partition, Query, split_every, unique,
+    ormcache, partition, split_every, unique,
     SQL, sql, groupby,
 )
 from odoo.tools.constants import PREFETCH_MAX
 from odoo.tools.lru import LRU
 from odoo.tools.misc import ReversedIterable, exception_to_unicode, unquote
+from odoo.tools.safe_eval import _UNSAFE_ATTRIBUTES
 from odoo.tools.translate import _, LazyTranslate
 
 from . import decorators as api
@@ -65,25 +61,24 @@ from .domains import Domain
 from .fields import Field, determine
 from .fields_misc import Id
 from .fields_temporal import Date, Datetime
-from .fields_textual import Char
+from .fields_textual import Char, StoredTranslations
 
 from .identifiers import NewId
+from .query import Query, TableSQL
 from .utils import (
-    OriginIds, check_object_name, parse_field_expr,
+    OriginIds, Prefetch, check_object_name, parse_field_expr,
     COLLECTION_TYPES, SQL_OPERATORS,
-    READ_GROUP_ALL_TIME_GRANULARITY, READ_GROUP_TIME_GRANULARITY, READ_GROUP_NUMBER_GRANULARITY,
     SUPERUSER_ID,
 )
 
 if typing.TYPE_CHECKING:
     from collections.abc import Collection, Iterable, Iterator, Reversible, Sequence
     from types import MappingProxyType
+    from typing import Self
     from .table_objects import TableObject
     from .environments import Environment
     from .registry import Registry, TriggerTree
-    from .types import Self, DomainType, IdType, ModelType, ValuesType
-
-    T = typing.TypeVar('T')
+    from .types import DomainType, IdType, ModelType, ValuesType
 
 
 _lt = LazyTranslate('base')
@@ -203,6 +198,35 @@ def check_companies_domain_parent_of(self, companies):
     ])]
 
 
+def get_public_method(model: BaseModel, name: str) -> callable:
+    """ Get the public unbound method from a model.
+
+    When the method does not exist or is inaccessible, raise appropriate errors.
+    Accessible methods are public (in sense that python defined it:
+    not prefixed with "_") and are not decorated with `@api.private`.
+    """
+    assert isinstance(model, BaseModel)
+    e = f"Private methods (such as '{model._name}.{name}') cannot be called remotely."
+    if name.startswith('_') or name in _UNSAFE_ATTRIBUTES:
+        raise AccessError(e)
+
+    cls = type(model)
+    method = getattr(cls, name, None)
+    if not callable(method):
+        raise AttributeError(f"The method '{model._name}.{name}' does not exist")  # noqa: TRY004
+    if method == getattr(model, name, None):  # classmethod, staticmethod
+        e = f"The method '{model._name}.{name}' cannot be called remotely."
+        raise AccessError(e)
+
+    for mro_cls in cls.mro():
+        if not (cla_method := getattr(mro_cls, name, None)):
+            continue
+        if getattr(cla_method, '_api_private', False):
+            raise AccessError(e)
+
+    return method
+
+
 class MetaModel(type):
     """ The metaclass of all model classes.
         Its main purpose is to register the models per module.
@@ -267,10 +291,6 @@ class MetaModel(type):
 
         if not self._abstract and self._name not in self._inherit:
             # this class defines a model: add magic fields
-            def add(name, field):
-                setattr(self, name, field)
-                field.__set_name__(self, name)
-
             def add_default(name, field):
                 if name not in attrs:
                     setattr(self, name, field)
@@ -304,10 +324,10 @@ READ_GROUP_AGGREGATE = {
     'min': lambda table, expr: SQL('MIN(%s)', expr),
     'bool_and': lambda table, expr: SQL('BOOL_AND(%s)', expr),
     'bool_or': lambda table, expr: SQL('BOOL_OR(%s)', expr),
-    'array_agg': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, SQL.identifier(table, 'id')),
+    'array_agg': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, table.id),
     'array_agg_distinct': lambda table, expr: SQL('ARRAY_AGG(DISTINCT %s ORDER BY %s)', expr, expr),
     # 'recordset' aggregates will be post-processed to become recordsets
-    'recordset': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, SQL.identifier(table, 'id')),
+    'recordset': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, table.id),
     'count': lambda table, expr: SQL('COUNT(%s)', expr),
     'count_distinct': lambda table, expr: SQL('COUNT(DISTINCT %s)', expr),
 }
@@ -404,7 +424,7 @@ class BaseModel(metaclass=MetaModel):
         * If :attr:`._name` is set, name(s) of parent models to inherit from
         * If :attr:`._name` is unset, name of a single model to extend in-place
     """
-    _inherits: frozendict[str, str] = frozendict()
+    _inherits: Mapping[str, str] = frozendict()
     """dictionary {'parent_model': 'm2o_field'} mapping the _name of the parent business
     objects to the names of the corresponding foreign key fields to use::
 
@@ -447,6 +467,12 @@ class BaseModel(metaclass=MetaModel):
     """
     _fold_name: str = 'fold'         #: field to determine folded groups in kanban views
 
+    _clear_cache_name: str = ''      # cache to clear on create/write/update
+    _clear_cache_on_fields: Iterable[str] | None = None
+    """the fields that trigger invalidation of cache named ``_clear_cache_name``,
+    ``None`` meaning all fields
+    """
+
     _translate: bool = True           # False disables translations export for this model (Old API) TODO deprecate/remove
     _check_company_auto: bool = False
     """On write and create, call ``_check_company`` to ensure companies
@@ -461,7 +487,7 @@ class BaseModel(metaclass=MetaModel):
     through an environment using `sudo` or a more privileged user.
     """
 
-    _depends: frozendict[str, Iterable[str]] = frozendict()
+    _depends: Mapping[str, Iterable[str]] = frozendict()
     """dependencies of models backed up by SQL views
     ``{model_name: field_names}``, where ``field_names`` is an iterable.
     This is only used to determine the changes to flush to database before
@@ -510,10 +536,7 @@ class BaseModel(metaclass=MetaModel):
                 models.append(model)
                 fields_to_flush.extend(model._fields[fname] for fname in field_names)
 
-        return SQL().join([
-            table_sql,
-            *(SQL(to_flush=field) for field in fields_to_flush),
-        ])
+        return SQL("%s", table_sql, to_flush=fields_to_flush)
 
     @property
     def _constraint_methods(self):
@@ -1415,7 +1438,17 @@ class BaseModel(metaclass=MetaModel):
 
         fields_to_fetch = self._determine_fields_to_fetch(field_names)
 
-        return self._fetch_query(query, fields_to_fetch)
+        fetched = self._fetch_query(query, fields_to_fetch)
+        if not self.env.su:
+            self.env._add_to_access_cache(fetched)
+
+        # force computation of fields
+        for field_name in (field_names or ()):
+            field = self._fields[field_name]
+            if not field.store and any(field._cache_missing_ids(fetched)):
+                fetched.mapped(field_name)
+
+        return fetched
 
     #
     # display_name, name_create, name_search
@@ -1546,16 +1579,14 @@ class BaseModel(metaclass=MetaModel):
     def _add_missing_default_values(self, values: ValuesType) -> ValuesType:
         # avoid overriding inherited values when parent is set
         avoid_models = set()
-
-        def collect_models_to_avoid(model):
-            for parent_mname, parent_fname in model._inherits.items():
+        avoid_models_stack = [self]
+        while avoid_models_stack:
+            for parent_mname, parent_fname in avoid_models_stack.pop()._inherits.items():
                 if parent_fname in values:
                     avoid_models.add(parent_mname)
                 else:
                     # manage the case where an ancestor parent field is set
-                    collect_models_to_avoid(self.env[parent_mname])
-
-        collect_models_to_avoid(self)
+                    avoid_models_stack.append(self.env[parent_mname])
 
         def avoid(field):
             # check whether the field is inherited from one of avoid_models
@@ -1754,10 +1785,10 @@ class BaseModel(metaclass=MetaModel):
 
         # --- SQL Query Construction ---
         groupby_terms: dict[str, SQL] = {
-            spec: self._read_group_groupby(self._table, spec, query) for spec in all_groupby_specs
+            spec: self._read_group_groupby(query.table, spec) for spec in all_groupby_specs
         }
         aggregates_terms: list[SQL] = [
-            self._read_group_select(spec, query) for spec in aggregates
+            self._read_group_select(query.table, spec) for spec in aggregates
         ]
         if groupby_terms:
             # grouping_select_sql: GROUPING(a, b)
@@ -1769,7 +1800,7 @@ class BaseModel(metaclass=MetaModel):
         select_args = [grouping_select_sql, *groupby_terms.values(), *aggregates_terms]
 
         # _read_group_orderby may change groupby_terms then it is necessary to be call before
-        query.order = self._read_group_orderby(order, groupby_terms, query)
+        query.order = self._read_group_orderby(query.table, order, groupby_terms)
         # GROUPING SET ((a, b), (a), ())
         grouping_sets_sql = [
             SQL("(%s)", SQL(", ").join(groupby_terms[groupby_spec] for groupby_spec in grouping_set))
@@ -1915,18 +1946,18 @@ class BaseModel(metaclass=MetaModel):
         query.offset = offset
 
         groupby_terms: dict[str, SQL] = {
-            spec: self._read_group_groupby(self._table, spec, query)
+            spec: self._read_group_groupby(query.table, spec)
             for spec in groupby
         }
         aggregates_terms: list[SQL] = [
-            self._read_group_select(spec, query)
+            self._read_group_select(query.table, spec)
             for spec in aggregates
         ]
         select_args = [*[groupby_terms[spec] for spec in groupby], *aggregates_terms]
         if groupby_terms:
-            query.order = self._read_group_orderby(order, groupby_terms, query)
+            query.order = self._read_group_orderby(query.table, order, groupby_terms)
             query.groupby = SQL(", ").join(groupby_terms.values())
-            query.having = self._read_group_having(list(having), query)
+            query.having = self._read_group_having(query.table, list(having))
 
         # row_values: [(a1, b1, c1), (a2, b2, c2), ...]
         row_values = self.env.execute_query(query.select(*select_args))
@@ -1950,7 +1981,7 @@ class BaseModel(metaclass=MetaModel):
         # return [(a1, b1, c1), (a2, b2, c2), ...]
         return list(zip(*column_result))
 
-    def _read_group_select(self, aggregate_spec: str, query: Query) -> SQL:
+    def _read_group_select(self, table: TableSQL, aggregate_spec: str) -> SQL:
         """ Return <SQL expression> corresponding to the given aggregation.
         The method also checks whether the fields used in the aggregate are
         accessible for reading.
@@ -1968,39 +1999,25 @@ class BaseModel(metaclass=MetaModel):
         if not func:
             raise ValueError(f"Aggregate method is mandatory for {fname!r}")
 
+        table = table._with_model(table._model.with_context(_generating_sql_for_fields=True))
         field = self._fields[fname]
         if func == 'sum_currency':
             if field.type != 'monetary':
                 raise ValueError(f'Aggregator "sum_currency" only works on currency field for {fname!r}')
 
-            CurrencyRate = self.env['res.currency.rate']
-            rate_subquery_table = SQL(
-                """(SELECT DISTINCT ON (%(currency_field_sql)s) %(currency_field_sql)s, %(rate_field_sql)s
-                    FROM "res_currency_rate"
-                    WHERE %(company_field_sql)s IS NULL OR %(company_field_sql)s = %(company_id)s
-                    ORDER BY
-                        %(currency_field_sql)s,
-                        %(company_field_sql)s,
-                        CASE WHEN %(name_field_sql)s <= %(today)s THEN %(name_field_sql)s END DESC,
-                        CASE WHEN %(name_field_sql)s > %(today)s THEN %(name_field_sql)s END ASC)
-                """,
-                currency_field_sql=CurrencyRate._field_to_sql(CurrencyRate._table, 'currency_id'),
-                rate_field_sql=CurrencyRate._field_to_sql(CurrencyRate._table, 'rate'),
-                company_field_sql=CurrencyRate._field_to_sql(CurrencyRate._table, 'company_id'),
-                company_id=self.env.company.root_id.id,
-                name_field_sql=CurrencyRate._field_to_sql(CurrencyRate._table, 'name'),
-                today=Date.context_today(self),
-            )
             currency_field_name = field.get_currency_field(self)
-            alias_rate = query.make_alias(self._table, f'{currency_field_name}__rates')
-            currency_field_sql = self._field_to_sql(self._table, currency_field_name, query)
-            condition = SQL("%s = %s", currency_field_sql, SQL.identifier(alias_rate, "currency_id"))
-            query.add_join('LEFT JOIN', alias_rate, rate_subquery_table, condition)
+            rate_subquery_table = SQL(
+                "(%s)",
+                self.env['res.currency']._get_rates_query(self.env.company, Date.context_today(self)),
+            )
+            alias_rate = table._make_alias(f'{currency_field_name}__rates')
+            condition = SQL("%s = %s", table[currency_field_name], alias_rate.id)
+            table._query.add_join('LEFT JOIN', alias_rate, rate_subquery_table, condition)
 
             return SQL(
                 "SUM(%s / COALESCE(%s, 1.0))",
-                self._field_to_sql(self._table, fname, query),
-                SQL.identifier(alias_rate, "rate"),
+                table[fname],
+                alias_rate.rate,
             )
 
         if func not in READ_GROUP_AGGREGATE:
@@ -2009,116 +2026,59 @@ class BaseModel(metaclass=MetaModel):
         if func == 'recordset' and not (field.relational or fname == 'id'):
             raise ValueError(f"Aggregate method {func!r} can be only used on relational field (or id) (for {aggregate_spec!r}).")
 
-        sql_field = self._field_to_sql(self._table, fname, query)
-        return READ_GROUP_AGGREGATE[func](self._table, sql_field)
+        sql_field = table[fname]
+        return READ_GROUP_AGGREGATE[func](table, sql_field)
 
-    def _read_group_groupby(self, alias: str, groupby_spec: str, query: Query) -> SQL:
+    def _read_group_groupby(self, table: TableSQL, groupby_spec: str) -> SQL:
         """ Return <SQL expression> corresponding to the given groupby element.
         The method also checks whether the fields used in the groupby are
         accessible for reading.
         """
         fname, seq_fnames, granularity = parse_read_group_spec(groupby_spec)
+
+        assert table._model._name == self._name
         if fname not in self._fields:
             raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
-
         field = self._fields[fname]
+        table = table._with_model(table._model.with_context(_generating_sql_for_fields=True))
 
         if field.type == 'properties':
-            sql_expr = self._read_group_groupby_properties(alias, field, seq_fnames, query)
+            sql_expr = table[fname][seq_fnames]
+            if granularity:
+                try:
+                    sql_expr = sql_expr[granularity]
+                except (TypeError, AttributeError, ValueError):
+                    raise ValueError(f"Invalid granularity in {groupby_spec!r}")
+
+            return sql_expr
 
         elif seq_fnames:
             if field.type != 'many2one':
                 raise ValueError(f"Only many2one path is accepted for the {groupby_spec!r} groupby spec")
 
-            comodel = self.env[field.comodel_name]
-            coquery = comodel.with_context(active_test=False)._search([])
-            if self.env.su or not coquery.where_clause:
-                coalias = query.make_alias(alias, fname)
-            else:
-                coalias = query.make_alias(alias, f"{fname}__{self.env.uid}")
-            condition = SQL(
-                "%s = %s",
-                self._field_to_sql(alias, fname, query),
-                SQL.identifier(coalias, 'id'),
-            )
-            if coquery.where_clause:
-                subselect_arg = SQL('%s.*', SQL.identifier(comodel._table))
-                query.add_join('LEFT JOIN', coalias, coquery.subselect(subselect_arg), condition)
-            else:
-                query.add_join('LEFT JOIN', coalias, comodel._table, condition)
-            return comodel._read_group_groupby(coalias, f"{seq_fnames}:{granularity}" if granularity else seq_fnames, query)
-
-        elif granularity and field.type not in ('datetime', 'date', 'properties'):
-            raise ValueError(f"Granularity set on a no-datetime field or property: {groupby_spec!r}")
+            cotable = field.join(table)
+            return cotable._model._read_group_groupby(cotable, f"{seq_fnames}:{granularity}" if granularity else seq_fnames)
 
         elif field.type == 'many2many':
-            if field.related and not field.store:
-                _model, field, alias = self._traverse_related_sql(alias, field, query)
+            sql_expr = field.join(table, only_ids=True).id
 
-            if not field.store:
-                raise ValueError(f"Group by non-stored many2many field: {groupby_spec!r}")
-            # special case for many2many fields: prepare a query on the comodel
-            # and inject the query as an extra condition of the left join
-            codomain = field.get_comodel_domain(self)
-            comodel = self.env[field.comodel_name].with_context(**field.context)
-            coquery = comodel._search(codomain, bypass_access=field.bypass_search_access)
-            # LEFT JOIN {field.relation} AS rel_alias ON
-            #     alias.id = rel_alias.{field.column1}
-            #     AND rel_alias.{field.column2} IN ({coquery})
-            rel_alias = query.make_alias(alias, field.name)
-            condition = SQL(
-                "%s = %s",
-                SQL.identifier(alias, 'id'),
-                SQL.identifier(rel_alias, field.column1),
-            )
-            if coquery.where_clause:
-                condition = SQL(
-                    "%s AND %s IN %s",
-                    condition,
-                    SQL.identifier(rel_alias, field.column2),
-                    coquery.subselect(),
-                )
-            query.add_join("LEFT JOIN", rel_alias, field.relation, condition)
-            return SQL.identifier(rel_alias, field.column2)
-
-        else:
-            sql_expr = self._field_to_sql(alias, fname, query)
-
-        if field.type in ('datetime', 'date') or (field.type == 'properties' and granularity):
+        elif field.type in ('datetime', 'date'):
             if not granularity:
                 raise ValueError(f"Granularity not set on a date(time) field: {groupby_spec!r}")
-            if granularity not in READ_GROUP_ALL_TIME_GRANULARITY:
-                raise ValueError(f"Granularity specification isn't correct: {granularity!r}")
-
-            if granularity in READ_GROUP_NUMBER_GRANULARITY:
-                sql_expr = field.property_to_sql(sql_expr, granularity, self, alias, query)
-            elif field.type == 'datetime':
-                # set the timezone only
-                sql_expr = field.property_to_sql(sql_expr, 'tz', self, alias, query)
-
-            if granularity == 'week':
-                # first_week_day: 0=Monday, 1=Tuesday, ...
-                first_week_day = int(get_lang(self.env).week_start) - 1
-                days_offset = first_week_day and 7 - first_week_day
-                interval = f"-{days_offset} DAY"
-                sql_expr = SQL(
-                    "(date_trunc('week', %s::timestamp - INTERVAL %s) + INTERVAL %s)",
-                    sql_expr, interval, interval,
-                )
-            elif granularity in READ_GROUP_TIME_GRANULARITY:
-                sql_expr = SQL("date_trunc(%s, %s::timestamp)", granularity, sql_expr)
-
-            # If the granularity is a part number, the result is a number (double) so no conversion is needed
-            if field.type == 'date' and granularity not in READ_GROUP_NUMBER_GRANULARITY:
-                # If the granularity uses date_trunc, we need to convert the timestamp back to a date.
-                sql_expr = SQL("%s::date", sql_expr)
+            sql_expr = table[fname][granularity]
+            granularity = None
 
         elif field.type == 'boolean':
-            sql_expr = SQL("COALESCE(%s, FALSE)", sql_expr)
+            sql_expr = SQL("COALESCE(%s, FALSE)", table[fname])
 
+        else:
+            sql_expr = table[fname]
+
+        if granularity:
+            raise ValueError(f"Granularity set on a no-datetime field or property: {groupby_spec!r}")
         return sql_expr
 
-    def _read_group_having(self, having_domain: list, query: Query) -> SQL:
+    def _read_group_having(self, table: TableSQL, having_domain: list) -> SQL:
         """ Return <SQL expression> corresponding to the having domain.
         """
         if not having_domain:
@@ -2137,7 +2097,7 @@ class BaseModel(metaclass=MetaModel):
                 left, operator, right = item
                 if operator not in SUPPORTED:
                     raise ValueError(f"Invalid having clause {item!r}: supported comparators are {SUPPORTED}")
-                sql_left = self._read_group_select(left, query)
+                sql_left = self._read_group_select(table, left)
                 stack.append(SQL("%s%s%s", sql_left, SQL_OPERATORS[operator], right))
             else:
                 raise ValueError(f"Invalid having clause {item!r}: it should be a domain-like clause")
@@ -2147,16 +2107,15 @@ class BaseModel(metaclass=MetaModel):
 
         return stack[0]
 
-    def _read_group_orderby(self, order: str, groupby_terms: dict[str, SQL],
-                            query: Query) -> SQL:
+    def _read_group_orderby(self, table: TableSQL, order: str, groupby_terms: dict[str, SQL]) -> SQL:
         """ Return (<SQL expression>, <SQL expression>)
         corresponding to the given order and groupby terms.
 
         Note: this method may change groupby_terms
 
+        :param table: The table of the query we are building
         :param order: the order specification
         :param groupby_terms: the group by terms mapping ({spec: sql_expression})
-        :param query: The query we are building
         """
         if order:
             traverse_many2one = True
@@ -2182,7 +2141,7 @@ class BaseModel(metaclass=MetaModel):
 
             if term not in groupby_terms:
                 try:
-                    sql_expr = self._read_group_select(term, query)
+                    sql_expr = self._read_group_select(table, term)
                 except ValueError as e:
                     raise ValueError(f"Order term {order_part!r} is not a valid aggregate nor valid groupby") from e
                 orderby_terms.append(SQL("%s %s %s", sql_expr, sql_direction, sql_nulls))
@@ -2194,10 +2153,12 @@ class BaseModel(metaclass=MetaModel):
                 traverse_many2one and field and field.type == 'many2one'
                 and self.env[field.comodel_name]._order != 'id'
             ):
-                if sql_order := self._order_to_sql(f'{term} {direction} {nulls}', query):
+                if sql_order := self._order_to_sql(table, f'{term} {direction} {nulls}'):
                     orderby_terms.append(sql_order)
+                    query = table._query
                     if query._order_groupby:
-                        groupby_terms[term] = SQL(", ").join([groupby_terms[term], *query._order_groupby])
+                        query._order_groupby.insert(0, groupby_terms[term])
+                        groupby_terms[term] = SQL(", ").join(query._order_groupby)
                         query._order_groupby.clear()
 
             elif granularity == 'day_of_week':
@@ -2312,601 +2273,7 @@ class BaseModel(metaclass=MetaModel):
         """Extend the group to include all target records by default."""
         return groups.search([])
 
-    @api.model
-    def _read_group_fill_results(self, domain, groupby, annoted_aggregates, read_group_result, read_group_order=None):
-        """Helper method for filling in empty groups for all possible values of
-           the field being grouped by"""
-        field_name = groupby.split('.')[0].split(':')[0]
-        field = self._fields[field_name]
-        if not field or not field.group_expand:
-            return read_group_result
-
-        # field.group_expand is a callable or the name of a method, that returns
-        # the groups that we want to display for this field, in the form of a
-        # recordset or a list of values (depending on the type of the field).
-        # This is useful to implement kanban views for instance, where some
-        # columns should be displayed even if they don't contain any record.
-        group_expand = field.group_expand
-        if isinstance(group_expand, str):
-            group_expand = getattr(self.env.registry[self._name], group_expand)
-        assert callable(group_expand)
-
-        # determine all groups that should be returned
-        values = [line[groupby] for line in read_group_result if line[groupby]]
-
-        if field.relational:
-            # groups is a recordset; determine order on groups's model
-            groups = self.env[field.comodel_name].browse(value.id for value in values)
-            values = group_expand(self, groups, domain).sudo()
-            if read_group_order == groupby + ' desc':
-                values.browse(reversed(values._ids))
-            value2key = lambda value: value and value.id
-
-        else:
-            # groups is a list of values
-            values = group_expand(self, values, domain)
-            if read_group_order == groupby + ' desc':
-                values.reverse()
-            value2key = lambda value: value
-
-        # Merge the current results (list of dicts) with all groups. Determine
-        # the global order of results groups, which is supposed to be in the
-        # same order as read_group_result (in the case of a many2one field).
-
-        read_group_result_as_dict = {}
-        for line in read_group_result:
-            read_group_result_as_dict[value2key(line[groupby])] = line
-
-        empty_item = {
-            name: self._read_group_empty_value(spec)
-            for name, spec in annoted_aggregates.items()
-        }
-
-        result = {}
-        # fill result with the values order
-        for value in values:
-            key = value2key(value)
-            if key in read_group_result_as_dict:
-                result[key] = read_group_result_as_dict.pop(key)
-            else:
-                result[key] = dict(empty_item, **{groupby: value})
-
-        for line in read_group_result_as_dict.values():
-            key = value2key(line[groupby])
-            result[key] = line
-
-        # add folding information if present
-        if field.relational and groups._fold_name in groups._fields:
-            fold = {group.id: group[groups._fold_name]
-                    for group in groups.browse(key for key in result if key)}
-            for key, line in result.items():
-                line['__fold'] = fold.get(key, False)
-
-        return list(result.values())
-
-    @api.model
-    def _read_group_fill_temporal(self, data, groupby, annoted_aggregates,
-                                  fill_from=False, fill_to=False, min_groups=False):
-        """Helper method for filling date/datetime 'holes' in a result set.
-
-        We are in a use case where data are grouped by a date field (typically
-        months but it could be any other interval) and displayed in a chart.
-
-        Assume we group records by month, and we only have data for June,
-        September and December. By default, plotting the result gives something
-        like::
-
-                                                ___
-                                      ___      |   |
-                                     |   | ___ |   |
-                                     |___||___||___|
-                                      Jun  Sep  Dec
-
-        The problem is that December data immediately follow September data,
-        which is misleading for the user. Adding explicit zeroes for missing
-        data gives something like::
-
-                                                           ___
-                             ___                          |   |
-                            |   |           ___           |   |
-                            |___| ___  ___ |___| ___  ___ |___|
-                             Jun  Jul  Aug  Sep  Oct  Nov  Dec
-
-        To customize this output, the context key "fill_temporal" can be used
-        under its dictionary format, which has 3 attributes : fill_from,
-        fill_to, min_groups (see params of this function)
-
-        Fill between bounds:
-        Using either `fill_from` and/or `fill_to` attributes, we can further
-        specify that at least a certain date range should be returned as
-        contiguous groups. Any group outside those bounds will not be removed,
-        but the filling will only occur between the specified bounds. When not
-        specified, existing groups will be used as bounds, if applicable.
-        By specifying such bounds, we can get empty groups before/after any
-        group with data.
-
-        If we want to fill groups only between August (fill_from)
-        and October (fill_to)::
-
-                                                     ___
-                                 ___                |   |
-                                |   |      ___      |   |
-                                |___| ___ |___| ___ |___|
-                                 Jun  Aug  Sep  Oct  Dec
-
-        We still get June and December. To filter them out, we should match
-        `fill_from` and `fill_to` with the domain e.g. ``['&',
-        ('date_field', '>=', 'YYYY-08-01'), ('date_field', '<', 'YYYY-11-01')]``::
-
-                                         ___
-                                    ___ |___| ___
-                                    Aug  Sep  Oct
-
-        Minimal filling amount:
-        Using `min_groups`, we can specify that we want at least that amount of
-        contiguous groups. This amount is guaranteed to be provided from
-        `fill_from` if specified, or from the lowest existing group otherwise.
-        This amount is not restricted by `fill_to`. If there is an existing
-        group before `fill_from`, `fill_from` is still used as the starting
-        group for min_groups, because the filling does not apply on that
-        existing group. If neither `fill_from` nor `fill_to` is specified, and
-        there is no existing group, no group will be returned.
-
-        If we set min_groups = 4::
-
-                                         ___
-                                    ___ |___| ___ ___
-                                    Aug  Sep  Oct Nov
-
-        :param list data: the data containing groups
-        :param list groupby: list of fields being grouped on
-        :param list annoted_aggregates: dict of "<key_name>:<aggregate specification>"
-        :param str fill_from: (inclusive) string representation of a
-            date/datetime, start bound of the fill_temporal range
-            formats: date -> %Y-%m-%d, datetime -> %Y-%m-%d %H:%M:%S
-        :param str fill_to: (inclusive) string representation of a
-            date/datetime, end bound of the fill_temporal range
-            formats: date -> %Y-%m-%d, datetime -> %Y-%m-%d %H:%M:%S
-        :param int min_groups: minimal amount of required groups for the
-            fill_temporal range (should be >= 1)
-        :rtype: list
-        :return: list
-        """
-        # TODO: remove min_groups
-        first_group = groupby[0]
-        field_name = first_group.split(':')[0].split(".")[0]
-        field = self._fields[field_name]
-        if field.type not in ('date', 'datetime') and not (field.type == 'properties' and ':' in first_group):
-            return data
-
-        granularity = first_group.split(':')[1] if ':' in first_group else 'month'
-        days_offset = 0
-        if granularity == 'week':
-            # _read_group_process_groupby week groups are dependent on the
-            # locale, so filled groups should be too to avoid overlaps.
-            first_week_day = int(get_lang(self.env).week_start) - 1
-            days_offset = first_week_day and 7 - first_week_day
-        interval = READ_GROUP_TIME_GRANULARITY[granularity]
-        tz = False
-        if field.type == 'datetime' and self.env.context.get('tz') in pytz.all_timezones_set:
-            tz = pytz.timezone(self.env.context['tz'])
-
-        # TODO: refactor remaing lines here
-
-        # existing non null datetimes
-        existing = [d[first_group] for d in data if d[first_group]] or [None]
-        # assumption: existing data is sorted by field 'groupby_name'
-        existing_from, existing_to = existing[0], existing[-1]
-        if fill_from:
-            fill_from = Datetime.to_datetime(fill_from) if isinstance(fill_from, datetime.datetime) else Date.to_date(fill_from)
-            fill_from = date_utils.start_of(fill_from, granularity) - datetime.timedelta(days=days_offset)
-            if tz:
-                fill_from = tz.localize(fill_from)
-        elif existing_from:
-            fill_from = existing_from
-        if fill_to:
-            fill_to = Datetime.to_datetime(fill_to) if isinstance(fill_to, datetime.datetime) else Date.to_date(fill_to)
-            fill_to = date_utils.start_of(fill_to, granularity) - datetime.timedelta(days=days_offset)
-            if tz:
-                fill_to = tz.localize(fill_to)
-        elif existing_to:
-            fill_to = existing_to
-
-        if not fill_to and fill_from:
-            fill_to = fill_from
-        if not fill_from and fill_to:
-            fill_from = fill_to
-        if not fill_from and not fill_to:
-            return data
-
-        if min_groups > 0:
-            fill_to = max(fill_to, fill_from + (min_groups - 1) * interval)
-
-        if fill_to < fill_from:
-            return data
-
-        required_dates = date_utils.date_range(fill_from, fill_to, interval)
-
-        if existing[0] is None:
-            existing = list(required_dates)
-        else:
-            existing = sorted(set().union(existing, required_dates))
-
-        empty_item = {
-            name: self._read_group_empty_value(spec)
-            for name, spec in annoted_aggregates.items()
-        }
-        for group in groupby[1:]:
-            empty_item[group] = self._read_group_empty_value(group)
-
-        grouped_data = collections.defaultdict(list)
-        for d in data:
-            grouped_data[d[first_group]].append(d)
-
-        result = []
-        for dt in existing:
-            result.extend(grouped_data[dt] or [dict(empty_item, **{first_group: dt})])
-
-        if False in grouped_data:
-            result.extend(grouped_data[False])
-
-        return result
-
-    @api.model
-    def _read_group_format_result(self, rows_dict, lazy_groupby):
-        """
-        Helper method to format the data contained in the dictionary data by
-        adding the domain corresponding to its values, the groupbys in the
-        context and by properly formatting the date/datetime values.
-        """
-        for group in lazy_groupby:
-            field_name = group.split(':')[0].split('.')[0]
-            field = self._fields[field_name]
-
-            if field.type in ('date', 'datetime'):
-                granularity = group.split(':')[1] if ':' in group else 'month'
-                if granularity in READ_GROUP_TIME_GRANULARITY:
-                    locale = get_lang(self.env).code
-                    fmt = DEFAULT_SERVER_DATETIME_FORMAT if field.type == 'datetime' else DEFAULT_SERVER_DATE_FORMAT
-                    interval = READ_GROUP_TIME_GRANULARITY[granularity]
-            elif field.type == "properties":
-                self._read_group_format_result_properties(rows_dict, group)
-                continue
-
-            for row in rows_dict:
-                value = row[group]
-
-                if isinstance(value, BaseModel):
-                    row[group] = (value.id, value.sudo().display_name) if value else False
-                    value = value.id
-
-                if not value and field.type == 'many2many':
-                    additional_domain = [(field_name, 'not any', [])]
-                else:
-                    additional_domain = [(field_name, '=', value)]
-
-                if field.type in ('date', 'datetime'):
-                    if value and isinstance(value, (datetime.date, datetime.datetime)):
-                        range_start = value
-                        range_end = value + interval
-                        if field.type == 'datetime':
-                            tzinfo = None
-                            if self.env.context.get('tz') in pytz.all_timezones_set:
-                                tzinfo = pytz.timezone(self.env.context['tz'])
-                                range_start = tzinfo.localize(range_start).astimezone(pytz.utc)
-                                # take into account possible hour change between start and end
-                                range_end = tzinfo.localize(range_end).astimezone(pytz.utc)
-
-                            label = babel.dates.format_datetime(
-                                range_start, format=READ_GROUP_DISPLAY_FORMAT[granularity],
-                                tzinfo=tzinfo, locale=locale
-                            )
-                        else:
-                            label = babel.dates.format_date(
-                                value, format=READ_GROUP_DISPLAY_FORMAT[granularity],
-                                locale=locale
-                            )
-                        # special case weeks because babel is broken *and*
-                        # ubuntu reverted a change so it's also inconsistent
-                        if granularity == 'week':
-                            year, week = date_utils.weeknumber(
-                                babel.Locale.parse(locale),
-                                value,  # provide date or datetime without UTC conversion
-                            )
-                            label = f"W{week} {year:04}"
-
-                        range_start = range_start.strftime(fmt)
-                        range_end = range_end.strftime(fmt)
-                        row[group] = label  # TODO should put raw data
-                        row.setdefault('__range', {})[group] = {'from': range_start, 'to': range_end}
-                        additional_domain = [
-                            '&',
-                                (field_name, '>=', range_start),
-                                (field_name, '<', range_end),
-                        ]
-                    elif value is not None and granularity in READ_GROUP_NUMBER_GRANULARITY:
-                        additional_domain = [(f"{field_name}.{granularity}", '=', value)]
-                    elif not value:
-                        # Set the __range of the group containing records with an unset
-                        # date/datetime field value to False.
-                        row.setdefault('__range', {})[group] = False
-
-                row['__domain'] &= Domain(additional_domain)
-        for row in rows_dict:
-            row['__domain'] = list(row['__domain'])
-
-    def _read_group_format_result_properties(self, rows_dict, group):
-        """Modify the final read group properties result.
-
-        Replace the relational properties ids by a tuple with their display names,
-        replace the "raw" tags and selection values by a list containing their labels.
-        Adapt the domains for the Falsy group (we can't just keep (selection, =, False)
-        e.g. because some values in database might correspond to  option that have
-        been remove on the parent).
-        """
-        if '.' not in group:
-            raise ValueError('You must choose the property you want to group by.')
-        fullname, __, func = group.partition(':')
-
-        definition = self.get_property_definition(fullname)
-        property_type = definition.get('type')
-
-        if property_type == 'selection':
-            options = definition.get('selection') or []
-            options = tuple(option[0] for option in options)
-            for row in rows_dict:
-                if not row[fullname]:
-                    # can not do ('selection', '=', False) because we might have
-                    # option in database that does not exist anymore
-                    additional_domain = Domain(fullname, '=', False) | Domain(fullname, 'not in', options)
-                else:
-                    additional_domain = Domain(fullname, '=', row[fullname])
-
-                row['__domain'] &= additional_domain
-
-        elif property_type == 'many2one':
-            comodel = definition.get('comodel')
-            prefetch_ids = tuple(row[fullname] for row in rows_dict if row[fullname])
-            all_groups = tuple(row[fullname] for row in rows_dict if row[fullname])
-            for row in rows_dict:
-                if not row[fullname]:
-                    # can not only do ('many2one', '=', False) because we might have
-                    # record in database that does not exist anymore
-                    additional_domain = Domain(fullname, '=', False) | Domain(fullname, 'not in', all_groups)
-                else:
-                    additional_domain = Domain(fullname, '=', row[fullname])
-                    record = self.env[comodel].browse(row[fullname]).with_prefetch(prefetch_ids)
-                    row[fullname] = (row[fullname], record.display_name)
-
-                row['__domain'] &= additional_domain
-
-        elif property_type == 'many2many':
-            comodel = definition.get('comodel')
-            prefetch_ids = tuple(row[fullname] for row in rows_dict if row[fullname])
-            all_groups = tuple(row[fullname] for row in rows_dict if row[fullname])
-            for row in rows_dict:
-                if not row[fullname]:
-                    if all_groups:
-                        additional_domain = Domain(fullname, '=', False) | Domain.AND([(fullname, 'not in', group)] for group in all_groups)
-                    else:
-                        additional_domain = Domain.TRUE
-                else:
-                    additional_domain = Domain(fullname, 'in', row[fullname])
-                    record = self.env[comodel].browse(row[fullname]).with_prefetch(prefetch_ids)
-                    row[fullname] = (row[fullname], record.display_name)
-
-                row['__domain'] &= additional_domain
-
-        elif property_type == 'tags':
-            tags = definition.get('tags') or []
-            tags = {tag[0]: tag for tag in tags}
-            for row in rows_dict:
-                if not row[fullname]:
-                    if tags:
-                        additional_domain = Domain(fullname, '=', False) | Domain.AND([(fullname, 'not in', tag)] for tag in tags)
-                    else:
-                        additional_domain = Domain.TRUE
-                else:
-                    additional_domain = Domain(fullname, 'in', row[fullname])
-                    # replace tag raw value with list of raw value, label and color
-                    row[fullname] = tags.get(row[fullname])
-
-                row['__domain'] &= additional_domain
-
-        elif property_type in ('date', 'datetime'):
-            for row in rows_dict:
-                if not row[group]:
-                    row[group] = False
-                    row['__domain'] &= Domain(fullname, '=', False)
-                    row['__range'] = {}
-                    continue
-
-                # Date / Datetime are not JSONifiable, so they are stored as raw text
-                db_format = '%Y-%m-%d' if property_type == 'date' else '%Y-%m-%d %H:%M:%S'
-
-                if func == 'week':
-                    # the value is the first day of the week (based on local)
-                    start = row[group].strftime(db_format)
-                    end = (row[group] + datetime.timedelta(days=7)).strftime(db_format)
-                else:
-                    start = (date_utils.start_of(row[group], func)).strftime(db_format)
-                    end = (date_utils.end_of(row[group], func) + datetime.timedelta(minutes=1)).strftime(db_format)
-
-                row['__domain'] &= Domain(fullname, '>=', start) & Domain(fullname, '<', end)
-                row['__range'] = {group: {'from': start, 'to': end}}
-                row[group] = babel.dates.format_date(
-                    row[group],
-                    format=READ_GROUP_DISPLAY_FORMAT[func],
-                    locale=get_lang(self.env).code
-                )
-        else:
-            for row in rows_dict:
-                row['__domain'] &= Domain(fullname, '=', row[fullname])
-
-    @api.model
-    @api.readonly
-    @api.deprecated("Since 19.0, read_group is deprecated. Please use _read_group in the backend code or formatted_read_group for a complete formatted result")
-    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        """Deprecated - Get the list of records in list view grouped by the given ``groupby`` fields.
-
-        :param list domain: :ref:`A search domain <reference/orm/domains>`. Use an empty
-                     list to match all records.
-        :param list fields: list of fields present in the list view specified on the object.
-                Each element is either 'field' (field name, using the default aggregation),
-                or 'field:agg' (aggregate field with aggregation function 'agg'),
-                or 'name:agg(field)' (aggregate field with 'agg' and return it as 'name').
-                The possible aggregation functions are the ones provided by
-                `PostgreSQL <https://www.postgresql.org/docs/current/static/functions-aggregate.html>`_
-                and 'count_distinct', with the expected meaning.
-        :param list groupby: list of groupby descriptions by which the records will be grouped.
-                A groupby description is either a field (then it will be grouped by that field).
-                For the dates an datetime fields, you can specify a granularity using the syntax 'field:granularity'.
-                The supported granularities are 'hour', 'day', 'week', 'month', 'quarter' or 'year';
-                Read_group also supports integer date parts:
-                'year_number', 'quarter_number', 'month_number' 'iso_week_number', 'day_of_year', 'day_of_month',
-                'day_of_week', 'hour_number', 'minute_number' and 'second_number'.
-        :param int offset: optional number of groups to skip
-        :param int limit: optional max number of groups to return
-        :param str orderby: optional ``order by`` specification, for
-                             overriding the natural sort ordering of the
-                             groups, see also :meth:`~.search`
-                             (supported only for many2one fields currently)
-        :param bool lazy: if true, the results are only grouped by the first groupby and the
-                remaining groupbys are put in the __context key.  If false, all the groupbys are
-                done in one call.
-        :return: list of dictionaries(one dictionary for each record) containing:
-
-                    * the values of fields grouped by the fields in ``groupby`` argument
-                    * __domain: list of tuples specifying the search criteria
-                    * __context: dictionary with argument like ``groupby``
-                    * __range: (date/datetime only) dictionary with field_name:granularity as keys
-                        mapping to a dictionary with keys: "from" (inclusive) and "to" (exclusive)
-                        mapping to a string representation of the temporal bounds of the group
-        :rtype: [{'field_name_1': value, ...}, ...]
-        :raise AccessError: if user is not allowed to access requested information
-        """
-        groupby = [groupby] if isinstance(groupby, str) else groupby
-        lazy_groupby = groupby[:1] if lazy else groupby
-
-        # Compatibility layer with _read_group, it should be remove in the second part of the refactoring
-        # - Modify `groupby` default value 'month' into specific groupby specification
-        # - Modify `fields` into aggregates specification of _read_group
-        # - Modify the order to be compatible with the _read_group specification
-        groupby = [groupby] if isinstance(groupby, str) else groupby
-        lazy_groupby = groupby[:1] if lazy else groupby
-
-        annotated_groupby = {}  # Key as the name in the result, value as the explicit groupby specification
-        for group_spec in lazy_groupby:
-            field_name, property_name, granularity = parse_read_group_spec(group_spec)
-            if field_name not in self._fields:
-                raise ValueError(f"Invalid field {field_name!r} on model {self._name!r}")
-            field = self._fields[field_name]
-            if property_name and field.type != 'properties':
-                raise ValueError(f"Property name {property_name!r} has to be used on a property field.")
-            if field.type in ('date', 'datetime'):
-                annotated_groupby[group_spec] = f"{field_name}:{granularity or 'month'}"
-            else:
-                annotated_groupby[group_spec] = group_spec
-
-        annotated_aggregates = {  # Key as the name in the result, value as the explicit aggregate specification
-            f"{lazy_groupby[0].split(':')[0]}_count" if lazy and len(lazy_groupby) == 1 else '__count': '__count',
-        }
-        for field_spec in fields:
-            if field_spec == '__count':
-                continue
-            match = regex_field_agg.match(field_spec)
-            if not match:
-                raise ValueError(f"Invalid field specification {field_spec!r}.")
-            name, func, fname = match.groups()
-
-            if fname:  # Manage this kind of specification : "field_min:min(field)"
-                annotated_aggregates[name] = f"{fname}:{func}"
-                continue
-            if func:  # Manage this kind of specification : "field:min"
-                annotated_aggregates[name] = f"{name}:{func}"
-                continue
-
-            if name not in self._fields:
-                raise ValueError(f"Invalid field {name!r} on model {self._name!r}")
-            field = self._fields[name]
-            if field.base_field.store and field.base_field.column_type and field.aggregator and field_spec not in annotated_groupby:
-                annotated_aggregates[name] = f"{name}:{field.aggregator}"
-
-        if orderby:
-            new_terms = []
-            for order_term in orderby.split(','):
-                order_term = order_term.strip()
-                for key_name, annotated in itertools.chain(reversed(annotated_groupby.items()), annotated_aggregates.items()):
-                    key_name = key_name.split(':')[0]
-                    if order_term.startswith(f'{key_name} ') or key_name == order_term:
-                        order_term = order_term.replace(key_name, annotated)
-                        break
-                new_terms.append(order_term)
-            orderby = ','.join(new_terms)
-        else:
-            orderby = ','.join(annotated_groupby.values())
-
-        domain = Domain(domain)
-        rows = self._read_group(domain, annotated_groupby.values(), annotated_aggregates.values(), offset=offset, limit=limit, order=orderby)
-        rows_dict = [
-            dict(zip(itertools.chain(annotated_groupby, annotated_aggregates), row))
-            for row in rows
-        ]
-
-        fill_temporal = self.env.context.get('fill_temporal')
-        if lazy_groupby and (rows_dict and fill_temporal) or isinstance(fill_temporal, dict):
-            # fill_temporal = {} is equivalent to fill_temporal = True
-            # if fill_temporal is a dictionary and there is no data, there is a chance that we
-            # want to display empty columns anyway, so we should apply the fill_temporal logic
-            if not isinstance(fill_temporal, dict):
-                fill_temporal = {}
-            # TODO Shouldn't be possible with a limit
-            rows_dict = self._read_group_fill_temporal(
-                rows_dict, lazy_groupby,
-                annotated_aggregates, **fill_temporal,
-            )
-
-        if lazy_groupby and lazy:
-            # Right now, read_group only fill results in lazy mode (by default).
-            # If you need to have the empty groups in 'eager' mode, then the
-            # method _read_group_fill_results need to be completely reimplemented
-            # in a sane way
-            # TODO Shouldn't be possible with a limit or the limit should be in account
-            rows_dict = self._read_group_fill_results(
-                domain, lazy_groupby[0],
-                annotated_aggregates, rows_dict, read_group_order=orderby,
-            )
-
-        for row in rows_dict:
-            row['__domain'] = domain
-            if len(lazy_groupby) < len(groupby):
-                row['__context'] = {'group_by': groupby[len(lazy_groupby):]}
-
-        self._read_group_format_result(rows_dict, lazy_groupby)
-
-        return rows_dict
-
-    def _traverse_related_sql(self, alias: str, field: Field, query: Query) -> tuple[BaseModel, Field, str]:
-        """ Traverse the related `field` and add needed join to the `query`.
-
-        :returns: tuple ``(model, field, alias)``, where ``field`` is the last
-            field in the sequence, ``model`` is that field's model, and
-            ``alias`` is the model's table alias
-        """
-        assert field.related and not field.store
-        if not (self.env.su or field.compute_sudo or field.inherited):
-            raise ValueError(f'Cannot convert {field} to SQL because it is not a sudoed related or inherited field')
-
-        model = self.sudo(self.env.su or field.compute_sudo)
-        *path_fnames, last_fname = field.related.split('.')
-        for path_fname in path_fnames:
-            path_field = model._fields[path_fname]
-            if path_field.type != 'many2one':
-                raise ValueError(f'Cannot convert {field} (related={field.related}) to SQL because {path_fname} is not a Many2one')
-            model, alias = path_field.join(model, alias, query)
-
-        return model, model._fields[last_fname], alias
-
+    @typing.final
     def _field_to_sql(self, alias: str, field_expr: str, query: (Query | None) = None) -> SQL:
         """ Return an :class:`SQL` object that represents the value of the given
         field from the given table alias, in the context of the given query.
@@ -2916,128 +2283,11 @@ class BaseModel(metaclass=MetaModel):
         properties fields, where joins are added to the query.
         """
         fname, property_name = parse_field_expr(field_expr)
-        field = self._fields.get(fname)
-        if not field:
-            raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
-
-        if field.related and not field.store:
-            model, field, alias = self._traverse_related_sql(alias, field, query)
-            related_expr = field.name if not property_name else f"{field.name}.{property_name}"
-            return model._field_to_sql(alias, related_expr, query)
-
-        self._check_field_access(field, 'read')
-
-        sql = field.to_sql(self, alias)
+        table = TableSQL(alias, self, query)
+        sql = table[fname]
         if property_name:
-            sql = field.property_to_sql(sql, property_name, self, alias, query)
+            sql = sql[property_name]
         return sql
-
-    def _read_group_groupby_properties(self, alias: str, field: Field, property_name: str, query: Query) -> SQL:
-        fname = field.name
-        definition = self.get_property_definition(f"{fname}.{property_name}")
-        property_type = definition.get('type')
-        sql_property = self._field_to_sql(alias, f'{fname}.{property_name}', query)
-
-        # JOIN on the JSON array
-        if property_type in ('tags', 'many2many'):
-            property_alias = query.make_alias(alias, f'{fname}_{property_name}')
-            sql_property = SQL(
-                """ CASE
-                        WHEN jsonb_typeof(%(property)s) = 'array'
-                        THEN %(property)s
-                        ELSE '[]'::jsonb
-                     END """,
-                property=sql_property,
-            )
-            if property_type == 'tags':
-                # ignore invalid tags
-                tags = [tag[0] for tag in definition.get('tags') or []]
-                # `->>0 : convert "JSON string" into string
-                condition = SQL(
-                    "%s->>0 = ANY(%s::text[])",
-                    SQL.identifier(property_alias), tags,
-                )
-            else:
-                comodel = self.env.get(definition.get('comodel'))
-                if comodel is None or comodel._transient or comodel._abstract:
-                    raise UserError(_(
-                        "You cannot use “%(property_name)s” because the linked “%(model_name)s” model doesn't exist or is invalid",
-                        property_name=definition.get('string', property_name), model_name=definition.get('comodel'),
-                    ))
-
-                # check the existences of the many2many
-                condition = SQL(
-                    "%s::int IN (SELECT id FROM %s)",
-                    SQL.identifier(property_alias), SQL.identifier(comodel._table),
-                )
-
-            query.add_join(
-                "LEFT JOIN",
-                property_alias,
-                SQL("jsonb_array_elements(%s)", sql_property),
-                condition,
-            )
-
-            return SQL.identifier(property_alias)
-
-        elif property_type == 'selection':
-            options = [option[0] for option in definition.get('selection') or ()]
-
-            # check the existence of the option
-            property_alias = query.make_alias(alias, f'{fname}_{property_name}')
-            query.add_join(
-                "LEFT JOIN",
-                property_alias,
-                SQL("(SELECT unnest(%s::text[]) %s)", options, SQL.identifier(property_alias)),
-                SQL("%s->>0 = %s", sql_property, SQL.identifier(property_alias)),
-            )
-
-            return SQL.identifier(property_alias)
-
-        elif property_type == 'many2one':
-            comodel = self.env.get(definition.get('comodel'))
-            if comodel is None or comodel._transient or comodel._abstract:
-                raise UserError(_(
-                    "You cannot use “%(property_name)s” because the linked “%(model_name)s” model doesn't exist or is invalid",
-                    property_name=definition.get('string', property_name), model_name=definition.get('comodel'),
-                ))
-
-            return SQL(
-                """ CASE
-                        WHEN jsonb_typeof(%(property)s) = 'number'
-                         AND (%(property)s)::int IN (SELECT id FROM %(table)s)
-                        THEN %(property)s
-                        ELSE NULL
-                     END """,
-                property=sql_property,
-                table=SQL.identifier(comodel._table),
-            )
-
-        elif property_type == 'date':
-            return SQL(
-                """ CASE
-                        WHEN jsonb_typeof(%(property)s) = 'string'
-                        THEN (%(property)s->>0)::DATE
-                        ELSE NULL
-                     END """,
-                property=sql_property,
-            )
-
-        elif property_type == 'datetime':
-            return SQL(
-                """ CASE
-                        WHEN jsonb_typeof(%(property)s) = 'string'
-                        THEN to_timestamp(%(property)s->>0, 'YYYY-MM-DD HH24:MI:SS')
-                        ELSE NULL
-                     END """,
-                property=sql_property,
-            )
-
-        elif property_type == 'html':
-            raise UserError(_('Grouping by HTML properties is not supported.'))
-
-        # if the key is not present in the dict, fallback to false instead of none
-        return SQL("COALESCE(%s, 'false')", sql_property)
 
     @api.model
     def get_property_definition(self, full_name: str) -> dict:
@@ -3355,19 +2605,38 @@ class BaseModel(metaclass=MetaModel):
         for fname, field in self._fields.items():
             if allfields and fname not in allfields:
                 continue
-            if not self._has_field_access(field, 'read'):
+            if not self.has_field_access(field, 'read'):
                 continue
 
             description = field.get_description(self.env, attributes=attributes)
             if 'readonly' in description:
-                description['readonly'] = description['readonly'] or not self._has_field_access(field, 'write')
+                description['readonly'] = description['readonly'] or not self.has_field_access(field, 'write')
             res[fname] = description
 
         return res
 
     @api.model
-    def _has_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> bool:
+    def has_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> bool:
         """ Determine whether the user access rights on the given field for the given operation.
+
+        :param field: the field to check
+        :param operation: one of ``read``, ``write``
+        :return: whether the field is accessible
+        """
+        if operation == 'read':
+            env = self.env
+            memo = env._field_access_memo
+            if env.su or field in memo:
+                return True
+            if self._has_field_access(field, 'read'):
+                memo.add(field)
+                return True
+            return False
+        return self._has_field_access(field, operation)
+
+    @api.model
+    def _has_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> bool:
+        """ Actual implementation of :meth:`has_field_access`.
         You may override this method to customize the access to fields.
 
         :param field: the field to check
@@ -3381,14 +2650,22 @@ class BaseModel(metaclass=MetaModel):
         return self.env.user.has_groups(field.groups)
 
     @api.model
-    def _check_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> None:
+    def check_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> None:
         """Check the user access rights on the given field.
 
         :param field: the field to check
         :param operation: one of ``read``, ``write``
         :raise AccessError: if the user is not allowed to access the provided field
         """
-        if self._has_field_access(field, operation):
+        if operation == 'read':
+            env = self.env
+            memo = env._field_access_memo
+            if env.su or field in memo:
+                return
+            if self._has_field_access(field, 'read'):
+                memo.add(field)
+                return
+        elif self._has_field_access(field, operation):
             return
 
         _logger.info('Access Denied by ACLs for operation: %s, uid: %s, model: %s, field: %s',
@@ -3429,41 +2706,9 @@ class BaseModel(metaclass=MetaModel):
         raise AccessError(error_msg)
 
     @api.model
-    @api.deprecated(
-        "Deprecated since 19.0, use `_check_field_access` on models."
-        " To get the list of allowed fields, use `fields_get`.",
-    )
-    def check_field_access_rights(self, operation: str, field_names: list[str] | None) -> list[str]:
-        """Check the user access rights on the given fields.
-
-        If `field_names` is not provided, we list accessible fields to the user.
-        Otherwise, an error is raised if we try to access a forbidden field.
-        Note that this function ignores unknown (virtual) fields.
-
-        :param operation: one of ``create``, ``read``, ``write``, ``unlink``
-        :param field_names: names of the fields
-        :return: provided fields if fields is truthy (or the fields
-          readable by the current user).
-        :raise AccessError: if the user is not allowed to access
-          the provided fields.
-        """
-        if self.env.su:
-            return field_names or list(self._fields)
-
-        if not field_names:
-            return [
-                field_name
-                for field_name, field in self._fields.items()
-                if self._has_field_access(field, operation)
-            ]
-
-        for field_name in field_names:
-            # Unknown (or virtual) fields are considered accessible because they will not be read and nothing will be written to them.
-            field = self._fields.get(field_name)
-            if field is None:
-                continue
-            self._check_field_access(field, operation)
-        return field_names
+    @api.deprecated("Since 20.0, use check_field_access()")
+    def _check_field_access(self, field: Field, operation: typing.Literal['read', 'write']) -> None:
+        return self.check_field_access(field, operation)
 
     @api.readonly
     def read(self, fields: Sequence[str] | None = None, load: str = '_classic_read') -> list[ValuesType]:
@@ -3550,7 +2795,7 @@ class BaseModel(metaclass=MetaModel):
 
         self.check_access('write')
         field = self._fields[field_name]
-        self._check_field_access(field, 'write')
+        self.check_field_access(field, 'write')
 
         valid_langs = set(code for code, _ in self.env['res.lang'].get_installed()) | {'en_US'}
         source_lang = source_lang or 'en_US'
@@ -3609,7 +2854,6 @@ class BaseModel(metaclass=MetaModel):
                 value=Json(translations),
                 id=self.id,
             ))
-            self.modified([field_name])
         else:
             old_values = field._get_stored_translations(self)
             if not old_values:
@@ -3652,7 +2896,7 @@ class BaseModel(metaclass=MetaModel):
                 _old_translations = {src: values[lang] for src, values in old_translation_dictionary.items() if lang in values}
                 _new_translations = {**_old_translations, **_translations}
                 new_values[lang] = field.convert_to_cache(field.translate(_new_translations.get, old_source_lang_value), self)
-            field._update_cache(self.with_context(prefetch_langs=True), new_values, dirty=True)
+            field._update_cache(self.with_context(prefetch_langs=True), StoredTranslations(new_values), dirty=True)
 
         # the following write is incharge of
         # 1. mark field as modified
@@ -3763,7 +3007,7 @@ class BaseModel(metaclass=MetaModel):
                 # select fields with the same prefetch group
                 if f.prefetch == field.prefetch
                 # discard fields with groups that the user may not access
-                if self._has_field_access(f, 'read')
+                if self.has_field_access(f, 'read')
             ]
             if field.name not in fnames:
                 fnames.append(field.name)
@@ -3774,12 +3018,12 @@ class BaseModel(metaclass=MetaModel):
     @api.private
     def fetch(self, field_names: Collection[str] | None = None) -> None:
         """ Make sure the given fields are in memory for the records in ``self``,
-        by fetching what is necessary from the database.  Non-stored fields are
-        mostly ignored, except for their stored dependencies. This method should
-        be called to optimize code.
+        by fetching what is necessary from the database.  Non-stored computed
+        fields are computed, and their dependencies are fetched with stored
+        fields. This method should be called to optimize code.
 
-        :param field_names: a collection of field names to fetch, or ``None`` for
-            all accessible fields marked with ``prefetch=True``
+        :param field_names: a collection of field names to fetch or compute, or
+            ``None`` for all accessible fields marked with ``prefetch=True``
         :raise AccessError: if user is not allowed to access requested information
 
         This method is implemented thanks to methods :meth:`_search` and
@@ -3810,12 +3054,21 @@ class BaseModel(metaclass=MetaModel):
 
         # fetch the fields
         fetched = self._fetch_query(query, fields_to_fetch)
+        env = self.env
+        if not env.su:
+            env._add_to_access_cache(fetched)
+
+        # force computation of fields
+        for field_name in (field_names or ()):
+            field = self._fields[field_name]
+            if not field.store and any(field._cache_missing_ids(fetched)):
+                fetched.mapped(field_name)
 
         # possibly raise exception for the records that could not be read
-        if fetched != self:
+        if not env.su and fetched != self:
             forbidden = (self - fetched).exists()
             if forbidden:
-                raise self.env['ir.rule']._make_access_error('read', forbidden)
+                raise env['ir.rule']._make_access_error('read', forbidden)
 
     def _determine_fields_to_fetch(
             self,
@@ -3837,7 +3090,7 @@ class BaseModel(metaclass=MetaModel):
             return [
                 field
                 for field in self._fields.values()
-                if field.prefetch is True and self._has_field_access(field, 'read')
+                if field.prefetch is True and self.has_field_access(field, 'read')
             ]
 
         if not field_names:
@@ -3851,7 +3104,7 @@ class BaseModel(metaclass=MetaModel):
                 field = self._fields[field_name]
             except KeyError as e:
                 raise ValueError(f"Invalid field {field_name!r} on {self._name!r}") from e
-            self._check_field_access(field, 'read')
+            self.check_field_access(field, 'read')
             fields_todo.append(field)
 
         while fields_todo:
@@ -3868,9 +3121,9 @@ class BaseModel(metaclass=MetaModel):
                 # optimization: fetch field dependencies
                 for dotname in self.pool.field_depends[field]:
                     dep_field = self._fields[dotname.split('.', 1)[0]]
-                    if (not dep_field.store) or (
-                        dep_field.prefetch is True
-                        and self._has_field_access(dep_field, 'read')
+                    if (
+                        (not dep_field.store or dep_field.prefetch is True)
+                        and self.has_field_access(dep_field, 'read')
                     ):
                         fields_todo.append(dep_field)
 
@@ -3890,7 +3143,7 @@ class BaseModel(metaclass=MetaModel):
         for field in fields:
             if field.name == 'id':
                 continue
-            assert field.store
+            assert field.store or field.compute_sql
             (column_fields if field.column_type else other_fields).add(field)
 
         context = self.env.context
@@ -3902,15 +3155,16 @@ class BaseModel(metaclass=MetaModel):
                 if field.type == 'binary' and (
                         context.get('bin_size') or context.get('bin_size_' + field.name)):
                     # PG 9.2 introduces conflicting pg_size_pretty(numeric) -> need ::cast
-                    sql = self._field_to_sql(self._table, field.name, query)
+                    sql = query.table[field.name]
                     sql = SQL("pg_size_pretty(length(%s)::bigint)", sql)
                 else:
-                    sql = self._field_to_sql(self._table, field.name, query)
+                    sql = query.table[field.name]
                     # flushing is necessary to retrieve the en_US value of fields without a translation
                     # otherwise, re-create the SQL without flushing
                     if not field.translate:
-                        to_flush = (f for f in sql.to_flush if f != field)
-                        sql = SQL(sql.code, *sql.params, to_flush=to_flush)
+                        sql_code, sql_params, to_flush = sql._sql_tuple
+                        to_flush = (f for f in to_flush if f != field)
+                        sql = SQL(sql_code, *sql_params, to_flush=to_flush)
                 sql_terms.append(sql)
 
             # select the given columns from the rows in the query
@@ -3992,7 +3246,7 @@ class BaseModel(metaclass=MetaModel):
         """
         if len(self) > 1:
             raise ValueError("Expected singleton or no record: %s" % self)
-        return self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        return self.env['ir.config_parameter'].sudo().get_str('web.base.url')
 
     def _check_company_domain(self, companies) -> Domain:
         """Domain to be used for company consistency between records regarding this model.
@@ -4111,26 +3365,106 @@ class BaseModel(metaclass=MetaModel):
             records.browse().check_access(operation)
 
         """
-        if not self.env.su and (result := self._check_access(operation)):
-            raise result[1]()
+        # special cases (su or no real records) or no cache
+        if self.env.su:
+            return
+        if operation != 'read' or not any(self._ids):
+            if result := self._check_access(operation):
+                raise result[1]()
+            return
+
+        # check the cache
+        access = self.env._access_cache[self._name]
+        if all(map(access.get, self._ids)):
+            return
+        self.__check_access_fill_cache(access, operation)
+        inaccessible = self.browse(id_ for id_ in self._ids if not access[id_])
+        if not inaccessible:
+            return
+        # generate the exception
+        result = inaccessible._check_access(operation)
+        assert result is not None, "_check_access is non-deterministic or issue with fill cache"
+        raise result[1]()
 
     def has_access(self, operation: str) -> bool:
         """ Return whether the current user is allowed to perform ``operation``
         on all the records in ``self``. The method is fully consistent with
         method :meth:`check_access` but returns a boolean instead.
         """
-        return self.env.su or not self._check_access(operation)
+        # special cases (su or no real records) or no cache
+        if self.env.su:
+            return True
+        if operation != 'read' or not any(self._ids):
+            return not self._check_access(operation)
 
-    def _filtered_access(self, operation: str):
+        # check the cache
+        access = self.env._access_cache[self._name]
+        if all(map(access.get, self._ids)):
+            return True
+        self.__check_access_fill_cache(access, operation)
+        return all(map(access.__getitem__, self._ids))
+
+    def _filtered_access(self, operation: str) -> typing.Self:
         """ Return the subset of ``self`` for which the current user is allowed
         to perform ``operation``. The method is fully equivalent to::
 
             self.filtered(lambda record: record.has_access(operation))
 
         """
-        if self and not self.env.su and (result := self._check_access(operation)):
-            return self - result[0]
-        return self
+        # special cases (su or no real records)
+        if self.env.su or not self:
+            return self
+        if operation != 'read' or not any(self._ids):
+            if result := self._check_access(operation):
+                return self - result[0]
+            return self
+
+        # filter using the cache
+        access = self.env._access_cache[self._name]
+        if all(map(access.get, self._ids)):
+            return self
+        self.__check_access_fill_cache(access, operation)
+        return self.filtered(lambda rec: access[rec._ids[0]])
+
+    def __check_access_fill_cache(self, access: dict[IdType, bool], operation: str) -> None:
+        """ Fill the access cache for records in self. """
+        ids = self._ids
+
+        # Select records:
+        # We get unknown ids and recheck forbidden ids.  If we have a small
+        # number of ids, we only add unknown records from the prefetch to check
+        # access in batch.
+        # We want to avoid rechecking *all* the prefetch every time we have an
+        # inaccessible record.
+        ids_to_check = tuple(id_ for id_ in ids if not access.get(id_))
+        if len(ids) < PREFETCH_MAX and self._prefetch_ids is not ids:
+            ids_to_check = itertools.chain(ids_to_check, (
+                id_ for id_ in self._prefetch_ids
+                if id_ not in access
+            ))
+            ids_to_check = itertools.islice(unique(ids_to_check), PREFETCH_MAX)
+        records = self.browse(ids_to_check)
+
+        # Check access
+        try:
+            result = records._check_access(operation)
+        except MissingError:
+            existing = records.exists()
+            missing_ids = set(records._ids) - set(existing._ids)
+            if not missing_ids.isdisjoint(ids):
+                # raise if initial ids intersect with missing ids
+                raise
+            records = existing
+            result = records._check_access(operation)
+
+        # Update the cache
+        if result is None:
+            for id_ in records._ids:
+                access[id_] = True
+        else:
+            inaccessible_record_ids = set(result[0]._ids)
+            for id_ in records._ids:
+                access[id_] = id_ not in inaccessible_record_ids
 
     def _check_access(self, operation: str) -> tuple[Self, Callable] | None:
         """ Return ``None`` if the current user has permission to perform
@@ -4157,40 +3491,6 @@ class BaseModel(metaclass=MetaModel):
 
         return None
 
-    @api.model
-    @api.deprecated("check_access_rights() is deprecated since 18.0; use check_access() instead.")
-    def check_access_rights(self, operation, raise_exception=True):
-        """ Verify that the given operation is allowed for the current user accord to ir.model.access.
-
-        :param str operation: one of ``create``, ``read``, ``write``, ``unlink``
-        :param bool raise_exception: whether an exception should be raise if operation is forbidden
-        :return: whether the operation is allowed
-        :rtype: bool
-        :raise AccessError: if the operation is forbidden and raise_exception is True
-        """
-        if raise_exception:
-            return self.browse().check_access(operation)
-        return self.browse().has_access(operation)
-
-    @api.deprecated("check_access_rule() is deprecated since 18.0; use check_access() instead.")
-    def check_access_rule(self, operation):
-        """ Verify that the given operation is allowed for the current user according to ir.rules.
-
-        :param str operation: one of ``create``, ``read``, ``write``, ``unlink``
-        :return: None if the operation is allowed
-        :raise UserError: if current ``ir.rules`` do not permit this operation.
-        """
-        self.check_access(operation)
-
-    @api.deprecated("_filter_access_rules() is deprecated since 18.0; use _filtered_access() instead.")
-    def _filter_access_rules(self, operation):
-        """ Return the subset of ``self`` for which ``operation`` is allowed. """
-        return self._filtered_access(operation)
-
-    @api.deprecated("_filter_access_rules_python() is deprecated since 18.0; use _filtered_access() instead.")
-    def _filter_access_rules_python(self, operation):
-        return self._filtered_access(operation)
-
     def unlink(self) -> typing.Literal[True]:
         """ Delete the records in ``self``.
 
@@ -4202,10 +3502,14 @@ class BaseModel(metaclass=MetaModel):
 
         self.check_access('unlink')
 
-        from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
         for func in self._ondelete_methods:
-            # func._ondelete is True if it should be called during uninstallation
-            if func._ondelete or not self.env.context.get(MODULE_UNINSTALL_FLAG):
+            # func._ondelete is True => should be called during uninstallation
+            # func._ondelete is False => should be called unless its module is being uninstalled
+            if (
+                func._ondelete
+                or not self.pool.uninstalling_modules
+                or func.__module__.split('.')[2] not in self.pool.uninstalling_modules
+            ):
                 func(self)
 
         # TOFIX: this avoids an infinite loop when trying to recompute a
@@ -4258,8 +3562,8 @@ class BaseModel(metaclass=MetaModel):
             ir_attachment_unlink |= Attachment.browse(row[0] for row in cr.fetchall())
 
             # don't allow fallback value in ir.default for many2one company dependent fields to be deleted
-            # Exception: when MODULE_UNINSTALL_FLAG, these fallbacks can be deleted by Defaults.discard_records(records)
-            if (many2one_fields := self.env.registry.many2one_company_dependents[self._name]) and not self.env.context.get(MODULE_UNINSTALL_FLAG):
+            # Exception: when 'force_delete', these fallbacks can be deleted by Defaults.discard_records(records)
+            if (many2one_fields := self.env.registry.many2one_company_dependents[self._name]) and not self.env.context.get('force_delete'):
                 IrModelFields = self.env["ir.model.fields"]
                 field_ids = tuple(IrModelFields._get_ids(field.model_name).get(field.name) for field in many2one_fields)
                 sub_ids_json_text = tuple(json.dumps(id_) for id_ in sub_ids)
@@ -4272,7 +3576,7 @@ class BaseModel(metaclass=MetaModel):
             # on delete set null/restrict for jsonb company dependent many2one
             for field in many2one_fields:
                 model = self.env[field.model_name]
-                if field.ondelete == 'restrict' and not self.env.context.get(MODULE_UNINSTALL_FLAG):
+                if field.ondelete == 'restrict' and not self.env.context.get('force_delete'):
                     if res := self.env.execute_query(SQL(
                         """
                         SELECT id, %(field)s
@@ -4325,6 +3629,8 @@ class BaseModel(metaclass=MetaModel):
             ir_model_data_unlink.unlink()
         if ir_attachment_unlink:
             ir_attachment_unlink.unlink()
+        if cache_name := self._clear_cache_name:
+            self.env.registry.clear_cache(cache_name)
 
         # auditing: deletions are infrequent and leave no trace in the database
         _unlink.info('User #%s deleted %s records with IDs: %r', self.env.uid, self._name, self.ids)
@@ -4378,7 +3684,7 @@ class BaseModel(metaclass=MetaModel):
         self.check_access('write')
         for field_name in vals:
             try:
-                self._check_field_access(self._fields[field_name], 'write')
+                self.check_field_access(self._fields[field_name], 'write')
             except KeyError as e:
                 raise ValueError(f"Invalid field {field_name!r} in {self._name!r}") from e
         env = self.env
@@ -4509,6 +3815,13 @@ class BaseModel(metaclass=MetaModel):
                             document_model=self._name,
                         ))
                     raise
+
+            # invalidate the cache
+            if real_recs and (cache_name := self._clear_cache_name) and (
+                self._clear_cache_on_fields is None
+                or not vals.keys().isdisjoint(self._clear_cache_on_fields)
+            ):
+                self.env.registry.clear_cache(cache_name)
 
             # validate inversed fields
             real_recs._validate_fields(inverse_fields)
@@ -4652,7 +3965,7 @@ class BaseModel(metaclass=MetaModel):
             field = self._fields.get(field_name)
             if field is None:
                 raise ValueError(f"Invalid field {field_name!r} in {self._name!r}")
-            self._check_field_access(field, 'write')
+            self.check_field_access(field, 'write')
 
         new_vals_list = self._prepare_create_values(vals_list)
 
@@ -4735,6 +4048,10 @@ class BaseModel(metaclass=MetaModel):
                 # commands, the cache may therefore hold NewId records. We must now invalidate those values.
                 inv_relational_fnames = [field.name for field in fields if field.type in ('one2many', 'many2many') and not field.store]
                 inv_records.invalidate_recordset(fnames=inv_relational_fnames)
+
+        # invalidate the cache
+        if cache_name := self._clear_cache_name:
+            self.env.registry.clear_cache(cache_name)
 
         # check Python constraints for non-stored inversed fields
         for data in data_list:
@@ -5027,7 +4344,13 @@ class BaseModel(metaclass=MetaModel):
             if prefix:
                 parent_ids = {int(label) for label in prefix.split('/')[:-1]}
                 if not parent_ids.isdisjoint(records._ids):
-                    raise UserError(_("Recursion Detected."))
+                    ir_model = self.env['ir.model']._get(self._name)
+                    raise UserError(_(
+                        "You are creating a loop in your '%s' records. "
+                        "A record cannot be a child of itself or one of its own sub-items. "
+                        "Please select a different parent.",
+                        ir_model.name,
+                    ))
 
             # update parent_path of all records and their descendants
             updated = dict(self.env.execute_query(SQL(
@@ -5221,8 +4544,7 @@ class BaseModel(metaclass=MetaModel):
                 word,
             ))
 
-    def _order_to_sql(self, order: str, query: Query, alias: (str | None) = None,
-                      reverse: bool = False) -> SQL:
+    def _order_to_sql(self, table: TableSQL, order: str, reverse: bool = False) -> SQL:
         """ Return an :class:`SQL` object that represents the given ORDER BY
         clause, without the ORDER BY keyword.  The method also checks whether
         the fields in the order are accessible for reading.
@@ -5231,8 +4553,6 @@ class BaseModel(metaclass=MetaModel):
         if not order:
             return SQL()
         self._check_qorder(order)
-
-        alias = alias or self._table
 
         terms = []
         for order_part in order.split(','):
@@ -5253,14 +4573,16 @@ class BaseModel(metaclass=MetaModel):
             if property_name := order_match['property']:
                 # field_name is an expression
                 field_name = f"{field_name}.{property_name}"
-            term = self._order_field_to_sql(alias, field_name, sql_direction, sql_nulls, query)
+            term = self._order_field_to_sql(table, field_name, sql_direction, sql_nulls)
             if term:
                 terms.append(term)
 
         return SQL(", ").join(terms)
 
-    def _order_field_to_sql(self, alias: str, field_name: str, direction: SQL,
-                            nulls: SQL, query: Query) -> SQL:
+    def _order_field_to_sql(
+        self, table: TableSQL, field_expr: str,
+        direction: SQL, nulls: SQL,
+    ) -> SQL:
         """ Return an :class:`SQL` object that represents the ordering by the
         given field.  The method also checks whether the field is accessible for
         reading.
@@ -5269,7 +4591,7 @@ class BaseModel(metaclass=MetaModel):
         :param nulls: one of ``SQL("NULLS FIRST")``, ``SQL("NULLS LAST")``, ``SQL()``
         """
         # field_name is an expression
-        fname, property_name = parse_field_expr(field_name)
+        fname, property_name = parse_field_expr(field_expr)
         field = self._fields.get(fname)
         if not field:
             raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
@@ -5283,40 +4605,46 @@ class BaseModel(metaclass=MetaModel):
             # figure out the applicable order_by for the m2o
             # special case: ordering by "x_id.id" doesn't recurse on x_id's comodel
             comodel = self.env[field.comodel_name]
+            sql_field = table[fname]
             if property_name == 'id':
                 coorder = 'id'
-                sql_field = self._field_to_sql(alias, fname, query)
+            elif property_name:
+                raise ValueError(f"Cannot order by comodel fields in {field_expr!r}")
             else:
                 coorder = comodel._order
-                sql_field = self._field_to_sql(alias, field_name, query)
 
             if coorder == 'id':
-                query._order_groupby.append(sql_field)
+                table._query._order_groupby.append(sql_field)
                 return SQL("%s %s %s", sql_field, direction, nulls)
 
             # instead of ordering by the field's raw value, use the comodel's
             # order on many2one values
             terms = []
-            if nulls.code == 'NULLS FIRST':
+            nulls_code = nulls._sql_tuple[0]
+            if nulls_code == 'NULLS FIRST':
                 terms.append(SQL("%s IS NOT NULL", sql_field))
-            elif nulls.code == 'NULLS LAST':
+            elif nulls_code == 'NULLS LAST':
                 terms.append(SQL("%s IS NULL", sql_field))
 
             # LEFT JOIN the comodel table, in order to include NULL values, too
-            _comodel, coalias = field.join(self, alias, query)
+            # Run as sudo because we can order by inaccessible models as we can
+            # only order by the default order or the id.
+            cotable = table._with_model(self.sudo())._join(fname)
 
             # delegate the order to the comodel
-            reverse = direction.code == 'DESC'
-            term = comodel._order_to_sql(coorder, query, alias=coalias, reverse=reverse)
+            reverse = direction._sql_tuple[0] == 'DESC'
+            term = comodel._order_to_sql(cotable, coorder, reverse=reverse)
             if term:
                 terms.append(term)
             return SQL(", ").join(terms)
 
-        sql_field = self._field_to_sql(alias, field_name, query)
-        if field.type == 'boolean':
+        sql_field = table[fname]
+        if property_name:
+            sql_field = sql_field[property_name]
+        if field.type == 'boolean' and field not in self.env.registry.not_null_fields:
             sql_field = SQL("COALESCE(%s, FALSE)", sql_field)
 
-        query._order_groupby.append(sql_field)
+        table._query._order_groupby.append(sql_field)
 
         return SQL("%s %s %s", sql_field, direction, nulls)
 
@@ -5360,15 +4688,17 @@ class BaseModel(metaclass=MetaModel):
             and self.env.context.get('active_test', True)
             and not any(leaf.field_expr == self._active_name for leaf in domain.iter_conditions())
         ):
-            domain &= Domain(self._active_name, '=', True)
+            # try to create the domain close to what it will look like after optimization
+            # to avoid reoptimizing it
+            domain = Domain(self._active_name, 'in', OrderedSet((True,))) & domain
 
         # build the query
         domain = domain.optimize_full(self)
         if domain.is_false():
             return self.browse()._as_query()
-        query = Query(self.env, self._table, self._table_sql)
+        query = Query(self)
         if not domain.is_true():
-            query.add_where(domain._to_sql(self, self._table, query))
+            query.add_where(domain._to_sql(query.table))
 
         # security access domain
         if check_access:
@@ -5378,11 +4708,11 @@ class BaseModel(metaclass=MetaModel):
             if sec_domain.is_false():
                 return self.browse()._as_query()
             if not sec_domain.is_true():
-                query.add_where(sec_domain._to_sql(self_sudo, self._table, query))
+                query.add_where(sec_domain._to_sql(query.table._with_model(self_sudo)))
 
         # add order and limits
         if order:
-            query.order = self._order_to_sql(order, query)
+            query.order = self._order_to_sql(query.table, order)
 
         # In RPC, None is not available; False is used instead to mean "no limit"
         # Note: True is kept for backward-compatibility (treated as 1)
@@ -5399,7 +4729,7 @@ class BaseModel(metaclass=MetaModel):
 
         :param ordered: whether the recordset order must be enforced by the query
         """
-        query = Query(self.env, self._table, self._table_sql)
+        query = Query(self)
         query.set_result_ids(self._ids, ordered)
         return query
 
@@ -5417,21 +4747,19 @@ class BaseModel(metaclass=MetaModel):
             self = self.with_context(__copy_data_seen=defaultdict(set))
 
         # build a black list of fields that should not be copied
-        blacklist = set(MAGIC_COLUMNS + ['parent_path'])
-        whitelist = set(name for name, field in self._fields.items() if not field.inherited)
+        blacklist = {*MAGIC_COLUMNS, 'parent_path'}
+        whitelist = {name for name, field in self._fields.items() if not field.inherited}
 
-        def blacklist_given_fields(model):
-            # blacklist the fields that are given by inheritance
-            for parent_model, parent_field in model._inherits.items():
+        blacklist_stack = [self]
+        while blacklist_stack:
+            for parent_model, parent_field in blacklist_stack.pop()._inherits.items():
                 blacklist.add(parent_field)
                 if parent_field in default:
                     # all the fields of 'parent_model' are given by the record:
                     # default[parent_field], except the ones redefined in self
                     blacklist.update(set(self.env[parent_model]._fields) - whitelist)
                 else:
-                    blacklist_given_fields(self.env[parent_model])
-
-        blacklist_given_fields(self)
+                    blacklist_stack.append(self.env[parent_model])
 
         fields_to_copy = {name: field
                           for name, field in self._fields.items()
@@ -5554,7 +4882,7 @@ class BaseModel(metaclass=MetaModel):
         new_ids, ids = partition(lambda i: isinstance(i, NewId), self._ids)
         if not ids:
             return self
-        query = Query(self.env, self._table, self._table_sql)
+        query = Query(self)
         query.add_where(SQL("%s IN %s", SQL.identifier(self._table, 'id'), tuple(ids)))
         real_ids = (id_ for [id_] in self.env.execute_query(query.select()))
         valid_ids = {*real_ids, *new_ids}
@@ -5576,7 +4904,7 @@ class BaseModel(metaclass=MetaModel):
         ids = {id_ for id_ in self._ids if id_}
         if not ids:
             return
-        query = Query(self.env, self._table, self._table_sql)
+        query = Query(self)
         query.add_where(SQL("%s IN %s", SQL.identifier(self._table, 'id'), tuple(ids)))
         # Use SKIP LOCKED instead of NOWAIT because the later aborts the
         # transaction and we do not want to use SAVEPOINTS.
@@ -5608,7 +4936,7 @@ class BaseModel(metaclass=MetaModel):
             query = self.browse(ids)._as_query(ordered=True)
             query.limit = limit - len(new_ids)
         else:
-            query = Query(self.env, self._table, self._table_sql)
+            query = Query(self)
             query.add_where(SQL("%s IN %s", SQL.identifier(self._table, 'id'), tuple(ids)))
         if not ids:
             return self
@@ -5647,7 +4975,7 @@ class BaseModel(metaclass=MetaModel):
         ):
             raise ValueError(f'Field must be a many2one or many2many relation on itself: {field_name!r}')
 
-        if not self.ids:
+        if not self.ids or not self[field_name]:
             return False
 
         # must ignore 'active' flag, ir.rules, etc.
@@ -5683,14 +5011,6 @@ class BaseModel(metaclass=MetaModel):
             col2=SQL.identifier(column2),
         ))
         return bool(cr.fetchone())
-
-    @api.deprecated("Deprecated since 18.0, use _has_cycle() instead")
-    def _check_recursion(self, parent=None):
-        return not self._has_cycle(parent)
-
-    @api.deprecated("Deprecated since 18.0, use _has_cycle() instead")
-    def _check_m2m_recursion(self, field_name):
-        return not self._has_cycle(field_name)
 
     def _get_external_ids(self) -> dict[IdType, list[str]]:
         """Retrieve the External ID(s) of any database record.
@@ -5785,14 +5105,6 @@ class BaseModel(metaclass=MetaModel):
             records = records.with_context(context)
 
         return records._read_format(fnames=fields, **read_kwargs)
-
-    @api.deprecated("Deprecated since 19.0, use action_archive or action_unarchive")
-    def toggle_active(self):
-        "Inverses the value of :attr:`active` on the records in ``self``."
-        assert self._active_name, f"No 'active' field on model {self._name}"
-        active_recs = self.filtered(self._active_name)
-        active_recs.action_archive()
-        (self - active_recs).action_unarchive()
 
     def action_archive(self):
         """Set :attr:`active` to ``False`` on a recordset for active records.
@@ -5895,6 +5207,7 @@ class BaseModel(metaclass=MetaModel):
             ids = (ids,)
         else:
             ids = tuple(ids)
+            assert all(ids) or all(isinstance(x, NewId) or x for x in ids), "Invalid falsy real id"
         return self.__class__(self.env, ids, ids)
 
     #
@@ -6037,12 +5350,6 @@ class BaseModel(metaclass=MetaModel):
             The returned recordset has the same prefetch object as ``self``.
         """  # noqa: RST210
         context = dict(ctx if ctx is not None else self.env.context, **overrides)
-        if 'force_company' in context:
-            warnings.warn(
-                "Since 19.0, context key 'force_company' is no longer supported. "
-                "Use with_company(company) instead.",
-                DeprecationWarning,
-            )
         if 'company' in context:
             warnings.warn(
                 "Context key 'company' is not recommended, because "
@@ -6121,11 +5428,11 @@ class BaseModel(metaclass=MetaModel):
         ...
 
     @typing.overload
-    def mapped(self, func: Callable[[Self], T]) -> list[T] | BaseModel:
+    def mapped[T](self, func: Callable[[Self], T]) -> list[T] | BaseModel:
         ...
 
     @api.private
-    def mapped(self, func: str | Callable[[Self], T]) -> list | BaseModel:
+    def mapped[T](self, func: str | Callable[[Self], T]) -> list | BaseModel:
         """Apply ``func`` on all records in ``self``, and return the result as a
         list or a recordset (if ``func`` return recordsets). In the latter
         case, the order of the returned recordset is arbitrary.
@@ -6194,36 +5501,41 @@ class BaseModel(metaclass=MetaModel):
             # only keep records whose company is the current user's
             records.filtered(lambda r: r.company_id == user.company_id)
 
-            # only keep records whose partner is a company
-            records.filtered("partner_id.is_company")
+            # only keep records whose partner has VAT
+            records.filtered("partner_id.vat")
         """
         if not func:
             # align with mapped()
             return self
+
         if callable(func):
             # normal function
             pass
         elif isinstance(func, str):
             if '.' in func:
-                return self.browse(rec_id for rec_id, rec in zip(self._ids, self) if any(rec.mapped(func)))
-            # avoid costly mapped
-            func = self._fields[func].__get__
+                seq_fnames = func
+                func = lambda record: any(record.mapped(seq_fnames))  # noqa: E731
+            else:
+                # avoid costly mapped
+                func = self._fields[func].__get__
         elif isinstance(func, Domain):
             return self.filtered_domain(func)
         else:
             raise TypeError(f"Invalid function {func!r} to filter on {self._name}")
-        return self.browse(rec_id for rec_id, rec in zip(self._ids, self) if func(rec))
+
+        ids = tuple(id_ for id_, rec in zip(self._ids, self) if func(rec))
+        return self.__class__(self.env, ids, Prefetch.union(ids, self._prefetch_ids))
 
     @typing.overload
     def grouped(self, key: str) -> dict[typing.Any, Self]:
         ...
 
     @typing.overload
-    def grouped(self, key: Callable[[Self], T]) -> dict[T, Self]:
+    def grouped[T](self, key: Callable[[Self], T]) -> dict[T, Self]:
         ...
 
     @api.private
-    def grouped(self, key: str | Callable[[Self], T]) -> dict[typing.Any, Self]:
+    def grouped[T](self, key: str | Callable[[Self], T]) -> dict[typing.Any, Self]:
         """Eagerly groups the records of ``self`` by the ``key``, returning a
         dict from the ``key``'s result to recordsets. All the resulting
         recordsets are guaranteed to be part of the same prefetch-set.
@@ -6257,7 +5569,8 @@ class BaseModel(metaclass=MetaModel):
         if not self or not domain:
             return self
         predicate = Domain(domain)._as_predicate(self)
-        return self.browse(rec_id for rec_id, rec in zip(self._ids, self) if predicate(rec))
+        ids = tuple(id_ for id_, rec in zip(self._ids, self) if predicate(rec))
+        return self.__class__(self.env, ids, Prefetch.union(ids, self._prefetch_ids))
 
     @api.private
     def sorted(self, key: Callable[[Self], typing.Any] | str | None = None, reverse: bool = False) -> Self:
@@ -6427,7 +5740,7 @@ class BaseModel(metaclass=MetaModel):
                 raise AssertionError(
                     f"Could not find all values of {record} to flush them\n"
                     f"    Context: {self.env.context}\n"
-                    f"    Cache: {self.env.cache!r}"
+                    f"    Cache: {dict(record._cache)!r}"
                 )
             model.browse(some_ids)._write_multi(vals_list)
 
@@ -6551,14 +5864,17 @@ class BaseModel(metaclass=MetaModel):
             linear time complexity).
         """
         ids = list(self._ids)
+        prefetch_ids_list = [self._prefetch_ids]
         for arg in args:
             try:
                 if arg._name != self._name:
                     raise TypeError(f"inconsistent models in: {self} + {arg}")
                 ids.extend(arg._ids)
+                prefetch_ids_list.append(arg._prefetch_ids)
             except AttributeError:
                 raise TypeError(f"unsupported operand types in: {self} + {arg!r}")
-        return self.browse(ids)
+        ids = tuple(ids)
+        return self.__class__(self.env, ids, Prefetch.union(ids, *prefetch_ids_list))
 
     def __sub__(self, other) -> Self:
         """ Return the recordset of all the records in ``self`` that are not in
@@ -6568,7 +5884,8 @@ class BaseModel(metaclass=MetaModel):
             if self._name != other._name:
                 raise TypeError(f"inconsistent models in: {self} - {other}")
             other_ids = set(other._ids)
-            return self.browse(id_ for id_ in self._ids if id_ not in other_ids)
+            ids = tuple(id_ for id_ in self._ids if id_ not in other_ids)
+            return self.__class__(self.env, ids, Prefetch.union(ids, self._prefetch_ids))
         except AttributeError:
             raise TypeError(f"unsupported operand types in: {self} - {other!r}")
 
@@ -6580,7 +5897,8 @@ class BaseModel(metaclass=MetaModel):
             if self._name != other._name:
                 raise TypeError(f"inconsistent models in: {self} & {other}")
             other_ids = set(other._ids)
-            return self.browse(OrderedSet(id_ for id_ in self._ids if id_ in other_ids))
+            ids = tuple({id_: None for id_ in self._ids if id_ in other_ids})
+            return self.__class__(self.env, ids, Prefetch.union(ids, self._prefetch_ids))
         except AttributeError:
             raise TypeError(f"unsupported operand types in: {self} & {other!r}")
 
@@ -6596,14 +5914,17 @@ class BaseModel(metaclass=MetaModel):
             complexity, with first occurrence order preserved).
         """
         ids = list(self._ids)
+        prefetch_ids_list = [self._prefetch_ids]
         for arg in args:
             try:
                 if arg._name != self._name:
                     raise TypeError(f"inconsistent models in: {self} | {arg}")
                 ids.extend(arg._ids)
+                prefetch_ids_list.append(arg._prefetch_ids)
             except AttributeError:
                 raise TypeError(f"unsupported operand types in: {self} | {arg!r}")
-        return self.browse(OrderedSet(ids))
+        ids = tuple(dict.fromkeys(ids))
+        return self.__class__(self.env, ids, Prefetch.union(ids, *prefetch_ids_list))
 
     def __eq__(self, other):
         """ Test whether two recordsets are equivalent (up to reordering). """
@@ -6686,10 +6007,13 @@ class BaseModel(metaclass=MetaModel):
         if isinstance(key, str):
             # important: one must call the field's getter
             return self._fields[key].__get__(self)
-        elif isinstance(key, slice):
-            return self.browse(self._ids[key])
+        if isinstance(key, slice):
+            ids = self._ids[key]
+            prefetch_ids = Prefetch.union(ids, self._prefetch_ids)
         else:
-            return self.browse((self._ids[key],))
+            ids = (self._ids[key],)
+            prefetch_ids = self._prefetch_ids
+        return self.__class__(self.env, ids, prefetch_ids)
 
     def __setitem__(self, key: str, value: typing.Any):
         """ Assign the field ``key`` to ``value`` in record ``self``. """
@@ -6747,10 +6071,14 @@ class BaseModel(metaclass=MetaModel):
         env = self.env
         for field in fields:
             field._invalidate_cache(env, ids)
-            # TODO VSC: used to remove the inverse of many_to_one from the cache, though we might not need it anymore
+            if field.type == 'one2many':
+                # skip invalidation of inverse for o2m fields
+                # (o2m is "computed" from m2o)
+                continue
             for invf in self.pool.field_inverses[field]:
                 self.env[invf.model_name].flush_model([invf.name])
                 invf._invalidate_cache(env)
+        self.env.transaction.clear_access_cache(self._name)
 
     @api.private
     def modified(self, fnames: Collection[str], create: bool = False, before: bool = False) -> None:
@@ -6877,17 +6205,23 @@ class BaseModel(metaclass=MetaModel):
                 # upon creation, no other record has a reference to self
                 continue
 
+            inverses = self.pool.field_inverses[field]
+            if create and field.type == 'many2many' and field.store and not inverses:
+                # upon creation, no other record has a reference to self
+                # for this M2M because no inverse has been able to use commands.
+                continue
+
             # subtree is another tree of dependencies
             model = self.env[field.model_name]
-            for invf in model.pool.field_inverses[field]:
+            for invf in inverses:
                 # use an inverse of field without domain
                 if not (invf.type in ('one2many', 'many2many') and invf.domain):
                     if invf.type == 'many2one_reference':
                         rec_ids = OrderedSet()
                         for rec in self:
                             try:
-                                if rec[invf.model_field] == field.model_name:
-                                    rec_ids.add(rec[invf.name])
+                                if rec[invf.model_field] == field.model_name and (rec_id := rec[invf.name]):
+                                    rec_ids.add(rec_id)
                             except MissingError:
                                 continue
                         records = model.browse(rec_ids)

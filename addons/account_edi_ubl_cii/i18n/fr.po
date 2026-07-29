@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * account_edi_ubl_cii
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 21:12+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-13 13:34+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_edi_ubl_cii/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -32,7 +32,7 @@ msgstr "%(invoice_name)s - Généré par Odoo"
 #: code:addons/account_edi_ubl_cii/models/account_edi_xml_ubl_bis3.py:0
 msgid "%s should have a valid KBO/BCE number in the Company ID field"
 msgstr ""
-"%s doit avoir un numéro KBO/BCE valide dans le champ ID de l'entreprise"
+"%s doit avoir un numéro KBO/BCE valide dans le champ ID de l’entreprise"
 
 #. module: account_edi_ubl_cii
 #: model:ir.actions.server,name:account_edi_ubl_cii.action_group_ungroup_lines_by_tax
@@ -87,16 +87,6 @@ msgstr "AE - Autoliquidation TVA"
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__as
 msgid "AS2 exchange"
 msgstr "Échange AS2"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
-msgid "Account Move Send"
-msgstr "Envoi de l'écriture comptable"
-
-#. module: account_edi_ubl_cii
-#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
-msgid "Account Move Send Wizard"
-msgstr "Assistant d’envoi des écritures comptables"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9923
@@ -540,7 +530,7 @@ msgstr "Format utilisé pour importer le document :%s"
 #. odoo-python
 #: code:addons/account_edi_ubl_cii/models/account_edi_ubl.py:0
 msgid "Format used to import the invoice: %s"
-msgstr "Format utilisé pour importer la facture : %s"
+msgstr "Format utilisé pour importer la facture : %s"
 
 #. module: account_edi_ubl_cii
 #. odoo-python
@@ -825,6 +815,12 @@ msgid "Malta VAT"
 msgstr "TVA Malte"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Missing '_title' for multi-level constraints."
+msgstr "'_title' manquant pour les contraintes à plusieurs niveaux."
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9940
 msgid "Monaco VAT"
 msgstr "TVA Monaco"
@@ -878,6 +874,12 @@ msgstr "O.F.T.P. (ODETTE File Transfer Protocol)"
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata
 msgid "Odoo"
 msgstr "Odoo"
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_common.py:0
+msgid "Other Errors:"
+msgstr "Autres erreurs :"
 
 #. module: account_edi_ubl_cii
 #: model_terms:ir.ui.view,arch_db:account_edi_ubl_cii.view_partner_property_form
@@ -1005,9 +1007,19 @@ msgid "San Marino VAT"
 msgstr "TVA Saint-Marin"
 
 #. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send_wizard
+msgid "Send Invoice Wizard"
+msgstr "Assistant d’envoi de facture"
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__peppol_eas__9948
 msgid "Serbia VAT"
 msgstr "TVA Serbie"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model,name:account_edi_ubl_cii.model_account_move_send
+msgid "Shared Send Invoice Wizard Functions"
+msgstr "Fonctions communes de l’assistant d’envoi de facture"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields.selection,name:account_edi_ubl_cii.selection__res_partner__invoice_edi_format__ubl_sg
@@ -1069,6 +1081,11 @@ msgstr "La taxe' %(tax_name)s' est invalide : %(error_message)s"
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_category_code
 msgid "Tax Category Code"
 msgstr "Code de catégorie fiscale"
+
+#. module: account_edi_ubl_cii
+#: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason
+msgid "Tax Exemption Reason"
+msgstr "Motif de l'exonération fiscale"
 
 #. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_account_tax__ubl_cii_tax_exemption_reason_code
@@ -2164,6 +2181,22 @@ msgid "Z - Zero rated goods"
 msgstr "Z - Biens à taux zéro"
 
 #. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
+"customer '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
+#. odoo-python
+#: code:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:0
+msgid ""
+"[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
+"company '%s'."
+msgstr ""
+
+#. module: account_edi_ubl_cii
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_partner__invoice_edi_format
 #: model:ir.model.fields,field_description:account_edi_ubl_cii.field_res_users__invoice_edi_format
 msgid "eInvoice format"
@@ -2206,9 +2239,6 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ msgid "EN 16931"
 #~ msgstr "EN 16931"
 
-#~ msgid "1.0"
-#~ msgstr "1.0"
-
 #~ msgid ""
 #~ "VATEX-FR-CGI261D-3 - Exempt based on 3° of article 261 D of the Code "
 #~ "Général des Impôts (CGI ; General tax code)"
@@ -2216,12 +2246,11 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ "VATEX-FR-CGI261D-3 - Exonéré en vertu du 3° de l'article 261 D du Code "
 #~ "Général des Impôts (CGI)"
 
+#~ msgid "1.0"
+#~ msgstr "1.0"
+
 #~ msgid "Articles 226 items 11 to 15 Directive 2006/112/EN"
 #~ msgstr "Article 226 points 11 à 15 Directive 2006/112/CE"
-
-#~ msgid ""
-#~ "No gross price, net price nor line subtotal amount found for line in xml"
-#~ msgstr "Aucun prix brut, prix net ou sous-total trouvé pour la ligne en xml"
 
 #~ msgid "Ungrouped lines from origin file"
 #~ msgstr "Lignes dégroupées à partir du fichier d'origine"
@@ -2232,30 +2261,5 @@ msgstr "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
 #~ "(facture fournisseur)"
 
 #~ msgid ""
-#~ "The following bank account numbers got retrieved during the import : %s"
-#~ msgstr ""
-#~ "Les numéros de compte bancaire suivants ont été récupérés lors de "
-#~ "l’import : %s"
-
-#~ msgid ""
-#~ "[PEPPOL-EN16931-R010] An electronic address (EAS) must be provided on the "
-#~ "customer '%s'."
-#~ msgstr ""
-#~ "[PEPPOL-EN16931-R010] Une adresse électronique (EAS) doit être renseignée "
-#~ "pour le client \"%s\"."
-
-#~ msgid ""
-#~ "[PEPPOL-EN16931-R020] An electronic address (EAS) must be provided on the "
-#~ "company '%s'."
-#~ msgstr ""
-#~ "[PEPPOL-EN16931-R020] Une adresse électronique (EAS) doit être renseignée "
-#~ "pour la société \"%s\"."
-
-#~ msgid "Your endpoint"
-#~ msgstr "Votre point de terminaison"
-
-#~ msgid "Australia BIS Billing 3.0 A-NZ"
-#~ msgstr "Australie BIS Billing 3.0 A-NZ"
-
-#~ msgid "Singapore BIS Billing 3.0 SG"
-#~ msgstr "Singapore BIS Billing 3.0 SG"
+#~ "No gross price, net price nor line subtotal amount found for line in xml"
+#~ msgstr "Aucun prix brut, prix net ou sous-total trouvé pour la ligne en xml"

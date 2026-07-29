@@ -2,16 +2,15 @@
 # This file contains the translation of the following modules:
 # * payment_mercado_pago
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 23:08+0000\n"
-"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
+"POT-Creation-Date: 2026-02-27 18:38+0000\n"
+"PO-Revision-Date: 2025-11-09 15:13+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "payment_mercado_pago/sv/>\n"
 "Language: sv\n"
@@ -19,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_mercado_pago
 #: model_terms:ir.ui.view,arch_db:payment_mercado_pago.payment_provider_form
@@ -263,7 +262,7 @@ msgstr ""
 #. module: payment_mercado_pago
 #: model:ir.model.fields,help:payment_mercado_pago.field_payment_provider__code
 msgid "The technical code of this payment provider."
-msgstr "Betalningsleverantörens tekniska kod."
+msgstr "Den tekniska koden för denna betalningsleverantör."
 
 #. module: payment_mercado_pago
 #. odoo-python
@@ -359,29 +358,3 @@ msgid ""
 msgstr ""
 "Din betalning har krediterats. I din sammanfattning ser du debiteringen som "
 "en kontoutdragsbeskrivning."
-
-#~ msgid "Could not establish the connection to the API."
-#~ msgstr "Det gick inte att upprätta anslutningen till API:et."
-
-#~ msgid "No transaction found matching reference %s."
-#~ msgstr "Ingen transaktion hittades som matchar referensen %s."
-
-#~ msgid "Received data with invalid status: %s"
-#~ msgstr "Mottagen data med ogiltig status: %s"
-
-#~ msgid "Received data with missing reference."
-#~ msgstr "Mottagen data med saknad referens."
-
-#~ msgid ""
-#~ "The communication with the API failed. Mercado Pago gave us the following "
-#~ "information: '%(error_message)s' (code %(error_code)s)"
-#~ msgstr ""
-#~ "Kommunikationen med API:et misslyckades. Mercado Pago gav oss följande "
-#~ "information: '%(error_message)s' (kod %(error_code)s)"
-
-#~ msgid ""
-#~ "The communication with the API failed. The response is empty. Please "
-#~ "verify your access token."
-#~ msgstr ""
-#~ "Kommunikationen med API:et misslyckades. Svaret är tomt. Vänligen "
-#~ "verifiera din åtkomstpolletten."

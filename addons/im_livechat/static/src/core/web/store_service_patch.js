@@ -1,4 +1,5 @@
 import { Store } from "@mail/core/common/store_service";
+import { fields } from "@mail/model/misc";
 import { compareDatetime } from "@mail/utils/common/misc";
 import { _t } from "@web/core/l10n/translation";
 
@@ -11,6 +12,20 @@ const storePatch = {
         this.livechatChannels = this.makeCachedFetchData("im_livechat.channel");
         this.livechatSelfExpertises = this.makeCachedFetchData("/im_livechat/fetch_self_expertise");
         this.has_access_livechat = false;
+        this.pinnedLivechats = fields.Many("discuss.channel", {
+            inverse: "storeAsPinnedLivechats",
+        });
+        /**
+         * Determine if the live chat category should be shown in the messaging menu.
+         * First received as part of the store initialization (`_store_init_global_fields`)
+         * to avoid flickering, then updated by the client compute.
+         */
+        this.show_livechat_category = fields.Attr(false, {
+            compute() {
+                return this.pinnedLivechats.length > 0;
+            },
+            eager: true,
+        });
     },
     /**
      * @override
@@ -22,25 +37,26 @@ const storePatch = {
             this.livechatSelfExpertises.fetch();
         }
     },
-    /** @returns {boolean} Whether the livechat thread changed. */
     goToOldestUnreadLivechatThread() {
-        const [oldestUnreadThread] = this.discuss.livechats
-            .filter((thread) => thread.isUnread)
+        const [oldestUnreadConversation] = this.discuss.livechats
+            .filter((conversation) => conversation.isUnread)
             .sort(
-                (t1, t2) =>
-                    !t2.livechat_end_dt - !t1.livechat_end_dt ||
-                    compareDatetime(t1.lastInterestDt, t2.lastInterestDt) ||
-                    t1.id - t2.id
+                (c1, c2) =>
+                    !c2.livechat_end_dt - !c1.livechat_end_dt ||
+                    compareDatetime(c1.lastInterestDt, c2.lastInterestDt) ||
+                    c1.id - c2.id
             );
-        if (!oldestUnreadThread) {
+        if (!oldestUnreadConversation) {
             return false;
         }
         if (this.discuss.isActive) {
-            oldestUnreadThread.setAsDiscussThread();
+            oldestUnreadConversation.setAsDiscussThread();
             return true;
         }
         this.store.chatHub.initPromise.then(() => {
-            const chatWindow = this.ChatWindow.insert({ thread: oldestUnreadThread });
+            const chatWindow = this.ChatWindow.insert({
+                channel: oldestUnreadConversation.thread.channel,
+            });
             chatWindow.open({ focus: true, jumpToNewMessage: true });
         });
         return true;
@@ -51,16 +67,13 @@ const storePatch = {
                 label: _t("In progress"),
                 status: "in_progress",
                 icon: "fa fa-comments",
-            },
-            {
-                label: _t("Waiting for customer"),
-                status: "waiting",
-                icon: "fa fa-hourglass-start",
+                iconSmall: "fa fa-comments o-xsmaller",
             },
             {
                 label: _t("Looking for help"),
                 status: "need_help",
                 icon: "fa fa-lg fa-exclamation-circle",
+                iconSmall: "fa fa-exclamation-circle",
             },
         ];
     },

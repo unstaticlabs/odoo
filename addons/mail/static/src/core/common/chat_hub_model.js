@@ -1,14 +1,34 @@
 import { browser } from "@web/core/browser/browser";
-import { fields, Record } from "./record";
+import { fields, Record } from "@mail/model/export";
 
 import { Deferred, Mutex } from "@web/core/utils/concurrency";
 
+export const CHAT_HUB_DEFAULT_BUBBLE_START = 15;
 export const CHAT_HUB_KEY = "mail.ChatHub";
 export const CHAT_HUB_COMPACT_LS = "mail.user_setting.chathub_compact";
 
+/**
+ * @typedef AwaitChatHubInit
+ * ⚠️ Always wait for `store.chatHub.initPromise` before reading or writing this field inside methods
+ * to avoid race conditions with ChatHub initialization. Using it directly inside a template (or
+ * other reactive callback) is fine as reactivity will re-render (or re-compute) when needed.
+ */
+
 export class ChatHub extends Record {
+    static singleton = true;
+
     BUBBLE = 56; // same value as $o-mail-ChatHub-bubblesWidth
-    BUBBLE_START = 15; // same value as $o-mail-ChatHub-bubblesStart
+    recomputeBubbleStart = 0;
+    BUBBLE_START = fields.Attr(CHAT_HUB_DEFAULT_BUBBLE_START, {
+        /** @this {import("models").Chathub} */
+        compute() {
+            void this.recomputeBubbleStart;
+            return this.computeBubbleStart();
+        },
+    });
+    computeBubbleStart() {
+        return CHAT_HUB_DEFAULT_BUBBLE_START;
+    }
     BUBBLE_LIMIT = 7;
     BUBBLE_OUTER = 10; // same value as $o-mail-ChatHub-bubblesMargin
     WINDOW_GAP = 10; // for a single end, multiply by 2 for left and right together.
@@ -21,7 +41,7 @@ export class ChatHub extends Record {
         const chatHub = super.new(...arguments);
         browser.addEventListener("storage", (ev) => {
             if (ev.key === CHAT_HUB_KEY) {
-                chatHub.load(ev.newValue || undefined);
+                chatHub.load(ev.newValue);
             } else if (ev.key === null) {
                 chatHub.load();
             }
@@ -34,6 +54,7 @@ export class ChatHub extends Record {
             .then(() => chatHub.initPromise.resolve());
         return chatHub;
     }
+
     _recomputeCompact = 0;
     compact = fields.Attr(false, {
         compute() {
@@ -60,16 +81,16 @@ export class ChatHub extends Record {
     async closeAll() {
         await this.initPromise;
         const promises = [];
-        for (const cw of [...this.opened, ...this.folded]) {
-            promises.push(cw.close({ notifyState: false }));
+        for (const chatWindow of [...this.opened, ...this.folded]) {
+            promises.push(chatWindow.requestClose({ notifyState: false }));
         }
         await Promise.all(promises);
         this.save(); // sync only once at the end
     }
 
     hideAll() {
-        for (const cw of this.opened) {
-            cw.bypassCompact = false;
+        for (const chatWindow of this.opened) {
+            chatWindow.bypassCompact = false;
         }
         browser.localStorage.setItem(CHAT_HUB_COMPACT_LS, true);
         this._recomputeCompact++;
@@ -77,8 +98,8 @@ export class ChatHub extends Record {
 
     onRecompute() {
         while (this.opened.length > this.maxOpened) {
-            const cw = this.opened.pop();
-            this.folded.unshift(cw);
+            const chatWindow = this.opened.pop();
+            this.folded.unshift(chatWindow);
         }
     }
 
@@ -89,31 +110,23 @@ export class ChatHub extends Record {
     async _load(str) {
         /** @type {{ opened: Object[], folded: Object[] }} */
         const { opened = [], folded = [] } = JSON.parse(str);
-        const hasInvalidData =
-            opened.some((data) => !data.id || !data.model) ||
-            folded.some((data) => !data.id || !data.model);
-        if (hasInvalidData) {
-            opened.length = 0;
-            folded.length = 0;
-            browser.localStorage.removeItem(CHAT_HUB_KEY);
-        }
-        const getThread = (data) => this.store.Thread.getOrFetch(data, ["display_name"]);
-        const openPromises = opened.map(getThread);
-        const foldPromises = folded.map(getThread);
+        const getChannel = (data) => this.store["discuss.channel"].getOrFetch(data.id);
+        const openPromises = opened.map(getChannel);
+        const foldPromises = folded.map(getChannel);
         this.preFirstFetchPromise.resolve();
-        const foldThreads = await Promise.all(foldPromises);
-        const openThreads = await Promise.all(openPromises);
-        /** @param {import("models").Thread[]} threads */
-        const insertChatWindows = (threads) =>
-            threads
-                .filter((thread) => thread?.model === "discuss.channel")
-                .map((thread) => this.store.ChatWindow.insert({ thread }));
-        const toFold = insertChatWindows(foldThreads);
-        const toOpen = insertChatWindows(openThreads);
+        const foldChannels = await Promise.all(foldPromises);
+        const openChannels = await Promise.all(openPromises);
+        /** @param {import("models").Channel[]} channels */
+        const insertChatWindows = (channels) =>
+            channels
+                .filter((channel) => channel?.exists())
+                .map((channel) => this.store.ChatWindow.insert({ channel }));
+        const toFold = insertChatWindows(foldChannels);
+        const toOpen = insertChatWindows(openChannels);
         // close first to make room for others
         for (const chatWindow of [...this.opened, ...this.folded]) {
             if (chatWindow.notIn(toOpen) && chatWindow.notIn(toFold)) {
-                chatWindow.close({ force: true, notifyState: false });
+                chatWindow.close({ notifyState: false });
             }
         }
         // folded before opened because if there are too many opened they will be added to folded
@@ -142,8 +155,8 @@ export class ChatHub extends Record {
         browser.localStorage.setItem(
             CHAT_HUB_KEY,
             JSON.stringify({
-                opened: this.opened.map((cw) => ({ id: cw.thread.id, model: cw.thread.model })),
-                folded: this.folded.map((cw) => ({ id: cw.thread.id, model: cw.thread.model })),
+                opened: this.opened.map((chatWindow) => ({ id: chatWindow.channel.id })),
+                folded: this.folded.map((chatWindow) => ({ id: chatWindow.channel.id })),
             })
         );
     }

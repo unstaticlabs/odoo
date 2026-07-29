@@ -1,9 +1,10 @@
+import base64
 from markupsafe import Markup
 from math import ceil
 
 from odoo import api, fields, models
 from odoo.addons.base.models.assetsbundle import ScssStylesheetAsset
-from odoo.addons.base.models.ir_qweb_fields import nl2br
+from odoo.addons.base.models.ir_qweb_fields import nl2br_enclose
 from odoo.tools import html2plaintext, is_html_empty, image as tools
 
 try:
@@ -34,11 +35,7 @@ class BaseDocumentLayout(models.TransientModel):
         company = self.env.company
         address_format, company_data = company.partner_id._prepare_display_address()
         address_format = self._clean_address_format(address_format, company_data)
-        # company_name may *still* be missing from prepared address in case commercial_company_name is falsy
-        if 'company_name' not in address_format:
-            address_format = '%(company_name)s\n' + address_format
-            company_data['company_name'] = company_data['company_name'] or company.name
-        return nl2br(address_format) % company_data
+        return nl2br_enclose(address_format, 'div') % company_data
 
     def _clean_address_format(self, address_format, company_data):
         missing_company_data = [k for k, v in company_data.items() if not v]
@@ -70,10 +67,8 @@ class BaseDocumentLayout(models.TransientModel):
     logo_primary_color = fields.Char(compute="_compute_logo_colors")
     logo_secondary_color = fields.Char(compute="_compute_logo_colors")
 
-    layout_background = fields.Selection(related='company_id.layout_background', readonly=False)
-    layout_background_image = fields.Binary(related='company_id.layout_background_image', readonly=False)
-
     report_layout_id = fields.Many2one('report.layout')
+    report_tables_id = fields.Selection(related='company_id.report_tables_id', readonly=False, required=True)
 
     # All the sanitization get disabled as we want true raw html to be passed to an iframe.
     preview = fields.Html(compute='_compute_preview', sanitize=False)
@@ -110,7 +105,7 @@ class BaseDocumentLayout(models.TransientModel):
                 wizard_for_image = wizard
             wizard.logo_primary_color, wizard.logo_secondary_color = wizard.extract_image_primary_secondary_colors(wizard_for_image.logo)
 
-    @api.depends('report_layout_id', 'logo', 'font', 'primary_color', 'secondary_color', 'report_header', 'report_footer', 'layout_background', 'layout_background_image', 'company_details')
+    @api.depends('report_layout_id', 'logo', 'font', 'primary_color', 'secondary_color', 'report_header', 'report_footer', 'company_details', 'report_tables_id')
     def _compute_preview(self):
         """ compute a qweb based preview to display on the wizard """
         styles = self._get_asset_style()
@@ -198,7 +193,7 @@ class BaseDocumentLayout(models.TransientModel):
         transparent colors and white-ish colors, then calls the averaging
         method twice to evaluate both primary and secondary colors.
 
-        :param logo: logo to process
+        :param logo: logo to process (base64 encoded)
         :param white_threshold: arbitrary value defining the maximum value a color can reach
         :param mitigate: arbitrary value defining the maximum value a band can reach
 
@@ -208,12 +203,15 @@ class BaseDocumentLayout(models.TransientModel):
             return False, False
         # The "===" gives different base64 encoding a correct padding
         logo += b'===' if isinstance(logo, bytes) else '==='
+        logo = base64.b64decode(logo)
         try:
             # Catches exceptions caused by logo not being an image
-            image = tools.image_fix_orientation(tools.base64_to_image(logo))
+            image = tools.ImageProcess(logo).image
         except Exception:
             return False, False
 
+        if not image:
+            return False, False
         base_w, base_h = image.size
         w = ceil(50 * base_w / base_h)
         h = 50

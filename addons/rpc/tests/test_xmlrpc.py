@@ -4,17 +4,17 @@ import datetime
 import time
 
 import odoo
-import odoo.tools
 from odoo.exceptions import AccessDenied, AccessError
-from odoo.http import _request_stack
+from odoo.http.requestlib import _request_stack
 from odoo.service import common as auth
 from odoo.service import model
-from odoo.tests import common
+from odoo.tests import common, tagged
 from odoo.tools import DotDict, mute_logger
 
 from odoo.addons.base.tests.common import SavepointCaseWithUserDemo
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestExternalAPI(SavepointCaseWithUserDemo):
 
     def test_call_kw(self):
@@ -76,7 +76,15 @@ class TestXMLRPC(common.HttpCase):
         now = datetime.datetime.now()
         ids = self.xmlrpc(
             'res.device.log', 'create',
-            {'session_identifier': "abc", 'first_activity': now, 'revoked': False}
+            {
+                'session_identifier': 'abc',
+                'user_id': self.env.user.id,
+                'ip_address': '',
+                'user_agent': '',
+                'first_activity': now,
+                'last_activity': now,
+                'revoked': False,
+            },
         )
         [r] = self.xmlrpc(
             'res.device.log', 'read',
@@ -165,9 +173,9 @@ class TestXMLRPC(common.HttpCase):
         ids = self.env['ir.attachment'].create({'name': 'n', 'raw': b'\x01\x09'}).ids
         [att] = self.xmlrpc_object.execute(
             common.get_db_name(), self.admin_uid, 'admin',
-            'ir.attachment', 'read', ids, ['raw'])
-        self.assertEqual(att['raw'], '\t',
-            "on read, binary data should be decoded as a string and stripped from control character")
+            'ir.attachment', 'read', ids, [])
+        self.assertEqual(att['raw'], 'AQk=',
+            "on read, binary data should be base64 encoded")
 
 # really just for the test cursor
 @common.tagged('post_install', '-at_install')
@@ -295,7 +303,7 @@ class TestAPIKeys(common.HttpCase):
             ])
 
     def test_renew_apikey(self):
-        self.env['ir.config_parameter'].set_param('base.enable_programmatic_api_keys', 1)
+        self.env['ir.config_parameter'].set_bool('base.enable_programmatic_api_keys', True)
         env = self.env(user=self._user)
         key = env['res.users.apikeys.description'].create({'name': 'a'}).make_key()['context']['default_key']
         apikey = self.env['res.users.apikeys'].search([('user_id', '=', self._user.id)])

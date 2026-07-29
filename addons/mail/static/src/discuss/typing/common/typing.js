@@ -1,4 +1,5 @@
 import { Component } from "@odoo/owl";
+import { isBrowserSafari } from "@web/core/browser/feature_detection";
 
 import { _t } from "@web/core/l10n/translation";
 
@@ -16,6 +17,11 @@ export class Typing extends Component {
     };
     static props = ["channel?", "size?", "displayText?", "member?"];
     static template = "discuss.Typing";
+
+    setup() {
+        super.setup(...arguments);
+        this.isBrowserSafari = isBrowserSafari;
+    }
 
     /** @returns {string} */
     get text() {
@@ -35,5 +41,9 @@ export class Typing extends Component {
             user1: typingMemberNames[0],
             user2: typingMemberNames[1],
         });
+    }
+
+    get showTypingIcon() {
+        return true;
     }
 }

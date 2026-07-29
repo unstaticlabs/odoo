@@ -1,5 +1,5 @@
 import { expect, test } from "@odoo/hoot";
-import { animationFrame, Deferred } from "@odoo/hoot-dom";
+import { animationFrame } from "@odoo/hoot-dom";
 import { xml } from "@odoo/owl";
 import {
     contains,
@@ -14,18 +14,18 @@ import {
     setupWebsiteBuilder,
 } from "@website/../tests/builder/website_helpers";
 import { redo, undo } from "@html_editor/../tests/_helpers/user_actions";
-import { CustomizeBodyBgTypeAction } from "@website/builder/plugins/customize_website_plugin";
+import { ReplaceBgImageAction } from "@html_builder/plugins/background_option/background_image_option_plugin";
 import { renderToString } from "@web/core/utils/render";
 
 defineWebsiteModels();
 
 test("BuilderButton with action “websiteConfig” are correctly displayed", async () => {
-    const def = new Deferred();
+    const def = Promise.withResolvers();
     onRpc("/website/theme_customize_data_get", async (request) => {
         const { params } = await request.json();
         expect.step("theme_customize_data_get");
         expect(params.keys).toEqual(["test_template_1", "test_template_2"]);
-        await def;
+        await def.promise;
         return ["test_template_2"];
     });
     addOption({
@@ -116,12 +116,12 @@ test("click on BuilderSelectItem with action “websiteConfig”", async () => {
 });
 
 test("use isActiveItem base on BuilderButton with 'websiteConfig'", async () => {
-    const def = new Deferred();
+    const def = Promise.withResolvers();
     onRpc("/website/theme_customize_data_get", async (request) => {
         const { params } = await request.json();
         expect.step("theme_customize_data_get");
         expect(params.keys).toEqual(["test_template_1"]);
-        await def;
+        await def.promise;
         return ["test_template_1"];
     });
     addOption({
@@ -143,12 +143,12 @@ test("use isActiveItem base on BuilderButton with 'websiteConfig'", async () => 
 });
 
 test("use isActiveItem base on BuilderCheckbox with 'websiteConfig'", async () => {
-    const def = new Deferred();
+    const def = Promise.withResolvers();
     onRpc("/website/theme_customize_data_get", async (request) => {
         const { params } = await request.json();
         expect.step("theme_customize_data_get");
         expect(params.keys).toEqual(["test_template_1"]);
-        await def;
+        await def.promise;
         return ["test_template_1"];
     });
     addOption({
@@ -431,19 +431,12 @@ test("theme background image is properly set", async () => {
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYIIA" +
         "A".repeat(1000);
 
-    // Using historyImageSrc to avoid mocking the gallery dialog
-    patchWithCleanup(CustomizeBodyBgTypeAction.prototype, {
-        async load(editingElement) {
-            editingElement.historyImageSrc = { src: base64Image };
-            super.load(editingElement);
-        },
-        apply(params) {
-            params.loadResult = {
-                imageSrc: base64Image,
-                oldImageSrc: "",
-                oldValue: "'image'",
-            };
-            super.apply(params);
+    // To avoid mocking the media dialog
+    patchWithCleanup(ReplaceBgImageAction.prototype, {
+        async load() {
+            const img = document.createElement("img");
+            img.src = base64Image;
+            return img;
         },
     });
 
@@ -470,12 +463,8 @@ test("theme background image is properly set", async () => {
 
     await contains("[data-name='theme']").click();
     await animationFrame();
-    expect(
-        ".o_theme_tab button[data-action-id='customizeBodyBgType'][data-action-value='image']"
-    ).toHaveCount(1);
-    await contains(
-        ".o_theme_tab button[data-action-id='customizeBodyBgType'][data-action-value='image']"
-    ).click();
+    expect(".o_theme_tab button[data-action-id='toggleBodyBgImage']").toHaveCount(1);
+    await contains(".o_theme_tab button[data-action-id='toggleBodyBgImage']").click();
     await animationFrame();
     await expect.verifySteps(["scss_customization", "bundle_reload"]);
 });

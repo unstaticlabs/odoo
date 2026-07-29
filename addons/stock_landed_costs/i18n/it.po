@@ -5,16 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 # Sergio Zanchetta <primes2h@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 23:38+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-03-14 13:05+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_landed_costs/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -67,6 +67,11 @@ msgstr "Attività"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Decorazione eccezione attività"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Piani attività"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -144,10 +149,6 @@ msgstr "Annullato"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Aziende"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Azienda"
@@ -574,6 +575,11 @@ msgid "Picking"
 msgstr "Prelievo"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr "Numero di trasferimenti"
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -687,8 +693,11 @@ msgid "Total"
 msgstr "Totale"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Trasferimenti"
 
@@ -714,8 +723,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "Righe di rettifica valutazione"
+msgid "Valuation Adjustment Line"
+msgstr "Riga rettifica valutazione"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -763,44 +772,7 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"Impossibile cambiare il tipo di prodotto o disabilitare l'opzione di costo "
-"sbarcato, il prodotto è utilizzato in una riga di movimento contabile."
-
-#~ msgid ""
-#~ "including landed costs:\n"
-#~ "%(landed_cost)s"
-#~ msgstr ""
-#~ "inclusi costi sbarcati:\n"
-#~ "%(landed_cost)s"
-
-#~ msgid " already out"
-#~ msgstr "Già uscita"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Un prodotto stoccabile è un prodotto per il quale vengono gestite le "
-#~ "giacenze. Deve essere installata l'applicazione magazzino.\n"
-#~ "Un prodotto di consumo è un prodotto per il quale non vengono gestite le "
-#~ "giacenze.\n"
-#~ "Un servizio è un prodotto fornito in modo immateriale."
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Azienda correlata al registro"
-
-#~ msgid "Group By"
-#~ msgstr "Raggruppa per"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Numero di messaggi che richiedono un'azione"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Mostra tutti i record con data prossima azione precedente a oggi"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Livello valutazione giacenze"
+"Non è possibile modificare il tipo di prodotto o disabilitare l'opzione del "
+"costo di approdo perché il prodotto è utilizzato in un movimento contabile."

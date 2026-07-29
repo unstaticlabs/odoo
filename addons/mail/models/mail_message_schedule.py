@@ -20,7 +20,7 @@ class MailMessageSchedule(models.Model):
     of the <bus.bus> notifications.
     """
     _name = 'mail.message.schedule'
-    _description = 'Scheduled Messages'
+    _description = 'Scheduled Message'
     _order = 'scheduled_datetime DESC, id DESC'
     _rec_name = 'mail_message_id'
 
@@ -63,7 +63,7 @@ class MailMessageSchedule(models.Model):
         """
         for model, schedules in self._group_by_model().items():
             if model:
-                records = self.env[model].browse(schedules.mapped('mail_message_id.res_id'))
+                records = self.env[model].browse(id_ for id_ in schedules.mapped('mail_message_id.res_id') if id_)
                 existing = records.exists()
             else:
                 records = [self.env['mail.thread']] * len(schedules)

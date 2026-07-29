@@ -136,16 +136,17 @@
                     <button name="button_approve" type="object" invisible="state != 'to approve'" string="Approve Order" class="oe_highlight" groups="purchase.group_purchase_manager" data-hotkey="z"/>
                     <button name="action_rfq_send" invisible="state != 'sent'" string="Send RFQ" type="object" context="{'send_rfq':True}" data-hotkey="g"/>
                     <button name="button_confirm" type="object" invisible="state != 'draft'" context="{'validate_analytic': True}" string="Confirm Order" id="draft_confirm" data-hotkey="q"/>
+                    <button name="action_receive" class="btn-primary" type="object" string="Receive" data-hotkey="e" invisible="not show_receive_button"/>
                     <widget name="purchase_file_uploader" invisible="state != 'purchase'"/>
                     <button name="action_rfq_send" invisible="state != 'purchase'" string="Send PO" type="object" context="{'send_rfq':False}" data-hotkey="g"/>
-                    <button name="action_acknowledge" string="Acknowledge" type="object" invisible="acknowledged or state != 'purchase'"/>
+                    <button name="action_acknowledge" string="Acknowledge" type="object" invisible="acknowledged or state != 'purchase'" data-hotkey="a"/>
                     <button name="button_draft" invisible="state != 'cancel'" string="Set to Draft" type="object" data-hotkey="o"/>
                     <button name="print_quotation" string="Print" type="object" groups="base.group_user" data-hotkey="k" invisible="state == 'purchase'"/>
                     <button name="%(purchase.action_report_purchase_order)d" string="Print" type="action" groups="base.group_user" data-hotkey="k" invisible="state != 'purchase'"/>
                     <button name="button_cancel" invisible="state not in ('draft', 'to approve', 'sent', 'purchase') or locked" string="Cancel" type="object" data-hotkey="x"/>
                     <button name="button_lock" type="object" string="Lock" invisible="locked or state != 'purchase' or not lock_confirmed_po == 'lock'" data-hotkey="l"/>
                     <button name="button_unlock" type="object" string="Unlock" invisible="not locked" groups="purchase.group_purchase_manager" data-hotkey="l"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,purchase" readonly="1"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,purchase" readonly="1"/>
                 </header>
                 <div class="alert alert-warning" role="alert" invisible="not purchase_warning_text">
                     <field name="purchase_warning_text" class="fw-bold"/>
@@ -209,6 +210,7 @@
                              readonly="state in ['cancel', 'purchase']"/>
                             <field name="partner_ref"/>
                             <field name="currency_id" groups="base.group_multi_currency" force_save="1" readonly="state in ['cancel', 'purchase']"/>
+                            <field name="payment_term_id" readonly="invoice_status == 'invoiced' or locked" options="{'no_create': True}"/>
                             <field name="id" invisible="1"/>
                             <field name="company_id" invisible="1" readonly="state in ['cancel', 'purchase']"/>
                             <field name="currency_id" invisible="1" readonly="state in ['cancel', 'purchase']" groups="!base.group_multi_currency"/>
@@ -216,12 +218,8 @@
                         </group>
                         <group>
                             <field name="date_order" invisible="state  == 'purchase'" readonly="state in ['cancel', 'purchase']"/>
-                            <label for="date_approve" invisible="state != 'purchase'"/>
-                            <div name="date_approve" invisible="state != 'purchase'" class="o_row">
-                                <field name="date_approve"/>
-                            </div>
                             <label for="date_planned"/>
-                            <div name="date_planned_div" class="o_row">
+                            <div name="date_planned_div">
                                 <field name="date_planned" readonly="state not in ('draft', 'sent', 'to approve', 'purchase')"/>
                             </div>
                             <label for="receipt_reminder_email" class="d-none" groups="purchase.group_send_reminder"/>
@@ -229,11 +227,21 @@
                                 <field name="receipt_reminder_email"/>
                                 <span>Ask confirmation</span>
                                 <div class="o_row oe_inline" invisible="not receipt_reminder_email">
-                                    <field name="reminder_date_before_receipt" class="oe_inline" style="max-width: 30px;"/>
+                                    <field name="reminder_date_before_receipt" style="max-width: 30px;"/>
                                     day(s) before
                                     <widget name='toaster_button' button_name="send_reminder_preview" title="Preview the reminder email by sending it to yourself." invisible="not id"/>
                                 </div>
                             </div>
+                            <label for="receipt_status" invisible="state !='purchase'"/>
+                                <div class="d-flex align-items-center" invisible="state !='purchase'">
+                                    <div name="receipt_status_on_form" class="me-3">
+                                        <field name="receipt_status" widget="badge" invisible="state != 'purchase'"
+                                            decoration-success="receipt_status == 'full'"
+                                            decoration-info="receipt_status == 'partial'"
+                                            decoration-danger="receipt_status == 'pending' and date_planned and date_planned &lt; context_today().strftime('%Y-%m-%d')"
+                                            decoration-muted="receipt_status == 'pending' and date_planned and date_planned &gt;= context_today().strftime('%Y-%m-%d')"/>
+                                    </div>
+                                </div>
                         </group>
                     </group>
                     <notebook>
@@ -282,7 +290,7 @@
                                     <field name="qty_received_method" column_invisible="True"/>
                                     <field name="qty_received" string="Received" column_invisible="parent.state != 'purchase'" readonly="qty_received_method != 'manual' or is_downpayment" optional="show"/>
                                     <field name="qty_invoiced" string="Billed" column_invisible="parent.state != 'purchase'" optional="show"/>
-                                    <field name="product_uom_id" groups="uom.group_uom"
+                                    <field name="uom_id" groups="uom.group_uom"
                                         readonly="state in ('purchase', 'cancel') or is_downpayment"
                                         required="not display_type and not is_downpayment"
                                         options="{'no_create': True, 'no_open': True, 'quantity_field': 'product_qty'}"
@@ -309,7 +317,7 @@
                                                 <label for="product_qty"/>
                                                 <div class="o_row">
                                                     <field name="product_qty"/>
-                                                    <field name="product_uom_id" groups="uom.group_uom" required="not display_type and not is_downpayment" widget="many2one_uom"/>
+                                                    <field name="uom_id" groups="uom.group_uom" required="not display_type and not is_downpayment" widget="many2one_uom"/>
                                                 </div>
                                                 <field name="qty_received_method" invisible="1"/>
                                                 <field name="qty_received" string="Received Quantity" invisible="parent.state != 'purchase'" readonly="qty_received_method != 'manual'"/>
@@ -356,7 +364,7 @@
                                                     <span class="col-8 text-muted">
                                                         Quantity:
                                                         <field name="product_qty" />
-                                                        <field name="product_uom_id" groups="uom.group_uom" class="small"/>
+                                                        <field name="uom_id" groups="uom.group_uom" class="small"/>
                                                     </span>
                                                     <span class="fw-bold col-4" t-if="record.tax_calculation_rounding_method.raw_value === 'round_per_line'">
                                                         Tax incl.: <field name="price_total" />
@@ -387,23 +395,25 @@
                                 <group>
                                     <field colspan="2" name="note" nolabel="1" placeholder="Define your terms and conditions ..."/>
                                 </group>
-                                <group class="oe_subtotal_footer">
+                                <group class="oe_subtotal_footer border-top-0">
                                     <field name="tax_totals" widget="account-tax-totals-field" nolabel="1" readonly="1"/>
                                 </group>
                             </group>
                             <div class="clearfix"/>
                         </page>
-                        <page string="Other Information" name="purchase_delivery_invoice">
+                        <page string="Other Info" name="purchase_delivery_invoice">
                             <group>
-                                <group name="other_info">
+                                <group name="purchase_info" string="purchase">
                                     <field name="user_id" domain="[('share', '=', False)]" widget="many2one_avatar_user"/>
                                     <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" readonly="state in ['cancel', 'purchase']"/>
-                                    <field name="origin"/>
+                                    <field name="date_approve" invisible="state not in ('purchase', 'cancel')"/>
                                 </group>
-                                <group name="invoice_info">
+                                <group name="billing_info" string="billing">
                                     <field name="invoice_status" invisible="state in ('draft', 'sent', 'to approve', 'cancel')"/>
-                                    <field name="payment_term_id" readonly="invoice_status == 'invoiced' or locked" options="{'no_create': True}"/>
                                     <field name="fiscal_position_id" options="{'no_create': True}" readonly="invoice_status == 'invoiced' or locked"/>
+                                </group>
+                                <group name="tracking_info" string="tracking">
+                                    <field name="origin"/>
                                 </group>
                             </group>
                         </page>
@@ -438,7 +448,9 @@
                     <filter name="not_acknowledged" string="Not Acknowledged" domain="[('state', 'in', ['purchase', 'done']), ('acknowledged', '=', False)]"/>
                     <filter name="late_receipt" string="Late Receipts" domain="[('state', 'in', ['purchase', 'done']), ('is_late', '=', True)]"/>
                     <separator/>
-                    <filter name="order_date" string="Order Date" date="date_order"/>
+                    <filter name="order_date" date="date_order"/>
+                    <separator/>
+                    <filter name="filter_date_approve" date="date_approve" default_period="month"/>
                     <filter invisible="1" string="My Activities" name="filter_activities_my"
                         domain="[('activity_user_id', '=', uid)]"/>
                     <separator invisible="1"/>
@@ -455,7 +467,8 @@
                     <group>
                         <filter string="Vendor" name="vendor" domain="[]" context="{'group_by': 'partner_id'}"/>
                         <filter string="Buyer" name="representative" domain="[]" context="{'group_by': 'user_id'}"/>
-                        <filter string="Order Date" name="order_date" domain="[]" context="{'group_by': 'date_order'}"/>
+                        <filter name="order_date" domain="[]" context="{'group_by': 'date_order'}"/>
+                        <filter name="group_date_approve_month" context="{'group_by': 'date_approve:month'}"/>
                     </group>
                 </search>
             </field>
@@ -479,8 +492,9 @@
                     <filter name="not_invoiced" string="Waiting Bills" domain="[('invoice_status', '=', 'to invoice')]" help="Purchase orders that include lines not invoiced."/>
                     <filter name="invoiced" string="Bills Received" domain="[('invoice_status', '=', 'invoiced')]" help="Purchase orders that have been invoiced."/>
                     <separator/>
-                    <filter name="order_date" string="Order Date" date="date_order"/>
+                    <filter name="order_date" date="date_order"/>
                     <separator/>
+                    <filter name="filter_date_approve" date="date_approve" default_period="month"/>
                     <filter invisible="1" string="My Activities" name="filter_activities_my"
                         domain="[('activity_user_id', '=', uid)]"/>
                     <separator invisible="1"/>
@@ -497,7 +511,8 @@
                     <group>
                         <filter string="Vendor" name="vendor" domain="[]" context="{'group_by': 'partner_id'}"/>
                         <filter string="Buyer" name="representative" domain="[]" context="{'group_by': 'user_id'}"/>
-                        <filter string="Order Date" name="order_date" domain="[]" context="{'group_by': 'date_order'}"/>
+                        <filter name="order_date" domain="[]" context="{'group_by': 'date_order'}"/>
+                        <filter name="group_date_approve_month" context="{'group_by': 'date_approve:month'}"/>
                     </group>
                 </search>
             </field>
@@ -554,7 +569,7 @@
             <field name="arch" type="xml">
                 <list string="Purchase Order"
                       decoration-muted="state=='cancel'" sample="1">
-                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                    <field name="priority" optional="show" widget="priority" nolabel="1" width="20px"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-info="state in ('draft','sent')"/>
                     <field name="date_order" column_invisible="not context.get('quotation_only', False)" readonly="state in ['cancel', 'purchase']" optional="show"/>
@@ -588,10 +603,10 @@
                 multi_edit="1"
                 class="o_purchase_order" js_class="purchase_dashboard_list" sample="1">
                     <header>
-                        <button name="button_cancel" type="object" string="Cancel"
+                        <button name="button_cancel" type="object" string="Cancel" data-hotkey="x"
                             confirm="Are you sure you want to cancel the selected RFQs/Orders?"/>
                     </header>
-                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                    <field name="priority" optional="show" widget="priority" nolabel="1" width="20px"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1"/>
                     <field name="date_approve" column_invisible="context.get('quotation_only', False)" optional="show"/>
@@ -614,7 +629,7 @@
                     <field name="company_currency_id" column_invisible="True"/>
                     <field name="state" optional="show" widget="badge" decoration-success="state == 'purchase'"
                         decoration-warning="state == 'to approve'" decoration-info="state == 'draft' or state == 'sent'"/>
-                    <field name="invoice_status" optional="hide"/>
+                    <field name="invoice_status" widget="badge" decoration-success="invoice_status == 'invoiced'" decoration-info="invoice_status == 'to invoice'" optional="hide"/>
                 </list>
             </field>
         </record>
@@ -631,10 +646,11 @@
                     sample="1">
                     <header>
                         <button name="action_create_invoice" type="object" string="Create Bills"/>
-                        <button name="button_cancel" type="object" string="Cancel"
+                        <button name="action_receive" type="object" string="Receive" data-hotkey="e"/>
+                        <button name="button_cancel" type="object" string="Cancel" data-hotkey="x"
                             confirm="Are you sure you want to cancel the selected RFQs/Orders?"/>
                     </header>
-                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                    <field name="priority" optional="show" widget="priority" nolabel="1" width="20px"/>
                     <field name="partner_ref" optional="hide"/>
                     <field name="name" string="Reference" readonly="1" decoration-bf="1" decoration-info="state in ('draft','sent')"/>
                     <field name="date_approve" column_invisible="context.get('quotation_only', False)" optional="show"/>
@@ -651,8 +667,13 @@
                     <field name="state" column_invisible="True"/>
                     <field name="amount_total_cc" sum="Total amount" widget="monetary" optional="hide"/>
                     <field name="company_currency_id" column_invisible="True"/>
+                    <field name="receipt_status" optional="hide" widget="badge"
+                        decoration-success="receipt_status=='full'"
+                        decoration-info="receipt_status == 'partial'"
+                        decoration-danger="receipt_status == 'pending' and date_planned and date_planned &lt; context_today().strftime('%Y-%m-%d')"
+                        decoration-muted="receipt_status == 'pending' and date_planned and date_planned &gt;= context_today().strftime('%Y-%m-%d')"/>
                     <field name="invoice_status" widget="badge" decoration-success="invoice_status == 'invoiced'" decoration-info="invoice_status == 'to invoice'" optional="show"/>
-                    <field name="date_planned" column_invisible="context.get('quotation_only', False)" optional="show"/>
+                    <field name="date_planned" column_invisible="context.get('quotation_only', False)" optional="show" readonly="1"/>
                 </list>
             </field>
         </record>
@@ -739,7 +760,7 @@
                     <field name="product_id"/>
                     <field name="price_unit"/>
                     <field name="product_qty"/>
-                    <field name="product_uom_id" groups="uom.group_uom" widget="many2one_uom"/>
+                    <field name="uom_id" groups="uom.group_uom" widget="many2one_uom"/>
                     <field name="price_subtotal" widget="monetary"/>
                     <field name="currency_id" column_invisible="True"/>
                     <field name="date_planned"/>
@@ -768,7 +789,7 @@
                                 <label for="product_qty"/>
                                 <div class="o_row">
                                     <field name="product_qty" readonly="1"/>
-                                    <field name="product_uom_id" readonly="1" groups="uom.group_uom"/>
+                                    <field name="uom_id" readonly="1" groups="uom.group_uom"/>
                                 </div>
                                 <field name="price_unit"/>
                             </group>
@@ -801,7 +822,7 @@
                     <filter string="Status" name="purchase_state" domain="[('state', '=', 'purchase')]"/>
                     <separator/>
                     <filter name="filter_date_order" date="date_order" default_period="month"/>
-                    <filter name="order_date_last_year" string="Order Date: Last 365 Days"
+                    <filter name="order_date_last_year" string="Order DeadLine: Last 365 Days"
                         domain="[
                             ('date_order', '>', 'today -1y')
                         ]" invisible="1"/>
@@ -809,8 +830,7 @@
                         <filter name="groupby_supplier" string="Vendor" domain="[]" context="{'group_by' : 'partner_id'}" />
                         <filter name="groupby_product" string="Product" domain="[]" context="{'group_by' : 'product_id'}" />
                         <filter string="Order Reference" name="order_reference" domain="[]" context="{'group_by' :'order_id'}"/>
-                        <separator/>
-                        <filter string="Order Date" name="group_by_date_order" context="{'group_by': 'date_order'}"/>
+                        <filter name="group_by_date_order" context="{'group_by': 'date_order'}"/>
                     </group>
                 </search>
             </field>
@@ -938,6 +958,18 @@ if isinstance(res, dict):
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <field name="context">{'default_res_model': 'purchase.order', 'default_res_ids': active_ids}</field>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_view_types">list,kanban</field>
+    </record>
+
+    <record id="action_purchase_order_mass_mail" model="ir.actions.act_window">
+        <field name="name">Send by mail</field>
+        <field name="res_model">mail.compose.message</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{
+            'default_composition_mode': 'mass_mail',
+        }</field>
         <field name="binding_model_id" ref="purchase.model_purchase_order"/>
         <field name="binding_view_types">list,kanban</field>
     </record>

@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * stock_delivery
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Dionysis Zacharioudakis <d.zacharioudakis@dileanity.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Dionysis Zacharioudakis <d.zacharioudakis@dileanity.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 06:12+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-10-04 02:31+0000\n"
 "Last-Translator: Dionysis Zacharioudakis <d.zacharioudakis@dileanity.com>\n"
 "Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/"
 "stock_delivery/el/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: stock_delivery
 #. odoo-python
@@ -56,11 +56,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_delivery_document2
 msgid "<strong>Carrier</strong>"
 msgstr ""
-
-#. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "<strong>Shipping Method:</strong>"
-msgstr "<strong>Μέθοδος Αποστολής:</strong>"
 
 #. module: stock_delivery
 #: model_terms:ir.ui.view,arch_db:stock_delivery.report_package_barcode_delivery
@@ -108,7 +103,7 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_route__shipping_selectable
-msgid "Applicable on Shipping Methods"
+msgid "Applicable on Delivery Methods"
 msgstr ""
 
 #. module: stock_delivery
@@ -153,12 +148,18 @@ msgid "Cost: %(price).2f %(currency)s"
 msgstr ""
 
 #. module: stock_delivery
+#: model:ir.model,name:stock_delivery.model_delivery_carrier
+msgid "Delivery Method"
+msgstr ""
+
+#. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
+msgid "Delivery Method Selection Wizard"
 msgstr ""
 
 #. module: stock_delivery
 #: model:ir.ui.menu,name:stock_delivery.menu_action_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
 msgid "Delivery Methods"
 msgstr "Μέθοδοι Παράδοσης"
 
@@ -221,11 +222,6 @@ msgid "Exception:"
 msgstr ""
 
 #. module: stock_delivery
-#: model_terms:ir.ui.view,arch_db:stock_delivery.report_shipping2
-msgid "FedEx"
-msgstr "FedEx"
-
-#. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:stock_delivery.field_product_template__hs_code
 #: model_terms:ir.ui.view,arch_db:stock_delivery.product_template_hs_code
@@ -257,8 +253,8 @@ msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model,name:stock_delivery.model_stock_route
-msgid "Inventory Routes"
-msgstr "Διαδρομές Απογραφής"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_delivery_carrier__invoice_policy
@@ -384,8 +380,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/stock_delivery/models/stock_picking.py:0
 msgid ""
-"Shipment sent to carrier %(carrier_name)s for shipping with tracking number %"
-"(ref)s"
+"Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
+"%(ref)s"
 msgstr ""
 
 #. module: stock_delivery
@@ -397,12 +393,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
 msgstr "Πληροφορίες αποστολής"
-
-#. module: stock_delivery
-#: model:ir.model,name:stock_delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:stock_delivery.stock_location_route_view_form_inherit_stock_delivery
-msgid "Shipping Methods"
-msgstr "Τρόποι Αποστολής"
 
 #. module: stock_delivery
 #: model:ir.model.fields,field_description:stock_delivery.field_stock_put_in_pack__shipping_weight
@@ -613,30 +603,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock_delivery.normal_zpl_label
 msgid "^FS"
 msgstr ""
-
-#~ msgid "Company"
-#~ msgstr "Εταιρία"
-
-#~ msgid "Created by"
-#~ msgstr "Δημιουργήθηκε από"
-
-#~ msgid "Created on"
-#~ msgstr "Δημιουργήθηκε στις"
-
-#~ msgid "Discard"
-#~ msgstr "Απόρριψη"
-
-#~ msgid "Last Updated by"
-#~ msgstr "Τελευταία Ενημέρωση από"
-
-#~ msgid "Last Updated on"
-#~ msgstr "Τελευταία Ενημέρωση στις"
-
-#~ msgid "Packages"
-#~ msgstr "Συσκευασίες"
-
-#~ msgid "Picking"
-#~ msgstr "Συλλογή"
-
-#~ msgid "Save"
-#~ msgstr "Αποθήκευση"

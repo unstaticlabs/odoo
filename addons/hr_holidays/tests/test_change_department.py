@@ -3,24 +3,30 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta, MO, FR
 
+from odoo.tests import tagged
+
 from odoo.addons.hr_holidays.tests.common import TestHrHolidaysCommon
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestChangeDepartment(TestHrHolidaysCommon):
     def test_employee_change_department_request_change_department(self):
         self.HolidaysEmployeeGroup = self.env['hr.leave'].with_user(self.user_employee_id)
 
-        HolidayStatusManagerGroup = self.env['hr.leave.type'].with_user(self.user_hrmanager_id)
+        HolidayStatusManagerGroup = self.env['hr.work.entry.type'].with_user(self.user_hrmanager_id)
         self.holidays_status_1 = HolidayStatusManagerGroup.create({
             'name': 'NotLimitedHR',
+            'code': 'NotLimitedHR',
             'requires_allocation': False,
+            'request_unit': 'day',
+            'unit_of_measure': 'day',
         })
 
         def create_holiday(name, start, end):
             return self.HolidaysEmployeeGroup.create({
                 'name': name,
                 'employee_id': self.employee_emp_id,
-                'holiday_status_id': self.holidays_status_1.id,
+                'work_entry_type_id': self.holidays_status_1.id,
                 'request_date_from': date.today() + relativedelta(weekday=(MO(2) if start > 0 else FR(-1))) + relativedelta(days=start),
                 'request_date_to': date.today() + relativedelta(weekday=(MO(2) if start > 0 else FR(-1))) + relativedelta(days=end),
             })

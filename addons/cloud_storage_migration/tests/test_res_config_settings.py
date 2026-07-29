@@ -32,13 +32,13 @@ class TestCloudStorageMigrationResConfigSettings(TransactionCase):
         settings.cloud_storage_migration_message_model_ids = self.model_partner | self.model_users
         settings.execute()
         self.assertEqual(
-            set(self.env['ir.config_parameter'].sudo().get_param('cloud_storage_migration_message_models').split(',')),
+            set(self.env['ir.config_parameter'].sudo().get_str('cloud_storage_migration_message_models').split(',')),
             {'res.partner', 'res.users'},
         )
 
         self._simulate_web_save_x2many_update('cloud_storage_migration_message_model_ids', self.model_partner)
         self.assertEqual(
-            self.env['ir.config_parameter'].sudo().get_param('cloud_storage_migration_message_models'),
+            self.env['ir.config_parameter'].sudo().get_str('cloud_storage_migration_message_models'),
             'res.partner',
         )
 
@@ -48,13 +48,13 @@ class TestCloudStorageMigrationResConfigSettings(TransactionCase):
         settings.cloud_storage_migration_all_model_ids = self.model_partner | self.model_users
         settings.execute()
         self.assertEqual(
-            set(self.env['ir.config_parameter'].sudo().get_param('cloud_storage_migration_all_models').split(',')),
+            set(self.env['ir.config_parameter'].sudo().get_str('cloud_storage_migration_all_models').split(',')),
             {'res.partner', 'res.users'},
         )
 
         self._simulate_web_save_x2many_update('cloud_storage_migration_all_model_ids', self.model_partner)
 
         self.assertEqual(
-            self.env['ir.config_parameter'].sudo().get_param('cloud_storage_migration_all_models'),
+            self.env['ir.config_parameter'].sudo().get_str('cloud_storage_migration_all_models'),
             'res.partner',
         )

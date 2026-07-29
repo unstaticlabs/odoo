@@ -9,11 +9,6 @@ import { _t } from "@web/core/l10n/translation";
  * }>}
  */
 export const initLNA = async (notificationService, callback = () => {}) => {
-    if (!odoo.use_lna) {
-        callback("info", _t("Local Network Access is not configured for this POS."));
-        return;
-    }
-
     const processLNAState = (result) => {
         let type = "";
         let message = "";
@@ -42,7 +37,6 @@ export const initLNA = async (notificationService, callback = () => {}) => {
         processLNAState(result);
         result.onchange = () => processLNAState(result);
     } catch {
-        odoo.use_lna = false;
         const isChromiumBased = navigator.userAgent.includes("Chromium") || !!window.chrome;
         let message;
         if (!isChromiumBased) {

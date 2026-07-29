@@ -3,14 +3,13 @@
 # * account_debit_note
 #
 # Odoo Translation Bot <c3p@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:35+0000\n"
-"PO-Revision-Date: 2026-07-01 18:09+0000\n"
+"POT-Creation-Date: 2026-06-19 17:36+0000\n"
+"PO-Revision-Date: 2025-11-16 15:31+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
 "account_debit_note/sk/>\n"
@@ -19,12 +18,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_debit_note
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_move_form_debit
 msgid "<span class=\"o_stat_text\">Debit Notes</span>"
-msgstr "<span class=\"o_stat_text\">Ťarchopis</span>"
+msgstr ""
 
 #. module: account_debit_note
 #: model_terms:ir.ui.view,arch_db:account_debit_note.report_invoice_document_inherit_debit_note
@@ -39,12 +38,7 @@ msgstr ""
 #. module: account_debit_note
 #: model:ir.model,name:account_debit_note.model_account_debit_note
 msgid "Add Debit Note wizard"
-msgstr "Sprievodca pridaním ťarchopisu"
-
-#. module: account_debit_note
-#: model_terms:ir.ui.view,arch_db:account_debit_note.view_account_debit_note
-msgid "Cancel"
-msgstr "Zrušiť"
+msgstr ""
 
 #. module: account_debit_note
 #: model_terms:ir.ui.view,arch_db:account_debit_note.report_invoice_document_inherit_debit_note
@@ -72,24 +66,22 @@ msgid ""
 "Check this box if you don't want to share the same sequence for invoices and "
 "debit notes made from this journal"
 msgstr ""
-"Zaškrtnite toto políčko, ak nechcete zdieľať rovnakú sekvenciu pre faktúry a "
-"ťarchopisy vytvorené v tomto denníku"
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__copy_lines
 msgid "Copy Lines"
-msgstr "Kopírovať riadky"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__country_code
 msgid "Country Code"
-msgstr "Kód krajiny"
+msgstr "Kód štátu"
 
 #. module: account_debit_note
 #: model:ir.actions.act_window,name:account_debit_note.action_view_account_move_debit
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_account_debit_note
 msgid "Create Debit Note"
-msgstr "Vytvoriť ťarchopis"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__create_uid
@@ -107,13 +99,13 @@ msgstr "Vytvorené"
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_account_move_line_filter_debit
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_move_form_debit
 msgid "Debit Note"
-msgstr "Ťarchopis"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__date
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_account_debit_note
 msgid "Debit Note Date"
-msgstr "Dátum ťarchopisu"
+msgstr ""
 
 #. module: account_debit_note
 #. odoo-python
@@ -123,12 +115,12 @@ msgstr "Dátum ťarchopisu"
 #: model:ir.model.fields,field_description:account_debit_note.field_account_move__debit_note_ids
 #: model_terms:ir.ui.view,arch_db:account_debit_note.view_account_invoice_filter_debit
 msgid "Debit Notes"
-msgstr "Ťarchopisy"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_journal__debit_sequence
 msgid "Dedicated Debit Note Sequence"
-msgstr "Vyhradené sekvencia pre ťarchopisy"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__display_name
@@ -168,8 +160,6 @@ msgstr "ID"
 #: model:ir.model.fields,help:account_debit_note.field_account_debit_note__journal_id
 msgid "If empty, uses the journal of the journal entry to be debited."
 msgstr ""
-"Ak je prázdne, použije sa denník účtovného záznamu, ku ktorému sa má "
-"vytvoriť ťarchopis."
 
 #. module: account_debit_note
 #: model:ir.model.fields,help:account_debit_note.field_account_debit_note__copy_lines
@@ -177,9 +167,6 @@ msgid ""
 "In case you need to do corrections for every line, it can be in handy to "
 "copy them.  We won't copy them for debit notes from credit notes. "
 msgstr ""
-"V prípade, že potrebujete urobiť opravy v každom riadku, môže byť užitočné "
-"ich skopírovať. V prípade ťarchopisov vytvorených z dobropisov, ich nebudeme "
-"kopírovať. "
 
 #. module: account_debit_note
 #: model_terms:ir.ui.view,arch_db:account_debit_note.report_invoice_document_inherit_debit_note
@@ -194,12 +181,12 @@ msgstr "Účtovný denník"
 #. module: account_debit_note
 #: model:ir.model,name:account_debit_note.model_account_move
 msgid "Journal Entry"
-msgstr "Účtovný záznam"
+msgstr "Vstup účtovnej knihy"
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__journal_type
 msgid "Journal Type"
-msgstr "Typ denníka"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__write_uid
@@ -225,13 +212,13 @@ msgstr "Presunúť typ"
 #: model:ir.model.fields,field_description:account_debit_note.field_account_bank_statement_line__debit_note_count
 #: model:ir.model.fields,field_description:account_debit_note.field_account_move__debit_note_count
 msgid "Number of Debit Notes"
-msgstr "Počet ťarchopisov"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_bank_statement_line__debit_origin_id
 #: model:ir.model.fields,field_description:account_debit_note.field_account_move__debit_origin_id
 msgid "Original Invoice Debited"
-msgstr "Pôvodná faktúra k ťarchopisu"
+msgstr ""
 
 #. module: account_debit_note
 #: model_terms:ir.ui.view,arch_db:account_debit_note.report_invoice_document_inherit_debit_note
@@ -261,18 +248,18 @@ msgstr ""
 #: model:ir.model.fields,help:account_debit_note.field_account_bank_statement_line__debit_note_ids
 #: model:ir.model.fields,help:account_debit_note.field_account_move__debit_note_ids
 msgid "The debit notes created for this invoice"
-msgstr "Ťarchopisy vytvorené z tejto faktúry"
+msgstr ""
 
 #. module: account_debit_note
 #. odoo-python
 #: code:addons/account_debit_note/models/account_move.py:0
 msgid "This debit note was created from: %s"
-msgstr "Tento ťarchopis bol vytvorený z: %s"
+msgstr ""
 
 #. module: account_debit_note
 #: model:ir.model.fields,field_description:account_debit_note.field_account_debit_note__journal_id
 msgid "Use Specific Journal"
-msgstr "Použiť špecifický účtovný denník"
+msgstr "Použiť špecifikú účtovnú knihu"
 
 #. module: account_debit_note
 #. odoo-python
@@ -281,14 +268,12 @@ msgid ""
 "You can make a debit note only for a Customer Invoice, a Customer Credit "
 "Note, a Vendor Bill or a Vendor Credit Note."
 msgstr ""
-"Ťarchopis môžete vytvoriť len pre faktúru zákazníka, dobropis zákazníka, "
-"faktúru dodávateľa alebo dobropis dodávateľa."
 
 #. module: account_debit_note
 #. odoo-python
 #: code:addons/account_debit_note/wizard/account_debit_note.py:0
 msgid "You can only debit posted moves."
-msgstr "Ťarchopis môžete vytvoriť iba pre zaúčtované doklady."
+msgstr ""
 
 #. module: account_debit_note
 #. odoo-python
@@ -297,11 +282,9 @@ msgid ""
 "You can't make a debit note for an invoice that is already linked to a debit "
 "note."
 msgstr ""
-"Nemôžete vytvoriť ťarchopis k faktúre, ktorá už je prepojená s iným "
-"ťarchopisom."
 
 #. module: account_debit_note
 #. odoo-python
 #: code:addons/account_debit_note/models/account_move.py:0
 msgid "debit_origin_id"
-msgstr "debit_origin_id"
+msgstr ""

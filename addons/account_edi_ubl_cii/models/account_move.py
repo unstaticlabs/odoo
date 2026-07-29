@@ -66,11 +66,11 @@ class AccountMove(models.Model):
         self.ensure_one()
         if filetype == 'ubl':
             if ubl_attachment := self.ubl_cii_xml_id:
-                return {
+                return [{
                     'filename': ubl_attachment.name,
                     'filetype': 'xml',
                     'content': ubl_attachment.raw,
-                }
+                }]
             elif allow_fallback:
                 if (
                     self.partner_id
@@ -81,12 +81,12 @@ class AccountMove(models.Model):
                     builder = self.env['res.partner']._get_edi_builder(edi_format)
                     xml_content, errors = builder._export_invoice(self)
                     filename = builder._export_invoice_filename(self)
-                    return {
+                    return [{
                         'filename': filename,
                         'filetype': 'xml',
                         'content': xml_content,
                         'errors': errors,
-                    }
+                    }]
         return super()._get_invoice_legal_documents(filetype, allow_fallback=allow_fallback)
 
     def get_extra_print_items(self):

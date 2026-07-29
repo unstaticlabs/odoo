@@ -5,7 +5,8 @@ import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { InputConfirmationDialog } from "./input_confirmation_dialog";
 import { fuzzyLookup } from "@web/core/utils/search";
-import { Img } from "@html_builder/core/img";
+import { selectElements } from "@html_editor/utils/dom_traversal";
+import { Image } from "@html_builder/core/img";
 
 export class SnippetViewer extends Component {
     static template = "html_builder.SnippetViewer";
@@ -48,7 +49,7 @@ export class SnippetViewer extends Component {
             icons.push({
                 keyClass: "o_prefix_desktop_invisible",
                 title: "Invisible on desktop",
-                Component: Img,
+                Component: Image,
                 props: {
                     src: "/html_builder/static/img/options/desktop_invisible.svg",
                     ...styleProps,
@@ -59,7 +60,7 @@ export class SnippetViewer extends Component {
             icons.push({
                 keyClass: "o_prefix_mobile_invisible",
                 title: "Invisible on mobile",
-                Component: Img,
+                Component: Image,
                 props: {
                     src: "/html_builder/static/img/options/mobile_invisible.svg",
                     ...styleProps,
@@ -92,7 +93,6 @@ export class SnippetViewer extends Component {
             confirm: (inputValue) => {
                 this.props.snippetModel.renameCustomSnippet(snippet, inputValue);
             },
-            cancelLabel: _t("Discard"),
             cancel: () => {},
         });
     }
@@ -155,8 +155,7 @@ export class SnippetViewer extends Component {
         }
         const getClasses = (snippet) => {
             const classes = new Set();
-            const elements = [snippet.content, ...snippet.content.querySelectorAll("*")];
-            for (const el of elements) {
+            for (const el of selectElements(snippet.content, "*")) {
                 for (const className of el.classList) {
                     if (className.startsWith("s_")) {
                         classes.add(className);
@@ -169,6 +168,7 @@ export class SnippetViewer extends Component {
             return fuzzyLookup(this.props.state.search, snippetStructures, (snippet) => [
                 snippet.title || "",
                 snippet.name || "",
+                snippet.label || "",
                 ...(snippet.keyWords?.split(",") || ""),
                 ...getClasses(snippet),
             ]);

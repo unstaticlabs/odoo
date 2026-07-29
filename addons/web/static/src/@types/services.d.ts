@@ -14,6 +14,7 @@ declare module "services" {
     import { nameService } from "@web/core/name_service";
     import { httpService } from "@web/core/network/http_service";
     import { notificationService } from "@web/core/notifications/notification_service";
+    import { offlineService } from "@web/core/offline/offline_service";
     import { ormService } from "@web/core/orm_service";
     import { overlayService } from "@web/core/overlay/overlay_service";
     import { popoverService } from "@web/core/popover/popover_service";
@@ -38,7 +39,6 @@ declare module "services" {
 
     export interface Services {
         "public.interactions": typeof publicInteractionService;
-        "web.frequent.emoji": typeof frequentEmojiService;
         action: typeof actionService;
         command: typeof commandService;
         datetime_picker: typeof datetimePickerService;
@@ -47,6 +47,7 @@ declare module "services" {
         effect: typeof effectService;
         field: typeof fieldService;
         file_upload: typeof fileUploadService;
+        frequent_emoji: typeof frequentEmojiService;
         hotkey: typeof hotkeyService;
         http: typeof httpService;
         lazy_session: typeof lazySession;
@@ -54,12 +55,13 @@ declare module "services" {
         menu: typeof menuService;
         name: typeof nameService;
         notification: typeof notificationService;
+        offline: typeof offlineService;
         orm: typeof ormService;
         overlay: typeof overlayService;
         popover: typeof popoverService;
         profiling: typeof profilingService;
         public_components: typeof publicComponentService;
-        shareTarget: typeof shareTargetService;
+        share_target: typeof shareTargetService;
         sortable: typeof sortableService;
         title: typeof titleService;
         tooltip: typeof tooltipService;

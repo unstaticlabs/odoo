@@ -87,8 +87,9 @@
             'data-main-object': repr(main_object) if main_object else None,
             'data-seo-object': repr(seo_object) if seo_object else None,
         }"/>
-        <t t-if="not request.env.user._is_public()" t-set="nothing" t-value="html_data.update({
+        <t t-if="not env.user._is_public()" t-set="nothing" t-value="html_data.update({
             'data-is-published': 'website_published' in main_object._fields and main_object.sudo().website_published,
+            'data-publish-on': 'publish_on' in main_object._fields and (main_object.sudo().publish_on or ''),
             'data-can-optimize-seo': 'website_meta_description' in main_object._fields,
             'data-can-publish': 'can_publish' in main_object._fields and main_object.sudo(False).can_publish,
             'data-editable-in-backend': edit_in_backend or ('website_published' in main_object._fields and main_object._name != 'website.page'),
@@ -166,25 +167,35 @@
             <t t-foreach="frontend_languages.values()" t-as="lg">
         <link rel="alternate" t-att-hreflang="lg.hreflang" t-att-href="url_localized(lang_code=lg.code, prefetch_langs=True, canonical_domain=canonical_domain)"/>
             </t>
-        <link rel="alternate" hreflang="x-default" t-att-href="url_localized(lang_code=website.env['res.lang']._get_data(id=website._get_cached('default_lang_id')).code, canonical_domain=canonical_domain)"/>
+        <link rel="alternate" hreflang="x-default" t-att-href="url_localized(lang_code=website.default_lang_id.code, canonical_domain=canonical_domain)"/>
         </t>
         <link rel="canonical" t-att-href="website._get_canonical_url()"/>
         <!-- TODO: Once we have style in DB, add this preconnect only if a
         google font is actually used. Note that if no font is used, the
         preconnect is actually not connecting to the google servers. -->
         <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""/>
+        <link rel="apple-touch-icon" t-att-href="x_icon"/>
     </xpath>
 
     <xpath expr="//head/script" position="before">
         <t t-if="website and website.cookies_bar and website.block_third_party_domains
-                 and not request.env['ir.http']._is_allowed_cookie('optional')
+                 and not env['ir.http']._is_allowed_cookie('optional')
                  and not editable and not translatable
-                 and not request.env.user.has_group('website.group_website_restricted_editor')">
+                 and not env.user.has_group('website.group_website_restricted_editor')">
             <script src="/website/static/src/js/content/cookie_watcher.js"/>
             <script>
                 watch3rdPartyScripts(<t t-out="json.dumps(website._get_blocked_third_party_domains_list())"/>);
             </script>
         </t>
+    </xpath>
+
+    <xpath expr="//t[@t-set='body_classname']" position="after">
+        <t t-set="default_lang_code" t-value="website.default_lang_id.code"/>
+        <t t-set="mainobject_url" t-value="main_object.with_context(lang=default_lang_code).website_url if main_object and 'website_url' in main_object else ''"/>
+        <t t-set="mainobject_url" t-value="mainobject_url.split('?')[0].split('#')[0]"/>
+        <t t-set="mainobject_url" t-value="'_home' if mainobject_url == '/' else mainobject_url"/>
+        <t t-set="classname_from_mainobject" t-value="' o_website_url' + mainobject_url.replace('/', '_').replace('-', '_') if mainobject_url else ''"/>
+        <t t-set="body_classname" t-valuef="{{body_classname}}{{classname_from_mainobject}}"/>
     </xpath>
 
     <xpath expr="//header" position="attributes">
@@ -221,8 +232,8 @@
         <attribute name="class" add="o_not_editable small" separator=" "/>
         <attribute name="t-if">not editable</attribute>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-sm')][2]" position="attributes">
-        <attribute name="class" remove="col-sm text-sm-end" add="col-md mt-auto mb-0 text-md-end" separator=" "/>
+    <xpath expr="//t[@t-call='web.brand_promotion']/.." position="attributes">
+        <attribute name="class" remove="text-sm-end" add="mt-auto mb-0 text-md-end" separator=" "/>
     </xpath>
 
     <xpath expr="//head" position="inside">
@@ -239,23 +250,22 @@
                 });
                 gtag('js', new Date());
                 gtag('config', '<t t-out="website.google_analytics_key"/>');
-                function allConsentsGranted() {
-                    gtag('consent', 'update', {
-                        'ad_storage': 'granted',
-                        'ad_user_data': 'granted',
-                        'ad_personalization': 'granted',
-                        'analytics_storage': 'granted',
+                function updateConsents(consentState) {
+                    gtag("consent", "update", {
+                        "ad_storage": consentState,
+                        "ad_user_data": consentState,
+                        "ad_personalization": consentState,
+                        "analytics_storage": consentState,
                     });
                 }
+                document.addEventListener("optionalCookiesAccepted", () =&gt; {
+                    updateConsents("granted");
+                });
+                document.addEventListener("optionalCookiesDenied", () =&gt; {
+                    updateConsents("denied");
+                });
                 <t t-if="website._allConsentsGranted()">
-                    allConsentsGranted();
-                </t>
-                <t t-else="">
-                    document.addEventListener(
-                        "optionalCookiesAccepted",
-                        allConsentsGranted,
-                        {once: true}
-                    );
+                    updateConsents("granted");
                 </t>
             </script>
         </t>
@@ -264,11 +274,54 @@
         </t>
     </xpath>
 
+    <!-- Breadcrumb -->
+    <xpath expr="//main/*[1]" position="before">
+        <t t-if="main_object.sudo()._name == 'website.page' and main_object.sudo()['parent_id']">
+            <div data-name="Breadcrumb"
+                t-attf-class="o_page_breadcrumb #{breadcrumb_bg_color_class} #{breadcrumb_text_color_class} #{'d-none o_snippet_invisible' if 'breadcrumb_visible' in main_object and not main_object.sudo().breadcrumb_visible else ''}"
+                t-attf-style="#{breadcrumb_bg_color_style and ('background-color: %s;' % breadcrumb_bg_color_style)} #{breadcrumb_text_color_style and ('color: %s;' % breadcrumb_text_color_style)}"
+                t-att-data-invisible="'1' if 'breadcrumb_visible' in main_object and not main_object.sudo().breadcrumb_visible else None"
+            >
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb container p-2 mb-0">
+                        <t t-set="ancestors" t-value="main_object.sudo().parent_ids"/>
+                        <!-- Grand Parent -->
+                        <li class="breadcrumb-item">
+                            <a t-att-href="ancestors[0].url" t-out="ancestors[0].name"/>
+                        </li>
+                        <t t-if="len(ancestors) &lt;= 2">
+                            <li t-foreach="ancestors[1:]" t-as="ancestor" class="breadcrumb-item">
+                                <a t-att-href="ancestor.url" t-out="ancestor.name"/>
+                            </li>
+                        </t>
+                        <t t-else="">
+                            <!-- Dropdown -->
+                            <li class="breadcrumb-item dropdown">
+                                <a role="button" data-bs-toggle="dropdown">...</a>
+                                <div role="menu" class="dropdown-menu">
+                                    <a t-foreach="ancestors[1:len(ancestors)-1]" t-as="ancestor" class="dropdown-item" t-att-href="ancestor.url" t-out="ancestor.name"/>
+                                </div>
+                            </li>
+                            <!-- Direct Parent -->
+                            <li class="breadcrumb-item">
+                                <a t-att-href="ancestors[len(ancestors)-1].url" t-out="ancestors[len(ancestors)-1].name"/>
+                            </li>
+                        </t>
+                        <!-- Current Page -->
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <t t-out="main_object.sudo().name"/>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </t>
+    </xpath>
+
     <!-- Page options -->
     <xpath expr="//div[@id='wrapwrap']" position="before">
         <!-- Todo: Refactor this part. These inputs were initially used for multiple use cases but are now only used to determine if a given option is activated on the page. We should probably implement the feature using an RPC. -->
         <t groups="website.group_website_restricted_editor">
-            <t t-foreach="['header_overlay', 'header_color', 'header_text_color', 'header_visible', 'footer_visible']" t-as="optionName">
+            <t t-foreach="['header_overlay', 'header_color', 'header_text_color', 'header_visible', 'footer_visible', 'breadcrumb_overlay', 'breadcrumb_color', 'breadcrumb_text_color', 'breadcrumb_visible']" t-as="optionName">
                 <!-- Firefox autocomplete is too aggressive and works on hidden inputs,
                 so we need to disable it (https://bugzilla.mozilla.org/show_bug.cgi?id=520561) -->
                 <input t-if="optionName in main_object" type="hidden" class="o_page_option_data" autocomplete="off" t-att-name="optionName" t-att-value="main_object.sudo()[optionName]"/>
@@ -285,9 +338,19 @@
         <t t-set="header_text_color_class" t-value="header_text_color_is_class and header_text_color or ''"/>
         <t t-set="header_text_color_style" t-value="(not header_text_color_is_class) and header_text_color or ''"/>
 
+        <t t-set="breadcrumb_bg_color" t-value="'breadcrumb_color' in main_object and main_object.sudo().breadcrumb_color or ''"/>
+        <t t-set="breadcrumb_bg_color_is_class" t-value="'bg-' in breadcrumb_bg_color"/>
+        <t t-set="breadcrumb_bg_color_class" t-value="breadcrumb_bg_color_is_class and breadcrumb_bg_color or ''"/>
+        <t t-set="breadcrumb_bg_color_style" t-value="(not breadcrumb_bg_color_is_class) and breadcrumb_bg_color or ''"/>
+
+        <t t-set="breadcrumb_text_color" t-value="'breadcrumb_text_color' in main_object and main_object.sudo().breadcrumb_text_color or ''"/>
+        <t t-set="breadcrumb_text_color_is_class" t-value="'text-' in breadcrumb_text_color"/>
+        <t t-set="breadcrumb_text_color_class" t-value="breadcrumb_text_color_is_class and breadcrumb_text_color or ''"/>
+        <t t-set="breadcrumb_text_color_style" t-value="(not breadcrumb_text_color_is_class) and breadcrumb_text_color or ''"/>
+
         <div groups="base.group_user" class="o_frontend_to_backend_nav position-fixed d-none">
-            <svg class="o_frontend_to_backend_icon position-absolute" width="24px" height="24px"
-                 viewBox="-7 -7 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin">
+            <svg xmlns="http://www.w3.org/2000/svg" class="o_frontend_to_backend_icon position-absolute" width="24px" height="24px"
+                 viewBox="-7 -7 24 24" preserveAspectRatio="xMinYMin">
                 <path fill="#FFF" d="M8 8V1a1 1 0 1 1 2 0v8a1 1 0 0 1-1 1H1a1 1 0 1 1 0-2h7z"/>
             </svg>
             <div class="o_frontend_to_backend_buttons d-flex">
@@ -319,6 +382,17 @@
     <xpath expr="//footer[@id='bottom']" position="attributes">
         <attribute name="t-attf-class" add="#{'d-none o_snippet_invisible' if 'footer_visible' in main_object and not main_object.sudo().footer_visible else ''}" separator=" "/>
         <attribute name="t-att-data-invisible">'1' if 'footer_visible' in main_object and not main_object.sudo().footer_visible else None</attribute>
+    </xpath>
+    <xpath expr="//main" position="attributes">
+        <attribute name="t-attf-class" add="#{'o_breadcrumb_overlay' if 'breadcrumb_overlay' in main_object and main_object.sudo().breadcrumb_overlay else ''}" />
+    </xpath>
+</template>
+
+<template id="auth_pages_meta_robots" inherit_id="web.login_layout" name="Auth Pages - No Index">
+    <xpath expr="t[@t-call]" position="before">
+        <t t-set="head">
+            <meta name="robots" content="noindex, nofollow"/>
+        </t>
     </xpath>
 </template>
 
@@ -384,7 +458,7 @@
     <t t-set="is_mobile" t-value="True"/>
 
     <t t-call="website.navbar"
-        _navbar_classes.f="o_header_mobile d-block d-lg-none shadow-sm"
+        _navbar_classes.f="o_header_mobile d-block d-lg-none"
         _navbar_expand_class.f=""
         _navbar_name.f="Mobile">
 
@@ -522,8 +596,8 @@
 <!-- "Default" template -->
 <template id="template_header_default" inherit_id="website.layout" name="Template Header Default" active="True">
     <xpath expr="//header//nav" position="replace">
-        <t t-call="website.navbar">
-            <t t-set="_navbar_classes" t-valuef="d-none d-lg-block shadow-sm"/>
+        <t t-set="_navbar_classes" t-valuef="d-none d-lg-block"/>
+        <t t-call="website.navbar" _navbar_classes="_navbar_classes">
 
             <div id="o_main_nav" t-attf-class="o_main_nav #{header_content_width}">
                 <!-- Brand -->
@@ -589,7 +663,7 @@
 <template id="template_header_hamburger" inherit_id="website.layout" name="Template Header Hamburger" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="d-none d-lg-block shadow-sm"
+            _navbar_classes.f="d-none d-lg-block"
             _navbar_expand_class.f="">
 
             <div id="o_main_nav" t-attf-class="o_main_nav d-grid py-0 o_grid_header_3_cols #{header_content_width}">
@@ -721,7 +795,7 @@
 <template id="template_header_stretch" inherit_id="website.layout" name="Template Header Stretch" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="d-none d-lg-block py-0 shadow-sm">
+            _navbar_classes.f="d-none d-lg-block py-0">
 
             <div id="o_main_nav" t-attf-class="o_main_nav align-items-stretch #{header_content_width}">
                 <!-- Brand -->
@@ -803,7 +877,7 @@
 <template id="template_header_vertical" inherit_id="website.layout" name="Template Header Vertical" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="d-none d-lg-block pt-3 shadow-sm">
+            _navbar_classes.f="d-none d-lg-block pt-3">
 
             <div id="o_main_nav" t-attf-class="o_main_nav flex-wrap #{header_content_width}">
                 <div class="o_header_hide_on_scroll d-grid align-items-center w-100 o_grid_header_3_cols pb-3">
@@ -875,7 +949,7 @@
 <template id="template_header_search" inherit_id="website.layout" name="Template Header Search" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="d-none d-lg-block p-0 shadow-sm">
+            _navbar_classes.f="d-none d-lg-block p-0">
 
             <div id="o_main_nav" class="o_main_nav flex-wrap">
                 <div aria-label="Top" class="o_header_hide_on_scroll border-bottom o_border_contrast">
@@ -964,7 +1038,7 @@
 <template id="template_header_sales_one" inherit_id="website.layout" name="Template Header Sale 1" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0 shadow-sm">
+            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0">
             <div id="o_main_nav" class="o_main_nav">
                 <div aria-label="Top" t-attf-class="#{header_content_width} d-flex align-items-center justify-content-between py-3">
                     <!-- Brand -->
@@ -1045,7 +1119,7 @@
 <template id="template_header_sales_two" inherit_id="website.layout" name="Template Header Sale 2" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0 shadow-sm">
+            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0">
             <div id="o_main_nav" class="o_main_nav">
                 <div class="o_header_hide_on_scroll">
                     <div aria-label="Top" t-if="is_view_active('website.header_text_element') or is_view_active('website.header_social_links') or is_view_active('website.header_language_selector')" class="o_header_sales_two_top py-1">
@@ -1137,7 +1211,7 @@
 <template id="template_header_sales_three" inherit_id="website.layout" name="Template Header Sale 3" active="False">
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0 shadow-sm rounded-0">
+            _navbar_classes.f="o_header_force_no_radius d-none d-lg-block p-0 rounded-0">
             <div id="o_main_nav" class="o_main_nav">
                 <div aria-label="Top" t-if="is_view_active('website.header_text_element') or is_view_active('website.header_social_links') or is_view_active('website.header_search_box') or is_view_active('website.header_call_to_action')"
                      class="o_header_sales_three_top o_header_hide_on_scroll position-relative border-bottom z-1 o_border_contrast">
@@ -1228,7 +1302,7 @@
     </xpath>
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="o_header_sales_four_top o_header_force_no_radius d-none d-lg-block p-0 shadow-sm z-1">
+            _navbar_classes.f="o_header_sales_four_top o_header_force_no_radius d-none d-lg-block p-0 z-1">
             <div id="o_main_nav" class="o_main_nav">
                 <div aria-label="Top" t-attf-class="#{header_content_width} d-flex">
                     <!-- Navbar -->
@@ -1321,7 +1395,7 @@
     </xpath>
     <xpath expr="//header//nav" position="replace">
         <t t-call="website.navbar"
-            _navbar_classes.f="o_border_right_only d-none d-lg-block shadow">
+            _navbar_classes.f="o_border_right_only d-none d-lg-block">
             <div id="o_main_nav" class="o_main_nav navbar-nav d-flex flex-column justify-content-between h-100 w-100">
                <div class="d-flex flex-column w-100 h-100">
                     <div class="d-flex pb-3">
@@ -1433,7 +1507,7 @@
     <xpath expr="//header//nav" position="replace">
         <div t-attf-class="#{header_content_width} py-3 px-0">
             <t t-call="website.navbar"
-                    _navbar_classes.f="o_full_border d-none d-lg-block rounded-pill px-4 shadow-sm">
+                    _navbar_classes.f="o_full_border d-none d-lg-block rounded-pill px-4">
                 <div id="o_main_nav" t-attf-class="#{header_content_width} o_main_nav">
                     <!-- Brand -->
                     <t t-call="website.placeholder_header_brand"
@@ -1927,7 +2001,7 @@
                                     <a href="#">Terms of Services</a>
                                 </li>
                                 <t t-set="configurator_footer_links" t-value="[]"/>
-                                <t t-foreach="configurator_footer_links" t-as="link" class="list-inline-item">
+                                <t t-foreach="configurator_footer_links" t-as="link">
                                     <li class="list-inline-item">•</li>
                                     <li class="list-inline-item">
                                         <a t-att-href="link['href']" t-out="link['text']"/>
@@ -2032,7 +2106,7 @@
                                 <li><a href="#">Services</a></li>
                                 <t t-set="configurator_footer_links" t-value="[]"/>
                                 <li t-foreach="configurator_footer_links" t-as="link">
-                                    <a t-att-href="link['href']" t-esc="link['text']"/>
+                                    <a t-att-href="link['href']" t-out="link['text']"/>
                                 </li>
                             </ul>
                         </div>
@@ -2104,10 +2178,10 @@
             </section>
         </div>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')]" position="attributes">
+    <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')][2]" position="attributes">
+    <xpath expr="//t[@t-call='web.brand_promotion']/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
 </template>
@@ -2141,7 +2215,7 @@
                                             <li><a href="#">Services</a></li>
                                             <t t-set="configurator_footer_links" t-value="[]"/>
                                             <li t-foreach="configurator_footer_links" t-as="link">
-                                                <a t-att-href="link['href']" t-esc="link['text']"/>
+                                                <a t-att-href="link['href']" t-out="link['text']"/>
                                             </li>
                                         </ul>
                                     </div>
@@ -2232,10 +2306,10 @@
             </section>
         </div>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')]" position="attributes">
+    <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')][2]" position="attributes">
+    <xpath expr="//t[@t-call='web.brand_promotion']/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
 </template>
@@ -2273,7 +2347,7 @@
                                             <li><a href="#">Services</a></li>
                                             <t t-set="configurator_footer_links" t-value="[]"/>
                                             <li t-foreach="configurator_footer_links" t-as="link">
-                                                <a t-att-href="link['href']" t-esc="link['text']"/>
+                                                <a t-att-href="link['href']" t-out="link['text']"/>
                                             </li>
                                         </ul>
                                     </div>
@@ -2342,10 +2416,10 @@
             </section>
         </div>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')]" position="attributes">
+    <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-md')][2]" position="attributes">
+    <xpath expr="//t[@t-call='web.brand_promotion']/.." position="attributes">
         <attribute name="class" remove="text-center" separator=" "/>
     </xpath>
 </template>
@@ -2453,12 +2527,23 @@
     </xpath>
 </template>
 
-<template id="footer_copyright_company_name" inherit_id="website.layout" priority="15">
+<template id="footer_copyright_company_name" inherit_id="website.layout">
     <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]" position="replace">
         <span class="o_footer_copyright_name me-2 small">Copyright &amp;copy; Company name</span>
     </xpath>
-    <xpath expr="//div[hasclass('o_footer_copyright')]//div[hasclass('col-sm')]" position="attributes">
-        <attribute name="class" remove="col-sm text-sm-start" add="col-md d-flex flex-column-reverse gap-2 text-md-start" separator=" "/>
+    <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]/.." position="attributes">
+        <attribute name="class" remove="text-sm-start" add="d-flex flex-column-reverse gap-2 text-md-start" separator=" "/>
+    </xpath>
+</template>
+
+<!-- Cookie Policy Link -->
+<template id="footer_cookie_policy_link" inherit_id="website.layout" name="Footer Cookie Policy Link">
+    <xpath expr="//div[@id='footer']" position="after">
+        <div t-if="website.cookies_bar" class="o_cookie_policy_link_container container text-center text-md-start">
+            <p class="m-0">
+                <a href="/cookie-policy" class="oe_unremovable btn btn-link btn-sm px-0 o_translate_inline">Cookie Policy</a>
+            </p>
+        </div>
     </xpath>
 </template>
 
@@ -2489,7 +2574,8 @@
                  data-bs-backdrop="false"
                  data-bs-keyboard="false"
                  tabindex="-1"
-                 role="dialog">
+                 role="dialog"
+                 aria-label="Cookie bar">
                 <div class="modal-dialog d-flex s_popup_size_full">
                     <div class="modal-content oe_structure">
                         <!-- Keep this section equivalent to the rendering of the `website.cookies_bar.discrete` client template -->
@@ -2719,7 +2805,10 @@
 
 <!-- Error and special pages -->
 <template id="website_info" name="Odoo Information">
-    <t t-call="website.layout">
+    <t t-set="head">
+        <meta name="robots" content="noindex, nofollow"/>
+    </t>
+    <t t-call="website.layout" head="head">
         <div id="wrap" class="o_website_info"/>
     </t>
 </template>
@@ -2855,7 +2944,7 @@
                           </button>
                         </div>
                     </div>
-                    <button type="submit" class="h4 btn btn-primary btn-block">Access to this page</button>
+                    <button type="submit" class="h4 btn btn-primary">Access to this page</button>
                 </form>
             </div>
         </div>
@@ -2898,7 +2987,7 @@
                                         "Content-Type": "application/json",
                                     },
                                     'body': JSON.stringify({'params': {'view_id': id, 'mode': mode}})
-                                }).then(() => window.location = redirect);
+                                }).then(() =&gt; window.location = redirect);
                             } else {
                                 input.val('').focus();
                             }
@@ -2911,7 +3000,7 @@
         </t>
     </xpath>
     <xpath expr="//div[@id='wrapwrap']" position="before">
-        <div t-if="view" role="dialog" id="reset_template_confirmation" class="modal" tabindex="-1" t-ignore="true">
+        <div t-if="view" role="dialog" id="reset_template_confirmation" class="modal" tabindex="-1" t-ignore="true" aria-label="Reset template confirmation">
             <div class="modal-dialog">
                 <form role="form">
                     <div class="modal-content">
@@ -2935,7 +3024,7 @@
                             </div>
                         </main>
                         <footer class="modal-footer">
-                            <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
+                            <button type="button" class="btn" data-bs-dismiss="modal" aria-label="Discard">Discard</button>
                             <input type="submit" value="Confirm" class="btn btn-primary"/>
                         </footer>
                     </div>
@@ -2980,7 +3069,7 @@ Sitemap: <t t-out="website.domain"/>/sitemap.xml
 </t>
 <t t-else="">
 Sitemap: <t t-out="url_root"/>sitemap.xml
-
+<t id="robots_module_rules"/>
 
 ##############
 #   custom   #
@@ -3030,6 +3119,19 @@ Sitemap: <t t-out="url_root"/>sitemap.xml
 
 <template id="search_text_with_highlight" name="Website Searchbox item highlight">
     <span t-foreach="enumerate(parts)" t-as="part" t-att-class="'text-primary-emphasis' if part[0] % 2 else None" t-out="part[1]"/>
+</template>
+
+<template id="search_tags_highlight" name="Website Searchbar: Tag Highlight">
+    <div class="d-flex gap-1 flex-wrap">
+        <span t-foreach="tags"
+            t-as="tag"
+            class="badge o_color_0">
+            <span t-foreach="enumerate(tag['parts'])"
+               t-as="part"
+               t-att-class="'fw-bold text-primary-emphasis' if part[0] % 2 else None"
+               t-out="part[1]" />
+        </span>
+    </div>
 </template>
 
 <template id="list_website_public_pages" name="Website Pages">
@@ -3121,6 +3223,7 @@ Sitemap: <t t-out="url_root"/>sitemap.xml
                 <button t-if="extra_link" class="extra_link btn btn-link btn-sm" t-out="extra_link"
                     t-attf-onclick="location.href='#{result.get('extra_link_url')}';return false;"/>
                 <t t-if="extra_link_html" t-out="extra_link_html"/>
+                <div t-if="result.get('tags')" t-out="result.get('tags')" class="my-2"/>
             </div>
             <div class="flex-shrink-0 ms-auto">
                 <t t-if="result.get('detail_strike')">
@@ -3313,7 +3416,7 @@ Sitemap: <t t-out="url_root"/>sitemap.xml
                 <div t-attf-class="s_text_block #{_div_class}" data-name="Text">
                     <a href="tel:+1 555-555-5556" class="nav-link o_nav-link_secondary">
                         <small>
-                            <i class="fa fa-1x fa-fw fa-phone me-1"/>&#847; <!-- Empty character needed to be able to delete the icon. -->
+                            <i class="fa fa-1x fa-fw fa-phone me-1"/>͏ <!-- Empty character needed to be able to delete the icon. -->
                             <span class="o_force_ltr">+1 555-555-5556</span>
                         </small>
                     </a>

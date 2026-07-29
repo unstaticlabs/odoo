@@ -9,15 +9,16 @@
 # Niyas Raphy, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
 # Alaa Jehto <alaa.jehto@outlook.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 22:57+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/portal/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-01-16 06:55+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-1/portal/"
 "ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +26,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -37,6 +38,11 @@ msgstr "\" لتصديق إجرائك."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s أيام متأخرة"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -62,11 +68,8 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> تسجيل "
-"الخروج"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
@@ -116,17 +119,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid ""
 "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-msgstr "<i title=\"التوثيق \" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">الدولة...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">الولاية / المحافظة...</option>"
+msgstr ""
+"<i title=\"التوثيق \" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
@@ -140,8 +134,8 @@ msgid ""
 "                        </small>"
 msgstr ""
 "<small class=\"form-text text-muted\">\n"
-"                            لا يُسمح بتغيير رقم ضريبة القيمة المضافة بعد إصدار "
-"المستندات\n"
+"                            لا يُسمح بتغيير رقم ضريبة القيمة المضافة بعد "
+"إصدار المستندات\n"
 "                            لحسابك. يرجى الاتصال بنا مباشرةً لإجراء هذه\n"
 "                            العملية.\n"
 "                        </small>"
@@ -274,7 +268,7 @@ msgid "Add extra content to display in the email"
 msgstr "إضافة محتوى إضافي لعرضه في البريد الإكتروني"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "قم بإضافة أو إزالة أو تعديل عناوينك"
 
@@ -289,8 +283,8 @@ msgid "Address Management"
 msgstr "إدارة العناوين"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "العناوين"
 
@@ -327,10 +321,9 @@ msgid "Billing address"
 msgstr "عنوان الفوترة"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "إلغاء"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -389,12 +382,17 @@ msgid "Company Name"
 msgstr "اسم الشركة"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "تهيئة الإعدادات"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "قم بتهيئة معايير اتصالك"
 
@@ -411,7 +409,11 @@ msgid "Confirm Password"
 msgstr "تأكيد كلمة المرور"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "الاتصال والأمن"
@@ -447,11 +449,17 @@ msgid "Country"
 msgstr "الدولة"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "Create a Customer"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -459,6 +467,7 @@ msgid "Created by"
 msgstr "أنشئ بواسطة"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -513,6 +522,11 @@ msgid "Description"
 msgstr "الوصف"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "التفاصيل"
@@ -540,11 +554,17 @@ msgstr ""
 "                                        </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -658,6 +678,7 @@ msgstr "الرئيسية"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -677,13 +698,18 @@ msgid ""
 "the account settings or contact your administrator."
 msgstr ""
 "إذا كنت تقوم بالطلب لشخص خارجي، يرجى الطلب من خلال الواجهة الخلفية. إذا أردت "
-"تغيير اسمك أو عنوان بريدك الإلكتروني، يرجى القيام بذلك من خلال إعدادات الحساب "
-"أو التواصل مع المدير."
+"تغيير اسمك أو عنوان بريدك الإلكتروني، يرجى القيام بذلك من خلال إعدادات "
+"الحساب أو التواصل مع المدير."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "إذا أردت تعديله، قم بتحديث"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -750,6 +776,7 @@ msgstr ""
 "                وكاملاً،"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -757,6 +784,7 @@ msgid "Last Updated by"
 msgstr "آخر تحديث بواسطة"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -798,11 +826,11 @@ msgstr "الرسالة"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
-"لا يدعم النموذج %(model_name)s توقيع الرمز، حيث أنه لا يحتوي على حقل %"
-"(field_name)s."
+"لا يدعم النموذج %(model_name)s توقيع الرمز، حيث أنه لا يحتوي على حقل "
+"%(field_name)s."
 
 #. module: portal
 #. odoo-python
@@ -892,6 +920,11 @@ msgid "Phone"
 msgstr "رقم الهاتف"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -908,6 +941,11 @@ msgstr "إدراة الوصول إلى البوابة"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "رابط الوصول لبوابة العملاء"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -1063,6 +1101,11 @@ msgid "Show As Optional Inherit"
 msgstr "عرضه كتوريث اختياري"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "تسجيل الدخول"
@@ -1092,6 +1135,11 @@ msgid "State / Province"
 msgstr "الولاية/المنطقة"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "الحالة"
@@ -1100,6 +1148,11 @@ msgstr "الحالة"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "الشارع والرقم"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1227,13 +1280,18 @@ msgstr "الشريك مرتبط بمستخدم داخلي ولديه صلاحي�
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "This text is included at the end of the email sent to new portal users."
 msgstr ""
-"هذا النص متضمن في نهاية البريد الإلكتروني الذي يتم إرساله إلى مستخدمي البوابة "
-"الجدد."
+"هذا النص متضمن في نهاية البريد الإلكتروني الذي يتم إرساله إلى مستخدمي "
+"البوابة الجدد."
 
 #. module: portal
 #: model:ir.model.fields,help:portal.field_portal_wizard__welcome_message
 msgid "This text is included in the email sent to new users of the portal."
 msgstr "يتم إدراج هذا النص في الرسالة المرسلة لمستخدمي بوابة العملاء الجدد."
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
@@ -1302,9 +1360,9 @@ msgstr "أداة العرض"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1340,9 +1398,9 @@ msgstr "رسائل الموقع الإلكتروني"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1377,7 +1435,7 @@ msgstr "اكتب رسالة..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "اكتب رسالة…"
 
@@ -1420,6 +1478,12 @@ msgstr "عليك إدخال \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "عليك أولاً منح حق الوصول إلى البوابة إلى الشريك \"%s\"."
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1467,9 +1531,9 @@ msgid "odoo"
 msgstr "أودو"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "كلمة السر"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1487,141 +1551,3 @@ msgstr "لحساب المستخدم الخاص بك، من المهم جداً �
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "تفاصيل حسابك"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> My Account"
-#~ msgstr "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/>حسابي"
-
-#~ msgid "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> Logout"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> تسجيل خروج"
-
-#~ msgid "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> Apps"
-#~ msgstr "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> تطبيقات"
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>تحرير إعدادات الأمان "
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> تحرير"
-
-#~ msgid ""
-#~ "<small class=\"form-text text-muted\">Changing company name or VAT number "
-#~ "is not allowed once document(s) have been issued for your account. <br/"
-#~ ">Please contact us directly for this operation.</small>"
-#~ msgstr ""
-#~ "<small class=\"form-text text-muted\">لا يسمح بتغيير اسم شركتك أو رقم "
-#~ "ضريبة القيمة المضافة بمجرد أن يتم إصدار مستند (مستندات) لحسابك. <br/>يرجى "
-#~ "التواصل معنا مباشرة لهذه العملية.</small> "
-
-#~ msgid "Account Security"
-#~ msgstr "أمن الحساب "
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "يجب تقديم رمز وصول لكل مرفق. "
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "لا يسمح بتغيير اسم الشركة بمجرد أن يتم إصدار مستند (مستندات) لحسابك. يرجى "
-#~ "التواصل معنا مباشرة لإتمام هذه العملية. "
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr ""
-#~ "تأكيد\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-
-#~ msgid "Could not save file <strong>%s</strong>"
-#~ msgstr "تعذر حفظ الملف <strong>%s</strong> "
-
-#~ msgid ""
-#~ "Currently available to everyone viewing this document, click to restrict "
-#~ "to internal employees."
-#~ msgstr ""
-#~ "متاح حالياً لجميع من يقومون بعرض هذا المستند. اضغط لتقييد الوصول ليُسمَح "
-#~ "للموظفين الداخليين فقط. "
-
-#~ msgid ""
-#~ "Currently restricted to internal employees, click to make it available to "
-#~ "everyone viewing this document."
-#~ msgstr ""
-#~ "وحدهم الموظفون الداخليون يُسمَح لهم بالوصول. اضغط لجعله متاحاً لجميع من "
-#~ "يقومون بعرض هذا المستند. "
-
-#~ msgid "Discard"
-#~ msgstr "تجاهل"
-
-#~ msgid "Documents"
-#~ msgstr "المستندات"
-
-#~ msgid "Employees Only"
-#~ msgstr "الموظفين فقط "
-
-#~ msgid "Internal Note"
-#~ msgstr "ملاحظة داخلية"
-
-#~ msgid "Internal notes are only displayed to internal users."
-#~ msgstr "يتم عرض الملاحظات الداخلية فقط للمستخدمين الداخليين. "
-
-#~ msgid "Invitation email to contacts to create a user account"
-#~ msgstr "دعوة عبر البريد الإلكتروني إلى جهات الاتصال لإنشاء حساب مستخدم "
-
-#~ msgid "Name"
-#~ msgstr "الاسم"
-
-#~ msgid "No Documents to display"
-#~ msgstr "لا توجد مستندات لعرضها "
-
-#~ msgid "Portal: User Invite"
-#~ msgstr "البوابة: دعوة المستخدم "
-
-#~ msgid "Prev"
-#~ msgstr "السابق"
-
-#~ msgid "Published on %s"
-#~ msgstr "تم النشر في %s "
-
-#~ msgid "Street"
-#~ msgstr "الشارع"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr "المرفق %s غير موجود أو إنك لا تملك حق الوصول إليه. "
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr "المستند غير موجود أو إنك لا تملك حق الوصول إليه. "
-
-#~ msgid "There are no comments for now."
-#~ msgstr "لا توجد تعليقات حالياً. "
-
-#~ msgid "VAT Number"
-#~ msgstr "رقم ضريبة القيمة المضافة"
-
-#~ msgid "Visible"
-#~ msgstr "مرئي "
-
-#~ msgid "You are invited to access %s"
-#~ msgstr "تمت دعوتك للوصول إلى %s"
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "تمت دعوتك للوصول للمستند التالي:"
-
-#~ msgid "Your account at {{ object.user_id.company_id.name }}"
-#~ msgstr "حسابك على {{ object.user_id.company_id.name }} "
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "الرمز البريدي"
-
-#~ msgid "avatar"
-#~ msgstr "الصورة الرمزية"
-
-#~ msgid "comment"
-#~ msgstr "تعليق"
-
-#~ msgid "comments"
-#~ msgstr "تعليقات"

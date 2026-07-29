@@ -6,17 +6,18 @@
 # Martin Trigaux, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
 # Raymond Yu <cl_yu@hotmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-30 23:26+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
+"PO-Revision-Date: 2026-06-13 13:44+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_sale_stock/zh_Hans/>\n"
+"projects/odoo-s19-2/website_sale_stock/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,9 +33,38 @@ msgid ""
 msgstr "%(product_name)s尚未添加到您的购物车，因为该产品不可用。"
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr "%(product_name)s 已恢复库存"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    缺货"
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
 msgstr "<span invisible=\"not default_show_availability\">单位</span>"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Add to wishlist"
+msgstr "添加到愿望清单"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Added to your wishlist"
+msgstr "添加到您的愿望清单"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -59,8 +89,9 @@ msgstr "补充库存通知"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
 msgid "Below"
-msgstr ""
+msgstr "下面"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_res_config_settings
@@ -76,11 +107,6 @@ msgstr "继续销售"
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__default_allow_out_of_stock_order
 msgid "Continue selling when out-of-stock"
 msgstr "缺货时继续销售"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "亲爱的客户："
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -105,11 +131,18 @@ msgstr ""
 "- 缺货：产品缺货时应用。"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "组合桌子"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
@@ -125,11 +158,17 @@ msgid "Get notified when back in stock"
 msgstr "补充库存时得到通知"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Hello"
+msgstr "您好"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
@@ -147,14 +186,32 @@ msgstr "无效电子邮件"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr "无效电子邮件"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "库存"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "默认库存"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "Logo"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "Mitchell Admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -214,19 +271,27 @@ msgid "Product Variant"
 msgstr "产品变体"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+#, fuzzy
+msgid "Product Wishlist"
+msgstr "商品需求清单"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Product image"
+msgstr "产品图像"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
+#, fuzzy
 msgid "Product ribbon"
-msgstr ""
+msgstr "产品功能区"
 
 #. module: website_sale_stock
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr "产品：发送有关产品可用性的电子邮件"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "祝愿,"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -277,15 +342,15 @@ msgid ""
 msgstr "一些产品已经下架，您的购物车已更新。给您带来不便我们深表抱歉。"
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "以下产品现已上市。"
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+#, fuzzy
+msgid "Stock Notification"
+msgstr "库存通知"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "产品“%(product_name)s”现已上市"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr ""
 
 #. module: website_sale_stock
 #. odoo-python
@@ -336,7 +401,7 @@ msgid ""
 "You ask for %(desired_qty)s %(product_name)s but only %(new_qty)s is "
 "available"
 msgstr ""
-"你要求 %(desired_qty)s 件 %(product_name)s，但只有 %(new_qty)s 件可供出售。"
+"您要求 %(desired_qty)s 件 %(product_name)s，但只有 %(new_qty)s 件可供出售。"
 
 #. module: website_sale_stock
 #. odoo-python
@@ -359,8 +424,9 @@ msgstr ""
 #. module: website_sale_stock
 #. odoo-javascript
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
 msgid "in your cart)"
-msgstr ""
+msgstr "在您的购物车中）"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -377,49 +443,3 @@ msgstr ""
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr "youremail@gmail.com"
-
-#~ msgid "<span invisible=\"not show_availability\">Units</span>"
-#~ msgstr "<span invisible=\"not show_availability\">单位</span>"
-
-#~ msgid "Default visibility for custom messages."
-#~ msgstr "自定义消息的默认可见性。"
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr "如何显示数量少的产品（在手-已预留）？"
-
-#~ msgid "Only"
-#~ msgstr "仅"
-
-#~ msgid "The item has not been added to your cart since it is not available."
-#~ msgstr "由于该商品不可用，因此尚未添加到您的购物车。"
-
-#~ msgid "This product is out of stock."
-#~ msgstr "该产品缺货。"
-
-#~ msgid "Units"
-#~ msgstr "单位"
-
-#~ msgid "We'll notify you once the product is back in stock."
-#~ msgstr "一旦产品补充库存，我们将会通知您"
-
-#~ msgid "You already added"
-#~ msgstr "您已经添加"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr "您已经在购物车中添加了所有可用的产品。"
-
-#~ msgid "You already have %s Units in your cart."
-#~ msgstr "您已经有%s件在您的购物车"
-
-#~ msgid ""
-#~ "You ask for %(desired_qty)s products but only %(new_qty)s is available"
-#~ msgstr "您想要%(desired_qty)s件产品，但是只有%(new_qty)s是可用的"
-
-#~ msgid "You ask for %s Units but only %s are available."
-#~ msgstr "您想要%s件但是只有%s是可用的"
-
-#~ msgid "in your cart."
-#~ msgstr "在您的购物车中。"
-
-#~ msgid "left in stock."
-#~ msgstr "留在库存中。"

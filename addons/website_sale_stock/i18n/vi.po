@@ -6,18 +6,18 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-30 07:59+0000\n"
-"Last-Translator: Deleted User <noreply+31@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-13 17:48+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_sale_stock/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
@@ -34,25 +34,55 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
 msgstr ""
 
 #. module: website_sale_stock
 #. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Add to wishlist"
+msgstr "Thêm vào danh sách yêu thích"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+#, fuzzy
+msgid "Added to your wishlist"
+msgstr "Đã thêm vào danh sách yêu thích"
+
+#. module: website_sale_stock
+#. odoo-javascript
 #: code:addons/website_sale_stock/static/src/js/product_card/product_card.js:0
+#, fuzzy
 msgid "All available quantity selected"
-msgstr ""
+msgstr "Toàn bộ số lượng hiện có đã được chọn"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
+#, fuzzy
 msgid "All warehouses"
-msgstr ""
+msgstr "Tất cả kho hàng"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__assign
+#, fuzzy
 msgid "Assign"
-msgstr ""
+msgstr "Chỉ định"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__stock_notification_partner_ids
@@ -61,8 +91,9 @@ msgstr "Thông báo có hàng"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
 msgid "Below"
-msgstr ""
+msgstr "Dưới"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_res_config_settings
@@ -78,11 +109,6 @@ msgstr "Tiếp tục bán"
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__default_allow_out_of_stock_order
 msgid "Continue selling when out-of-stock"
 msgstr "Tiếp tục bán khi hết hàng"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "Kính gửi quý khách,"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -109,18 +135,26 @@ msgstr ""
 "- Hết hàng: Được áp dụng khi sản phẩm hết hàng."
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "Bàn làm việc đa năng"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Tên hiển thị"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -129,11 +163,18 @@ msgid "Get notified when back in stock"
 msgstr "Nhận thông báo khi có hàng"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Hello"
+msgstr "Xin chào"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
@@ -150,14 +191,32 @@ msgstr "Email không hợp lệ"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr "Email không hợp lệ"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "Tồn kho"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "Mặc định tồn kho"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "Logo"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "Mitchell Admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -174,8 +233,9 @@ msgstr "Hết hàng"
 #. module: website_sale_stock
 #. odoo-javascript
 #: code:addons/website_sale_stock/static/src/js/product/product.xml:0
+#, fuzzy
 msgid "Out of stock"
-msgstr ""
+msgstr "Hết hàng"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -203,8 +263,9 @@ msgstr "Sản phẩm"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_combo
+#, fuzzy
 msgid "Product Combo"
-msgstr ""
+msgstr "Combo sản phẩm"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_feed
@@ -217,19 +278,27 @@ msgid "Product Variant"
 msgstr "Biến thể sản phẩm"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+#, fuzzy
+msgid "Product Wishlist"
+msgstr "Danh sách sản phẩm yêu thích"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Product image"
+msgstr "Hình ảnh sản phẩm"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
+#, fuzzy
 msgid "Product ribbon"
-msgstr ""
+msgstr "Ruy-băng sản phẩm"
 
 #. module: website_sale_stock
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr "Sản phẩm: gửi email thông báo tình trạng còn hàng của sản phẩm"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "Trân trọng,"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -282,15 +351,15 @@ msgstr ""
 "tôi rất tiếc về điều này."
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "Sản phẩm sau hiện đã có hàng."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+#, fuzzy
+msgid "Stock Notification"
+msgstr "Thông báo tồn kho"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "Sản phẩm '%(product_name)s' hiện đã có hàng"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr ""
 
 #. module: website_sale_stock
 #. odoo-python
@@ -337,10 +406,12 @@ msgstr ""
 #. module: website_sale_stock
 #. odoo-python
 #: code:addons/website_sale_stock/models/sale_order_line.py:0
+#, fuzzy
 msgid ""
 "You ask for %(desired_qty)s %(product_name)s but only %(new_qty)s is "
 "available"
 msgstr ""
+"Bạn yêu cầu %(desired_qty)s %(product_name)s nhưng chỉ còn %(new_qty)s "
 
 #. module: website_sale_stock
 #. odoo-python
@@ -381,49 +452,3 @@ msgstr ""
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr "youremail@gmail.com"
-
-#~ msgid "<span invisible=\"not show_availability\">Units</span>"
-#~ msgstr "<span invisible=\"not show_availability\">Đơn vị</span>"
-
-#~ msgid "Default visibility for custom messages."
-#~ msgstr "Tính hiển thị mặc định cho thông báo tùy chỉnh."
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr "Cách hiển thị sản phẩm có số lượng ít (hiện có - đặt trước)"
-
-#~ msgid "Only"
-#~ msgstr "Chỉ"
-
-#~ msgid "The item has not been added to your cart since it is not available."
-#~ msgstr "Mặt hàng này chưa được thêm vào giỏ hàng của bạn vì nó không còn."
-
-#~ msgid "This product is out of stock."
-#~ msgstr "Sản phẩm này đã hết hàng."
-
-#~ msgid "Units"
-#~ msgstr "Đơn vị"
-
-#~ msgid "We'll notify you once the product is back in stock."
-#~ msgstr "Chúng tôi sẽ thông báo cho bạn khi sản phẩm có hàng."
-
-#~ msgid "You already added"
-#~ msgstr "Bạn đã thêm"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr "Bạn vừa thêm tất cả sản phẩm còn hàng vào giỏ hàng. "
-
-#~ msgid "You already have %s Units in your cart."
-#~ msgstr "Bạn đã có %s sản phẩm trong giỏ hàng."
-
-#~ msgid ""
-#~ "You ask for %(desired_qty)s products but only %(new_qty)s is available"
-#~ msgstr "Bạn yêu cầu %(desired_qty)s sản phẩm nhưng chỉ còn %(new_qty)s "
-
-#~ msgid "You ask for %s Units but only %s are available."
-#~ msgstr "Bạn yêu cầu %s đơn vị nhưng chỉ còn %s."
-
-#~ msgid "in your cart."
-#~ msgstr "trong giỏ hàng."
-
-#~ msgid "left in stock."
-#~ msgstr "trong kho. "

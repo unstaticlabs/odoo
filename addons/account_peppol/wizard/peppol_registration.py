@@ -57,13 +57,6 @@ class PeppolRegistration(models.TransientModel):
     )
     use_parent_connection = fields.Boolean(compute='_compute_use_parent_connection')
 
-    # TODO: remove in master
-    is_branch_company = fields.Boolean(store=False)
-    active_parent_company = fields.Many2one(string="Active Parent Company", related='parent_company_id')
-    active_parent_company_name = fields.Char(string="Active Parent Company Name", related='parent_company_name')
-    can_use_parent_connection = fields.Boolean(string="Can Use Parent Connection", related='display_use_parent_connection_selection')
-    # TODO END: remove in master
-
     edi_mode = fields.Selection(
         string='EDI mode',
         selection=[('demo', 'Demo'), ('test', 'Test'), ('prod', 'Live')],
@@ -260,10 +253,6 @@ class PeppolRegistration(models.TransientModel):
             raise ValidationError(_("Cannot register a user with a %s application", self.account_peppol_proxy_state))
 
     def _action_open_peppol_form(self, reopen=True):
-        view = self.env.ref('account_peppol.peppol_registration_form').sudo()
-        # TODO remove in master this hack to get the itsme button up
-        if 'itsme' not in view.arch_db:
-            view.reset_arch(mode="hard")
         action_dict = {
             'name': _("Activate Electronic Invoicing (via Peppol)"),
             'type': 'ir.actions.act_window',
@@ -349,7 +338,7 @@ class PeppolRegistration(models.TransientModel):
     @handle_demo
     def _can_connect(self):
         self.ensure_one()
-        db_uuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        db_uuid = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
         peppol_identifier = f'{self.peppol_eas}:{self.peppol_endpoint}'.lower()
         connect_token = self._generate_connect_token(peppol_identifier, self.company_id)
         callback_url = urljoin(self.get_base_url(), '/peppol/authentication/callback')
@@ -462,7 +451,7 @@ class PeppolRegistration(models.TransientModel):
 
         # No auth required
         peppol_identifier = f'{self.peppol_eas}:{self.peppol_endpoint}'.lower()
-        db_uuid = self.env['ir.config_parameter'].sudo().get_param('database.uuid')
+        db_uuid = self.env['ir.config_parameter'].sudo().get_str('database.uuid')
         self._create_connection(peppol_identifier, db_uuid, self.company_id)
         notifications = {
             'sender': {

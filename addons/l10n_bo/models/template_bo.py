@@ -35,7 +35,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'l10n_bo_iva_13_purchase',
                 'income_account_id': 'l10n_bo_4101',
                 'expense_account_id': 'l10n_bo_53008',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_bo_1133',
             },
         }

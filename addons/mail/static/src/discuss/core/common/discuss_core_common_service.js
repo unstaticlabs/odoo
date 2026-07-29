@@ -18,7 +18,7 @@ export class DiscussCoreCommon {
 
     setup() {
         this.busService.subscribe("discuss.channel/delete", (payload, metadata) => {
-            const thread = this.store.Thread.insert({
+            const thread = this.store["mail.thread"].insert({
                 id: payload.id,
                 model: "discuss.channel",
             });
@@ -45,18 +45,9 @@ export class DiscussCoreCommon {
             message.thread.messages.push(message);
             message.thread.transientMessages.push(message);
         });
-        this.busService.subscribe("discuss.channel.member/fetched", (payload) => {
-            const { channel_id, id, last_message_id, partner_id } = payload;
-            this.store["discuss.channel.member"].insert({
-                id,
-                fetched_message_id: { id: last_message_id },
-                partner_id: { id: partner_id },
-                thread: { id: channel_id, model: "discuss.channel" },
-            });
-        });
         this.env.bus.addEventListener("mail.message/delete", ({ detail: { message, notifId } }) => {
-            if (message.thread) {
-                const { self_member_id } = message.thread;
+            const self_member_id = message.channel_id?.self_member_id;
+            if (self_member_id) {
                 if (
                     message.id > self_member_id?.seen_message_id.id &&
                     notifId > self_member_id.message_unread_counter_bus_id
@@ -72,17 +63,14 @@ export class DiscussCoreCommon {
      * @param {{ notifId: number}} metadata
      */
     async _handleNotificationChannelDelete(thread, metadata) {
-        await thread.closeChatWindow({ force: true });
+        await thread.closeChatWindow();
         thread.messages.splice(0, thread.messages.length);
         thread.delete();
     }
 
     async _handleNotificationNewMessage(payload, { id: notifId }) {
         const { data, id: channelId, silent, temporary_id } = payload;
-        const channel = await this.store.Thread.getOrFetch({
-            model: "discuss.channel",
-            id: channelId,
-        });
+        const channel = await this.store["discuss.channel"].getOrFetch(channelId);
         if (!channel) {
             return;
         }
@@ -114,19 +102,10 @@ export class DiscussCoreCommon {
             }
         }
         if (
-            channel.channel_type !== "channel" &&
-            this.store.self_partner &&
-            channel.self_member_id
-        ) {
-            // disabled on non-channel threads and
-            // on "channel" channels for performance reasons
-            channel.markAsFetched();
-        }
-        if (
             !channel.loadNewer &&
             !message.isSelfAuthored &&
             channel.composer.isFocused &&
-            this.store.self_partner &&
+            this.store.self_user &&
             channel.newestPersistentMessage?.eq(channel.newestMessage) &&
             !channel.markedAsUnread
         ) {

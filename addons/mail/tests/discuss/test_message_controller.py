@@ -3,15 +3,16 @@
 import json
 
 import odoo
+from odoo import Command, fields
+from odoo.http.stream import STATIC_CACHE_LONG
 from odoo.tests import tagged, users
 from odoo.tools import mute_logger
+
 from odoo.addons.base.tests.common import HttpCase, HttpCaseWithUserDemo
 from odoo.addons.mail.tests.common import MailCommon, mail_new_test_user
-from odoo.http import STATIC_CACHE_LONG
-from odoo import Command, fields
 
 
-@odoo.tests.tagged("-at_install", "post_install", "mail_controller")
+@odoo.tests.tagged("mail_controller")
 class TestMessageController(HttpCaseWithUserDemo):
     @classmethod
     def setUpClass(cls):
@@ -314,6 +315,7 @@ class TestMessageController(HttpCaseWithUserDemo):
 
 
 @tagged("mail_message")
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMessageLinks(MailCommon, HttpCase):
 
     @classmethod

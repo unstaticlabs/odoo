@@ -6,23 +6,24 @@
 # Martin Trigaux, 2022
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Wichanon Jamwutthipreecha, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 # Nusara Boonma <nuboo@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:20+0000\n"
+"POT-Creation-Date: 2026-04-03 18:38+0000\n"
+"PO-Revision-Date: 2026-05-28 08:55+0000\n"
 "Last-Translator: Nusara Boonma <nuboo@odoo.com>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_timesheet/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: sale_timesheet
 #. odoo-python
@@ -41,8 +42,7 @@ msgstr ""
 "                <p class=\"o_view_nocontent_smiling_face\">\n"
 "                    ไม่พบกิจกรรม มาเริ่มต้นใหม่กันเถอะ!\n"
 "                </p><p>\n"
-"                    ติดตามชั่วโมงทำงานของคุณทุกวันตามโปรเจกต์และออกใบแจ้งหนี้ให้กับลูกค้าขอ"
-"งคุณในครั้งนี้\n"
+"                    ติดตามชั่วโมงทำงานของคุณทุกวันตามโปรเจ็กต์และออกใบแจ้งหนี้ให้กับลูกค้าของคุณในครั้งนี้\n"
 "                </p>\n"
 "            "
 
@@ -67,10 +67,8 @@ msgstr ""
 "                <p class=\"o_view_nocontent_smiling_face\">\n"
 "                    บันทึกเวลา\n"
 "                </p><p>\n"
-"                    คุณสามารถลงทะเบียนและติดตามชั่วโมงการทำงานของคุณในแต่ล่ะโปรเจกต์ได้"
-"ทุกวัน\n"
-"                    ทุกช่วงเวลาที่ใช้ในโปรเจกต์รจะถูกคิดเงินและสามารถออกใบแจ้งหนี้ใหม่ให้แ"
-"ก่\n"
+"                    คุณสามารถลงทะเบียนและติดตามชั่วโมงการทำงานของคุณในแต่ล่ะโปรเจ็กต์ได้ทุกวัน\n"
+"                    ทุกช่วงเวลาที่ใช้ในโปรเจ็กต์รจะถูกคิดเงินและสามารถออกใบแจ้งหนี้ใหม่ให้แก่\n"
 "                    ลูกค้าได้หากจำเป็น\n"
 "                </p>\n"
 "            "
@@ -83,8 +81,8 @@ msgid ""
 "distribution of the sale order item '%(so_line_name)s' linked to the "
 "timesheet."
 msgstr ""
-"จำเป็นต้องมีแผนวิเคราะห์ '%(missing_plan_names)s' สำหรับการแจกจ่ายวิเคราะห์ของรายการใบ"
-"สั่งขาย '%(so_line_name)s' ที่เชื่อมโยงกับตารางเวลา"
+"จำเป็นต้องมีแผนวิเคราะห์ '%(missing_plan_names)s' "
+"สำหรับการแจกจ่ายวิเคราะห์ของรายการใบสั่งขาย '%(so_line_name)s' ที่เชื่อมโยงกับตารางเวลา"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_sale_page
@@ -134,8 +132,8 @@ msgid ""
 "<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
 "target=\"_blank\"><small><b>READ</b></small></a>"
 msgstr ""
-"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" target=\"_blank\">"
-"<small><b>อ่านเพิ่มเติม</b></small></a>"
+"<a href=\"/\" class=\"btn btn-primary o_translate_inline\" "
+"target=\"_blank\"><small><b>อ่านเพิ่มเติม</b></small></a>"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
@@ -160,10 +158,10 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-lightbulb-o\"/>\n"
 "                        <span>\n"
-"                            กำหนดอัตราการเรียกเก็บเงินเวลาของพนักงานตามความเชี่ยวชา"
-"ญ ทักษะ หรือประสบการณ์ของพวกเขา\n"
-"                            หากต้องการเรียกเก็บเงินบริการเดียวกันในอัตราที่แตกต่างกัน ให้ส"
-"ร้างรายการใบสั่งขายแยกต่างหาก\n"
+"                            กำหนดอัตราการเรียกเก็บเงินเวลาของพนักงานตามความเชี่ยวชาญ "
+"ทักษะ หรือประสบการณ์ของพวกเขา\n"
+"                            หากต้องการเรียกเก็บเงินบริการเดียวกันในอัตราที่แตกต่างกัน "
+"ให้สร้างรายการใบสั่งขายแยกต่างหาก\n"
 "                        </span>"
 
 #. module: sale_timesheet
@@ -173,9 +171,9 @@ msgid ""
 "order associated with this timesheet entry has been cancelled.\" "
 "invisible=\"sale_order_state != 'cancel'\"/>"
 msgstr ""
-"<span class=\"fa fa-exclamation-triangle text-warning\" title=\"ใบสั่งขายที่เกี่ยวข้"
-"องกับรายการใบบันทึกเวลานี้ถูกยกเลิกแล้ว\" invisible=\"sale_order_state != "
-"'cancel'\"/>"
+"<span class=\"fa fa-exclamation-triangle text-warning\" "
+"title=\"ใบสั่งขายที่เกี่ยวข้องกับรายการใบบันทึกเวลานี้ถูกยกเลิกแล้ว\" "
+"invisible=\"sale_order_state != 'cancel'\"/>"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.hr_timesheet_line_form_inherit
@@ -215,37 +213,44 @@ msgid "<span class=\"text-muted small\">Time to Answer</span>"
 msgstr "<span class=\"text-muted small\">เวลาที่จะตอบ</span>"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
+msgid ""
+"<span class=\"text-muted\">Timesheets without a sales order item are "
+"reported as</span>"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr ""
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,website_rating:sale_timesheet.job_engineer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,website_rating:sale_timesheet.job_labour
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr ""
 
@@ -270,7 +275,7 @@ msgid "<strong>Sales Order:</strong>"
 msgstr "<strong>คำสั่งขาย:</strong>"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_inherit
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_timesheet_table_with_total_inherit
 msgid "<strong>Time Remaining on SO: </strong>"
 msgstr ""
 
@@ -298,11 +303,6 @@ msgstr ""
 "- วิเคราะห์จากค่าใช้จ่าย: ปริมาณคือผลรวมปริมาณจากค่าใช้จ่ายที่ผ่านรายการ\n"
 "- ระบบบันทึกเวลา: ปริมาณคือผลรวมของชั่วโมงที่บันทึกไว้ในงานที่เชื่อมโยงกับรายการการขายนี้\n"
 "- การเคลื่อนย้ายสต็อค: ปริมาณมาจากการเลือกที่ได้รับการยืนยัน\n"
-
-#. module: sale_timesheet
-#: model:ir.model,name:sale_timesheet.model_account_move_reversal
-msgid "Account Move Reversal"
-msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -348,38 +348,24 @@ msgid "Analytic lines"
 msgstr "รายการการวิเคราะห์"
 
 #. module: sale_timesheet
-#: model_terms:hr.job,website_description:sale_timesheet.job_engineer
-#: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
-#: model_terms:hr.job,website_description:sale_timesheet.job_labour
+#: model_terms:hr.job,description:sale_timesheet.job_engineer
+#: model_terms:hr.job,description:sale_timesheet.job_interior_designer
+#: model_terms:hr.job,description:sale_timesheet.job_labour
 msgid ""
 "As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br><br>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+"to create and deploy disruptive products.</b> Come work at a growing "
+"company\n"
+"that offers great benefits with opportunities to moving forward and learn\n"
+"alongside accomplished leaders. We're seeking an experienced and "
+"outstanding\n"
+"member of staff.\n"
+"<br><br>\n"
+"This position is both <b>creative and rigorous</b> by nature you need to "
+"think\n"
+"outside the box. We expect the candidate to be proactive and have a \"get it "
+"done\"\n"
+"spirit. To be successful, you will have solid solving problem skills."
 msgstr ""
-"ในฐานะของพนักงานบริษัท คุณจะ<b>ร่วมมือกับแผนกต่างๆ \n"
-"                       เพื่อสร้างและปรับใช้ผลิตภัณฑ์</b> มาทำงานในบริษัทที่กำลังเติบโต\n"
-"                        ที่มอบประโยชน์มหาศาลพร้อมโอกาสแบบก้าวกระโดดและเรียนรู้\n"
-"                        ควบคู่ไปกับหัวหน้าที่ประสบความสำเร็จ เรากำลังมองหาผู้มีประสบการณ์แ"
-"ละโดดเด่น\n"
-"                       เพื่อมาเป็นพนักงาน\n"
-"                        <br/><br/>\n"
-"                        ตำแหน่งนี้ต้องมีทั้ง<b>ความคิดสร้างสรรค์และความรอบคอบ</b> คุณต้อง"
-"คิด\n"
-"                        นอกกรอบได้โดยธรรมชาติ เราคาดหวังให้ผู้สมัครมีความกระตือรือร้นแล"
-"ะ \"จิตวิญญาณแห่งความสำเร็จ\"\n"
-"                        เพื่อประสบความสำเร็จ คุณจะต้องมีทักษะการแก้ปัญหาที่ชัดเจน"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -396,6 +382,7 @@ msgstr "อิงตามใบบันทึกเวลา"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__allow_billable
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Billable"
 msgstr "สามารถเรียกเก็บเงินได้"
 
@@ -405,42 +392,10 @@ msgid "Billable Time"
 msgstr "เวลาที่เรียกเก็บเงินได้"
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_type
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__billable_type
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__billable_type
 msgid "Billable Type"
 msgstr "ประเภทการเรียกเก็บเงิน"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_manual
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_manual
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed Manually"
-msgstr "เรียกเก็บเงินด้วยตนเอง"
-
-#. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed at a Fixed Price"
-msgstr "เรียกเก็บเงินในราคาคงที่"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_fixed
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_fixed
-msgid "Billed at a Fixed price"
-msgstr "เรียกเก็บเงินในราคาคงที่"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_milestones
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_milestones
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Milestones"
-msgstr "เรียกเก็บเงินตามเหตุการณ์สำคัญ"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__billable_time
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__billable_time
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
-msgid "Billed on Timesheets"
-msgstr "เรียกเก็บเงินตามใบบันทึกเวลา"
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
@@ -602,6 +557,7 @@ msgstr "การติดตั้งลิฟต์"
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_hr_employee
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__employee_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Employee"
 msgstr "พนักงาน"
 
@@ -726,8 +682,7 @@ msgstr "การออกแบบตกแต่งภายใน"
 #. odoo-python
 #: code:addons/sale_timesheet/controllers/portal.py:0
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.report_timesheet_account_move
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
@@ -746,8 +701,7 @@ msgid "Invoice based on timesheets (delivered quantity)."
 msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields,help:sale_timesheet.field_account_analytic_line__timesheet_invoice_id
-#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__timesheet_invoice_id
+#: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__reinvoice_move_id
 msgid "Invoice created from the timesheet"
 msgstr "ใบแจ้งหนี้ที่สร้างจากใบบันทึกเวลา"
 
@@ -776,6 +730,11 @@ msgstr "มีการแก้ไขรายการสั่งซื้อ
 #: model:ir.model,name:sale_timesheet.model_account_move
 msgid "Journal Entry"
 msgstr "รายการสมุดรายวัน"
+
+#. module: sale_timesheet
+#: model:ir.model,name:sale_timesheet.model_account_move_reversal
+msgid "Journal Entry Reversal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_move_line
@@ -825,8 +784,8 @@ msgid ""
 "Create a task and track hours: Create a task on the sales order validation "
 "and track the work hours."
 msgstr ""
-"กำหนดปริมาณตามคำสั่งซื้อด้วยตนเอง: ใบแจ้งหนี้ตามปริมาณที่ป้อนด้วยตนเอง โดยไม่ต้องสร้างบัญชีวิเครา"
-"ะห์\n"
+"กำหนดปริมาณตามคำสั่งซื้อด้วยตนเอง: ใบแจ้งหนี้ตามปริมาณที่ป้อนด้วยตนเอง "
+"โดยไม่ต้องสร้างบัญชีวิเคราะห์\n"
 "ใบบันทึกเวลาในสัญญา: ใบแจ้งหนี้ตามชั่วโมงที่ติดตามบนใบบันทึกเวลาที่เกี่ยวข้อง\n"
 "สร้างงานและติดตามชั่วโมง: สร้างงานในการตรวจสอบคำสั่งขายและติดตามชั่วโมงทำงาน"
 
@@ -843,12 +802,6 @@ msgid "Master demos of our software"
 msgstr "การสาธิตหลักซอฟต์แวร์ของเรา"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Materials"
-msgstr "วัสดุ"
-
-#. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__qty_delivered_method
 msgid "Method to update delivered qty"
 msgstr "วิธีการอัปเดตจำนวนที่จัดส่ง"
@@ -859,11 +812,31 @@ msgid "Milestone services"
 msgstr "บริการหลักที่สำคัญ"
 
 #. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.hr_timesheet_line_search
+msgid "Mine"
+msgstr ""
+
+#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
 msgid "Must Have"
 msgstr "ต้องมี"
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Department"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Projects"
+msgstr ""
+
+#. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
+msgid "My Team"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -916,8 +889,6 @@ msgstr ""
 "ไม่ต้องเสียเวลาในกระบวนการต่าง ๆ ขององค์กร ที่มีความรับผิดชอบที่ชัดเจน และความเป็นอิสระ"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__non_billable
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__non_billable
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 msgid "Non-Billable"
 msgstr "ไม่สามารถเรียกเก็บเงินได้"
@@ -945,6 +916,13 @@ msgid "Not Billed"
 msgstr "ไม่ถูกเรียกเก็บเงิน"
 
 #. module: sale_timesheet
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
+msgid ""
+"Notify the salesperson about an upsell opportunity when completed work "
+"exceeds"
+msgstr ""
+
+#. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__timesheet_revenues
 msgid "Number of hours spent multiplied by the unit price per hour/day."
 msgstr "จำนวนชั่วโมงที่ใช้คูณด้วยราคาต่อหน่วยต่อชั่วโมง/วัน"
@@ -969,26 +947,20 @@ msgid ""
 "yet invoiced (and validated, if applicable) will be invoiced without "
 "distinction."
 msgstr ""
-"เฉพาะใบบันทึกเวลาที่ยังไม่ได้ออกใบแจ้งหนี้ (และผ่านการตรวจสอบ หากมี) จากช่วงเวลานี้เท่านั้นที่จะถู"
-"กออกใบแจ้งหนี้ หากไม่มีการระบุช่วงเวลา ใบบันทึกเวลาทั้งหมดที่ยังไม่ได้ออกใบแจ้งหนี้ (และผ่านการตร"
-"วจสอบ หากมี) จะถูกออกใบแจ้งหนี้โดยไม่มีส่วนต่าง"
+"เฉพาะใบบันทึกเวลาที่ยังไม่ได้ออกใบแจ้งหนี้ (และผ่านการตรวจสอบ หากมี) "
+"จากช่วงเวลานี้เท่านั้นที่จะถูกออกใบแจ้งหนี้ หากไม่มีการระบุช่วงเวลา "
+"ใบบันทึกเวลาทั้งหมดที่ยังไม่ได้ออกใบแจ้งหนี้ (และผ่านการตรวจสอบ หากมี) "
+"จะถูกออกใบแจ้งหนี้โดยไม่มีส่วนต่าง"
 
 #. module: sale_timesheet
-#: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__order_id
-msgid "Order Reference"
-msgstr "อ้างอิงคำสั่ง"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__12_other_costs
+msgid "Other Costs"
+msgstr ""
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_costs
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_costs
-msgid "Other costs"
-msgstr "ค่าใช้จ่ายอื่นๆ"
-
-#. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__other_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__other_revenues
-msgid "Other revenues"
-msgstr "รายได้อื่นๆ"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__11_other_revenues
+msgid "Other Revenues"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -1010,9 +982,7 @@ msgstr "ความหลงใหลในผลิตภัณฑ์ซอฟ
 msgid ""
 "Percentage of time delivered compared to the prepaid amount that must be "
 "reached for the upselling opportunity activity to be triggered."
-msgstr ""
-"เปอร์เซ็นต์ของเวลาที่จัดส่งเมื่อเปรียบเทียบกับจำนวนเงินที่ชำระล่วงหน้าซึ่งจะต้องมีพอสำหรับกิจกรรมโอก"
-"าสการขายต่อยอดที่จะถูกเรียกใช้"
+msgstr "เปอร์เซ็นต์ของเวลาที่จัดส่งเมื่อเปรียบเทียบกับจำนวนเงินที่ชำระล่วงหน้าซึ่งจะต้องมีพอสำหรับกิจกรรมโอกาสการขายต่อยอดที่จะถูกเรียกใช้"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -1056,24 +1026,25 @@ msgstr "ตัวแปรสินค้า"
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__project_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__project_id
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Project"
 msgstr "โปรเจกต์"
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_sale_line_employee_map
 msgid "Project Sales line, employee mapping"
-msgstr "รายการการขายโปรเจกต์ แผนผังพนักงาน"
+msgstr "รายการการขายโปรเจ็กต์ แผนผังพนักงาน"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__project_template_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__project_template_id
 msgid "Project Template"
-msgstr "เทมเพลตโปรเจกต์"
+msgstr "เทมเพลตโปรเจ็กต์"
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__project_project__pricing_type__fixed_rate
 msgid "Project rate"
-msgstr "อัตราของโปรเจกต์"
+msgstr "อัตราของโปรเจ็กต์"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -1109,12 +1080,33 @@ msgid "Responsibilities"
 msgstr "ความรับผิดชอบ"
 
 #. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__01_revenues_fixed
+msgid "Revenues (Fixed Price)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__07_revenues_manual
+msgid "Revenues (Manual)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__05_revenues_milestones
+msgid "Revenues (Milestones)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__03_timesheet_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__03_timesheet_revenues
+msgid "Revenues (Time & Material)"
+msgstr ""
+
+#. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.timesheet_action_billing_report
 msgid ""
 "Review your timesheets by billing type and make sure your time is billable."
 msgstr ""
-"ตรวจสอบใบบันทึกเวลาของคุณตามประเภทการเรียกเก็บเงิน และตรวจสอบให้แน่ใจว่าเวลาของคุณสามาร"
-"ถเรียกเก็บเงินได้"
+"ตรวจสอบใบบันทึกเวลาของคุณตามประเภทการเรียกเก็บเงิน "
+"และตรวจสอบให้แน่ใจว่าเวลาของคุณสามารถเรียกเก็บเงินได้"
 
 #. module: sale_timesheet
 #: model:product.template,name:sale_timesheet.product_product_roofing_product_template
@@ -1181,14 +1173,15 @@ msgid ""
 "timesheets on this project specifically. It will bypass the timesheet cost "
 "set on the employee."
 msgstr ""
-"รายการในใบสั่งขายที่จะถูกเลือกตามค่าเริ่มต้นในใบบันทึกเวลาของพนักงานที่เกี่ยวข้อง โดยจะข้ามรายกา"
-"รใบสั่งขายที่กำหนดไว้ในโปรเจกต์และงาน สามารถแก้ไขได้ในแต่ละรายการในใบบันทึกเวลา หากมีความ"
-"จำเป็น ซึ่งหมายความว่า จะกำหนดอัตราที่เรียกเก็บเงินเวลาของพนักงานตามความเชี่ยวชาญ ทักษะ หรือ"
-"ประสบการณ์ เป็นต้น\n"
-"หากคุณต้องการเรียกเก็บเงินบริการเดียวกันในอัตราที่แตกต่างกัน คุณต้องสร้างรายการในใบสั่งขายแยกกัน"
-"สองรายการ เนื่องจากแต่ละรายการในใบสั่งขายสามารถมีราคาต่อหน่วยได้ครั้งละหนึ่งรายการเท่านั้น\n"
-"คุณยังสามารถกำหนดต้นทุนรายชั่วโมงของบริษัทของพนักงานของคุณสำหรับระบบบันทึกเวลาในโปรเจกต์นี้ได้"
-"โดยเฉพาะ และมันจะข้ามต้นทุนการบันทึกเวลาที่กำหนดให้กับพนักงาน"
+"รายการในใบสั่งขายที่จะถูกเลือกตามค่าเริ่มต้นในใบบันทึกเวลาของพนักงานที่เกี่ยวข้อง "
+"โดยจะข้ามรายการใบสั่งขายที่กำหนดไว้ในโปรเจ็กต์และงาน "
+"สามารถแก้ไขได้ในแต่ละรายการในใบบันทึกเวลา หากมีความจำเป็น ซึ่งหมายความว่า "
+"จะกำหนดอัตราที่เรียกเก็บเงินเวลาของพนักงานตามความเชี่ยวชาญ ทักษะ หรือประสบการณ์ เป็นต้น\n"
+"หากคุณต้องการเรียกเก็บเงินบริการเดียวกันในอัตราที่แตกต่างกัน "
+"คุณต้องสร้างรายการในใบสั่งขายแยกกันสองรายการ "
+"เนื่องจากแต่ละรายการในใบสั่งขายสามารถมีราคาต่อหน่วยได้ครั้งละหนึ่งรายการเท่านั้น\n"
+"คุณยังสามารถกำหนดต้นทุนรายชั่วโมงของบริษัทของพนักงานของคุณสำหรับระบบบันทึกเวลาในโปรเจ็กต์นี้ได้โดยเฉพาะ "
+"และมันจะข้ามต้นทุนการบันทึกเวลาที่กำหนดให้กับพนักงาน"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_account_analytic_line__so_line
@@ -1197,8 +1190,8 @@ msgid ""
 "invoiced to your customer. Remove the sales order item for the timesheet "
 "entry to be non-billable."
 msgstr ""
-"รายการในใบสั่งขายที่จะใช้เวลาเพิ่มเพื่อออกใบแจ้งหนี้ให้กับลูกค้าของคุณ ลบรายการใบสั่งขายสำหรับราย"
-"การใบบันทึกเวลาที่ไม่สามารถเรียกเก็บเงินได้"
+"รายการในใบสั่งขายที่จะใช้เวลาเพิ่มเพื่อออกใบแจ้งหนี้ให้กับลูกค้าของคุณ "
+"ลบรายการใบสั่งขายสำหรับรายการใบบันทึกเวลาที่ไม่สามารถเรียกเก็บเงินได้"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_project_task__sale_order_id
@@ -1228,8 +1221,7 @@ msgid "Senior Architect (Invoice on Timesheets)"
 msgstr "สถาปนิกอาวุโส (ใบแจ้งหนี้ในบนใบบันทึกเวลา)"
 
 #. module: sale_timesheet
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__service_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__service_revenues
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__10_service_revenues
 msgid "Service Revenues"
 msgstr "รายได้บริการ"
 
@@ -1246,8 +1238,8 @@ msgid ""
 "task. It can be modified on each task individually by selecting a specific "
 "sales order item."
 msgstr ""
-"บริการที่จะใช้เป็นค่าเริ่มต้นเมื่อออกใบแจ้งหนี้เวลาที่ใช้ในงาน สามารถปรับเปลี่ยนได้ในแต่ละงานโดยการ"
-"เลือกรายการในใบสั่งขายเฉพาะ"
+"บริการที่จะใช้เป็นค่าเริ่มต้นเมื่อออกใบแจ้งหนี้เวลาที่ใช้ในงาน "
+"สามารถปรับเปลี่ยนได้ในแต่ละงานโดยการเลือกรายการในใบสั่งขายเฉพาะ"
 
 #. module: sale_timesheet
 #: model:ir.actions.act_window,name:sale_timesheet.product_template_action_default_services
@@ -1291,6 +1283,7 @@ msgstr "ทักษะการวิเคราะห์ที่แข็ง
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_task
+#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_analytic_lines_service_search
 msgid "Task"
 msgstr "งาน"
 
@@ -1331,25 +1324,19 @@ msgid ""
 "senior consultants would deliver the same service (= consultancy), but at a "
 "different rate because of their level of seniority."
 msgstr ""
-"อัตรางานนั้นสมบูรณ์แบบถ้าคุณต้องการเรียกเก็บเงินบริการต่าง ๆ ให้กับลูกค้าที่แตกต่างกันในอัตราที่ต่างกั"
-"น อัตราคงที่จะสมบูรณ์แบบถ้าคุณเรียกเก็บเงินค่าบริการในอัตราคงที่ต่อชั่วโมงหรือต่อวันโดยไม่คำนึงถึงพนัก"
-"งานที่ดำเนินการ อัตราพนักงานจะสำคัญถ้าพนักงานของคุณให้บริการเดียวกันในอัตราที่แตกต่างกัน ตัวอย่าง"
-"เช่น ที่ปรึกษาระดับเริ่มต้นและอาวุโสจะให้บริการเดียวกัน (= การให้คำปรึกษา) แต่ในอัตราที่แตกต่างกัน"
-"เนื่องจากระดับความอาวุโส"
+"อัตรางานนั้นสมบูรณ์แบบถ้าคุณต้องการเรียกเก็บเงินบริการต่าง ๆ "
+"ให้กับลูกค้าที่แตกต่างกันในอัตราที่ต่างกัน "
+"อัตราคงที่จะสมบูรณ์แบบถ้าคุณเรียกเก็บเงินค่าบริการในอัตราคงที่ต่อชั่วโมงหรือต่อวันโดยไม่คำนึงถึงพนักงานที่ดำเนินการ "
+"อัตราพนักงานจะสำคัญถ้าพนักงานของคุณให้บริการเดียวกันในอัตราที่แตกต่างกัน ตัวอย่างเช่น "
+"ที่ปรึกษาระดับเริ่มต้นและอาวุโสจะให้บริการเดียวกัน (= การให้คำปรึกษา) "
+"แต่ในอัตราที่แตกต่างกันเนื่องจากระดับความอาวุโส"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_project_sale_line_employee_map__cost
 msgid ""
 "This cost overrides the employee's default employee hourly wage in "
 "employee's HR Settings"
-msgstr ""
-"ต้นทุนนี้จะแทนที่ค่าจ้างรายชั่วโมงของพนักงานเริ่มต้นในการตั้งค่าทรัพยากรบุคคลของพนักงาน"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "This project is current linked to timesheet."
-msgstr ""
+msgstr "ต้นทุนนี้จะแทนที่ค่าจ้างรายชั่วโมงของพนักงานเริ่มต้นในการตั้งค่าทรัพยากรบุคคลของพนักงาน"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__service_upsell_threshold
@@ -1388,6 +1375,12 @@ msgid "Timesheet"
 msgstr "ใบบันทึกเวลา"
 
 #. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__02_billable_fixed
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__02_billable_fixed
+msgid "Timesheet (Fixed price)"
+msgstr ""
+
+#. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
 msgid "Timesheet Activities"
 msgstr "กิจกรรมใบบันทึกเวลา"
@@ -1413,8 +1406,6 @@ msgstr "รายงานใบบันทึกเวลา"
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_timesheets_analysis_report__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__timesheet_invoice_type__timesheet_revenues
-#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__timesheet_invoice_type__timesheet_revenues
 msgid "Timesheet Revenues"
 msgstr "ใบบันทึกเวลารายได้"
 
@@ -1439,34 +1430,10 @@ msgid "Timesheets"
 msgstr "ใบบันทึกเวลา"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed Manually)"
-msgstr "การบันทึกเวลา (เรียกเก็บเงินด้วยตนเอง)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Milestones)"
-msgstr "การบันทึกเวลา (เรียกเก็บเงินตามงานที่เสร็จ)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Billed on Timesheets)"
-msgstr "การบันทึกเวลา (เรียกเก็บเงินจากใบบันทึกเวลา)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets (Fixed Price)"
-msgstr "การบันทึกเวลา (ราคาคงที่)"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__09_non_billable
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__09_non_billable
 msgid "Timesheets (Non-Billable)"
-msgstr "แผ่นเวลา (ไม่สามารถเรียกเก็บเงินได้)"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheets_analysis_report_pivot_invoice_type
@@ -1505,12 +1472,6 @@ msgid "Timesheets on project (one fare per SO/Project)"
 msgstr "ใบบันทึกเวลาในโปรเจ็กต์(หนึ่งค่าต่อ SO/โปรเจ็กต์)"
 
 #. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/project_project.py:0
-msgid "Timesheets revenues"
-msgstr "รายได้การบันทึกเวลา"
-
-#. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_timesheets_analysis_report__margin
 msgid "Timesheets revenues minus the costs"
 msgstr "รายได้จากระบบบันทึกเวลาด้วยลบต้นทุน"
@@ -1526,9 +1487,22 @@ msgid "Timesheets taken when invoicing time spent"
 msgstr "ใบบันทึกเวลาที่ใช้ไปเพื่อออกใบแจ้งหนี้"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
-msgid "Timesheets without a sales order item are reported as"
-msgstr "รายงานใบเวลาที่ไม่มีรายการใบสั่งขายเป็น"
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__08_billable_manual
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__08_billable_manual
+msgid "Timesheets (Manual) "
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__06_billable_milestones
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__06_billable_milestones
+msgid "Timesheets (Milestones)"
+msgstr ""
+
+#. module: sale_timesheet
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__account_analytic_line__billable_type__04_billable_time
+#: model:ir.model.fields.selection,name:sale_timesheet.selection__timesheets_analysis_report__billable_type__04_billable_time
+msgid "Timesheets (Time & Materials)"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheets_analysis_report_list_inherited
@@ -1556,8 +1530,7 @@ msgstr "ติดตามบริการ"
 msgid ""
 "Track your working hours by projects every day and invoice this time to your "
 "customers."
-msgstr ""
-"ติดตามชั่วโมงทำงานของคุณตามโปรเจ็กต์ทุกวัน และออกใบแจ้งหนี้ตามเวลานี้ให้กับลูกค้าของคุณ"
+msgstr "ติดตามชั่วโมงทำงานของคุณตามโปรเจ็กต์ทุกวัน และออกใบแจ้งหนี้ตามเวลานี้ให้กับลูกค้าของคุณ"
 
 #. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
@@ -1606,11 +1579,6 @@ msgid "View Timesheets"
 msgstr "ดูใบบันทึกเวลา"
 
 #. module: sale_timesheet
-#: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "Warn the salesperson for an upsell when work done exceeds"
-msgstr "เตือนพนักงานขายให้ทำยอดขายเพิ่มขึ้นเมื่อมีงานเสร็จเกิน"
-
-#. module: sale_timesheet
 #: model_terms:hr.job,website_description:sale_timesheet.job_engineer
 #: model_terms:hr.job,website_description:sale_timesheet.job_interior_designer
 #: model_terms:hr.job,website_description:sale_timesheet.job_labour
@@ -1630,9 +1598,7 @@ msgstr "งานนี้มีอะไรดี?"
 msgid ""
 "You cannot link a billable project to a sales order item that comes from an "
 "expense or a vendor bill."
-msgstr ""
-"คุณไม่สามารถเชื่อมโยงโปรเจ็กต์ที่เรียกเก็บเงินได้กับรายการคำสั่งขายที่มาจากค่าใช้จ่ายหรือใบเรียกเก็บ"
-"เงินของผู้จัดจำหน่าย"
+msgstr "คุณไม่สามารถเชื่อมโยงโปรเจ็กต์ที่เรียกเก็บเงินได้กับรายการคำสั่งขายที่มาจากค่าใช้จ่ายหรือใบเรียกเก็บเงินของผู้จัดจำหน่าย"
 
 #. module: sale_timesheet
 #. odoo-python
@@ -1640,20 +1606,19 @@ msgstr ""
 msgid ""
 "You cannot link a billable project to a sales order item that is not a "
 "service."
+msgstr "คุณไม่สามารถเชื่อมโยงโปรเจ็กต์ที่เรียกเก็บเงินกับรายการคำสั่งขายที่ไม่ใช่บริการได้"
+
+#. module: sale_timesheet
+#. odoo-python
+#: code:addons/sale_timesheet/models/hr_timesheet.py:0
+msgid "You cannot modify timsheets that are already invoiced."
 msgstr ""
-"คุณไม่สามารถเชื่อมโยงโปรเจ็กต์ที่เรียกเก็บเงินกับรายการคำสั่งขายที่ไม่ใช่บริการได้"
 
 #. module: sale_timesheet
 #. odoo-python
 #: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot modify timesheets that are already invoiced."
-msgstr "คุณไม่สามารถแก้ไขใบบันทึกเวลาที่ออกใบแจ้งหนี้แล้ว"
-
-#. module: sale_timesheet
-#. odoo-python
-#: code:addons/sale_timesheet/models/hr_timesheet.py:0
-msgid "You cannot remove a timesheet that has already been invoiced."
-msgstr "คุณไม่สามารถลบใบบันทึกเวลาที่ออกใบแจ้งหนี้ไปแล้วได้"
+msgid "You cannot remove timsheets that are already invoiced."
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__project_project__billing_type__manually
@@ -1673,8 +1638,8 @@ msgstr "ไม่สามารถเรียกเก็บเงินได
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
-msgid "of hours sold."
-msgstr "ของจำนวนชั่วโมงที่ขายได้"
+msgid "of the hours sold."
+msgstr ""
 
 #. module: sale_timesheet
 #. odoo-python
@@ -1688,372 +1653,17 @@ msgstr ""
 msgid "remaining"
 msgstr "คงเหลือ"
 
-#~ msgid " Candidate Orders"
-#~ msgstr "คำสั่งผู้สมัคร"
+#~ msgid "Billed Manually"
+#~ msgstr "เรียกเก็บเงินด้วยตนเอง"
 
-#~ msgid ""
-#~ "% of timesheets that are billable compared to the total number of "
-#~ "timesheets linked to the AA of the project, rounded to the unit."
-#~ msgstr ""
-#~ "% ของใบบันทึกเวลาที่เรียกเก็บเงินได้เมื่อเปรียบเทียบกับจำนวนใบบันทึกเวลาทั้งหมดที่เชื่อมโยงกับ "
-#~ "AA ของโปรเจกต์ โดยปัดเศษเป็นหน่วย"
+#~ msgid "Billed at a Fixed price"
+#~ msgstr "เรียกเก็บเงินในราคาคงที่"
 
-#~ msgid "%(amount)s %(label)s will be added to the new Sales Order."
-#~ msgstr "%(amount)s %(label)s จะถูกเพิ่มในคำสั่งขายใหม่"
+#~ msgid "Billed on Milestones"
+#~ msgstr "เรียกเก็บเงินตามเหตุการณ์สำคัญ"
 
-#~ msgid ", for a revenue of"
-#~ msgstr ", สำหรับรายได้ของ"
+#~ msgid "Billed on Timesheets"
+#~ msgstr "เรียกเก็บเงินตามใบบันทึกเวลา"
 
-#~ msgid ", leading to a"
-#~ msgstr ", นำไปสู่"
-
-#~ msgid "<strong>To invoice:</strong>"
-#~ msgstr "<strong>ออกใบแจ้งหนี้:</strong>"
-
-#~ msgid "<u>Profitability</u>"
-#~ msgstr "<u>การได้กำไร</u>"
-
-#~ msgid "About us"
-#~ msgstr "เกี่ยวกับเรา"
-
-#~ msgid "Allocated Hours"
-#~ msgstr "จัดสรรชั่วโมง"
-
-#~ msgid "Amount to invoice"
-#~ msgstr "จำนวนที่จะออกใบ้แจ้งหนี้"
-
-#~ msgid ""
-#~ "As a leading professional services firm,\n"
-#~ "                                we know that success is all about the\n"
-#~ "                                commitment we put on strong services."
-#~ msgstr ""
-#~ "ในฐานะบริษัทผู้ให้บริการมืออาชีพชั้นนำ\n"
-#~ "                                เรารู้ว่าความสำเร็จนั้นขึ้นอยู่กับ\n"
-#~ "                                ความมุ่งมั่นที่เราทุ่มเทให้กับการบริการที่แข็งแกร่ง"
-
-#~ msgid "At least one line should be filled."
-#~ msgstr "ควรกรอกข้อมูลอย่างน้อยหนึ่งบรรทัด"
-
-#~ msgid "Billable Percentage"
-#~ msgstr "เปอร์เซ็นต์ที่เรียกเก็บเงินได้"
-
-#~ msgid "Choose the Sales Order to invoice"
-#~ msgstr "เลือกคำสั่งขายที่จะออกใบแจ้งหนี้"
-
-#~ msgid "Commercial Entity"
-#~ msgstr "หน่วยงานในเชิงพาณิชย์"
-
-#~ msgid "Company"
-#~ msgstr "บริษัทเดียว"
-
-#~ msgid "Cost Currency"
-#~ msgstr "ต้นทุนสกุลเงิน"
-
-#~ msgid "Create Invoice"
-#~ msgstr "สร้างใบแจ้งหนี้"
-
-#~ msgid "Create Invoice from project"
-#~ msgstr "สร้างใบแจ้งหนี้ของโปรเจกต์"
-
-#~ msgid "Create SO Line from project"
-#~ msgstr "สร้างไลน์ SO จากโปรเจกต์"
-
-#~ msgid "Create SO from project"
-#~ msgstr "สร้าง SO จากโปรเจกต์"
-
-#~ msgid "Create Sales Order"
-#~ msgstr "สร้างคำสั่งขาย"
-
-#~ msgid "Create Sales Order from Project"
-#~ msgstr "สร้างคำสั่งขายจากโปรเจกต์"
-
-#~ msgid "Create a Sales Order"
-#~ msgstr "สร้างคำสั่งขาย"
-
-#~ msgid "Customer of the sales order"
-#~ msgstr "ลูกค้าของคำสั่งขาย"
-
-#~ msgid "Display Create Order"
-#~ msgstr "แสดงการสร้างคำสั่ง"
-
-#~ msgid "Employee that has timesheets on the project."
-#~ msgstr "พนักงานที่มีใบบันทึกเวลาในโปรเจกต์"
-
-#~ msgid ""
-#~ "Great quotation templates will significantly\n"
-#~ "                                <strong>boost your success rate</strong>. "
-#~ "The\n"
-#~ "                                first section is usually about your "
-#~ "company,\n"
-#~ "                                your references, your methodology or\n"
-#~ "                                guarantees, your team, SLA, terms and "
-#~ "conditions, etc."
-#~ msgstr ""
-#~ "เทมเพลตใบเสนอราคาที่ยอดเยี่ยมจะสามารถ\n"
-#~ "                                <strong>เพิ่มอัตราความสำเร็จ</strong>อย่างมาก\n"
-#~ "                                ส่วนแรกมักเกี่ยวกับบริษัทของคุณ\n"
-#~ "                                ข้อมูลอ้างอิง วิธีการของคุณ หรือ\n"
-#~ "                                การรับประกัน ทีมของคุณ SLA "
-#~ "ข้อกำหนดและเงื่อนไขต่างๆ"
-
-#~ msgid "Has Displayed Warning Upsell"
-#~ msgstr "ได้แสดงคำเตือนการเพิ่มยอดขาย"
-
-#~ msgid ""
-#~ "If you edit a quotation from the 'Preview' of a quotation, you will\n"
-#~ "                        update that quotation only. If you edit the "
-#~ "quotation\n"
-#~ "                        template (from the Configuration menu), all "
-#~ "future quotations will\n"
-#~ "                        use this modified template."
-#~ msgstr ""
-#~ "หากคุณแก้ไขใบเสนอราคาจาก 'ตัวอย่าง' ของใบเสนอราคา คุณจะ\n"
-#~ "                        ปรับปรุงใบเสนอราคานั้นเท่านั้น หากคุณแก้ไขใบเสนอราคา\n"
-#~ "                       เทมเพลต (จากเมนูการกำหนดค่า) "
-#~ "ใบเสนอราคาทั้งหมดในอนาคตจะ\n"
-#~ "                        ใช้เทมเพลตที่แก้ไขแล้วนี้"
-
-#~ msgid "Info Invoice"
-#~ msgstr "ข้อมูลใบเสนอราคา"
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity) on projects or tasks "
-#~ "you'll create later on."
-#~ msgstr ""
-#~ "ใบแจ้งหนี้ตามใบบันทึกเวลา (จำนวนที่จัดส่ง) ของโปรเจกต์หรืองานที่คุณจะสร้างขึ้นในภายหลัง"
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create a project "
-#~ "for the order with a task for each sales order line to track the time "
-#~ "spent."
-#~ msgstr ""
-#~ "ใบแจ้งหนี้ตามใบบันทึกเวลา (จำนวนที่จัดส่ง) "
-#~ "และสร้างโปรเจกต์สำหรับคำสั่งที่มีงานสำหรับไลน์คำสั่งขายแต่ละรายการเพื่อติดตามเวลาที่ใช้"
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create a task in an "
-#~ "existing project to track the time spent."
-#~ msgstr ""
-#~ "ออกใบแจ้งหนี้ตามใบบันทึกเวลา (จำนวนที่จัดส่ง) "
-#~ "และสร้างงานในโปรเจกต์ที่มีอยู่เพื่อติดตามเวลาที่ใช้ไป"
-
-#~ msgid ""
-#~ "Invoice based on timesheets (delivered quantity), and create an empty "
-#~ "project for the order to track the time spent."
-#~ msgstr ""
-#~ "ใบแจ้งหนี้ตามใบบันทึกเวลา (จำนวนที่จัดส่ง) "
-#~ "และสร้างโปรเจกต์ที่ว่างสำหรับคำสั่งเพื่อติดตามเวลาที่ใช้ไป"
-
-#~ msgid "Invoice your time and material to customers"
-#~ msgstr "ออกใบแจ้งหนี้เวลาและวัสดุของคุณให้กับลูกค้า"
-
-#~ msgid "Invoiced"
-#~ msgstr "แจ้งหนี้แล้ว"
-
-#~ msgid "Invoicing Timesheet Enabled"
-#~ msgstr "เปิดใช้งานการออกใบแจ้งหนี้ใบบันทึกเวลา"
-
-#~ msgid "Is Cost Manually Changed"
-#~ msgstr "เป็นการเปลี่ยนแปลงต้นทุนด้วยตนเอง"
-
-#~ msgid "Lines"
-#~ msgstr "ไลน์"
-
-#~ msgid "Non Billable Tasks"
-#~ msgstr "งานที่ไม่สามารถเรียกเก็บเงินได้"
-
-#~ msgid "Number of timesheets"
-#~ msgstr "จำนวนใบบันทึกเวลา"
-
-#~ msgid "Operation not supported"
-#~ msgstr "ไม่รองรับการทำงาน"
-
-#~ msgid "Ordered,"
-#~ msgstr "สั่งแล้ว,"
-
-#~ msgid "Our Offer"
-#~ msgstr "ข้อเสนอของเรา"
-
-#~ msgid "Our Quality"
-#~ msgstr "คุณภาพของเรา"
-
-#~ msgid "Our Service"
-#~ msgstr "บริการของเรา"
-
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgid ""
-#~ "Product of the sales order item. Must be a service invoiced based on "
-#~ "timesheets on tasks."
-#~ msgstr "สินค้าของรายการคำสั่งขาย ต้องเป็นบริการที่ออกใบแจ้งหนี้ตามใบบันทึกเวลางาน"
-
-#~ msgid ""
-#~ "Product quality is the foundation we\n"
-#~ "                                stand on; we build it with a relentless\n"
-#~ "                                focus on fabric, performance and "
-#~ "craftsmanship."
-#~ msgstr ""
-#~ "คุณภาพของสินค้าคือรากฐานที่เรา\n"
-#~ "                               ยืนหยัด เราสร้างมันขึ้นมาอย่างไม่หยุดยั้ง\n"
-#~ "                                เน้นเนื้อผ้า ประสิทธิภาพ และฝีมือช่าง"
-
-#~ msgid "Project Update"
-#~ msgstr "การอัปเดตโปรเจกต์"
-
-#~ msgid "Project for which we are creating a sales order"
-#~ msgstr "โครงการที่เรากำลังสร้างคำสั่งขาย"
-
-#~ msgid "Project to make billable"
-#~ msgstr "โปรเจกต์ที่จะทำให้เรียกเก็บเงินได้"
-
-#~ msgid "Remaining"
-#~ msgstr "เหลืออยู่"
-
-#~ msgid "Remaining Days on SO"
-#~ msgstr "วันที่คงเหลือบน SO"
-
-#~ msgid "Remaining Hours on SO"
-#~ msgstr "ชั่วโมงคงเหลือบน SO"
-
-#~ msgid "Remaining)"
-#~ msgstr "คงเหลือ)"
-
-#~ msgid "Sale Order Analytic Account"
-#~ msgstr "บัญชีวิเคราะห์คำสั่งขาย"
-
-#~ msgid "Sale line/Employee map"
-#~ msgstr "ไลน์การขาย/แผนผังพนักงาน"
-
-#~ msgid "Search in Sales Order"
-#~ msgstr "ค้นหาในคำสั่งขาย"
-
-#~ msgid "Select a non billable project on which tasks can be created."
-#~ msgstr "เลือกโปรเจกต์ที่เรียกเก็บเงินไม่ได้ซึ่งสามารถสร้างงานได้"
-
-#~ msgid "Service"
-#~ msgstr "บริการ"
-
-#~ msgid "Service Upsell Threshold Ratio"
-#~ msgstr "อัตราส่วนเริ่มต้นการขายต่อยอดบริการ"
-
-#~ msgid "Sold"
-#~ msgstr "ขายแล้ว"
-
-#~ msgid "Task Recurrence"
-#~ msgstr "การเกิดซ้ำของงาน"
-
-#~ msgid "Tasks"
-#~ msgstr "งาน"
-
-#~ msgid ""
-#~ "The %s product is required by the Timesheets app and cannot be archived "
-#~ "nor deleted."
-#~ msgstr "%s สินค้าที่จำเป็นสำหรับแอประบบบันทึกเวลาและไม่สามารถเก็บถาวรหรือลบได้"
-
-#~ msgid ""
-#~ "The Sales Order cannot be created because you did not enter some "
-#~ "employees that entered timesheets on this project. Please list all the "
-#~ "relevant employees before creating the Sales Order.\n"
-#~ "Missing employee(s): %s"
-#~ msgstr ""
-#~ "ไม่สามารถสร้างคำสั่งขายได้เนื่องจากคุณไม่ได้ป้อนพนักงานบางคนที่ระบุในใบบันทึกเวลาของโปรเจกต์นี้ "
-#~ "โปรดระบุพนักงานที่เกี่ยวข้องทั้งหมดก่อนที่จะสร้างคำสั่งขาย\n"
-#~ "พนักงานขาดหายไป: %s"
-
-#~ msgid "The cost of the project is now at"
-#~ msgstr "ต้นทุนของโปรเจกต์อยู่ที่"
-
-#~ msgid "The project has already a sale order."
-#~ msgstr "โปรเจกต์มีคำสั่งขายแล้ว"
-
-#~ msgid "The project is already linked to a sales order item."
-#~ msgstr "โปรเจกต์ที่เชื่อมโยงกับรายการคำสั่งขาย"
-
-#~ msgid ""
-#~ "The sales order cannot be created because some timesheets of this project "
-#~ "are already linked to another sales order."
-#~ msgstr "ไม่สามารถสร้างคำสั่งขายได้เนื่องจากใบบันทึกเวลาบางรายการของโปรเจกต์นี้เชื่อมโยงกับคำสั่งขายอื่นแล้ว"
-
-#~ msgid "The selected Sales Order should contain something to invoice."
-#~ msgstr "คำสั่งขายที่เลือกควรมีบางอย่างสำหรับออกใบแจ้งหนี้"
-
-#~ msgid ""
-#~ "This is a <strong>sample quotation template</strong>. You should\n"
-#~ "                                customize it to fit your own needs from "
-#~ "the <i>Sales</i>\n"
-#~ "                                application, using the menu: "
-#~ "Configuration /\n"
-#~ "                                Quotation Templates."
-#~ msgstr ""
-#~ "นี้คือ <strong>ตัวอย่างเทมเพลตใบเสนอราคา</strong>คุณควร\n"
-#~ "                                ปรับแต่งมันให้ตรงกับความต้องการของคุณจากแอป "
-#~ "<i>การขาย</i>\n"
-#~ "                                โดยใช้เมนู: กำหนดค่า /\n"
-#~ "                                เทมเพลตใบเสนอราคา"
-
-#~ msgid "Timesheet Encoding Unit"
-#~ msgstr "หน่วยเข้ารหัสใบบันทึกเวลา"
-
-#~ msgid "Timesheet activities"
-#~ msgstr "ใบบันทึกเวลากิจกรรม"
-
-#~ msgid ""
-#~ "Total amount to invoice on the sales order, including all items "
-#~ "(services, storables, expenses, ...)"
-#~ msgstr ""
-#~ "ยอดรวมในการออกใบแจ้งหนี้ในคำสั่งขาย รวมถึงรายการทั้งหมด (บริการ สินค้าที่สามารถเก็บได้ "
-#~ "ค่าใช้จ่าย ...)"
-
-#~ msgid "Total:"
-#~ msgstr "ทั้งหมด:"
-
-#~ msgid "Unit price of the sales order item."
-#~ msgstr "ราคาต่อหน่วยของรายการในคำสั่งขาย"
-
-#~ msgid "Value does not exist in the pricing type"
-#~ msgstr "ไม่มีค่าในประเภทการกำหนดราคา"
-
-#~ msgid "Warning Employee Rate"
-#~ msgstr "คำเตือนอัตราพนักงาน"
-
-#~ msgid ""
-#~ "We always ensure that our products are\n"
-#~ "                                set at a fair price so that you will be\n"
-#~ "                                happy to buy them."
-#~ msgstr ""
-#~ "เรามั่นใจเสมอว่าสินค้าของเรานั้น\n"
-#~ "                                กำหนดราคาที่ยุติธรรมเพื่อให้คุณ\n"
-#~ "                                ยินดีที่จะซื้อสินค้า"
-
-#~ msgid "Wizard"
-#~ msgstr "ตัวช่วย"
-
-#~ msgid ""
-#~ "You can <strong>set a description per product</strong>. Odoo will\n"
-#~ "                        automatically create a quotation using the "
-#~ "descriptions\n"
-#~ "                        of all products in the proposal. The table of "
-#~ "content\n"
-#~ "                        on the left is generated automatically using the "
-#~ "styles you\n"
-#~ "                        used in your description (heading 1, heading "
-#~ "2, ...)"
-#~ msgstr ""
-#~ "คุณสามารถ<strong>ตั้งคำอธิบายต่อรายการสินค้า</strong> Odoo จะ\n"
-#~ "                        สร้างใบเสนอราคาอัตโนมัติโดยใช้คำอธิบาย\n"
-#~ "                        ของสินค้าทั้งหมดในข้อเสนอ สารบัญ\n"
-#~ "                        ทางด้านซ้ายจะถูกสร้างขึ้นโดยอัตโนมัติโดยใช้สไตล์ที่คุณ\n"
-#~ "                        ใช้ในคำอธิบายของคุณ (หัวเรื่อง 1, หัวเรื่อง 2, ...)"
-
-#~ msgid "You can only apply this action from a project."
-#~ msgstr "คุณสามารถใช้การดำเนินการนี้ได้เฉพาะจากโปรเจ็กต์เท่านั้น"
-
-#~ msgid "days"
-#~ msgstr "วัน"
-
-#~ msgid "hours"
-#~ msgstr "ชั่วโมง"
-
-#~ msgid "margin ("
-#~ msgstr "อัตราส่วน ("
+#~ msgid "Timesheets without a sales order item are reported as"
+#~ msgstr "รายงานใบเวลาที่ไม่มีรายการใบสั่งขายเป็น"

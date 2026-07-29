@@ -17,14 +17,13 @@
 # krnkris, 2022
 # gezza <geza.nagy@oregional.hu>, 2023
 # Szabolcs Rádi, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Tommy Gombar <tommy.gombar@kilafornia.net>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-06-29 15:49+0000\n"
+"PO-Revision-Date: 2025-09-29 19:46+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Hungarian <https://translate.odoo.com/projects/odoo-19/"
 "payment/hu/>\n"
@@ -33,7 +32,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report_records
@@ -152,7 +151,7 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
 msgid "<strong>No payment method available</strong>"
-msgstr "<strong>Nincsenek fizetési lehetőségek beállítva</strong>"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_capture_wizard_view_form
@@ -199,11 +198,6 @@ msgstr ""
 #. module: payment
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
 msgid "ACH Direct Debit"
-msgstr ""
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
 msgstr ""
 
 #. module: payment
@@ -590,6 +584,11 @@ msgid "CMR"
 msgstr ""
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr ""
@@ -741,10 +740,6 @@ msgstr "Szín"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "Vállalatok"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -765,12 +760,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "Konfiguráció"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr ""
 
 #. module: payment
 #. odoo-javascript
@@ -947,6 +936,7 @@ msgstr "Felfedez"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
@@ -1187,6 +1177,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1439,7 +1430,7 @@ msgid ""
 msgstr ""
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "Fizetési módjainak kezelése"
 
@@ -1494,7 +1485,7 @@ msgid "Mercado Livre"
 msgstr ""
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr ""
@@ -1514,6 +1505,11 @@ msgstr "Üzenet"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Messages"
 msgstr "Üzenetek"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr ""
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_momo
@@ -1666,6 +1662,7 @@ msgid "OmanNet"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr ""
@@ -1791,6 +1788,16 @@ msgid "Pay Later"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr ""
@@ -1884,6 +1891,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -1959,11 +1967,10 @@ msgstr ""
 #: model:payment.method,name:payment.payment_method_unknown
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Payment method"
-msgstr "Fizetési mód"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr ""
 
@@ -2062,6 +2069,11 @@ msgid "Please wait..."
 msgstr "Kérem várjon..."
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr ""
@@ -2157,7 +2169,7 @@ msgid "Ratepay"
 msgstr ""
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr ""
@@ -2269,6 +2281,11 @@ msgid "Samsung Pay"
 msgstr ""
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "Mentés"
@@ -2367,7 +2384,7 @@ msgid "Status"
 msgstr "Státusz"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Stripe"
@@ -2601,6 +2618,20 @@ msgid "The internal reference of the transaction"
 msgstr ""
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2659,6 +2690,13 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_provider__pre_msg
 msgid "The message displayed to explain and help the payment process"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
 msgstr ""
 
 #. module: payment
@@ -3140,6 +3178,12 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr ""
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
 msgstr ""
 
@@ -3404,7 +3448,7 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
+msgid "minimum or maximum amount exceeded"
 msgstr ""
 
 #. module: payment
@@ -3416,7 +3460,7 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_search
 msgid "payment method"
-msgstr "fizetési mód"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_kanban
@@ -3442,126 +3486,3 @@ msgstr ""
 #: code:addons/payment/const.py:0
 msgid "tokenization without payment no supported"
 msgstr ""
-
-#~ msgid " Data Fetched"
-#~ msgstr "Lekért adatok"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Vissza a számlámhoz"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> Törlés"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>Nem található megfelelő fizetési lehetőség.</strong><br/>\n"
-#~ "                                Lépjen kapcsolatba a weboldal "
-#~ "adminisztrátorával, ha úgy gondolja, hogy ez egy hiba."
-
-#~ msgid "Account"
-#~ msgstr "Számla"
-
-#~ msgid "Account Number"
-#~ msgstr "Bankszámlaszám"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "Extra költségek hozzáadása"
-
-#~ msgid "Apply"
-#~ msgstr "Alkalmazás"
-
-#~ msgid "Bank"
-#~ msgstr "Bank"
-
-#~ msgid "Bank Name"
-#~ msgstr "Bank neve"
-
-#~ msgid "Cancel"
-#~ msgstr "Mégse"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "Válasszon fizetési módot"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "Egyéni fizetési utasítások"
-
-#~ msgid "Displayed as"
-#~ msgstr "Megjelenítés mint"
-
-#~ msgid "Done"
-#~ msgstr "Kész"
-
-#~ msgid "Fees"
-#~ msgstr "Díjak"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "Fix belföldi díjak"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "Fix nemzetközi díjak"
-
-#~ msgid "From"
-#~ msgstr "Forrás"
-
-#~ msgid "Group By"
-#~ msgstr "Csoportosítás"
-
-#~ msgid "Internal server error"
-#~ msgstr "Belső szerverhiba"
-
-#~ msgid "Just done"
-#~ msgstr "Éppen elkészült"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "Fizetési módok kezelése"
-
-#~ msgid "Manual"
-#~ msgstr "Manuális"
-
-#~ msgid "Method"
-#~ msgstr "Módszer"
-
-#~ msgid "Not done"
-#~ msgstr "Nincs kész"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "Csak adminisztrátorok férhetnek hozzá ehhez az adathoz."
-
-#~ msgid "Other"
-#~ msgstr "Egyéb"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "Fizetési útmutató"
-
-#~ msgid "Please wait ..."
-#~ msgstr "Kérem, várjon..."
-
-#~ msgid "Server Error"
-#~ msgstr "Szerverhiba"
-
-#~ msgid "Server error:"
-#~ msgstr "Szerverhiba:"
-
-#~ msgid "Sips"
-#~ msgstr "Sips fizetés"
-
-#~ msgid "The access token is invalid."
-#~ msgstr "Érvénytelen hozzáférési token"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Támogatott visszatérítés típus"
-
-#~ msgid "Unable to contact the Odoo server."
-#~ msgstr "Nem lehet kapcsolódni az Odoo szerverhez."
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "Feldolgozzuk a fizetést, kis türelmet kérünk ..."
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "A fizetése sikeres volt. Köszönjük!"

@@ -3,15 +3,16 @@
 # * website_event_exhibitor
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 00:04+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:57+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Russian <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_exhibitor/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -46,9 +47,11 @@ msgstr ""
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_1
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_2
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
+#, fuzzy
 msgid ""
 "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">Discover more</a>"
 msgstr ""
+"<a href=\"#\" class=\"btn btn-primary o_translate_inline\">Подробнее</a>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -105,6 +108,12 @@ msgid "Activity Exception Decoration"
 msgstr "Оформление задачи-исключения"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+#, fuzzy
+msgid "Activity Plans"
+msgstr "Планы активностей"
+
+#. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
 msgid "Activity State"
 msgstr "Состояние активности"
@@ -121,8 +130,9 @@ msgstr "Все страны"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
+#, fuzzy
 msgid "All Events"
-msgstr ""
+msgstr "Все мероприятия"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_exhibitor_main
@@ -167,6 +177,16 @@ msgstr "Количество вложений"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "Посетители смогут познакомиться с"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -380,8 +400,9 @@ msgstr "Меню участников выставки"
 #. module: website_event_exhibitor
 #. odoo-python
 #: code:addons/website_event_exhibitor/models/event_event.py:0
+#, fuzzy
 msgid "Exhibitors list"
-msgstr ""
+msgstr "Список участников"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
@@ -666,6 +687,12 @@ msgid "Published"
 msgstr "Опубликовано"
 
 #. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+#, fuzzy
+msgid "Published date"
+msgstr "Дата публикации"
+
+#. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
@@ -819,13 +846,15 @@ msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_absolute_url
+#, fuzzy
 msgid "The full absolute URL to access the document through the website."
-msgstr ""
+msgstr "Полный абсолютный URL для доступа к документу через веб-сайт."
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_url
+#, fuzzy
 msgid "The full relative URL to access the document through the website."
-msgstr ""
+msgstr "Полный относительный URL для доступа к документу через веб-сайт."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -877,8 +906,9 @@ msgstr "Сайт"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__website_absolute_url
+#, fuzzy
 msgid "Website Absolute URL"
-msgstr ""
+msgstr "Абсолютный URL сайта"
 
 #. module: website_event_exhibitor
 #: model:ir.model,name:website_event_exhibitor.model_website_event_menu
@@ -960,6 +990,11 @@ msgstr ""
 "               <br/>"
 
 #. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr ""
+
+#. module: website_event_exhibitor
 #. odoo-javascript
 #: code:addons/website_event_exhibitor/static/src/components/exhibitor_connect_closed_dialog/exhibitor_connect_closed_dialog.xml:0
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -972,218 +1007,3 @@ msgstr "начинается в"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "starts on"
 msgstr "начинается"
-
-#~ msgid ""
-#~ "<i class=\"oi oi-fw oi-arrow-right\"/>\n"
-#~ "                    Write one."
-#~ msgstr ""
-#~ "<i class=\"oi oi-fw oi-arrow-right\"/>\n"
-#~ "                    Напишите один."
-
-#~ msgid "<span class=\"btn border-0 py-1 px-2\">×</span>"
-#~ msgstr "<span class=\"btn border-0 py-1 px-2\">×</span>"
-
-#~ msgid ""
-#~ "<span>Oops! This room is currently closed</span><br/>\n"
-#~ "                    Come back between"
-#~ msgstr ""
-#~ "<span>Упс! Эта комната сейчас закрыта</span><br/>\n"
-#~ "                    Возвращайтесь между"
-
-#~ msgid ""
-#~ "<span>Oops! This room is full</span><br/>Come back later to have a chat "
-#~ "with us!"
-#~ msgstr ""
-#~ "<span>Упс! Эта комната переполнена</span><br/>Приходите позже, чтобы "
-#~ "пообщаться с нами!"
-
-#~ msgid ""
-#~ "A non-profit international educational and scientific\n"
-#~ "                    organisation, hosting three departments (aeronautics "
-#~ "and\n"
-#~ "                    aerospace, environmental and applied fluid dynamics, "
-#~ "and\n"
-#~ "                    turbomachinery and propulsion)."
-#~ msgstr ""
-#~ "Некоммерческая международная образовательная и научная организация\n"
-#~ "                    некоммерческая международная образовательная и "
-#~ "научная организация, объединяющая три факультета (аэронавтики и\n"
-#~ "                    аэрокосмическая, экологическая и прикладная "
-#~ "гидродинамика, а также\n"
-#~ "                    турбомашин и силовых установок)."
-
-#~ msgid "Chat Room"
-#~ msgstr "Чат-комната"
-
-#~ msgid "Customer Relationship Management"
-#~ msgstr "Управление взаимоотношениями с клиентами"
-
-#~ msgid ""
-#~ "Deco Addict designs, develops, integrates and supports HR and Supply\n"
-#~ "                Chain processes in order to make our customers more "
-#~ "productive,\n"
-#~ "                responsive and profitable."
-#~ msgstr ""
-#~ "Deco Addict проектирует, разрабатывает, интегрирует и поддерживает "
-#~ "процессы управления персоналом и снабжением\n"
-#~ "                Процессы управления персоналом и цепочками поставок, "
-#~ "чтобы сделать наших клиентов более продуктивными,\n"
-#~ "                отзывчивыми и прибыльными."
-
-#~ msgid ""
-#~ "Deco Addict integrates ERP for Global Companies and supports PME\n"
-#~ "                with Open Sources software to manage their businesses. "
-#~ "Our\n"
-#~ "                consultants are experts in the following areas:"
-#~ msgstr ""
-#~ "Deco Addict интегрирует ERP для глобальных компаний и поддерживает PME\n"
-#~ "                с программным обеспечением с открытым исходным кодом для "
-#~ "управления их бизнесом. Наши\n"
-#~ "                консультанты являются экспертами в следующих областях:"
-
-#~ msgid "Display in footer"
-#~ msgstr "Отображение в нижнем колонтитуле"
-
-#~ msgid "Event Page"
-#~ msgstr "Страница мероприятия"
-
-#~ msgid "Group By"
-#~ msgstr "Группировать по"
-
-#~ msgid "Inventory and Warehouse management"
-#~ msgstr "Управление запасами и складом"
-
-#~ msgid ""
-#~ "It provides post-graduate education in fluid dynamics\n"
-#~ "                    (research master in fluid dynamics, former \"Diploma\n"
-#~ "                    Course\", doctoral program, stagiaire program and "
-#~ "lecture\n"
-#~ "                    series) and encourages \"training in research "
-#~ "through\n"
-#~ "                    research\"."
-#~ msgstr ""
-#~ "Он предоставляет последипломное образование в области гидродинамики\n"
-#~ "                    (исследовательская магистратура по гидродинамике, "
-#~ "бывший \"Дипломный курс\n"
-#~ "                    Курс\", докторская программа, программа стажировки и "
-#~ "цикл лекций) и поощряет \"обучение исследованиям через\n"
-#~ "                    ) и поощряет \"подготовку к исследованиям через\n"
-#~ "                    исследования\"."
-
-#~ msgid ""
-#~ "It undertakes and promotes research in the field of fluid\n"
-#~ "                    dynamics. It possesses about fifty different wind "
-#~ "tunnels,\n"
-#~ "                    turbomachinery and other specialized test facilities, "
-#~ "some\n"
-#~ "                    of which are unique or the largest in the world. "
-#~ "Extensive\n"
-#~ "                    research on experimental, computational and "
-#~ "theoretical\n"
-#~ "                    aspects of gas and liquid flows is carried out under "
-#~ "the\n"
-#~ "                    direction of the faculty and research engineers, "
-#~ "sponsored\n"
-#~ "                    mainly by governmental and international agencies as "
-#~ "well\n"
-#~ "                    as industries."
-#~ msgstr ""
-#~ "Он проводит и продвигает исследования в области гидродинамики\n"
-#~ "                    динамики. В его распоряжении около пятидесяти "
-#~ "различных аэродинамических труб,\n"
-#~ "                    турбомашин и других специализированных испытательных "
-#~ "установок, некоторые из которых\n"
-#~ "                    некоторые из них являются уникальными или крупнейшими "
-#~ "в мире. Обширные\n"
-#~ "                    исследования экспериментальных, вычислительных и "
-#~ "теоретических\n"
-#~ "                    аспекты течений газа и жидкости проводятся под\n"
-#~ "                    под руководством преподавателей и инженеров-"
-#~ "исследователей, спонсируемые\n"
-#~ "                    в основном правительственными и международными "
-#~ "агентствами, а также\n"
-#~ "                    а также промышленными предприятиями."
-
-#~ msgid "Jitsi Name"
-#~ msgstr "Имя Джитси"
-
-#~ msgid "Language"
-#~ msgstr "Язык"
-
-#~ msgid "Last activity"
-#~ msgstr "Последняя активность"
-
-#~ msgid "Materials Management"
-#~ msgstr "Управление материалами"
-
-#~ msgid "Max capacity"
-#~ msgstr "Максимальная вместимость"
-
-#~ msgid "Maximum number of participant reached in the room at the same time"
-#~ msgstr ""
-#~ "Максимальное количество участников, находящихся в комнате одновременно"
-
-#~ msgid "Mobile"
-#~ msgstr "Мобильный"
-
-#~ msgid ""
-#~ "Our experts invent, imagine and develop solutions which meet\n"
-#~ "                your business requirements. They build a new technical\n"
-#~ "                environment for your company, but they always take the "
-#~ "already\n"
-#~ "                installed IT software into account. That is why Idealis\n"
-#~ "                Consulting delivers excellence in HR and SC Management."
-#~ msgstr ""
-#~ "Наши специалисты придумывают, воображают и разрабатывают решения, которые "
-#~ "отвечают\n"
-#~ "                требованиям вашего бизнеса. Они создают новую "
-#~ "техническую\n"
-#~ "                среду для вашей компании, но при этом всегда учитывают "
-#~ "уже\n"
-#~ "                но при этом всегда учитывают уже установленное "
-#~ "программное обеспечение. Именно поэтому Idealis\n"
-#~ "                Consulting обеспечивает превосходство в управлении "
-#~ "персоналом и SC."
-
-#~ msgid "Participant count"
-#~ msgstr "Количество участников"
-
-#~ msgid "Peak participants"
-#~ msgstr "Участники пика"
-
-#~ msgid "Personnel Administration"
-#~ msgstr "Управление персоналом"
-
-#~ msgid "Register"
-#~ msgstr "Регистрация"
-
-#~ msgid "Reporting"
-#~ msgstr "Отчет"
-
-#~ msgid "Room Is Full"
-#~ msgstr "Комната заполнена"
-
-#~ msgid "Room Name"
-#~ msgstr "Название номера"
-
-#~ msgid "Sales and Distribution"
-#~ msgstr "Продажи и дистрибуция"
-
-#~ msgid "Sponsor"
-#~ msgstr "Спонсор"
-
-#~ msgid "Sponsor Mobile"
-#~ msgstr "Мобильный спонсор"
-
-#~ msgid "Talent Management"
-#~ msgstr "Управление кадровым потенциалом"
-
-#~ msgid ""
-#~ "The event %s starts on %s (%s). \n"
-#~ "Join us there to meet %s!"
-#~ msgstr ""
-#~ "Событие %s начинается на %s (%s).\n"
-#~ "Присоединяйтесь к нам, чтобы встретиться с %s!"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Полный URL-адрес для доступа к документу через веб-сайт."

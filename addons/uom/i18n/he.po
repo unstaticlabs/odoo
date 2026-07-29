@@ -11,24 +11,25 @@
 # ExcaliberX <excaliberx@gmail.com>, 2022
 # NoaFarkash, 2022
 # Ha Ketem <haketem@gmail.com>, 2022
-# or balmas <or@laylinetech.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# or balmas <or@laylinetech.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-29 23:33+0000\n"
-"Last-Translator: or balmas <or@laylinetech.com>\n"
-"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-19/uom/he/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-04-13 19:31+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Hebrew <https://translate.odoo.com/projects/odoo-s19-2/uom/"
+"he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
 "n % 10 == 0) ? 2 : 3));\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__factor
@@ -124,9 +125,8 @@ msgstr "נהל יחידות מידה מרובות"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_minute
-#, fuzzy
 msgid "Minutes"
-msgstr "דקות"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_pack_6
@@ -178,11 +178,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:uom.field_uom_uom__related_uom_ids
 msgid "Related UoMs"
 msgstr ""
-
-#. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "דיוק עיגול"
 
 #. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
@@ -369,126 +364,3 @@ msgstr ""
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr ""
-
-#~ msgid "Add a new unit of measure category"
-#~ msgstr "הוסף קטגורית יחידת מידה חדשה"
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "יחס גדול יותר"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "גדול מיחידת המידה הבסיסית"
-
-#~ msgid "Category"
-#~ msgstr "קטגוריה"
-
-#~ msgid "Color"
-#~ msgstr "צבע"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "המרה בין יחידות מידה יכולה להתרחש רק אם הן שייכות לאותה קטגוריה. ההמרה "
-#~ "תיעשה על בסיס היחס בניהן."
-
-#~ msgid "Group By"
-#~ msgstr "קבץ לפי"
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "בכמה פעמים יחידת מידה זו גדולה מיחידת המידה הבסיסית בקטגוריה זו: 1 * "
-#~ "(יחידה זו) = יחס * (יחידת מידה בסיסית)"
-
-#~ msgid ""
-#~ "How much bigger or smaller this unit is compared to the reference Unit of "
-#~ "Measure for this category: 1 * (reference unit) = ratio * (this unit)"
-#~ msgstr ""
-#~ "בכמה יחידה זו גדולה יותר או קטנה יותר ביחס ליחידת המידה הבסיסית של "
-#~ "קטגוריה זו: 1 * (יחידת מידה בסיסית) = יחס * (יחידה זו)"
-
-#~ msgid "Last Modified on"
-#~ msgstr "שינוי אחרון ב"
-
-#~ msgid "Length / Distance"
-#~ msgstr "אורך / מרחק"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "קטגוריות יחידת מידה של מוצר"
-
-#~ msgid "Ratio"
-#~ msgstr "יחס"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "יחידת מידה בסיסית לקטגוריה זו"
-
-#~ msgid "Search UoM Category"
-#~ msgstr "חפש קטגורית יחידת מידה"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "קטן מיחידת המידה הבסיסית"
-
-#~ msgid ""
-#~ "The computed quantity will be a multiple of this value. Use 1.0 for a "
-#~ "Unit of Measure that cannot be further split, such as a piece."
-#~ msgstr ""
-#~ "הכמות המחושבת תהיה כפולה של ערך זה. השתמש ב 1.0 עבור יחידת מידה שלא ניתן "
-#~ "לפצל אותה עוד יותר, כגון חתיכה."
-
-#~ msgid "The reference unit must have a conversion factor equal to 1."
-#~ msgstr "מקדם ההמרה של יחידת המידה הבסיסית חייב להיות שווה ל 1 ."
-
-#~ msgid "The rounding precision must be strictly positive."
-#~ msgstr "דיוק העיגול חייב להיות חיובי."
-
-#~ msgid "Type"
-#~ msgstr "סוג"
-
-#~ msgid "Unit"
-#~ msgstr "יחידה"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Unit of Measure Category"
-#~ msgstr "קטגורית יחידת מידה"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "קטגוריות יחידות מידה"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "קטגוריות יחידת מידה"
-
-#~ msgid ""
-#~ "Units of measure belonging to the same category can be\n"
-#~ "            converted between each others. For example, in the category\n"
-#~ "            <i>'Time'</i>, you will have the following units of measure:\n"
-#~ "            Hours, Days."
-#~ msgstr ""
-#~ "ניתן להמיר יחידות מידה השייכות לאותה קטגוריה.\n"
-#~ "            לדוגמא: בקטגוריה:   <i>'זמן'</i>, יהיו יחידות המידה הבאות: "
-#~ "שעות, ימים."
-
-#~ msgid "UoM category %s should only have one reference unit of measure."
-#~ msgstr "קטגורית יחידת מידה %s צריכה להכיל יחידת מידה בסיסית אחת בלבד."
-
-#~ msgid "Uom"
-#~ msgstr "יחידת מידה"
-
-#~ msgid "Volume"
-#~ msgstr "נפח"
-
-#~ msgid "Weight"
-#~ msgstr "משקל"
-
-#~ msgid "Working Time"
-#~ msgstr "זמן עבודה"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "עליך להגדיר יחס המרה בין מספר \n"
-#~ "            יחידות שונות באותה קטגוריה."

@@ -18,32 +18,33 @@
 # Murat Durmuş <muratd@projetgrup.com>, 2022
 # Ediz Duman <neps1192@gmail.com>, 2023
 # Tugay Hatıl <tugayh@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
+# "Deniz Guvener Unal (degu)" <degu@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 00:05+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-01-16 05:48+0000\n"
+"Last-Translator: \"Deniz Guvener Unal (degu)\" <degu@odoo.com>\n"
+"Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-1/"
 "purchase_stock/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "% On-Time Delivery"
-msgstr "% Zamanında Teslim"
+msgid "% On Time"
+msgstr ""
 
 #. module: purchase_stock
 #. odoo-python
@@ -78,6 +79,16 @@ msgid "+ %s day(s)"
 msgstr "+ %s gün(ler)"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted ms-1\"> / month</small>"
+msgstr ""
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted\">Demand: </small>"
+msgstr ""
+
+#. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
 msgid "<span class=\"o_stat_text\">On-time Rate</span>"
 msgstr "<span class=\"o_stat_text\">Zaman-Oranı</span>"
@@ -99,18 +110,8 @@ msgstr "<span class=\"text-info fw-bold fs-5 me-1\">Önermek</span>"
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "<span class=\"text-muted small me-1\">Monthly Demand:</span>"
-msgstr "<span class=\"text-muted small me-1\">Aylık Talep:</span>"
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
 msgid "<span class=\"text-muted small ms-1\">Forecasted</span>"
 msgstr "<span class=\"text-muted small ms-1\">Tahmini</span>"
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "<span invisible=\"on_time_rate &gt;= 0\">No data yet</span>"
-msgstr "<span invisible=\"on_time_rate &gt;= 0\">Henüz veri yok</span>"
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
@@ -230,13 +231,13 @@ msgstr "İkmal için Satınalın"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
+msgid "Company"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,help:purchase_stock.field_purchase_order__effective_date
-msgid "Completion date of the first receipt order."
-msgstr "İlk makbuz siparişinin tamamlanma tarihi."
+msgid "Completion date of the last receipt order."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_config_settings
@@ -273,6 +274,13 @@ msgstr "Özel Açıklama"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_rfq__day
 msgid "Daily"
 msgstr "Günlük"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order__date_promised
+msgid ""
+"Date promised by the vendor for at least 1 or more products to be delivered "
+"by."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_picking__days_to_arrive
@@ -324,6 +332,13 @@ msgstr "Gecikme Süresi"
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_type_id
 msgid "Deliver To"
 msgstr "Teslim Alacak"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order_line__date_promised
+msgid ""
+"Delivery Date promised by the vendor. If the vendor delivers products after "
+"this date, their On-Time rate will be negatively impacted."
+msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_supplierinfo_replenishment_tree_view
@@ -448,11 +463,6 @@ msgid "Friday"
 msgstr "Cuma"
 
 #. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__full
-msgid "Fully Received"
-msgstr "Tamamen Alındı"
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/js/tours/purchase_stock.js:0
 msgid "Generate the draft vendor bill."
@@ -540,8 +550,8 @@ msgstr "Incoterm Konumu"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "Stok Envanter Rotaları"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__is_shipped
@@ -624,6 +634,12 @@ msgid "Minimum Inventory Rule"
 msgstr "Minimum Envanter Kuralı"
 
 #. module: purchase_stock
+#. odoo-python
+#: code:addons/purchase_stock/models/stock.py:0
+msgid "Missing products in receipt"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__1
 msgid "Monday"
 msgstr "Pazartesi"
@@ -662,17 +678,13 @@ msgid "No supplier has been found to replenish"
 msgstr "Yenileme yapacak tedarikçi bulunamadı"
 
 #. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__pending
-msgid "Not Received"
-msgstr "Alınmadı"
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/purchase_dashboard/purchase_dashboard.xml:0
 msgid "OTD"
 msgstr "OTD"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
 msgid "On"
 msgstr "Açık"
@@ -712,6 +724,11 @@ msgid "On-time Rate"
 msgstr "Zaman Oranı"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Only"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "Order Deadline"
@@ -739,11 +756,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase_stock.field_product_product__purchase_order_line_ids
 msgid "PO Lines"
 msgstr "PO Satırları"
-
-#. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__partial
-msgid "Partially Received"
-msgstr "Kısmen Alındı"
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -776,6 +788,12 @@ msgstr "Ürün Yenileme Karışımı"
 #: model:ir.model,name:purchase_stock.model_product_product
 msgid "Product Variant"
 msgstr "Ürün Varyantı"
+
+#. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__date_promised
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__date_promised
+msgid "Promised Date"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__propagate_cancel
@@ -845,11 +863,6 @@ msgid "Receipt Date"
 msgstr "Makbuz Tarihi"
 
 #. module: purchase_stock
-#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__receipt_status
-msgid "Receipt Status"
-msgstr "Alım Durumu"
-
-#. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 msgid "Receive"
 msgstr "Ödeme Alma"
@@ -866,20 +879,14 @@ msgid "Received Qty Method"
 msgstr "Alınan Miktar Yöntemi"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Received quantity is less than the expected quantity for transfer"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_ids
 msgid "Receptions"
 msgstr "Mal Kabul"
-
-#. module: purchase_stock
-#: model:ir.model.fields,help:purchase_stock.field_purchase_order__receipt_status
-msgid ""
-"Red: Late\n"
-"            Orange: To process today\n"
-"            Green: On time"
-msgstr ""
-"Kırmızı: Gecikmiş\n"
-"            Turuncu: Bugün işlenecek\n"
-"            Yeşil: Vaktinde"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_reference
@@ -1034,6 +1041,11 @@ msgstr "Önerilen Miktar"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__7
 msgid "Sunday"
 msgstr "Pazar"
+
+#. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_product_replenish__partner_id
+msgid "Supplier"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_warehouse_orderpoint__supplier_id_placeholder
@@ -1195,11 +1207,6 @@ msgid "Tuesday"
 msgstr "Salı"
 
 #. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "Units"
-msgstr ""
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/js/tours/purchase_stock.js:0
 msgid "Validate the receipt of all ordered products."
@@ -1294,12 +1301,18 @@ msgid "You must set a Vendor Location for this partner %s"
 msgstr "Bu iş ortağı %s için bir tedarikçi konumu belirlemelisiniz"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "and no backorder is planned. Manual action may be needed."
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/product_catalog/search/search_panel.xml:0
 msgid "day(s)"
 msgstr "gün(ler)"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
 #: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_po
 msgid "of"
 msgstr "ile ilgili"
@@ -1310,10 +1323,20 @@ msgid "ordered instead of"
 msgstr "yerine sipariş edildi"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "received in contrast to the expected"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "this product should be manually replenished."
 msgstr "bu ürün manuel olarak doldurulmalıdır."
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "units"
+msgstr ""
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -1323,140 +1346,3 @@ msgstr ""
 
 #~ msgid "Stock Valuation"
 #~ msgstr "Stok Değerleme"
-
-#~ msgid ""
-#~ "Define if RFQ should be grouped         together based on expected "
-#~ "arrival.\n"
-#~ "         On Order: Replenishment needs will be grouped together except "
-#~ "for MTO.\n"
-#~ "         Daily: Replenishment needs will be grouped if the expected "
-#~ "arrival is the same day\n"
-#~ "         Weekly: Replenishment needs will be grouped if the expected "
-#~ "arrival is the same week or week day\n"
-#~ "         Always: Replenishment needs will always be grouped."
-#~ msgstr ""
-#~ "RFQ'nun beklenen varışa göre birlikte gruplandırılıp "
-#~ "gruplandırılmayacağını tanımlayın.\n"
-#~ "         Sipariş Üzerine: MTO hariç ikmal ihtiyaçları birlikte "
-#~ "gruplandırılacaktır.\n"
-#~ "         Günlük: Beklenen varış aynı gün ise ikmal ihtiyaçları "
-#~ "gruplandırılacaktır.\n"
-#~ "         Haftalık: Beklenen varış aynı hafta veya hafta günü ise ikmal "
-#~ "ihtiyaçları gruplandırılacaktır\n"
-#~ "         Her zaman: Yenileme ihtiyaçları her zaman gruplandırılacaktır."
-
-#~ msgid "<span class=\"text-info fw-bold fs-5 me-1\">units</span>"
-#~ msgstr "<span class=\"text-info fw-bold fs-5 me-1\">birimler</span>"
-
-#~ msgid "Requests for quotation"
-#~ msgstr "Teklif Talepleri"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">No On-time "
-#~ "Delivery Data</span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">Zamanında "
-#~ "Teslim Verisi Yok</span>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Sevkiyat adresi:</strong>"
-
-#~ msgid "Currency exchange rate difference"
-#~ msgstr "Döviz kur farkı"
-
-#~ msgid ""
-#~ "Depending on the modules installed, this will allow you to define the "
-#~ "route of the product: whether it will be bought, manufactured, "
-#~ "replenished on order, etc."
-#~ msgstr ""
-#~ "Kurulu modüllere dayalı olarak, bu, ürünün rotasını tanımlamanızı sağlar: "
-#~ "satın alınacak, üretilecek, sipariş üzerine yenilenecek vb."
-
-#~ msgid ""
-#~ "For the product %s, the warehouse of the operation type (%s) is "
-#~ "inconsistent with the location (%s) of the reordering rule (%s). Change "
-#~ "the operation type or cancel the request for quotation."
-#~ msgstr ""
-#~ "%s Ürünü için, işlem türünün (%s) deposu, yeniden sıralama kuralının (%s) "
-#~ "konumu (%s) ile tutarsız. İşlem türünü değiştirin veya teklif talebini "
-#~ "iptal edin."
-
-#~ msgid "Incoterm"
-#~ msgstr "Teslimat Koşulu"
-
-#~ msgid ""
-#~ "International Commercial Terms are a series of predefined commercial "
-#~ "terms used in international transactions."
-#~ msgstr ""
-#~ "Uluslararası Ticari Terimler, uluslararası işlemlerde kullanılan önceden "
-#~ "tanımlanmış ticari  dizinlerdir."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Tedarikçi teslimat süreleri için hata payı. Sistem, tekrar sipariş edilen "
-#~ "ürünler için Satın Alma Siparişleri olşturduğunda, beklenmedik tedarikçi "
-#~ "gecikmelerini günler önceden planlayacak."
-
-#~ msgid "Move forward expected request creation date by"
-#~ msgstr "Beklenen istek oluşturma tarihini şu tarihe kadar ilerlet:"
-
-#~ msgid "No data yet"
-#~ msgstr "Henüz veri yok"
-
-#~ msgid ""
-#~ "Odoo is not able to generate the anglo saxon entries. The total valuation "
-#~ "of %s is zero."
-#~ msgstr ""
-#~ "Odoo, anglo sakson girişlerini oluşturamıyor.%s toplam değerlemesi "
-#~ "sıfırdır. "
-
-#~ msgid ""
-#~ "Over the past 12 months; the number of products received on time divided "
-#~ "by the number of ordered products."
-#~ msgstr ""
-#~ "Son 12 ayda; zamanında alınan ürün sayısı, sipariş edilen ürün sayısına "
-#~ "bölünür. "
-
-#~ msgid "Procurement Group"
-#~ msgstr "Tedarik Grubu"
-
-#~ msgid "Product Supplier"
-#~ msgstr "Ürün Tedarikçisi"
-
-#~ msgid "Purchase Security Lead Time"
-#~ msgstr "Satınalma Güvenliği Tedarik Süresi"
-
-#~ msgid "Purchase Visibility Days"
-#~ msgstr "Görünürlük Günlerini Satın Alın"
-
-#~ msgid "Receive Products"
-#~ msgstr "Ürün Kabulleri"
-
-#~ msgid "Routes"
-#~ msgstr "Rotalar"
-
-#~ msgid "Schedule request for quotations earlier to avoid delays"
-#~ msgstr "Gecikmeleri önlemek için teklif taleplerini daha erken planlayın"
-
-#~ msgid ""
-#~ "Unable to cancel purchase order %s as some receptions have already been "
-#~ "done."
-#~ msgstr ""
-#~ "Bazı alımlar çoktan yapıldığı için %s satın alma siparişini iptal "
-#~ "edemezsiniz"
-
-#~ msgid "Visibility Days applied on the purchase routes."
-#~ msgstr "Görünürlük Günleri satın alma rotalarında uygulanmaktadır."
-
-#~ msgid ""
-#~ "You cannot decrease the ordered quantity below the received quantity.\n"
-#~ "Create a return first."
-#~ msgstr ""
-#~ "Sipariş edilen miktarı alınan miktarın altına indiremezsiniz. Önce bir "
-#~ "dönüş oluşturun."
-
-#~ msgid "days"
-#~ msgstr "gün"

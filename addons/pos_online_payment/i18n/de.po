@@ -2,23 +2,23 @@
 # This file contains the translation of the following modules:
 # * pos_online_payment
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 20:20+0000\n"
+"POT-Creation-Date: 2026-03-13 18:36+0000\n"
+"PO-Revision-Date: 2026-04-04 12:55+0000\n"
 "Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_online_payment/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay
@@ -38,7 +38,7 @@ msgstr ""
 msgid "A POS config cannot have more than one online payment method."
 msgstr ""
 "Eine Kassensystem-Konfiguration kann nicht mehr als eine Online-"
-"Zahlungsmethode enthalten."
+"Zahlungsmethode haben."
 
 #. module: pos_online_payment
 #. odoo-python
@@ -68,14 +68,14 @@ msgid ""
 "set, of the POS config."
 msgstr ""
 "Alle für eine Online-Zahlungsmethode konfigurierten Zahlungsanbieter müssen "
-"dieselbe Währung verwenden wie das Verkaufsjournal der Kassensystem-"
-"Konfiguration oder, falls dieses nicht festgelegt ist, die "
-"Unternehmenswährung."
+"dieselbe Währung wie die in den Kassensystem-Konfigurationen für das "
+"Verkaufsjournal angegebene oder die Unternehmenswährung, falls vorherige "
+"nicht festgelegt wurde, verwenden."
 
 #. module: pos_online_payment
 #: model:ir.model.fields,field_description:pos_online_payment.field_pos_payment_method__online_payment_provider_ids
 msgid "Allowed Providers"
-msgstr "Zulässige Anbieter"
+msgstr "Erlaubte Anbieter"
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay_confirmation
@@ -210,7 +210,7 @@ msgstr "Online-Zahlung nicht verfügbar"
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
 msgid "Online payments cannot have a negative amount (%s: %s)."
-msgstr "Online-Zahlungen können keinen negativen Betrag haben (%s: %s)."
+msgstr "Online-Zahlungen können keinen negativen Betrag haben (%s:%s)"
 
 #. module: pos_online_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay_confirmation
@@ -251,6 +251,7 @@ msgid "POS Order"
 msgstr "Kassenauftrag"
 
 #. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:pos_online_payment.pay
 msgid "Payment"
 msgstr "Zahlung"
@@ -277,11 +278,6 @@ msgid "Payment provider requirement"
 msgstr "Anforderungen an Zahlungsanbieter"
 
 #. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_account_payment
-msgid "Payments"
-msgstr "Zahlungen"
-
-#. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
 msgid "Please ensure you have a customer with an email address on this order."
@@ -296,18 +292,18 @@ msgstr "Kassensystem-Konfiguration"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassenaufträge"
-
-#. module: pos_online_payment
-#: model:ir.model,name:pos_online_payment.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr "Zahlungsmethoden des Kassensystems"
+msgid "Point of Sale Order"
+msgstr "Kassenauftrag"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_payment
-msgid "Point of Sale Payments"
-msgstr "Kassenzahlungen"
+msgid "Point of Sale Payment"
+msgstr "Zahlung am Kassensystem"
+
+#. module: pos_online_payment
+#: model:ir.model,name:pos_online_payment.model_pos_payment_method
+msgid "Point of Sale Payment Method"
+msgstr "Zahlungsmethode am Kassensystem"
 
 #. module: pos_online_payment
 #: model:ir.model,name:pos_online_payment.model_pos_session
@@ -387,8 +383,8 @@ msgstr "Der mit der Zahlung verbundene Kassenauftrag"
 #. module: pos_online_payment
 #. odoo-javascript
 #: code:addons/pos_online_payment/static/src/app/utils/order_payment_validation.js:0
-msgid "The QR Code for paying could not be generated."
-msgstr "Der QR-Code zum Bezahlen konnte nicht generiert werden."
+msgid "The QR code payment could not be generated."
+msgstr "Die QR-Code-Zahlung konnte nicht generiert werden."
 
 #. module: pos_online_payment
 #. odoo-python
@@ -516,7 +512,8 @@ msgstr ""
 #: code:addons/pos_online_payment/controllers/payment_portal.py:0
 msgid ""
 "There is no online payment method configured for this Point of Sale order."
-msgstr "Für diesen Kassenauftrag ist keine Online-Zahlungsmethode konfiguriert."
+msgstr ""
+"Für diesen Kassenauftrag ist keine Online-Zahlungsmethode konfiguriert."
 
 #. module: pos_online_payment
 #. odoo-python

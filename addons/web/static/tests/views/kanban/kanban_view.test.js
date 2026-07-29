@@ -1,14 +1,12 @@
-import { after, beforeEach, expect, getFixture, test } from "@odoo/hoot";
+import { after, beforeEach, expect, getFixture, resize, test } from "@odoo/hoot";
 import {
     click,
-    dblclick,
     drag,
     edit,
     hover,
     keyDown,
     keyUp,
     leave,
-    on,
     pointerDown,
     press,
     queryAll,
@@ -17,8 +15,6 @@ import {
     queryOne,
     queryRect,
     queryText,
-    resize,
-    scroll,
     setInputFiles,
 } from "@odoo/hoot-dom";
 import {
@@ -35,7 +31,6 @@ import { Component, onMounted, onPatched, onRendered, onWillRender, xml } from "
 import {
     MockServer,
     clickKanbanLoadMore,
-    clickModalButton,
     contains,
     createKanbanRecord,
     defineActions,
@@ -43,24 +38,20 @@ import {
     defineParams,
     discardKanbanRecord,
     editKanbanColumnName,
-    editKanbanRecord,
     editKanbanRecordQuickCreateInput,
     fields,
     getDropdownMenu,
     getFacetTexts,
     getKanbanColumn,
     getKanbanColumnDropdownMenu,
-    getKanbanColumnTooltips,
-    getKanbanCounters,
-    getKanbanProgressBars,
     getKanbanRecord,
     getKanbanRecordTexts,
-    getMockEnv,
     getPagerLimit,
     getPagerValue,
     getService,
     makeServerError,
     mockService,
+    mockOffline,
     models,
     mountView,
     mountWithCleanup,
@@ -83,6 +74,7 @@ import {
     validateKanbanRecord,
     validateSearch,
     webModels,
+    editSearch,
 } from "@web/../tests/web_test_helpers";
 import { addNewRule } from "@web/../tests/core/tree_editor/condition_tree_editor_test_helpers";
 
@@ -100,6 +92,7 @@ import { KanbanRenderer } from "@web/views/kanban/kanban_renderer";
 import { kanbanView } from "@web/views/kanban/kanban_view";
 import { ViewButton } from "@web/views/view_button/view_button";
 import { AnimatedNumber } from "@web/views/view_components/animated_number";
+import { TOUCH_SELECTION_THRESHOLD } from "@web/views/utils";
 import { WebClient } from "@web/webclient/webclient";
 
 const { IrAttachment } = webModels;
@@ -116,14 +109,6 @@ async function createFileInput({ mockPost, mockAdd, props }) {
         post: mockPost || (() => {}),
     });
     await mountWithCleanup(FileInput, { props });
-}
-
-async function toggleMultiCurrencyPopover(el) {
-    if (getMockEnv().isSmall) {
-        await contains(el).click();
-    } else {
-        await contains(el).hover();
-    }
 }
 
 class Partner extends models.Model {
@@ -1398,7 +1383,7 @@ test("pager, ungrouped, deleting all records from last page", async () => {
     await contains(".o_kanban_record a").click();
 
     expect(".o_dialog").toHaveCount(1);
-    await contains(".o_dialog footer .btn-primary").click();
+    await contains(".o_dialog footer .btn-danger").click();
 
     expect(getPagerValue()).toEqual([1, 3]);
     expect(getPagerLimit()).toBe(3);
@@ -1469,7 +1454,7 @@ test("click on a button type='delete' to delete a record in a column", async () 
     await animationFrame();
     expect(".modal").toHaveCount(1);
 
-    await contains(".modal .btn-primary").click();
+    await contains(".modal .btn-danger").click();
 
     expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(1);
     expect(queryAll(".o_kanban_load_more", { root: getKanbanColumn(0) })).toHaveCount(0);
@@ -1658,81 +1643,6 @@ test("Open new card in form view, without reloading the kanban view", async () =
     ]);
 });
 
-test.tags("desktop");
-test("grouped kanban with quick_create attrs set to false", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban quick_create="false" on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        createRecord: () => expect.step("create record"),
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_quick_add").toHaveCount(0);
-
-    await createKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-    expect.verifySteps(["create record"]);
-});
-
-test.tags("desktop");
-test("create in grouped on m2o", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group.o_group_draggable").toHaveCount(2);
-    expect(".o_control_panel_main_buttons button.o-kanban-button-new").toHaveCount(1);
-    expect(".o_column_quick_create").toHaveCount(0, {
-        message: "no quick create since no default groupby",
-    });
-
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child > .o_kanban_quick_create").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["hello\n(2)", "xmo\n(2)"]);
-});
-
-test("create in grouped on char", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    expect(".o_kanban_group.o_group_draggable").toHaveCount(0);
-    expect(".o_kanban_group").toHaveCount(3);
-    expect(queryAllTexts(".o_column_title")).toEqual(["blip\n(2)", "gnap\n(1)", "yop\n(1)"]);
-    expect(".o_kanban_group:first-child > .o_kanban_quick_create").toHaveCount(0);
-});
-
 test("prevent deletion when grouped by many2many field", async () => {
     Partner._records[0].category_ids = [6, 7];
     Partner._records[3].category_ids = [7];
@@ -1801,1724 +1711,6 @@ test("kanban grouped by many2one: false column is folded by default", async () =
 });
 
 test.tags("desktop");
-test("quick created records in grouped kanban are on displayed top", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-
-    await edit("new record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(3);
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-    // the new record must be the first record of the column
-    expect(queryAllTexts(" .o_kanban_group:first .o_kanban_record")).toEqual([
-        "new record",
-        "yop",
-        "gnap",
-    ]);
-
-    await click(".o_kanban_quick_create input"); // FIXME: should not be necessary
-    await edit("another record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(4);
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-    expect(queryAllTexts(".o_kanban_group:first .o_kanban_record")).toEqual([
-        "another record",
-        "new record",
-        "yop",
-        "gnap",
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record without quick_create_view", async () => {
-    stepAllNetworkCalls();
-    onRpc("name_create", ({ args }) => {
-        expect(args[0]).toBe("new partner");
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1);
-
-    // click on 'Create' -> should open the quick create in the first column
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create .o_form_view.o_xxs_form_view").toHaveCount(1);
-    expect(".o_kanban_quick_create input").toHaveCount(1);
-    expect(
-        ".o_kanban_quick_create .o_field_widget.o_required_modifier input[placeholder=Title]"
-    ).toHaveCount(1);
-
-    // fill the quick create and validate
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "onchange", // quick create
-        "name_create", // should perform a name_create to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record with quick_create_view", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-            <field name="state" widget="priority"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-    onRpc("web_save", ({ args }) => {
-        expect(args[1]).toEqual({
-            foo: "new partner",
-            int_field: 4,
-            state: "def",
-        });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_control_panel").toHaveCount(1);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1);
-
-    // click on 'Create' -> should open the quick create in the first column
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create .o_form_view.o_xxs_form_view").toHaveCount(1);
-    expect(".o_control_panel").toHaveCount(1, {
-        message: "should not have instantiated another control panel",
-    });
-    expect(".o_kanban_quick_create input").toHaveCount(2);
-    expect(".o_kanban_quick_create .o_field_widget").toHaveCount(3);
-
-    // fill the quick create and validate
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await editKanbanRecordQuickCreateInput("int_field", "4");
-    await click(".o_kanban_quick_create .o_field_widget[name=state] .o_priority_star:first-child");
-    await validateKanbanRecord();
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "get_views", // form view in quick create
-        "onchange", // quick create
-        "web_save", // should perform a web_save to create the record
-        "onchange", // new quick create
-        "web_read", // read the created record
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record flickering", async () => {
-    let def;
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-            <field name="state" widget="priority"/>
-        </form>`;
-
-    onRpc("web_save", ({ args }) => {
-        expect(args[1]).toEqual({
-            foo: "new partner",
-            int_field: 4,
-            state: "def",
-        });
-    });
-    onRpc("onchange", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // click on 'Create' -> should open the quick create in the first column
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1);
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create .o_form_view.o_xxs_form_view").toHaveCount(1);
-    expect(".o_kanban_quick_create input").toHaveCount(2);
-    expect(".o_kanban_quick_create .o_field_widget").toHaveCount(3);
-
-    // fill the quick create and validate
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await editKanbanRecordQuickCreateInput("int_field", "4");
-
-    await click(".o_kanban_quick_create .o_field_widget[name=state] .o_priority_star:first-child");
-    def = new Deferred();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-
-    def.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-});
-
-test.tags("desktop");
-test("quick create record flickering (load more)", async () => {
-    let def;
-    Partner._views["form,some_view_ref"] = `<form><field name="foo"/></form>`;
-
-    onRpc("read", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // click on 'Create' -> should open the quick create in the first column
-    await createKanbanRecord();
-
-    // fill the quick create and validate
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    def = new Deferred();
-    await validateKanbanRecord();
-    expect(".o_kanban_load_more").toHaveCount(0);
-    def.resolve();
-    await animationFrame();
-    expect(".o_kanban_load_more").toHaveCount(0);
-});
-
-test.tags("desktop");
-test("quick create record should focus default field", async function () {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field" default_focus="1"/>
-            <field name="state" widget="priority"/>
-        </form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await createKanbanRecord();
-
-    expect(".o_field_widget[name=int_field] input:first").toBeFocused();
-});
-
-test.tags("desktop");
-test("quick create record should focus first field input", async function () {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-            <field name="state" widget="priority"/>
-        </form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await createKanbanRecord();
-
-    expect(".o_field_widget[name=foo] input:first").toBeFocused();
-});
-
-test.tags("desktop");
-test("quick_create_view without quick_create option", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="display_name"/>
-        </form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        createRecord() {
-            expect.step("create record");
-        },
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group .o_kanban_quick_add").toHaveCount(2);
-
-    // click on 'Create' in control panel -> should not open the quick create
-    await createKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(0);
-    expect.verifySteps(["create record"]);
-
-    // click "+" icon in first column -> should open the quick create
-    await contains(".o_kanban_quick_add").click();
-    await animationFrame();
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-    expect.verifySteps([]);
-});
-
-test.tags("desktop");
-test("quick create record in grouped on m2o (no quick_create_view)", async () => {
-    expect.assertions(6);
-
-    stepAllNetworkCalls();
-    onRpc("name_create", ({ args, kwargs }) => {
-        expect(args[0]).toBe("new partner");
-        const { default_product_id, default_float_field } = kwargs.context;
-        expect(default_product_id).toBe(3);
-        expect(default_float_field).toBe(2.5);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        context: { default_float_field: 2.5 },
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    // click on 'Create', fill the quick create and validate
-    await createKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "onchange", // quick create
-        "name_create", // should perform a name_create to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record in grouped on m2o (with quick_create_view)", async () => {
-    expect.assertions(6);
-
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-            <field name="state" widget="priority"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-    onRpc("web_save", ({ method, args, kwargs }) => {
-        expect(args[1]).toEqual({
-            foo: "new partner",
-            int_field: 4,
-            state: "def",
-        });
-        const { default_product_id, default_float_field } = kwargs.context;
-        expect(default_product_id).toBe(3);
-        expect(default_float_field).toBe(2.5);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        context: { default_float_field: 2.5 },
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    // click on 'Create', fill the quick create and validate
-    await createKanbanRecord();
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await animationFrame();
-    await editKanbanRecordQuickCreateInput("int_field", 4);
-    await animationFrame();
-    await contains(
-        ".o_kanban_quick_create .o_field_widget[name=state] .o_priority_star:first-child"
-    ).click();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "get_views", // form view in quick create
-        "onchange", // quick create
-        "web_save", // should perform a web_save to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test("quick create record in grouped on m2m (no quick_create_view)", async () => {
-    stepAllNetworkCalls();
-    onRpc("name_create", ({ args, kwargs }) => {
-        expect(args[0]).toBe("new partner");
-        expect(kwargs.context.default_category_ids).toEqual([6]);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["category_ids"],
-    });
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1);
-
-    // click on 'Create', fill the quick create and validate
-    await quickCreateKanbanRecord(1);
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await animationFrame();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "onchange", // quick create
-        "name_create", // should perform a name_create to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record in grouped on m2m in the None column", async () => {
-    stepAllNetworkCalls();
-    onRpc("name_create", ({ args, kwargs }) => {
-        expect(args[0]).toBe("new partner");
-        expect(kwargs.context.default_category_ids).toBe(false);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["category_ids"],
-    });
-
-    await contains(".o_kanban_group:nth-child(1)").click();
-
-    expect(".o_kanban_group:nth-child(1) .o_kanban_record").toHaveCount(2);
-
-    // click on 'Create', fill the quick create and validate
-    await quickCreateKanbanRecord(0);
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await animationFrame();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:nth-child(1) .o_kanban_record").toHaveCount(3);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "web_search_read", // read records when unfolding 'None'
-        "onchange", // quick create
-        "name_create", // should perform a name_create to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test("quick create record in grouped on m2m (field not in template)", async () => {
-    Partner._views["form,some_view_ref"] = `<form><field name="foo"/></form>`;
-
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ foo: "new partner" });
-        expect(kwargs.context.default_category_ids).toEqual([6]);
-        return [{ id: 5 }];
-    });
-    onRpc("web_read", ({ args }) => {
-        if (args[0][0] === 5) {
-            return [{ id: 5, foo: "new partner", category_ids: [6] }];
-        }
-    });
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["category_ids"],
-    });
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1);
-
-    // click on 'Create', fill the quick create and validate
-    await quickCreateKanbanRecord(1);
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "get_views", // get form view
-        "onchange", // quick create
-        "web_save", // should perform a web_save to create the record
-        "onchange", // reopen the quick create automatically
-        "web_read", // read the created record
-    ]);
-});
-
-test("quick create record in grouped on m2m (field in the form view)", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="category_ids" widget="many2many_tags"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-    onRpc("web_save", ({ method, args, kwargs }) => {
-        expect(args[1]).toEqual({
-            category_ids: [[4, 6]],
-            foo: "new partner",
-        });
-        expect(kwargs.context.default_category_ids).toEqual([6]);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["category_ids"],
-    });
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1);
-
-    // click on 'Create', fill the quick create and validate
-    await quickCreateKanbanRecord(1);
-
-    // verify that the quick create m2m field contains the column value
-    expect(".o_tag_badge_text").toHaveCount(1);
-    expect(".o_tag_badge_text").toHaveText("gold");
-
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "get_views", // get form view
-        "onchange", // quick create
-        "web_save", // should perform a web_save to create the record
-        "onchange",
-        "web_read",
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record validation: stays open when invalid", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group",
-        "has_group",
-    ]);
-
-    await createKanbanRecord();
-    expect.verifySteps(["onchange"]);
-
-    // do not fill anything and validate
-    await validateKanbanRecord();
-
-    expect.verifySteps([]);
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-    expect("[name=display_name]").toHaveClass("o_field_invalid");
-    expect(".o_notification_manager .o_notification").toHaveCount(1);
-    expect(".o_notification").toHaveText("Invalid Display Name");
-});
-
-test.tags("desktop");
-test("quick create record with default values and onchanges", async () => {
-    Partner._fields.int_field = fields.Integer({ default: 4 });
-    Partner._fields.foo = fields.Char({
-        onChange: (obj) => {
-            if (obj.foo) {
-                obj.int_field = 8;
-            }
-        },
-    });
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // click on 'Create' -> should open the quick create in the first column
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_field_widget[name=int_field] input").toHaveValue("4", {
-        message: "default value should be set",
-    });
-
-    // fill the 'foo' field -> should trigger the onchange
-    // await fieldInput("foo").edit("new partner");
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-
-    expect(".o_field_widget[name=int_field] input").toHaveValue("8", {
-        message: "onchange should have been triggered",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "get_views", // form view in quick create
-        "onchange", // quick create
-        "onchange", // onchange due to 'foo' field change
-    ]);
-});
-
-test("quick create record with quick_create_view: modifiers", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo" required="1"/>
-            <field name="int_field" invisible="not foo"/>
-        </form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // create a new record
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create .o_field_widget[name=foo]").toHaveClass("o_required_modifier");
-    expect(".o_kanban_quick_create .o_field_widget[name=int_field]").toHaveCount(0);
-
-    // fill 'foo' field
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await animationFrame();
-
-    expect(".o_kanban_quick_create .o_field_widget[name=int_field]").toHaveCount(1);
-});
-
-test("quick create record with onchange of field marked readonly", async () => {
-    Partner._fields.foo = fields.Char({
-        onChange: (obj) => {
-            obj.int_field = 8;
-        },
-    });
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field" readonly="true"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-    onRpc("web_save", ({ method, args }) => {
-        expect(args[1].int_field).toBe(undefined, {
-            message: "readonly field shouldn't be sent in create",
-        });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-    ]);
-
-    // click on 'Create' -> should open the quick create in the first column
-    await quickCreateKanbanRecord();
-    expect.verifySteps(["get_views", "onchange"]);
-
-    // fill the 'foo' field -> should trigger the onchange
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    expect.verifySteps(["onchange"]);
-
-    await validateKanbanRecord();
-    expect.verifySteps(["web_save", "onchange", "web_read"]);
-});
-
-test("quick create record and change state in grouped mode", async () => {
-    Partner._fields.kanban_state = fields.Selection({
-        selection: [
-            ["normal", "Grey"],
-            ["done", "Green"],
-            ["blocked", "Red"],
-        ],
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <div t-name="card">
-                        <field name="foo"/>
-                        <footer>
-                            <field name="kanban_state" widget="state_selection"/>
-                        </footer>
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    // Quick create kanban record
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "Test");
-    await validateKanbanRecord();
-
-    // Select state in kanban
-    await click(".o_status", { root: getKanbanRecord({ index: 0 }) });
-    await animationFrame();
-    await contains(".dropdown-item:nth-child(2)").click();
-
-    expect(".o_status:first").toHaveClass("o_status_green");
-});
-
-test("window resize should not change quick create form size", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create .o_form_view").toHaveClass("o_xxs_form_view");
-
-    await resize({ width: 800, height: 400 });
-
-    expect(".o_kanban_quick_create .o_form_view").toHaveClass("o_xxs_form_view");
-});
-
-test("quick create record: cancel and validate without using the buttons", async () => {
-    Partner._views["form,some_view_ref"] = `<form><field name="foo"/></form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban quick_create_view="some_view_ref" on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
-
-    // click to add an element and cancel the quick creation by pressing ESC
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-
-    await press("Escape");
-    await animationFrame();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    // click to add and element and click outside, should cancel the quick creation
-    await quickCreateKanbanRecord();
-    await contains(".o_kanban_group:first-child .o_kanban_record:last-of-type").click();
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    // click to input and drag the mouse outside, should not cancel the quick creation
-    await quickCreateKanbanRecord();
-    await (
-        await drag(".o_kanban_quick_create input")
-    ).drop(".o_kanban_group:first-child .o_kanban_record:last-of-type");
-    await animationFrame();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should not have been destroyed after clicking outside",
-    });
-
-    // click to really add an element
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-
-    // clicking outside should no longer destroy the quick create as it is dirty
-    await contains(".o_kanban_group:first-child .o_kanban_record:last-of-type").click();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should not have been destroyed",
-    });
-
-    // confirm by pressing ENTER
-    await press("Enter");
-    await animationFrame();
-
-    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(5);
-    expect(getKanbanRecordTexts(0)).toEqual(["new partner", "blip"]);
-});
-
-test("quick create record: validate with ENTER", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4);
-
-    // add an element and confirm by pressing ENTER
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_record").toHaveCount(5);
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("");
-});
-
-test("quick create record: prevent multiple adds with ENTER", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    const def = new Deferred();
-    onRpc("web_save", () => {
-        expect.step("web_save");
-        return def;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4);
-
-    // add an element and press ENTER twice
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await press("Enter");
-    await animationFrame();
-
-    expect(".o_kanban_record").toHaveCount(4);
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("new partner");
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    def.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_record").toHaveCount(5);
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("");
-    expect(".o_kanban_quick_create").not.toHaveClass("o_disabled");
-
-    expect.verifySteps(["web_save"]);
-});
-
-test("quick create record: prevent multiple adds with Add clicked", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    const def = new Deferred();
-    onRpc("web_save", () => {
-        expect.step("web_save");
-        return def;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4);
-
-    // add an element and click 'Add' twice
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await validateKanbanRecord();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_record").toHaveCount(4);
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("new partner");
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    def.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_record").toHaveCount(5);
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("");
-    expect(".o_kanban_quick_create").not.toHaveClass("o_disabled");
-
-    expect.verifySteps(["web_save"]);
-});
-
-test.tags("desktop");
-test("save a quick create record and create a new one simultaneously", async () => {
-    const def = new Deferred();
-
-    onRpc("name_create", () => {
-        expect.step("name_create");
-        return def;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4);
-
-    // Create and save a record
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await validateKanbanRecord();
-    expect(".o_kanban_record").toHaveCount(4);
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("new partner");
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    // Create a new record during the save of the first one
-    await createKanbanRecord();
-    expect(".o_kanban_record").toHaveCount(4);
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("new partner");
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    def.resolve();
-    await animationFrame();
-    expect(".o_kanban_record").toHaveCount(5);
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("");
-    expect(".o_kanban_quick_create").not.toHaveClass("o_disabled");
-    expect.verifySteps(["name_create"]);
-});
-
-test("quick create record: prevent multiple adds with ENTER, with onchange", async () => {
-    Partner._fields.foo = fields.Char({
-        onChange: (obj) => {
-            obj.int_field += obj.foo ? 3 : 0;
-        },
-    });
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    onRpc("onchange", () => {
-        expect.step("onchange");
-        if (shouldDelayOnchange) {
-            return def;
-        }
-    });
-    onRpc("web_save", ({ args }) => {
-        expect.step("web_save");
-        const values = args[1];
-        expect(values.foo).toBe("new partner");
-        expect(values.int_field).toBe(3);
-    });
-
-    let shouldDelayOnchange = false;
-    const def = new Deferred();
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4, {
-        message: "should have 4 records at the beginning",
-    });
-
-    // add an element and press ENTER twice
-    await quickCreateKanbanRecord();
-    shouldDelayOnchange = true;
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await press("Enter");
-    await animationFrame();
-    await press("Enter");
-    await animationFrame();
-
-    expect(".o_kanban_record").toHaveCount(4, {
-        message: "should not have created the record yet",
-    });
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("new partner", {
-        message: "quick create should not be empty yet",
-    });
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    def.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_record").toHaveCount(5, { message: "should have created a new record" });
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("", {
-        message: "quick create should now be empty",
-    });
-    expect(".o_kanban_quick_create").not.toHaveClass("o_disabled");
-
-    expect.verifySteps([
-        "onchange", // default_get
-        "onchange", // new partner
-        "web_save",
-        "onchange", // default_get
-    ]);
-});
-
-test("quick create record: click Add to create, with delayed onchange", async () => {
-    Partner._fields.foo = fields.Char({
-        onChange: (obj) => {
-            obj.int_field += obj.foo ? 3 : 0;
-        },
-    });
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="foo"/>
-            <field name="int_field"/>
-        </form>`;
-
-    onRpc("onchange", () => {
-        expect.step("onchange");
-        if (shouldDelayOnchange) {
-            return def;
-        }
-    });
-    onRpc("web_save", ({ args }) => {
-        expect.step("web_save");
-        expect(args[1]).toEqual({
-            foo: "new partner",
-            int_field: 3,
-        });
-    });
-
-    let shouldDelayOnchange = false;
-    const def = new Deferred();
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                        <field name="int_field"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_record").toHaveCount(4, {
-        message: "should have 4 records at the beginning",
-    });
-
-    // add an element and click 'add'
-    await quickCreateKanbanRecord();
-    shouldDelayOnchange = true;
-    await editKanbanRecordQuickCreateInput("foo", "new partner");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_record").toHaveCount(4, {
-        message: "should not have created the record yet",
-    });
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("new partner", {
-        message: "quick create should not be empty yet",
-    });
-    expect(".o_kanban_quick_create").toHaveClass("o_disabled");
-
-    def.resolve(); // the onchange returns
-
-    await animationFrame();
-    expect(".o_kanban_record").toHaveCount(5, { message: "should have created a new record" });
-    expect(".o_kanban_quick_create .o_field_widget[name=foo] input").toHaveValue("", {
-        message: "quick create should now be empty",
-    });
-    expect(".o_kanban_quick_create").not.toHaveClass("o_disabled");
-
-    expect.verifySteps([
-        "onchange", // default_get
-        "onchange", // new partner
-        "web_save",
-        "onchange", // default_get
-    ]);
-});
-
-test.tags("desktop");
-test("quick create when first column is folded", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child").not.toHaveClass("o_column_folded");
-    expect(".o_kanban_group:nth-child(2)").not.toHaveClass("o_column_folded");
-
-    // fold the first column
-    let clickColumnAction = await toggleKanbanColumnActions(0);
-    await clickColumnAction("Fold");
-
-    expect(".o_kanban_group:first-child").toHaveClass("o_column_folded");
-    expect(".o_kanban_group:nth-child(2)").not.toHaveClass("o_column_folded");
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    // click on 'Create' to open the quick create in the first non-folded column (second column)
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child").toHaveClass("o_column_folded");
-    expect(".o_kanban_group:nth-child(2)").not.toHaveClass("o_column_folded");
-
-    expect(".o_kanban_group:nth-child(2) .o_kanban_quick_create").toHaveCount(1);
-
-    // fold again the second column
-    clickColumnAction = await toggleKanbanColumnActions(1);
-    await clickColumnAction("Fold");
-
-    expect(".o_kanban_group:first-child").toHaveClass("o_column_folded");
-    expect(".o_kanban_group:nth-child(2)").toHaveClass("o_column_folded");
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    // click on 'Create' to open the quick create in the first column since all columns are folded
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child").not.toHaveClass("o_column_folded");
-    expect(".o_kanban_group:nth-child(2)").toHaveClass("o_column_folded");
-
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-});
-
-test("quick create record: cancel when not dirty", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should contain one record",
-    });
-
-    // click to add an element
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    // click again to add an element -> should have kept the quick create open
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have kept the quick create open",
-    });
-
-    // click outside: should remove the quick create
-    await contains(".o_kanban_group:first-child .o_kanban_record:last-of-type").click();
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "the quick create should not have been destroyed",
-    });
-
-    // click to reopen the quick create
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    // press ESC: should remove the quick create
-    await press("Escape");
-    await animationFrame();
-
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "quick create widget should have been removed",
-    });
-
-    // click to reopen the quick create
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    // click on 'Discard': should remove the quick create
-    await quickCreateKanbanRecord();
-    await discardKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "the quick create should be destroyed when the user clicks outside",
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should still contain one record",
-    });
-
-    // click to reopen the quick create
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    // clicking on the quick create itself should keep it open
-    await contains(".o_kanban_quick_create").click();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should not have been destroyed when clicked on itself",
-    });
-});
-
-test.tags("desktop");
-test("quick create record: cancel when modal is opened", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="product_id"/>
-            <field name="foo"/>
-        </form>
-    `;
-    Product._views.form = '<form><field name="name"/></form>';
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        groupBy: ["bar"],
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    // click to add an element
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1);
-
-    await press("t");
-    await press("e");
-    await press("s");
-    await press("t");
-    await runAllTimers();
-    await click(".o_m2o_dropdown_option_create_edit"); // open create and edit dialog
-    await animationFrame();
-
-    // When focusing out of the many2one, a modal to add a 'product' will appear.
-    // The following assertions ensures that a click on the body element that has 'modal-open'
-    // will NOT close the quick create.
-    // This can happen when the user clicks out of the input because of a race condition between
-    // the focusout of the m2o and the global 'click' handler of the quick create.
-    // Check odoo/odoo#61981 for more details.
-    expect(".o_dialog").toHaveCount(1, { message: "modal should be opening after m2o focusout" });
-    expect(document.body).toHaveClass("modal-open");
-    await click(document.body);
-    await animationFrame();
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "quick create should stay open while modal is opening",
-    });
-});
-
-test("quick create record: cancel when dirty", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should contain one record",
-    });
-
-    // click to add an element and edit it
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    await editKanbanRecordQuickCreateInput("display_name", "some value");
-
-    // click outside: should not remove the quick create
-    await contains(".o_kanban_group:first-child .o_kanban_record").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should not have been destroyed",
-    });
-
-    // press ESC: should remove the quick create
-    await press("Escape");
-    await animationFrame();
-
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "quick create widget should have been removed",
-    });
-
-    // click to reopen quick create and edit it
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "should have open the quick create widget",
-    });
-
-    await editKanbanRecordQuickCreateInput("display_name", "some value");
-
-    // click on 'Discard': should remove the quick create
-    await discardKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "the quick create should be destroyed when the user discard quick creation",
-    });
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should still contain one record",
-    });
-});
-
-test("quick create record and edit in grouped mode", async () => {
-    expect.assertions(4);
-
-    onRpc("web_read", ({ args }) => {
-        newRecordID = args[0][0];
-    });
-
-    let newRecordID;
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        selectRecord: (resId) => {
-            expect(resId).toBe(newRecordID);
-        },
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should contain one record",
-    });
-
-    // click to add and edit a record
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await editKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column should now contain two records",
-    });
-    expect(queryAllTexts(".o_kanban_group:first-child .o_kanban_record")).toEqual([
-        "new partner",
-        "blip",
-    ]);
-});
-
-test.tags("desktop");
-test("quick create several records in a row", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should contain one record",
-    });
-
-    // click to add an element, fill the input and press ENTER
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1, { message: "the quick create should be open" });
-
-    await editKanbanRecordQuickCreateInput("display_name", "new partner 1");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column should now contain two records",
-    });
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should still be open",
-    });
-
-    // create a second element in a row
-    await createKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new partner 2");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3, {
-        message: "first column should now contain three records",
-    });
-    expect(".o_kanban_quick_create").toHaveCount(1, {
-        message: "the quick create should still be open",
-    });
-});
-
-test("quick create is re-enabled directly after the validation", async () => {
-    let webSaveDef;
-    let webReadDef;
-    onRpc("web_save", () => webSaveDef);
-    onRpc("web_read", () => webReadDef);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should contain one record",
-    });
-
-    // click to add a record, and add two in a row (first one will be delayed)
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1, { message: "the quick create should be open" });
-
-    await editKanbanRecordQuickCreateInput("display_name", "new partner 1");
-    webSaveDef = new Deferred();
-    webReadDef = new Deferred();
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should still contain one record",
-    });
-    expect(".o_kanban_quick_create.o_disabled").toHaveCount(0, {
-        message: "quick create should be enabled",
-    });
-
-    webSaveDef.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column should still contain one record",
-    });
-    expect(".o_kanban_quick_create.o_disabled").toHaveCount(0, {
-        message: "quick create should be enabled",
-    });
-
-    webReadDef.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column should now contain two records",
-    });
-    expect(".o_kanban_quick_create.o_disabled").toHaveCount(0, {
-        message: "quick create should be enabled",
-    });
-});
-
-test.tags("desktop");
 test("kanban grouped by stage_id: move record from to the None column", async () => {
     // Fake model: partner.stage (only for group headers)
     const Stage = class extends models.Model {
@@ -3566,735 +1758,6 @@ test("kanban grouped by stage_id: move record from to the None column", async ()
     expect(queryAllTexts(".o_kanban_record", { root: getKanbanColumn(0) })[1]).toBe("Task B");
 });
 
-test.tags("desktop");
-test("quick create record fail in grouped by many2one", async () => {
-    Partner._views["form"] = `
-        <form>
-            <field name="product_id"/>
-            <field name="foo"/>
-        </form>`;
-
-    onRpc("name_create", () => {
-        throw makeServerError({ message: "This is a user error" });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-
-    await createKanbanRecord();
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-
-    await editKanbanRecordQuickCreateInput("display_name", "test");
-    await validateKanbanRecord();
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(1);
-    expect(".modal .o_field_many2one input:first").toHaveValue("hello");
-
-    // specify a name and save
-    await contains(".modal .o_field_widget[name=foo] input").edit("test");
-    await contains(".modal .o_form_button_save").click();
-    expect(".modal").toHaveCount(0);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(3);
-    expect(".o_kanban_group .o_kanban_record:first").toHaveText("test");
-    expect(".o_kanban_quick_create:not(.o_disabled)").toHaveCount(1);
-});
-
-test("quick create record and click Edit, name_create fails", async () => {
-    Partner._views["kanban"] = `
-        <kanban sample="1">
-            <templates>
-                <t t-name="card">
-                    <field name="foo"/>
-                </t>
-            </templates>
-        </kanban>`;
-    Partner._views["list"] = '<list><field name="foo"/></list>';
-    Partner._views["form"] = `
-        <form>
-            <field name="product_id"/>
-            <field name="foo"/>
-        </form>`;
-
-    onRpc("name_create", () => {
-        throw makeServerError({ message: "This is a user error" });
-    });
-
-    await mountWithCleanup(WebClient);
-    await getService("action").doAction({
-        res_model: "partner",
-        type: "ir.actions.act_window",
-        views: [
-            [false, "kanban"],
-            [false, "form"],
-        ],
-        context: {
-            group_by: ["product_id"],
-        },
-    });
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-
-    await quickCreateKanbanRecord(0);
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-
-    await editKanbanRecordQuickCreateInput("display_name", "test");
-    await editKanbanRecord();
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(1);
-    expect(".modal .o_field_many2one input:first").toHaveValue("hello");
-
-    // specify a name and save
-    await contains(".modal .o_field_widget[name=foo] input").edit("test");
-    await contains(".modal .o_form_button_save").click();
-    expect(".modal").toHaveCount(0);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(3);
-    expect(".o_kanban_group .o_kanban_record:first").toHaveText("test");
-    expect(".o_kanban_quick_create:not(.o_disabled)").toHaveCount(1);
-});
-
-test.tags("desktop");
-test("quick create record is re-enabled after discard on failure", async () => {
-    Partner._views["form"] = `
-        <form>
-            <field name="product_id"/>
-            <field name="foo"/>
-        </form>`;
-
-    onRpc("name_create", () => {
-        throw makeServerError({ message: "This is a user error" });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-
-    await createKanbanRecord();
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-
-    await editKanbanRecordQuickCreateInput("display_name", "test");
-    await validateKanbanRecord();
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(1);
-
-    await contains(".modal .o_form_button_cancel").click();
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(0);
-    expect(".o_kanban_group:first .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-});
-
-test("quick create record fails in grouped by char", async () => {
-    expect.assertions(7);
-
-    Partner._views["form"] = '<form><field name="foo"/></form>';
-
-    onRpc("name_create", () => {
-        throw makeServerError({ message: "This is a user error" });
-    });
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ foo: "blip" });
-        expect(kwargs.context).toEqual({
-            allowed_company_ids: [1],
-            default_foo: "blip",
-            default_name: "test",
-            lang: "en",
-            tz: "taht",
-            uid: 7,
-        });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        groupBy: ["foo"],
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "test");
-    await validateKanbanRecord();
-
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(1);
-    expect(".modal .o_field_widget[name=foo] input").toHaveValue("blip");
-    await contains(".modal .o_form_button_save").click();
-
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(0);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(3);
-});
-
-test("quick create record fails in grouped by selection", async () => {
-    expect.assertions(7);
-
-    Partner._views["form"] = '<form><field name="state"/></form>';
-
-    onRpc("name_create", () => {
-        throw makeServerError({ message: "This is a user error" });
-    });
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ state: "abc" });
-        expect(kwargs.context).toEqual({
-            allowed_company_ids: [1],
-            default_state: "abc",
-            default_name: "test",
-            lang: "en",
-            tz: "taht",
-            uid: 7,
-        });
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        groupBy: ["state"],
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="state"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(1);
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "test");
-    await validateKanbanRecord();
-
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(1);
-    expect(".modal .o_field_widget[name=state] input").toHaveValue("ABC");
-
-    await contains(".modal .o_form_button_save").click();
-
-    expect(".modal .o_form_view .o_form_editable").toHaveCount(0);
-    expect(".o_kanban_group:first .o_kanban_record").toHaveCount(2);
-});
-
-test.tags("desktop");
-test("quick create record in empty grouped kanban", async () => {
-    onRpc("web_read_group", () =>
-        // override web_read_group to return empty groups, as this is
-        // the case for several models (e.g. project.task grouped
-        // by stage_id)
-        ({
-            groups: [
-                {
-                    __extra_domain: [["product_id", "=", 3]],
-                    __count: 0,
-                    product_id: [3, "xplone"],
-                },
-                {
-                    __extra_domain: [["product_id", "=", 5]],
-                    __count: 0,
-                    product_id: [5, "xplan"],
-                },
-            ],
-            length: 2,
-        })
-    );
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group").toHaveCount(2, { message: "there should be 2 columns" });
-    expect(".o_kanban_record").toHaveCount(0, { message: "both columns should be empty" });
-
-    await createKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1, {
-        message: "should have opened the quick create in the first column",
-    });
-});
-
-test.tags("desktop");
-test("quick create record in grouped on date(time) field", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="group_by_datetime" domain="[]" string="GroupBy Datetime" context="{ 'group_by': 'datetime' }"/>
-            </search>`,
-        groupBy: ["date"],
-        createRecord: () => {
-            expect.step("createKanbanRecord");
-        },
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(0, {
-        message: "quick create should be disabled when grouped on a date field",
-    });
-
-    // clicking on CREATE in control panel should not open a quick create
-    await createKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "should not have opened the quick create widget",
-    });
-
-    await toggleSearchBarMenu();
-    await toggleMenuItem("GroupBy Datetime");
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(0, {
-        message: "quick create should be disabled when grouped on a datetime field",
-    });
-
-    // clicking on CREATE in control panel should not open a quick create
-    await createKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(0, {
-        message: "should not have opened the quick create widget",
-    });
-
-    expect.verifySteps(["createKanbanRecord", "createKanbanRecord"]);
-});
-
-test("quick create record feature is properly enabled/disabled at reload", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="group_by_date" domain="[]" string="GroupBy Date" context="{ 'group_by': 'date' }"/>
-                <filter name="group_by_bar" domain="[]" string="GroupBy Bar" context="{ 'group_by': 'bar' }"/>
-            </search>`,
-        groupBy: ["foo"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(3, {
-        message: "quick create should be enabled when grouped on a char field",
-    });
-
-    await toggleSearchBarMenu();
-    await toggleMenuItem("GroupBy Date");
-    await toggleMenuItemOption("GroupBy Date", "Month");
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(0, {
-        message: "quick create should now be disabled (grouped on date field)",
-    });
-
-    await toggleMenuItemOption("GroupBy Date", "Month");
-    await toggleMenuItem("GroupBy Bar");
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(2, {
-        message: "quick create should be enabled again (grouped on boolean field)",
-    });
-});
-
-test("quick create record in grouped by char field", async () => {
-    expect.assertions(4);
-
-    onRpc("name_create", ({ kwargs }) => {
-        expect(kwargs.context.default_foo).toBe("blip");
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(3);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3);
-});
-
-test("quick create record in grouped by boolean field", async () => {
-    expect.assertions(4);
-
-    onRpc("name_create", ({ kwargs }) => {
-        expect(kwargs.context.default_bar).toBe(true);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(2);
-    expect(".o_kanban_group:last-child .o_kanban_record").toHaveCount(3);
-
-    await quickCreateKanbanRecord(1);
-    await editKanbanRecordQuickCreateInput("display_name", "new record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:last-child .o_kanban_record").toHaveCount(4);
-});
-
-test("quick create record in grouped on selection field", async () => {
-    expect.assertions(4);
-
-    onRpc("name_create", ({ kwargs }) => {
-        expect(kwargs.context.default_state).toBe("abc");
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="display_name"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["state"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(3, {
-        message: "quick create should be enabled when grouped on a selection field",
-    });
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column (abc) should contain 1 record",
-    });
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column (abc) should contain 2 records",
-    });
-});
-
-test("quick create record in grouped by char field (within quick_create_view)", async () => {
-    expect.assertions(6);
-
-    Partner._views["form,some_view_ref"] = `<form><field name="foo"/></form>`;
-
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ foo: "blip" });
-        expect(kwargs.context.default_foo).toBe("blip");
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(3);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create input:first").toHaveValue("blip", {
-        message: "should have set the correct foo value by default",
-    });
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3);
-});
-
-test("quick create record in grouped by boolean field (within quick_create_view)", async () => {
-    expect.assertions(6);
-
-    Partner._views["form,some_view_ref"] = `<form><field name="bar"/></form>`;
-
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ bar: true });
-        expect(kwargs.context.default_bar).toBe(true);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="bar"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(2, {
-        message: "quick create should be enabled when grouped on a boolean field",
-    });
-    expect(".o_kanban_group:last-child .o_kanban_record").toHaveCount(3);
-
-    await quickCreateKanbanRecord(1);
-    expect(".o_kanban_quick_create .o_field_boolean input").toBeChecked();
-
-    await contains(".o_kanban_quick_create .o_kanban_add").click();
-    await animationFrame();
-    expect(".o_kanban_group:last-child .o_kanban_record").toHaveCount(4);
-});
-
-test("quick create record in grouped by selection field (within quick_create_view)", async () => {
-    expect.assertions(6);
-
-    Partner._views["form,some_view_ref"] = `<form><field name="state"/></form>`;
-
-    onRpc("web_save", ({ args, kwargs }) => {
-        expect(args[1]).toEqual({ state: "abc" });
-        expect(kwargs.context.default_state).toBe("abc");
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="state"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["state"],
-    });
-
-    expect(".o_kanban_header .o_kanban_quick_add i").toHaveCount(3, {
-        message: "quick create should be enabled when grouped on a selection field",
-    });
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(1, {
-        message: "first column (abc) should contain 1 record",
-    });
-
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create input").toHaveValue("ABC", {
-        message: "should have set the correct state value by default",
-    });
-
-    await contains(".o_kanban_quick_create .o_kanban_add").click();
-    await animationFrame();
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column (abc) should now contain 2 records",
-    });
-});
-
-test.tags("desktop");
-test("quick create record while adding a new column", async () => {
-    const def = new Deferred();
-    onRpc("product", "name_create", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-
-    // add a new column
-    expect(".o_column_quick_create.o_quick_create_folded").toHaveCount(1);
-
-    await quickCreateKanbanColumn();
-
-    expect(".o_column_quick_create.o_quick_create_unfolded").toHaveCount(1);
-
-    await editKanbanColumnName("new column");
-    await validateKanbanColumn();
-
-    await animationFrame();
-
-    expect(".o_column_quick_create input:first").toHaveValue("");
-    expect(".o_kanban_group").toHaveCount(2);
-
-    // click to add a new record
-    await createKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-
-    // unlock column creation
-    def.resolve();
-    await animationFrame();
-
-    expect(".o_kanban_group").toHaveCount(3);
-    expect(".o_kanban_quick_create").toHaveCount(1);
-
-    // quick create record in first column
-    await editKanbanRecordQuickCreateInput("display_name", "new record");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3);
-});
-
-test.tags("desktop");
-test("close a column while quick creating a record", async () => {
-    Partner._views["form,some_view_ref"] = '<form><field name="int_field"/></form>';
-
-    let def;
-    onRpc("get_views", () => {
-        if (def) {
-            expect.step("get_views");
-            return def;
-        }
-    });
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    def = new Deferred();
-
-    expect.verifySteps([]);
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_column_folded").toHaveCount(0);
-
-    // click to quick create a new record in the first column (this operation is delayed)
-    await quickCreateKanbanRecord();
-
-    expect.verifySteps(["get_views"]);
-    expect(".o_form_view").toHaveCount(0);
-
-    // click to fold the first column
-    const clickColumnAction = await toggleKanbanColumnActions(0);
-    await clickColumnAction("Fold");
-
-    expect(".o_column_folded").toHaveCount(1);
-
-    def.resolve();
-    await animationFrame();
-
-    expect.verifySteps([]);
-    expect(".o_form_view").toHaveCount(0);
-    expect(".o_column_folded").toHaveCount(1);
-
-    await createKanbanRecord();
-
-    expect.verifySteps([]); // "get_views" should have already be done
-    expect(".o_form_view").toHaveCount(1);
-    expect(".o_column_folded").toHaveCount(1);
-});
-
-test("quick create record: open on a column while another column has already one", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    // Click on quick create in first column
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(0) })).toHaveCount(1);
-
-    // Click on quick create in second column
-    await quickCreateKanbanRecord(1);
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(2) })).toHaveCount(1);
-
-    // Click on quick create in first column once again
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(0) })).toHaveCount(1);
-});
-
 test("many2many_tags in kanban views", async () => {
     Partner._records[0].category_ids = [6, 7];
     Partner._records[1].category_ids = [7, 8];
@@ -4313,7 +1776,7 @@ test("many2many_tags in kanban views", async () => {
             <kanban>
                 <templates>
                     <t t-name="card">
-                        <field name="category_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <field name="category_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                         <field name="foo"/>
                         <field name="state" widget="priority"/>
                     </t>
@@ -4613,7 +2076,7 @@ test("can drag and drop a record from one column to the next", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -4722,7 +2185,7 @@ test("drag and drop highlight on hover and has visible placeholder", async () =>
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -4755,7 +2218,7 @@ test("drag and drop outside of a column", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
+            <kanban default_group_by="product_id">
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -4786,7 +2249,7 @@ test("drag and drop a record, grouped by selection", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="state"/>
@@ -5085,47 +2548,6 @@ test("prevent drag and drop if grouped by many2many field", async () => {
     expect(".o_kanban_group:last-child .o_kanban_record").toHaveCount(3, {
         message: "last column should contain 3 records",
     });
-});
-
-test("Ensuring each progress bar has some space", async () => {
-    Partner._records = [
-        {
-            id: 1,
-            foo: "blip",
-            state: "def",
-        },
-        {
-            id: 2,
-            foo: "blip",
-            state: "abc",
-        },
-    ];
-
-    for (let i = 0; i < 20; i++) {
-        Partner._records.push({
-            id: 3 + i,
-            foo: "blip",
-            state: "ghi",
-        });
-    }
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <div t-name="card">
-                        <field name="state" widget="state_selection" />
-                        <field name="foo" />
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    expect(getKanbanProgressBars(0).map((pb) => pb.style.width)).toEqual(["5%", "5%", "90%"]);
 });
 
 test("completely prevent drag and drop if records_draggable set to false", async () => {
@@ -5586,7 +3008,7 @@ test("create a column in grouped on m2o without sequence field on view model", a
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
+            <kanban default_group_by="product_id">
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -5625,7 +3047,7 @@ test("delete a column in grouped on m2o", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban default_group_by="product_id" class="o_kanban_test" on_create="quick_create">
+            <kanban default_group_by="product_id" class="o_kanban_test">
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -5763,7 +3185,7 @@ test("create a column, delete it and create another one", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
+            <kanban default_group_by="product_id">
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -5821,7 +3243,7 @@ test("delete an empty column, then a column with records.", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -5871,7 +3293,7 @@ test("edit a column in grouped on m2o", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -5950,7 +3372,7 @@ test("edit a column propagates right context", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -6120,16 +3542,20 @@ test("empty stages kanban examples", async () => {
             </kanban>`,
     });
 
-    expect(".o_kanban_stages_nocontent").toHaveCount(1, {
+    expect(".o_kanban_group_nocontent").toHaveCount(1, {
         message: "should show the empty stages kanban helper",
     });
 
-    expect(".o_kanban_stages_nocontent .o_kanban_examples").toHaveCount(1, {
+    expect(".o_kanban_group_nocontent").toHaveText(
+        "No product yet, let's create some!\n\nLack of inspiration? See examples"
+    );
+
+    expect(".o_kanban_group_nocontent .o_kanban_examples").toHaveCount(1, {
         message: "should have a link to see examples",
     });
 
     // click to see the examples
-    await contains(".o_kanban_stages_nocontent .o_kanban_examples").click();
+    await contains(".o_kanban_group_nocontent .o_kanban_examples").click();
 
     expect(".modal .o_kanban_examples_dialog").toHaveCount(1, {
         message: "should have open the examples dialog",
@@ -6272,7 +3698,7 @@ test("empty stages kanban examples: with folded columns", async () => {
     });
 
     // click to see the examples
-    await contains(".o_kanban_stages_nocontent .o_kanban_examples").click();
+    await contains(".o_kanban_group_nocontent .o_kanban_examples").click();
 
     // apply the examples
     expect.verifySteps([]);
@@ -6324,7 +3750,7 @@ test("empty stages kanban examples: apply button's display text", async () => {
     });
 
     // click to see the examples
-    await contains(".o_kanban_stages_nocontent .o_kanban_examples").click();
+    await contains(".o_kanban_group_nocontent .o_kanban_examples").click();
 
     expect(".modal footer.modal-footer button.btn-primary").toHaveText(applyExamplesText, {
         message: "the primary button should display the value of applyExamplesText",
@@ -6399,7 +3825,7 @@ test("ungrouped kanban view can be grouped, then ungrouped", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -6508,7 +3934,7 @@ test("stages nocontent helper for grouped kanban with no records", async () => {
 
     expect(".o_kanban_group").toHaveCount(0, { message: "there should be no columns" });
     expect(".o_kanban_record").toHaveCount(0, { message: "there should be no records" });
-    expect(".o_view_nocontent.o_kanban_stages_nocontent").toHaveCount(1);
+    expect(".o_view_nocontent.o_kanban_group_nocontent").toHaveCount(1);
     expect(".o_column_quick_create").toHaveCount(1);
 });
 
@@ -6529,7 +3955,7 @@ test("basic nocontent helper is shown when no longer creating column", async () 
         noContentHelp: "No content helper",
     });
 
-    expect(".o_view_nocontent.o_kanban_stages_nocontent").toHaveCount(1, {
+    expect(".o_view_nocontent.o_kanban_group_nocontent").toHaveCount(1, {
         message: "there should be no nocontent helper (we are in 'column creation mode')",
     });
 
@@ -6545,7 +3971,7 @@ test("basic nocontent helper is shown when no longer creating column", async () 
     await press("Escape");
     await animationFrame();
 
-    expect(".o_view_nocontent:not(.o_kanban_stages_nocontent)").toHaveCount(1);
+    expect(".o_view_nocontent:not(.o_kanban_group_nocontent)").toHaveCount(1);
 });
 
 test("no nocontent helper is hidden when quick creating a column", async () => {
@@ -6582,126 +4008,6 @@ test("no nocontent helper is hidden when quick creating a column", async () => {
 
     expect(".o_view_nocontent").toHaveCount(0, {
         message: "there should be no nocontent helper (we are in 'column creation mode')",
-    });
-});
-
-test("remove nocontent helper after adding a record", async () => {
-    Partner._records = [];
-
-    onRpc("web_read_group", () => ({
-        groups: [
-            {
-                __extra_domain: [["product_id", "=", 3]],
-                __count: 0,
-                product_id: [3, "hello"],
-                __records: [],
-            },
-        ],
-        length: 1,
-    }));
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-
-    expect(".o_view_nocontent").toHaveCount(1, { message: "there should be a nocontent helper" });
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "twilight sparkle");
-    await validateKanbanRecord();
-
-    expect(".o_view_nocontent").toHaveCount(0, {
-        message: "there should be no nocontent helper (there is now one record)",
-    });
-});
-
-test("remove nocontent helper when adding a record", async () => {
-    Partner._records = [];
-
-    onRpc("web_read_group", () => ({
-        groups: [
-            {
-                __extra_domain: [["product_id", "=", 3]],
-                __count: 0,
-                product_id: [3, "hello"],
-                __records: [],
-            },
-        ],
-        length: 1,
-    }));
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-
-    expect(".o_view_nocontent").toHaveCount(1, { message: "there should be a nocontent helper" });
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "twilight sparkle");
-
-    expect(".o_view_nocontent").toHaveCount(0, {
-        message: "there should be no nocontent helper (there is now one record)",
-    });
-});
-
-test("nocontent helper is displayed again after canceling quick create", async () => {
-    Partner._records = [];
-
-    onRpc("web_read_group", () => ({
-        groups: [
-            {
-                __extra_domain: [["product_id", "=", 3]],
-                __count: 0,
-                product_id: [3, "hello"],
-                __records: [],
-            },
-        ],
-        length: 1,
-    }));
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-
-    await quickCreateKanbanRecord();
-    await press("Escape");
-    await animationFrame();
-
-    expect(".o_view_nocontent").toHaveCount(1, {
-        message: "there should be again a nocontent helper",
     });
 });
 
@@ -6773,7 +4079,7 @@ test("empty grouped kanban with sample data and no columns", async () => {
         noContentHelp: "No content helper",
     });
 
-    expect(".o_kanban_stages_nocontent").toHaveCount(1);
+    expect(".o_kanban_group_nocontent").toHaveCount(1);
     expect(".o_quick_create_unfolded").toHaveCount(1);
 });
 
@@ -6801,7 +4107,6 @@ test("empty kanban with sample data grouped by date range (fill temporal)", asyn
     await mountView({
         arch: `
             <kanban sample="1">
-                <progressbar field="state" sum_field="int_field" help="progress" colors="{}"/>
                 <templates>
                     <div t-name="card">
                         <field name="foo"/>
@@ -6819,146 +4124,6 @@ test("empty kanban with sample data grouped by date range (fill temporal)", asyn
     expect(".o_kanban_group .o_column_title").toHaveText("December 2022");
     expect(".o_kanban_group").toHaveCount(1);
     expect(".o_kanban_group .o_kanban_record").toHaveCount(16);
-});
-
-test("empty grouped kanban with sample data and click quick create", async () => {
-    onRpc("web_read_group", function ({ kwargs, parent }) {
-        // override web_read_group to return empty groups, as this is
-        // the case for several models (e.g. project.task grouped
-        // by stage_id)
-        const result = parent();
-        result.groups.forEach((group) => {
-            group.__count = 0;
-        });
-        return result;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban sample="1">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-
-    expect(".o_kanban_group").toHaveCount(2, { message: "there should be two columns" });
-    expect(".o_content").toHaveClass("o_view_sample_data");
-    expect(".o_view_nocontent").toHaveCount(1);
-    expect(".o_kanban_record").toHaveCount(16, {
-        message: "there should be 8 sample records by column",
-    });
-    expect(queryAllTexts(".o_column_title")).toEqual(["hello", "xmo"]);
-
-    await quickCreateKanbanRecord();
-    expect(".o_content").not.toHaveClass("o_view_sample_data");
-    expect(".o_kanban_record").toHaveCount(0);
-    expect(".o_view_nocontent").toHaveCount(0);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["hello\n(0)", "xmo\n(0)"]);
-
-    await editKanbanRecordQuickCreateInput("display_name", "twilight sparkle");
-    await validateKanbanRecord();
-
-    expect(".o_content").not.toHaveClass("o_view_sample_data");
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(".o_view_nocontent").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["hello\n(1)", "xmo\n(0)"]);
-});
-
-test.tags("desktop");
-test("quick create record in grouped kanban with sample data", async () => {
-    onRpc("web_read_group", function ({ kwargs, parent }) {
-        // override web_read_group to return empty groups, as this is
-        // the case for several models (e.g. project.task grouped
-        // by stage_id)
-        const result = parent();
-        result.groups.forEach((group) => {
-            group.__count = 0;
-        });
-        return result;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban sample="1" on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-
-    expect(".o_kanban_group").toHaveCount(2, { message: "there should be two columns" });
-    expect(".o_content").toHaveClass("o_view_sample_data");
-    expect(".o_view_nocontent").toHaveCount(1);
-    expect(".o_kanban_record").toHaveCount(16, {
-        message: "there should be 8 sample records by column",
-    });
-
-    await createKanbanRecord();
-    expect(".o_content").not.toHaveClass("o_view_sample_data");
-    expect(".o_kanban_record").toHaveCount(0);
-    expect(".o_kanban_load_more").toHaveCount(0);
-    expect(".o_view_nocontent").toHaveCount(0);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(0) })).toHaveCount(1);
-});
-
-test("empty grouped kanban with sample data and cancel quick create", async () => {
-    onRpc("web_read_group", function ({ kwargs, parent }) {
-        // override web_read_group to return empty groups, as this is
-        // the case for several models (e.g. project.task grouped
-        // by stage_id)
-        const result = parent();
-        result.groups.forEach((group) => {
-            group.__count = 0;
-        });
-        return result;
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban sample="1">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        noContentHelp: "No content helper",
-    });
-    expect(".o_kanban_group").toHaveCount(2, { message: "there should be two columns" });
-    expect(".o_content").toHaveClass("o_view_sample_data");
-    expect(".o_view_nocontent").toHaveCount(1);
-    expect(".o_kanban_record").toHaveCount(16, {
-        message: "there should be 8 sample records by column",
-    });
-
-    await quickCreateKanbanRecord();
-    expect(".o_content").not.toHaveClass("o_view_sample_data");
-    expect(".o_kanban_record").toHaveCount(0);
-    expect(".o_view_nocontent").toHaveCount(0);
-    expect(queryAll(".o_kanban_quick_create", { root: getKanbanColumn(0) })).toHaveCount(1);
-
-    await contains(".o_kanban_view").click();
-    expect(".o_content").not.toHaveClass("o_view_sample_data");
-    expect(".o_kanban_quick_create").toHaveCount(0);
-    expect(".o_kanban_record").toHaveCount(0);
-    expect(".o_view_nocontent").toHaveCount(1);
 });
 
 test.tags("desktop");
@@ -8533,1153 +5698,6 @@ test("kanban card: record value should be updated", async () => {
     expect(queryText(".foo", { root: getKanbanRecord({ index: 0 }) })).toBe("yolo");
 });
 
-test("column progressbars properly work", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_counter").toHaveCount(2, {
-        message: "kanban counters should have been created",
-    });
-
-    expect(getKanbanCounters()).toEqual(["-4", "36"], {
-        message: "counter should display the sum of int_field values",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-    ]);
-});
-
-test("filter on progressbar in new groups", async () => {
-    Partner._views["form,some_view_ref"] = `<form><field name="foo"/></form>`;
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="product_id" on_create="quick_create" quick_create_view="some_view_ref">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-
-    await quickCreateKanbanColumn();
-    await editKanbanColumnName("new column 1");
-    await validateKanbanColumn();
-    await editKanbanColumnName("new column 2");
-    await validateKanbanColumn();
-    expect(".o_kanban_group").toHaveCount(4);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(2) })).toHaveCount(0);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(3) })).toHaveCount(0);
-
-    await quickCreateKanbanRecord(2);
-    await contains(".o_field_widget[name=foo] input").edit("new record 1");
-    await quickCreateKanbanRecord(3);
-    await contains(".o_field_widget[name=foo] input").edit("new record 2");
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(2) })).toHaveCount(1);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(3) })).toHaveCount(1);
-
-    expect(".o_kanban_group_show_200").toHaveCount(0);
-
-    await contains(".o_column_progress .progress-bar", { root: getKanbanColumn(2) }).click();
-    expect(".o_kanban_group_show_200").toHaveCount(1);
-    expect(getKanbanColumn(2)).toHaveClass("o_kanban_group_show_200");
-});
-
-test('column progressbars: "false" bar is clickable', async () => {
-    Partner._records.push({
-        id: 5,
-        bar: true,
-        foo: false,
-        product_id: 5,
-        state: "ghi",
-    });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(getKanbanCounters()).toEqual(["1", "4"]);
-    expect(".o_kanban_group:last-child .o_column_progress .progress-bar").toHaveCount(4);
-    expect(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200").toHaveCount(1, {
-        message: "should have false kanban color",
-    });
-    expect(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200:first").toHaveClass(
-        "bg-200"
-    );
-
-    await contains(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200").click();
-
-    expect(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200:first").toHaveClass(
-        "progress-bar-animated"
-    );
-    expect(".o_kanban_group:last-child").toHaveClass("o_kanban_group_show_200");
-    expect(getKanbanCounters()).toEqual(["1", "1"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-    ]);
-});
-
-test('column progressbars: "false" bar with sum_field', async () => {
-    Partner._records.push({
-        id: 5,
-        bar: true,
-        foo: false,
-        int_field: 15,
-        product_id: 5,
-        state: "ghi",
-    });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(getKanbanCounters()).toEqual(["-4", "51"]);
-
-    await contains(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200").click();
-
-    expect(".o_kanban_group:last-child .o_column_progress .progress-bar.bg-200:first").toHaveClass(
-        "progress-bar-animated"
-    );
-    expect(getKanbanCounters()).toEqual(["-4", "15"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "formatted_read_group",
-        "web_search_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-    ]);
-});
-
-test("column progressbars should not crash in non grouped views", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(getKanbanRecordTexts()).toEqual(["yop", "blip", "gnap", "blip"]);
-    // no read on progress bar data is done
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_search_read",
-        "has_group",
-    ]);
-});
-
-test("column progressbars: creating a new column should create a new progressbar", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="product_id">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    expect(".o_kanban_counter").toHaveCount(2);
-
-    // Create a new column: this should create an empty progressbar
-    await quickCreateKanbanColumn();
-    await editKanbanColumnName("test");
-    await validateKanbanColumn();
-
-    expect(".o_kanban_counter").toHaveCount(3, {
-        message: "a new column with a new column progressbar should have been created",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "name_create",
-        "web_resequence",
-    ]);
-});
-
-test("column progressbars on quick create properly update counter", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanCounters()).toEqual(["1", "3"]);
-
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "Test");
-
-    expect(getKanbanCounters()).toEqual(["1", "3"]);
-
-    await validateKanbanRecord();
-
-    expect(getKanbanCounters()).toEqual(["2", "3"], {
-        message: "kanban counters should have updated on quick create",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "onchange",
-        "name_create",
-        "onchange",
-        "web_read",
-        "read_progress_bar",
-    ]);
-});
-
-test("column progressbars are working with load more", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        domain: [["bar", "=", true]],
-        arch: `
-            <kanban limit="1">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="id"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanRecordTexts(0)).toEqual(["1"]);
-
-    await clickKanbanLoadMore(0);
-    await clickKanbanLoadMore(0);
-
-    expect(getKanbanRecordTexts(0)).toEqual(["1", "2", "3"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "web_search_read",
-    ]);
-});
-
-test("column progressbars with an active filter are working with load more", async () => {
-    Partner._records.push(
-        { id: 5, bar: true, foo: "blork" },
-        { id: 6, bar: true, foo: "blork" },
-        { id: 7, bar: true, foo: "blork" }
-    );
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        domain: [["bar", "=", true]],
-        arch: `
-            <kanban limit="1">
-                <progressbar field="foo" colors='{"blork": "success"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="id"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await contains(".o_column_progress .progress-bar.bg-success").click();
-
-    expect(getKanbanRecordTexts()).toEqual(["5"]);
-
-    await clickKanbanLoadMore(0);
-    await clickKanbanLoadMore(0);
-
-    expect(getKanbanRecordTexts()).toEqual(["5", "6", "7"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "web_search_read",
-        "web_search_read",
-    ]);
-});
-
-test("column progressbars on archiving records update counter", async () => {
-    // add active field on partner model and make all records active
-    Partner._fields.active = fields.Boolean({ default: true });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        loadActionMenus: true,
-    });
-
-    expect(getKanbanCounters()).toEqual(["-4", "36"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 gnap", "1 blip"], {
-        message: "the counter progressbars should be correctly displayed",
-    });
-
-    // archive all records of the second columns
-    await keyDown("alt");
-    await animationFrame();
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(1)").click();
-    await keyUp("alt");
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(2)").click();
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(3)").click();
-    await contains(".o_cp_action_menus button").click();
-    await contains(".o_menu_item:contains(Archive)").click();
-    await contains(".modal-footer .btn-primary").click();
-
-    expect(getKanbanCounters()).toEqual(["-4", "0"]);
-    expect(queryAll(".progress-bar", { root: getKanbanColumn(1) })).toHaveCount(0, {
-        message: "the counter progressbars should have been correctly updated",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "action_archive",
-        "read_progress_bar",
-        "web_read_group",
-    ]);
-});
-
-test("kanban with progressbars: correctly update env when archiving records", async () => {
-    // add active field on partner model and make all records active
-    Partner._fields.active = fields.Boolean({ default: true });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="id"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        loadActionMenus: true,
-    });
-
-    expect(getKanbanRecordTexts()).toEqual(["4", "1", "2", "3"]);
-
-    // archive all records of the first column
-    await keyDown("alt");
-    await animationFrame();
-    await contains(".o_kanban_group:nth-of-type(1) .o_kanban_record:nth-of-type(1)").click();
-    await keyUp("alt");
-    await contains(".o_cp_action_menus button").click();
-    await contains(".o_menu_item:contains(Archive)").click();
-    await contains(".modal-footer .btn-primary").click();
-
-    expect(getKanbanRecordTexts()).toEqual(["1", "2", "3"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "action_archive",
-        "read_progress_bar",
-        "web_read_group",
-    ]);
-});
-
-test("kanban with progressbars: slow read_progress_bar", async () => {
-    const def = new Deferred();
-    onRpc("read_progress_bar", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-            <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-            <templates>
-                <t t-name="card">
-                    <field name="foo"/>
-                </t>
-            </templates>
-        </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_view").toHaveCount(1);
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:nth-child(2) .o_column_progress").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_column_progress .progress-bar").toHaveCount(0);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_header").toHaveText("Yes");
-
-    def.resolve();
-    await animationFrame();
-    expect(".o_kanban_view").toHaveCount(1);
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:nth-child(2) .o_column_progress").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_column_progress .progress-bar").toHaveCount(3);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_header").toHaveText("Yes\n36");
-});
-
-test("RPCs when (re)loading kanban view progressbars", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-            <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-            <templates>
-                <t t-name="card">
-                    <field name="foo"/>
-                </t>
-            </templates>
-        </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await validateSearch();
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        // initial load
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        // reload
-        "read_progress_bar",
-        "web_read_group",
-    ]);
-});
-
-test("RPCs when (de)activating kanban view progressbar filters", async () => {
-    stepAllNetworkCalls();
-    onRpc("web_read_group", ({ kwargs }) => {
-        expect.step(`web_read_group domain ${JSON.stringify(kwargs.domain)}`);
-    });
-    onRpc("formatted_read_group", ({ kwargs }) => {
-        expect.step(`formatted_read_group domain ${JSON.stringify(kwargs.domain)}`);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // Activate "yop" on second column
-    await contains(".progress-bar.bg-success", { root: getKanbanColumn(1) }).click();
-    // Activate "gnap" on second column
-    await contains(".progress-bar.bg-warning", { root: getKanbanColumn(1) }).click();
-    // Deactivate "gnap" on second column
-    await contains(".progress-bar.bg-warning", { root: getKanbanColumn(1) }).click();
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        // initial load
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_read_group domain []",
-        "formatted_read_group", // recomputes aggregates
-        "web_search_read",
-        'formatted_read_group domain ["&",["bar","=",true],["foo","=","yop"]]', // perform formatted_read_group only on second column (bar=true)
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-        "formatted_read_group domain []",
-        'formatted_read_group domain ["&",["bar","=",true],["foo","=","yop"]]',
-        // activate filter
-        "formatted_read_group", // recomputes aggregates
-        "web_search_read",
-        'formatted_read_group domain ["&",["bar","=",true],["foo","=","gnap"]]', // perform formatted_read_group only on second column (bar=true)
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-        "formatted_read_group domain []",
-        'formatted_read_group domain ["&",["bar","=",true],["foo","=","gnap"]]',
-        // activate another filter (switching)
-        "web_search_read",
-    ]);
-});
-
-test.tags("desktop");
-test("drag & drop records grouped by m2o with progressbar", async () => {
-    Partner._records[0].product_id = false;
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="int_field"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    // Unfold first column
-    await contains(getKanbanColumn(0)).click();
-
-    expect(getKanbanCounters()).toEqual(["1", "1", "2"]);
-
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:nth-child(2)"
-    );
-
-    expect(getKanbanCounters()).toEqual(["0", "2", "2"]);
-
-    await contains(".o_kanban_group:nth-child(2) .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:first-child"
-    );
-
-    expect(getKanbanCounters()).toEqual(["1", "1", "2"]);
-
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:nth-child(3)"
-    );
-
-    expect(getKanbanCounters()).toEqual(["0", "1", "3"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "web_save",
-        "read_progress_bar",
-        "web_resequence",
-        "web_save",
-        "read_progress_bar",
-        "web_resequence",
-        "web_save",
-        "read_progress_bar",
-        "web_resequence",
-    ]);
-});
-
-test.tags("desktop");
-test("d&d records grouped by date with progressbar with aggregates", async () => {
-    Partner._records[0].date = "2010-11-30";
-    Partner._records[1].date = "2010-11-30";
-    Partner._records[2].date = "2010-10-30";
-    Partner._records[3].date = "2010-10-30";
-
-    // Usually kanban views grouped by a date, cannot drag and drop.
-    // There are some overrides that allow the drag and drop of dates (CRM forecast for instance).
-    // This patch is done to simulate these overrides.
-    patchWithCleanup(KanbanRenderer.prototype, {
-        isMovableField() {
-            return true;
-        },
-    });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="int_field"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["date:month"],
-    });
-
-    expect(getKanbanCounters()).toEqual(["13", "19"]);
-
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:nth-child(2)"
-    );
-
-    expect(getKanbanCounters()).toEqual(["-4", "36"]);
-
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_save",
-        "read_progress_bar",
-        "formatted_read_group",
-        "web_resequence",
-    ]);
-});
-
-test("progress bar subgroup count recompute", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanCounters()).toEqual(["1", "3"]);
-
-    await contains(".o_kanban_group:nth-child(2) .bg-success").click();
-
-    expect(getKanbanCounters()).toEqual(["1", "1"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-    ]);
-});
-
-test.tags("desktop");
-test("progress bar recompute after d&d to and from other column", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 blip", "1 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["1", "3"]);
-
-    // Drag the last kanban record to the first column
-    await contains(".o_kanban_group:last-child .o_kanban_record:nth-child(4)").dragAndDrop(
-        ".o_kanban_group:first-child"
-    );
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 gnap", "1 blip", "1 yop", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["2", "2"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_save",
-        "read_progress_bar",
-        "web_resequence",
-    ]);
-});
-
-test("progress bar recompute after filter selection", async () => {
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100 });
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100 });
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100 });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="my_filter" string="My filter" domain="[['float_field', '=', 100]]"/>
-            </search>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 blip", "4 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["1", "6"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-    ]);
-
-    await contains(".progress-bar.bg-success", { root: getKanbanColumn(1) }).click();
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 blip", "4 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["1", "4"]);
-    expect.verifySteps(["web_search_read", "read_progress_bar"]);
-
-    // Add search domain to something restricting progressbars' values (records still in filtered group)
-    await toggleSearchBarMenu();
-    await toggleMenuItem("My filter");
-
-    expect(getKanbanColumnTooltips()).toEqual(["3 yop"]);
-    expect(getKanbanCounters()).toEqual(["3"]);
-    expect.verifySteps(["read_progress_bar", "web_read_group"]);
-});
-
-test("progress bar recompute after filter selection (aggregates)", async () => {
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100, int_field: 100 });
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100, int_field: 200 });
-    Partner._records.push({ foo: "yop", bar: true, float_field: 100, int_field: 300 });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="my_filter" string="My filter" domain="[['float_field', '=', 100]]"/>
-            </search>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 blip", "4 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["-4", "636"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-    ]);
-
-    await contains(".progress-bar.bg-success", { root: getKanbanColumn(1) }).click();
-
-    expect(getKanbanColumnTooltips()).toEqual(["1 blip", "4 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["-4", "610"]);
-    expect.verifySteps([
-        "formatted_read_group", // recomputes aggregates
-        "web_search_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-    ]);
-
-    // Add searchdomain to something restricting progressbars' values (records still in filtered group)
-    await toggleSearchBarMenu();
-    await toggleMenuItem("My filter");
-
-    expect(getKanbanColumnTooltips()).toEqual(["3 yop"]);
-    expect(getKanbanCounters()).toEqual(["600"]);
-    expect.verifySteps(["read_progress_bar", "web_read_group"]);
-});
-
-test("progress bar with monetary aggregate and multi currencies", async () => {
-    const aed = { id: 3, name: "AED", symbol: "AED", position: "after", inverse_rate: 0.25 };
-    serverState.currencies = serverState.currencies.concat([aed]);
-    Currency._records.push(aed);
-    Partner._records.push({ id: 99, foo: "bar", salary: 300, currency_id: 3, product_id: 3 });
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="salary"/>
-                <field name="currency_id"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                        <field name="salary"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_counter .o_animated_number").toHaveCount(2);
-    expect(".o_kanban_counter:last .o_animated_number").toHaveText("$ 3,722");
-    expect(".o_kanban_counter:first .o_animated_number").toHaveText("$ 4,050?");
-
-    await toggleMultiCurrencyPopover(".o_kanban_counter:first .o_animated_number sup");
-    expect(".o_multi_currency_popover").toHaveCount(1);
-    expect(".o_multi_currency_popover").toHaveText("8,100.00 € at $ 0.50\n16,200.00 AED at $ 0.25");
-});
-
-test("progress bar with monetary aggregate and multi currencies: quick create record", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="salary"/>
-            <field name="currency_id"/>
-        </form>`;
-    Partner._fields.currency_id.default = 1; // create new records in dollars by default
-    Partner._records = [{ id: 99, foo: "bar", salary: 300, currency_id: 2, product_id: 3 }];
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban quick_create_view="some_view_ref">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="salary"/>
-                <field name="currency_id"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                        <field name="salary"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_counter .o_animated_number").toHaveCount(1);
-    expect(".o_kanban_counter:last .o_animated_number").toHaveText("300 €");
-
-    await quickCreateKanbanRecord();
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create .o_field_widget[name=currency_id] input").toHaveValue("USD");
-
-    await editKanbanRecordQuickCreateInput("salary", 1000);
-    await validateKanbanRecord();
-    expect(".o_kanban_counter:last .o_animated_number").toHaveText("$ 1,300?");
-});
-
-test("progress bar with aggregates: activate bars (grouped by boolean)", async () => {
-    Partner._records = [
-        { foo: "yop", bar: true, int_field: 1 },
-        { foo: "yop", bar: true, int_field: 2 },
-        { foo: "blip", bar: true, int_field: 4 },
-        { foo: "gnap", bar: true, int_field: 8 },
-    ];
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanColumnTooltips(0)).toEqual(["2 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["15"]);
-
-    await contains(getKanbanProgressBars(0)[0]).click();
-    expect(getKanbanCounters()).toEqual(["3"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["4"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["15"]);
-});
-
-test("progress bar with aggregates: activate bars (grouped by many2one)", async () => {
-    Partner._records = [
-        { foo: "yop", product_id: 3, int_field: 1 },
-        { foo: "yop", product_id: 3, int_field: 2 },
-        { foo: "blip", product_id: 3, int_field: 4 },
-        { foo: "gnap", product_id: 3, int_field: 8 },
-    ];
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                        <field name="float_field"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    onRpc("partner", "web_read_group", ({ kwargs }) => {
-        // float_field is not in the progressbar, then never ask his aggregation
-        expect(kwargs.aggregates).not.toInclude("float_field:sum");
-    });
-
-    expect(getKanbanColumnTooltips(0)).toEqual(["2 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["15"]);
-
-    await contains(getKanbanProgressBars(0)[0]).click();
-    expect(getKanbanCounters()).toEqual(["3"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["4"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["15"]);
-});
-
-test("progress bar with aggregates: activate bars (grouped by date)", async () => {
-    Partner._records = [
-        { foo: "yop", date: "2023-10-08", int_field: 1 },
-        { foo: "yop", date: "2023-10-08", int_field: 2 },
-        { foo: "blip", date: "2023-10-08", int_field: 4 },
-        { foo: "gnap", date: "2023-10-08", int_field: 8 },
-    ];
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["date:week"],
-    });
-
-    expect(getKanbanColumnTooltips(0)).toEqual(["2 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["15"]);
-
-    await contains(getKanbanProgressBars(0)[0]).click();
-    expect(getKanbanCounters()).toEqual(["3"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["4"]);
-
-    await contains(getKanbanProgressBars(0)[2]).click();
-    expect(getKanbanCounters()).toEqual(["15"]);
-});
-
-test("progress bar with aggregates: Archive all in a column", async () => {
-    Partner._fields.active = fields.Boolean({ default: true });
-    Partner._records = [
-        { foo: "yop", bar: true, int_field: 1, active: true },
-        { foo: "yop", bar: true, int_field: 2, active: true },
-        { foo: "blip", bar: true, int_field: 4, active: true },
-        { foo: "gnap", bar: true, int_field: 8, active: true },
-        { foo: "oups", bar: false, int_field: 268, active: true },
-    ];
-
-    let def;
-    onRpc("web_read_group", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates><t t-name="card">
-                        <field name="foo"/>
-                </t></templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        loadActionMenus: true,
-    });
-
-    expect(getKanbanColumnTooltips(1)).toEqual(["2 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["268", "15"]);
-    await keyDown("alt");
-    await animationFrame();
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(1)").click();
-    await keyUp("alt");
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(2)").click();
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(3)").click();
-    await contains(".o_kanban_group:nth-of-type(2) .o_kanban_record:nth-of-type(4)").click();
-    await contains(".o_cp_action_menus button").click();
-    await contains(".o_menu_item:contains(Archive)").click();
-    expect(".o_dialog").toHaveCount(1);
-    def = new Deferred();
-    await contains(".modal-footer .btn-primary").click();
-    expect(getKanbanColumnTooltips(1)).toEqual(["2 yop", "1 gnap", "1 blip"]);
-    expect(getKanbanCounters()).toEqual(["268", "15"]);
-    def.resolve();
-    await animationFrame();
-    expect(getKanbanColumnTooltips(1)).toEqual([]);
-    expect(getKanbanCounters()).toEqual(["268", "0"]);
-});
-
 test.tags("desktop");
 test("load more should load correct records after drag&drop event", async () => {
     Partner._order = ["sequence", "id"];
@@ -9713,166 +5731,6 @@ test("load more should load correct records after drag&drop event", async () => 
 
     // Check records of the second column
     expect(getKanbanRecordTexts(1)).toEqual(["4", "1", "2", "3"]);
-});
-
-test.tags("desktop");
-test("column progressbars on quick create with quick_create_view", async () => {
-    Partner._views["form,some_view_ref"] = `<form><field name="int_field"/></form>`;
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(getKanbanCounters()).toEqual(["-4", "36"]);
-
-    await createKanbanRecord();
-    await editKanbanRecordQuickCreateInput("int_field", 44);
-    await validateKanbanRecord();
-
-    expect(getKanbanCounters()).toEqual(["40", "36"], {
-        message: "kanban counters should have been updated on quick create",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "get_views",
-        "onchange",
-        "web_save",
-        "onchange",
-        "web_read",
-        "read_progress_bar",
-        "formatted_read_group",
-    ]);
-});
-
-test.tags("desktop");
-test("progressbars and active filter with quick_create_view", async () => {
-    Partner._views["form,some_view_ref"] = `
-        <form>
-            <field name="int_field"/>
-            <field name="foo"/>
-        </form>`;
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create" quick_create_view="some_view_ref">
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    await contains(".progress-bar.bg-danger", { root: getKanbanColumn(0) }).click();
-
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(queryAll(".oe_kanban_card_danger", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(getKanbanCounters()).toEqual(["-4", "36"]);
-
-    // open the quick create
-    createKanbanRecord();
-    await animationFrame();
-
-    // fill it with a record that satisfies the active filter
-    await editKanbanRecordQuickCreateInput("int_field", 44);
-    await editKanbanRecordQuickCreateInput("foo", "blip");
-    await contains(".o_kanban_quick_create .o_kanban_add").click();
-
-    // fill it again with another record that DOES NOT satisfy the active filter
-    await editKanbanRecordQuickCreateInput("int_field", 1000);
-    await editKanbanRecordQuickCreateInput("foo", "yop");
-    await contains(".o_kanban_quick_create .o_kanban_add").click();
-
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(3);
-    expect(queryAll(".oe_kanban_card_danger", { root: getKanbanColumn(0) })).toHaveCount(2);
-    expect(queryAll(".oe_kanban_card_success", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(getKanbanCounters()).toEqual(["40", "36"], {
-        message:
-            "kanban counters should have been updated on quick create, respecting the active filter",
-    });
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "formatted_read_group",
-        "web_search_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-        "get_views",
-        "onchange",
-        "web_save",
-        "onchange",
-        "web_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-        "web_save",
-        "onchange",
-        "web_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-    ]);
-});
-
-test.tags("desktop");
-test("quickcreate in first column after moving a record from it", async () => {
-    onRpc("web_resequence", () => []);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["foo"],
-    });
-
-    await createKanbanRecord();
-
-    expect(queryFirst(".o_kanban_group:has(.o_kanban_quick_create)")).toBe(
-        queryFirst(".o_kanban_group")
-    );
-
-    await contains(".o_kanban_record").dragAndDrop(".o_kanban_group:nth-child(2)");
-    await createKanbanRecord();
-
-    expect(queryFirst(".o_kanban_group:has(.o_kanban_quick_create)")).toBe(
-        queryFirst(".o_kanban_group")
-    );
 });
 
 test.tags("desktop");
@@ -9922,32 +5780,6 @@ test("grouped kanban: clear groupby when reloading", async () => {
 
     expect(".o_kanban_renderer").not.toHaveClass("o_kanban_grouped");
     expect(".o_kanban_renderer").toHaveClass("o_kanban_ungrouped");
-});
-
-test.tags("desktop");
-test("quick_create on grouped kanban without column", async () => {
-    Partner._records = [];
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        // force group_create to false, otherwise the CREATE button in control panel is hidden
-        arch: `
-            <kanban group_create="0" on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        createRecord: () => {
-            expect.step("createKanbanRecord");
-        },
-    });
-
-    await createKanbanRecord();
-    expect.verifySteps(["createKanbanRecord"]);
 });
 
 test("keynav: right/left", async () => {
@@ -10272,7 +6104,7 @@ test(`kanban should ask to scroll to top on page changes (mobile)`, async () => 
 
 test.tags("desktop");
 test("set cover image", async () => {
-    expect.assertions(9);
+    expect.assertions(8);
 
     IrAttachment._records = [
         {
@@ -10338,8 +6170,8 @@ test("set cover image", async () => {
         message: "Initially there is no image.",
     });
 
+    // The image is immediately assigned on click
     await contains(".modal .o_kanban_cover_image img").click();
-    await contains(".modal .btn-primary:first-child").click();
 
     expect('img[data-src*="/web/image/1"]').toHaveCount(1);
 
@@ -10349,11 +6181,10 @@ test("set cover image", async () => {
     await contains(coverButton).click();
 
     expect(".modal .o_kanban_cover_image").toHaveCount(1);
-    expect(".modal .btn:contains(Select)").toHaveCount(1);
     expect(".modal .btn:contains(Discard)").toHaveCount(1);
-    expect(".modal .btn:contains(Remove Cover Image)").toHaveCount(0);
+    expect(".modal .btn:contains(Remove Cover)").toHaveCount(0);
 
-    await dblclick(".modal .o_kanban_cover_image img"); // doesn't work
+    await contains(".modal .o_kanban_cover_image img").click(); // Assign the image as cover in one click
     await animationFrame();
 
     expect('img[data-src*="/web/image/2"]').toHaveCount(1);
@@ -10481,11 +6312,10 @@ test("unset cover image", async () => {
     ).toHaveCount(1);
 
     expect(".modal .o_kanban_cover_image").toHaveCount(1);
-    expect(".modal .btn:contains(Select)").toHaveCount(1);
     expect(".modal .btn:contains(Discard)").toHaveCount(1);
-    expect(".modal .btn:contains(Remove Cover Image)").toHaveCount(1);
+    expect(".modal .btn:contains(Remove Cover)").toHaveCount(1);
 
-    await contains(".modal .btn-secondary").click(); // click on "Remove Cover Image" button
+    await contains(".modal .btn-danger").click(); // click on "Remove Cover" button
 
     expect(queryAll("img", { root: getKanbanRecord({ index: 0 }) })).toHaveCount(0, {
         message: "The cover image should be removed.",
@@ -10496,7 +6326,7 @@ test("unset cover image", async () => {
     expect(queryText(coverButton)).toBe("Set Cover Image");
     await contains(coverButton).click();
 
-    await dblclick(".modal .o_kanban_cover_image img"); // doesn't work
+    await contains(".modal .o_kanban_cover_image img").click(); // Assign the image as cover in one click
     await animationFrame();
 
     expect(queryAll("img", { root: getKanbanRecord({ index: 1 }) })).toHaveCount(0, {
@@ -10688,317 +6518,6 @@ test("kanban view with monetary and currency fields without widget", async () =>
     ]);
 });
 
-test.tags("desktop");
-test("quick create: keyboard navigation to buttons", async () => {
-    await mountView({
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <div t-name="card">
-                        <field name="display_name"/>
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        resModel: "partner",
-        type: "kanban",
-    });
-
-    // Open quick create
-    await createKanbanRecord();
-    expect(".o_kanban_group:first-child .o_kanban_quick_create").toHaveCount(1);
-
-    // Fill in mandatory field
-    await editKanbanRecordQuickCreateInput("display_name", "aaa"); // pressed Tab to trigger "change"
-    expect(".o_kanban_add").toBeFocused();
-
-    await press("Tab");
-    expect(".o_kanban_edit").toBeFocused();
-});
-
-test("progressbar filter state is kept unchanged when domain is updated (records still in group)", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="bar">
-                <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="id"/>
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="my_filter" string="My Filter" domain="[['foo', '=', 'yop']]"/>
-            </search>`,
-    });
-
-    // Check that we have 2 columns and check their progressbar's state
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-
-    // Apply an active filter
-    await contains(".o_kanban_group:nth-child(2) .progress-bar.bg-success").click();
-
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-
-    // Add searchdomain to something restricting progressbars' values (records still in filtered group)
-    await toggleSearchBarMenu();
-    await toggleMenuItem("My Filter");
-
-    // Check that we have now 1 column only and check its progressbar's state
-    expect(".o_kanban_group").toHaveCount(1);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["Yes"]);
-    expect(getKanbanColumnTooltips()).toEqual(["1 yop"]);
-
-    // Undo searchdomain
-    await toggleMenuItem("My Filter");
-
-    // Check that we have 2 columns back and check their progressbar's state
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "read_progress_bar",
-        "web_read_group",
-        "read_progress_bar",
-        "web_read_group",
-    ]);
-});
-
-test("progressbar filter state is kept unchanged when domain is updated (emptying group)", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="bar">
-                <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <div>
-                            <field name="id"/>
-                            <field name="foo"/>
-                        </div>
-                    </t>
-                </templates>
-            </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="my_filter" string="My Filter" domain="[['foo', '=', 'blip']]"/>
-            </search>`,
-    });
-
-    // Check that we have 2 columns, check their progressbar's state and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop", "2blip", "3gnap"]);
-
-    // Apply an active filter
-    await contains(".o_kanban_group:nth-child(2) .progress-bar.bg-success").click();
-
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop"]);
-
-    // Add searchdomain to something restricting progressbars' values + emptying the filtered group
-    await toggleSearchBarMenu();
-    await toggleMenuItem("My Filter");
-
-    // Check that we still have 2 columns, check their progressbar's state and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["2blip"]);
-
-    // Undo searchdomain
-    await toggleMenuItem("My Filter");
-
-    // Check that we still have 2 columns and check their progressbar's state
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop", "2blip", "3gnap"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "read_progress_bar",
-        "web_read_group",
-        "web_search_read",
-        "read_progress_bar",
-        "web_read_group",
-    ]);
-});
-
-test.tags("desktop");
-test("filtered column counters when dropping in non-matching record", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="bar">
-                <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <div>
-                            <field name="id"/>
-                            <field name="foo"/>
-                        </div>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    // Check that we have 2 columns, check their progressbar's state, and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop", "2blip", "3gnap"]);
-
-    // Apply an active filter
-    await contains(".o_kanban_group:nth-child(2) .progress-bar.bg-success").click();
-
-    expect(getKanbanColumn(1)).toHaveClass("o_kanban_group_show");
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(".o_kanban_group.o_kanban_group_show .o_kanban_record").toHaveCount(1);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop"]);
-
-    // Drop in the non-matching record from first column
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        queryFirst(".o_kanban_group.o_kanban_group_show")
-    );
-
-    // Check that we have 2 columns, check their progressbar's state, and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual([]);
-    expect(getKanbanRecordTexts(0)).toEqual([]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "2 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop", "4blip"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "web_save",
-        "read_progress_bar",
-        "web_resequence",
-    ]);
-});
-
-test.tags("desktop");
-test("filtered column is reloaded when dragging out its last record", async () => {
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="bar">
-                <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <div>
-                            <field name="id"/>
-                            <field name="foo"/>
-                        </div>
-                    </t>
-                </templates>
-            </kanban>`,
-    });
-
-    // Check that we have 2 columns, check their progressbar's state, and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 yop", "1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop", "2blip", "3gnap"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-    ]);
-
-    // Apply an active filter
-    await contains(".o_kanban_group:nth-child(2) .progress-bar.bg-success").click();
-
-    expect(getKanbanColumn(1)).toHaveClass("o_kanban_group_show");
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(1);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(".o_kanban_group.o_kanban_group_show .o_kanban_record").toHaveCount(1);
-    expect(getKanbanRecordTexts(1)).toEqual(["1yop"]);
-    expect.verifySteps(["web_search_read", "read_progress_bar"]);
-
-    // Drag out its only record onto the first column
-    await contains(".o_kanban_group.o_kanban_group_show .o_kanban_record").dragAndDrop(
-        queryFirst(".o_kanban_group:first-child")
-    );
-
-    // Check that we have 2 columns, check their progressbar's state, and check records
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group.o_kanban_group_show").toHaveCount(0);
-    expect(queryAllTexts(".o_column_title")).toEqual(["No", "Yes"]);
-    expect(getKanbanColumnTooltips(0)).toEqual(["1 yop", "1 blip"]);
-    expect(getKanbanRecordTexts(0)).toEqual(["4blip", "1yop"]);
-    expect(getKanbanColumnTooltips(1)).toEqual(["1 blip", "1 Other"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["2blip", "3gnap"]);
-    expect.verifySteps(["web_save", "read_progress_bar", "web_search_read", "web_resequence"]);
-});
-
 test("kanban widget can extract props from attrs", async () => {
     class TestWidget extends Component {
         static template = xml`<div class="o-test-widget-option" t-esc="props.title"/>`;
@@ -11120,54 +6639,12 @@ test("Missing t-key is automatically filled with a warning", async () => {
     expect(getKanbanRecord({ index: 0 })).toHaveText("123");
 });
 
-test("Quick created record is rendered after load", async () => {
-    let def;
-    onRpc("web_read", () => {
-        expect.step("web_read");
-        return def;
-    });
-    onRpc("name_create", () => {
-        expect.step("name_create");
-    });
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <field name="category_ids" />
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field"/>
-                <templates>
-                    <t t-name="card">
-                        <span t-esc="record.category_ids.raw_value.length" />
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(getKanbanRecordTexts(0)).toEqual(["0", "1"]);
-    expect.verifySteps([]);
-
-    def = new Deferred();
-
-    await quickCreateKanbanRecord(0);
-    await editKanbanRecordQuickCreateInput("display_name", "Test");
-    await validateKanbanRecord();
-    expect(getKanbanRecordTexts(0)).toEqual(["0", "1"]);
-
-    def.resolve();
-    await animationFrame();
-
-    expect(getKanbanRecordTexts(0)).toEqual(["0", "0", "1"]);
-    expect.verifySteps(["name_create", "web_read"]);
-});
-
 test("Allow use of 'editable'/'deletable' in ungrouped kanban", async () => {
     await mountView({
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <div t-name="card">
                         <button t-if="widget.editable">EDIT</button>
@@ -11229,64 +6706,6 @@ test("folded groups kept when leaving/coming back", async () => {
     await contains(".breadcrumb-item a").click();
     expect(".o_column_folded").toHaveCount(1);
     expect(".o_kanban_record").toHaveCount(2);
-});
-
-test.tags("desktop");
-test("filter groups kept when leaving/coming back", async () => {
-    Partner._records[1].state = "abc";
-    Partner._views = {
-        kanban: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <t t-name="card">
-                        <field name="id" />
-                    </t>
-                </templates>
-            </kanban>`,
-        form: `
-            <form>
-                <field name="state" widget="radio"/>
-            </form>`,
-    };
-    await mountWithCleanup(WebClient);
-    await getService("action").doAction({
-        name: "Partners",
-        res_model: "partner",
-        type: "ir.actions.act_window",
-        views: [
-            [false, "kanban"],
-            [false, "form"],
-        ],
-        context: {
-            group_by: ["bar"],
-        },
-    });
-
-    // Filter on state "abc" => matches 2 records
-    await contains(getKanbanProgressBars(1)[0]).click();
-    expect(getKanbanRecordTexts(0)).toEqual(["4"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1", "2"]);
-
-    // open a record
-    await contains(getKanbanRecord({ index: 1 })).click();
-    expect(".o_form_view").toHaveCount(1);
-
-    // go back to kanban view
-    await contains(".breadcrumb-item a").click();
-    expect(getKanbanRecordTexts(0)).toEqual(["4"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["1", "2"]);
-
-    // open a record
-    await contains(getKanbanRecord({ index: 1 })).click();
-    expect(".o_form_view").toHaveCount(1);
-
-    // select another state
-    await contains(queryAll("input.o_radio_input")[1]).click();
-    // go back to kanban view
-    await contains(".breadcrumb-item a").click();
-    expect(getKanbanRecordTexts(0)).toEqual(["4"]);
-    expect(getKanbanRecordTexts(1)).toEqual(["2"]);
 });
 
 test.tags("desktop");
@@ -11445,158 +6864,6 @@ test("basic rendering with a date groupby with a granularity", async () => {
     ]);
 });
 
-test.tags("desktop");
-test("quick create record and click outside (no dirty input)", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban limit="2">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        createRecord: () => {
-            expect.step("create record");
-        },
-    });
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-
-    await contains(".o_control_panel").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-
-    await quickCreateKanbanRecord(1);
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_quick_create").toHaveCount(1);
-
-    await contains(".o_kanban_load_more button").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-
-    expect.verifySteps([]);
-
-    await createKanbanRecord();
-
-    expect.verifySteps(["create record"]);
-    expect(".o_kanban_quick_create").toHaveCount(0);
-});
-
-test.tags("desktop");
-test("quick create record and click outside (with dirty input)", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban limit="2">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-        createRecord: () => {
-            expect.step("create record");
-        },
-    });
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-
-    await editKanbanRecordQuickCreateInput("display_name", "ABC");
-
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("ABC");
-
-    await contains(".o_control_panel").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("ABC");
-
-    await quickCreateKanbanRecord(1);
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("");
-
-    await editKanbanRecordQuickCreateInput("display_name", "ABC");
-
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("ABC");
-
-    await contains(".o_kanban_load_more button").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord();
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(1) .o_kanban_quick_create").toHaveCount(1);
-
-    await editKanbanRecordQuickCreateInput("display_name", "ABC");
-
-    expect(".o_kanban_quick_create [name=display_name] input").toHaveValue("ABC");
-    expect.verifySteps([]);
-
-    await createKanbanRecord();
-
-    expect.verifySteps(["create record"]);
-    expect(".o_kanban_quick_create").toHaveCount(0);
-});
-
-test("quick create record and click on 'Load more'", async () => {
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban limit="2">
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-
-    await quickCreateKanbanRecord(1);
-
-    expect(".o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_quick_create").toHaveCount(1);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2);
-
-    await contains(".o_kanban_load_more button").click();
-
-    expect(".o_kanban_quick_create").toHaveCount(0);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(3);
-});
-
 test("dropdown is closed on item click", async () => {
     Partner._records.splice(1, 3); // keep one record only
 
@@ -11651,260 +6918,6 @@ test("can use JSON in kanban template", async () => {
     expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveText("ged");
 });
 
-test("Color '200' (gray) can be used twice (for false value and another value) in progress bar", async () => {
-    Partner._records.push({ id: 5, bar: true }, { id: 6, bar: false });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "200", "gnap": "warning", "blip": "danger"}'/>
-                <templates>
-                    <t t-name="card">
-                        <field name="state"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group:nth-child(1) .progress-bar").toHaveCount(2);
-    expect(
-        queryAll(".o_kanban_group:nth-child(1) .progress-bar").map((el) => el.dataset.tooltip)
-    ).toEqual(["1 blip", "1 Other"]);
-    expect(".o_kanban_group:nth-child(2) .progress-bar").toHaveCount(4);
-    expect(
-        queryAll(".o_kanban_group:nth-child(2) .progress-bar").map((el) => el.dataset.tooltip)
-    ).toEqual(["1 yop", "1 gnap", "1 blip", "1 Other"]);
-    expect(getKanbanCounters()).toEqual(["2", "4"]);
-
-    await contains(".o_kanban_group:nth-child(2) .progress-bar").click();
-
-    expect(getKanbanCounters()).toEqual(["2", "1"]);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveText("ABC");
-    expect(".o_kanban_group:nth-child(2) .o_kanban_load_more").toHaveCount(0);
-
-    await contains(".o_kanban_group:nth-child(2) .progress-bar:nth-child(2)").click();
-
-    expect(getKanbanCounters()).toEqual(["2", "1"]);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveText("GHI");
-    expect(".o_kanban_group:nth-child(2) .o_kanban_load_more").toHaveCount(0);
-
-    await contains(".o_kanban_group:nth-child(2) .progress-bar:nth-child(4)").click();
-
-    expect(getKanbanCounters()).toEqual(["2", "1"]);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveText("");
-    expect(".o_kanban_group:nth-child(2) .o_kanban_load_more").toHaveCount(0);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "web_search_read",
-        "read_progress_bar",
-        "web_search_read",
-        "read_progress_bar",
-    ]);
-});
-
-test("update field on which progress bars are computed", async () => {
-    Partner._records.push({ id: 5, state: "abc", bar: true });
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <div t-name="card">
-                        <field name="state" widget="state_selection" />
-                        <field name="id" />
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // Initial state: 2 columns, the "Yes" column contains 2 records "abc", 1 "def" and 1 "ghi"
-    expect(getKanbanCounters()).toEqual(["1", "4"]);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(1) })).toHaveCount(4);
-    expect(queryAll(".o_column_progress .progress-bar", { root: getKanbanColumn(1) })).toHaveCount(
-        3
-    );
-    expect(getKanbanProgressBars(1)[0].style.width).toBe("50%"); // abc: 2
-    expect(getKanbanProgressBars(1)[1].style.width).toBe("25%"); // def: 1
-    expect(getKanbanProgressBars(1)[2].style.width).toBe("25%"); // ghi: 1
-
-    // Filter on state "abc" => matches 2 records
-    await contains(getKanbanProgressBars(1)[0]).click();
-
-    expect(getKanbanCounters()).toEqual(["1", "2"]);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(1) })).toHaveCount(2);
-    expect(queryAll(".o_column_progress .progress-bar", { root: getKanbanColumn(1) })).toHaveCount(
-        3
-    );
-    expect(getKanbanProgressBars(1)[0].style.width).toBe("50%"); // abc: 2
-    expect(getKanbanProgressBars(1)[1].style.width).toBe("25%"); // def: 1
-    expect(getKanbanProgressBars(1)[2].style.width).toBe("25%"); // ghi: 1
-
-    // Changes the state of the first record of the "Yes" column to "def"
-    // The updated record should remain visible
-    await contains(".o_status", { root: getKanbanRecord({ index: 2 }) }).click();
-    await contains(".o-dropdown-item:nth-child(2)", {
-        root: getDropdownMenu(getKanbanRecord({ index: 2 })),
-    }).click();
-
-    expect(getKanbanCounters()).toEqual(["1", "1"]);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(1) })).toHaveCount(2);
-    expect(queryAll(".o_column_progress .progress-bar", { root: getKanbanColumn(1) })).toHaveCount(
-        3
-    );
-    expect(getKanbanProgressBars(1)[0].style.width).toBe("25%"); // abc: 1
-    expect(getKanbanProgressBars(1)[1].style.width).toBe("50%"); // def: 2
-    expect(getKanbanProgressBars(1)[2].style.width).toBe("25%"); // ghi: 1
-
-    // Filter on state "def" => matches 2 records (including the one we just changed)
-    await contains(getKanbanProgressBars(1)[1]).click();
-
-    expect(getKanbanCounters()).toEqual(["1", "2"]);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(1) })).toHaveCount(2);
-    expect(getKanbanProgressBars(1)[0].style.width).toBe("25%"); // abc: 1
-    expect(getKanbanProgressBars(1)[1].style.width).toBe("50%"); // def: 2
-    expect(getKanbanProgressBars(1)[2].style.width).toBe("25%"); // ghi: 1
-
-    // Filter back on state "abc" => matches only 1 record
-    await contains(getKanbanProgressBars(1)[0]).click();
-
-    expect(getKanbanCounters()).toEqual(["1", "1"]);
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(1) })).toHaveCount(1);
-    expect(getKanbanProgressBars(1)[0].style.width).toBe("25%"); // abc: 1
-    expect(getKanbanProgressBars(1)[1].style.width).toBe("50%"); // def: 2
-    expect(getKanbanProgressBars(1)[2].style.width).toBe("25%"); // ghi: 1
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_search_read",
-        "read_progress_bar",
-        "web_save",
-        "read_progress_bar",
-        "web_search_read",
-        "read_progress_bar",
-        "web_search_read",
-        "read_progress_bar",
-    ]);
-});
-
-test("load more button shouldn't be visible when unfiltering column", async () => {
-    Partner._records.push({ id: 5, state: "abc", bar: true });
-
-    let def;
-    onRpc("web_search_read", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <div t-name="card">
-                        <field name="state" widget="state_selection" />
-                        <field name="id" />
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    // Initial state: 2 columns, the "No" column contains 1 record, The "Yes" column contains 4 records
-    expect(getKanbanCounters()).toEqual(["1", "4"]);
-
-    // Filter on state "abc" => matches 2 records
-    await contains(getKanbanProgressBars(1)[0]).click();
-
-    // Filtered state: 2 columns, the "No" column contains 1 record, The "Yes" column contains 2 records
-    expect(getKanbanCounters()).toEqual(["1", "2"]);
-
-    def = new Deferred();
-    // UnFiltered the "Yes" column
-    await contains(getKanbanProgressBars(1)[0]).click();
-    expect(".o_kanban_load_more").toHaveCount(0, {
-        message: "The load more button should not be visible",
-    });
-
-    def.resolve();
-    await animationFrame();
-
-    // Return to initial state
-    expect(getKanbanCounters()).toEqual(["1", "4"]);
-    expect(".o_kanban_load_more").toHaveCount(0, {
-        message: "The load more button should not be visible",
-    });
-});
-
-test("click on the progressBar of a new column", async () => {
-    Partner._records = [];
-
-    onRpc("web_search_read", ({ kwargs }) => {
-        expect.step("web_search_read");
-        expect(kwargs.domain).toEqual([
-            "&",
-            "&",
-            ["id", ">", 0],
-            ["product_id", "=", 6],
-            "!",
-            ["state", "in", ["abc", "def", "ghi"]],
-        ]);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <div t-name="card">
-                        <field name="state" widget="state_selection" />
-                        <field name="id" />
-                    </div>
-                </templates>
-            </kanban>`,
-        domain: [["id", ">", 0]],
-    });
-
-    // Create a new column
-    await editKanbanColumnName("new column");
-    await validateKanbanColumn();
-
-    // Crete a record in the new column
-    await quickCreateKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new product");
-    await validateKanbanRecord();
-
-    expect(".o_kanban_record").toHaveCount(1);
-
-    // Togggle the progressBar
-    await contains(getKanbanProgressBars(0)[0]).click();
-
-    expect(".o_kanban_record").toHaveCount(1);
-    expect.verifySteps(["web_search_read"]);
-});
-
 test.tags("desktop");
 test("keep focus in cp when pressing arrowdown and no kanban card", async () => {
     Partner._records = [];
@@ -11913,7 +6926,7 @@ test("keep focus in cp when pressing arrowdown and no kanban card", async () => 
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban default_group_by="product_id" on_create="quick_create">
+            <kanban default_group_by="product_id">
                 <templates>
                     <t t-name="card">
                         <field name="display_name"/>
@@ -12244,127 +7257,6 @@ test("drag record on initially folded column should not unfold it", async () => 
     expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(1);
     expect(getKanbanColumn(1)).toHaveClass("o_column_folded");
     expect(queryText(getKanbanColumn(1))).toBe("xmo\n(3)");
-});
-
-test.tags("desktop");
-test("drag record to folded column, with progressbars", async () => {
-    Partner._records[0].bar = false;
-
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field" />
-                <templates>
-                    <div t-name="card">
-                        <field name="id" />
-                    </div>
-                </templates>
-            </kanban>`,
-        groupBy: ["bar"],
-    });
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2);
-    expect(getKanbanProgressBars(0).map((pb) => pb.style.width)).toEqual(["50%", "50%"]);
-    expect(getKanbanProgressBars(1).map((pb) => pb.style.width)).toEqual(["50%", "50%"]);
-    expect(getKanbanCounters()).toEqual(["6", "26"]);
-
-    const clickColumnAction = await toggleKanbanColumnActions(1);
-    clickColumnAction("Fold");
-    await animationFrame();
-
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(2);
-    expect(getKanbanColumn(1)).toHaveClass("o_column_folded");
-    expect(queryText(getKanbanColumn(1))).toBe("Yes\n(2)");
-
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:nth-child(2)"
-    );
-
-    expect(queryAll(".o_kanban_record", { root: getKanbanColumn(0) })).toHaveCount(1);
-    expect(queryText(getKanbanColumn(1))).toBe("Yes\n(3)");
-    expect(getKanbanProgressBars(0).map((pb) => pb.style.width)).toEqual(["100%"]);
-    expect(getKanbanCounters()).toEqual(["-4"]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "read_progress_bar",
-        "web_read_group",
-        "has_group",
-        "web_save",
-        "read_progress_bar",
-        "formatted_read_group",
-    ]);
-});
-
-test.tags("desktop");
-test("quick create record in grouped kanban in a form view dialog", async () => {
-    Partner._fields.foo = fields.Char({ default: "ABC" });
-    Partner._views["form"] = `<form><field name="bar"/></form>`;
-
-    onRpc("name_create", ({ method }) => {
-        throw makeServerError();
-    });
-    stepAllNetworkCalls();
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <t t-name="card">
-                        <t t-if="record.foo.raw_value" t-set="foo"/>
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "first column should contain two records",
-    });
-    expect(queryAllTexts(".o_kanban_group:first-child .o_kanban_record")).toEqual(["yop", "gnap"]);
-    expect(".modal").toHaveCount(0);
-
-    // click on 'Create', fill the quick create and validate
-    await createKanbanRecord();
-    await editKanbanRecordQuickCreateInput("display_name", "new partner");
-    await validateKanbanRecord();
-
-    expect(".modal").toHaveCount(1);
-
-    await clickModalButton({ text: "Save" });
-
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(3, {
-        message: "first column should contain three records",
-    });
-    expect(queryAllTexts(".o_kanban_group:first-child .o_kanban_record")).toEqual([
-        "ABC",
-        "yop",
-        "gnap",
-    ]);
-    expect.verifySteps([
-        "/web/webclient/translations",
-        "/web/webclient/load_menus",
-        "get_views",
-        "web_read_group", // initial web_read_group
-        "has_group",
-        "onchange", // quick create
-        "name_create", // should perform a name_create to create the record
-        "get_views", // load views for form view dialog
-        "onchange", // load of a virtual record in form view dialog
-        "web_save", // save virtual record
-        "web_read", // read the created record to get foo value
-        "onchange", // reopen the quick create automatically
-    ]);
 });
 
 test.tags("desktop");
@@ -12754,49 +7646,6 @@ test("sample server: _mockWebReadGroup API", async () => {
 });
 
 test.tags("desktop");
-test("scroll on group unfold and progressbar click", async () => {
-    Product._records[1].fold = true;
-    onRpc(function ({ method, parent }) {
-        expect.step(method);
-    });
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="foo" colors='{"yop": "success", "gnap": "warning", "blip": "danger"}' sum_field="int_field" />
-                <templates>
-                    <t t-name="card">Record</t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-    });
-
-    expect.verifySteps(["get_views", "read_progress_bar", "web_read_group", "has_group"]);
-    queryOne(".o_content").style.maxHeight = "80px";
-    on(".o_content", "scroll", () => expect.step("scrolled"));
-
-    await scroll(".o_content", { top: 50 }); // scroll down to allow auto-scroll to top
-    await contains(getKanbanProgressBars(0)[0]).click();
-
-    expect.verifySteps([
-        "scrolled",
-        "formatted_read_group",
-        "web_search_read",
-        "read_progress_bar",
-        "formatted_read_group",
-        "formatted_read_group",
-    ]);
-    expect(getKanbanColumn(1)).toHaveClass("o_column_folded");
-
-    await scroll(".o_content", { top: 50 }); // scroll down to allow auto-scroll to top
-    await contains(getKanbanColumn(1)).click();
-
-    expect.verifySteps(["scrolled", "web_search_read"]);
-});
-
-test.tags("desktop");
 test("unfold group and apply new groupby, simultaneously", async () => {
     Product._records[1].fold = true;
 
@@ -13049,43 +7898,6 @@ test("searchbar filters are displayed directly", async () => {
     expect(getFacetTexts()).toEqual(["Some Filter"]);
 });
 
-test("searchbar filters are displayed directly (with progressbar)", async () => {
-    let def;
-    onRpc("read_progress_bar", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["int_field"],
-        searchViewArch: `
-            <search>
-                <filter name="some_filter" string="Some Filter" domain="[['foo', '!=', 'bar']]"/>
-            </search>`,
-    });
-
-    expect(getFacetTexts()).toEqual([]);
-
-    // toggle a filter, and slow down the read_progress_bar rpc
-    def = new Deferred();
-    await toggleSearchBarMenu();
-    await toggleMenuItem("Some Filter");
-
-    expect(getFacetTexts()).toEqual(["Some Filter"]);
-
-    def.resolve();
-    await animationFrame();
-    expect(getFacetTexts()).toEqual(["Some Filter"]);
-});
-
 test.tags("desktop");
 test(`searchbar in kanban view doesn't take focus after unselected all items`, async () => {
     await mountView({
@@ -13209,7 +8021,7 @@ test("group by properties and drag and drop", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -13384,48 +8196,6 @@ test("quick create a column by pressing enter when input is focused", async () =
     expect(".o_kanban_group").toHaveCount(3);
 });
 
-test("Correct values for progress bar with toggling filter and slow RPC", async () => {
-    let def;
-    onRpc("read_progress_bar", () => def);
-
-    await mountView({
-        type: "kanban",
-        resModel: "partner",
-        arch: `
-            <kanban>
-                <progressbar field="state" colors='{"abc": "success", "def": "warning", "ghi": "danger"}' />
-                <templates>
-                    <t t-name="card">
-                        <field name="foo"/>
-                    </t>
-                </templates>
-            </kanban>`,
-        groupBy: ["product_id"],
-        searchViewArch: `
-            <search>
-                <filter name="some_filter" string="Some Filter" domain="[['state', '!=', 'ghi']]"/>
-            </search>`,
-    });
-
-    expect(".o_kanban_record").toHaveCount(4);
-    // abc: 1, ghi: 1
-    expect(getKanbanProgressBars(1).map((pb) => pb.style.width)).toEqual(["50%", "50%"]);
-
-    // toggle a filter, and slow down the read_progress_bar rpc
-    def = new Deferred();
-    await toggleSearchBarMenu();
-    await toggleMenuItem("Some Filter");
-    // abc: 1, ghi: 1
-    expect(getKanbanProgressBars(1).map((pb) => pb.style.width)).toEqual(["50%", "50%"]);
-
-    def.resolve();
-    await animationFrame();
-    // After the call to read_progress_bar has resolved, the values should be updated correctly
-    expect(".o_kanban_record").toHaveCount(2);
-    // abc: 1
-    expect(getKanbanProgressBars(1).map((pb) => pb.style.width)).toEqual(["100%"]);
-});
-
 test("group by numeric field (with aggregator)", async () => {
     onRpc("web_read_group", ({ kwargs }) => {
         expect(kwargs.groupby).toEqual(["int_field"]);
@@ -13479,7 +8249,7 @@ test("click on empty kanban must shake the NEW button", async () => {
         type: "kanban",
         resModel: "partner",
         arch: `
-            <kanban on_create="quick_create">
+            <kanban>
                 <templates>
                     <t t-name="card">
                         <field name="foo"/>
@@ -13654,7 +8424,6 @@ test("selection can be enabled with the 'alt' key", async () => {
         resModel: "partner",
         arch: `
                 <kanban>
-                    <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
                     <templates>
                         <t t-name="card">
                             <field name="foo"/>
@@ -13688,7 +8457,6 @@ test("selection is reset when dragging is effective", async () => {
         resModel: "partner",
         arch: `
                 <kanban>
-                    <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
                     <templates>
                         <t t-name="card">
                             <field name="foo"/>
@@ -13722,7 +8490,7 @@ test("selection can be enabled by long touch", async () => {
     });
     expect(".o_selection_box").toHaveCount(0);
     await drag(".o_kanban_record:nth-of-type(2)");
-    await advanceTime(400);
+    await advanceTime(TOUCH_SELECTION_THRESHOLD);
     expect(".o_selection_box").toHaveCount(1);
 });
 
@@ -13734,7 +8502,6 @@ test("selection can be enabled by long touch with drag & drop enabled", async ()
         resModel: "partner",
         arch: `
                 <kanban>
-                    <progressbar field="foo" colors='{"yop": "success", "blip": "danger"}'/>
                     <templates>
                         <t t-name="card">
                             <field name="foo"/>
@@ -13745,7 +8512,7 @@ test("selection can be enabled by long touch with drag & drop enabled", async ()
     });
     expect(".o_selection_box").toHaveCount(0);
     const { drop } = await drag(".o_kanban_record:nth-of-type(1)");
-    await advanceTime(400);
+    await advanceTime(TOUCH_SELECTION_THRESHOLD);
     expect(".o_selection_box").toHaveCount(0, {
         message: "touch delay is longer when drag & drop is enabled",
     });
@@ -13928,7 +8695,7 @@ test("groups will be scrolled to on unfold if outside of viewport", async () => 
         message:
             "the next group (which is folded) should stick to the right of the screen after the scroll",
     });
-    expect(".o_column_folded:eq(0)").toHaveText("column 7\n(1)");
+    expect(".o_column_folded:eq(0)").toHaveText("column 7 (1)", { inline: true });
     await contains('.o_kanban_group:contains("column 7 (1)")').click();
     expect(".o_content").toHaveProperty("scrollLeft", 2154);
     ({ x, width } = queryRect('.o_kanban_group:contains("column 7 (1)")'));
@@ -14045,31 +8812,6 @@ test("click on New while kanban is loading", async () => {
             </kanban>`,
         resModel: "partner",
         type: "kanban",
-        createRecord: () => expect.step("create record"),
-    });
-
-    expect(".o_kanban_view").toHaveCount(1);
-    expect(".o_kanban_view .o_control_panel").toHaveCount(1);
-    expect(".o_kanban_view .o_kanban_renderer").toHaveCount(0);
-
-    await createKanbanRecord();
-    expect.verifySteps(["create record"]);
-});
-
-test("click on New while kanban is loading (with quick create)", async () => {
-    onRpc("web_read_group", () => new Deferred());
-    await mountView({
-        arch: `
-            <kanban on_create="quick_create">
-                <templates>
-                    <div t-name="card">
-                        <field name="foo"/>
-                    </div>
-                </templates>
-            </kanban>`,
-        resModel: "partner",
-        type: "kanban",
-        groupBy: ["foo"],
         createRecord: () => expect.step("create record"),
     });
 
@@ -14338,7 +9080,7 @@ test(`cache web_read_group (no data, no change)`, async () => {
     await mountWithCleanup(WebClient);
     await getService("action").doAction(1);
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 
     // execute another action to remove the kanban from the DOM
     await getService("action").doAction(2);
@@ -14348,13 +9090,13 @@ test(`cache web_read_group (no data, no change)`, async () => {
     def = new Deferred();
     await getService("action").doAction(1);
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 
     // simulate the return of web_read_group => the sample data should still be displayed
     def.resolve();
     await animationFrame();
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 });
 
 test(`cache web_read_group (no data, change)`, async () => {
@@ -14395,7 +9137,7 @@ test(`cache web_read_group (no data, change)`, async () => {
     await mountWithCleanup(WebClient);
     await getService("action").doAction(1);
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 
     // simulate the create of new records by someone else
     MockServer.env.partner.create([{ product_id: 3 }, { product_id: 5 }]);
@@ -14408,7 +9150,7 @@ test(`cache web_read_group (no data, change)`, async () => {
     def = new Deferred();
     await getService("action").doAction(1);
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 
     // simulate the return of web_read_group => the data should have been updated
     def.resolve();
@@ -14499,7 +9241,7 @@ test(`cache web_read_group (group_expand: groups, then no group)`, async () => {
     expect(`.o_kanban_view`).toHaveCount(1);
     expect(`.o_kanban_view .o_view_sample_data`).toHaveCount(0);
     expect(`.o_kanban_view .o_column_quick_create`).toHaveCount(1);
-    expect(`.o_kanban_view .o_kanban_stages_nocontent`).toHaveCount(1);
+    expect(`.o_kanban_view .o_kanban_group_nocontent`).toHaveCount(1);
 });
 
 test(`cache web_read_group (group_expand: groups, then more groups)`, async () => {
@@ -15034,6 +9776,55 @@ test("limit is reset when restoring a view after ungrouping", async () => {
     expect.verifySteps(["limit=40"]);
 });
 
+test(`groupby use odoomark`, async () => {
+    patchWithCleanup(Partner.prototype, {
+        _getFormattedDisplayName(record) {
+            return `**${record.name}** \`tag\``;
+        },
+    });
+
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban sample="1">
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                        <field name="product_id"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["product_id"],
+    });
+
+    expect(`.o_kanban_group`).toHaveCount(2);
+    expect(`.o_kanban_group b`).toHaveCount(2);
+    expect(`.o_kanban_group span.o_badge`).toHaveCount(2);
+});
+
+test.tags("desktop");
+test("kanban: fields with data-tooltip attribute", async () => {
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban sample="1">
+                <templates>
+                    <t t-name="card">
+                        <field name="foo" data-tooltip="pipu" />
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["product_id"],
+    });
+
+    expect(".o-tooltip").toHaveCount(0);
+    await hover("article:contains(gnap) span");
+    await advanceTime(500);
+    expect(".o-tooltip").toHaveCount(1);
+});
+
 test.tags("desktop");
 test("add o-navigable to buttons with dropdown-item class and view buttons", async () => {
     Partner._records.splice(1, 3); // keep one record only
@@ -15070,4 +9861,267 @@ test("add o-navigable to buttons with dropdown-item class and view buttons", asy
 
     await press("arrowdown");
     expect(".o-dropdown--menu .dropdown-item.o-navigable:nth-child(3)").toHaveClass("focus");
+});
+
+test.tags("desktop");
+test(`[Offline] disable unavailable records when offline`, async () => {
+    const setOffline = mockOffline();
+    mockService("offline", {
+        isAvailableOffline(actionId, viewType, resId) {
+            if (actionId === 234 && viewType === "form") {
+                return [2, 3].includes(resId);
+            }
+            return actionId === 123;
+        },
+    });
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        config: { actionId: 234 },
+    });
+
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    await setOffline(true);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+    expect(".o_kanban_record:not(.o_kanban_ghost):eq(0)").toHaveClass("o_disabled_offline");
+    expect(".o_kanban_record:not(.o_kanban_ghost):eq(1)").not.toHaveClass("o_disabled_offline");
+    expect(".o_kanban_record:not(.o_kanban_ghost):eq(2)").not.toHaveClass("o_disabled_offline");
+    expect(".o_kanban_record:not(.o_kanban_ghost):eq(3)").toHaveClass("o_disabled_offline");
+});
+
+test.tags("desktop");
+test(`[Offline] use offline searchbar`, async () => {
+    expect.errors(2);
+    const setOffline = mockOffline();
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        searchViewArch: `
+            <search>
+                <filter string="Filter Blip" name="blip" domain="[['foo', '=', 'blip']]"/>
+                <filter string="GroupBy Blip" name="groupby_blip" context="{'group_by': 'foo'}"/>
+                <filter string="Empty Filter" name="empty" domain="[['foo', '=', 'no record']]"/>
+            </search>`,
+        config: { actionId: 234 },
+    });
+
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    // Visit filters to feed the cache
+    await toggleSearchBarMenu();
+    await toggleMenuItem("GroupBy Blip");
+    expect(".o_kanban_group").toHaveCount(3);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    await toggleMenuItem("Filter Blip");
+    expect(".o_kanban_group").toHaveCount(1);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    await toggleMenuItem("Empty Filter"); // should not be available offline as no results
+    expect(".o_kanban_group").toHaveCount(0);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(0);
+
+    await removeFacet("Empty Filter");
+    expect(".o_kanban_group").toHaveCount(1);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch offline and visit available filters
+    await setOffline(true);
+    expect(".o_offline_search_bar").toHaveCount(1);
+    expect(".o_offline_search_bar .o_searchview_facet").toHaveCount(3); // groupby, filter and close
+    expect(queryAllTexts(".o_offline_search_bar .o_facet_values")).toEqual([
+        "GroupBy Blip",
+        "Filter Blip",
+    ]);
+
+    await contains(".o_offline_search_bar .o_searchview_facet .oi-close").click(); // remove search
+    expect(".o_offline_search_bar .o_searchview_facet").toHaveCount(0);
+    expect(".o_kanban_group").toHaveCount(0);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    await toggleSearchBarMenu();
+    expect(".o_search_bar_menu_offline .o-dropdown-item").toHaveCount(2);
+    expect(queryAllTexts(".o_search_bar_menu_offline .o-dropdown-item")).toEqual([
+        "GroupBy Blip\nFilter Blip",
+        "GroupBy Blip",
+    ]);
+
+    await contains(".o_search_bar_menu_offline .o-dropdown-item:eq(1)").click();
+    expect(".o_offline_search_bar .o_searchview_facet").toHaveCount(2); // groupby and close
+    expect(queryAllTexts(".o_offline_search_bar .o_facet_values")).toEqual(["GroupBy Blip"]);
+    expect(".o_kanban_group").toHaveCount(3);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    expect.verifyErrors([
+        "/web/dataset/call_kw/partner/web_search_read",
+        "/web/dataset/call_kw/partner/web_read_group",
+    ]);
+});
+
+test.tags("desktop");
+test(`[Offline] keep facets name when coming back online`, async () => {
+    expect.errors(2);
+    Partner._records.push({ foo: "boo" });
+    const setOffline = mockOffline();
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        searchViewArch: `
+            <search>
+                <field name="foo" string="Foo" filter_domain="[['foo', 'ilike', self]]"/>
+                <filter string="Filter Blip" name="blip" domain="[['foo', '=', 'blip']]"/>
+                <filter string="GroupBy Blip" name="groupby_blip" context="{'group_by': 'foo'}"/>
+            </search>`,
+        config: { actionId: 234 },
+    });
+
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(5);
+
+    // Visit filters to feed the cache
+    await editSearch("boo");
+    await keyDown("Enter");
+    await animationFrame();
+    await editSearch("blip");
+    await keyDown("Enter");
+    await animationFrame();
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(3);
+    await toggleSearchBarMenu();
+    await toggleMenuItem("Filter Blip");
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+    await toggleMenuItem("GroupBy Blip");
+    expect(".o_kanban_group").toHaveCount(1);
+
+    // Switch offline and visit available filters
+    await setOffline(true);
+    await toggleSearchBarMenu();
+    await contains(".o_search_bar_menu_offline .o-dropdown-item:eq(1)").click();
+    expect(".o_kanban_group").toHaveCount(0);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+    await toggleSearchBarMenu();
+    await contains(".o_search_bar_menu_offline .o-dropdown-item:eq(0)").click();
+    expect(".o_kanban_group").toHaveCount(1);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch back online
+    await setOffline(false);
+    expect(queryAllTexts(".o_searchview .o_facet_values")).toEqual([
+        "Foo boo or blip",
+        "Filter Blip",
+        "GroupBy Blip",
+    ]);
+
+    await removeFacet("GroupBy Blip");
+    expect(".o_kanban_group").toHaveCount(0);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch offline again and check the name of available filters
+    await setOffline(true);
+    await toggleSearchBarMenu();
+    expect(queryAllTexts(".o_search_bar_menu_offline .o-dropdown-item")).toEqual([
+        "Foo\nboo\nor\nblip\nFilter Blip",
+        "Foo\nboo\nor\nblip\nFilter Blip\nGroupBy Blip",
+        "Foo\nboo\nor\nblip",
+        "Foo\nboo",
+    ]);
+
+    expect.verifyErrors([
+        "/web/dataset/call_kw/partner/web_search_read",
+        "/web/dataset/call_kw/partner/web_read_group",
+    ]);
+});
+
+test.tags("desktop");
+test(`[Offline] keep facets name when coming back online (favorite filter)`, async () => {
+    expect.errors(2);
+    const setOffline = mockOffline();
+    await mountView({
+        resModel: "partner",
+        type: "kanban",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        config: { actionId: 234 },
+        searchViewArch: `
+            <search>
+                <filter string="GroupBy Blip" name="groupby_blip" context="{'group_by': 'foo'}"/>
+            </search>`,
+        irFilters: [
+            {
+                context: "{}",
+                domain: "[('foo', 'ilike', 'blip')]",
+                id: 1,
+                name: "My favorite",
+                sort: "[]",
+                user_ids: [2],
+            },
+        ],
+    });
+
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+
+    // Visit filters to feed the cache
+    await toggleSearchBarMenu();
+    await toggleMenuItem("My favorite");
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch offline and visit available filters
+    await setOffline(true);
+    await contains(".o_searchview_facet .oi-close").click();
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(4);
+    await toggleSearchBarMenu();
+    await contains(".o_search_bar_menu_offline .o-dropdown-item:eq(0)").click();
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch back online
+    await setOffline(false);
+    expect(queryAllTexts(".o_searchview .o_facet_values")).toEqual(["My favorite"]);
+    expect(".o_searchview_facet .fa-star").toHaveCount(1);
+
+    await toggleSearchBarMenu();
+    await toggleMenuItem("GroupBy Blip");
+    expect(".o_kanban_group").toHaveCount(1);
+    expect(".o_kanban_record:not(.o_kanban_ghost)").toHaveCount(2);
+
+    // Switch offline again and check the name of available filters
+    await setOffline(true);
+    await toggleSearchBarMenu();
+    expect(queryAllTexts(".o_search_bar_menu_offline .o-dropdown-item")).toEqual([
+        "My favorite\nGroupBy Blip",
+        "My favorite",
+    ]);
+
+    expect.verifyErrors([
+        "/web/dataset/call_kw/partner/web_search_read",
+        "/web/dataset/call_kw/partner/web_search_read",
+    ]);
 });

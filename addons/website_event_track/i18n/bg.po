@@ -19,17 +19,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-02 00:45+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Bulgarian <https://translate.odoo.com/projects/odoo-19/"
-"website_event_track/bg/>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2022-09-22 05:56+0000\n"
+"Last-Translator: Maria Boyadjieva <marabo2000@gmail.com>, 2023\n"
+"Language-Team: Bulgarian (https://app.transifex.com/odoo/teams/41243/bg/)\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: website_event_track
 #. odoo-python
@@ -132,11 +130,10 @@ msgid ""
 "    </div>\n"
 "    <br/><br/>\n"
 "    Thank you,\n"
-"    <t t-if=\"user.signature\" data-o-mail-quote-container=\"1\">\n"
+"    <t t-if=\"user.signature\">\n"
 "        <br/>\n"
 "        <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"user.signature or ''\" data-o-mail-quote=\"1\">Mitchell Admin</t></"
-"div>\n"
+"out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "    </t>\n"
 "</div>"
 msgstr ""
@@ -649,6 +646,11 @@ msgid "Activity Exception Decoration"
 msgstr "Декорация за изключение на дейност"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__activity_state
 msgid "Activity State"
 msgstr "Състояние на Дейност"
@@ -804,6 +806,16 @@ msgstr "Брой Прикачени Файлове"
 #. module: website_event_track
 #: model:event.track.tag.category,name:website_event_track.event_track_tag_category_1
 msgid "Audience"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__publish_on
+msgid "Auto publish on"
+msgstr ""
+
+#. module: website_event_track
+#: model:ir.model.fields,help:website_event_track.field_event_track__publish_on
+msgid "Automatically publish the page on the chosen date and time."
 msgstr ""
 
 #. module: website_event_track
@@ -2142,6 +2154,11 @@ msgid "Published"
 msgstr "Публикуван"
 
 #. module: website_event_track
+#: model:ir.model.fields,field_description:website_event_track.field_event_track__published_date
+msgid "Published date"
+msgstr ""
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_track10
 msgid "Raising qualitive insights from your customers"
 msgstr ""
@@ -3106,72 +3123,12 @@ msgid "starts on"
 msgstr ""
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
+msgid "track"
+msgstr ""
+
+#. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr ""
-
-#~ msgid "&amp;bull;"
-#~ msgstr "&amp;bull;"
-
-#~ msgid ""
-#~ "<strong>Lightning Talks</strong>. These are 30 minutes talks on many\n"
-#~ "                                    different topics. Most topics are "
-#~ "accepted in lightning talks."
-#~ msgstr ""
-#~ "<strong>Светкавични разговори</strong>. Това са 30-минутни разговори на "
-#~ "най-различна\n"
-#~ "                                    тематика. Повечето теми се акцентират "
-#~ "именно в светкавични разговори."
-
-#~ msgid ""
-#~ "<strong>Regular Talks</strong>. These are standard talks with slides,\n"
-#~ "                                    alocated in slots of 60 minutes."
-#~ msgstr ""
-#~ "<strong>Редовни разговори</strong>. Това са стандартни разговори със "
-#~ "слайдове,\n"
-#~ "                                    разпределени в слотове от 60 минути."
-
-#~ msgid ""
-#~ "Allow video and audio recording of their\n"
-#~ "                                    presentation, for publishing on our "
-#~ "website."
-#~ msgstr ""
-#~ "Позволяват видео и аудио запис на\n"
-#~ " презентацията си за публикуване в нашия уебсайт."
-
-#~ msgid "Error"
-#~ msgstr "Грешка"
-
-#~ msgid "Filter Tracks..."
-#~ msgstr "Филтрирайте направления..."
-
-#~ msgid "Group By"
-#~ msgstr "Групиране по"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Брой съобщения, които изискват внимание"
-
-#~ msgid "Proposals are closed!"
-#~ msgstr "Предложенията са затворени!"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Показване на всички записи, на които следващата дата на действие е преди "
-#~ "днес"
-
-#~ msgid "Talk Proposals"
-#~ msgstr "Предложения за разговори"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Пълен URL адрес за достъп до документа през уебсайта."
-
-#~ msgid "This event does not accept proposals."
-#~ msgstr "Това събитие не приема предложения."
-
-#~ msgid ""
-#~ "Timely release of presentation material (slides),\n"
-#~ "                                    for publishing on our website."
-#~ msgstr ""
-#~ "Своевременно пускане на презентационен материал (слайдове),\n"
-#~ " за публикуване на нашия уебсайт."

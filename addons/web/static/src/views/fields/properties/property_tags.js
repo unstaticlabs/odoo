@@ -4,11 +4,12 @@ import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { TagsList } from "@web/core/tags_list/tags_list";
+import { BadgeTag } from "@web/core/tags_list/badge_tag";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { useTagNavigation } from "@web/core/record_selectors/tag_navigation_hook";
 
 import { Component } from "@odoo/owl";
+import { range } from "@web/core/utils/numbers";
 
 class PropertyTagsColorListPopover extends Component {
     static template = "web.PropertyTagsColorListPopover";
@@ -27,7 +28,7 @@ export class PropertyTags extends Component {
     static template = "web.PropertyTags";
     static components = {
         AutoComplete,
-        TagsList,
+        BadgeTag,
         ColorList,
         Popover: PropertyTagsColorListPopover,
     };
@@ -70,7 +71,7 @@ export class PropertyTags extends Component {
     }
 
     /**
-     * Return the list containing tags values and actions for the TagsList component.
+     * Return the list containing tags values and actions for the BadgeTag component.
      *
      * @returns {array}
      */
@@ -97,10 +98,9 @@ export class PropertyTags extends Component {
             return {
                 id: tagId,
                 text: tagLabel,
-                className: this.props.canChangeTags ? "" : "pe-none",
-                colorIndex: tagColorIndex || 0,
+                color: tagColorIndex || 0,
                 onClick: (event) => this.onTagClick(event, tagId, tagColorIndex),
-                onDelete: canDeleteTag && (() => this.onTagDelete(tagId)),
+                onDelete: canDeleteTag ? (() => this.onTagDelete(tagId)) : undefined,
             };
         });
     }
@@ -269,7 +269,7 @@ export class PropertyTags extends Component {
             return;
         }
         this.popover.open(event.currentTarget, {
-            colors: [...Array(ColorList.COLORS.length).keys()],
+            colors: range(ColorList.COLORS.length),
             tag: { id: tagId, colorIndex: tagColor },
             switchTagColor: this.onTagColorSwitch.bind(this),
         });

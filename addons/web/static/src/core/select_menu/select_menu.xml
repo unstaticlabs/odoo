@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
+    <t t-name="web.SelectMenuTagsList">
+        <t t-foreach="this.props.tags" t-as="tag" t-key="tag.id">
+            <BadgeTag onDelete="tag.onDelete" text="tag.text"/>
+        </t>
+    </t>
+
     <t t-name="web.SelectMenu.search">
         <input
             type="text"
@@ -8,12 +14,13 @@
             t-on-input="onSearchInput"
             t-on-focus="onInputFocus"
             t-on-blur="onInputBlur"
-            t-att-placeholder="placeholderValue"
+            t-att-placeholder="this.placeholderValue"
             t-att-value="displayValue"
             t-att-id="props.id"
             t-att-name="props.name"
             t-att-disabled="props.disabled"
             t-on-click="onInputClick"
+            t-on-keydown="onKeyDown"
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
@@ -60,22 +67,24 @@
                 </t>
                 <t t-set-slot="content">
                     <button t-if="isBottomSheet and canDeselect" class="btn o_clear_button px-4 d-block ms-auto" t-on-click="onInputClear">Clear</button>
-                    <div class="o_select_menu_searchbox position-sticky start-0 d-empty-none" t-att-data-id="selectMenuId">
+                    <div class="o_select_menu_searchbox d-empty-none ps-2" t-att-data-id="selectMenuId">
                         <t t-if="displayInputInDropdown">
                             <t t-set="inputClass" t-value="'o_select_menu_input dropdown-item'"/>
                             <t t-call="web.SelectMenu.search" />
                         </t>
                     </div>
-                    <t t-if="state.choices.length === 0">
-                        <p class="text-muted fst-italic mx-4 my-1">No results</p>
-                    </t>
-                    <t t-foreach="state.displayedOptions" t-as="choice" t-key="choice_index">
-                        <t t-call="{{ this.constructor.choiceItemTemplate }}">
-                            <t t-set="choice" t-value="choice" />
-                            <t t-set="choice_index" t-value="choice_index" />
+                    <div class="overflow-auto position-relative o_select_menu-choices" style="scrollbar-width: thin;" t-ref="choicesRef">
+                        <t t-if="state.choices.length === 0">
+                            <p class="text-muted fst-italic mx-4 my-1">No results</p>
                         </t>
-                    </t>
-                    <t t-if="props.slots and props.slots.bottomArea" t-slot="bottomArea" data="state"/>
+                        <t t-foreach="state.displayedOptions" t-as="choice" t-key="choice_index">
+                            <t t-call="{{ this.constructor.choiceItemTemplate }}">
+                                <t t-set="choice" t-value="choice" />
+                                <t t-set="choice_index" t-value="choice_index" />
+                            </t>
+                        </t>
+                        <t t-if="props.slots and props.slots.bottomArea" t-slot="bottomArea" data="state"/>
+                    </div>
                 </t>
             </Dropdown>
         </div>
@@ -91,13 +100,14 @@
         </div>
         <DropdownItem
             t-if="!choice.isGroup"
-            onSelected="() => this.onItemSelected(choice.value)"
-            class="getItemClass(choice) + ' text-wrap'"
+            closingMode="choice.enabled ? 'all' : 'none'"
+            onSelected="() => choice.enabled and this.onItemSelected(choice.value)"
+            class="this.getItemClass(choice)"
             attrs="{ 'data-choice-index': choice_index }"
         >
             <t t-if="props.slots and props.slots.choice" t-slot="choice" data="choice"/>
             <t t-else="">
-                <div t-esc="choice.label || choice.value" />
+                <div t-out="choice.label" />
             </t>
         </DropdownItem>
     </t>

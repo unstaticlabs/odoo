@@ -7,11 +7,11 @@
             <field name="model">account.journal</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
-                <list string="Account Journal">
+                <list js_class="list_no_create">
                     <field name='sequence' widget='handle'/>
                     <field name="name"/>
                     <field name="type"/>
-                    <field name="journal_group_ids" widget="many2many_tags" readonly="1" optional="hide"/>
+                    <field name="journal_group_id" readonly="1" optional="hide"/>
                     <field name="currency_id" groups="base.group_multi_currency" optional="hide"/>
                     <field name="code" optional="show"/>
                     <field name="default_account_id" optional="show"/>
@@ -54,6 +54,7 @@
                             </group>
                             <group>
                                 <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
+                                <field name="journal_group_id" placeholder="Local Gaap" invisible="not has_ledger"/>
                                 <field name="country_code" invisible="1"/>
                             </group>
                         </group>
@@ -107,7 +108,7 @@
                                     <group name="bank_account_number" invisible="type != 'bank'">
                                         <field name="company_partner_id" invisible="1"/>
                                         <field name="bank_account_id" string="Bank Account Number" context="{'default_partner_id': company_partner_id}"/>
-                                        <field name="bank_id" invisible="not bank_account_id"/>
+                                        <field name="bank_bic" invisible="not bank_account_id"/>
                                         <field name="bank_statements_source" widget="radio" required="type == 'bank'"  groups="account.group_account_basic"/>
                                     </group>
                                     <group name="bank_source" invisible="type != 'credit'">
@@ -153,7 +154,7 @@
                                     <field name="selected_payment_method_codes" invisible="1"/>
                                     <group name="outgoing_payment" />
                             </page>
-                            <page name="advanced_settings" string="Advanced Settings">
+                            <page name="advanced_settings" string="Advanced Settings" invisible="type in ['bank', 'cash']">
                                 <group>
                                     <group string="Automation" groups="account.group_account_manager">
                                         <field name="restrict_mode_hash_table" groups="account.group_account_readonly" invisible="type not in ['sale', 'purchase', 'general']"
@@ -169,9 +170,13 @@
                                             </a>
                                         </div>
                                         <div class="o_row" colspan="2" dir="ltr" invisible="not display_alias_fields">
-                                            <label string="Email Alias" for="alias_name"/>
-                                            <field name="alias_name" placeholder="alias"/>@
-                                            <field name="alias_domain_id" placeholder="e.g. mycompany.com" options="{'no_create': True, 'no_open': True}"/>
+                                            <label string="Email Alias" for="alias_name" class="fw-medium"/>
+                                            <field name="alias_name" placeholder="alias" class="o_field_highlight"/>@
+                                            <field name="alias_domain_id" placeholder="e.g. mycompany.com" options="{'no_create': True, 'no_open': True}" class="o_field_highlight"/>
+                                            <div class="w-25">
+                                                <field name="alias_email" widget="CopyClipboardButton" invisible="not alias_email"
+                                                    class="copy_alias_email" options="{'btn_class': 'link'}" string=""/>
+                                            </div>
                                         </div>
                                         <field name="incoming_einvoice_notification_email"
                                                placeholder="e.g. finance@example.com; accountant@example.com"
@@ -197,7 +202,7 @@
             <field name="model">account.journal</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
-                <kanban class="o_kanban_mobile">
+                <kanban on_create="account_accountant.action_journal_create_wizard" class="o_kanban_mobile">
                     <templates>
                         <t t-name="card" class="row g-0">
                             <div class="col-6">
@@ -257,13 +262,9 @@
             <field name="priority">1</field>
             <field name="arch" type="xml">
                 <list editable="bottom">
-                    <field name="company_id" column_invisible="True"/>
                     <field name="sequence"  widget="handle"/>
-                    <field name="name" placeholder="e.g. GAAP, IFRS, ..."/>
-                    <field name="excluded_journal_ids"
-                        widget="many2many_tags_journals"
-                        options="{'no_create': True}"/>
-                    <field name="company_id" groups="base.group_multi_company" placeholder="Visible to all" options="{'no_create': True}"/>
+                    <field name="name" placeholder="e.g. CONSO, IFRS, ..."/>
+                    <field name="included_journal_ids" widget="many2many_tags" options="{'no_create': True}" context="{'show_company_journal': True}" optional="show"/>
                 </list>
             </field>
         </record>
@@ -276,13 +277,9 @@
                 <form string="Multi-ledger">
                     <sheet>
                         <group>
-                            <field name="company_id" invisible="1"/>
-                            <field name="name" placeholder="e.g. GAAP, IFRS, ..."/>
-                            <field name="excluded_journal_ids"
-                                widget="many2many_tags_journals"
-                                options="{'no_create': True}"/>
+                            <field name="name" placeholder="e.g. CONSO, IFRS, ..."/>
                             <field name="sequence" groups="base.group_no_one"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="included_journal_ids" options="{'no_create': True}" context="{'show_company_journal': True}" optional="hide"/>
                         </group>
                     </sheet>
                 </form>

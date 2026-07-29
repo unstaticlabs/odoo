@@ -2,16 +2,16 @@
 # This file contains the translation of the following modules:
 # * l10n_at
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.5alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 19:14+0000\n"
-"PO-Revision-Date: 2026-01-31 10:07+0000\n"
+"POT-Creation-Date: 2026-04-10 19:04+0000\n"
+"PO-Revision-Date: 2026-01-31 12:25+0000\n"
 "Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19-l10n/"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-1-l10n/"
 "l10n_at/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -304,7 +304,7 @@ msgstr "Bilanz PD"
 #: model:ir.model.fields,field_description:l10n_at.field_account_chart_template__display_name
 #: model:ir.model.fields,field_description:l10n_at.field_account_journal__display_name
 msgid "Display Name"
-msgstr "Anzeigename"
+msgstr "Name anzeigen"
 
 #. module: l10n_at
 #: model:account.account.tag,name:l10n_at.account_tag_l10n_at_ARR

@@ -34,7 +34,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'purchase_tax_template_vat20_psbo',
                 'expense_account_id': 'ua_psbp_901',
                 'income_account_id': 'ua_psbp_701',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'ua_psbp_201',
             },
         }

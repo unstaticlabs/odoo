@@ -3,18 +3,18 @@
 # * uom
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-07-01 04:08+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/uom/ru/>"
-"\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-04-13 19:31+0000\n"
+"Last-Translator: \"Anastasiia Koroleva (koan)\" <koan@odoo.com>\n"
+"Language-Team: Russian <https://translate.odoo.com/projects/odoo-s19-2/uom/"
+"ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,12 +22,12 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__factor
 msgid "Absolute Quantity"
-msgstr "Абсолютное количество"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__active
@@ -85,8 +85,6 @@ msgid ""
 "How much bigger or smaller this unit is compared to the reference UoM for "
 "this unit"
 msgstr ""
-"Насколько больше или меньше эта единица измерения по сравнению с базовой ЕИ "
-"для этой категории"
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__id
@@ -96,12 +94,12 @@ msgstr "ID"
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_kwh
 msgid "KWH"
-msgstr "кВт·ч"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_litre
 msgid "L"
-msgstr "л"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__write_uid
@@ -121,12 +119,12 @@ msgstr "Управление несколькими единицами изме�
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_minute
 msgid "Minutes"
-msgstr "Минуты"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_pack_6
 msgid "Pack of 6"
-msgstr "Упаковка (6 шт.)"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__parent_path
@@ -138,7 +136,7 @@ msgstr "Родительский путь"
 #: code:addons/uom/static/src/components/many2one_uom/many2one_uom_field.js:0
 #: code:addons/uom/static/src/components/many2x_uom_tags/many2x_uom_tags.js:0
 msgid "Product Field Name"
-msgstr "Название поля товара"
+msgstr ""
 
 #. module: uom
 #: model:ir.model,name:uom.model_uom_uom
@@ -155,29 +153,24 @@ msgstr "Количество"
 #: code:addons/uom/static/src/components/many2one_uom/many2one_uom_field.js:0
 #: code:addons/uom/static/src/components/many2x_uom_tags/many2x_uom_tags.js:0
 msgid "Quantity Field Name"
-msgstr "Название поля количества"
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__relative_uom_id
 #: model_terms:ir.ui.view,arch_db:uom.product_uom_form_view
 msgid "Reference Unit"
-msgstr "Базовая единица измерения"
+msgstr ""
 
 #. module: uom
 #. odoo-python
 #: code:addons/uom/models/uom_uom.py:0
 msgid "Reference unit of measure is missing."
-msgstr "Отсутствует базовая единица измерения."
+msgstr ""
 
 #. module: uom
 #: model:ir.model.fields,field_description:uom.field_uom_uom__related_uom_ids
 msgid "Related UoMs"
-msgstr "Связанные единицы измерения"
-
-#. module: uom
-#: model:ir.model.fields,field_description:uom.field_uom_uom__rounding
-msgid "Rounding Precision"
-msgstr "Точность Округления"
+msgstr ""
 
 #. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.uom_uom_view_search
@@ -201,14 +194,6 @@ msgid ""
 "Therefore, changing core units of measure in a running database is not "
 "recommended."
 msgstr ""
-"Некоторые критически важные поля были изменены в %s.\n"
-"Обратите внимание, что существующие данные НЕ будут обновлены после этого "
-"изменения.\n"
-"\n"
-"Поскольку единицы измерения влияют на всю систему, это может привести к "
-"серьезным сбоям.\n"
-"По этой причине изменять основные единицы измерения в уже работающей базе "
-"данных не рекомендуется."
 
 #. module: uom
 #: model:ir.model.constraint,message:uom.constraint_uom_uom_factor_gt_zero
@@ -253,9 +238,8 @@ msgstr "Единицы"
 #. module: uom
 #: model:ir.actions.act_window,name:uom.product_uom_form_action
 #: model_terms:ir.ui.view,arch_db:uom.product_uom_tree_view
-#, fuzzy
 msgid "Units & Packagings"
-msgstr "Ед. изм. и упаковки"
+msgstr ""
 
 #. module: uom
 #: model_terms:ir.ui.view,arch_db:uom.product_uom_form_view
@@ -336,9 +320,8 @@ msgstr "фунт"
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_meter
-#, fuzzy
 msgid "m"
-msgstr "m"
+msgstr ""
 
 #. module: uom
 #: model:uom.uom,name:uom.product_uom_mile
@@ -379,201 +362,3 @@ msgstr "qt (США)"
 #: model:uom.uom,name:uom.product_uom_yard
 msgid "yd"
 msgstr "ярд"
-
-#~ msgid ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    e.g: 1*(reference unit)=ratio*(this "
-#~ "unit)\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    например: 1*(эталонная "
-#~ "единица)=отношение*(данная единица)\n"
-#~ "                                </span>"
-
-#~ msgid ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    e.g: 1*(this unit)=ratio*(reference "
-#~ "unit)\n"
-#~ "                                </span>"
-#~ msgstr ""
-#~ "<span class=\"oe_grey oe_inline\">\n"
-#~ "                                    например: 1*(данная единица "
-#~ "измерения)=отношение*(эталонная единица измерения)\n"
-#~ "                                </span>"
-
-#~ msgid "Add a new unit of measure category"
-#~ msgstr "Добавьте новую категорию единиц измерения"
-
-#~ msgid "Bigger Ratio"
-#~ msgstr "Большее соотношение"
-
-#~ msgid "Bigger than the reference Unit of Measure"
-#~ msgstr "Больше, чем эталон Единица измерения"
-
-#~ msgid "Category"
-#~ msgstr "Категория"
-
-#~ msgid "Color"
-#~ msgstr "Цвет"
-
-#~ msgid "Combined Ratio"
-#~ msgstr "Комбинированный коэффициент"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Пересчет между единицами измерения может произойти только в том случае, "
-#~ "если они принадлежат к одной и той же категории. Пересчет будет "
-#~ "осуществляться на основе коэффициентов."
-
-#~ msgid "Group By"
-#~ msgstr "Группировать по"
-
-#~ msgid ""
-#~ "How many times this Unit of Measure is bigger than the reference Unit of "
-#~ "Measure in this category: 1 * (this unit) = ratio * (reference unit)"
-#~ msgstr ""
-#~ "Сколько раз эта единица измерения больше, чем эталонная единица измерения "
-#~ "в этой категории: 1 * (эта единица) = отношение * (единица измерения)"
-
-#~ msgid ""
-#~ "How much bigger or smaller this unit is compared to the reference Unit of "
-#~ "Measure for this category: 1 * (reference unit) = ratio * (this unit)"
-#~ msgstr ""
-#~ "Насколько больше или меньше эта единица сравнивается с эталонной единицей "
-#~ "измерения для этой категории: 1 * (эталонное устройство) = отношение * "
-#~ "(это устройство)"
-
-#~ msgid "Length / Distance"
-#~ msgstr "Длина / расстояние"
-
-#~ msgid "Product UoM Categories"
-#~ msgstr "Категории продуктов UoM"
-
-#~ msgid "Ratio"
-#~ msgstr "Соотношение"
-
-#~ msgid "Reference Unit of Measure for this category"
-#~ msgstr "Эталонная единица измерения для данной категории"
-
-#~ msgid "Reference UoM"
-#~ msgstr "Ссылка UoM"
-
-#~ msgid "Search UoM Category"
-#~ msgstr "Поиск по категории UoM"
-
-#~ msgid "Smaller than the reference Unit of Measure"
-#~ msgstr "Меньше, чем эталон Единица измерения"
-
-#~ msgid ""
-#~ "Some critical fields have been modified on %s.\n"
-#~ "Note that existing data WON'T be updated by this change.\n"
-#~ "\n"
-#~ "As units of measure impact the whole system, this may cause critical "
-#~ "issues.\n"
-#~ "E.g. modifying the rounding could disturb your inventory balance.\n"
-#~ "\n"
-#~ "Therefore, changing core units of measure in a running database is not "
-#~ "recommended."
-#~ msgstr ""
-#~ "Некоторые критические поля были изменены на %s.\n"
-#~ "Обратите внимание, что существующие данные не будут обновлены этим "
-#~ "изменением.\n"
-#~ "\n"
-#~ "Поскольку единицы измерения влияют на всю систему, это может привести к "
-#~ "критическим проблемам.\n"
-#~ "Например, изменение округления может нарушить баланс запасов.\n"
-#~ "\n"
-#~ "Поэтому не рекомендуется изменять основные единицы измерения в работающей "
-#~ "базе данных."
-
-#~ msgid "Surface"
-#~ msgstr "Поверхность"
-
-#~ msgid ""
-#~ "The computed quantity will be a multiple of this value. Use 1.0 for a "
-#~ "Unit of Measure that cannot be further split, such as a piece."
-#~ msgstr ""
-#~ "Вычисленное количество будет кратно этому значению. Используйте 1,0 для "
-#~ "единиц измерения, которые нельзя разделить на части, например, для штуки."
-
-#~ msgid "The reference unit must have a conversion factor equal to 1."
-#~ msgstr "Эталонная единица должна иметь коэффициент пересчета, равный 1."
-
-#~ msgid "The rounding precision must be strictly positive."
-#~ msgstr "Точность округления должна быть строго положительной."
-
-#~ msgid ""
-#~ "The unit of measure %s defined on the order line doesn't belong to the "
-#~ "same category as the unit of measure %s defined on the product. Please "
-#~ "correct the unit of measure defined on the order line or on the product, "
-#~ "they should belong to the same category."
-#~ msgstr ""
-#~ "Единица измерения %s, определенная в строке заказа, не принадлежит к той "
-#~ "же категории, что и единица измерения %s, определенная в товаре. "
-#~ "Пожалуйста, исправьте единицу измерения, определенную в строке заказа или "
-#~ "в товаре, они должны относиться к одной и той же категории."
-
-#~ msgid "The value of ratio could not be Zero"
-#~ msgstr "Значение коэффициента не может быть нулевым"
-
-#~ msgid "Type"
-#~ msgstr "Тип"
-
-#~ msgid "Unit"
-#~ msgstr "Единица"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Ед. изм"
-
-#~ msgid "Unit of Measure Category"
-#~ msgstr "Единица измерения Категория"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Категории единиц измерения"
-
-#~ msgid "Units of Measure categories"
-#~ msgstr "Категории единиц измерения"
-
-#~ msgid ""
-#~ "Units of measure belonging to the same category can be\n"
-#~ "            converted between each others. For example, in the category\n"
-#~ "            <i>'Time'</i>, you will have the following units of measure:\n"
-#~ "            Hours, Days."
-#~ msgstr ""
-#~ "Единицы измерения, относящиеся к одной и той же категории, могут\n"
-#~ "             конвертироваться между собой. Например, в категории\n"
-#~ "             <I>'Время'</ i>, у вас будут следующие единицы измерения:\n"
-#~ "             Часы, Дни."
-
-#~ msgid "UoM category %s must have at least one reference unit of measure."
-#~ msgstr ""
-#~ "Категория UoM %s должна иметь хотя бы одну эталонную единицу измерения."
-
-#~ msgid "UoM category %s should have a reference unit of measure."
-#~ msgstr "Категория UoM %s должна иметь эталонную единицу измерения."
-
-#~ msgid "UoM category %s should only have one reference unit of measure."
-#~ msgstr ""
-#~ "Категория UoM %s должна иметь только одну эталонную единицу измерения."
-
-#~ msgid "Uom"
-#~ msgstr "Uom"
-
-#~ msgid "Volume"
-#~ msgstr "Объем"
-
-#~ msgid "Weight"
-#~ msgstr "Вес"
-
-#~ msgid "Working Time"
-#~ msgstr "Рабочее время"
-
-#~ msgid ""
-#~ "You must define a conversion rate between several Units of\n"
-#~ "            Measure within the same category."
-#~ msgstr ""
-#~ "Вы должны определить коэффициент конверсии между несколькими единицами\n"
-#~ "             Мера в той же категории."

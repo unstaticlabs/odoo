@@ -6,13 +6,13 @@
 # Martin Trigaux, 2018
 # Boško Stojaković <bluesoft83@gmail.com>, 2018
 # Bole <bole@dajmi5.com>, 2018
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:46+0000\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-11-16 15:32+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-19/"
 "base_automation/bs/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_automation
 #. odoo-javascript
@@ -142,6 +142,11 @@ msgstr ""
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_exception_decoration
 msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: base_automation
+#: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_plans_ids
+msgid "Activity Plans"
 msgstr ""
 
 #. module: base_automation
@@ -498,8 +503,8 @@ msgstr "Naziv modela"
 #. odoo-python
 #: code:addons/base_automation/models/ir_actions_server.py:0
 msgid ""
-"Model of action %(action_name)s should match the one from automated rule %"
-"(rule_name)s."
+"Model of action %(action_name)s should match the one from automated rule "
+"%(rule_name)s."
 msgstr ""
 
 #. module: base_automation
@@ -656,12 +661,8 @@ msgstr ""
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
-msgid "Scheduled Action"
-msgstr ""
-
-#. module: base_automation
 #: model:ir.model,name:base_automation.model_ir_cron
-msgid "Scheduled Actions"
+msgid "Scheduled Action"
 msgstr ""
 
 #. module: base_automation
@@ -775,8 +776,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid ""
-"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the \"%"
-"(state_value)s\" action type"
+"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the "
+"\"%(state_value)s\" action type"
 msgstr ""
 
 #. module: base_automation
@@ -981,33 +982,3 @@ msgstr ""
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "path"
 msgstr ""
-
-#~ msgid "Action Name"
-#~ msgstr "Naziv akcije"
-
-#~ msgid "Delay after trigger date"
-#~ msgstr "Odgodi nakon datuma okidanja"
-
-#~ msgid "Delay type"
-#~ msgstr "Vrsta odgode"
-
-#~ msgid "Email"
-#~ msgstr "E-Mail"
-
-#~ msgid ""
-#~ "If present, this condition must be satisfied before the update of the "
-#~ "record."
-#~ msgstr ""
-#~ "Ako je prisutan, ovaj uslov mora biti ispunjen prije ažuriranja zapisa."
-
-#~ msgid "Type"
-#~ msgstr "Tip"
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "Update"
-#~ msgstr "Ažuriraj"
-
-#~ msgid "Weeks"
-#~ msgstr "Sedmice"

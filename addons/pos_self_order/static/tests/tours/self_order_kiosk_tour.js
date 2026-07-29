@@ -132,7 +132,7 @@ registry.category("web_tour.tours").add("self_order_kiosk_cancel", {
     ],
 });
 
-registry.category("web_tour.tours").add("kiosk_simple_order", {
+registry.category("web_tour.tours").add("test_duplicate_order_kiosk", {
     steps: () => [
         Utils.checkIsNoBtn("My Order"),
         Utils.clickBtn("Order Now"),
@@ -180,20 +180,21 @@ registry.category("web_tour.tours").add("self_order_language_changes", {
 });
 
 registry.category("web_tour.tours").add("test_self_order_kiosk_combo_sides", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () => [
         Utils.clickBtn("Order Now"),
         LandingPage.selectLocation("Test-In"),
         ProductPage.clickCategory("Uncategorised"),
         ProductPage.clickProduct("Office Combo"),
-        ProductPage.clickComboProduct("Desk Organizer"),
-        {
-            trigger: `button:disabled:contains("Next")`,
-        },
-        ...ProductPage.setupAttribute([
-            { name: "Size", value: "M" },
-            { name: "Fabric", value: "Leather" },
+        ...ProductPage.setupCombo([
+            {
+                product: "Desk Organizer",
+                attributes: [
+                    { name: "Size", value: "M" },
+                    { name: "Fabric", value: "Leather" },
+                ],
+            },
         ]),
-        Utils.clickBtn("Add to cart"),
     ],
 });
 
@@ -245,9 +246,9 @@ registry.category("web_tour.tours").add("test_self_order_kiosk_product_availabil
         Utils.clickBtn("Order Now"),
         LandingPage.selectLocation("Test-In"),
         ProductPage.clickCategory("Category 2"),
-        // Mark 'Combo Product 5' as unavailable and verify it shows as out of stock
+        // Mark 'Combo Product 5' as unavailable and verify does not show in the product list
         Utils.setProductAvailability("Combo Product 5", false),
-        ProductPage.checkProductOutOfStock("Combo Product 5"),
+        Utils.negateStep(ProductPage.isProductDisplayed("Combo Product 5")),
         ProductPage.clickProduct("Office Combo"),
         ProductPage.clickComboProduct("Combo Product 4"),
         Utils.clickBtn("Add to cart"),

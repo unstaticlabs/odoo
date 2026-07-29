@@ -1,5 +1,5 @@
 import { Activity } from "@mail/core/common/activity_model";
-import { fields } from "@mail/core/common/record";
+import { fields } from "@mail/model/export";
 import { formatDate, formatDateTime } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
 

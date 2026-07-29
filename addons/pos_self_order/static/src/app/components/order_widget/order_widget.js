@@ -47,7 +47,11 @@ export class OrderWidget extends Component {
             label = _t("Order");
             disabled = isNoLine;
         } else {
-            label = this.selfOrder.hasPaymentMethod() ? _t("Pay") : _t("Order");
+            label = this.selfOrder.hasPaymentMethod()
+                ? _t("Pay")
+                : hasNotAllLinesSent.length
+                ? _t("Order")
+                : "";
         }
 
         return { label, disabled };
@@ -70,7 +74,7 @@ export class OrderWidget extends Component {
     get leftButton() {
         const back = this.shouldGoBack();
         return {
-            name: back ? _t("Back") : _t("Cancel"),
+            name: back ? _t("Back") : _t("Discard"),
             icon: back ? "oi oi-chevron-left btn-back" : "btn-close btn-cancel",
         };
     }

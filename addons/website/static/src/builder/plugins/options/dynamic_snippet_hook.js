@@ -82,6 +82,5 @@ export function useDynamicSnippetOption(modelNameFilter, contextualFilterDomain 
         getFilteredTemplates,
         showFilterOption,
         ...dynamicSnippetUtils,
-        modelNameFilter,
     };
 }

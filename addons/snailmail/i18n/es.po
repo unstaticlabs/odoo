@@ -5,16 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 # Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-29 11:31+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2026-06-06 13:44+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
 "snailmail/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -53,7 +53,8 @@ msgstr "Ocurrió un error al enviar la carta por correo postal."
 #. odoo-python
 #: code:addons/snailmail/models/snailmail_letter.py:0
 msgid "An error occurred when sending the document by post.<br>Error: %s"
-msgstr "Ocurrió un error al enviar el documento por correo postal.<br>Error: %s"
+msgstr ""
+"Ocurrió un error al enviar el documento por correo postal.<br>Error: %s"
 
 #. module: snailmail
 #. odoo-python
@@ -116,10 +117,6 @@ msgstr "Color"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Compañías"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Compañía"
@@ -290,8 +287,8 @@ msgstr "Mensaje"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Notificaciones de mensajes"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -413,11 +410,6 @@ msgstr "Correo postal"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "Color del correo postal"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "Portada solo de lectura para correo postal"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -636,106 +628,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "C.P."
-
-#~ msgid "Address"
-#~ msgstr "Dirección"
-
-#~ msgid "An unknown error occurred. Please contact our"
-#~ msgstr "Ocurrió un error desconocido, póngase en contacto con"
-
-#~ msgid "Buy credits"
-#~ msgstr "Comprar créditos"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "Cancelar carta"
-
-#~ msgid "Cancel letter"
-#~ msgstr "Cancelar carta"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Cancelar notificación en caso de fallo"
-
-#~ msgid "Canceled"
-#~ msgstr "Cancelada"
-
-#~ msgid "Close"
-#~ msgstr "Cerrar"
-
-#~ msgid "Failed letter"
-#~ msgstr "Carta fallida"
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "Error de formato al enviar una carta por correo postal"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Tipo de mensaje: email para mensajes de correo, notification para "
-#~ "mensajes de sistema, comment para otros tipos de mensaje como respuestas "
-#~ "de usuarios."
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "Nuestro servicio no puede leer su carta debido a su formato.<br/>\n"
-#~ "                 Modifique el formato de la plantilla o actualice su "
-#~ "configuración\n"
-#~ "                 para agregar automáticamente una portada en blanco a "
-#~ "todas las letras."
-
-#~ msgid "Partner"
-#~ msgstr "Contacto"
-
-#~ msgid "Re-send letter"
-#~ msgstr "Reenviar carta"
-
-#~ msgid "Street 2..."
-#~ msgstr "Calle 2..."
-
-#~ msgid "Street..."
-#~ msgstr "Calle..."
-
-#~ msgid ""
-#~ "The country to which you want to send the letter is not supported by our "
-#~ "service."
-#~ msgstr ""
-#~ "Nuestro servicio no hace envíos al país al que quiere enviar la carta"
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "La dirección del cliente no está completa. Actualice la dirección aquí y "
-#~ "vuelva a enviar la carta."
-
-#~ msgid ""
-#~ "The letter could not be sent due to insufficient credits on your IAP "
-#~ "account."
-#~ msgstr ""
-#~ "No se pudo enviar la carta porque su cuenta AIP no cuenta con los "
-#~ "créditos suficientes"
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "Actualice la configuración y vuelva a enviar"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "Actualizar dirección y reenviar"
-
-#~ msgid "Update address of partner"
-#~ msgstr "Actualice la dirección del contacto"
-
-#~ msgid "You need credits on your IAP account to send a letter."
-#~ msgstr "Necesita créditos en su cuenta IAP para mandar la carta."
-
-#~ msgid "ZIP"
-#~ msgstr "C.P."
-
-#~ msgid "for further assistance."
-#~ msgstr "para más asistencia."
-
-#~ msgid "support"
-#~ msgstr "Soporte técnico"

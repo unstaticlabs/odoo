@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 10:08+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/hr_skills/"
-"uz/>\n"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_skills
 #. odoo-python
@@ -62,7 +60,6 @@ msgid "ADD"
 msgstr "QO‘SHISH"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__active
 #, fuzzy
@@ -269,24 +266,28 @@ msgid "Category"
 msgstr "Kategoriya"
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_file
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_file
+#: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #, fuzzy
 msgid "Certificate"
 msgstr "Sertifikat"
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_filename
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_filename
 #, fuzzy
 msgid "Certificate Filename"
 msgstr "Sertifikat fayl nomi"
 
 #. module: hr_skills
-#: model:ir.actions.act_window,name:hr_skills.hr_employee_certification_report_action
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__is_certification
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
@@ -296,24 +297,9 @@ msgid "Certification"
 msgstr "Sertifikatlash"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#, fuzzy
-msgid "Certification Level"
-msgstr "Sertifikatlash darajasi"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-#, fuzzy
-msgid "Certification Type"
-msgstr "Sertifikatlash turi"
-
-#. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_certifications
 #: model:ir.actions.act_window,name:hr_skills.action_hr_employee_skill_certification
 #: model:ir.ui.menu,name:hr_skills.hr_certification_menu
-#: model:ir.ui.menu,name:hr_skills.hr_employee_certification_report_menu
-#: model:mail.activity.type,name:hr_skills.mail_activity_data_upload_certification
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
 #, fuzzy
@@ -383,7 +369,7 @@ msgid "Communication"
 msgstr "Muloqot"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__company_id
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__company_id
 #, fuzzy
@@ -519,8 +505,6 @@ msgid "Current Job Skill"
 msgstr "Hozirgi ish ko‘nikmasi"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_pivot
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_graph
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_pivot
 #, fuzzy
@@ -635,10 +619,8 @@ msgid "Demo Company Name"
 msgstr "Namoyish kompaniya nomi"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__department_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 #, fuzzy
 msgid "Department"
@@ -670,12 +652,6 @@ msgid "Digital advertising"
 msgstr "Raqamli reklama"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_cv_wizard_view_form
-#, fuzzy
-msgid "Discard"
-msgstr "Bekor qilish"
-
-#. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_certification_page
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_certification_page
 msgid "Display Certification Page"
@@ -683,7 +659,6 @@ msgstr ""
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_name
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__display_name
@@ -756,25 +731,17 @@ msgstr "Elektron pochta marketingi"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_employee
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__employee_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__employee_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form_inherit
 #, fuzzy
 msgid "Employee"
 msgstr "Xodim"
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_employee_certification_report
-#, fuzzy
-msgid "Employee Certification Report"
-msgstr "Xodimlarni attestatsiyadan o‘tkazish hisoboti"
 
 #. module: hr_skills
 #: model:ir.actions.report,name:hr_skills.action_report_employee_cv
@@ -869,12 +836,6 @@ msgstr "Tajriba"
 #, fuzzy
 msgid "Experience -"
 msgstr "Tajriba -"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-#, fuzzy
-msgid "Expired Certification"
-msgstr "Muddati o‘tgan sertifikat"
 
 #. module: hr_skills
 #: model:ir.model.fields.selection,name:hr_skills.selection__hr_resume_line__course_type__external
@@ -1049,7 +1010,6 @@ msgid "Harrington Park Public School"
 msgstr "Harrington Park davlat maktabi"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__has_department_manager_access
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__has_department_manager_access
 #, fuzzy
 msgid "Has Department Manager Access"
@@ -1105,7 +1065,6 @@ msgstr "Kadrlar bo‘limi xodimi"
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__id
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__id
@@ -1173,7 +1132,8 @@ msgstr "IT texnik yordam xodimi"
 msgid ""
 "If checked, this level will be the default one selected when choosing this "
 "skill."
-msgstr "Agar belgilansa, bu daraja ushbu ko‘nikmani tanlashda standart bo‘ladi."
+msgstr ""
+"Agar belgilansa, bu daraja ushbu ko‘nikmani tanlashda standart bo‘ladi."
 
 #. module: hr_skills
 #. odoo-javascript
@@ -1299,11 +1259,11 @@ msgid ""
 "installations and defense-related."
 msgstr ""
 "Lavozim: Mahsulot menejeri - Dasturiy ta'minotni ishlab chiqishdan ishlab "
-"chiqarishgacha bo‘lgan beshta tizim muhitida muvofiqlashtirdi va "
-"boshqardi. - Java darajasidagi dasturlash ishlariga yordam berish uchun "
-"saqlangan protseduralarni ishlab chiqdi. - Qayta tiklanadigan energiya "
-"inshootlarining bir nechta arxitekturalarini, ham tijorat qurilmalari, ham "
-"mudofaa bilan bog‘liq loyihalarni ishlab chiqdi."
+"chiqarishgacha bo‘lgan beshta tizim muhitida muvofiqlashtirdi va boshqardi. "
+"- Java darajasidagi dasturlash ishlariga yordam berish uchun saqlangan "
+"protseduralarni ishlab chiqdi. - Qayta tiklanadigan energiya inshootlarining "
+"bir nechta arxitekturalarini, ham tijorat qurilmalari, ham mudofaa bilan "
+"bog‘liq loyihalarni ishlab chiqdi."
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
@@ -1417,7 +1377,6 @@ msgid "Leinster School"
 msgstr "Leinster maktabi"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__level_progress
 #, fuzzy
@@ -1962,23 +1921,20 @@ msgid "React"
 msgstr "React"
 
 #. module: hr_skills
+#: model:ir.model,name:hr_skills.model_resource_resource
+msgid "Resource"
+msgstr ""
+
+#. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_resourcefulness
 #, fuzzy
 msgid "Resourcefulness"
 msgstr "Topqirlik"
 
 #. module: hr_skills
-#: model:ir.model,name:hr_skills.model_resource_resource
-#, fuzzy
-msgid "Resources"
-msgstr "Resurslar"
-
-#. module: hr_skills
 #: model:ir.ui.menu,name:hr_skills.menu_human_resources_configuration_resume
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
 #, fuzzy
 msgid "Resume"
@@ -2193,7 +2149,6 @@ msgstr "Simmons-Wilcox"
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__skill_ids
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_id
@@ -2216,7 +2171,6 @@ msgstr "Ko‘nikma tarixi hisoboti"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_level
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_level_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__skill_level_id
@@ -2235,7 +2189,6 @@ msgstr "Ko‘nikma darajalari"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_type
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_type_id
@@ -2261,6 +2214,11 @@ msgid "Skill Types"
 msgstr "Ko‘nikma turlari"
 
 #. module: hr_skills
+#: model:ir.model,name:hr_skills.model_hr_job_skill
+msgid "Skill for job position"
+msgstr ""
+
+#. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_individual_skill_mixin
 #, fuzzy
 msgid "Skill level"
@@ -2281,7 +2239,6 @@ msgstr "Xodimning ko‘nikma darajasi"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_job__job_skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_resource_resource__employee_skill_ids
-#: model:ir.ui.menu,name:hr_skills.hr_employee_skill_report_menu
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_type_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_job_skill_view_form
@@ -2317,12 +2274,6 @@ msgstr "Ko‘nikmalar ro‘yxati"
 #, fuzzy
 msgid "Skills Report"
 msgstr "Ko‘nikmalar hisoboti"
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_job_skill
-#, fuzzy
-msgid "Skills for job positions"
-msgstr "Lavozimlar uchun ko‘nikmalar"
 
 #. module: hr_skills
 #: model:ir.actions.server,name:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server
@@ -2535,16 +2486,6 @@ msgid "There are no skills defined in the library."
 msgstr "Kutubxonada hech qanday ko‘nikmalar belgilanmagan."
 
 #. module: hr_skills
-#: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_certification_report_action
-#, fuzzy
-msgid ""
-"This report will give you an overview of the certification per Employee.\n"
-"                Create them in configuration and add them on the Employee."
-msgstr ""
-"Ushbu hisobot sizga har bir xodimning sertifikatlanishi haqida umumiy "
-"ma'lumot beradi. Ularni sozlamalarda yarating va xodimga qo‘shing."
-
-#. module: hr_skills
 #: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_skill_report_action
 #, fuzzy
 msgid ""
@@ -2677,10 +2618,10 @@ msgid "Update Skills"
 msgstr "Ko‘nikmalarni yangilash"
 
 #. module: hr_skills
-#: model:mail.activity.type,summary:hr_skills.mail_activity_data_upload_certification
-#, fuzzy
-msgid "Upload a certification"
-msgstr "Sertifikatni yuklash"
+#. odoo-python
+#: code:addons/hr_skills/models/hr_employee.py:0
+msgid "Upload a document for a missing certification"
+msgstr ""
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_urdu
@@ -2879,7 +2820,3 @@ msgstr "www.demo.com"
 #, fuzzy
 msgid "• %(skill_name)s from %(valid_from)s to %(valid_to)s"
 msgstr "• %(skill_name)s %(valid_from)s dan %(valid_to)s gacha"
-
-#, fuzzy
-#~ msgid "%s (copy)"
-#~ msgstr "%s (nusxa)"

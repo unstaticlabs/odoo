@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-30 02:42+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"project_mrp_account/uz/>\n"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2025-10-08 18:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: project_mrp_account
 #. odoo-python
@@ -53,7 +51,6 @@ msgstr "Ovqatlanish stoli"
 #. module: project_mrp_account
 #: model:ir.model.fields,field_description:project_mrp_account.field_mrp_production__display_name
 #: model:ir.model.fields,field_description:project_mrp_account.field_mrp_workorder__display_name
-#: model:ir.model.fields,field_description:project_mrp_account.field_project_project__display_name
 #: model:ir.model.fields,field_description:project_mrp_account.field_stock_move__display_name
 #: model:ir.model.fields,field_description:project_mrp_account.field_stock_rule__display_name
 #, fuzzy
@@ -69,7 +66,6 @@ msgstr "Tahliliy hisobi mavjud"
 #. module: project_mrp_account
 #: model:ir.model.fields,field_description:project_mrp_account.field_mrp_production__id
 #: model:ir.model.fields,field_description:project_mrp_account.field_mrp_workorder__id
-#: model:ir.model.fields,field_description:project_mrp_account.field_project_project__id
 #: model:ir.model.fields,field_description:project_mrp_account.field_stock_move__id
 #: model:ir.model.fields,field_description:project_mrp_account.field_stock_rule__id
 #, fuzzy
@@ -81,19 +77,6 @@ msgstr "ID"
 #, fuzzy
 msgid "Manufacturing Order"
 msgstr "Ishlab chiqarish buyurtmasi"
-
-#. module: project_mrp_account
-#. odoo-python
-#: code:addons/project_mrp_account/models/project_project.py:0
-#, fuzzy
-msgid "Manufacturing Orders"
-msgstr "Ishlab chiqarish buyurtmalari"
-
-#. module: project_mrp_account
-#: model:ir.model,name:project_mrp_account.model_project_project
-#, fuzzy
-msgid "Project"
-msgstr "Loyiha"
 
 #. module: project_mrp_account
 #: model:ir.model,name:project_mrp_account.model_stock_move

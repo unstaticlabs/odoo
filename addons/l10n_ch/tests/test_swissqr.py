@@ -3,9 +3,10 @@
 import time
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.tests import tagged, freeze_time
+
 
 from odoo.addons.l10n_ch.models.res_bank import UNICODE_ALLOWED
-from odoo.tests import tagged
 from odoo.tools.misc import mod10r
 
 CH_IBAN = 'CH15 3881 5158 3845 3843 7'
@@ -48,49 +49,24 @@ class TestSwissQR(AccountTestInvoicingCommon):
         self.product = self.env['product.product'].create({
             'name': 'Customizable Desk',
         })
-        self.invoice1 = self.create_invoice('base.CHF')
+        account = self.env['account.account'].search([('account_type', '=', 'asset_current')], limit=1)
+        with freeze_time(time.strftime('%Y') + '-12-22'):
+            self.invoice1 = self._create_invoice_one_line(
+                name=self.product.name,
+                product_id=self.product,
+                price_unit=42.0,
+                account_id=account,
+                partner_id=self.customer,
+                currency_id=self.env.ref('base.CHF').id,
+            )
         sale_journal = self.env['account.journal'].search([("type", "=", "sale")])
         sale_journal.invoice_reference_model = "ch"
-
-    def create_invoice(self, currency_to_use='base.CHF'):
-        """ Generates a test invoice """
-
-        account = self.env['account.account'].search(
-            [('account_type', '=', 'asset_current')], limit=1
-        )
-        invoice = (
-            self.env['account.move']
-            .create(
-                {
-                    'move_type': 'out_invoice',
-                    'partner_id': self.customer.id,
-                    'currency_id': self.env.ref(currency_to_use).id,
-                    'date': time.strftime('%Y') + '-12-22',
-                    'ref': 'ABC \u202F421',
-                    'invoice_line_ids': [
-                        (
-                            0,
-                            0,
-                            {
-                                'name': self.product.name,
-                                'product_id': self.product.id,
-                                'account_id': account.id,
-                                'quantity': 1,
-                                'price_unit': 42.0,
-                            },
-                        )
-                    ],
-                }
-            )
-        )
-
-        return invoice
 
     def create_account(self, number):
         """ Generates a test res.partner.bank. """
         return self.env['res.partner.bank'].create(
             {
-                'acc_number': number,
+                'account_number': number,
                 'partner_id': self.env.user.company_id.partner_id.id,
                 'allow_out_payment': True,
             }
@@ -122,7 +98,7 @@ class TestSwissQR(AccountTestInvoicingCommon):
             "SPC\n"
             "0200\n"
             "1\n"
-            f"{invoice.partner_bank_id.sanitized_acc_number}\n"  # IBAN
+            f"{invoice.partner_bank_id.sanitized_account_number}\n"  # IBAN
             "S\n"
             "company_1_data\n"
             "Route de Berne\n"
@@ -171,6 +147,7 @@ class TestSwissQR(AccountTestInvoicingCommon):
         # Here we don't use a structured reference
         iban_account = self.create_account(CH_IBAN)
         self.invoice1.partner_bank_id = iban_account
+        self.invoice1.ref = "ABC 421"
         self.invoice1.action_post()
         self.swissqr_generated(self.invoice1, ref_type="NON")
 
@@ -179,6 +156,7 @@ class TestSwissQR(AccountTestInvoicingCommon):
         qriban_account = self.create_account(QR_IBAN)
         self.assertTrue(qriban_account.l10n_ch_qr_iban)
         self.invoice1.partner_bank_id = qriban_account
+        self.invoice1.ref = "ABC 421"
         self.invoice1.action_post()
         self.swissqr_generated(self.invoice1, ref_type="QRR")
 
@@ -187,13 +165,9 @@ class TestSwissQR(AccountTestInvoicingCommon):
         Test that the order reference is correctly generated for QR-Code
         We summon the skipTest if Sale is not installed (instead of creating a whole module for one test)
         """
-        if 'sale.order' not in self.env:
-            self.skipTest('`sale` is not installed')
+        self.ensure_installed('payment_custom')
+        self.ensure_installed('sale')
         self.env.user.group_ids += self.env.ref('sales_team.group_sale_salesman')
-
-        payment_custom = self.env['ir.module.module']._get('payment_custom')
-        if payment_custom.state != 'installed':
-            self.skipTest("payment_custom module is not installed")
 
         provider = self.env['payment.provider'].create({
             'name': 'Test',

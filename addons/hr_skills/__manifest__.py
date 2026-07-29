@@ -4,7 +4,6 @@
     'name': 'Skills Management',
     'category': 'Human Resources/Employees',
     'sequence': 270,
-    'version': '1.0',
     'summary': 'Manage skills, knowledge and resume of your employees',
     'description':
         """
@@ -24,9 +23,7 @@ This module introduces skills and resume management for employees.
         'data/hr_skill_data.xml',
         'data/ir_actions_server_data.xml',
         'data/ir_cron_data.xml',
-        'data/mail_activity_type_data.xml',
         'data/report_paperformat.xml',
-        'report/hr_employee_certification_report_views.xml',
         'report/hr_employee_skill_history_report_views.xml',
         'report/hr_employee_skill_report_views.xml',
         'report/hr_employee_cv_report.xml',
@@ -43,7 +40,6 @@ This module introduces skills and resume management for employees.
         'data/hr_employee_skill_demo.xml',
         'data/hr.resume.line.csv',
     ],
-    'installable': True,
     'auto_install': True,
     'application': True,
     'assets': {
@@ -53,9 +49,19 @@ This module introduces skills and resume management for employees.
             'hr_skills/static/src/scss/*.scss',
             'hr_skills/static/src/views/skills_list_renderer.js',
             'hr_skills/static/src/components/**/*',
+            'hr_skills/static/src/core/common/**/*',
         ],
         'web.assets_backend_lazy': [
             'hr_skills/static/src/views/skills_graph.js',
+        ],
+        'im_livechat.assets_embed_core': [
+            'hr_skills/static/src/core/common/**/*',
+        ],
+        'mail.assets_public': [
+            'hr_skills/static/src/core/common/**/*',
+        ],
+        'portal.assets_chatter_helpers': [
+            'hr_skills/static/src/core/common/**/*',
         ],
         'web.assets_unit_tests': [
             'hr_skills/static/tests/**/*',

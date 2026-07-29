@@ -5,19 +5,19 @@
 # "Marianna Ciofani (cima)" <cima@odoo.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 20:09+0000\n"
+"POT-Creation-Date: 2025-12-04 14:22+0000\n"
+"PO-Revision-Date: 2026-01-24 12:49+0000\n"
 "Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-1/"
 "cloud_storage_migration/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: cloud_storage_migration
 #: model:ir.model.fields,field_description:cloud_storage_migration.field_res_config_settings__cloud_storage_migration_all_model_ids
@@ -148,11 +148,11 @@ msgstr ""
 #. module: cloud_storage_migration
 #: model:ir.model.fields,help:cloud_storage_migration.field_cloud_storage_migration_report__has_attachment_rel
 msgid ""
-"Indicates whether this model has a relational field linking to ir.attachment"
-" model"
+"Indicates whether this model has a relational field linking to ir.attachment "
+"model"
 msgstr ""
-"Indica se questo modello ha un campo relazionale collegato al modello "
-"ir.attachment"
+"Indica se questo modello ha un campo relazionale collegato al modello ir."
+"attachment"
 
 #. module: cloud_storage_migration
 #: model:ir.model.fields,field_description:cloud_storage_migration.field_cloud_storage_migration_report__all_max_size
@@ -254,8 +254,8 @@ msgstr ""
 #. module: cloud_storage_migration
 #: model:ir.model.fields,help:cloud_storage_migration.field_cloud_storage_migration_report__message_max_size
 msgid ""
-"Size in megabytes of the largest attachment linked to mail messages for this"
-" model"
+"Size in megabytes of the largest attachment linked to mail messages for this "
+"model"
 msgstr ""
 "Dimensione in megabyte dell'allegato più grande collegato ai messaggi di "
 "posta elettronica per questo modello"

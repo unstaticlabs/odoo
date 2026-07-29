@@ -92,6 +92,50 @@ addons/html_editor/static/lib/diff2html/*.js
 !addons/website_blog
 !addons/website_blog/**/*
 
+# Whitelist test_website
+!addons/test_website
+!addons/test_website/**/*
+
+# Whitelist test_website_modules
+!addons/test_website_modules
+!addons/test_website_modules/**/*
+
+# Whitelist website_customer
+!addons/website_customer
+!addons/website_customer/**/*
+
+# Whitelist website_google_map
+!addons/website_google_map
+!addons/website_google_map/**/*
+
+# Whitelist website_cf_turnstile
+!addons/website_cf_turnstile
+!addons/website_cf_turnstile/**/*
+
+# Whitelist website_project
+!addons/website_project
+!addons/website_project/**/*
+
+# Whitelist website_enterprise
+!website_enterprise
+!website_enterprise/**/*
+
+# Whitelist website_studio
+!website_studio
+!website_studio/**/*
+
+# Whitelist website_generator
+!website_generator
+!website_generator/**/*
+
+# Whitelist website_documents
+!website_documents
+!website_documents/**/*
+
+# Whitelist website_product_barecodelookup
+!website_product_barcodelookup
+!website_product_barcodelookup/**/*
+
 # Whitelist web_grid
 !web_grid
 !web_grid/**/*
@@ -104,9 +148,9 @@ addons/html_editor/static/lib/diff2html/*.js
 !timer
 !timer/**/*
 
-# Whitelist industry_fsm
-!industry_fsm
-!industry_fsm/**/*
+# Whitelist planning_field_service
+!planning_field_service
+!planning_field_service/**/*
 
 # Whitelist helpdesk
 !helpdesk
@@ -239,6 +283,8 @@ addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js
 !addons/portal/**/*
 !addons/snailmail
 !addons/snailmail/**/*
+!addons/survey/static/src/interactions
+!addons/survey/static/src/interactions/**/*
 !addons/test_discuss_full
 !addons/test_discuss_full/**/*
 !addons/test_mail
@@ -260,8 +306,10 @@ addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js
 !voip*
 !voip*/**/*
 
-# BlackList voip libs
+# BlackList voip libs but the mock one
 voip/static/lib/**/*
+!voip/static/lib/_mock
+!voip/static/lib/_mock/**/*
 
 # Whitelist stock_barcode modules
 !stock_barcode
@@ -330,8 +378,6 @@ voip/static/lib/**/*
 !addons/pos_restaurant/**/*
 !addons/pos_restaurant_adyen
 !addons/pos_restaurant_adyen/**/*
-!addons/pos_restaurant_stripe
-!addons/pos_restaurant_stripe/**/*
 !addons/pos_sale
 !addons/pos_sale/**/*
 !addons/pos_sale_loyalty
@@ -340,8 +386,6 @@ voip/static/lib/**/*
 !addons/pos_sale_margin/**/*
 !addons/pos_self_order
 !addons/pos_self_order/**/*
-!addons/pos_self_order_adyen
-!addons/pos_self_order_adyen/**/*
 !addons/pos_self_order_epson_printer
 !addons/pos_self_order_epson_printer/**/*
 !addons/pos_self_order_sale
@@ -420,3 +464,6 @@ voip/static/lib/**/*
 
 !ai_website_livechat
 !ai_website_livechat/**
+
+!website_helpdesk_livechat
+!website_helpdesk_livechat/**

@@ -8,23 +8,23 @@
 # Martin Trigaux, 2022
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
 # Wichanon Jamwutthipreecha, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 01:47+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-16 15:09+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/delivery/"
-"th/>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/delivery/th/"
+">\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: delivery
 #. odoo-python
@@ -97,8 +97,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>คำอธิบายการจัดส่ง</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -107,8 +107,8 @@ msgid ""
 "customers on the Sales Order and sales confirmation email.E.g. instructions "
 "for customers to follow."
 msgstr ""
-"คำอธิบายวิธีจัดส่งที่คุณต้องการสื่อสารกับลูกค้าในใบสั่งขายและอีเมลยืนยันการขายเช่น คำแนะนำให้ลูกค้าป"
-"ฏิบัติตาม"
+"คำอธิบายวิธีจัดส่งที่คุณต้องการสื่อสารกับลูกค้าในใบสั่งขายและอีเมลยืนยันการขายเช่น "
+"คำแนะนำให้ลูกค้าปฏิบัติตาม"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__integration_level
@@ -129,8 +129,8 @@ msgstr "เพิ่ม"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-msgid "Add a shipping method"
-msgstr "เพิ่มวิธีการจัดส่ง"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -170,8 +170,7 @@ msgstr "เก็บถาวรแล้ว"
 msgid ""
 "Are you sure you want the delivery to be free for this order? You might have "
 "forgotten to compute the rates."
-msgstr ""
-"คุณแน่ใจหรือไม่ว่าต้องการให้การจัดส่งสำหรับคำสั่งซื้อนี้ ฟรี คุณอาจลืมคำนวณอัตราค่าจัดส่งแล้ว"
+msgstr "คุณแน่ใจหรือไม่ว่าต้องการให้การจัดส่งสำหรับคำสั่งซื้อนี้ ฟรี คุณอาจลืมคำนวณอัตราค่าจัดส่งแล้ว"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -195,24 +194,8 @@ msgstr "สามารถสร้างการคืน"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
 msgstr "ผู้ให้บริการ"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-"ผู้ให้บริการ %s ไม่สามารถมีแท็กเดียวกันทั้งในแท็กที่ต้องมีและแท็กที่ไม่รวม"
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-msgid "Carrier Description"
-msgstr "คำอธิบายผู้ให้บริการ"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -325,14 +308,9 @@ msgid "Define a new delivery method"
 msgstr "กำหนดวิธีการจัดส่งใหม่"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-msgid "Delivery Carrier"
-msgstr "ผู้ให้บริการจัดส่ง"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-msgid "Delivery Carrier Selection Wizard"
-msgstr "ตัวช่วยการเลือกผู้ให้บริการจัดส่ง"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -346,18 +324,28 @@ msgid "Delivery Message"
 msgstr "ข้อความจัดส่ง"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Delivery Method"
 msgstr "วิธีการจัดส่งสินค้า"
+
+#. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 msgid "Delivery Methods"
 msgstr "วิธีจัดส่ง"
 
@@ -393,15 +381,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "ค่าจัดส่งควรจะคำนวณใหม่"
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"คำนำหน้ารหัสไปรษณีย์ในการจัดส่งถูกกำหนดให้กับผู้ให้บริการจัดส่งเพื่อจำกัดว่า\n"
-"          รหัสไปรษณีย์ใดที่สามารถใช้ได้"
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Description"
 msgstr "คำอธิบาย"
@@ -415,11 +417,6 @@ msgstr "ปลายทาง"
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
 msgstr "กำหนดลำดับการแสดงผล"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-msgid "Discard"
-msgstr "ละทิ้ง"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -474,8 +471,8 @@ msgid ""
 "cost of theshipping will be updated on the SO after the delivery."
 msgstr ""
 "ต้นทุนโดยประมาณ: ลูกค้าจะได้รับใบแจ้งหนี้ตามต้นทุนโดยประมาณของการจัดส่ง\n"
-"ต้นทุนจริง: ลูกค้าจะได้รับใบแจ้งหนี้ตามต้นทุนจริงของการจัดส่ง ต้นทุนของการจัดส่งจะได้รับการอัปเดตใ"
-"น SO หลังการส่งมอบ"
+"ต้นทุนจริง: ลูกค้าจะได้รับใบแจ้งหนี้ตามต้นทุนจริงของการจัดส่ง "
+"ต้นทุนของการจัดส่งจะได้รับการอัปเดตใน SO หลังการส่งมอบ"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__invoice_policy__estimated
@@ -490,16 +487,14 @@ msgstr "แท็กที่ยกเว้น"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_sale_order__carrier_id
 msgid "Fill this field if you plan to invoice the shipping based on picking."
-msgstr ""
-"กรอกข้อมูลในฟิลด์นี้หากคุณวางแผนที่จะออกใบแจ้งหนี้สำหรับการจัดส่งตามการรับ"
+msgstr "กรอกข้อมูลในฟิลด์นี้หากคุณวางแผนที่จะออกใบแจ้งหนี้สำหรับการจัดส่งตามการรับ"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"การกรอกแบบฟอร์มนี้ทำให้คุณสามารถระบุวิธีการจัดส่งได้ตามเนื้อหาของคำสั่งซื้อหรือปลายทาง"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -559,24 +554,22 @@ msgid ""
 "If the order total amount (shipping excluded) is above or equal to this "
 "value, the customer benefits from a free shipping"
 msgstr ""
-"หากยอดรวมของคำสั่งซื้อ (ไม่รวมค่าจัดส่ง) สูงกว่าหรือเท่ากับมูลค่านี้ ลูกค้าจะได้ประโยชน์จากการจัดส่ง"
-"ฟรี"
+"หากยอดรวมของคำสั่งซื้อ (ไม่รวมค่าจัดส่ง) สูงกว่าหรือเท่ากับมูลค่านี้ "
+"ลูกค้าจะได้ประโยชน์จากการจัดส่งฟรี"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__max_volume
 msgid ""
 "If the total volume of the order is over this volume, the method won't be "
 "available."
-msgstr ""
-"หากปริมาณการสั่งซื้อรวมเกินกว่าปริมาณดังกล่าว วิธีดังกล่าวจะไม่สามารถใช้งานได้"
+msgstr "หากปริมาณการสั่งซื้อรวมเกินกว่าปริมาณดังกล่าว วิธีดังกล่าวจะไม่สามารถใช้งานได้"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__max_weight
 msgid ""
 "If the total weight of the order is over this weight, the method won't be "
 "available."
-msgstr ""
-"หากน้ำหนักรวมของคำสั่งซื้อเกินกว่าน้ำหนักดังกล่าว วิธีดังกล่าวจะไม่สามารถใช้ได้"
+msgstr "หากน้ำหนักรวมของคำสั่งซื้อเกินกว่าน้ำหนักดังกล่าว วิธีดังกล่าวจะไม่สามารถใช้ได้"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -794,14 +787,11 @@ msgstr "คำนำหน้ามีอยู่แล้ว!"
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"คำนำหน้าของรหัสไปรษณีย์ที่ผู้ให้บริการรายนี้ใช้ โปรดทราบว่าสามารถใช้ตัวสั่งงานทั่วไปเพื่อสนับสนุนประเ"
-"ทศที่มีความยาวรหัสไปรษณีย์ต่างกันได้ เช่น สามารถเพิ่ม \"$\" ที่ส่วนท้ายของคำนำหน้าเพื่อให้ตรงกับรหั"
-"สไปรษณีย์ (เช่น \"100$\" จะตรงกับ \"100\" เท่านั้น ไม่ใช่ \"1000\")"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -896,17 +886,6 @@ msgid "Set to True if your credentials are certified for production."
 msgstr "ตั้งค่าเป็น จริง หากข้อมูลประจำตัวของคุณได้รับการรับรองสำหรับการผลิต"
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-msgid "Shipping Method"
-msgstr "วิธีการการจัดส่ง"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-msgid "Shipping Methods"
-msgstr "วิธีการการจัดส่ง"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 msgid "Shipping Weight"
 msgstr "น้ำหนักการจัดส่ง"
@@ -917,16 +896,8 @@ msgid ""
 "Shipping insurance is a service which may reimburse senders whose parcels "
 "are lost, stolen, and/or damaged in transit."
 msgstr ""
-"การประกันการจัดส่งเป็นบริการที่อาจคืนเงินให้กับผู้ส่งที่พัสดุสูญหาย ถูกขโมย และ/หรือเสียหายระหว่างกา"
-"รขนส่ง"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"รายละเอียดวิธีจัดส่งจะรวมอยู่ในใบสั่งขายด้านล่างและอีเมลยืนยัน เช่น คำแนะนำให้ลูกค้าปฏิบัติตาม"
+"การประกันการจัดส่งเป็นบริการที่อาจคืนเงินให้กับผู้ส่งที่พัสดุสูญหาย ถูกขโมย และ/"
+"หรือเสียหายระหว่างการขนส่ง"
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -960,16 +931,14 @@ msgstr ""
 msgid ""
 "The method is NOT available if at least one product of the order has one of "
 "these tags."
-msgstr ""
-"วิธีการนี้จะใช้ไม่ได้หากผลิตภัณฑ์อย่างน้อยหนึ่งรายการในคำสั่งซื้อมีแท็กเหล่านี้"
+msgstr "วิธีการนี้จะใช้ไม่ได้หากผลิตภัณฑ์อย่างน้อยหนึ่งรายการในคำสั่งซื้อมีแท็กเหล่านี้"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__must_have_tag_ids
 msgid ""
 "The method is available only if at least one product of the order has one of "
 "these tags."
-msgstr ""
-"วิธีการนี้จะใช้ได้เฉพาะในกรณีที่ผลิตภัณฑ์อย่างน้อยหนึ่งรายการในคำสั่งซื้อมีแท็กเหล่านี้อย่างใดอย่างหนึ่ง"
+msgstr "วิธีการนี้จะใช้ได้เฉพาะในกรณีที่ผลิตภัณฑ์อย่างน้อยหนึ่งรายการในคำสั่งซื้อมีแท็กเหล่านี้อย่างใดอย่างหนึ่ง"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__get_return_label_from_portal
@@ -1021,8 +990,8 @@ msgid ""
 "This option adds a link for the customer in the portal to track their "
 "package easily. Use <shipmenttrackingnumber> as a placeholder in your URL."
 msgstr ""
-"ตัวเลือกนี้จะเพิ่มลิงก์สำหรับลูกค้าในพอร์ทัลเพื่อติดตามพัสดุของพวกเขาได้อย่างง่ายดาย ใ"
-"ช้<shipmenttrackingnumber>เป็นตัวแทนใน URL ของคุณ"
+"ตัวเลือกนี้จะเพิ่มลิงก์สำหรับลูกค้าในพอร์ทัลเพื่อติดตามพัสดุของพวกเขาได้อย่างง่ายดาย "
+"ใช้<shipmenttrackingnumber>เป็นตัวแทนใน URL ของคุณ"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__margin
@@ -1125,10 +1094,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"คุณไม่สามารถลบหมวดหมู่ผลิตภัณฑ์สำหรับการจัดส่งได้เนื่องจากใช้กับผลิตภัณฑ์ของผู้ให้บริการจัดส่ง"
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1176,23 +1144,3 @@ msgstr "เช่น UPS เอ็กซ์เพรส"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
 msgstr "เช่น https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-
-#~ msgid "Default delivery method used in sales orders."
-#~ msgstr "วิธีการจัดส่งเริ่มต้นที่ใช้ในคำสั่งขาย"
-
-#~ msgid "Delivery Rating Success"
-#~ msgstr "คะแนนการจัดส่งสำเร็จ"
-
-#~ msgid "Destination Availability"
-#~ msgstr "ความพร้อมของจุดหมายปลายทาง"
-
-#~ msgid ""
-#~ "Filling this form allows you to filter delivery carriers according to the "
-#~ "delivery address of your customer."
-#~ msgstr "การกรอกแบบฟอร์มนี้ทำให้คุณสามารถกรองผู้ให้บริการจัดส่งตามที่อยู่จัดส่งของลูกค้าของคุณ"
-
-#~ msgid "Free Shipping"
-#~ msgstr "จัดส่งฟรี"
-
-#~ msgid "Group By"
-#~ msgstr "กลุ่มโดย"

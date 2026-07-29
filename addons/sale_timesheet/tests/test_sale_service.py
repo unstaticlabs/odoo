@@ -144,7 +144,7 @@ class TestSaleService(TestCommonSaleTimesheet):
             'unit_amount': 1,
             'employee_id': self.employee_manager.id,
         })
-        self.assertTrue(all([billing_type == 'billable_time' for billing_type in timesheets.mapped('timesheet_invoice_type')]), "All timesheets linked to the task should be on 'billable time'")
+        self.assertTrue(all(billing_type == '04_billable_time' for billing_type in timesheets.mapped('billable_type')), "All timesheets linked to the task should be on 'billable time'")
         self.assertEqual(so_line_deliver_global_project.qty_to_invoice, 5, "Quantity to invoice should have been increased when logging timesheet on delivered quantities task")
 
         # invoice SO, and validate invoice
@@ -153,7 +153,7 @@ class TestSaleService(TestCommonSaleTimesheet):
 
         # make task non billable
         task_serv2.write({'sale_line_id': False})
-        self.assertTrue(all([billing_type == 'billable_time' for billing_type in timesheets.mapped('timesheet_invoice_type')]), "billable type of timesheet should not change when tranfering task into another project")
+        self.assertTrue(all(billing_type == '04_billable_time' for billing_type in timesheets.mapped('billable_type')), "billable type of timesheet should not change when tranfering task into another project")
         self.assertEqual(task_serv2.timesheet_ids.mapped('so_line'), so_line_deliver_global_project, "Old invoiced timesheet are not modified when changing the task SO line")
 
         # try to update timesheets, catch error 'You cannot modify invoiced timesheet'
@@ -652,11 +652,11 @@ class TestSaleService(TestCommonSaleTimesheet):
             'employee_id': self.employee_manager.id,
         })
 
-        self.assertFalse(timesheet.timesheet_invoice_id)
+        self.assertFalse(timesheet.reinvoice_move_id)
         invoice = self.sale_order._create_invoices()
         invoice.action_post()
 
-        self.assertEqual(invoice, timesheet.timesheet_invoice_id)
+        self.assertEqual(invoice, timesheet.reinvoice_move_id)
 
     def test_prevent_update_project_allocated_hours_after_confirming_quotation(self):
         """ Test allocated hours in the project linked to a SO is not automatically updated
@@ -850,7 +850,6 @@ class TestSaleService(TestCommonSaleTimesheet):
         Ensure hours are rounded consistently on SO & invoice.
         """
         self.env['decimal.precision'].search([('name', '=', 'Product Unit')]).digits = 0
-        self.product_delivery_timesheet3.uom_id._invalidate_cache(['rounding'])
         self.env['sale.order.line'].create({
             'name': self.product_delivery_timesheet3.name,
             'product_id': self.product_delivery_timesheet3.id,

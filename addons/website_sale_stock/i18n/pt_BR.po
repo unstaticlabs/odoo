@@ -7,24 +7,24 @@
 # Martin Trigaux, 2022
 # douglas custodio <douglascstd@yahoo.com>, 2023
 # Layna Nascimento, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Maitê Dietze (madi)" <madi@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-30 01:25+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/"
-"odoo-19/website_sale_stock/pt_BR/>\n"
+"PO-Revision-Date: 2026-03-07 14:45+0000\n"
+"Last-Translator: \"Maitê Dietze (madi)\" <madi@odoo.com>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.odoo.com/projects/odoo-"
+"s19-2/website_sale_stock/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.1\n"
 
 #. module: website_sale_stock
 #. odoo-python
@@ -36,9 +36,36 @@ msgstr ""
 "disponível."
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr "%(product_name)s está de volta ao estoque"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Esgotado"
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
 msgstr "<span invisible=\"not default_show_availability\">unidades</span>"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+msgid "Add to wishlist"
+msgstr "Adicionar à lista de desejos"
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+msgid "Added to your wishlist"
+msgstr "Adicionado à sua lista de desejos"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -82,11 +109,6 @@ msgid "Continue selling when out-of-stock"
 msgstr "Continuar vendendo quando não houver estoque"
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
-msgstr "Caro cliente,"
-
-#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid ""
 "Default availability mode set on newly created storable products. This can "
@@ -111,11 +133,17 @@ msgstr ""
 "- Esgotado: aplicada quando o produto está esgotado."
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Desk Combination"
+msgstr "Combinação de mesas"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
@@ -131,11 +159,17 @@ msgid "Get notified when back in stock"
 msgstr "Seja notificado quando voltar ao estoque"
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Hello"
+msgstr "Olá"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
@@ -152,14 +186,29 @@ msgstr "E-mail inválido"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr "E-mail inválido"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+msgid "Inventory"
+msgstr "Inventário"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "Inventory Defaults"
 msgstr "Configurações de inventário"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Logo"
+msgstr "Logotipo"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Mitchell Admin"
+msgstr "Mitchell Admin"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
@@ -219,6 +268,16 @@ msgid "Product Variant"
 msgstr "Variante do produto"
 
 #. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+msgid "Product Wishlist"
+msgstr "Lista de Desejos - Produto"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Product image"
+msgstr "Imagem do produto"
+
+#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_ribbon
 msgid "Product ribbon"
 msgstr "Faixa do produto"
@@ -227,11 +286,6 @@ msgstr "Faixa do produto"
 #: model:ir.actions.server,name:website_sale_stock.ir_cron_send_availability_email_ir_actions_server
 msgid "Product: send email regarding products availability"
 msgstr "Produto: enviar e-mail sobre a disponibilidade de produtos"
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr "Atenciosamente,"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
@@ -284,15 +338,14 @@ msgstr ""
 "desculpas pelo transtorno."
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
-msgstr "O seguinte produto já está disponível."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+msgid "Stock Notification"
+msgstr "Notificação de estoque"
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
-msgstr "O produto '%(product_name)s' agora está disponível"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
+msgstr "O produto que você estava esperando está de volta ao estoque!"
 
 #. module: website_sale_stock
 #. odoo-python
@@ -386,50 +439,3 @@ msgstr "quando estiver fora de estoque"
 #: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
 msgid "youremail@gmail.com"
 msgstr "seuemail@gmail.com"
-
-#~ msgid "<span invisible=\"not show_availability\">Units</span>"
-#~ msgstr "<span invisible=\"not show_availability\">Unidades</span>"
-
-#~ msgid "Default visibility for custom messages."
-#~ msgstr "Visibilidade padrão para mensagens personalizadas."
-
-#~ msgid "How to display products having low quantities (on hand - reserved)"
-#~ msgstr ""
-#~ "Como exibir produtos com baixas quantidades (disponíveis - reservados)"
-
-#~ msgid "Only"
-#~ msgstr "Apenas"
-
-#~ msgid "The item has not been added to your cart since it is not available."
-#~ msgstr ""
-#~ "O item não foi adicionado ao seu carrinho porque não está disponível."
-
-#~ msgid "This product is out of stock."
-#~ msgstr "Esse produto está em falta no estoque."
-
-#~ msgid "Units"
-#~ msgstr "Unidades"
-
-#~ msgid "You already added"
-#~ msgstr "Você já adicionou"
-
-#~ msgid "You already added all the available product in your cart."
-#~ msgstr "Você já adicionou todos os produtos disponíveis em seu carrinho."
-
-#~ msgid "You already have %s Units in your cart."
-#~ msgstr "Você já tem %s unidades em seu carrinho."
-
-#~ msgid ""
-#~ "You ask for %(desired_qty)s products but only %(new_qty)s is available"
-#~ msgstr ""
-#~ "Você pediu por %(desired_qty)s produtos mas somente %(new_qty)s estão "
-#~ "disponíveis"
-
-#~ msgid "You ask for %s Units but only %s are available."
-#~ msgstr "Você pediu por %s unidades mas somente%s está disponível."
-
-#~ msgid "in your cart."
-#~ msgstr "em seu carrinho"
-
-#~ msgid "left in stock."
-#~ msgstr "em estoque."

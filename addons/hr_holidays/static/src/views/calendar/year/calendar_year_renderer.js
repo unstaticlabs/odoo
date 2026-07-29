@@ -104,10 +104,9 @@ export class TimeOffCalendarYearRenderer extends CalendarYearRenderer {
     const record = this.props.model.records[event.id];
     if (record) {
         const isHalfStart = record.requestDateFromPeriod === "pm" ||
-            (record?.rawRecord?.request_unit_hours && record.start.c.hour >= 12);
+            (record?.rawRecord?.work_entry_type_request_unit === "hour" && record.start.c.hour >= 12);
         const isHalfEnd = record.requestDateToPeriod === "am" ||
-            (record?.rawRecord?.request_unit_hours && record.end.c.hour <= 12);
-
+            (record?.rawRecord?.work_entry_type_request_unit === "hour" && record.end.c.hour <= 12);
         if (!isHalfStart && !isHalfEnd) return classesToAdd;
 
         const isMultiWeek = record.start.localWeekNumber != record.end.localWeekNumber

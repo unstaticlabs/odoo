@@ -50,7 +50,7 @@ class PurchaseOrderLine(models.Model):
     def _compute_kit_quantities_from_moves(self, moves, kit_bom):
         self.ensure_one()
         moves_to_consider = moves.filtered(lambda m: m.state == 'done' and m.location_dest_usage != 'inventory')
-        order_qty = self.product_uom_id._compute_quantity(self.product_uom_qty, kit_bom.product_uom_id)
+        order_qty = self.uom_id._compute_quantity(self.product_uom_qty, kit_bom.uom_id)
         filters = {
             'incoming_moves': lambda m:
                 m._is_incoming() and

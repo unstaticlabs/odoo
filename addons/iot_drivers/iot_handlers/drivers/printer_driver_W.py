@@ -3,15 +3,12 @@
 import logging
 from base64 import b64decode
 from datetime import datetime, timezone
-import io
 import subprocess
 import win32print
 import pywintypes
-import ghostscript
 
-from odoo.addons.iot_drivers.controllers.proxy import proxy_drivers
 from odoo.addons.iot_drivers.iot_handlers.drivers.printer_driver_base import PrinterDriverBase
-from odoo.addons.iot_drivers.tools import helpers
+from odoo.addons.iot_drivers.tools import system
 from odoo.tools.mimetypes import guess_mimetype
 from odoo.addons.iot_drivers.iot_handlers.interfaces.printer_interface_W import win32print_lock
 
@@ -79,10 +76,9 @@ class PrinterDriver(PrinterDriverBase):
 
     def print_report(self, data):
         with win32print_lock:
-            file_name = helpers.path_file('document.pdf')
+            file_name = system.path_file('document.pdf')
             file_name.write_bytes(data)
-            sumatra_pdf_path = helpers.path_file("SumatraPDF") / "SumatraPDF.exe"
-            use_sumatra = sumatra_pdf_path.exists()
+            sumatra_pdf_path = system.path_file("SumatraPDF") / "SumatraPDF.exe"
 
             args = [
                 str(sumatra_pdf_path),
@@ -92,35 +88,16 @@ class PrinterDriver(PrinterDriverBase):
                 "-silent",
                 "-print-settings",
                 "duplex"
-            ] if use_sumatra else [
-                "-dPrinted", "-dBATCH", "-dNOPAUSE", "-dNOPROMPT",
-                "-q",
-                "-sDEVICE#mswinpr2",
-                f'-sOutputFile#%printer%{self.device_name}',
-                f'{file_name}'
             ]
 
-            _logger.debug("Printing report with %s using %s", "SumatraPDF" if use_sumatra else "Ghostscript", args)
-            if use_sumatra:
-                try:
-                    subprocess.run(args, check=True)
-                    self.send_status(status='success')
-                except subprocess.CalledProcessError as error:
-                    _logger.exception("Error while printing report, SumatraPDF args: %s, exit code: %s", args, error.returncode)
-            else:
-                stderr_buf = io.BytesIO()
-                stdout_buf = io.BytesIO()
-                stdout_log_level = logging.DEBUG
-                try:
-                    ghostscript.Ghostscript(*args, stdout=stdout_buf, stderr=stderr_buf)
-                    self.send_status(status='success')
-                except Exception:
-                    _logger.exception("Error while printing report, ghostscript args: %s, error buffer: %s", args, stderr_buf.getvalue())
-                    stdout_log_level = logging.ERROR  # some stdout value might contains relevant error information
-                    self.send_status(status='error', message='ERROR_FAILED')
-                    raise
-                finally:
-                    _logger.log(stdout_log_level, "Ghostscript stdout: %s", stdout_buf.getvalue())
+            _logger.debug("Printing report with SumatraPDF using %s", args)
+
+            try:
+                subprocess.run(args, check=True)
+                self.send_status(status='success')
+            except subprocess.CalledProcessError as error:
+                _logger.exception("Error while printing report, SumatraPDF args: %s, exit code: %s", args, error.returncode)
+                self.send_status(status='error', message='ERROR_FAILED')
 
     def _action_default(self, data):
         _logger.debug("_action_default called for printer %s", self.device_name)
@@ -135,7 +112,7 @@ class PrinterDriver(PrinterDriverBase):
         _logger.debug("_action_default finished with mimetype %s for printer %s", mimetype, self.device_name)
         return {'print_id': data['print_id']} if 'print_id' in data else {}
 
-    def print_status(self, _data=None):
+    def status(self, _data=None):
         """Prints the status ticket of the IoT Box on the current printer.
 
         :param _data: dict provided by the action route
@@ -180,6 +157,3 @@ class PrinterDriver(PrinterDriverBase):
                 _logger.exception('Win32 error occurred while querying print job')
             self.job_ids.remove(job_id)
             self._recent_action_ids.pop(self.job_action_ids.pop(job_id, None), None)
-
-
-proxy_drivers['printer'] = PrinterDriver

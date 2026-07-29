@@ -1,13 +1,14 @@
-import { SelectionField, selectionField } from '@web/views/fields/selection/selection_field';
-import { registry } from '@web/core/registry';
+import { SelectionField, selectionField } from "@web/views/fields/selection/selection_field";
+import { registry } from "@web/core/registry";
 
-import { STATUS_COLORS, STATUS_COLOR_PREFIX } from '../../utils/project_utils';
+import { STATUS_COLORS, STATUS_COLOR_PREFIX } from "../../utils/project_utils";
 
 export class ProjectStatusWithColorSelectionField extends SelectionField {
     static props = {
         ...SelectionField.props,
         statusLabel: { type: String, optional: true },
-        hideStatusName: { type: Boolean, optional: true },
+        hideIcon: { type: Boolean, optional: true },
+        hideValue: { type: Boolean, optional: true },
     };
 
     static template = "project.ProjectStatusWithColorSelectionField";
@@ -33,7 +34,8 @@ export const projectStatusWithColorSelectionField = {
     extractProps: (fieldInfo, dynamicInfo) => {
         const props = selectionField.extractProps(fieldInfo, dynamicInfo);
         props.statusLabel = fieldInfo.attrs.status_label;
-        props.hideStatusName = Boolean(fieldInfo.attrs.hideStatusName);
+        props.hideIcon = Boolean(fieldInfo.attrs.hide_icon);
+        props.hideValue = Boolean(fieldInfo.attrs.hide_value);
         return props;
     },
 };

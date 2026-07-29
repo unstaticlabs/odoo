@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, test } from "@odoo/hoot";
 import { leave, runAllTimers } from "@odoo/hoot-dom";
 import { Command, serverState, withUser } from "@web/../tests/web_test_helpers";
 import {
@@ -8,7 +8,7 @@ import {
     defineMailModels,
     hover,
     insertText,
-    onRpcBefore,
+    listenStoreFetch,
     openDiscuss,
     openFormView,
     setupChatHub,
@@ -16,6 +16,7 @@ import {
     startServer,
     triggerEvents,
     triggerHotkey,
+    waitStoreFetch,
 } from "../mail_test_helpers";
 
 import { rpc } from "@web/core/network/rpc";
@@ -46,32 +47,32 @@ test("No duplicated chat bubbles", async () => {
     await start();
     // Make bubble of "John" chat
     await click(".o_menu_systray i[aria-label='Messages']");
-    await click(".o-mail-MessagingMenu button", { text: "New Message" });
+    await click(".o-mail-MessagingMenu button:text('New Message')");
     await contains(".o_command_name", { count: 4 });
     await insertText("input[placeholder='Search a conversation']", "John");
     await contains(".o_command_name", { count: 3 });
-    await click(".o_command_name", { text: "John" });
-    await contains(".o-mail-ChatWindow", { text: "John" });
-    await contains(".o-mail-ChatWindow", {
-        text: "This is the start of your direct chat with John",
-    }); // wait fully loaded
+    await click(".o_command_name:text('John')");
+    await contains(".o-mail-ChatWindow-displayName:text('John')");
+    await contains(
+        ".o-mail-ChatWindow .o-mail-Thread-empty:has(:text('This is the start of your direct chat with John'))"
+    );
     await click("button[title='Fold']");
     await contains(".o-mail-ChatBubble[name='John']");
     // Make bubble of "John" chat again
     await click(".o_menu_systray i[aria-label='Messages']");
-    await click(".o-mail-MessagingMenu button", { text: "New Message" });
+    await click(".o-mail-MessagingMenu button:text('New Message')");
     await contains(".o_command_name", { count: 4 });
     await insertText("input[placeholder='Search a conversation']", "John");
     await contains(".o_command_name", { count: 3 });
-    await click(".o_command_name", { text: "John" });
+    await click(".o_command_name:text('John')");
     await contains(".o-mail-ChatBubble[name='John']", { count: 0 });
-    await contains(".o-mail-ChatWindow", { text: "John" });
+    await contains(".o-mail-ChatWindow .o-mail-ChatWindow-header:has(:text('John'))");
     await click(".o-mail-ChatWindow-header [title='Fold']");
     // Make again from click messaging menu item
     await click(".o_menu_systray i[aria-label='Messages']");
     await click(".o-mail-NotificationItem");
     await contains(".o-mail-ChatBubble[name='John']", { count: 0 });
-    await contains(".o-mail-ChatWindow", { text: "John" });
+    await contains(".o-mail-ChatWindow .o-mail-ChatWindow-header:has(:text('John'))");
 });
 
 test("Up to 7 chat bubbles", async () => {
@@ -86,7 +87,7 @@ test("Up to 7 chat bubbles", async () => {
         await contains(`.o-mail-ChatBubble[name='${String(i)}']`);
     }
     await contains(".o-mail-ChatBubble[name='1']", { count: 0 });
-    await contains(".o-mail-ChatHub-hiddenBtn", { text: "+1" });
+    await contains(".o-mail-ChatHub-hiddenBtn:text('+1')");
     await hover(".o-mail-ChatHub-hiddenBtn");
     await contains(".o-mail-ChatHub-hiddenItem[name='1']");
     await contains(".o-mail-ChatWindow", { count: 0 });
@@ -123,7 +124,7 @@ test("Ordering of chat bubbles is consistent and seems logical.", async () => {
     await contains(".o-mail-ChatBubble[name='Demo']", { count: 0 });
     await contains(".o-mail-ChatWindow", { count: 0 });
     await click(".o-mail-ChatBubble[name='3']");
-    await contains(".o-mail-ChatWindow", { text: "3" });
+    await contains(".o-mail-ChatWindow-displayName:text('3')");
     await contains(":nth-child(7 of .o-mail-ChatBubble)[name='Demo']");
     await click(".o-mail-ChatWindow-header [title='Fold']");
     await contains(".o-mail-ChatBubble[name='Demo']", { count: 0 });
@@ -173,11 +174,13 @@ test("Hover on chat bubble shows chat name + last message preview", async () => 
     setupChatHub({ folded: [marcChannelId, demoChannelId] });
     await start();
     await hover(".o-mail-ChatBubble[name='Marc']");
-    await contains(".o-mail-ChatBubble-preview", { text: "MarcHello!" });
+    await contains(".o-mail-ChatBubble[name='Marc'].o-active");
+    await contains(".o-mail-ChatBubble-preview:text('Marc Hello!')");
     await leave();
     await contains(".o-mail-ChatBubble-preview", { count: 0 });
+    await contains(".o-mail-ChatBubble[name='Marc']:not(.o-active)");
     await hover(".o-mail-ChatBubble[name='Demo']");
-    await contains(".o-mail-ChatBubble-preview", { text: "Demo" });
+    await contains(".o-mail-ChatBubble-preview:text('Demo')");
     await leave();
     rpc("/mail/message/post", {
         post_data: { body: "Hi", message_type: "comment" },
@@ -185,7 +188,40 @@ test("Hover on chat bubble shows chat name + last message preview", async () => 
         thread_model: "discuss.channel",
     });
     await hover(".o-mail-ChatBubble[name='Demo']");
-    await contains(".o-mail-ChatBubble-preview", { text: "DemoYou: Hi" });
+    await contains(".o-mail-ChatBubble-preview:text('Demo You: Hi')");
+});
+
+test("Hover on chat bubble shows message preview along with message seen indicator", async () => {
+    const pyEnv = await startServer();
+    const partnerId_1 = pyEnv["res.partner"].create({ name: "Marc" });
+    const channelId = pyEnv["discuss.channel"].create({
+        name: "test",
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId }),
+            Command.create({ partner_id: partnerId_1 }),
+        ],
+        channel_type: "chat",
+    });
+    const messageId = pyEnv["mail.message"].create({
+        author_id: serverState.partnerId,
+        body: "Hello there!!!",
+        model: "discuss.channel",
+        res_id: channelId,
+    });
+    const memberIds = pyEnv["discuss.channel.member"].search([["channel_id", "=", channelId]]);
+    pyEnv["discuss.channel.member"].write(memberIds, { seen_message_id: false });
+    const [memberId_1] = pyEnv["discuss.channel.member"].search([
+        ["channel_id", "=", channelId],
+        ["partner_id", "=", partnerId_1],
+    ]);
+    pyEnv["discuss.channel.member"].write([memberId_1], {
+        seen_message_id: messageId,
+    });
+    setupChatHub({ folded: [channelId] });
+    await start();
+    await hover(".o-mail-ChatBubble[name='Marc']");
+    await contains(".o-mail-ChatBubble-preview:text('Marc You: Hello there!!!')");
+    await contains(".o-mail-MessageSeenIndicator[title='Seen by Marc']");
 });
 
 test("Chat bubble preview works on author as email address", async () => {
@@ -210,7 +246,7 @@ test("Chat bubble preview works on author as email address", async () => {
     await click(".o-mail-NotificationItem");
     await click(".o-mail-ChatWindow [title='Fold']");
     await hover(".o-mail-ChatBubble");
-    await contains(".o-mail-ChatBubble-preview", { text: "md@oilcompany.fr: Some email message" });
+    await contains(".o-mail-ChatBubble-preview:has(:text('md@oilcompany.fr: Some email message'))");
 });
 
 test("chat bubbles are synced between tabs", async () => {
@@ -257,16 +293,16 @@ test("Chat bubbles do not fetch messages until becoming open", async () => {
             model: "discuss.channel",
         },
     ]);
-    onRpcBefore("/discuss/channel/messages", () => expect.step("fetch_messages"));
+    listenStoreFetch("/discuss/channel/messages");
     setupChatHub({ folded: [channeId1, channelId2] });
     await start();
     await contains(".o-mail-ChatBubble[name='Orange']");
-    expect.verifySteps([]);
+    await waitStoreFetch();
     await click(".o-mail-ChatBubble[name='Orange']");
     await contains(".o-mail-ChatWindow");
-    await contains(".o-mail-Message-content", { text: "Orange" });
-    await contains(".o-mail-Message-content", { count: 0, text: "Apple" });
-    expect.verifySteps(["fetch_messages"]); // from "Orange" becoming open
+    await contains(".o-mail-Message-content:text('Orange')");
+    await contains(".o-mail-Message-content:text('Apple')", { count: 0 });
+    await waitStoreFetch("/discuss/channel/messages"); // from "Orange" becoming open
 });
 
 test("More than 7 actually folded chat windows shows a 'hidden' chat bubble menu", async () => {
@@ -287,7 +323,7 @@ test("More than 7 actually folded chat windows shows a 'hidden' chat bubble menu
     await click(".o-mail-ChatWindow-header [title='Fold']");
     // Can open hidden chat from messaging menu
     await click("i[aria-label='Messages']");
-    await click(".o-mail-NotificationItem", { text: "2" });
+    await click(".o-mail-NotificationItem:text('2')");
     await contains(".o-mail-ChatHub-hiddenItem", { count: 0 });
     await contains(".o-mail-ChatHub-hiddenBtn", { count: 0 });
     await contains(".o-mail-ChatWindow");
@@ -303,31 +339,25 @@ test("More than 7 actually folded chat windows shows a 'hidden' chat bubble menu
 
 test("Can close all chat windows at once", async () => {
     const pyEnv = await startServer();
-    const channelIds = pyEnv["discuss.channel"].create(
-        Array(20)
-            .keys()
-            .map((i) => ({ name: String(i) }))
-    );
+    const channelIds = pyEnv["discuss.channel"].create(range(20).map((i) => ({ name: String(i) })));
     setupChatHub({ folded: channelIds.reverse() });
     await start();
     await contains(".o-mail-ChatBubble", { count: 8 }); // max reached
-    await contains(".o-mail-ChatBubble", { text: "+13" });
+    await contains(".o-mail-ChatBubble:text('+13')");
     await hover(".o-mail-ChatHub-hiddenBtn");
     await click("button[title='Chat Options']");
-    await click(".o-dropdown-item", { text: "Close all conversations" });
+    await click(".o-dropdown-item:text('Close all conversations')");
     await contains(".o-mail-ChatBubble", { count: 0 });
     assertChatHub({});
 });
 
 test("Don't show chat hub in discuss app", async () => {
     const pyEnv = await startServer();
-    const channelIds = pyEnv["discuss.channel"].create(
-        range(0, 20).map((i) => ({ name: String(i) }))
-    );
+    const channelIds = pyEnv["discuss.channel"].create(range(20).map((i) => ({ name: String(i) })));
     setupChatHub({ folded: channelIds.reverse() });
     await start();
     await contains(".o-mail-ChatBubble", { count: 8 }); // max reached
-    await contains(".o-mail-ChatBubble", { text: "+13" });
+    await contains(".o-mail-ChatBubble:text('+13')");
     await openDiscuss();
     await contains(".o-mail-ChatBubble", { count: 0 });
 });
@@ -342,15 +372,15 @@ test("Can compact chat hub", async () => {
     setupChatHub({ folded: channelIds.reverse() });
     await start();
     await contains(".o-mail-ChatBubble", { count: 8 }); // max reached
-    await contains(".o-mail-ChatBubble", { text: "+13" });
+    await contains(".o-mail-ChatBubble:text('+13')");
     await hover(".o-mail-ChatHub-hiddenBtn");
     await click("button[title='Chat Options']");
-    await click(".o-dropdown-item", { text: "Hide all conversations" });
+    await click(".o-dropdown-item:text('Hide all conversations')");
     await contains(".o-mail-ChatBubble i.fa.fa-comments");
     await click(".o-mail-ChatBubble i.fa.fa-comments");
     await contains(".o-mail-ChatBubble", { count: 8 });
     // alternative compact: click hidden button
-    await click(".o-mail-ChatBubble", { text: "+13" });
+    await click(".o-mail-ChatBubble:text('+13')");
     await contains(".o-mail-ChatBubble i.fa.fa-comments");
     // don't show compact button in discuss app
     await openDiscuss();
@@ -368,7 +398,7 @@ test("Compact chat hub is crosstab synced", async () => {
     await contains(`${env2.selector} .o-mail-ChatBubble`, { count: 2 });
     await hover(`${env1.selector} .o-mail-ChatBubble:eq(0)`);
     await click(`${env1.selector} button[title='Chat Options']`);
-    await click(`${env1.selector} .o-dropdown-item`, { text: "Hide all conversations" });
+    await click(`${env1.selector} .o-dropdown-item:text('Hide all conversations')`);
     await contains(`${env1.selector} .o-mail-ChatBubble .fa-comments`);
     await contains(`${env2.selector} .o-mail-ChatBubble .fa-comments`);
 });
@@ -399,10 +429,10 @@ test("Compacted chat hub shows badge with amount of hidden chats with important 
     setupChatHub({ folded: channelIds });
     await start();
     await contains(".o-mail-ChatBubble", { count: 8 }); // max reached
-    await contains(".o-mail-ChatBubble", { text: "+13" });
+    await contains(".o-mail-ChatBubble .o-mail-ChatHub-hiddenBtnIcon:text('+13')");
     await click(".o-mail-ChatHub-hiddenBtn");
     await contains(".o-mail-ChatBubble i.fa.fa-comments");
-    await contains(".o-mail-ChatBubble .o-discuss-badge", { text: "9" });
+    await contains(".o-mail-ChatBubble .o-discuss-badge:text('9')");
 });
 
 test("Show IM status", async () => {
@@ -516,15 +546,13 @@ test("Attachment-only message preview shows file name", async () => {
     await start();
     await contains(".o-mail-ChatBubble[name='Partner1']");
     await hover(".o-mail-ChatBubble[name='Partner1']");
-    await contains(".o-mail-ChatBubble-preview", { text: "Partner1File.pdf" });
+    await contains(".o-mail-ChatBubble-preview:text('Partner1 File.pdf')");
     await contains(".o-mail-ChatBubble[name='Partner2']");
     await hover(".o-mail-ChatBubble[name='Partner2']");
-    await contains(".o-mail-ChatBubble-preview", { text: "Partner2Image.jpeg and File.pdf" });
+    await contains(".o-mail-ChatBubble-preview:text('Partner2 Image.jpeg and File.pdf')");
     await contains(".o-mail-ChatBubble[name='Partner3']");
     await hover(".o-mail-ChatBubble[name='Partner3']");
-    await contains(".o-mail-ChatBubble-preview", {
-        text: "Partner3File.pdf and 2 other attachments",
-    });
+    await contains(".o-mail-ChatBubble-preview:text('Partner3 File.pdf and 2 other attachments')");
 });
 
 test("Open chat window from messaging menu with chat hub compact", async () => {
@@ -539,14 +567,16 @@ test("Open chat window from messaging menu with chat hub compact", async () => {
         channel_type: "chat",
     });
     setupChatHub({ folded: [chatId] });
+    listenStoreFetch("/discuss/channel/messages");
     await start();
     await openFormView("res.partner", serverState.partnerId);
     await click("button[title='Chat Options']");
-    await click(".o-dropdown-item", { text: "Hide all conversations" });
+    await click(".o-dropdown-item:text('Hide all conversations')");
     await contains(".o-mail-ChatHub-compact");
     await click(".o_menu_systray i[aria-label='Messages']");
-    await click(".o-mail-NotificationItem", { text: "John" });
-    await contains(".o-mail-ChatWindow", { text: "John" });
+    await click(".o-mail-NotificationItem:text('John')");
+    await waitStoreFetch("/discuss/channel/messages"); // ensure messages are loaded before doing message post
+    await contains(".o-mail-ChatWindow-displayName:text('John')");
     await triggerEvents(".o-mail-Composer-input", ["blur", "focusout"]); // FIXME: click fold doesn't focusout/blur the composer, thus marks as read
     await click(".o-mail-ChatWindow-header [title='Fold']");
     await contains(".o-mail-ChatWindow", { count: 0 });
@@ -557,7 +587,7 @@ test("Open chat window from messaging menu with chat hub compact", async () => {
             thread_model: "discuss.channel",
         })
     );
-    await contains(".o-mail-ChatHub-compact", { text: "1" });
+    await contains(".o-mail-ChatHub-compact:text('1')");
     await contains(".o-mail-ChatWindow", { count: 0 });
 });
 
@@ -575,10 +605,28 @@ test("Open chat window from command palette with chat hub compact", async () => 
     setupChatHub({ folded: [chatId] });
     await start();
     await click("button[title='Chat Options']");
-    await click(".o-dropdown-item", { text: "Hide all conversations" });
+    await click(".o-dropdown-item:text('Hide all conversations')");
     await contains(".o-mail-ChatHub-compact");
     await triggerHotkey("control+k");
     await insertText(".o_command_palette_search input", "@");
-    await click(".o-mail-DiscussCommand", { text: "John" });
-    await contains(".o-mail-ChatWindow", { text: "John" });
+    await click(".o-mail-DiscussCommand:text('John')");
+    await contains(".o-mail-ChatWindow-displayName:text('John')");
+});
+
+test("Close chat window from bubble while bubble preview is displayed", async () => {
+    const pyEnv = await startServer();
+    const johnId = pyEnv["res.users"].create({ name: "John" });
+    const johnPartnerId = pyEnv["res.partner"].create({ user_ids: [johnId], name: "John" });
+    const chatId = pyEnv["discuss.channel"].create({
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId }),
+            Command.create({ partner_id: johnPartnerId }),
+        ],
+        channel_type: "chat",
+    });
+    setupChatHub({ folded: [chatId] });
+    await start();
+    await hover(".o-mail-ChatBubble[name='John']");
+    await click(`.o-mail-ChatBubble[name='John'] .o-mail-ChatBubble-close`);
+    await contains(`.o-mail-ChatBubble[name='John']`, { count: 0 });
 });

@@ -5,14 +5,14 @@
 # Translators:
 # Paolo Valier, 2019
 # Sergio Zanchetta <primes2h@gmail.com>, 2019
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 22:29+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2025-09-17 17:23+0000\n"
+"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
 "payment_custom/it/>\n"
 "Language: it\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -138,38 +138,3 @@ msgstr "Codice tecnico del fornitore di pagamenti."
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Bonifico bancario"
-
-#~ msgid "; multiple order found"
-#~ msgstr "; trovato ordine multiplo"
-
-#~ msgid "; no order found"
-#~ msgstr "; nessun ordine trovato"
-
-#~ msgid ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-#~ msgstr ""
-#~ "<div>\n"
-#~ "<h3>Utilizzare i seguenti dettagli di trasferimento</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Comunicazioni</h4>\n"
-#~ "<p>Usare il nome dell'ordine come riferimento per la comunicazione.</p>\n"
-#~ "</div>"
-
-#~ msgid "Manual Payment"
-#~ msgstr "Pagamento manuale"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Sistema di pagamento"
-
-#~ msgid "Provider"
-#~ msgstr "Fornitore"
-
-#~ msgid "received data for reference %s"
-#~ msgstr "ricevuti dati con riferimento %s"

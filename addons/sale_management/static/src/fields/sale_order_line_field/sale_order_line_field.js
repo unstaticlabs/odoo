@@ -87,7 +87,7 @@ patch(SaleOrderLineListRenderer.prototype, {
 
     getRowClass(record) {
         let rowClasses = super.getRowClass(record);
-        if (this.shouldCollapse(record, 'is_optional', true)) {
+        if (this.shouldCollapse(record, 'is_optional')) {
             rowClasses += ' text-primary';
         }
         return rowClasses;
@@ -287,8 +287,10 @@ patch(SaleOrderLineListRenderer.prototype, {
             super.resetOnResequence(record, parentSection)
             || (
                 this.isSubSection(record)
-                && parentSection?.data.is_optional
                 && (
+                    parentSection?.data.is_optional
+                    || parentSection?.data.collapse_composition
+                ) && (
                     record.data.collapse_composition
                     || record.data.collapse_prices
                     || record.data.is_optional

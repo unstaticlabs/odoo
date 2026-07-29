@@ -11,16 +11,14 @@
 # Jiří Podhorecký, 2022
 # Michal Veselý <michal@veselyberanek.net>, 2022
 # Martin Trigaux, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Marek Jasanský <zahiro@ashtechnology.eu>, 2026.
-# "Marta (wacm)" <wacm@odoo.com>, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 12:21+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-10 13:18+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Czech <https://translate.odoo.com/projects/odoo-19/sales_team/"
 "cs/>\n"
@@ -30,13 +28,13 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sales_team
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid "%(user_name)s already in other teams (%(team_names)s)."
-msgstr "%(user_name)s je již v týmu (%(team_names)s)."
+msgstr ""
 
 #. module: sales_team
 #. odoo-python
@@ -45,7 +43,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr ""
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 msgid ""
 "<i class=\"fa fa-envelope me-1\" role=\"img\" aria-label=\"Email\" "
@@ -69,6 +66,12 @@ msgstr "<i class=\"fa fa-fw me-1 fa-envelope text-primary\" title=\"Email\"/>"
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
 msgstr "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Telefon\"/>"
+
+#. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
+msgstr ""
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
@@ -252,10 +255,11 @@ msgstr "Návrh"
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__display_name
 #: model:ir.model.fields,field_description:sales_team.field_res_users__display_name
 msgid "Display Name"
-msgstr "Zobrazovaný název"
+msgstr "Zobrazovací název"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Email"
 msgstr "Email"
 
@@ -446,6 +450,7 @@ msgstr "Ostatní"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Phone"
 msgstr "Telefon"
 
@@ -491,6 +496,7 @@ msgstr "Obchodník"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -735,8 +741,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
 "Snažíte se vytvořit duplicitní členství. Zjistili jsme, že%(duplicates)s již "
 "členství existuje/existují."
@@ -761,7 +767,8 @@ msgstr "např. služby"
 msgid ""
 "the user will have access to all records of everyone in the sales "
 "application."
-msgstr "uživatel bude mít přístup ke všem záznamům kohokoli v aplikaci prodejů."
+msgstr ""
+"uživatel bude mít přístup ke všem záznamům kohokoli v aplikaci prodejů."
 
 #. module: sales_team
 #: model:res.groups,comment:sales_team.group_sale_salesman
@@ -776,44 +783,3 @@ msgid ""
 msgstr ""
 "uživatel bude mít přístup k nastavení prodeje stejně jako ke statistickým "
 "zprávám"
-
-#~ msgid "Contact"
-#~ msgstr "Kontakt"
-
-#~ msgid "Dashboard Graph Data"
-#~ msgstr "Data grafu ovládacího panelu"
-
-#~ msgid ""
-#~ "Follow this salesteam to automatically track the events associated to "
-#~ "users of this team."
-#~ msgstr ""
-#~ "Odebírejte zprávy obchodního týmu. Automaticky budete mít přehled o "
-#~ "událostech spojených s členy tohoto týmu."
-
-#~ msgid "Group By"
-#~ msgstr "Seskupit podle"
-
-#~ msgid "Group By..."
-#~ msgstr "Seskupit podle…"
-
-#~ msgid ""
-#~ "If set, this Sales Team will be used for sales and assignments related to "
-#~ "this partner"
-#~ msgstr ""
-#~ "Pokud je nastaveno, bude tento prodejní tým použit pro prodej a úkoly "
-#~ "související s tímto partnerem"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobilní"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Počet zpráv, které vyžadují akci"
-
-#~ msgid "Sample data"
-#~ msgstr "Vzorek dat"
-
-#~ msgid "Undefined graph model for Sales Team: %s"
-#~ msgstr "Nedefinovaný grafický model pro prodejní tým:%s"
-
-#~ msgid "eBay"
-#~ msgstr "eBay"

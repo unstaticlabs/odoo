@@ -21,23 +21,23 @@
 # Pekko Tuomisto <pekko.tuomisto@web-veistamo.fi>, 2022
 # Martin Trigaux, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 18:00+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_landed_costs/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -50,8 +50,8 @@ msgstr "+ %(value)s (Maahantuontikustannukset: %(landed_cost)s)"
 #: code:addons/stock_landed_costs/models/stock_move.py:0
 msgid "+ %(value)s from %(vendor_bill)s (Landed Cost: %(landed_cost)s)"
 msgstr ""
-"+ %(value)s osoitteesta %(vendor_bill)s (Maahantuontikustannukset: %"
-"(landed_cost)s)"
+"+ %(value)s osoitteesta %(vendor_bill)s (Maahantuontikustannukset: "
+"%(landed_cost)s)"
 
 #. module: stock_landed_costs
 #: model_terms:ir.ui.view,arch_db:stock_landed_costs.stock_landed_cost_view_kanban
@@ -86,6 +86,11 @@ msgid "Activity Exception Decoration"
 msgstr "Toimenpiteen poikkeuksen tyyli"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
 msgid "Activity State"
 msgstr "Toimenpiteen tila"
@@ -112,8 +117,6 @@ msgid ""
 "Additional landed costs:\n"
 "%(landed_cost)s"
 msgstr ""
-"Lisämaahatuontikustannukset:\n"
-"%(landed_cost)s"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__target_model
@@ -161,10 +164,6 @@ msgstr "Peruttu"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Yritykset"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Yritys"
@@ -592,10 +591,15 @@ msgid "Picking"
 msgstr "Keräily"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
-msgstr "Määritä varastokulutili tuotteelle: %s."
+msgstr "Määritä varastokulujen tili tuotteelle: %s."
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -707,8 +711,11 @@ msgid "Total"
 msgstr "Yhteensä"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Siirrot"
 
@@ -734,8 +741,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "Arvonkorjausrivit"
+msgid "Valuation Adjustment Line"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -784,36 +791,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"Et voi muuttaa tuotetyyppiä tai poistaa maahantuontikustannusvaihtoehtoa "
-"käytöstä, koska tuotetta käytetään tilikirjauksen rivillä."
-
-#~ msgid " already out"
-#~ msgstr "jo ulkona"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Varastoitava tuote on tuote, jonka varastosaldoja hallitset. Tätä varten "
-#~ "on asennettava Varasto-sovellus.\n"
-#~ "Kulutustuote on fyysinen tuote, jonka varastoa ei hallita.\n"
-#~ "Palvelu on tarjonnassa oleva aineeton tuote."
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Päiväkirjaan liittyvä yritys"
-
-#~ msgid "Group By"
-#~ msgstr "Ryhmittely"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Toimenpiteitä vaativien viestien määrä"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Näytä kaikki tietueet joissa on toimenpide myöhässä."
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Varaston arvostuskerros"

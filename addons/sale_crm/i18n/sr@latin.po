@@ -6,13 +6,13 @@
 # Uros Kalajdzic <ukalajdzic@gmail.com>, 2022
 # Martin Trigaux, 2022
 # Dragan Vukosavljevic <dragan.vukosavljevic@gmail.com>, 2022
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 10:57+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-11-19 13:23+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.odoo.com/projects/"
 "odoo-19/sale_crm/sr_Latn/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_crm
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
@@ -33,16 +33,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__lead_id
 msgid "Associated Lead"
 msgstr "Povezani lid"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Cancel"
-msgstr "Otkaži"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-msgid "Confirm"
-msgstr "Potvrdi"
 
 #. module: sale_crm
 #: model:ir.model.fields.selection,name:sale_crm.selection__crm_quotation_partner__action__create
@@ -99,6 +89,11 @@ msgid "Expected revenue has been updated based on the linked Sales Orders."
 msgstr ""
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Go to Quotation"
+msgstr ""
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_team__id
@@ -132,9 +127,7 @@ msgid "My Quotations"
 msgstr ""
 
 #. module: sale_crm
-#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
 msgid "New Quotation"
 msgstr ""
 
@@ -195,6 +188,11 @@ msgid "Sales Team"
 msgstr "prodajni Tim"
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Select a Customer"
+msgstr ""
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__sale_amount_total
 msgid "Sum of Orders"
 msgstr ""
@@ -205,16 +203,13 @@ msgid "Untaxed Total of Confirmed Orders"
 msgstr ""
 
 #. module: sale_crm
+#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Who should be linked to this new Quotation?"
+msgstr ""
+
+#. module: sale_crm
 #. odoo-python
 #: code:addons/sale_crm/wizard/crm_opportunity_to_quotation.py:0
 msgid "You can only apply this action from a lead."
 msgstr ""
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Lid/Prodajna prilika"
-
-#~ msgid "User"
-#~ msgstr "Korisnik"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Poslednja izmena dana"

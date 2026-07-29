@@ -5,16 +5,16 @@
 # Translators:
 # Martin Trigaux, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 13:48+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-01-16 05:53+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-1/"
 "stock_landed_costs/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -22,19 +22,19 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_move.py:0
 msgid "+ %(value)s (Landed Cost: %(landed_cost)s)"
-msgstr "+ %(value)s (التكلفة النهائية: %(landed_cost)s)"
+msgstr ""
 
 #. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_move.py:0
 msgid "+ %(value)s from %(vendor_bill)s (Landed Cost: %(landed_cost)s)"
-msgstr "+ %(value)s من %(vendor_bill)s (التكلفة الإجمالية: %(landed_cost)s)"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model_terms:ir.ui.view,arch_db:stock_landed_costs.stock_landed_cost_view_kanban
@@ -70,6 +70,11 @@ msgid "Activity Exception Decoration"
 msgstr "زخرفة استثناء النشاط"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
+
+#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
 msgid "Activity State"
 msgstr "حالة النشاط"
@@ -96,8 +101,6 @@ msgid ""
 "Additional landed costs:\n"
 "%(landed_cost)s"
 msgstr ""
-"تكاليف إضافية:\n"
-"%(landed_cost)s"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__target_model
@@ -145,10 +148,6 @@ msgstr "تم الإلغاء"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "الشركات"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "الشركة"
@@ -185,7 +184,8 @@ msgstr "بنود التكلفة"
 msgid ""
 "Cost and adjustments lines do not match. You should maybe recompute the "
 "landed costs."
-msgstr "لا تتطابق بنود التكلفة والتسويات. يجب عليك إعادة احتساب إجمالي التكاليف"
+msgstr ""
+"لا تتطابق بنود التكلفة والتسويات. يجب عليك إعادة احتساب إجمالي التكاليف"
 
 #. module: stock_landed_costs
 #: model_terms:ir.ui.view,arch_db:stock_landed_costs.account_view_move_form_inherited
@@ -571,6 +571,11 @@ msgid "Picking"
 msgstr "الانتقاء"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr ""
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -684,8 +689,11 @@ msgid "Total"
 msgstr "الإجمالي"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "التحويلات"
 
@@ -710,8 +718,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "بنود تعديلات التقييم"
+msgid "Valuation Adjustment Line"
+msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -752,44 +760,13 @@ msgid ""
 "applied for products with FIFO or average costing method."
 msgstr ""
 "لا يمكنك تطبيق التكاليف على %s المحددة. يمكن تطبيق التكاليف فقط في المنتجات "
-"التي تتبع نظام الوارد أولاً يخرج أولاً (FIFO) أو طريقة احتساب التكاليف القياسية."
+"التي تتبع نظام الوارد أولاً يخرج أولاً (FIFO) أو طريقة احتساب التكاليف "
+"القياسية."
 
 #. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"لا يمكنك تغيير نوع المنتج أو تعطيل خيار إجمالي التكاليف لأن الحساب مستخدم في "
-"بند حركة حساب."
-
-#~ msgid " already out"
-#~ msgstr "خرجت بالفعل"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "المنتج القابل للتخزين هو المنتج الذي يمكن إدارة مخزونه. يجب أن يكون تطبيق "
-#~ "المخزون مثبتاً.\n"
-#~ "المنتج القابل للاستهلاء هو المنتج الذي لا يمكن إدارة مخزونه.\n"
-#~ "الخدمة هي منتج غير مادي تقوم بتقديمه. "
-
-#~ msgid "Company related to this journal"
-#~ msgstr "الشركة المتعلقة بهذه اليومية "
-
-#~ msgid "Group By"
-#~ msgstr "التجميع حسب "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء "
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "عرض كافة السجلات المُعين لها تاريخ إجراء تالي يسبق تاريخ اليوم الجاري"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "طبقة تقييم المخزون "

@@ -3,12 +3,14 @@
 import re
 from contextlib import contextmanager
 
-from odoo import http
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.addons.http_routing.tests.common import MockRequest
+from odoo.http.router import root
 from odoo.tests.common import TransactionCase, tagged
 
+from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
+from odoo.addons.http_routing.tests.common import MockRequest
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestQweb(TransactionCaseWithUserDemo):
     @classmethod
     def setUpClass(cls):
@@ -300,6 +302,7 @@ class TestQweb(TransactionCaseWithUserDemo):
               0 + OTHER_SEARCH_FETCH + ARCH_COMBINE)  # 7
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestQwebProcessAtt(TransactionCase):
     def setUp(self):
         super(TestQwebProcessAtt, self).setUp()
@@ -374,7 +377,7 @@ class TestQwebProcessAtt(TransactionCase):
 
     def test_process_att_url_crap(self):
         with MockRequest(self.env, website=self.website):
-            match = http.root.get_db_router.return_value.bind.return_value.match
+            match = root.get_db_router.return_value.bind.return_value.match
             # #{fragment} is stripped from URL when testing route
             self._test_att('/x#y?z', {'href': '/x#y?z'})
             match.assert_called_with('/x', method='POST', query_args=None)
@@ -501,6 +504,39 @@ class TestQwebDataSnippet(TransactionCase):
             </article>
         '''
         rendered = self._render_snippet('website.s_c')
+        self.assertEqual(self._normalize_xml(rendered), self._normalize_xml(expected_output))
+
+        # test that they are no wrong information in cache
+        rendered = self._render_snippet('website.s_c')
+        self.assertEqual(self._normalize_xml(rendered), self._normalize_xml(expected_output))
+
+    def test_t_snippet_call_root_unalter_cache(self):
+        noise = self.env['ir.ui.view'].create({
+            'name': 't-snippet-call_website.s_c',
+            'type': 'qweb',
+            'arch': '''
+                <t t-snippet-call="website.s_c"/>
+            '''
+        })
+        template = self.env['ir.ui.view'].create({
+            'name': 't-snippet-call_website.s_b',
+            'type': 'qweb',
+            'arch': '''
+                <t t-snippet-call="website.s_b"/>
+            '''
+        })
+
+        expected_output = '''
+            <section class="foo" data-snippet="s_b">
+                <section class="hello" data-snippet="s_a">
+                    <article>
+                        <span>Hello</span>
+                    </article>
+                </section>
+            </section>
+        '''
+        self.env['ir.qweb']._render(noise.id)
+        rendered = self.env['ir.qweb']._render(template.id)
         self.assertEqual(self._normalize_xml(rendered), self._normalize_xml(expected_output))
 
     def test_t_snippet_call_as_snippet_root(self):

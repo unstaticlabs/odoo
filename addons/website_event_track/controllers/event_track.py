@@ -1,21 +1,20 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from ast import literal_eval
-from collections import defaultdict
-from datetime import timedelta
-from pytz import timezone, utc
-from werkzeug.exceptions import Forbidden, NotFound
-
-import babel
-import babel.dates
 import base64
 import json
 import operator
-import pytz
+from ast import literal_eval
+from collections import defaultdict
+from datetime import UTC, timedelta
+from zoneinfo import ZoneInfo
 
-from odoo import http, fields, tools, _
+import babel.dates
+from werkzeug.exceptions import Forbidden, NotFound
+
+from odoo import _, fields, http, tools
 from odoo.fields import Domain
-from odoo.http import content_disposition, request
+from odoo.http import request
+from odoo.http.stream import content_disposition
 from odoo.tools import is_html_empty, plaintext2html
 from odoo.tools.misc import babel_locale_parse
 
@@ -122,7 +121,7 @@ class EventTrackController(http.Controller):
             ])
 
         # fetch data to display with TZ set for both event and tracks
-        now_tz = utc.localize(fields.Datetime.now().replace(microsecond=0), is_dst=False).astimezone(timezone(event.date_tz))
+        now_tz = fields.Datetime.now().replace(tzinfo=UTC).astimezone(ZoneInfo(event.date_tz))
         today_tz = now_tz.date()
         event = event.with_context(tz=event.date_tz or 'UTC')
         tracks_sudo = event.env['event.track'].sudo().search(search_domain, order='is_published desc, date asc')
@@ -163,7 +162,6 @@ class EventTrackController(http.Controller):
             # event information
             'event': event,
             'main_object': event,
-            'slots': event.event_slot_ids._filter_open_slots().grouped('date'),
             # tracks display information
             'tracks': tracks_sudo,
             'tracks_by_day': tracks_by_day,
@@ -196,7 +194,6 @@ class EventTrackController(http.Controller):
             'event': event,
             'main_object': event,
             'seo_object': seo_object,
-            'slots': event.event_slot_ids._filter_open_slots().grouped('date'),
             'tag': tag,
             'is_event_user': request.env.user.has_group('event.group_event_user'),
             'website_visitor_timezone': request.env['website.visitor']._get_visitor_timezone(),
@@ -214,7 +211,7 @@ class EventTrackController(http.Controller):
         divided into rows of 15 min, and the talks will cover the corresponding
         number of rows (15 min slots). """
         event = event.with_context(tz=event.date_tz or 'UTC')
-        local_tz = pytz.timezone(event.date_tz or 'UTC')
+        local_tz = ZoneInfo(event.date_tz or 'UTC')
         lang_code = request.env.context.get('lang')
 
         base_track_domain = Domain.AND([
@@ -241,7 +238,7 @@ class EventTrackController(http.Controller):
         time_slots_by_day = dict((day, dict(start=set(), end=set())) for day in days)
         tracks_by_rounded_times = dict((time_slot, dict((location, {}) for location in locations)) for time_slot in track_time_slots)
         for track, time_slots in time_slots_by_tracks.items():
-            start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+            start_date = fields.Datetime.from_string(track.date).replace(tzinfo=UTC).astimezone(local_tz)
             end_date = start_date + timedelta(hours=(track.duration or 0.25))
 
             for time_slot, duration in time_slots.items():
@@ -275,7 +272,7 @@ class EventTrackController(http.Controller):
         tracks_by_days = dict.fromkeys(days, 0)
         locations_by_days = defaultdict(list)
         for track in tracks_sudo:
-            track_day = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz).date()
+            track_day = fields.Datetime.from_string(track.date).replace(tzinfo=UTC).astimezone(local_tz).date()
             tracks_by_days[track_day] += 1
             if track.location_id not in locations_by_days[track_day]:
                 locations_by_days[track_day].append(track.location_id)
@@ -320,7 +317,7 @@ class EventTrackController(http.Controller):
                 }
         Also return a set of all the time slots
         """
-        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=UTC).astimezone(local_tz)
         start_datetime = self.time_slot_rounder(start_date, 15)
         end_datetime = self.time_slot_rounder(start_datetime + timedelta(hours=(track.duration or 0.25)), 15)
         time_slots_count = int(((end_datetime - start_datetime).total_seconds() / 3600) * 4)
@@ -345,7 +342,7 @@ class EventTrackController(http.Controller):
         """
         occupied_cells = []
 
-        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=UTC).astimezone(local_tz)
         start_date = self.time_slot_rounder(start_date, 15)
         for i in range(0, rowspan):
             time_slot = start_date + timedelta(minutes=15*i)
@@ -386,7 +383,6 @@ class EventTrackController(http.Controller):
             # event information
             'event': event,
             'main_object': track,
-            'slots': event.event_slot_ids._filter_open_slots().grouped('date'),
             'track': track,
             # sidebar
             'tracks_other': tracks_other,
@@ -468,7 +464,6 @@ class EventTrackController(http.Controller):
             'event': event,
             'main_object': event,
             'seo_object': event.track_proposal_menu_ids,
-            'slots': event.event_slot_ids._filter_open_slots().grouped('date'),
         })
 
     @http.route(['''/event/<model("event.event"):event>/track_proposal/post'''], type='http', auth="public", methods=['POST'], website=True)
@@ -592,6 +587,6 @@ class EventTrackController(http.Controller):
     def _get_dt_in_event_tz(self, datetimes, event):
         tz_name = event.date_tz
         return [
-            utc.localize(dt, is_dst=False).astimezone(timezone(tz_name))
+            dt.replace(tzinfo=UTC).astimezone(ZoneInfo(tz_name))
             for dt in datetimes
         ]

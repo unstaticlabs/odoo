@@ -36,7 +36,7 @@
         display: none;
     }
 
-    .s_website_form_submit, .s_website_form_recaptcha {
+    .s_website_form_submit {
         .s_website_form_label {
             float: left;
             height: 1px;
@@ -88,6 +88,11 @@
             caret-color: transparent;
         }
     }
+}
+
+.o_datetime_picker .o_day_of_week_cell,
+.o_datetime_picker .o_week_number_cell {
+    background-color: $o-gray-100 !important;
 }
 
 body:not(.editor_enable) .s_website_form[data-vcss="001"] {

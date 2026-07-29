@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Abe Manyo, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
 # "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 19:04+0000\n"
-"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-06-23 09:30+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_landed_costs/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
@@ -71,6 +71,11 @@ msgid "Activity Exception Decoration"
 msgstr "Dekorasi Pengecualian Aktivitas"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Rencana-Rencana Kegiatan"
+
+#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
 msgid "Activity State"
 msgstr "Status Aktivitas"
@@ -97,7 +102,7 @@ msgid ""
 "Additional landed costs:\n"
 "%(landed_cost)s"
 msgstr ""
-"Landed cost tambahan:\n"
+"Biaya pengiriman tambahan:\n"
 "%(landed_cost)s"
 
 #. module: stock_landed_costs
@@ -146,10 +151,6 @@ msgstr "Dibatalkan"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Perusahaan"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Perusahaan"
@@ -576,6 +577,11 @@ msgid "Picking"
 msgstr "Picking"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr "Jumlah Picking"
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -690,8 +696,11 @@ msgid "Total"
 msgstr "Total"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Transfer"
 
@@ -717,7 +726,7 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
+msgid "Valuation Adjustment Line"
 msgstr "Baris Penyesuaian Valuasi"
 
 #. module: stock_landed_costs
@@ -767,33 +776,5 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"Anda tidak dapat merubah tipe produk atau membatalkan opsi biaya pengiriman "
-"karena produk yang digunakan di baris pergerakan akun."
-
-#~ msgid " already out"
-#~ msgstr "sudah keluar"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Produk yang bisa disimpan adalah produk yang mana Anda mengelola stoknya. "
-#~ "Aplikasi Inventaris harus diinstal.\n"
-#~ "Produk yang bisa dipakai adalah produk yang stoknya tidak akan dikelola.\n"
-#~ "Layanan adalah produk non-material yang Anda sediakan."
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Perusahaan yang terkait dengan jurnal ini"
-
-#~ msgid "Group By"
-#~ msgstr "Dikelompokkan berdasarkan"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Jumlah pesan yang butuh tindakan"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Tampilkan semua dokumen dengan aksi berikut sebelum hari ini"

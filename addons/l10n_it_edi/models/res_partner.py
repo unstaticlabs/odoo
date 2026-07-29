@@ -192,6 +192,15 @@ class ResPartner(models.Model):
                     }
         return errors
 
+    @api.depends('l10n_it_codice_fiscale')
+    def _compute_is_company(self):
+        l10n_it_partners = self.filtered(lambda p: p.vat and p.country_code == 'IT')
+        for partner in l10n_it_partners:
+            cf = partner._l10n_it_edi_normalized_codice_fiscale() or ''
+            partner.is_company = len(cf) == 11
+
+        super(ResPartner, self - l10n_it_partners)._compute_is_company()
+
     def _deduce_country_code(self):
         if self.l10n_it_codice_fiscale:
             return 'IT'
@@ -215,9 +224,9 @@ class ResPartner(models.Model):
         else:
             return res
 
-    def create_company(self):
-        res = super().create_company()
-        if res:
+    def _create_parent_from_name(self, parent_name, additional_values=None):
+        parent_company = super()._create_parent_from_name(parent_name=parent_name, additional_values=additional_values)
+        if parent_company:
             it_values = self._convert_fields_to_values(('l10n_it_codice_fiscale', 'l10n_it_pa_index'))
-            self.parent_id.update(it_values)
-        return res
+            parent_company.update(it_values)
+        return parent_company

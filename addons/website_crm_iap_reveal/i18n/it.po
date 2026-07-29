@@ -5,15 +5,16 @@
 # Translators:
 # Sergio Zanchetta <primes2h@gmail.com>, 2022
 # Martin Trigaux, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Marianna Ciofani (cima)" <cima@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 14:09+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Italian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-01-15 12:32+0000\n"
+"Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
+"Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-1/"
 "website_crm_iap_reveal/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -21,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == "
 "0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_crm_iap_reveal
 #: model_terms:ir.ui.view,arch_db:website_crm_iap_reveal.crm_reveal_rule_form
@@ -55,8 +56,8 @@ msgstr "In archivio"
 
 #. module: website_crm_iap_reveal
 #: model:ir.model,name:website_crm_iap_reveal.model_crm_reveal_rule
-msgid "CRM Lead Generation Rules"
-msgstr "Regole di generazione lead"
+msgid "CRM Lead Generation Rule"
+msgstr "Regola generazione lead CRM"
 
 #. module: website_crm_iap_reveal
 #: model:ir.model,name:website_crm_iap_reveal.model_crm_reveal_view
@@ -530,19 +531,3 @@ msgstr "dipendenti"
 #: model_terms:ir.ui.view,arch_db:website_crm_iap_reveal.crm_reveal_rule_form
 msgid "to"
 msgstr "a"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Ultima modifica il"
-
-#~ msgid ""
-#~ "Lead Generation requires a GeoIP resolver which could not be found on "
-#~ "your system. Please consult https://pypi.org/project/GeoIP/."
-#~ msgstr ""
-#~ "Impossibile trovare nel sistema il risolutore GeoIP necessario per la "
-#~ "generazione dei contatti. Consultare https://pypi.org/project/GeoIP/."
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Contatto/Opportunità"
-
-#~ msgid "Missing Library"
-#~ msgstr "Libreria mancante"

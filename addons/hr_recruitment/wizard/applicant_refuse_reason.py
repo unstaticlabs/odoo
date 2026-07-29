@@ -31,7 +31,7 @@ class ApplicantGetRefuseReason(models.TransientModel):
         compute="_compute_duplicate_applicant_ids",
         store=True, readonly=False,
     )
-    duplicate_applicant_ids_domain = fields.Binary(compute="_compute_duplicate_applicant_ids_domain")
+    duplicate_applicant_ids_domain = fields.Json(compute="_compute_duplicate_applicant_ids_domain")
     attachment_ids = fields.Many2many(
         'ir.attachment', string='Attachments',
         compute="_compute_from_template_id", readonly=False, store=True, bypass_search_access=True,
@@ -41,6 +41,7 @@ class ApplicantGetRefuseReason(models.TransientModel):
         compute='_compute_from_template_id', readonly=False, store=True,
         help="send emails after that date. This date is considered as being in UTC timezone."
     )
+    model = fields.Char('Related Document Model', compute='_compute_model')
 
     @api.depends('refuse_reason_id', 'applicant_without_email', 'template_id')
     def _compute_send_mail(self):
@@ -68,7 +69,7 @@ class ApplicantGetRefuseReason(models.TransientModel):
                 & Domain('id', 'not in', self.applicant_ids.ids)
                 & Domain('application_status', 'not in', ['hired', 'refused', 'archived'])
             )
-            wizard.duplicate_applicant_ids_domain = domain
+            wizard.duplicate_applicant_ids_domain = list(domain)
             wizard.duplicates_count = self.env['hr.applicant'].search_count(wizard.duplicate_applicant_ids_domain)
 
     @api.depends('duplicates', 'duplicate_applicant_ids_domain')
@@ -77,6 +78,9 @@ class ApplicantGetRefuseReason(models.TransientModel):
             self.duplicate_applicant_ids = self.env['hr.applicant'].search(self.duplicate_applicant_ids_domain)
         else:
             self.duplicate_applicant_ids = self.env['hr.applicant']
+
+    def _compute_model(self):
+        self.model = 'hr.applicant'
 
     # Overrides of mail.composer.mixin
     @api.depends('refuse_reason_id')  # fake trigger otherwise not computed in new mode

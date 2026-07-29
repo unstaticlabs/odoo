@@ -29,7 +29,7 @@ registry.category("web_tour.tours").add("test_basic_stock_flow_with_minimal_acce
             run: "click",
         },
         {
-            trigger: ".o_field_x2many_list_row_add > a",
+            trigger: ".o_field_x2many_list_row_add > button",
             run: "click",
         },
         {
@@ -84,7 +84,7 @@ registry.category("web_tour.tours").add("test_basic_stock_flow_with_minimal_acce
             run: "click",
         },
         {
-            trigger: ".o_field_x2many_list_row_add > a",
+            trigger: ".o_field_x2many_list_row_add > button",
             run: "click",
         },
         {

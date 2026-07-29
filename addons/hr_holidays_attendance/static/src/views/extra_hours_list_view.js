@@ -15,7 +15,7 @@ export class ExtraHoursSummary extends Component {
         this.state = useState({
             totalExtraHours: 0,
             compensableExtraHours: 0,
-            totalOvertimeAdjustment: 0,
+            timeOffTaken: 0,
             remainingExtraHours: 0,
         });
 
@@ -38,7 +38,7 @@ export class ExtraHoursSummary extends Component {
            before showing it in the UI */
         this.state.totalExtraHours = this.floatTime(overtime_data['compensable_overtime'] + overtime_data['not_compensable_overtime']);
         this.state.compensableExtraHours = this.floatTime(overtime_data['compensable_overtime']);
-        this.state.totalOvertimeAdjustment = this.floatTime(overtime_data['compensable_overtime'] - overtime_data['unspent_compensable_overtime']);
+        this.state.timeOffTaken = this.floatTime(overtime_data['compensable_overtime'] - overtime_data['unspent_compensable_overtime']);
         this.state.remainingExtraHours = this.floatTime(overtime_data['unspent_compensable_overtime']);
     }
 }

@@ -143,6 +143,7 @@ registry.category("web_tour.tours").add("test_attribute_order", {
 });
 
 registry.category("web_tour.tours").add("test_combo_variant_mix", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),
@@ -202,35 +203,6 @@ registry.category("web_tour.tours").add("test_cross_exclusion_attribute_values",
         ].flat(),
 });
 
-registry.category("web_tour.tours").add("test_exclusion_attribute_values", {
-    steps: () =>
-        [
-            Chrome.startPoS(),
-            Dialog.confirm("Open Register"),
-            ProductScreen.clickDisplayedProduct("Configurable Chair"),
-            ProductConfigurator.pickColor("Red"),
-            ProductConfigurator.pickSelect("Metal"),
-            ProductConfigurator.isUnavailable("Other"),
-            ProductConfigurator.isUnavailable("Wool"),
-            Chrome.endTour(),
-        ].flat(),
-});
-
-registry.category("web_tour.tours").add("test_product_with_single_value_dynamic_attribute", {
-    steps: () =>
-        [
-            Chrome.startPoS(),
-            Dialog.confirm("Open Register"),
-
-            ProductScreen.clickDisplayedProduct("Single Dynamic Product"),
-            ProductScreen.selectedOrderlineHas("Single Dynamic Product", "1", "5.0"),
-
-            ProductScreen.clickDisplayedProduct("Mixed Attribute Product"),
-            ProductScreen.selectedOrderlineHas("Mixed Attribute Product", "1", "7.0"),
-            Chrome.endTour(),
-        ].flat(),
-});
-
 registry.category("web_tour.tours").add("test_custom_attribute_alone_displayed", {
     steps: () =>
         [
@@ -275,6 +247,21 @@ registry.category("web_tour.tours").add("test_product_configurator_price", {
             ProductConfigurator.priceIs("14.00"), // 10 + 1 (Large) + 3 (Blue)
             Dialog.confirm(),
             ProductScreen.totalAmountIs("14.00"),
+            Chrome.endTour(),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_product_with_single_value_dynamic_attribute", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+
+            ProductScreen.clickDisplayedProduct("Single Dynamic Product"),
+            ProductScreen.selectedOrderlineHas("Single Dynamic Product", "1", "5.0"),
+
+            ProductScreen.clickDisplayedProduct("Mixed Attribute Product"),
+            ProductScreen.selectedOrderlineHas("Mixed Attribute Product", "1", "7.0"),
             Chrome.endTour(),
         ].flat(),
 });

@@ -5,6 +5,13 @@ patch(PosPaymentMethod.prototype, {
     _load_pos_data_fields() {
         return [...super._load_pos_data_fields(), "is_online_payment"];
     },
+
+    _load_pos_self_data_read(records) {
+        return [
+            ...super._load_pos_self_data_read(records),
+            ...records.filter((record) => record.is_online_payment),
+        ];
+    },
 });
 
 PosPaymentMethod._records = [

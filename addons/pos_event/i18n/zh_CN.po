@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * pos_event
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:20+0000\n"
+"PO-Revision-Date: 2026-04-28 14:41+0000\n"
 "Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/pos_event/zh_Hans/>\n"
+"projects/odoo-s19-2/pos_event/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_event
 #. odoo-javascript
@@ -51,6 +51,11 @@ msgid "<span class=\"o_stat_text\">PoS Order</span>"
 msgstr "<span class=\"o_stat_text\">POS 订单</span>"
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "<span class=\"o_stat_text\">PoS Sales</span>"
+msgstr "<span class=\"o_stat_text\">POS 销售</span>"
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/screens/product_screen/product_screen.js:0
 msgid "All slots are booked out for this event."
@@ -71,16 +76,16 @@ msgstr "参会者"
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Cancel"
-msgstr "取消"
+msgid "Confirm"
+msgstr "确认"
 
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Confirm"
-msgstr "确认"
+msgid "Discard"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model.fields,field_description:pos_event.field_event_event__display_name
@@ -99,11 +104,9 @@ msgstr "显示名称"
 
 #. module: pos_event
 #. odoo-javascript
-#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
-#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.js:0
 msgid "Error"
-msgstr "错误"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model,name:pos_event.model_event_event
@@ -131,8 +134,6 @@ msgid "Event Registration Answer"
 msgstr "事务登记记录答案"
 
 #. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
 #: model:ir.model.fields,field_description:pos_event.field_pos_order_line__event_registration_ids
 msgid "Event Registrations"
 msgstr "活动登记记录"
@@ -200,6 +201,13 @@ msgstr "没有时段"
 
 #. module: pos_event
 #. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
+#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
+msgid "Oh snap !"
+msgstr ""
+
+#. module: pos_event
+#. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 msgid "Please fill in all required fields"
 msgstr ""
@@ -226,36 +234,29 @@ msgid "PoS Order Line"
 msgstr "PoS 订单线"
 
 #. module: pos_event
+#: model:ir.model.fields,field_description:pos_event.field_event_event__pos_price_total
+msgid "PoS Total (Tax Included)"
+msgstr ""
+
+#. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr "POS 配置"
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "POS订单明细"
+#: model:ir.model,name:pos_event.model_pos_order
+msgid "Point of Sale Order"
+msgstr ""
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "POS 订单"
+#: model:ir.model,name:pos_event.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr ""
 
 #. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_session
 msgid "Point of Sale Session"
 msgstr "POS会话"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Badge"
-msgstr "打印徽标"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Full Page Ticket"
-msgstr "打印整页门票"
 
 #. module: pos_event
 #. odoo-javascript
@@ -308,9 +309,13 @@ msgid "Tickets"
 msgstr "工单"
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "Total sales for this event from PoS"
+msgstr ""
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "Unlimited"
 msgstr "无限"
 
@@ -329,9 +334,14 @@ msgstr "由于"
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "left"
 msgstr "左"
+
+#. module: pos_event
+#. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
+msgid "seats"
+msgstr ""
 
 #. module: pos_event
 #. odoo-javascript
@@ -344,6 +354,3 @@ msgstr "狭槽"
 #: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "slots"
 msgstr "时段"
-
-#~ msgid "From %s"
-#~ msgstr "从%s"

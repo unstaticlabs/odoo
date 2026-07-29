@@ -6,16 +6,16 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 15:23+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-05-08 10:52+0000\n"
+"Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_landed_costs/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_landed_costs
 #. odoo-python
@@ -68,6 +68,11 @@ msgstr "Activités"
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Indicateur d’exception d’activité"
+
+#. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Plans d'activité"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__activity_state
@@ -145,10 +150,6 @@ msgstr "Annulé"
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_res_company
-msgid "Companies"
-msgstr "Sociétés"
-
-#. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__company_id
 msgid "Company"
 msgstr "Société"
@@ -575,6 +576,11 @@ msgid "Picking"
 msgstr "Transfert"
 
 #. module: stock_landed_costs
+#: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__pickings_count
+msgid "Pickings Count"
+msgstr "Nombre de transferts"
+
+#. module: stock_landed_costs
 #. odoo-python
 #: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 msgid "Please configure Stock Expense Account for product: %s."
@@ -660,9 +666,9 @@ msgid ""
 "Planned: Future activities."
 msgstr ""
 "Statut basé sur les activités\n"
-"En retard : la date d'échéance est déjà dépassée\n"
+"En retard : l'échéance est déjà dépassée\n"
 "Aujourd'hui : la date d'activité est aujourd'hui\n"
-"Planifiée : activités futures"
+"Planifié : activités futures."
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_landed_cost
@@ -691,8 +697,11 @@ msgid "Total"
 msgstr "Total"
 
 #. module: stock_landed_costs
+#. odoo-python
+#: code:addons/stock_landed_costs/models/stock_landed_cost.py:0
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__picking_ids
 #: model:ir.model.fields.selection,name:stock_landed_costs.selection__stock_landed_cost__target_model__picking
+#: model_terms:ir.ui.view,arch_db:stock_landed_costs.view_stock_landed_cost_form
 msgid "Transfers"
 msgstr "Transferts"
 
@@ -718,8 +727,8 @@ msgstr ""
 
 #. module: stock_landed_costs
 #: model:ir.model,name:stock_landed_costs.model_stock_valuation_adjustment_lines
-msgid "Valuation Adjustment Lines"
-msgstr "Lignes d'ajustement de valorisation"
+msgid "Valuation Adjustment Line"
+msgstr "Ligne d’ajustement de la valorisation"
 
 #. module: stock_landed_costs
 #: model:ir.model.fields,field_description:stock_landed_costs.field_stock_landed_cost__valuation_adjustment_lines
@@ -768,46 +777,8 @@ msgstr ""
 #: code:addons/stock_landed_costs/models/product.py:0
 msgid ""
 "You cannot change the product type or disable landed cost option because the "
-"product is used in an account move line."
+"product is used in a journal item."
 msgstr ""
-"Vous ne pouvez pas changer le type de produit ou désactiver l'option de "
-"coûts logistiques car le produit et utilisé dans une ligne comptable."
-
-#~ msgid ""
-#~ "including landed costs:\n"
-#~ "%(landed_cost)s"
-#~ msgstr ""
-#~ "incluant les coûts logistiques :\n"
-#~ "%(landed_cost)s"
-
-#~ msgid " already out"
-#~ msgstr "déjà sortie"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Un produit stockable est un produit dont on gère le stock. L'application "
-#~ "\"Inventaire\" doit être installée. \n"
-#~ "Un produit consommable est un produit pour lequel le stock n'est pas "
-#~ "géré.\n"
-#~ "Un service est un produit immatériel que vous fournissez."
-
-#~ msgid "Company related to this journal"
-#~ msgstr "Société liée à ce journal"
-
-#~ msgid "Group By"
-#~ msgstr "Regrouper par"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Nombre de messages exigeant une action"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr ""
-#~ "Montrez tous les enregistrements pour lesquels la date des prochaines "
-#~ "actions est pour aujourd'hui ou avant"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Couche de valorisation d'inventaire"
+"Vous ne pouvez pas modifier le type de produit ni désactiver l’option "
+"\"coût supplémentaire\" car le produit est utilisé dans une écriture "
+"comptable."

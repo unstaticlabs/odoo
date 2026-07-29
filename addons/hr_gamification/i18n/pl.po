@@ -12,13 +12,13 @@
 # Martin Trigaux, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
+# "Marta (wacm)" <wacm@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:48+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-12-02 14:37+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
 "hr_gamification/pl/>\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: hr_gamification
 #: model_terms:ir.actions.act_window,help:hr_gamification.goals_menu_groupby_action2
@@ -129,12 +129,6 @@ msgstr "Opis"
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "Bezpośrednia odznaka"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr "Odrzuć"
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -301,35 +295,3 @@ msgstr "Nie możesz przyznać odznaki sobie."
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr "na"
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "Odznaki to nagrody za dobrą pracę. Przyznawaj je osobom, które na nie "
-#~ "zasługują."
-
-#~ msgid "Basic Employee"
-#~ msgstr "Podstawowy pracownik"
-
-#~ msgid "Cancel"
-#~ msgstr "Anuluj"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "Przyznaj temu pracownikowi jego pierwszą odznakę"
-
-#~ msgid "Received Badges"
-#~ msgstr "Otrzymane odznaki"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr "Użytkownik powiązany z zasobem do zarządzania jego dostępnością"
-
-#~ msgid "Reward Employee"
-#~ msgstr "Odznacz pracownika"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr ""
-#~ "Możesz przyznać odznaki tylko pracownikom powiązanym z użytkownikiem."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "by nagrodzić pracownika za dobrą pracę"

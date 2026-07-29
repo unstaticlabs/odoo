@@ -75,7 +75,8 @@
                                     </div>
                                 </div>
                             </setting>
-                            <setting id="rounding_method" company_dependent="1" string="Rounding Method" help="How total tax amount is computed in orders and invoices" title="A rounding per line is advised if your prices are tax-included. That way, the sum of line subtotals equals the total with taxes.">
+                            <setting id="rounding_method" company_dependent="1" string="Rounding Method" help="How total tax amount is computed in orders and invoices" title="- A rounding per tax is advised if your prices are tax-excluded. This minimizes cumulative rounding errors because it totals all unrounded tax amounts first and only rounds the final tax total once.\n
+                                                                                                                                                                               - A rounding per line is advised if your prices are tax-included. That way, the sum of line subtotal equals the total with taxes.">
                                 <field name="tax_calculation_rounding_method" class="o_light_label mt16" widget="radio"/>
                             </setting>
                             <setting id="eu_service" title="If you sell goods and services to customers in a
@@ -346,9 +347,6 @@
                         <t groups="account.group_account_user">
                             <block title="Fiscal Periods" id="accounting_reports">
                                 <setting id="fiscalyear" invisible="1" groups="account.group_account_user"/>
-                                <setting id="dynamic_report" groups="account.group_account_user" help="Navigate easily through reports and see what is behind the numbers">
-                                    <field name="module_account_reports" widget="upgrade_boolean"/>
-                                </setting>
                             </block>
                         </t>
                         <block title="Analytics" id="analytic" groups="account.group_account_user">
@@ -364,7 +362,7 @@
                                 <field name="module_product_margin"/>
                             </setting>
                         </block>
-                        <block title="Reporting" id="account_reports_settings" groups="account.group_account_user" invisible="not module_account_reports">
+                        <block title="Reporting" id="account_reports_settings" groups="account.group_account_user">
                             <setting string="Restrictive Audit Trail" company_dependent="1" invisible="force_restrictive_audit_trail" help="Log changes to posted journal entries immutably">
                                 <field name="restrictive_audit_trail"/>
                             </setting>

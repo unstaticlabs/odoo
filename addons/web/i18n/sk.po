@@ -19,23 +19,23 @@
 # dominikkertys <dominik.kertys@26house.com>, 2023
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2023
 # Jan Prokop, 2023
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-06-30 21:22+0000\n"
+"PO-Revision-Date: 2026-04-13 19:33+0000\n"
 "Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/web/sk/>\n"
+"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-s19-2/web/sk/"
+">\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
 ">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: web
 #. odoo-javascript
@@ -64,8 +64,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "%s to schedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/l10n/dates.js:0
 msgid "'%s' is not a correct date or datetime"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
+msgid "'Oh snap!'"
 msgstr ""
 
 #. module: web
@@ -93,13 +106,7 @@ msgid "(create)"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "(document name)"
 msgstr ""
 
@@ -207,24 +214,15 @@ msgid "<i class=\"fa fa-repeat\"/> Reset"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
-msgid ""
-"<select class=\"form-select\" name=\"profile_aggregation_mode\" "
-"id=\"profile_aggregation_mode\">\n"
-"                                        <option value=\"tabs\">Separated "
-"(one per tab)</option>\n"
-"                                        <option value=\"temporal\">Temporal "
-"(experimental)</option>\n"
-"                                    </select>\n"
-"                                    <span id=\"temporal_warning\" "
-"class=\"alert alert-warning\" style=\"display:none\"><b>Warning:</b> "
-"Temporal mode will merge all samples.<br/>It can lead to partially invalid "
-"result in case of concurrent profiles.<br/>Use with caution </span>"
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">$ 3,613.50</span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span class=\"text-nowrap\">$ 2,887.50</span>"
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">1,400.00</"
+"span></span>"
 msgstr ""
 
 #. module: web
@@ -235,6 +233,13 @@ msgid ""
 msgstr ""
 "<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">11,750.00</"
 "span></span>"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span class=\"text-nowrap\">$ <span class=\"oe_currency_value\">240.00</"
+"span></span>"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -252,7 +257,17 @@ msgstr "<span class=\"text-nowrap\">1,500.00</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">12.00</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span class=\"text-nowrap\">2,350.00</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span class=\"text-nowrap\">70.00</span>"
 msgstr ""
 
 #. module: web
@@ -265,13 +280,22 @@ msgstr "<span class=\"text-nowrap\">Daň 20%</span>"
 msgid ""
 "<span class=\"w-100 o_force_ltr\" itemprop=\"streetAddress\">77 Santa "
 "Barbara\n"
-"                                       Rd<br/>Pleasant Hill CA 94523<br/"
-">United States</span>"
+"                                Rd<br/>Pleasant Hill CA 94523<br/>United "
+"States</span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span id=\"line_tax_ids\">15%</span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid ""
+"<span id=\"temporal_warning\" class=\"alert alert-warning\" "
+"style=\"display:none\"><b>Warning:</b> Temporal mode will merge all samples."
+"<br/>It can lead to partially invalid result in case of concurrent profiles."
+"<br/>Use with caution </span>"
 msgstr ""
 
 #. module: web
@@ -281,7 +305,42 @@ msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
+msgid ""
+"<span>\n"
+"                                        Chair floor protection<br/>\n"
+"                                        Office chairs can harm your floor: "
+"protect it\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_7777] Office Chair<br/>\n"
+"                                        Comfortable yellow chair for daily "
+"work\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid ""
+"<span>\n"
+"                                        [FURN_8999] Three-Seat Sofa<br/>\n"
+"                                        Three Seater Sofa with Lounger in "
+"Steel Grey Colour\n"
+"                                    </span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>$ <span class=\"oe_currency_value\">24,090.00</span></span>"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
+msgid "<span>20.00</span>"
 msgstr ""
 
 #. module: web
@@ -292,7 +351,7 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span>Amount</span>"
-msgstr "<span>Suma</span>"
+msgstr "<span>Množstvo</span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -303,7 +362,7 @@ msgstr "<span>Popis</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>Invoice</span>\n"
-"                           <span>INV/2023/00003</span>"
+"                <span>INV/2023/00003</span>"
 msgstr ""
 
 #. module: web
@@ -330,24 +389,17 @@ msgstr "<span>Jednotková cena</span>"
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
 "<span>[FURN_8220] Four Person Desk<br/>\n"
-"                                       Four person modern office "
-"workstation</span>"
+"                                    Four person modern office workstation</"
+"span>"
 msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid ""
-"<span>[FURN_8999] Three-Seat Sofa<br/>\n"
-"                                       Three Seater Sofa with Lounger in "
-"Steel Grey Colour</span>"
-msgstr ""
-
-#. module: web
-#: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
-msgid ""
-"<strong class=\"text-nowrap\">$ <span class=\"oe_currency_value\">\n"
-"                                                       22,137.50</span></"
-"strong>"
+"<strong class=\"text-nowrap\">\n"
+"                                                    $ <span "
+"class=\"oe_currency_value\">27,703.50</span>\n"
+"                                                </strong>"
 msgstr ""
 
 #. module: web
@@ -356,24 +408,12 @@ msgid "<strong>Address block</strong>"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company address block</strong>"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "<strong>Company details block</strong>"
 msgstr ""
 
@@ -452,10 +492,9 @@ msgstr ""
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid ""
 "A popup window has been blocked. You may need to change your browser "
-"settings to allow popup windows for this page."
+"settings to allow popup windows for this page. You can also copy the link "
+"and paste it in a new tab."
 msgstr ""
-"Bolo zablokované vyskakovacie okno. Zmeňte nastavenie vášho prehliadača a "
-"povoľte vyskakovacie okná pre túto stránku."
 
 #. module: web
 #. odoo-javascript
@@ -622,6 +661,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.xml:0
 msgid "Add Property"
 msgstr ""
@@ -875,12 +915,6 @@ msgstr "Naozaj chcete archivovať tento záznam?"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
-msgid "Are you sure that you want to duplicate all the selected records?"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
 msgid "Are you sure that you want to remove this embedded action?"
 msgstr ""
@@ -955,7 +989,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.xml:0
+#: code:addons/web/static/src/views/fields/many2many_tags_avatar/many2many_tags_avatar_field.js:0
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
 msgid "Assign"
 msgstr ""
@@ -1060,16 +1094,6 @@ msgid "Back to “%s” form"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
-msgid "Background"
-msgstr ""
-
-#. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background_image
-msgid "Background Image"
-msgstr "Obrázok pozadia"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/widgets/ribbon/ribbon.js:0
 msgid "Background color"
@@ -1140,8 +1164,8 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
 msgid "Binary file"
 msgstr "Binárny súbor"
 
@@ -1312,14 +1336,16 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
-#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Can't remove that search"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
-#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
-#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
-#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Cancel"
-msgstr "Zrušiť"
+msgstr "Zrušené"
 
 #. module: web
 #. odoo-javascript
@@ -1473,6 +1499,30 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
+msgid "Clear search"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Click to check connection"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to collapse all groups"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/list/list_renderer.xml:0
+msgid "Click to expand all groups"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Click to select"
 msgstr ""
@@ -1524,6 +1574,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Color dot tags"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/badge/badge_field.js:0
 #: code:addons/web/static/src/views/fields/badge_selection/list_badge_selection_field.js:0
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
@@ -1545,11 +1601,11 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/burger_menu/mobile_switch_company_menu/mobile_switch_company_menu.xml:0
-#: model:ir.model,name:web.model_res_company
 msgid "Companies"
 msgstr "Spoločnosti"
 
 #. module: web
+#: model:ir.model,name:web.model_res_company
 #: model:ir.model.fields,field_description:web.field_base_document_layout__company_id
 msgid "Company"
 msgstr "Spoločnosť"
@@ -1585,12 +1641,10 @@ msgid "Company name"
 msgstr "Názov spoločnosti"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 msgid "Company tagline"
 msgstr ""
@@ -1629,9 +1683,16 @@ msgstr "Nakonfigurovať usporiadanie dokumentu"
 #. odoo-javascript
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
-#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Confirm"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+#: model_terms:ir.ui.view,arch_db:web.check_identity
+msgid "Confirm access"
 msgstr ""
 
 #. module: web
@@ -1641,18 +1702,6 @@ msgstr ""
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Confirmation"
 msgstr "Potvrdenie"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection lost. Trying to reconnect..."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/errors/error_handlers.js:0
-msgid "Connection restored. You are back online."
-msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
@@ -1671,24 +1720,12 @@ msgid "Contact Statistics"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company address."
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Contains the company details."
 msgstr ""
 
@@ -1734,6 +1771,7 @@ msgstr "Skopírované"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/copy_clipboard/copy_clipboard_field.js:0
+#: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "Copy"
 msgstr "Kópia"
 
@@ -1768,7 +1806,7 @@ msgstr "Copyright © 2004"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.js:0
+#: code:addons/web/static/src/core/signature/signature_viewer.js:0
 msgid "Could not display the selected image"
 msgstr ""
 
@@ -1823,6 +1861,7 @@ msgstr "Štát"
 #: code:addons/web/static/src/views/calendar/calendar_year/calendar_year_popover.xml:0
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_record_quick_create.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create"
 msgstr "Vytvoriť"
 
@@ -1840,6 +1879,12 @@ msgid "Create %s"
 msgstr ""
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
+msgid "Create New"
+msgstr ""
+
+#. module: web
 #: model:ir.model,website_form_label:web.model_res_partner
 msgid "Create a Customer"
 msgstr ""
@@ -1853,6 +1898,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/relational_utils.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Create..."
 msgstr ""
 
@@ -1932,20 +1978,20 @@ msgstr ""
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
 #: code:addons/web/static/src/search/search_model.js:0
 msgid "Custom Filter"
-msgstr "Vlastný filter"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 msgid "Custom Filter..."
-msgstr "Vlastný filter..."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/search/custom_group_by_item/custom_group_by_item.xml:0
 msgid "Custom Group"
-msgstr "Vlastné zoskupenie"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2001,6 +2047,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Date"
@@ -2023,6 +2070,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
 msgid "Date Range"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Date range"
 msgstr ""
 
 #. module: web
@@ -2103,7 +2156,7 @@ msgstr "Predvolená hodnota"
 #. odoo-javascript
 #: code:addons/web/static/src/search/custom_favorite_item/custom_favorite_item.xml:0
 msgid "Default filter"
-msgstr "Predvolený filter"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2117,6 +2170,14 @@ msgstr ""
 #: code:addons/web/static/src/views/fields/field_tooltip.xml:0
 msgid "Default:"
 msgstr "Predvolené:"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid ""
+"Defines the behavior when a tag is clicked. 'Edit color' requires a color "
+"field"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2135,8 +2196,10 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/tags_list/tags_list.xml:0
+#: code:addons/web/static/src/core/tags_list/avatar_tag.xml:0
+#: code:addons/web/static/src/core/tags_list/badge_tag.js:0
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
+#: code:addons/web/static/src/views/calendar/calendar_common/calendar_common_popover.xml:0
 #: code:addons/web/static/src/views/calendar/calendar_controller.js:0
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
@@ -2241,20 +2304,24 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/web/static/src/core/domain_selector_dialog/domain_selector_dialog.js:0
 #: code:addons/web/static/src/core/expression_editor_dialog/expression_editor_dialog.xml:0
+#: code:addons/web/static/src/core/signature/signature_dialog.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
 #: code:addons/web/static/src/search/search_model.js:0
 #: code:addons/web/static/src/views/fields/dynamic_placeholder_popover.xml:0
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 #: code:addons/web/static/src/views/fields/relational_utils.xml:0
 #: code:addons/web/static/src/views/fields/translation_dialog.xml:0
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
+#: code:addons/web/static/src/views/view_button/view_button.js:0
 #: code:addons/web/static/src/views/view_components/multi_create_popover.xml:0
+#: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
+#: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_confirmation_dialog.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Discard"
 msgstr "Zrušiť"
 
@@ -2303,12 +2370,6 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
 msgid "Display presets"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
-msgid "Display seconds"
 msgstr ""
 
 #. module: web
@@ -2405,7 +2466,13 @@ msgstr "Doména:"
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "Don't leave yet,"
-msgstr "Ešte neodchádzajte,"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Dot color field"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2447,17 +2514,30 @@ msgstr "Potiahnuť"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.xml:0
+msgid "Drop here to unschedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_record.xml:0
 msgid "Dropdown menu"
 msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
 #: code:addons/web/static/src/views/form/form_controller.js:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.js:0
 #: code:addons/web/static/src/views/list/list_controller.js:0
 msgid "Duplicate"
 msgstr "Duplikovať"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid "Duplicate Records"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2530,7 +2610,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Edit Tags"
+msgid "Edit color"
 msgstr ""
 
 #. module: web
@@ -2918,10 +2998,24 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"For example, if the date is %(today)s and you enter \"+=2d\", \n"
+"            it will be updated to %(future)s."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "For example, if the value is \"1\" and you enter \"+=2\", it will be updated "
 "to \"3\"."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Forgot password?"
 msgstr ""
 
 #. module: web
@@ -3084,6 +3178,12 @@ msgid "Handle"
 msgstr "Handle"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Having problems ?"
+msgstr ""
+
+#. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__company_details
 msgid "Header text displayed at the top of all reports."
 msgstr ""
@@ -3137,6 +3237,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid "Hide trailing zeros"
 msgstr ""
 
@@ -3150,6 +3251,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/float/float_field.js:0
 #: code:addons/web/static/src/views/fields/monetary/monetary_field.js:0
+#: code:addons/web/static/src/views/fields/stat_info/stat_info_field.js:0
 msgid ""
 "Hide zeros to the right of the last non-zero digit, e.g. 1.20 becomes 1.2"
 msgstr ""
@@ -3170,6 +3272,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/search/utils/dates.js:0
 msgid "Hour"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Hours"
 msgstr ""
 
 #. module: web
@@ -3257,15 +3365,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid ""
-"If checked, clicking on the tag will open the form that allows to directly "
-"edit it. Note that if a color field is also set, the tag edition will "
-"prevail. So, the color picker will not be displayed on click on the tag."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/views/fields/json_checkboxes/json_checkboxes_field.js:0
 msgid ""
 "If checked, the checkboxes will be displayed in a column. Otherwise, they "
@@ -3333,10 +3432,13 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/webclient/share_target/share_target_item.xml:0
+msgid "In Company"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/record_selectors/record_selector.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
-#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
 msgid "Inaccessible/missing record ID: %s"
 msgstr ""
 
@@ -3402,7 +3504,6 @@ msgstr "Celočíselné"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2one/many2one.xml:0
-#: code:addons/web/static/src/views/fields/properties/property_value.xml:0
 msgid "Internal link"
 msgstr ""
 
@@ -3422,7 +3523,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/errors/error_dialogs.js:0
 msgid "Invalid Operation"
-msgstr "Neplatná operácia"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3813,12 +3914,6 @@ msgid "Lack of inspiration?"
 msgstr ""
 
 #. module: web
-#. odoo-python
-#: code:addons/web/controllers/session.py:0
-msgid "Languages"
-msgstr "Jazyky"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/image/image_field.js:0
 #: code:addons/web/static/src/views/fields/image_url/image_url_field.js:0
@@ -3898,11 +3993,6 @@ msgid "Layout"
 msgstr "Usporiadanie"
 
 #. module: web
-#: model:ir.model.fields,field_description:web.field_base_document_layout__layout_background
-msgid "Layout Background"
-msgstr "Pozadie rozloženia"
-
-#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.js:0
 msgid "Leave Debug Mode"
@@ -3934,21 +4024,27 @@ msgstr "Riadkový graf"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Link copied to clipboard"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Load"
 msgstr "Nahrať"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
-msgid "Load demo data"
-msgstr "Nahrať vzorové dáta"
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.xml:0
+msgid "Load More"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid "Load everything anyway."
-msgstr ""
+#: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_dev_tool.xml:0
+msgid "Load demo data"
+msgstr "Nahrať vzorové dáta"
 
 #. module: web
 #. odoo-javascript
@@ -3966,7 +4062,6 @@ msgstr "Načítať viac... ("
 #. odoo-javascript
 #: code:addons/web/static/src/core/file_viewer/file_viewer.xml:0
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
-#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
 msgid "Loading"
 msgstr "Nahrávanie"
 
@@ -3983,6 +4078,12 @@ msgid "Loading..."
 msgstr "Nahrávanie..."
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
+msgid "Loading…"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Log in"
 msgstr "Prihlásenie"
@@ -3995,23 +4096,23 @@ msgstr "Prihlásiť sa ako superužívateľ"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
-#: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "Log out"
 msgstr "Odhlásenie"
 
 #. module: web
 #. odoo-python
 #: code:addons/web/controllers/home.py:0
+#: model_terms:ir.ui.view,arch_db:web.login
 msgid "Login"
 msgstr ""
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
 #: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
+#: model_terms:ir.ui.view,arch_db:web.external_layout_center
+#: model_terms:ir.ui.view,arch_db:web.external_layout_dual
 #: model_terms:ir.ui.view,arch_db:web.external_layout_folder
+#: model_terms:ir.ui.view,arch_db:web.external_layout_lines
 #: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
 #: model_terms:ir.ui.view,arch_db:web.external_layout_wave
 #: model_terms:ir.ui.view,arch_db:web.frontend_layout
 #: model_terms:ir.ui.view,arch_db:web.login_layout
@@ -4027,6 +4128,11 @@ msgstr ""
 #. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__logo_secondary_color
 msgid "Logo Secondary Color"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.login_successful
+msgid "Logout"
 msgstr ""
 
 #. module: web
@@ -4108,6 +4214,12 @@ msgstr "Many2one"
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 msgid "Match"
 msgstr "Zhoda"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/gauge/gauge_field.js:0
+msgid "Max tooltip"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4218,6 +4330,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Minutes"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/timezone_mismatch/timezone_mismatch_field.js:0
 msgid "Mismatch title"
 msgstr ""
@@ -4233,6 +4351,19 @@ msgstr ""
 #: code:addons/web/static/src/core/errors/error_dialogs.js:0
 msgid "Missing Record"
 msgstr "Chýbajúci záznam"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/tree_editor/tree_processor.js:0
+msgid "Missing record"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/record_selectors/multi_record_selector.js:0
+#: code:addons/web/static/src/core/tree_editor/tree_editor_autocomplete.js:0
+msgid "Missing record (ID: %s)"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -4263,6 +4394,7 @@ msgstr ""
 #: code:addons/web/static/src/views/fields/domain/domain_field.js:0
 #: code:addons/web/static/src/views/fields/field_selector/field_selector_field.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: model:ir.model,name:web.model_ir_model
 msgid "Model"
 msgstr "Model"
 
@@ -4295,11 +4427,6 @@ msgstr "Model:"
 #: code:addons/web/static/src/webclient/actions/debug_items.js:0
 msgid "Model: %s"
 msgstr ""
-
-#. module: web
-#: model:ir.model,name:web.model_ir_model
-msgid "Models"
-msgstr "Modely"
 
 #. module: web
 #. odoo-javascript
@@ -4356,6 +4483,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 #: code:addons/web/static/src/views/fields/statusbar/statusbar_field.xml:0
 msgid "More..."
@@ -4371,18 +4499,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "Mount Fuji"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property down"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
-msgid "Move this Property up"
 msgstr ""
 
 #. module: web
@@ -4455,7 +4571,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
 msgid "My Preferences"
-msgstr "Moje predvoľby"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4495,7 +4611,6 @@ msgstr ""
 #: code:addons/web/static/src/views/form/form_controller.xml:0
 #: code:addons/web/static/src/views/kanban/kanban_controller.xml:0
 #: code:addons/web/static/src/views/list/list_controller.xml:0
-#: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "New"
 msgstr "Nové"
 
@@ -4516,7 +4631,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/tree_editor/tree_editor.xml:0
 msgid "New Rule"
-msgstr "Nové pravidlo"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4579,6 +4694,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/model/relational_model/utils.js:0
 #: code:addons/web/static/src/search/search_bar/search_bar.js:0
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
 #: code:addons/web/static/src/views/pivot/pivot_model.js:0
 msgid "No"
 msgstr "Nie"
@@ -4711,12 +4827,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
-msgid "No stages yet, let's create some!"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "No view of type '%s' could be found in the current action."
 msgstr ""
@@ -4752,7 +4862,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid ""
 "Not possible to create monetary field because there is no currency on "
 "current model."
@@ -4760,8 +4870,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/calendar/calendar_schedule_section/calendar_schedule_section.js:0
+#: code:addons/web/static/src/views/calendar/calendar_side_panel/calendar_side_panel.js:0
+msgid "Nothing to schedule"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/many2many_binary/many2many_binary_field.js:0
 msgid "Number of files"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Numeric"
 msgstr ""
 
 #. module: web
@@ -4918,12 +5041,6 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.webclient_offline
 msgid "Offline"
-msgstr "Nedostupný"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
-msgid "Oh snap!"
 msgstr ""
 
 #. module: web
@@ -4934,6 +5051,12 @@ msgstr ""
 #: code:addons/web/static/src/views/view_dialogs/form_view_dialog.xml:0
 msgid "Ok"
 msgstr "Ok"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "On tag click"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -5039,6 +5162,18 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
+msgid "Open form"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Open form on tag click"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_renderer.xml:0
 msgid "Open in form view"
 msgstr ""
@@ -5131,15 +5266,14 @@ msgid "PDF file"
 msgstr "Súbor PDF"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
+msgid "Page 1 / 1"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
 msgid "Page <span class=\"page\"/> / <span class=\"topage\"/>"
-msgstr "Strana<span class=\"page\"/> / <span class=\"topage\"/>"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5159,6 +5293,7 @@ msgstr "Partner"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
 #: code:addons/web/static/src/views/fields/password/password_field.js:0
 #: model_terms:ir.ui.view,arch_db:web.login
 msgid "Password"
@@ -5238,7 +5373,7 @@ msgstr "Pivotné nastavenia"
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "Please be patient."
-msgstr "Prosím o trpezlivosť."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5303,12 +5438,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/tree_editor/tree_editor_value_editors.js:0
 msgid "Press \"Enter\" to add criterion"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/many2many_tags/many2many_tags_field.js:0
-msgid "Prevent color edition"
 msgstr ""
 
 #. module: web
@@ -5440,8 +5569,21 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Properties Definition"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.js:0
 msgid "Property %s"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/properties_definition_field.js:0
+msgid "Property 1"
 msgstr ""
 
 #. module: web
@@ -5526,6 +5668,7 @@ msgstr "Prepínač"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
 #: code:addons/web/static/src/views/fields/float_toggle/float_toggle_field.js:0
 msgid "Range"
 msgstr "Rozsah"
@@ -5547,9 +5690,9 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/confirmation_dialog/confirmation_dialog.js:0
 msgid ""
-"Ready to make your record disappear into thin air? Are you sure?\n"
-"It will be gone forever!\n"
-"\n"
+"Ready to make your record disappear into thin air? Are you sure? It will be "
+"gone forever!\n"
+"    \n"
 "Think twice before you click that 'Delete' button!"
 msgstr ""
 
@@ -5668,8 +5811,8 @@ msgstr "Odstrániť"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Remove Cover Image"
-msgstr "Odstrániť obrázok obálky"
+msgid "Remove Cover"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5700,6 +5843,12 @@ msgstr "Odstrániť favorita zo zoznamu"
 #. odoo-javascript
 #: code:addons/web/static/src/core/user_switch/user_switch.xml:0
 msgid "Remove user from switcher"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
+msgid "Replace current file"
 msgstr ""
 
 #. module: web
@@ -5742,6 +5891,12 @@ msgstr ""
 #: code:addons/web/static/src/core/color_picker/color_picker.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
 msgid "Reset"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "Reset Filters"
 msgstr ""
 
 #. module: web
@@ -5794,7 +5949,7 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/fields/signature/signature_field.xml:0
+#: code:addons/web/static/src/core/signature/signature_viewer.xml:0
 msgid "SIGNATURE"
 msgstr "PODPIS"
 
@@ -5902,6 +6057,12 @@ msgstr "Uložiť & Nové"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/form/form_controller.js:0
+msgid "Save Properties"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Save View"
 msgstr ""
@@ -5928,12 +6089,6 @@ msgstr "Uložiť predvoľbu"
 #. odoo-javascript
 #: code:addons/web/static/src/views/form/form_status_indicator/form_status_indicator.xml:0
 msgid "Save manually"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/translation_button.js:0
-msgid "Save this record and its parent to translate"
 msgstr ""
 
 #. module: web
@@ -6014,6 +6169,7 @@ msgstr ""
 #: code:addons/web/static/src/core/commands/command_palette.js:0
 #: code:addons/web/static/src/core/emoji_picker/emoji_picker.xml:0
 #: code:addons/web/static/src/core/model_field_selector/model_field_selector_popover.xml:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_view.xml:0
 #: code:addons/web/static/src/webclient/switch_company_menu/switch_company_menu.xml:0
@@ -6041,6 +6197,12 @@ msgstr "Sekundárna farba"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Seconds"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_basic.js:0
 msgid "Security"
 msgstr ""
@@ -6059,7 +6221,6 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 #: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "Select"
 msgstr "Potvrdiť "
@@ -6149,7 +6310,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/tree_editor/tree_editor_value_editors.js:0
 msgid "Select one or several criteria"
-msgstr "Vyberte jedno alebo viacero kritérií"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6190,6 +6351,11 @@ msgid "Send Email"
 msgstr "Poslať email"
 
 #. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Separated (one per tab)"
+msgstr ""
+
+#. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "Separator"
@@ -6206,6 +6372,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "Set a Cover Image"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/many2many_tags_color_dot/many2many_tags_color_dot_field.js:0
+msgid "Set a char field that colors the dot on the tag."
 msgstr ""
 
 #. module: web
@@ -6261,8 +6433,32 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/webclient/burger_menu/burger_menu.xml:0
+msgid "Share URL"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Share the current view"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.xml:0
 msgid "Shared"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Shared filters couldn't be applied"
 msgstr ""
 
 #. module: web
@@ -6298,6 +6494,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/datetime/datetime_field.js:0
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
 msgid "Show seconds"
 msgstr ""
 
@@ -6317,6 +6514,24 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_components/view_scale_selector.xml:0
 msgid "Show weekends"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/properties/property_definition.js:0
+msgid "Signature"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Signed in as"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
+msgid "Single date"
 msgstr ""
 
 #. module: web
@@ -6558,6 +6773,16 @@ msgid "TV"
 msgstr ""
 
 #. module: web
+#: model:ir.model.fields,field_description:web.field_base_document_layout__report_tables_id
+msgid "Table Design"
+msgstr ""
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
+msgid "Tables"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Tagline"
 msgstr ""
@@ -6568,13 +6793,13 @@ msgstr ""
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
 msgid "Tags"
-msgstr "Štítky"
+msgstr "Tagy"
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "Take a minute to get a coffee,"
-msgstr "Zoberte si chvíľku na kávu,"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6608,13 +6833,7 @@ msgstr ""
 
 #. module: web
 #: model:ir.model.fields,field_description:web.field_base_document_layout__vat
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "Tax ID"
 msgstr "DIČ"
 
@@ -6629,6 +6848,11 @@ msgstr ""
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Template:"
 msgstr "Šablóna:"
+
+#. module: web
+#: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
+msgid "Temporal (experimental)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6763,14 +6987,6 @@ msgid ""
 msgstr ""
 
 #. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/graph/graph_renderer.xml:0
-msgid ""
-"There are too many data. The graph only shows a sample. Use the filters to "
-"refine the scope."
-msgstr ""
-
-#. module: web
 #. odoo-python
 #: code:addons/web/controllers/export.py:0
 msgid ""
@@ -6783,6 +6999,12 @@ msgstr ""
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
 msgid "There is no available image to be set as cover."
 msgstr "Nie je dostupný obrázok pre nastavenie obálky."
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/offline_action_helper.xml:0
+msgid "There is no data to display offline for the given filters"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6817,18 +7039,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/expression_editor/expression_editor.xml:0
 msgid "This expression is not supported."
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already first"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/properties/properties_field.js:0
-msgid "This field is already last"
 msgstr ""
 
 #. module: web
@@ -6950,14 +7160,9 @@ msgstr "Prepínač"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.xml:0
 msgid "Toggle Search Panel"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/datetime/datetime_picker.xml:0
-msgid "Toggle date range mode"
 msgstr ""
 
 #. module: web
@@ -7132,13 +7337,7 @@ msgid "URL"
 msgstr "URL"
 
 #. module: web
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bold
-#: model_terms:ir.ui.view,arch_db:web.external_layout_boxed
-#: model_terms:ir.ui.view,arch_db:web.external_layout_bubble
-#: model_terms:ir.ui.view,arch_db:web.external_layout_folder
-#: model_terms:ir.ui.view,arch_db:web.external_layout_standard
-#: model_terms:ir.ui.view,arch_db:web.external_layout_striped
-#: model_terms:ir.ui.view,arch_db:web.external_layout_wave
+#: model_terms:ir.ui.view,arch_db:web.company_address_list
 msgid "US12345671"
 msgstr ""
 
@@ -7183,6 +7382,12 @@ msgstr "Nedefinované"
 #: code:addons/web/static/src/views/kanban/kanban_header.xml:0
 msgid "Unfold"
 msgstr "Rozvinúť"
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/views/fields/float_time/float_time_field.js:0
+msgid "Unit"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7248,14 +7453,13 @@ msgstr "Aktualizovať na budúce verzie"
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_cover_image_dialog.xml:0
-msgid "Upload and Set"
-msgstr "Nahraj a nastav"
+msgid "Upload New"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/pdf_viewer/pdf_viewer_field.xml:0
-#: model_terms:ir.ui.view,arch_db:web.view_base_document_layout
 msgid "Upload your file"
 msgstr "Nahrajte váš súbor"
 
@@ -7323,6 +7527,17 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/list/list_confirmation_dialog.js:0
+msgid ""
+"Use the operators \"+=\", \"-=\" to update the current date by days (%"
+"(days)s), \n"
+"            weeks (%(weeks)s), months (%(months)s), years (%(years)s), hours "
+"(%(hours)s), \n"
+"            minutes (%(minutes)s) and seconds (%(seconds)s)."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid ""
 "Use the operators \"+=\", \"-=\", \"*=\" and \"/=\" to update the current "
@@ -7350,6 +7565,12 @@ msgid ""
 "Use up and down arrow keys to adapt the brightness. Use left and right arrow "
 "keys to adapt the saturation. Press the Control or Command key at the same "
 "time to have finer control."
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/core/session/check_identity.xml:0
+msgid "Use your password"
 msgstr ""
 
 #. module: web
@@ -7543,6 +7764,18 @@ msgid "Warning for future dates"
 msgstr ""
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid "Warning: Link copied to clipboard might be too long for some browsers"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/search/search_model.js:0
+msgid "Warning: Not all shared filters applied"
+msgstr ""
+
+#. module: web
 #. odoo-python
 #: code:addons/web/models/models.py:0
 msgid "Warnings"
@@ -7622,6 +7855,12 @@ msgstr "Miniaplikácia:"
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/core/offline/offline_systray.xml:0
+msgid "Working offline"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/settings_form_controller.js:0
 msgid "Would you like to save your changes?"
 msgstr ""
@@ -7690,6 +7929,14 @@ msgid "Yes"
 msgstr "Áno"
 
 #. module: web
+#. odoo-javascript
+#: code:addons/web/static/src/model/relational_model/dynamic_list.js:0
+msgid ""
+"You are about to create a copy of every selected record.\n"
+"Are you sure you want to proceed?"
+msgstr ""
+
+#. module: web
 #: model_terms:ir.ui.view,arch_db:web.login_successful
 msgid "You are logged in."
 msgstr ""
@@ -7703,7 +7950,7 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.webclient_offline
 msgid "You are offline"
-msgstr "Ste nepripojený"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7724,6 +7971,15 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/search/search_bar_menu/search_bar_menu.js:0
+msgid ""
+"You can use the link below to share the current view with its filters: \n"
+"\n"
+" %(url)s"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.js:0
 msgid "You do not have access to the model \"%s\"."
 msgstr ""
@@ -7738,7 +7994,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "You may not believe it,"
-msgstr "Možno tomu neuveríte,"
+msgstr ""
 
 #. module: web
 #. odoo-python
@@ -8870,7 +9126,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "because it's loading..."
-msgstr "pretože sa načítava..."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -9806,7 +10062,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "but the application is actually loading..."
-msgstr "ale aplikácia sa skutočne načíta..."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -15787,7 +16043,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/ui/block_ui.js:0
 msgid "it's still loading..."
-msgstr "stále sa nahráva..."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -18877,6 +19133,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "on"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "on any screen to show shortcut overlays and"
 msgstr ""
@@ -19230,7 +19492,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "page"
-msgstr "strana"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -21948,6 +22210,7 @@ msgstr ""
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
+#: code:addons/web/static/src/search/search_bar/offline_search_bar.xml:0
 #: code:addons/web/static/src/search/search_bar/search_bar.xml:0
 msgid "search"
 msgstr "Vyhľadávanie"
@@ -25759,6 +26022,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/view_components/multi_currency_popover.xml:0
+msgid "without currency"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "wizard"
 msgstr ""
@@ -26497,6 +26766,12 @@ msgstr ""
 
 #. module: web
 #. odoo-javascript
+#: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
+msgid "yet, let's create some!"
+msgstr ""
+
+#. module: web
+#. odoo-javascript
 #: code:addons/web/static/src/core/emoji_picker/emoji_data.js:0
 msgid "yin"
 msgstr ""
@@ -26806,552 +27081,3 @@ msgstr ""
 
 #~ msgid "08/07/2020"
 #~ msgstr "08/07/2020"
-
-#~ msgid " records"
-#~ msgstr " záznamov"
-
-#~ msgid "%d days ago"
-#~ msgstr "%d dní dozadu"
-
-#~ msgid "%d hours ago"
-#~ msgstr "%d hodín dozadu"
-
-#~ msgid "%d minutes ago"
-#~ msgstr "%d minút dozadu"
-
-#~ msgid "%d months ago"
-#~ msgstr "%d mesiacov dozadu"
-
-#~ msgid "%d years ago"
-#~ msgstr "%d rokov dozadu"
-
-#~ msgid "'%s' is not a correct date"
-#~ msgstr "'%s' nie je správny dátum"
-
-#~ msgid "'%s' is not a correct date, datetime nor time"
-#~ msgstr "'%s' nie je správny dátum, dátum/čas ani čas"
-
-#~ msgid "'%s' is not a correct datetime"
-#~ msgstr "'%s' nie je správny dátum/čas"
-
-#~ msgid "'%s' is not a correct float"
-#~ msgstr "'%s' nie je správny float"
-
-#~ msgid "'%s' is not a correct integer"
-#~ msgstr "'%s' nie je správne celočíslo"
-
-#~ msgid "'%s' is not a correct monetary field"
-#~ msgstr "'%s' nie je správne pole meny"
-
-#~ msgid "'%s' is not convertible to date, datetime nor time"
-#~ msgstr "'%s' nie je konvertovateľné na dátum, dátum/čas ani čas"
-
-#~ msgid "(nolabel)"
-#~ msgstr "(žiadnyštítok)"
-
-#~ msgid "<span id=\"line_tax_ids\">15.00%</span>"
-#~ msgstr "<span id=\"line_tax_ids\">15.00%</span>"
-
-#~ msgid "<span>5.000</span>"
-#~ msgstr "<span>5.000</span>"
-
-#~ msgid ""
-#~ "<span>Invoice</span>\n"
-#~ "                           <span>INV/2020/07/0003</span>"
-#~ msgstr ""
-#~ "<span>Faktúra</span>\n"
-#~ "                           <span>INV/2020/07/0003</span>"
-
-#~ msgid "<strong>Due Date:</strong>"
-#~ msgstr "<strong>Dátum splatnosti:</strong>"
-
-#~ msgid "<strong>Invoice Date:</strong>"
-#~ msgstr "<strong>Dátum vystavenia:</strong>"
-
-#~ msgid "<strong>Subtotal</strong>"
-#~ msgstr "<strong>Medzisúčet</strong>"
-
-#~ msgid "ALL"
-#~ msgstr "Všetky"
-
-#~ msgid "ANY"
-#~ msgstr "Akýkoľvek"
-
-#~ msgid "Activate Assets Debugging"
-#~ msgstr "Aktivovať odstránenie chýb kódu"
-
-#~ msgid "Activate Tests Assets Debugging"
-#~ msgstr "Aktivovať testy odstránenia chýb kódu"
-
-#~ msgid "Add Custom Filter"
-#~ msgstr "Pridať vlastný filter"
-
-#~ msgid "Add Custom Group"
-#~ msgstr "Pridať vlastnú skupinu"
-
-#~ msgid "Add a condition"
-#~ msgstr "Pridať podmienku"
-
-#~ msgid "Add branch"
-#~ msgstr "Pridať vetvu"
-
-#~ msgid "Add filter"
-#~ msgstr "Pridať filter"
-
-#~ msgid "Add new value"
-#~ msgstr "Pridať novú hodnotu"
-
-#~ msgid "Add node"
-#~ msgstr "Pridať uzol"
-
-#~ msgid "Add tag"
-#~ msgstr "Pridať menovku"
-
-#~ msgid "Among the"
-#~ msgstr "Medzi"
-
-#~ msgid "An error occurred"
-#~ msgstr "Vyskytla sa chyba"
-
-#~ msgid "Any"
-#~ msgstr "Ktorýkoľvek"
-
-#~ msgid ""
-#~ "Appears by default on the top right corner of your printed documents "
-#~ "(report header)."
-#~ msgstr ""
-#~ "V predvolenom nastavení sa zobrazuje v pravom hornom rohu vašich "
-#~ "vytlačených dokumentov (hlavička výkazu)."
-
-#~ msgid "Archive All"
-#~ msgstr "Archivovať všetko"
-
-#~ msgid ""
-#~ "Are you sure that you want to archive all the records from this column?"
-#~ msgstr "Ste si istý že chcete archivovať všetky záznamy pre tento stĺpec?"
-
-#~ msgid "Are you sure that you want to remove this filter?"
-#~ msgstr "Ste si istý že chcete odstrániť tento filter?"
-
-#~ msgid "Are you sure you want to perform the following update on those"
-#~ msgstr "Naozaj chcete vykonať nasledujúcu aktualizáciu týchto informácií?"
-
-#~ msgid "Choose"
-#~ msgstr "Vyberte"
-
-#~ msgid "Column %s"
-#~ msgstr "Stĺpec %s"
-
-#~ msgid "Comparison"
-#~ msgstr "Porovnávanie"
-
-#~ msgid "Could not connect to the server"
-#~ msgstr "Nemožno sa pripojiť na server"
-
-#~ msgid "Could not serialize XML"
-#~ msgstr "Nebolo možné serializovať XML"
-
-#~ msgid "Create \"<strong>%s</strong>\""
-#~ msgstr "Vytvoriť \"<strong>%s</strong>\""
-
-#~ msgid "Create and Edit..."
-#~ msgstr "Vytvoriť a upraviť..."
-
-#~ msgid "Create: "
-#~ msgstr "Vytvoriť:"
-
-#~ msgid "Create: %s"
-#~ msgstr "Vytvoriť: %s"
-
-#~ msgid "Current state"
-#~ msgstr "Aktuálny stav"
-
-#~ msgid "Dark blue"
-#~ msgstr "Tmavomodrá"
-
-#~ msgid "Dark purple"
-#~ msgstr "Tmavopurpurová"
-
-#~ msgid "Delete node"
-#~ msgstr "Zmazať uzol"
-
-#~ msgid "Don't leave yet,<br />it's still loading..."
-#~ msgstr "Neodchádzajte,<br />stále nahrávam..."
-
-#~ msgid "Edit Action"
-#~ msgstr "Upraviť akciu"
-
-#~ msgid "Edit SearchView"
-#~ msgstr "Upraviť zobrazenie vyhľadávania"
-
-#~ msgid "Enter e-mail address"
-#~ msgstr "Vložte emailovú adresu"
-
-#~ msgid "Error"
-#~ msgstr "Chyba"
-
-#~ msgid "Everybody's calendars"
-#~ msgstr "Každého kalendár"
-
-#~ msgid "Everything"
-#~ msgstr "Všetko"
-
-#~ msgid "External link"
-#~ msgstr "Externý odkaz"
-
-#~ msgid "FILTER"
-#~ msgstr "FILTER"
-
-#~ msgid "File upload"
-#~ msgstr "Nahratie súboru"
-
-#~ msgid "Filter with same name already exists."
-#~ msgstr "Filter s rovnakým názvom už existuje."
-
-#~ msgid "Fushia"
-#~ msgstr "Fushia"
-
-#~ msgid "Graph"
-#~ msgstr "Graf"
-
-#~ msgid "Hit DOWN to navigate to the list below"
-#~ msgstr "Stlačte DOWN pre presun k spodnému zoznamu"
-
-#~ msgid "Hit ENTER to"
-#~ msgstr "Stlačte ENTER pre"
-
-#~ msgid "Hit ENTER to CREATE"
-#~ msgstr "Stlačte ENTER pre vytvorenie"
-
-#~ msgid "I am sure about this."
-#~ msgstr "Som si istý."
-
-#~ msgid "In"
-#~ msgstr "V"
-
-#~ msgid ""
-#~ "Invalid database name. Only alphanumerical characters, underscore, hyphen "
-#~ "and dot are allowed."
-#~ msgstr ""
-#~ "Neplatný názov databázy. Povolené len písmená a čísla, podčarnik, pomlčka "
-#~ "a bodka."
-
-#~ msgid "Leave the Developer Tools"
-#~ msgstr "Opustiť vývojárske nástroje"
-
-#~ msgid "Light blue"
-#~ msgstr "Svetlomodrá"
-
-#~ msgid "Loading, please wait..."
-#~ msgstr "Načítavam, prosím čakajte..."
-
-#~ msgid "Manage Attachments"
-#~ msgstr "Spravovať prílohy"
-
-#~ msgid "Manage Filters"
-#~ msgstr "Spravovať filtre"
-
-#~ msgid "Match records with"
-#~ msgstr "Porovnať záznam s"
-
-#~ msgid "Match records with the following rule:"
-#~ msgstr "Porovnať záznam s nasledovným pravidlom:"
-
-#~ msgid "Medium blue"
-#~ msgstr "Modrá"
-
-#~ msgid "Modifiers:"
-#~ msgstr "Upravovatelia:"
-
-#~ msgid "My Odoo.com account"
-#~ msgstr "Môj Odoo.com účet"
-
-#~ msgid "NONE"
-#~ msgstr "ŽIADNE"
-
-#~ msgid "Next page"
-#~ msgstr "Ďalšia strana"
-
-#~ msgid "No records found!"
-#~ msgstr "Nenašli sa žiadne záznamy!"
-
-#~ msgid "No valid record to save"
-#~ msgstr "Žiadny platný záznam na uloženie"
-
-#~ msgid "Not active state"
-#~ msgstr "Stav nie je aktívny"
-
-#~ msgid "Not active state, click to change it"
-#~ msgstr "Stav nie je aktívny, kliknite pre zmenu"
-
-#~ msgid "On change:"
-#~ msgstr "Na zmenu:"
-
-#~ msgid "Open: "
-#~ msgstr "Otvoriť:"
-
-#~ msgid ""
-#~ "Page:\n"
-#~ "                    <span class=\"page\"/>\n"
-#~ "                    of\n"
-#~ "                    <span class=\"topage\"/>"
-#~ msgstr ""
-#~ "Strana:\n"
-#~ "                    <span class=\"page\"/>\n"
-#~ "                    z\n"
-#~ "                    <span class=\"topage\"/>"
-
-#~ msgid "Page: <span class=\"page\"/> / <span class=\"topage\"/>"
-#~ msgstr "Strana: <span class=\"page\"/> / <span class=\"topage\"/>"
-
-#~ msgid "Pick a color"
-#~ msgstr "Vyberte farbu"
-
-#~ msgid "Pivot"
-#~ msgstr "Pivot"
-
-#~ msgid ""
-#~ "Please use the copy button to report the error to your support service."
-#~ msgstr ""
-#~ "Prosím použite tlačítko kopírovania pre nahlásenie chyby na support."
-
-#~ msgid "Preferences"
-#~ msgstr "Predvoľby"
-
-#~ msgid "Previous Period"
-#~ msgstr "Predošlé obdobie"
-
-#~ msgid "Previous Year"
-#~ msgstr "Predchádzajúci rok"
-
-#~ msgid "Previous page"
-#~ msgstr "Predchádzajúca strana"
-
-#~ msgid "Regenerate Assets Bundles"
-#~ msgstr "Obnoviť zväzky majetku"
-
-#~ msgid "Relation not allowed"
-#~ msgstr "Závislosť nepovolená"
-
-#~ msgid "Remove tag"
-#~ msgstr "Odstrániť menovku"
-
-#~ msgid "Run Click Everywhere Test"
-#~ msgstr "Spustiť test kliknutím hocikde"
-
-#~ msgid "Run JS Mobile Tests"
-#~ msgstr "Spustite mobilné testy JS"
-
-#~ msgid "Run JS Tests"
-#~ msgstr "Spustite JS testy"
-
-#~ msgid "SEE RESULT"
-#~ msgstr "ZOBRAZIŤ VÝSLEDOK"
-
-#~ msgid "Salmon pink"
-#~ msgstr "Lososová ružová"
-
-#~ msgid "See details"
-#~ msgstr "Viď detaily"
-
-#~ msgid "Set Defaults"
-#~ msgstr "Nastaviť predvoľby"
-
-#~ msgid "Share with all users"
-#~ msgstr "Zdielať so všetkými používateľmi"
-
-#~ msgid "Shortcuts"
-#~ msgstr "Skratky"
-
-#~ msgid "Size:"
-#~ msgstr "Veľkosť:"
-
-#~ msgid "Still loading...<br />Please be patient."
-#~ msgstr "Stále nahrávam...<br />Prosím, buďte trpezliví."
-
-#~ msgid "Style"
-#~ msgstr "Štýl"
-
-#~ msgid "Styles"
-#~ msgstr "Štýly"
-
-#~ msgid "Support"
-#~ msgstr "Podpora"
-
-#~ msgid "Syntax error"
-#~ msgstr "Syntaktická chyba"
-
-#~ msgid "Take a minute to get a coffee,<br />because it's loading..."
-#~ msgstr "Dajte si pauzu na kávu,<br />pretože sa načítáva..."
-
-#~ msgid "The selected file exceed the maximum file size of %s."
-#~ msgstr "Zvolený súbor presahuje maximálnu veľkosť súboru %s."
-
-#~ msgid ""
-#~ "There are too many rows (%s rows, limit: %s) to export as Excel 2007-2013 "
-#~ "(.xlsx) format. Consider splitting the export."
-#~ msgstr ""
-#~ "Existuje príliš veľa riadkov (%s riadky, limit: %s) na export vo formáte "
-#~ "Excel 2007-2013 (.xlsx). Zvážte rozdelenie exportu."
-
-#~ msgid "There was a problem while uploading your file"
-#~ msgstr "Vyskytol sa problém pri nahrávani vášho súboru"
-
-#~ msgid "This date is on the future. Make sure it is what you expected."
-#~ msgstr "Dátum je v budúcnosti. Overte si či je to želané."
-
-#~ msgid ""
-#~ "This filter is global and will be removed for everybody if you continue."
-#~ msgstr ""
-#~ "Tento filter je globálny, a bude odstránený pre všetkých, ak budete "
-#~ "pokračovať."
-
-#~ msgid "Tomorrow"
-#~ msgstr "Zajtra"
-
-#~ msgid "True"
-#~ msgstr "Pravda"
-
-#~ msgid ""
-#~ "Unable to find Wkhtmltopdf on this system. The report will be shown in "
-#~ "html."
-#~ msgstr ""
-#~ "Nie je možné nájsť Wkhtmltopdf v tomto systéme. Výkaz bude zobrazený v "
-#~ "html."
-
-#~ msgid "Unarchive All"
-#~ msgstr "Odarchivovať všetko"
-
-#~ msgid "Unknown nonliteral type "
-#~ msgstr "Neznámy nespisovný typ"
-
-#~ msgid "Upgrade to enterprise"
-#~ msgstr "Aktualizovať na Enterprise"
-
-#~ msgid "Use by default"
-#~ msgstr "Používať ako predvolené"
-
-#~ msgid "User Error"
-#~ msgstr "Chyba používateľa"
-
-#~ msgid "Variation"
-#~ msgstr "Variácia"
-
-#~ msgid "View %s"
-#~ msgstr "Pohľad %s"
-
-#~ msgid "View Fields"
-#~ msgstr "Zobraziť polia"
-
-#~ msgid "View switcher"
-#~ msgstr "Zobraziť prepínač"
-
-#~ msgid "Web Mobile Tests"
-#~ msgstr "Webové mobilné testy"
-
-#~ msgid "Yesterday"
-#~ msgstr "Včera"
-
-#~ msgid "You cannot follow relations for this field chain construction"
-#~ msgstr "Nemôžete sledovať vzťahy pre túto konštrukciu reťazí poľa"
-
-#~ msgid ""
-#~ "You may not believe it,<br />but the application is actually loading..."
-#~ msgstr ""
-#~ "Možno tomu neuveríte,<br />ale aplikácia sa v skutočnosti načítava..."
-
-#~ msgid ""
-#~ "You need to save this new record before editing the translation. Do you "
-#~ "want to proceed?"
-#~ msgstr ""
-#~ "Pred úpravou prekladu musíte tento nový záznam uložiť. Chcete pokračovať?"
-
-#~ msgid ""
-#~ "You should upgrade your version of Wkhtmltopdf to at least 0.12.0 in "
-#~ "order to get a correct display of headers and footers as well as support "
-#~ "for table-breaking between pages."
-#~ msgstr ""
-#~ "Mali by ste aktualizovať vašu verziu Wkhtmltopdf na aspoň 0.12.0 aby ste "
-#~ "získali správne zobrazenie záhlaví a zápätí, rovnako ako podporu pre "
-#~ "zalamovanie medzi stránkami."
-
-#~ msgid ""
-#~ "Your installation of Wkhtmltopdf seems to be broken. The report will be "
-#~ "shown in html."
-#~ msgstr ""
-#~ "Inštalácia Wkhtmltopdf vyzerá byť chybná. Výkaz bude zobrazený v html."
-
-#~ msgid "a day ago"
-#~ msgstr "deň dozadu"
-
-#~ msgid "about a minute ago"
-#~ msgstr "asi pred minútou"
-
-#~ msgid "about a month ago"
-#~ msgstr "asi pred mesiacom"
-
-#~ msgid "about a year ago"
-#~ msgstr "asi pred rokom"
-
-#~ msgid "about an hour ago"
-#~ msgstr "asi pred hodinou"
-
-#~ msgid "are valid for this update."
-#~ msgstr "sú platné pre túto aktualizáciu."
-
-#~ msgid "days"
-#~ msgstr "dni"
-
-#~ msgid "days ago"
-#~ msgstr "pred dňami"
-
-#~ msgid "doesn't contain"
-#~ msgstr "neobsahuje"
-
-#~ msgid "greater than or equal to"
-#~ msgstr "väčšie než alebo rovné"
-
-#~ msgid "is"
-#~ msgstr "je"
-
-#~ msgid "is after"
-#~ msgstr "je po"
-
-#~ msgid "is after or equal to"
-#~ msgstr "je po alebo rovné"
-
-#~ msgid "is before"
-#~ msgstr "je pred"
-
-#~ msgid "is before or equal to"
-#~ msgstr "je pred alebo rovné"
-
-#~ msgid "is between"
-#~ msgstr "je medzi"
-
-#~ msgid "is not"
-#~ msgstr "nie je"
-
-#~ msgid "is not ="
-#~ msgstr "nie je ="
-
-#~ msgid "less than"
-#~ msgstr "menej než"
-
-#~ msgid "less than a minute ago"
-#~ msgstr "menej ako pred minútou"
-
-#~ msgid "less than or equal to"
-#~ msgstr "menej než alebo rovné"
-
-#~ msgid "not in"
-#~ msgstr "nie v"
-
-#~ msgid "not set (false)"
-#~ msgstr "nenastavené"
-
-#~ msgid "selected records,"
-#~ msgstr "vybrané nahrávky,"
-
-#~ msgid "set (true)"
-#~ msgstr "nastaviť (true)"

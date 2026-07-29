@@ -11,13 +11,13 @@
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
 # Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2022
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 17:07+0000\n"
+"POT-Creation-Date: 2025-10-08 18:38+0000\n"
+"PO-Revision-Date: 2025-09-16 15:29+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/"
 "sale_purchase/fi/>\n"
@@ -26,7 +26,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: sale_purchase
 #: model_terms:ir.ui.view,arch_db:sale_purchase.exception_purchase_on_sale_cancellation
@@ -252,37 +252,3 @@ msgstr "of"
 #: model_terms:ir.ui.view,arch_db:sale_purchase.exception_purchase_on_sale_quantity_decreased
 msgid "ordered instead of"
 msgstr "tilattu sen sijasta"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-lg fa-building-o fa-fw\" title=\"Service to "
-#~ "Purchase\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-lg fa-building-o fa-fw\" title=\"Ostettava palvelu\"/>"
-
-#~ msgid "<span class=\"o_stat_text\">Purchase</span>"
-#~ msgstr "<span class=\"o_stat_text\">Osto</span>"
-
-#~ msgid ""
-#~ "<span id=\"display_invoice_alert\" position=\"after\">\n"
-#~ "                <span id=\"display_purchase_orders_alert\" "
-#~ "attrs=\"{'invisible': [('display_purchase_orders_alert', '=', False)]}"
-#~ "\">\n"
-#~ "                    There are active purchase orders linked to this sale "
-#~ "order that are not cancelled automatically! <br/>\n"
-#~ "                </span>\n"
-#~ "            </span>"
-#~ msgstr ""
-#~ "<span id=\"display_invoice_alert\" position=\"after\">\n"
-#~ "                <span id=\"display_purchase_orders_alert\" "
-#~ "attrs=\"{'invisible': [('display_purchase_orders_alert', '=', False)]}"
-#~ "\">\n"
-#~ "                    Tähän myyntitilaukseen liittyy aktiivisia "
-#~ "ostotilauksia, joita ei peruuteta automaattisesti! <br/>\n"
-#~ "                </span>\n"
-#~ "            </span>"
-
-#~ msgid "Purchase Order Alert"
-#~ msgstr "Ostotilaushälytys"
-
-#~ msgid "Sales Order Cancel"
-#~ msgstr "Myyntitilaus peruttu"

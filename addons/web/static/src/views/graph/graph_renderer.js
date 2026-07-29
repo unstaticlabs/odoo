@@ -267,10 +267,16 @@ export class GraphRenderer extends Component {
      * @param {boolean} [allIntegers=true]
      * @returns {string}
      */
-    formatValue(value, allIntegers = true, formatType = "") {
+    formatValue(value, measure, allIntegers = true) {
         const largeNumber = Math.abs(value) >= 1000;
-        if (formatType) {
-            return formatters.get(formatType)(value);
+        const widget = this.model.metaData.fieldAttrs[measure]?.widget;
+        let options = this.model.metaData.fieldAttrs[measure]?.options;
+        if (widget) {
+            const formatter = formatters.get(widget);
+            options = formatter.extractOptions
+                ? formatter.extractOptions({ options, attrs: {} })
+                : {};
+            return formatter(value, options);
         }
         if (allIntegers && !largeNumber) {
             return String(value);
@@ -401,7 +407,7 @@ export class GraphRenderer extends Component {
      * @returns {Object}
      */
     getLegendOptions() {
-        const { mode } = this.model.metaData;
+        const { mode, groupBy } = this.model.metaData;
         const legendOptions = {
             onHover: this.onLegendHover.bind(this),
             onLeave: this.onLegendLeave.bind(this),
@@ -432,11 +438,15 @@ export class GraphRenderer extends Component {
                     }),
             };
         } else {
-            legendOptions.position = "top";
-            legendOptions.align = "end";
+            legendOptions.position = "bottom";
+            legendOptions.align = "middle";
             const referenceColor = mode === "bar" ? "backgroundColor" : "borderColor";
             legendOptions.labels = {
                 generateLabels: (chart) => {
+                    // if no more than one groupBy, the legend is implicitly displayed inside the measure
+                    if (groupBy.length <= 1) {
+                        return [];
+                    }
                     const { data } = chart;
                     const labels = data.datasets.map((dataset, index) => ({
                         text: shortenLabel(dataset.label),
@@ -550,7 +560,7 @@ export class GraphRenderer extends Component {
      */
     getScaleOptions() {
         const { labels } = this.model.data;
-        const { fieldAttrs, measure, measures, mode, stacked } = this.model.metaData;
+        const { measure, measures, mode, stacked } = this.model.metaData;
         if (mode === "pie") {
             return {};
         }
@@ -581,7 +591,7 @@ export class GraphRenderer extends Component {
                         : null,
             },
             ticks: {
-                callback: (value) => this.formatValue(value, false, fieldAttrs[measure]?.widget),
+                callback: (value) => this.formatValue(value, measure, false),
                 color: GRAPH_LABEL_COLOR,
             },
             stacked: mode === "line" && stacked ? stacked : undefined,
@@ -596,10 +606,6 @@ export class GraphRenderer extends Component {
             suggestedMin: 0,
         };
         return { x: xAxe, y: yAxe };
-    }
-
-    loadAll() {
-        return this.model.forceLoadAll();
     }
 
     /**
@@ -622,19 +628,18 @@ export class GraphRenderer extends Component {
             const dataset = data.datasets[item.datasetIndex] || this.model.lineOverlayDataset;
             let label = dataset.trueLabels[index];
             let value = dataset.data[index];
-            const measureWidget = metaData.fieldAttrs[measure]?.widget;
             if (dataset.currencyIds?.[index]) {
                 value = formatMonetary(value, { currencyId: dataset.currencyIds[index] });
             } else if (dataset.currencyIds?.[index] === false) {
                 value = markup`${formatMonetary(value)}<sup class="ms-1 fw-bolder">?</sup>`;
             } else {
-                value = this.formatValue(value, allIntegers, measureWidget);
+                value = this.formatValue(value, measure, allIntegers);
             }
             let boxColor;
             let percentage;
             if (mode === "pie") {
                 if (label === NO_DATA) {
-                    value = this.formatValue(0, allIntegers, measureWidget);
+                    value = this.formatValue(0, measure, allIntegers);
                 }
                 boxColor = dataset.backgroundColor[index];
                 const totalData = dataset.data.reduce((a, b) => a + b, 0);

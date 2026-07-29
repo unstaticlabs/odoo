@@ -24,6 +24,7 @@ import { selectDateRange } from "./calendar_test_helpers";
 
 import { Domain } from "@web/core/domain";
 import { notificationService } from "@web/core/notifications/notification_service";
+import { range } from "@web/core/utils/numbers";
 import { CalendarModel } from "@web/views/calendar/calendar_model";
 import { WebClient } from "@web/webclient/webclient";
 
@@ -35,9 +36,6 @@ class Event extends models.Model {
     type = fields.Many2one({ relation: "event.type" });
     user_id = fields.Many2one({ relation: "calendar.user" });
     user_ids = fields.Many2many({ relation: "calendar.user" });
-
-    // FIXME: needed for the filter to work
-    filter_user_id = fields.Many2one({ relation: "calendar.user" });
 
     _records = [
         {
@@ -135,7 +133,6 @@ class Event extends models.Model {
             
                 <!-- For filter to work -->
                 <field name="date_start" invisible="1"/>
-                <field name="filter_user_id" invisible="1"/>
             </calendar>
         `,
         "calendar,calendar_state": `
@@ -764,7 +761,7 @@ test("multi_create: test popover", async () => {
 test.tags("desktop");
 test("multi_create: avoid trigger add/del event on specific element", async () => {
     function makeEvents(numberOfEvent) {
-        return [...Array(numberOfEvent).keys()].map((i) => ({
+        return range(numberOfEvent).map((i) => ({
             id: i,
             name: `event ${i}`,
             date_start: "2019-03-13",

@@ -185,8 +185,9 @@ class TestPricelist(ProductVariantsCommon):
         self.assertEqual(self.partner.property_product_pricelist, pricelist_1)
 
         self.partner.invalidate_recordset(['property_product_pricelist'])
-        ICP = self.env['ir.config_parameter'].sudo()
-        ICP.set_param('res.partner.property_product_pricelist', pricelist_2.id)
+        self.env['ir.config_parameter'].sudo().set_int(
+            'res.partner.property_product_pricelist', pricelist_2.id,
+        )
         with patch.object(
             self.pricelist.__class__,
             '_get_partner_pricelist_multi_search_domain_hook',
@@ -294,7 +295,7 @@ class TestPricelist(ProductVariantsCommon):
         } for company in self.env.company + company_2])
         parent = self.partner.create({
             'name': f"{self.partner.name}'s Company",
-            'is_company': True,
+            'vat': 'BE0477472701',
             'specific_property_product_pricelist': company_1_b2b_pl.id,
         })
         parent.with_company(company_2).specific_property_product_pricelist = company_2_b2b_pl
@@ -431,6 +432,83 @@ class TestPricelist(ProductVariantsCommon):
 
         self.assertTrue(self.product_sofa_blue.pricelist_rule_ids)
         self.assertEqual(len(self.product_template_sofa.pricelist_rule_ids), 2)
+
+    def test_copy_product_variant_pricings(self):
+        """Check that pricelists rules targeting a product are copied on template copy."""
+        self.env['product.pricelist.item'].create([
+            {
+                'product_tmpl_id': self.product_template_sofa.id,
+                'fixed_price': 22,
+            },
+            {
+                'product_id': self.product_sofa_blue.id,
+                'fixed_price': 33,
+            },
+            {
+                'product_id': self.product_sofa_red.id,
+                'fixed_price': 44,
+            },
+            {
+                'product_id': self.product_sofa_green.id,
+                'fixed_price': 55,
+            }
+        ])
+        self.assertEqual(
+            len(self.product_template_sofa.pricelist_rule_ids),
+            4,
+        )
+
+        with patch.object(
+            self.env.registry['product.template'],
+            '_duplicate_pricelist_rules_on_copy',
+            return_value=True,
+        ):
+            sofa_copy = self.product_template_sofa.copy()
+
+        product_sofa_red_copy = sofa_copy.product_variant_ids.filtered(
+            lambda pp:
+                pp.product_template_attribute_value_ids.product_attribute_value_id
+                ==
+                self.color_attribute_red
+        )
+        product_sofa_blue_copy = sofa_copy.product_variant_ids.filtered(
+            lambda pp:
+                pp.product_template_attribute_value_ids.product_attribute_value_id
+                ==
+                self.color_attribute_blue
+        )
+        product_sofa_green_copy = sofa_copy.product_variant_ids.filtered(
+            lambda pp:
+                pp.product_template_attribute_value_ids.product_attribute_value_id
+                ==
+                self.color_attribute_green
+        )
+
+        self.assertRecordValues(
+            sofa_copy.pricelist_rule_ids.sorted('id'),
+            [
+                {
+                    'product_tmpl_id': sofa_copy.id,
+                    'product_id': False,
+                    'fixed_price': 22,
+                },
+                {
+                    'product_tmpl_id': sofa_copy.id,
+                    'product_id': product_sofa_blue_copy.id,
+                    'fixed_price': 33,
+                },
+                {
+                    'product_tmpl_id': sofa_copy.id,
+                    'product_id': product_sofa_red_copy.id,
+                    'fixed_price': 44,
+                },
+                {
+                    'product_tmpl_id': sofa_copy.id,
+                    'product_id': product_sofa_green_copy.id,
+                    'fixed_price': 55,
+                }
+            ],
+        )
 
     def test_pricelist_applied_on_product_variant(self):
         # product template with variants

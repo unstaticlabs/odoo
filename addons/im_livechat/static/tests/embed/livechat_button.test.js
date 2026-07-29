@@ -12,14 +12,8 @@ import {
     triggerHotkey,
 } from "@mail/../tests/mail_test_helpers";
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
-import { describe, test } from "@odoo/hoot";
-import {
-    asyncStep,
-    Command,
-    patchWithCleanup,
-    serverState,
-    waitForSteps,
-} from "@web/../tests/web_test_helpers";
+import { describe, expect, test } from "@odoo/hoot";
+import { Command, patchWithCleanup, serverState } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
 defineLivechatModels();
@@ -41,14 +35,14 @@ test("open/close persisted channel", async () => {
     await loadDefaultEmbedConfig();
     const env = await start({ authenticateAs: false });
     env.services.bus_service.subscribe("discuss.channel/new_message", () =>
-        asyncStep("discuss.channel/new_message")
+        expect.step("discuss.channel/new_message")
     );
     await click(".o-livechat-LivechatButton");
     await insertText(".o-mail-Composer-input", "How can I help?");
     await triggerHotkey("Enter");
     await contains(".o-mail-Thread:not([data-transient])");
     await contains(".o-mail-Message-content", { text: "How can I help?" });
-    await waitForSteps(["discuss.channel/new_message"]);
+    await expect.waitForSteps(["discuss.channel/new_message"]);
     await click("[title*='Close Chat Window']");
     await click(".o-livechat-CloseConfirmation-leave");
     await contains(".o-mail-ChatWindow", { text: "Did we correctly answer your question?" });
@@ -99,11 +93,10 @@ test("can start a new live chat when acting as an agent in active live chats", a
     const guestId = pyEnv["mail.guest"].create({ name: "Visitor" });
     const channelId = pyEnv["discuss.channel"].create({
         channel_member_ids: [
-            Command.create({ partner_id: serverState.partnerId }),
-            Command.create({ guest_id: guestId }),
+            Command.create({ partner_id: serverState.partnerId, livechat_member_type: "agent" }),
+            Command.create({ guest_id: guestId, livechat_member_type: "visitor" }),
         ],
         channel_type: "livechat",
-        livechat_operator_id: serverState.partnerId,
     });
     setupChatHub({ opened: [channelId] });
     await start();

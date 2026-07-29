@@ -31,7 +31,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'impuestos_plantilla_isv_por_cobrar',
                 'income_account_id': 'cta410101',
                 'expense_account_id': 'cta510101',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'cta130601',
             },
         }

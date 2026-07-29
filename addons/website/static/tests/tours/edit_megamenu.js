@@ -7,6 +7,7 @@ import {
     openLinkPopup,
     registerWebsitePreviewTour,
     clickToolbarButton,
+    unfoldOptionsGroup,
 } from "@website/js/tours/tour_utils";
 
 const toggleMegaMenu = (stepOptions) =>
@@ -136,6 +137,7 @@ registerWebsitePreviewTour(
 registerWebsitePreviewTour(
     "megamenu_active_nav_link",
     {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         url: "/",
         edition: true,
     },
@@ -264,11 +266,12 @@ registerWebsitePreviewTour(
             run: "click",
         },
         // Change MegaMenu template
+        ...unfoldOptionsGroup("Mega Menu"),
         ...changeOptionInPopover("Mega Menu", "Template", "[title='Big Icons Subtitles']"),
         ...clickToolbarButton(
             "h4 of first menu link of the first column",
             ".s_mega_menu_big_icons_subtitles .row > div:first-child .nav > :first-child h4",
-            "Toggle bold"
+            "Bold (Ctrl + B)"
         ),
         ...clickOnSave(),
         clickOnExtraMenuItem({}, true),
@@ -374,7 +377,7 @@ const openMenu = () => ({
 registerWebsitePreviewTour(
     "edit_megamenu_visibility",
     {
-        url: "/",
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps ) #245680
         edition: true,
     },
     () => [

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo.tests import common, new_test_user
+from odoo.tests import tagged, common, new_test_user
 from odoo import fields
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestFleet(common.TransactionCase):
 
     def test_search_renewal(self):
@@ -21,13 +22,13 @@ class TestFleet(common.TransactionCase):
         car_1 = self.env["fleet.vehicle"].create({
             "model_id": model.id,
             "driver_id": user.partner_id.id,
-            "plan_to_change_car": False
+            "plan_to_change_vehicle": False
         })
 
         car_2 = self.env["fleet.vehicle"].create({
             "model_id": model.id,
             "driver_id": user.partner_id.id,
-            "plan_to_change_car": False
+            "plan_to_change_vehicle": False
         })
         Log = self.env['fleet.vehicle.log.contract']
         Log.create({
@@ -60,7 +61,7 @@ class TestFleet(common.TransactionCase):
         car_1 = self.env["fleet.vehicle"].create({
             "model_id": model.id,
             "driver_id": user.partner_id.id,
-            "plan_to_change_car": False
+            "plan_to_change_vehicle": False
         })
 
         Log = self.env['fleet.vehicle.log.contract']

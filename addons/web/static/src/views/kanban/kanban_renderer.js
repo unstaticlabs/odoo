@@ -68,7 +68,6 @@ export class KanbanRenderer extends Component {
 
     static defaultProps = {
         scrollTop: () => {},
-        quickCreateState: { groupId: false },
         tooltipInfo: {},
     };
 
@@ -181,14 +180,6 @@ export class KanbanRenderer extends Component {
         useHotkey(
             "Enter",
             ({ target }) => {
-                if (target.closest(".o_kanban_selection_active") !== null) {
-                    return;
-                }
-
-                if (!target.classList.contains("o_kanban_record")) {
-                    return;
-                }
-
                 if (this.props.archInfo.canOpenRecords) {
                     target.click();
                     return;
@@ -200,17 +191,31 @@ export class KanbanRenderer extends Component {
                     firstLink.click();
                 }
             },
-            { area: () => this.rootRef.el }
+            {
+                area: () => this.rootRef.el,
+                isAvailable: (target) => {
+                    if (this.props.quickCreateState?.isOpen) {
+                        return false;
+                    }
+                    if (target.closest(".o_kanban_selection_active") !== null) {
+                        return false;
+                    }
+                    if (!target.classList.contains("o_kanban_record")) {
+                        return false;
+                    }
+                    return true;
+                },
+            }
         );
 
         useHotkey("space", ({ target }) => this.onSpaceKeyPress(target), {
             area: () => this.rootRef.el,
-            isAvailable: () => !this.props.quickCreateState.groupId,
+            isAvailable: () => !this.props.quickCreateState?.groupId,
         });
 
         useHotkey("shift+space", ({ target }) => this.onSpaceKeyPress(target, true), {
             area: () => this.rootRef.el,
-            isAvailable: () => !this.props.quickCreateState.groupId,
+            isAvailable: () => !this.props.quickCreateState?.groupId,
         });
 
         const arrowsOptions = { area: () => this.rootRef.el, allowRepeat: true };
@@ -347,7 +352,7 @@ export class KanbanRenderer extends Component {
             return true;
         }
         if (isGrouped) {
-            if (this.props.quickCreateState.groupId) {
+            if (this.props.quickCreateState?.isOpen) {
                 return false;
             }
             if (this.canCreateGroup() && !this.state.columnQuickCreateIsFolded) {
@@ -470,11 +475,6 @@ export class KanbanRenderer extends Component {
         } else {
             this.props.progressBarState?.updateCounts(group);
         }
-        this.props.quickCreateState.groupId = mode === "add" ? group.id : false;
-    }
-
-    cancelQuickCreate() {
-        this.props.quickCreateState.groupId = false;
     }
 
     async deleteGroup(group) {

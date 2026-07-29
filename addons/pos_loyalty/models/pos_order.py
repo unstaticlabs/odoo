@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import base64
 
 from collections import defaultdict
+from markupsafe import Markup
+
 from odoo import _, models
 from odoo.tools import float_compare
-import base64
 
 
 class PosOrder(models.Model):
@@ -87,7 +88,7 @@ class PosOrder(models.Model):
 
         self._check_existing_loyalty_cards(coupon_data)
         self._remove_duplicate_coupon_data(coupon_data)
-        self._process_existing_gift_cards(coupon_data)
+        updated_gift_cards = self._process_existing_gift_cards(coupon_data)
 
         # Map negative id to newly created ids.
         coupon_new_id_map = {k: k for k in coupon_data.keys() if k > 0}
@@ -106,6 +107,9 @@ class PosOrder(models.Model):
 
         # Pos users don't have the create permission
         new_coupons = self.env['loyalty.card'].with_context(action_no_send_mail=True).sudo().create(coupon_create_vals)
+
+        # Add log for updated and newly created gift cards
+        self._add_log_for_gift_cards(updated_gift_cards | new_coupons.filtered(lambda c: c.program_type == 'gift_card'))
 
         # Map the newly created coupons
         for old_id, new_id in zip(coupons_to_create.keys(), new_coupons):
@@ -138,20 +142,15 @@ class PosOrder(models.Model):
                 coupon_per_report[report.id].append(coupon.id)
 
         # Adding loyalty history lines
-        loyalty_points = []
-        for coupon_id, coupon_vals in coupon_data.items():
-            if 'points_earned' in coupon_vals and 'points_spent' in coupon_vals:
-                won = coupon_vals['points_earned']
-                spent = coupon_vals['points_spent']
-            else:
-                won = coupon_vals['points'] if coupon_vals['points'] > 0 else 0
-                spent = -coupon_vals['points'] if coupon_vals['points'] < 0 else 0
-            loyalty_points.append({
+        loyalty_points = [
+            {
                 'order_id': self.id,
                 'card_id': coupon_id,
-                'spent': spent,
-                'won': won,
-            })
+                'spent': coupon_vals.get('spent', 0),
+                'won': coupon_vals.get('won', 0),
+            }
+            for coupon_id, coupon_vals in coupon_data.items()
+        ]
         coupon_updates = [
             {
                 'id': coupon.id,
@@ -160,7 +159,6 @@ class PosOrder(models.Model):
             for coupon in all_coupons
         ]
         self.add_loyalty_history_lines(loyalty_points, coupon_updates)
-
         return {
             'coupon_updates': [{
                 'old_id': coupon_new_id_map[coupon.id],
@@ -178,6 +176,7 @@ class PosOrder(models.Model):
                 'program_name': coupon.program_id.name,
                 'expiration_date': coupon.expiration_date,
                 'code': coupon.code,
+                'barcode_base64': 'data:image/png;base64,' + base64.b64encode(self.env['ir.actions.report'].barcode('Code128', coupon.code, quiet=False)).decode('utf-8'),
             } for coupon in new_coupons if (
                 coupon.program_id.applies_on == 'future'
                 # Don't send the coupon code for the gift card and ewallet programs.
@@ -194,11 +193,7 @@ class PosOrder(models.Model):
             program_id = self.env['loyalty.program'].browse(coupon_vals['program_id'])
             if program_id.program_type == 'gift_card':
                 updated = False
-                gift_card = self.env['loyalty.card'].search([
-                    ('|'),
-                    ('code', '=', coupon_vals.get('code', '')),
-                    ('id', '=', coupon_vals.get('coupon_id', False))
-                ])
+                gift_card = self.env['loyalty.card'].search([('code', '=', coupon_vals.get('code', ''))])
                 if not gift_card.exists():
                     continue
 
@@ -248,6 +243,17 @@ class PosOrder(models.Model):
 
         return updated_gift_cards
 
+    def _add_log_for_gift_cards(self, gift_cards):
+        body = Markup(
+            """
+                <span class='o-mail-Message-trackingOld text-muted fw-bold'>{message}<span/>
+                <i class='o-mail-Message-trackingSeparator fa fa-long-arrow-right mx-1 text-600'/>
+                <span class='o-mail-Message-trackingNew text-info fw-bold'>{order_name}</span>
+            """
+        ).format(message=_('Loyalty coupon sold'), order_name=self._get_html_link())
+        for gift_card in gift_cards:
+            gift_card.message_post(body=body)
+
     def _check_existing_loyalty_cards(self, coupon_data):
         coupon_key_to_modify = []
         for coupon_id, coupon_vals in coupon_data.items():
@@ -275,11 +281,6 @@ class PosOrder(models.Model):
         for item in items_to_remove:
             coupon_data.pop(item)
 
-    def _get_fields_for_order_line(self):
-        fields = super(PosOrder, self)._get_fields_for_order_line()
-        fields.extend(['is_reward_line', 'reward_id', 'coupon_id', 'reward_identifier_code', 'points_cost'])
-        return fields
-
     def _add_mail_attachment(self, name, ticket, basic_receipt):
         attachment = super()._add_mail_attachment(name, ticket, basic_receipt)
         gift_card_programs = self.config_id._get_program_ids().filtered(lambda p: p.program_type == 'gift_card' and
@@ -297,7 +298,7 @@ class PosOrder(models.Model):
                         gift_card_pdf = self.env['ir.attachment'].create({
                             'name': filename,
                             'type': 'binary',
-                            'datas': base64.b64encode(report[0]),
+                            'raw': report[0],
                             'store_fname': filename,
                             'res_model': 'pos.order',
                             'res_id': self.ids[0],

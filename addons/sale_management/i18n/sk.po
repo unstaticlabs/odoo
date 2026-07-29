@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * sale_management
+# 	* sale_management
 #
 # Translators:
 # SAKodoo <sak@odoo.com>, 2022
@@ -8,28 +8,26 @@
 # Martin Trigaux, 2022
 # Jan Prokop, 2022
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2023
-# Tomáš Píšek <Tomas.Pisek@seznam.cz>, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 19:57+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Slovak <https://translate.odoo.com/projects/odoo-19/"
-"sale_management/sk/>\n"
+"POT-Creation-Date: 2025-12-16 18:35+0000\n"
+"PO-Revision-Date: 2022-09-22 05:54+0000\n"
+"Last-Translator: Rastislav Brencic <rastislav.brencic@azet.sk>, 2023\n"
+"Language-Team: Slovak (https://app.transifex.com/odoo/teams/41243/sk/)\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && "
-"n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n "
+">= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "<span invisible=\"not require_payment\">of</span>"
-msgstr "<span invisible=\"not require_payment\">z</span>"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__active
@@ -39,22 +37,22 @@ msgstr "Aktívne"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Add a note"
-msgstr "Pridať poznámku"
+msgstr "Pridaj poznámku"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Add a product"
-msgstr "Pridať produkt"
+msgstr "Pridaj produkt"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Add a section"
-msgstr "Pridať sekciu"
+msgstr "Pridaj sekciu"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
 msgid "Add one"
-msgstr "Pridať jeden"
+msgstr "Pridaj jeden"
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__kpi_all_sale_total
@@ -64,20 +62,26 @@ msgstr "Všetky predaje"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__allowed_uom_ids
 msgid "Allowed Uom"
-msgstr "Povolené MJ"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
 msgid "Archived"
-msgstr "Archivované"
+msgstr "Archivovaný"
+
+#. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_composition
+msgid "Collapse Composition"
+msgstr ""
+
+#. module: sale_management
+#: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__collapse_prices
+msgid "Collapse Prices"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_res_company
-msgid "Companies"
-msgstr "Spoločnosti"
-
-#. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
@@ -119,7 +123,7 @@ msgstr "Vytvorené"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_res_company__sale_order_template_id
 msgid "Default Sale Template"
-msgstr "Predvolená šablóna objednávky"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_res_config_settings__company_so_template_id
@@ -154,21 +158,28 @@ msgid "Display Type"
 msgstr "Zobrazovaný typ"
 
 #. module: sale_management
-#. odoo-python
-#: code:addons/sale_management/models/digest.py:0
-msgid "Do not have access, skip this data for user's digest email"
-msgstr "Nemáte prístup, vynechajte tieto dáta z mailu"
-
-#. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
 msgid "Forbidden product, quantity and UoM on non-accountable sale quote line"
 msgstr ""
-"Zakázaný produkt, množstvo a merná jednotka v neúčtovateľnom riadku ponuky"
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__sequence
 msgid "Gives the sequence order when displaying a list of sale quote lines."
-msgstr "Určuje poradie riadkov pri zobrazení zoznamu riadkov ponuky."
+msgstr ""
+"Dáva sekvenčné poradie pri zobrazovaní zoznamu riadkov cenovej ponuky "
+"predaja."
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Composition Section"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Hidden Prices Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__id
@@ -187,9 +198,6 @@ msgid ""
 "If set, SO with this template will invoice in this journal; otherwise the "
 "sales journal with the lowest sequence is used."
 msgstr ""
-"Ak je táto možnosť nastavená, objednávka s touto šablónou bude fakturovať do "
-"tohto denníka; v opačnom prípade sa použije denník predaja s najnižším "
-"poradovým číslom."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__active
@@ -203,7 +211,7 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__journal_id
 msgid "Invoicing Journal"
-msgstr "Fakturačný denník"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_digest_digest__kpi_all_sale_total_value
@@ -243,7 +251,7 @@ msgstr "Poznámka"
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__number_of_days
 msgid "Number of days for the validity date computation of the quotation"
-msgstr "Počet dní na výpočet platnosti cenovej ponuky"
+msgstr "Počet dní pre platnosť dátumu výpočtu cenovej ponuky"
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__require_payment
@@ -259,29 +267,29 @@ msgstr "Podpis online"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_line__is_optional
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__is_optional
 msgid "Optional Line"
-msgstr "Voliteľný riadok"
+msgstr ""
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
-msgid "Optional Products Section"
-msgstr "Sekcia voliteľných produktov"
+msgid "Optional Section"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__parent_id
 msgid "Parent Section Line"
-msgstr "Riadok nadriadenej sekcie"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__prepayment_percent
 msgid "Prepayment percentage"
-msgstr "Percento zálohy"
+msgstr ""
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid "Prepayment percentage must be a valid percentage."
-msgstr "Percento zálohy musí byť platné číslo."
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__product_id
@@ -296,7 +304,7 @@ msgstr "Množstvo"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__number_of_days
 msgid "Quotation Duration"
-msgstr "Platnosť cenovej ponuky"
+msgstr "Trvanie cenovej ponuky"
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_template
@@ -305,7 +313,7 @@ msgstr "Platnosť cenovej ponuky"
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_tree
 msgid "Quotation Template"
-msgstr "Šablóna ponuky"
+msgstr "Šablóna cenovej ponuky"
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_template_line
@@ -320,7 +328,7 @@ msgstr "Riadky šablóny cenovej ponuky"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__sale_order_template_id
 msgid "Quotation Template Reference"
-msgstr "Referencia šablóny cenovej ponuky"
+msgstr "Referencia šáblóny cenovej ponuky"
 
 #. module: sale_management
 #: model:ir.actions.act_window,name:sale_management.sale_order_template_action
@@ -329,17 +337,23 @@ msgstr "Referencia šablóny cenovej ponuky"
 #: model:res.groups,name:sale_management.group_sale_order_template
 #: model_terms:ir.ui.view,arch_db:sale_management.res_config_settings_view_form
 msgid "Quotation Templates"
-msgstr "Šablóny cenových ponúk"
+msgstr "Šablóny cenovej ponuky"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Validity"
-msgstr "Platnosť ponuky"
+msgstr ""
+
+#. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
+msgid "Regular Section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_optional_product_quantity
 msgid "Remove one"
-msgstr "Odstrániť jeden"
+msgstr "Odstráň jednu"
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__require_signature
@@ -367,17 +381,17 @@ msgstr "Predaj"
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order
 msgid "Sales Order"
-msgstr "Predajná objednávka"
+msgstr "Objednávka "
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Riadok predajnej objednávky"
+msgstr "Položka objednávok"
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
 msgid "Search Quotation Template"
-msgstr "Hľadať šablónu cenovej ponuky"
+msgstr "Hľadaj šablónu cenovej ponuky"
 
 #. module: sale_management
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_section
@@ -392,9 +406,6 @@ msgid ""
 "and populate your orders with multiple quantities of each variant. This "
 "feature also exists in the Purchase application."
 msgstr ""
-"Predávate ten istý produkt v rôznych veľkostiach alebo farbách? Vyskúšajte "
-"produktovú mriežku a vyplňte svoje objednávky viacerými kusmi každej "
-"varianty. Táto funkcia je k dispozícii aj v aplikácii Nákup."
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__sequence
@@ -407,7 +418,7 @@ msgstr "Postupnosť"
 #: code:addons/sale_management/static/src/fields/sale_order_line_field/sale_order_line_field.xml:0
 #: code:addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.xml:0
 msgid "Set Optional"
-msgstr "Nastaviť voliteľné"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale1_management_0
@@ -416,20 +427,18 @@ msgid ""
 "to help sales configure a product with different options: colors, size, "
 "capacity, etc. Make sale orders encoding easier and error-proof."
 msgstr ""
-"Máte problémy so zložitým produktovým katalógom? Vyskúšajte konfigurátor "
-"produktov, ktorý pomôže predajcom zostaviť produkt s rôznymi možnosťami: "
-"farby, veľkosť, kapacita atď. Uľahčite zadávanie objednávok a zabráňte "
-"chybám."
 
 #. module: sale_management
+#. odoo-python
+#: code:addons/sale_management/models/sale_order_template.py:0
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_subsection
 msgid "Subsection"
-msgstr "Podsekcia"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Terms & Conditions"
-msgstr "Obchodné podmienky"
+msgstr "Pojmy & podmienky"
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__note
@@ -442,15 +451,14 @@ msgid ""
 "The Administrator can set default Terms & Conditions in Sales Settings. "
 "Terms set here will show up instead if you select this quotation template."
 msgstr ""
-"Správca môže v nastaveniach predaja nastaviť predvolené obchodné podmienky. "
-"Ak zvolíte túto šablónu ponuky, zobrazia sa práve tieto podmienky."
+"Administrátor môže nastaviť predvolené pojmy & podmienky v nastavení "
+"predaja. Pojmy nastavené tu budú zobrazené namiesto predvolených, ak "
+"vyberiete túto šablónu cenovej ponuky."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__prepayment_percent
 msgid "The percentage of the amount needed to be paid to confirm quotations."
 msgstr ""
-"Percentuálny podiel sumy, ktorú je potrebné uhradiť na potvrdenie cenovej "
-"ponuky."
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__mail_template_id
@@ -465,25 +473,25 @@ msgstr ""
 #: model:digest.tip,name:sale_management.digest_tip_sale1_management_0
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale1_management_0
 msgid "Tip: Odoo supports configurable products"
-msgstr "Tip: Odoo podporuje konfigurovateľné produkty"
+msgstr ""
 
 #. module: sale_management
 #: model:digest.tip,name:sale_management.digest_tip_sale_management_1
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale_management_1
 msgid "Tip: Sell or buy products in bulk with matrixes"
-msgstr "Tip: Predávajte alebo nakupujte produkty vo veľkom pomocou matíc"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__product_uom_id
 msgid "Unit"
-msgstr "Jednotka"
+msgstr ""
 
 #. module: sale_management
 #. odoo-javascript
 #: code:addons/sale_management/static/src/fields/sale_order_line_field/sale_order_line_field.xml:0
 #: code:addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.xml:0
 msgid "Unset Optional"
-msgstr "Zrušiť nastavenie voliteľné"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.actions.act_window,help:sale_management.sale_order_template_action
@@ -493,17 +501,16 @@ msgid ""
 "online.\n"
 "                Use cross-selling and discounts to push and boost your sales."
 msgstr ""
-"Pomocou šablón vytvoríte za pár minút prehľadné a profesionálne cenové "
-"ponuky.\n"
-"                Tieto ponuky môžete poslať e-mailom a nechať svojich "
-"zákazníkov podpísať ich online.\n"
-"                Využite krížový predaj a zľavy na podporu a zvýšenie svojho "
-"predaja."
+"Vytvárajte pomocou šablón upravené, profesionálne cenové ponuky v priebehu "
+"niekoľkých minút.\n"
+"Odošlite tieto ponuky emailom a nechajte vašich zákazníkov podpísať ich "
+"online.\n"
+"Použite krížový predaj a zľavy, aby sa zvýšili vaše predaje."
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Visible to all"
-msgstr "Viditeľné pre všetkých"
+msgstr ""
 
 #. module: sale_management
 #. odoo-python
@@ -512,40 +519,30 @@ msgid ""
 "You cannot change the type of a sale quote line. Instead you should delete "
 "the current line and create a new line of the proper type."
 msgstr ""
-"Typ riadku ponuky nie je možné zmeniť. Namiesto toho by ste mali aktuálny "
-"riadok vymazať a vytvoriť nový riadok správneho typu."
+"Nemôžete zmeniť typ položky ponuky. Namiesto toho zmažte položku a vytvorte "
+"novú so správnym typom."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from company (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from company (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
-"Vaša šablóna patrí spoločnosti %(template_company)s, ale obsahuje produkty "
-"spoločnosti %(product_company)s, ktoré nie sú pre spoločnosť %"
-"(template_company)s dostupné.\n"
-"Zmeňte prosím spoločnosť vo vašej šablóne alebo odstráňte produkty iných "
-"spoločností."
 
 #. module: sale_management
 #. odoo-python
 #: code:addons/sale_management/models/sale_order_template.py:0
 msgid ""
 "Your template belongs to company %(template_company)s but contains products "
-"from other companies (%(product_company)s) that are not accessible to %"
-"(template_company)s.\n"
+"from other companies (%(product_company)s) that are not accessible to "
+"%(template_company)s.\n"
 "Please change the company of your template or remove the products from other "
 "companies."
 msgstr ""
-"Vaša šablóna patrí spoločnosti %(template_company)s, obsahuje však produkty "
-"iných spoločností (%(product_company)s), ku ktorým spoločnosť %"
-"(template_company)s nemá prístup.\n"
-"Zmeňte prosím spoločnosť vo vašej šablóne alebo odstráňte produkty iných "
-"spoločností."
 
 #. module: sale_management
 #. odoo-python
@@ -555,9 +552,6 @@ msgid ""
 "between companies. Please restrict the template access, or remove those "
 "products."
 msgstr ""
-"Ak je vaša šablóna zdieľaná medzi viacerými spoločnosťami, nesmie obsahovať "
-"produkty konkrétnych spoločností. Obmedzte prosím prístup k šablóne alebo "
-"tieto produkty odstráňte."
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -567,118 +561,4 @@ msgstr "dni"
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "e.g. Standard Consultancy Package"
-msgstr "napr. Štandardný konzultačný balík"
-
-#~ msgid "Your template cannot contain products from multiple companies."
-#~ msgstr "Vaša šablóna nemôže obsahovať produkty od viacerých spoločností."
-
-#~ msgid "4 Person Desk"
-#~ msgstr "Stôl pre štyroch"
-
-#~ msgid "<span>Options</span>"
-#~ msgstr "<span>Možnosti</span>"
-
-#~ msgid "Add to cart"
-#~ msgstr "Pridať do košíka"
-
-#~ msgid "Add to order lines"
-#~ msgstr "Pridať riadok objednávky"
-
-#~ msgid "Category"
-#~ msgstr "Kategória"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Ku konverzii medzi mernými jednotkami môže dôjsť len v prípade, že patria "
-#~ "do rovnakej kategórie. Konverzia bude spravená na základe pomerov."
-
-#~ msgid "Disc.%"
-#~ msgstr "Disc.%"
-
-#~ msgid "Discount (%)"
-#~ msgstr "Zľava (%)"
-
-#~ msgid ""
-#~ "Gives the sequence order when displaying a list of optional products."
-#~ msgstr ""
-#~ "Dáva sekvenčné poradie pri zobrazovaní zoznamu voliteľných produktov."
-
-#~ msgid "Group By"
-#~ msgstr "Zoskupiť podľa"
-
-#~ msgid "Line"
-#~ msgstr "Riadok"
-
-#~ msgid "Office Chair"
-#~ msgstr "Kancelárske kreslo"
-
-#~ msgid "Optional Products"
-#~ msgstr "Voliteľné produkty"
-
-#~ msgid "Optional Products Lines"
-#~ msgstr "Voliteľné produktové riadky"
-
-#~ msgid "Options"
-#~ msgstr "Možnosti"
-
-#~ msgid "Present on Quotation"
-#~ msgstr "Prezentácia cenovej ponuky"
-
-#~ msgid "Quantity:"
-#~ msgstr "Množstvo:"
-
-#~ msgid "Quotation Builder"
-#~ msgstr "Nástroj na tvorbu cenových ponúk"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Možnosti šablóny cenovej ponuky"
-
-#~ msgid "Quotation expires after"
-#~ msgstr "Platnosť cenovej ponuky vyprší po"
-
-#~ msgid "Remove"
-#~ msgstr "Odstrániť"
-
-#~ msgid "Sale Options"
-#~ msgstr "Možnosti predaja"
-
-#~ msgid "Sales Order Reference"
-#~ msgstr "Referencia objednávky predaja"
-
-#~ msgid "Sales Quotation Template Lines"
-#~ msgstr "Riadky šablóny cenovej ponuky predaja"
-
-#~ msgid ""
-#~ "This field will be checked if the option line's product is already "
-#~ "present in the quotation."
-#~ msgstr ""
-#~ "Toto pole sa skontroluje, ak je možnosť produktových riadkov už v cenovej "
-#~ "ponuke."
-
-#~ msgid "Unit Price"
-#~ msgstr "Jednotková cena"
-
-#~ msgid "Unit Price:"
-#~ msgstr "Jednotková cena:"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Merná jednotka"
-
-#~ msgid "UoM"
-#~ msgstr "Merná jednotka"
-
-#~ msgid "You cannot add options to a confirmed order."
-#~ msgstr "Nemôžete pridať možnosti do potvrdenej objednávky."
-
-#~ msgid ""
-#~ "Your quotation contains products from company %(product_company)s whereas "
-#~ "your quotation belongs to company %(quote_company)s. \n"
-#~ " Please change the company of your quotation or remove the products from "
-#~ "other companies (%(bad_products)s)."
-#~ msgstr ""
-#~ "Vaša cenová ponuka obsahuje produkty od spoločnosti %(product_company)s "
-#~ "zatiaľ čo vaša cenová ponuka patrí spoločnosti %(quote_company)s. \n"
-#~ " Zmeňte prosím spoločnosť svojej cenovej ponuky alebo odstráňte produkty "
-#~ "od iných spoločností (%(bad_products)s)."
+msgstr ""

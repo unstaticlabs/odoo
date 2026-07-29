@@ -1,5 +1,4 @@
 import * as Utils from "@pos_self_order/../tests/tours/utils/common";
-import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 
 export function clickProduct(productName) {
     return {
@@ -85,20 +84,17 @@ export function clickDiscard() {
 
 export function setupAttribute(attributes, addToCart = true) {
     const steps = [];
-    if (addToCart) {
-        steps.push({
-            content: `Click on 'Add to cart' button`,
-            trigger: `.btn.btn-primary`,
-            run: "click",
-        });
-    }
 
     for (const attr of attributes) {
-        steps.unshift({
+        steps.push({
             content: `Select value ${attr.value} for attribute ${attr.name}`,
             trigger: `h2:contains("${attr.name}") + div.row button:contains("${attr.value}")`,
             run: "click",
         });
+    }
+
+    if (addToCart) {
+        steps.push(Utils.clickBtn("Add to cart"));
     }
 
     return steps;
@@ -176,9 +172,12 @@ export function setupCombo(products, addToCart = true) {
         steps.push(clickComboProduct(product.product));
 
         if (product.attributes.length > 0) {
-            Utils.checkMissingRequiredsExists();
-            steps.push(...setupAttribute(product.attributes));
-            negateStep(Utils.checkMissingRequiredsExists());
+            steps.push(...setupAttribute(product.attributes, false));
+            steps.push(Utils.clickBtn("Next"));
+        }
+
+        if (product.extraSteps?.length) {
+            steps.push(...product.extraSteps);
         }
     }
 
@@ -193,10 +192,23 @@ export function setupCombo(products, addToCart = true) {
     return steps;
 }
 
-export function checkProductOutOfStock(productName) {
+export function isProductDisplayed(productName, isOutOfStock = false) {
+    let trigger = `.o_self_product_box:has(span:contains('${productName}'))`;
+
+    if (isOutOfStock) {
+        trigger += `:has(div:contains('Out of stock'))`;
+    }
+
     return {
-        content: `Check if '${productName}' is marked as out of stock`,
-        trigger: `.o_self_product_box:has(span:contains('${productName}')):has(div:contains('Out of stock'))`,
+        content: `Check if product '${productName}' is displayed`,
+        trigger,
+    };
+}
+
+export function checkNthProduct(n, name) {
+    return {
+        content: `Product ${n} should be ${name}`,
+        trigger: `.product_list .o_self_product_box:nth-child(${n}) span:contains('${name}')`,
     };
 }
 

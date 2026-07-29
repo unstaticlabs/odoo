@@ -33,6 +33,7 @@ beforeEach(() => {
         decimalPoint: ".",
         thousandsSep: ",",
         grouping: [3, 0],
+        locale: "en-US",
     });
 });
 
@@ -50,27 +51,29 @@ test("formatFloatFactor", () => {
 });
 
 test("formatFloatTime", () => {
-    expect(formatFloatTime(2)).toBe("02:00");
-    expect(formatFloatTime(3.5)).toBe("03:30");
-    expect(formatFloatTime(0.25)).toBe("00:15");
-    expect(formatFloatTime(0.58)).toBe("00:35");
-    expect(formatFloatTime(2 / 60, { displaySeconds: true })).toBe("00:02:00");
-    expect(formatFloatTime(2 / 60 + 1 / 3600, { displaySeconds: true })).toBe("00:02:01");
-    expect(formatFloatTime(2 / 60 + 2 / 3600, { displaySeconds: true })).toBe("00:02:02");
-    expect(formatFloatTime(2 / 60 + 3 / 3600, { displaySeconds: true })).toBe("00:02:03");
-    expect(formatFloatTime(0.25, { displaySeconds: true })).toBe("00:15:00");
-    expect(formatFloatTime(0.25 + 15 / 3600, { displaySeconds: true })).toBe("00:15:15");
-    expect(formatFloatTime(0.25 + 45 / 3600, { displaySeconds: true })).toBe("00:15:45");
-    expect(formatFloatTime(56 / 3600, { displaySeconds: true })).toBe("00:00:56");
-    expect(formatFloatTime(-0.5)).toBe("-00:30");
+    expect(formatFloatTime(2)).toBe("2h");
+    expect(formatFloatTime(3.5)).toBe("3h 30m");
+    expect(formatFloatTime(0.25)).toBe("0h 15m");
+    expect(formatFloatTime(0.58)).toBe("0h 35m");
+    expect(formatFloatTime(2 / 60, { showSeconds: true })).toBe("0h 2m 0s");
+    expect(formatFloatTime(2 / 60 + 1 / 3600, { showSeconds: true })).toBe("0h 2m 1s");
+    expect(formatFloatTime(2 / 60 + 2 / 3600, { showSeconds: true })).toBe("0h 2m 2s");
+    expect(formatFloatTime(2 / 60 + 3 / 3600, { showSeconds: true })).toBe("0h 2m 3s");
+    expect(formatFloatTime(0.25, { showSeconds: true })).toBe("0h 15m 0s");
+    expect(formatFloatTime(0.25 + 15 / 3600, { showSeconds: true })).toBe("0h 15m 15s");
+    expect(formatFloatTime(0.25 + 45 / 3600, { showSeconds: true })).toBe("0h 15m 45s");
+    expect(formatFloatTime(56 / 3600, { showSeconds: true })).toBe("0h 0m 56s");
+    expect(formatFloatTime(-0.5)).toBe("-0h 30m");
+    expect(formatFloatTime(1799.999, { unit: "minutes" })).toBe("30h 0m");
+    expect(formatFloatTime(1799.999, { unit: "minutes", showSeconds: true })).toBe("30h 0m 0s");
 
-    const options = { noLeadingZeroHour: true };
+    const options = { numeric: true };
     expect(formatFloatTime(2, options)).toBe("2:00");
     expect(formatFloatTime(3.5, options)).toBe("3:30");
-    expect(formatFloatTime(3.5, { ...options, displaySeconds: true })).toBe("3:30:00");
-    expect(formatFloatTime(3.5 + 15 / 3600, { ...options, displaySeconds: true })).toBe("3:30:15");
-    expect(formatFloatTime(3.5 + 45 / 3600, { ...options, displaySeconds: true })).toBe("3:30:45");
-    expect(formatFloatTime(56 / 3600, { ...options, displaySeconds: true })).toBe("0:00:56");
+    expect(formatFloatTime(3.5, { ...options, showSeconds: true })).toBe("3:30:00");
+    expect(formatFloatTime(3.5 + 15 / 3600, { ...options, showSeconds: true })).toBe("3:30:15");
+    expect(formatFloatTime(3.5 + 45 / 3600, { ...options, showSeconds: true })).toBe("3:30:45");
+    expect(formatFloatTime(56 / 3600, { ...options, showSeconds: true })).toBe("0:00:56");
     expect(formatFloatTime(-0.5, options)).toBe("-0:30");
 });
 
@@ -232,4 +235,28 @@ test("formatDateTime", () => {
     expect(formatDateTime(DateTime.fromObject({ day: 22, month: 1, hour: 10, minute: 30 }))).toBe(
         "Jan 22, 10:30 AM"
     );
+});
+
+test("formatFloatTime special cases", () => {
+    const options = { showSeconds: true };
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("1h 15m 45s");
+
+    localization.locale = "fr-FR";
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("1h 15min 45s");
+
+    localization.locale = "zh-CN";
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("1小时 15分钟 45秒");
+    expect(formatFloatTime(2)).toBe("2小时");
+
+    localization.locale = "ar-SY";
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("١س ١٥د ٤٥ث");
+    expect(formatFloatTime(1.25 + 45 / 3600, { ...options, numeric: true })).toBe(
+        "1:15:45"
+    );
+
+    localization.locale = "th-TH";
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("1ชม. 15นาที 45วิ");
+
+    localization.locale = "hi-IN";
+    expect(formatFloatTime(1.25 + 45 / 3600, options)).toBe("1घं 15मि 45से");
 });

@@ -281,6 +281,7 @@ PricingReference = {
     'cac:AlternativeConditionPrice': {
         'cbc:PriceAmount': {},
         'cbc:PriceTypeCode': {},
+        'cbc:PriceType': {},
     }
 }
 

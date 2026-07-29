@@ -4,6 +4,7 @@ import * as Numpad from "@point_of_sale/../tests/generic_helpers/numpad_util";
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as PartnerList from "@point_of_sale/../tests/pos/tours/utils/partner_list_util";
 import * as NumberPopup from "@point_of_sale/../tests/generic_helpers/number_popup_util";
+import { negate } from "@point_of_sale/../tests/generic_helpers/utils";
 
 /**
  * Clicks on the payment method and then performs checks if necessary.
@@ -65,6 +66,15 @@ export function clickPaymentlineDelButton(name, amount, mobile = false) {
         },
     ];
 }
+export function clickSendButton() {
+    return [
+        {
+            content: "Send the payment request using the payment terminal.",
+            trigger: ".paymentlines .paymentline .send_payment_request:contains('Send')",
+            run: "click",
+        },
+    ];
+}
 export function clickCancelButton() {
     return [
         {
@@ -106,14 +116,18 @@ export function clickPaymentline(name, amount) {
         },
     ];
 }
-export function clickInvoiceButton() {
-    return [
+export function clickInvoiceButton(isHighlighted = true) {
+    const steps = [
         {
             content: "click invoice button",
             trigger: ".payment-buttons .js_invoice",
             run: "click",
         },
     ];
+    if (isHighlighted) {
+        steps.push(...isInvoiceButtonChecked());
+    }
+    return steps;
 }
 export function clickValidate() {
     return [
@@ -253,23 +267,20 @@ export function changeIs(amount) {
         },
     ];
 }
-export function isInvoiceOptionSelected() {
-    return [
-        {
-            content: "Invoice option is selected",
-            trigger: ".payment-buttons .js_invoice.highlight",
-        },
-    ];
-}
 /**
  * Check if the remaining is the provided amount.
  * @param {String} amount
  */
 export function remainingIs(amount) {
+    const step = `.payment-status-amount .amount:contains("${amount}")`;
+    // If amount is 0 we do NOT show the payment status on the PaymentScreen
+    if (!parseFloat(amount)) {
+        return [{ trigger: negate(step) }];
+    }
     return [
         {
             content: `remaining amount is ${amount}`,
-            trigger: `.payment-status-amount .amount:contains("${amount}")`,
+            trigger: step,
         },
     ];
 }
@@ -364,6 +375,31 @@ export function clickShipLaterButton() {
     ];
 }
 
+export function setShipLaterDate(date) {
+    return [
+        {
+            content: "click ship later button",
+            trigger: ".button:contains('Ship Later')",
+            run: "click",
+        },
+        {
+            content: "pick a date",
+            trigger: ".modal-body .o_datetime_input",
+            run: () => {
+                const input = document.querySelector(".modal-body .o_datetime_input");
+                input.value = date;
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+            },
+        },
+        {
+            content: "click confirm button",
+            trigger: ".btn:contains('Confirm')",
+            run: "click",
+        },
+    ];
+}
+
 export function clickPartnerButton() {
     return [
         {
@@ -373,13 +409,13 @@ export function clickPartnerButton() {
         },
         {
             content: "partner screen is shown",
-            trigger: PartnerList.partnerListTrigger(),
+            trigger: `${PartnerList.clickPartner().trigger}`,
         },
     ];
 }
 
-export function clickCustomer(name) {
-    return [...PartnerList.clickPartner(name)];
+export function clickCustomer(name, pressEnter = false) {
+    return [...PartnerList.searchCustomerValue(name, pressEnter), PartnerList.clickPartner(name)];
 }
 
 export function shippingLaterHighlighted() {
@@ -406,6 +442,18 @@ export function syncCurrentOrder() {
             },
         },
     ];
+}
+
+/**
+ * Tell if the tip container is shown.
+ */
+export function tipContainerIsShown(boolean = true) {
+    return {
+        content: `tip container is ${boolean ? "shown" : "not shown"}`,
+        trigger: boolean
+            ? ".payment-screen .tip-container"
+            : negate(".tip-container", ".payment-screen"),
+    };
 }
 
 export function isInvoiceButtonUnchecked() {

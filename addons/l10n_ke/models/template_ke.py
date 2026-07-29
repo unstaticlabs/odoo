@@ -36,7 +36,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'tax_exigibility': 'True',
                 'expense_account_id': 'ke5001',
                 'income_account_id': 'ke4001',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'ke1001',
             },
         }

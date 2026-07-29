@@ -6,15 +6,16 @@
 # Martin Trigaux, 2018
 # Kostas Goutoudis <goutoudis@gmail.com>, 2018
 # George Tarasidis <george_tarasidis@yahoo.com>, 2018
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-15 17:36+0000\n"
-"PO-Revision-Date: 2026-06-29 20:34+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Greek <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-22 17:41+0000\n"
+"PO-Revision-Date: 2026-06-13 13:21+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Greek <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_event_sale/el/>\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
@@ -54,14 +55,6 @@ msgid ""
 msgstr ""
 
 #. module: website_event_sale
-#. odoo-python
-#: code:addons/website_event_sale/models/product_pricelist.py:0
-msgid ""
-"A pricelist item with a positive min. quantity will not be applied to the "
-"event tickets products."
-msgstr ""
-
-#. module: website_event_sale
 #: model_terms:ir.ui.view,arch_db:website_event_sale.registration_attendee_details
 msgid "Confirm Registration"
 msgstr "Επιβεβαίωση Καταχώρισης"
@@ -74,8 +67,9 @@ msgstr "Επιβεβαίωση Καταχώρισης"
 #: model:ir.model.fields,field_description:website_event_sale.field_product_template__display_name
 #: model:ir.model.fields,field_description:website_event_sale.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_event_sale.field_sale_order_line__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Εμφάνιση Ονόματος"
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_event_sale_report
@@ -89,8 +83,9 @@ msgstr ""
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_event_event_ticket
+#, fuzzy
 msgid "Event Ticket"
-msgstr ""
+msgstr "Εισιτήριο Εκδήλωσης"
 
 #. module: website_event_sale
 #: model:ir.model.fields,field_description:website_event_sale.field_product_product__event_ticket_ids
@@ -125,8 +120,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_sale.field_product_template__id
 #: model:ir.model.fields,field_description:website_event_sale.field_sale_order__id
 #: model:ir.model.fields,field_description:website_event_sale.field_sale_order_line__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "Κωδικός"
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_product_pricelist_item
@@ -135,8 +131,9 @@ msgstr ""
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_product_template
+#, fuzzy
 msgid "Product"
-msgstr ""
+msgstr "Είδος"
 
 #. module: website_event_sale
 #: model:ir.model,name:website_event_sale.model_product_product
@@ -207,6 +204,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_sale.modal_ticket_registration
 msgid "to"
 msgstr "σε"
-
-#~ msgid "Website"
-#~ msgstr "Ιστότοπος"

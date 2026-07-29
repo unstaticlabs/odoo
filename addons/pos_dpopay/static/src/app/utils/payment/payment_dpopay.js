@@ -1,4 +1,4 @@
-import { register_payment_method } from "@point_of_sale/app/services/pos_store";
+import { registry } from "@web/core/registry";
 import { handleRPCError, offlineErrorHandler } from "@point_of_sale/app/utils/error_handlers";
 import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_interface";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -329,4 +329,4 @@ export class PaymentDPOPay extends PaymentInterface {
     }
 }
 
-register_payment_method("dpopay", PaymentDPOPay);
+registry.category("electronic_payment_interfaces").add("dpopay", PaymentDPOPay);

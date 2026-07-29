@@ -5,24 +5,24 @@
 # Translators:
 # Martin Trigaux, 2022
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-06-29 19:15+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "mrp_account/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: mrp_account
 #. odoo-python
@@ -97,11 +97,6 @@ msgid "Account Move Line"
 msgstr "勘定科目仕訳明細"
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr "WIP勘定の仕訳時に作成される移動仕訳明細"
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "分析勘定"
@@ -150,8 +145,8 @@ msgstr "カテゴリー"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
-msgstr ""
+msgid "Company"
+msgstr "会社"
 
 #. module: mrp_account
 #: model:ir.actions.server,name:mrp_account.action_compute_price_bom_product
@@ -218,11 +213,6 @@ msgstr "日付"
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__debit
 msgid "Debit"
 msgstr "借方"
-
-#. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "破棄"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
@@ -302,6 +292,11 @@ msgstr "仕訳"
 #: model:ir.model,name:mrp_account.model_account_move_line
 msgid "Journal Item"
 msgstr "仕訳明細"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr "仕掛品(WIP)仕訳を記帳する際に作成される仕訳項目"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
@@ -440,7 +435,7 @@ msgstr "逆仕訳日は、仕訳日以降の日付である必要があります
 #. odoo-python
 #: code:addons/mrp_account/wizard/mrp_wip_accounting.py:0
 msgid "Reversal of: %s"
-msgstr "次の逆仕訳: %s"
+msgstr "%sの逆仕訳"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_production__show_valuation
@@ -463,7 +458,8 @@ msgstr "在庫評価"
 msgid ""
 "The MOs that this WIP entry was based on. Expected to be set at time of WIP "
 "entry creation."
-msgstr "このWIP仕訳の元になっている製造オーダ。仕訳作成時に設定される予定です。"
+msgstr ""
+"このWIP仕訳の元になっている製造オーダ。仕訳作成時に設定される予定です。"
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_workcenter__expense_account_id
@@ -485,8 +481,8 @@ msgid ""
 msgstr ""
 "この勘定は、製造オーダの構成品と最終プロダクトの両方の評価対象として使用され"
 "ます。\n"
-"　　　　作業区/従業員原価がある場合、この値は生産が完了した後も勘定に残ります"
-"。"
+"　　　　作業区/従業員原価がある場合、この値は生産が完了した後も勘定に残りま"
+"す。"
 
 #. module: mrp_account
 #: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
@@ -559,8 +555,8 @@ msgstr "仕掛品移動"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
-msgstr "製造のWIP勘定の仕訳を投稿するウィザード"
+msgid "Wizard to post Manufacturing WIP journal entry"
+msgstr "製造WIP仕訳帳を記帳するウィザード"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -620,15 +616,3 @@ msgstr "[WC] %s"
 
 #~ msgid "2023-08-15"
 #~ msgstr "2023-08-15"
-
-#~ msgid "Bill of Material"
-#~ msgstr "部品表"
-
-#~ msgid "Production Order"
-#~ msgstr "製造オーダ"
-
-#~ msgid "Stock Rule"
-#~ msgstr "在庫規則"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "作業区用途"

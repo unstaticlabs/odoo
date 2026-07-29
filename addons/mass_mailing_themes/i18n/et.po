@@ -10,14 +10,14 @@
 # Leaanika Randmets, 2022
 # Patrick-Jordan Kiudorv, 2023
 # Anna, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:40+0000\n"
-"PO-Revision-Date: 2026-06-29 10:33+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-11-08 22:03+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "mass_mailing_themes/et/>\n"
 "Language: et\n"
@@ -25,15 +25,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "&amp;nbsp; &amp;nbsp;"
-msgstr "&amp;nbsp; &amp;nbsp;"
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "&amp;nbsp;&amp;nbsp;"
 msgstr "&amp;nbsp;&amp;nbsp;"
@@ -774,10 +768,7 @@ msgstr ""
 "presentatsiooni ja demoni."
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Facebook"
 msgstr "Facebook"
 
@@ -966,10 +957,7 @@ msgid "Infographic: Our Company Throughout The Generations"
 msgstr ""
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "Instagram"
 msgstr "Instagram"
 
@@ -1035,12 +1023,6 @@ msgstr "Link 3"
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_roadshow2_template
 msgid "Link 4"
 msgstr "Link 4"
-
-#. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.email_designer_themes
@@ -1354,11 +1336,6 @@ msgstr ""
 "tunnete?"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-msgid "TikTok"
-msgstr "TikTok"
-
-#. module: mass_mailing_themes
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid ""
 "To fuel my motivation, I had to pick someone to fight against. In business, "
@@ -1572,10 +1549,7 @@ msgid "Woman having breakfast in bed"
 msgstr "Naisterahvas voodis hommikust söömas"
 
 #. module: mass_mailing_themes
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_blogging_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_coffeebreak_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
-#: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_training_template
 msgid "X"
 msgstr ""
 
@@ -1700,77 +1674,3 @@ msgstr "muutsime oma ärimudelit"
 #: model_terms:ir.ui.view,arch_db:mass_mailing_themes.theme_newsletter_template
 msgid "with 1549% growth of the turnover between 2007 and 2011)."
 msgstr ""
-
-#~ msgid ""
-#~ "<font style=\"font-size: 62px; background-color: rgb(255, 255, 255);"
-#~ "\">&amp;nbsp;10% OFF&amp;nbsp;</font>\n"
-#~ "                    <br/>\n"
-#~ "                        <font style=\"font-size: 62px; background-color: "
-#~ "rgb(255, 255, 255);\">&amp;nbsp;SALES&amp;nbsp;</font>"
-#~ msgstr ""
-#~ "1 &amp;nsbp;10% ALLA&amp;nbsp;1\n"
-#~ "2\n"
-#~ "3&amp;nbsp;MÜÜK&amp;nbsp;3"
-
-#~ msgid "$100 OFF"
-#~ msgstr "$100 ALLA"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-2x fa-ticket\" style=\"color: rgb(36, 37, 48) !important;"
-#~ "\"/>​"
-#~ msgstr "1"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-facebook\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr "1"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-linkedin\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr "1"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-twitter\" style=\"color: rgb(54, 166, 210) !"
-#~ "important; font-size: 18px;\"/>​"
-#~ msgstr "1"
-
-#~ msgid "<span style=\"font-weight: bolder;\">VIP10</span>"
-#~ msgstr "1 VIP10 1"
-
-#~ msgid ""
-#~ "An interactive, fun\n"
-#~ "                                    <br/>and comprehensive experience"
-#~ msgstr ""
-#~ "Interaktiivne, põnev\n"
-#~ "1 ja kõikehõlmav kogemus"
-
-#~ msgid ""
-#~ "Get 6-months' worth of knowledge\n"
-#~ "                                    <br/>in just 2 days"
-#~ msgstr ""
-#~ "Saa 6 kuu jagu teadmisi\n"
-#~ "1 ainult 2 päeva jooksul"
-
-#~ msgid ""
-#~ "Join the community to see our latest news, events, discounts and much "
-#~ "more!"
-#~ msgstr ""
-#~ "Liitu kogukonnaga, et näha värskemad uudiseid, üritusi, allahindlusi ja "
-#~ "palju muud!"
-
-#~ msgid ""
-#~ "Meet (other) awesome members\n"
-#~ "                                    <br/>of the community"
-#~ msgstr ""
-#~ "Tutvu (muude) vahvate liikmetega\n"
-#~ "1 kogukonnas"
-
-#~ msgid "Thank you for being one of our most loyal customers."
-#~ msgstr "Aitäh, et olete üks meie lojaalsematest klientidest."
-
-#~ msgid "Twitter"
-#~ msgstr "Twitter"
-
-#~ msgid "VIP members only"
-#~ msgstr "Ainult VIP liikmetele"

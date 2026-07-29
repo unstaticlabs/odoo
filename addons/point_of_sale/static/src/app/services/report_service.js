@@ -16,7 +16,7 @@ export const reportService = {
                     });
                     const reportAction = await reportActionsCache[reportXmlId];
                     // await instead of return because we want the ui to stay blocked
-                    return await downloadReport(
+                    await downloadReport(
                         rpc,
                         { ...reportAction, context: { active_ids } },
                         "pdf",

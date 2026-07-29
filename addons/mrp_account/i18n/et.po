@@ -14,13 +14,13 @@
 # Anna, 2023
 # JanaAvalah, 2023
 # Piia Paurson <piia@avalah.ee>, 2023
-# Kristina Pešehodko <kristina@avalah.ee>, 2025, 2026.
+# Kristina Pešehodko <kristina@avalah.ee>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 11:48+0000\n"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2025-10-28 07:33+0000\n"
 "Last-Translator: Kristina Pešehodko <kristina@avalah.ee>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "mrp_account/et/>\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mrp_account
 #. odoo-python
@@ -104,13 +104,6 @@ msgid "Account Move Line"
 msgstr "Konto teisaldamise rida"
 
 #. module: mrp_account
-#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
-msgid "Account move line to be created when posting WIP account move"
-msgstr ""
-"Kontode liikumise rida, mis luuakse lõpetamata toodangu konto liikumise "
-"postitamisel"
-
-#. module: mrp_account
 #: model:ir.model,name:mrp_account.model_account_analytic_account
 msgid "Analytic Account"
 msgstr "Analüütiline konto"
@@ -159,7 +152,7 @@ msgstr "Kategooria"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr ""
 
 #. module: mrp_account
@@ -227,11 +220,6 @@ msgstr "Kuupäev"
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__debit
 msgid "Debit"
 msgstr "Deebet"
-
-#. module: mrp_account
-#: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
-msgid "Discard"
-msgstr "Loobu"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__display_name
@@ -313,6 +301,11 @@ msgid "Journal Item"
 msgstr "Andmiku kanderida"
 
 #. module: mrp_account
+#: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting_line
+msgid "Journal item to be created when posting WIP journal entry"
+msgstr ""
+
+#. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_account_wip_accounting_line__label
 msgid "Label"
 msgstr "Silt"
@@ -381,7 +374,8 @@ msgstr "MO analüütilise konto rida"
 #. odoo-python
 #: code:addons/mrp_account/wizard/mrp_wip_accounting.py:0
 msgid "Please make sure the total credit amount equals the total debit amount."
-msgstr "Palun veenduge, et kogukrediidi summa oleks võrdne kogudeebeti summaga."
+msgstr ""
+"Palun veenduge, et kogukrediidi summa oleks võrdne kogudeebeti summaga."
 
 #. module: mrp_account
 #: model_terms:ir.ui.view,arch_db:mrp_account.view_wip_accounting_form
@@ -570,8 +564,8 @@ msgstr "Poolelioleva toodangu liikumine"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_account_wip_accounting
-msgid "Wizard to post Manufacturing WIP account move"
-msgstr "Abivahend tootmise poolelioleva töö kande postitamiseks"
+msgid "Wizard to post Manufacturing WIP journal entry"
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -631,45 +625,3 @@ msgstr "[WC] %s"
 
 #~ msgid "2023-08-15"
 #~ msgstr "2023-08-15"
-
-#~ msgid "From Production Order %(reference)s"
-#~ msgstr "Tootmistellimuselt %(reference)s"
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take        place "
-#~ "for financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Analüütiline konto, kuhu tehakse tootmistellimuse finantsjuhtimiseks "
-#~ "kulu- ja tulukanded."
-
-#~ msgid ""
-#~ "Analytic account in which cost and revenue entries will take place for "
-#~ "financial management of the manufacturing order."
-#~ msgstr ""
-#~ "Analüütiline konto, kuhu tehakse tootmistellimuse finantsjuhtimiseks "
-#~ "kulu- ja tulukanded."
-
-#~ msgid "Bill of Material"
-#~ msgstr "Retsept"
-
-#~ msgid ""
-#~ "Posts analytical accounting entries in real time for both component and "
-#~ "operational costs."
-#~ msgstr ""
-#~ "Postitab reaalajas analüütilised raamatupidamiskanded nii komponentide "
-#~ "kui ka tegevuskulude kohta."
-
-#~ msgid "Production Order"
-#~ msgstr "Tootmiskäsk"
-
-#~ msgid "Stock Rule"
-#~ msgstr "Laoreegel"
-
-#~ msgid "Work Center Usage"
-#~ msgstr "Töökeskuse kasutamine"
-
-#~ msgid "Workcenters"
-#~ msgstr "Töökeskused"
-
-#~ msgid "[Raw] %s"
-#~ msgstr "[Raw] %s"

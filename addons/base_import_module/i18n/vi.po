@@ -6,17 +6,16 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2022
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 17:54+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-12-04 17:50+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/vi/>\n"
 "Language: vi\n"
@@ -24,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -54,11 +53,6 @@ msgstr "Kích hoạt"
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_module_filter_apps_inherit
 msgid "Apps"
 msgstr "Ứng dụng"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "Hủy"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
@@ -310,8 +304,8 @@ msgid ""
 "The assets path in the manifest of imported module '%(module_name)s' cannot "
 "contain glob wildcards (e.g., *, **)."
 msgstr ""
-"Đường dẫn tài nguyên trong tệp manifest của mô-đun được nhập '%(module_name)"
-"s' không được chứa các ký tự đại diện glob (ví dụ: *, **)."
+"Đường dẫn tài nguyên trong tệp manifest của mô-đun được nhập "
+"'%(module_name)s' không được chứa các ký tự đại diện glob (ví dụ: *, **)."
 
 #. module: base_import_module
 #. odoo-python
@@ -362,34 +356,3 @@ msgstr "hoàn thành"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "init"
-
-#~ msgid "Import App"
-#~ msgstr "Import ứng dụng"
-
-#~ msgid "Import module"
-#~ msgstr "Import module"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Sửa lần cuối vào"
-
-#~ msgid ""
-#~ "Note: you can only import data modules (.xml files and static assets)"
-#~ msgstr "Ghi chú: bạn chỉ có thể import module dữ liệu (file .xml)"
-
-#~ msgid "Open Modules"
-#~ msgstr "Mở danh sách Module"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "Chọn gói module để import (file .zip)"
-
-#~ msgid "Studio customizations require Studio"
-#~ msgstr "Tùy chỉnh studio yêu cầu module studio"
-
-#~ msgid ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"
-#~ msgstr ""
-#~ "Unmet module dependencies: \n"
-#~ "\n"
-#~ " - %s"

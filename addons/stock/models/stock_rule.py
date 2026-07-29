@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from ast import literal_eval
 from collections import defaultdict, OrderedDict
 from dateutil.relativedelta import relativedelta
 from typing import NamedTuple
@@ -10,7 +11,6 @@ from functools import partial
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command, Domain
-from odoo.tools import float_is_zero
 from odoo.tools.misc import split_every
 
 _logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class ProcurementException(Exception):
 class Procurement(NamedTuple):
     product_id: fields.Many2one
     product_qty: fields.Float
-    product_uom: fields.Many2one
+    uom_id: fields.Many2one
     location_id: fields.Many2one
     name: fields.Char
     origin: fields.Char
@@ -219,61 +219,23 @@ class StockRule(models.Model):
         """
         return fields.Datetime.to_string(move.date + relativedelta(days=self.delay))
 
-    def _run_push(self, move):
-        """ Apply a push rule on a move.
-        If the rule is 'no step added' it will modify the destination location
-        on the move.
-        If the rule is 'manual operation' it will generate a new move in order
-        to complete the section define by the rule.
-        Care this function is not call by method run. It is called explicitely
-        in stock_move.py inside the method _push_apply
-        """
-        self.ensure_one()
-        new_date = self._get_push_new_date(move)
-        if self.auto == 'transparent':
-            old_dest_location = move.location_dest_id
-            move.write({'date': new_date, 'location_dest_id': self.location_dest_id.id})
-            # make sure the location_dest_id is consistent with the move line location dest
-            if move.move_line_ids:
-                move.move_line_ids.location_dest_id = move.location_dest_id._get_putaway_strategy(move.product_id) or move.location_dest_id
-
-            # avoid looping if a push rule is not well configured; otherwise call again push_apply to see if a next step is defined
-            if self.location_dest_id != old_dest_location:
-                # TDE FIXME: should probably be done in the move model IMO
-                return move._push_apply()[:1]
-        else:
-            new_move_vals = self._push_prepare_move_copy_values(move, new_date)
-            new_move = move.sudo().copy(new_move_vals)
-            # when no more push we should reach final destination
-            if new_move._skip_push():
-                new_move.write({'location_dest_id': new_move.location_final_id.id})
-            if new_move._should_bypass_reservation():
-                new_move.write({'procure_method': 'make_to_stock'})
-            if not new_move.location_id.should_bypass_reservation():
-                move.sudo().write({'move_dest_ids': [(4, new_move.id)]})
-            return new_move
-
-    def _push_prepare_move_copy_values(self, move_to_copy, new_date):
+    def _push_prepare_move_copy_values(self, move_to_copy):
         company_id = self.company_id.id
-        copied_quantity = move_to_copy.quantity
+        if not company_id:
+            company_id = self.sudo().warehouse_id and self.sudo().warehouse_id.company_id.id or self.sudo().picking_type_id.warehouse_id.company_id.id
         final_location_id = False
         location_dest_id = self.location_dest_id.id
         if move_to_copy.location_final_id and not move_to_copy.location_dest_id._child_of(move_to_copy.location_final_id):
             final_location_id = move_to_copy.location_final_id.id
         if move_to_copy.location_final_id and move_to_copy.location_final_id._child_of(self.location_dest_id):
             location_dest_id = move_to_copy.location_final_id.id
-        if move_to_copy.product_uom.compare(move_to_copy.product_uom_qty, 0) < 0:
-            copied_quantity = move_to_copy.product_uom_qty
-        if not company_id:
-            company_id = self.sudo().warehouse_id and self.sudo().warehouse_id.company_id.id or self.sudo().picking_type_id.warehouse_id.company_id.id
         new_move_vals = {
-            'product_uom_qty': copied_quantity,
             'origin': move_to_copy.origin or move_to_copy.picking_id.name or "/",
             'location_id': move_to_copy.location_dest_id.id,
             'location_dest_id': location_dest_id,
             'location_final_id': final_location_id,
             'rule_id': self.id,
-            'date': new_date,
+            'date': self._get_push_new_date(move_to_copy),
             'date_deadline': move_to_copy.date_deadline,
             'company_id': company_id,
             'picking_id': False,
@@ -281,6 +243,8 @@ class StockRule(models.Model):
             'propagate_cancel': self.propagate_cancel,
             'warehouse_id': self.warehouse_id.id or move_to_copy.location_dest_id.warehouse_id.id,
             'procure_method': 'make_to_order',
+            'move_orig_ids': [Command.link(move_to_copy.id)],
+            'move_dest_ids': [Command.link(move_dest.id) for move_dest in move_to_copy.move_dest_ids],
         }
         return new_move_vals
 
@@ -298,7 +262,7 @@ class StockRule(models.Model):
                 raise ProcurementException([(procurement, msg)])
 
         # Prepare the move values, adapt the `procure_method` if needed.
-        procurements = sorted(procurements, key=lambda proc: proc[0].product_uom.compare(proc[0].product_qty, 0.0) > 0)
+        procurements = sorted(procurements, key=lambda proc: proc[0].uom_id.compare(proc[0].product_qty, 0.0) > 0)
         for procurement, rule in procurements:
             procure_method = rule.procure_method
             if rule.procure_method == 'mts_else_mto':
@@ -321,7 +285,7 @@ class StockRule(models.Model):
         """
         return []
 
-    def _get_stock_move_values(self, product_id, product_qty, product_uom, location_dest_id, name, origin, company_id, values):
+    def _get_stock_move_values(self, product_id, product_qty, uom_id, location_dest_id, name, origin, company_id, values):
         ''' Returns a dictionary of values that will be used to create a stock move from a procurement.
         This function assumes that the given procurement has a rule (action == 'pull' or 'pull_push') set on it.
 
@@ -350,13 +314,13 @@ class StockRule(models.Model):
                 move_dest.partner_id = self.location_src_id.warehouse_id.partner_id or self.company_id.partner_id
 
         # If the quantity is negative the move should be considered as a refund
-        if product_uom.compare(product_qty, 0.0) < 0:
+        if uom_id.compare(product_qty, 0.0) < 0:
             values['to_refund'] = True
 
         move_values = {
             'company_id': self.company_id.id or self.location_src_id.company_id.id or self.location_dest_id.company_id.id or company_id.id,
             'product_id': product_id.id,
-            'product_uom': product_uom.id,
+            'uom_id': uom_id.id,
             'product_uom_qty': qty_left,
             'partner_id': partner,
             'location_id': self.location_src_id.id,
@@ -381,7 +345,8 @@ class StockRule(models.Model):
             move_values['location_dest_id'] = self.location_dest_id.id
         for field in self._get_custom_move_fields():
             if field in values:
-                move_values[field] = values.get(field)
+                value = values[field]
+                move_values[field] = value.id if isinstance(value, models.BaseModel) else value
         return move_values
 
     def _serialize_procurement_values(self, values):
@@ -443,9 +408,7 @@ class StockRule(models.Model):
 
     @api.model
     def _skip_procurement(self, procurement):
-        return procurement.product_id.type != "consu" or float_is_zero(
-            procurement.product_qty, precision_rounding=procurement.product_uom.rounding
-        )
+        return procurement.product_id.type != "consu" or procurement.uom_id.is_zero(procurement.product_qty)
 
     @api.model
     def run(self, procurements, raise_user_error=True):
@@ -663,18 +626,24 @@ class StockRule(models.Model):
         return domain
 
     @api.model
-    def _get_push_rule(self, product_id, location_dest_id, values):
-        """ Find a push rule for the location_dest_id, with a fallback to the parent locations if none could be found.
-        """
-        found_rule = self.env['stock.rule']
+    def _get_push_rule(self, move, location_dest_id, route_ids, warehouse_id, extra_domain=None):
+        """Find a push rule for the location_dest_id, with a fallback to the parent locations if none could be found."""
+        rule = self.env['stock.rule']
         location = location_dest_id
-        while (not found_rule) and location:
+        product_id = move.product_id
+        packaging_uom_id = move.packaging_uom_id
+        while (not rule) and location:
             domain = Domain('location_src_id', '=', location.id) & Domain('action', 'in', ('push', 'pull_push'))
-            if dom := values.get('domain'):
-                domain &= Domain(dom)
-            found_rule = self._search_rule(values.get('route_ids'), values.get('packaging_uom_id'), product_id, values.get('warehouse_id'), domain)
+            if extra_domain:
+                domain &= Domain(extra_domain)
+            rule = self._search_rule(route_ids, packaging_uom_id, product_id, warehouse_id, domain)
+            excluded_rule_ids = []
+            domain &= Domain('id', 'not in', excluded_rule_ids)
+            while rule and rule.push_domain and not move.filtered_domain(literal_eval(rule.push_domain)):
+                excluded_rule_ids.append(rule.id)
+                rule = self._search_rule(route_ids, packaging_uom_id, product_id, warehouse_id, domain)
             location = location.location_id
-        return found_rule
+        return rule
 
     @api.model
     def _get_moves_to_assign_domain(self, company_id):

@@ -14,24 +14,24 @@
 # Marc Tormo i Bochaca <mtbochaca@gmail.com>, 2022
 # Óscar Fonseca <tecnico@extreme-micro.com>, 2022
 # jabiri7, 2022
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-17 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 05:29+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-04-13 19:23+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Catalan <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_attendance/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: hr_attendance
 #. odoo-python
@@ -50,6 +50,12 @@ msgstr ""
 #: code:addons/hr_attendance/models/hr_attendance.py:0
 msgid "%(worked_hours)s (%(check_in)s-%(check_out)s)"
 msgstr "%(worked_hours)s (%(check_in)s-%(check_out)s)"
+
+#. module: hr_attendance
+#. odoo-python
+#: code:addons/hr_attendance/models/hr_attendance_overtime_ruleset.py:0
+msgid "%s (copy)"
+msgstr ""
 
 #. module: hr_attendance
 #. odoo-javascript
@@ -152,6 +158,14 @@ msgid ""
 msgstr ""
 
 #. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_overtime_ruleset_view_form
+msgid ""
+"<span class=\"o_stat_value\">Add</span>\n"
+"                                    <span class=\"o_stat_text\">Employees</"
+"span>"
+msgstr ""
+
+#. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_overtime_rule_view_form
 msgid ""
 "<span colspan=\"2\" class=\"mb-3 fw-bold\">The hours will be considered "
@@ -201,6 +215,16 @@ msgstr "Actiu"
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_filter
 msgid "Active Employees"
 msgstr "Treballadors actius"
+
+#. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_version_list_view_enhanced_hr_attendance_add
+msgid "Add"
+msgstr ""
+
+#. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_version_list_view_enhanced_hr_attendance
+msgid "Add Employees"
+msgstr ""
 
 #. module: hr_attendance
 #: model_terms:ir.actions.act_window,help:hr_attendance.hr_employee_attendance_action_kanban
@@ -332,7 +356,6 @@ msgstr "Assistència"
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_employee__attendance_manager_id
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_employee_public__attendance_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_employee_search_view
 msgid "Attendance Approver"
 msgstr ""
 
@@ -527,16 +550,15 @@ msgid "Based on GPS-Coordinates if available or on IP Address"
 msgstr ""
 
 #. module: hr_attendance
-#. odoo-javascript
-#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
-msgid "Before"
-msgstr "Abans"
-
-#. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__in_browser
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_form
 msgid "Browser"
 msgstr "Navegador"
+
+#. module: hr_attendance
+#: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__can_edit
+msgid "Can Edit"
+msgstr ""
 
 #. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.res_config_settings_view_form
@@ -661,10 +683,6 @@ msgstr "Color"
 
 #. module: hr_attendance
 #: model:ir.model,name:hr_attendance.model_res_company
-msgid "Companies"
-msgstr "Empreses"
-
-#. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_line__company_id
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_rule__company_id
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_ruleset__company_id
@@ -840,6 +858,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_version__display_name
 #: model:ir.model.fields,field_description:hr_attendance.field_ir_http__display_name
+#: model:ir.model.fields,field_description:hr_attendance.field_ir_websocket__display_name
 #: model:ir.model.fields,field_description:hr_attendance.field_res_company__display_name
 #: model:ir.model.fields,field_description:hr_attendance.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:hr_attendance.field_res_users__display_name
@@ -917,7 +936,10 @@ msgstr ""
 
 #. module: hr_attendance
 #: model:ir.actions.act_window,name:hr_attendance.hr_employee_attendance_action_kanban
+#: model:ir.actions.act_window,name:hr_attendance.hr_version_list_view
+#: model:ir.actions.act_window,name:hr_attendance.hr_version_list_view_add
 #: model:ir.ui.menu,name:hr_attendance.menu_hr_attendance_employee
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_overtime_ruleset_view_form
 msgid "Employees"
 msgstr "Empleats"
 
@@ -1066,6 +1088,13 @@ msgid "Goodbye"
 msgstr "Adéu"
 
 #. module: hr_attendance
+#: model:res.groups,comment:hr_attendance.group_hr_attendance_own
+msgid ""
+"Grants users permission to modify their own attendance entries that are "
+"pending approval."
+msgstr ""
+
+#. module: hr_attendance
 #: model:ir.model,name:hr_attendance.model_ir_http
 msgid "HTTP Routing"
 msgstr "Enrutament HTTP"
@@ -1134,6 +1163,7 @@ msgstr "Cerca d'assistències"
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_version__id
 #: model:ir.model.fields,field_description:hr_attendance.field_ir_http__id
+#: model:ir.model.fields,field_description:hr_attendance.field_ir_websocket__id
 #: model:ir.model.fields,field_description:hr_attendance.field_res_company__id
 #: model:ir.model.fields,field_description:hr_attendance.field_res_config_settings__id
 #: model:ir.model.fields,field_description:hr_attendance.field_res_users__id
@@ -1231,6 +1261,11 @@ msgstr "És un seguidor"
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_line__is_manager
 msgid "Is Manager"
 msgstr "És el gestor"
+
+#. module: hr_attendance
+#: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__is_own
+msgid "Is Own"
+msgstr ""
 
 #. module: hr_attendance
 #: model:ir.model.fields.selection,name:hr_attendance.selection__hr_attendance__in_mode__kiosk
@@ -1455,6 +1490,12 @@ msgid "New Set-up (Employee/Badge)"
 msgstr ""
 
 #. module: hr_attendance
+#: model_terms:ir.actions.act_window,help:hr_attendance.hr_version_list_view
+#: model_terms:ir.actions.act_window,help:hr_attendance.hr_version_list_view_add
+msgid "No Records."
+msgstr ""
+
+#. module: hr_attendance
 #. odoo-javascript
 #: code:addons/hr_attendance/static/src/views/attendance_helper_view.xml:0
 #: model_terms:ir.actions.act_window,help:hr_attendance.hr_attendance_management_action
@@ -1474,6 +1515,12 @@ msgstr ""
 msgid "No employee corresponding to Badge ID '%(barcode)s.'"
 msgstr ""
 "Cap empleat coincideix amb l'ID de la targeta d'identificació '%(barcode)s.'"
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
+msgid "Now"
+msgstr ""
 
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__message_needaction_counter
@@ -1506,6 +1553,12 @@ msgstr "OK"
 #: code:addons/hr_attendance/static/src/public_kiosk/public_kiosk_app.xml:0
 msgid "Odoo Logo"
 msgstr "Logo Odoo"
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/hr_presence_status/hr_attendance_presence_status.js:0
+msgid "Off-Hours"
+msgstr ""
 
 #. module: hr_attendance
 #: model:res.groups,name:hr_attendance.group_hr_attendance_user
@@ -1674,6 +1727,24 @@ msgstr "Impulsat per"
 
 #. module: hr_attendance
 #. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/hr_presence_status/hr_attendance_presence_status.js:0
+msgid "Present (untracked)"
+msgstr ""
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/new_employee_dialog/new_employee_dialog.xml:0
+msgid "Print"
+msgstr ""
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/new_employee_dialog/new_employee_dialog.xml:0
+msgid "Print It"
+msgstr ""
+
+#. module: hr_attendance
+#. odoo-javascript
 #: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.js:0
 msgid "Proceed Anyway"
 msgstr ""
@@ -1783,6 +1854,11 @@ msgstr ""
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance__expected_hours
 msgid "Regular Hours"
+msgstr ""
+
+#. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_version_list_view_enhanced_hr_attendance
+msgid "Remove"
 msgstr ""
 
 #. module: hr_attendance
@@ -1906,6 +1982,11 @@ msgid "Select on Tablet"
 msgstr ""
 
 #. module: hr_attendance
+#: model:res.groups,name:hr_attendance.group_hr_attendance_own
+msgid "Self Attendance Edit"
+msgstr ""
+
+#. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_rule__sequence
 msgid "Sequence"
 msgstr "Seqüència"
@@ -1940,12 +2021,6 @@ msgstr "Configuració"
 #: code:addons/hr_attendance/static/src/components/pin_code/pin_code.xml:0
 msgid "Sign out"
 msgstr "Desconnecta"
-
-#. module: hr_attendance
-#. odoo-javascript
-#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
-msgid "Since"
-msgstr "Des de"
 
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_line__time_start
@@ -2041,6 +2116,16 @@ msgid ""
 msgstr ""
 
 #. module: hr_attendance
+#: model_terms:ir.actions.act_window,help:hr_attendance.hr_version_list_view
+msgid "There are no employees assigned to this overtime ruleset."
+msgstr ""
+
+#. module: hr_attendance
+#: model_terms:ir.actions.act_window,help:hr_attendance.hr_version_list_view_add
+msgid "There are no employees without an overtime ruleset."
+msgstr ""
+
+#. module: hr_attendance
 #. odoo-python
 #: code:addons/hr_attendance/models/hr_attendance.py:0
 msgid ""
@@ -2054,6 +2139,13 @@ msgstr ""
 msgid ""
 "This attendance was automatically created to cover an unjustified absence on "
 "that day."
+msgstr ""
+
+#. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_overtime_ruleset_view_form
+msgid ""
+"This will reset all manual edit on overtime period linked to those rules. Do "
+"you confirm ?"
 msgstr ""
 
 #. module: hr_attendance
@@ -2090,9 +2182,15 @@ msgstr "Per aprovar"
 
 #. module: hr_attendance
 #. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
 #: code:addons/hr_attendance/static/src/components/greetings/greetings.xml:0
 msgid "Today"
 msgstr "Avui"
+
+#. module: hr_attendance
+#: model:ir.model.fields,field_description:hr_attendance.field_hr_employee__today_attendance_ids
+msgid "Today Attendance"
+msgstr ""
 
 #. module: hr_attendance
 #: model:ir.model.fields,field_description:hr_attendance.field_res_company__overtime_company_threshold
@@ -2119,12 +2217,6 @@ msgstr "Total"
 #: model:ir.model.fields,field_description:hr_attendance.field_hr_employee_public__total_overtime
 msgid "Total Overtime"
 msgstr "Hores addicionals totals"
-
-#. module: hr_attendance
-#. odoo-javascript
-#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
-msgid "Total today"
-msgstr ""
 
 #. module: hr_attendance
 #: model:ir.actions.server,name:hr_attendance.action_try_kiosk
@@ -2201,6 +2293,16 @@ msgid "Validation Error"
 msgstr "Error de validació"
 
 #. module: hr_attendance
+#: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_ruleset__version_ids
+msgid "Version"
+msgstr ""
+
+#. module: hr_attendance
+#: model:ir.model.fields,field_description:hr_attendance.field_hr_attendance_overtime_ruleset__versions_count
+msgid "Versions Count"
+msgstr ""
+
+#. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_view_form
 msgid "View on Maps"
 msgstr ""
@@ -2225,6 +2327,18 @@ msgstr "Setmana"
 #: code:addons/hr_attendance/static/src/components/greetings/greetings.xml:0
 msgid "Welcome"
 msgstr "Benvingut"
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
+msgid "Welcome back"
+msgstr ""
+
+#. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
+msgid "Welcome,"
+msgstr ""
 
 #. module: hr_attendance
 #: model:ir.model.fields.selection,name:hr_attendance.selection__hr_attendance_overtime_rule__timing_type__leave
@@ -2269,6 +2383,11 @@ msgstr "Temps de treball"
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_employee_public_view_form
 #: model_terms:ir.ui.view,arch_db:hr_attendance.view_employee_form_inherit_hr_attendance
 msgid "Worked hours this month"
+msgstr ""
+
+#. module: hr_attendance
+#: model_terms:ir.ui.view,arch_db:hr_attendance.hr_version_search_view_enhanced_hr_attendance
+msgid "Working Hours"
 msgstr ""
 
 #. module: hr_attendance
@@ -2344,6 +2463,12 @@ msgid "from the amount defined on the contract"
 msgstr ""
 
 #. module: hr_attendance
+#. odoo-javascript
+#: code:addons/hr_attendance/static/src/components/attendance_menu/attendance_menu.xml:0
+msgid "h"
+msgstr ""
+
+#. module: hr_attendance
 #: model_terms:ir.ui.view,arch_db:hr_attendance.hr_attendance_overtime_rule_view_form
 msgid "hours"
 msgstr "hores"
@@ -2359,6 +2484,11 @@ msgstr ""
 #: code:addons/hr_attendance/static/src/views/attendance_helper_view.xml:0
 msgid "or"
 msgstr "o"
+
+#. module: hr_attendance
+#: model:ir.model,name:hr_attendance.model_ir_websocket
+msgid "websocket message handling"
+msgstr ""
 
 #. module: hr_attendance
 #. odoo-python
@@ -2385,246 +2515,3 @@ msgstr ""
 
 #~ msgid "Location"
 #~ msgstr "Ubicació"
-
-#~ msgid ""
-#~ "Do not have access, user cannot edit the attendances that are not his own."
-#~ msgstr ""
-#~ "No teniu accés, l'usuari no pot modificar les assistències que no són "
-#~ "seves."
-
-#~ msgid "Warning"
-#~ msgstr "Avís"
-
-#~ msgid "%(empl_name)s from %(check_in)s"
-#~ msgstr "%(empl_name)s des de %(check_in)s"
-
-#~ msgid "%(empl_name)s from %(check_in)s to %(check_out)s"
-#~ msgstr "%(empl_name)s des de %(check_in)s a %(check_out)s"
-
-#~ msgid ": Your user should be linked to an employee to use attendance."
-#~ msgstr ""
-#~ ": L'usuari hauria d'estar enllaçat al empleat per fer servir el mòdul "
-#~ "d'assistència"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-calendar\" aria-label=\"Period\" role=\"img\" "
-#~ "title=\"Period\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-calendar\" aria-label=\"Period\" role=\"img\" "
-#~ "title=\"Period\"/>"
-
-#~ msgid ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                            Last Month\n"
-#~ "                        </span>"
-#~ msgstr ""
-#~ "<span class=\"o_stat_text\">\n"
-#~ "                            El mes passat\n"
-#~ "                        </span>"
-
-#~ msgid "<span class=\"o_stat_text\">Extra Hours</span>"
-#~ msgstr "<span class=\"o_stat_text\">Hores extres</span>"
-
-#~ msgid ""
-#~ "<span id=\"oe_hr_attendance_status\" class=\"fa fa-circle text-success "
-#~ "me-1\" role=\"img\" aria-label=\"Available\" title=\"Available\"/>"
-#~ msgstr ""
-#~ "<span id=\"oe_hr_attendance_status\" class=\"fa fa-circle text-success "
-#~ "me-1\" role=\"img\" aria-label=\"Available\" title=\"Available\"/>"
-
-#~ msgid ""
-#~ "<span id=\"oe_hr_attendance_status\" class=\"fa fa-circle text-warning "
-#~ "me-1\" role=\"img\" aria-label=\"Not available\" title=\"Not "
-#~ "available\">\n"
-#~ "                                    </span>"
-#~ msgstr ""
-#~ "<span id=\"oe_hr_attendance_status\" class=\"fa fa-circle text-warning "
-#~ "me-1\" role=\"img\" aria-label=\"Not available\" title=\"Not "
-#~ "available\">\n"
-#~ "                                    </span>"
-
-#~ msgid "<span>Time Period </span>"
-#~ msgstr "<span>Període de temps </span>"
-
-#~ msgid "Activate the count of employees' extra hours."
-#~ msgstr "Activa el recompte d'hores extres dels empleats."
-
-#~ msgid "Adjustment"
-#~ msgstr "Ajustament"
-
-#~ msgid "Amount of extra hours"
-#~ msgstr "Quantitat d'hores extres"
-
-#~ msgid "An apple a day keeps the doctor away"
-#~ msgstr "Una poma cada dia, la millor medecina."
-
-#~ msgid "Another good day's work! See you soon!"
-#~ msgstr "Un altre bon dia de treball! Ens veiem aviat!"
-
-#~ msgid "Attendance Analysis"
-#~ msgstr "Anàlisi d'assistències"
-
-#~ msgid "Attendance Overtime"
-#~ msgstr "Hora d'assistència extraordinària"
-
-#~ msgid "Attendance Statistics"
-#~ msgstr "Estadístiques d'assistència"
-
-#~ msgid "Barcode"
-#~ msgstr "Codi de barres"
-
-#~ msgid "Check In / Check Out"
-#~ msgstr "Entrada / Sortida"
-
-#~ msgid "Check-In/Out in Kiosk Mode"
-#~ msgstr "Entrada/Sortida en mode quiosc"
-
-#~ msgid "Compare attendance with working hours set on employee."
-#~ msgstr ""
-#~ "Compareu l'assistència amb l'horari de treball establert a l'empleat."
-
-#~ msgid "Count Extra Hours"
-#~ msgstr "Comptar les hores extra"
-
-#~ msgid "Count of Extra Hours"
-#~ msgstr "Recompte d'hores extres"
-
-#~ msgid ""
-#~ "Count of extra hours is considered from this date. Potential extra hours "
-#~ "prior to this date are not considered."
-#~ msgstr ""
-#~ "Es considera el recompte d'hores extres a partir d'aquesta data. No es "
-#~ "tenen en compte les possibles hores extres abans d'aquesta data."
-
-#~ msgid ""
-#~ "Early to bed and early to rise, makes a man healthy, wealthy and wise"
-#~ msgstr "Aviat al llit i aviat llevar-se, fan a un home ric, sa i savi."
-
-#~ msgid "Eat breakfast as a king, lunch as a merchant and supper as a beggar"
-#~ msgstr "Esmorzar de rei, dinar de príncep, i sopar de pidolaire."
-
-#~ msgid "Employee PIN"
-#~ msgstr "PIN de l'empleat"
-
-#~ msgid "Enable PIN use"
-#~ msgstr "Activar l'ús de PIN"
-
-#~ msgid "Extra Hours (Real)"
-#~ msgstr "Hores extra (reals)"
-
-#~ msgid "Extra Hours Starting Date"
-#~ msgstr "Data d'inici de les hores extra"
-
-#~ msgid "Extra-hours including the threshold duration"
-#~ msgstr "Hores extra, inclosa la durada del llindar"
-
-#~ msgid "First come, first served"
-#~ msgstr "Primer en arribar, primer a servir-se"
-
-#~ msgid "Glad to have you back, it's been a while!"
-#~ msgstr "M'alegra veure't de tornada, ha passat temps!"
-
-#~ msgid "Good afternoon"
-#~ msgstr "Bona tarda"
-
-#~ msgid "Good evening"
-#~ msgstr "Bon vespre"
-
-#~ msgid "Good morning"
-#~ msgstr "Bon dia"
-
-#~ msgid "Good night"
-#~ msgstr "Bona nit"
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar per"
-
-#~ msgid "HR Attendance Search"
-#~ msgstr "Cerca assistències RH "
-
-#~ msgid "Have a good afternoon"
-#~ msgstr "Tingueu una bona tarda"
-
-#~ msgid "Have a good day!"
-#~ msgstr "Que tingui un bon dia!"
-
-#~ msgid "Have a good evening"
-#~ msgstr "Bon vespre"
-
-#~ msgid "Have a nice lunch!"
-#~ msgstr "Tingui un bon dinar!"
-
-#~ msgid "Hours"
-#~ msgstr "Hores"
-
-#~ msgid "Hours Worked"
-#~ msgstr "Hores treballades"
-
-#~ msgid "If a job is worth doing, it is worth doing well!"
-#~ msgstr "Si val la pena fer un treball, val la pena fer-ho bé!"
-
-#~ msgid "Menu"
-#~ msgstr "Menú"
-
-#~ msgid "No Check Out"
-#~ msgstr "No hi ha registre de sortida"
-
-#~ msgid "No attendance records to display"
-#~ msgstr "No hi ha registres d'assistència a mostrar"
-
-#~ msgid "Please contact your administrator."
-#~ msgstr "Contacteu amb l'administrador."
-
-#~ msgid "Start from"
-#~ msgstr "Comença des de"
-
-#~ msgid "The early bird catches the worm"
-#~ msgstr "Qui matina fa farina"
-
-#~ msgid ""
-#~ "The user will be able to open the kiosk mode and validate the employee "
-#~ "PIN."
-#~ msgstr "L'usuari podrà obrir el mode quiosc i validar el PIN de treballador"
-
-#~ msgid ""
-#~ "The user will gain access to the human resources attendance menu, "
-#~ "enabling him to manage his own attendance."
-#~ msgstr ""
-#~ "L'usuari obtindrà accés al menú d'assistència de recursos humans, "
-#~ "habilitant-lo a gestionar les seves pròpies assistències."
-
-#~ msgid ""
-#~ "The user will have to enter his PIN to check in and out manually at the "
-#~ "company screen."
-#~ msgstr ""
-#~ "L'usuari tindrà que ingressar manualment el seu PIN per registrar "
-#~ "entrades i sortides des de la pantalla de la companyia."
-
-#~ msgid ""
-#~ "To activate Kiosk mode without pin code, you must have access right as an "
-#~ "Officer or above in the Attendance app. Please contact your administrator."
-#~ msgstr ""
-#~ "Per a activar el mode quiosc sense PIN, heu de tenir accés com a "
-#~ "Responsable o superior de l'aplicació d'assistències. Contacteu amb "
-#~ "l'administrador."
-
-#~ msgid "Today's work hours:"
-#~ msgstr "Horari laboral d'avui:"
-
-#~ msgid "Want to check out?"
-#~ msgstr "Voleu sortir?"
-
-#~ msgid "Welcome to"
-#~ msgstr "Benvingut a"
-
-#~ msgid "Welcome!"
-#~ msgstr "Benvingut!"
-
-#~ msgid "Worked hours last month"
-#~ msgstr "Hores treballades el mes passat"
-
-#~ msgid "Wrong PIN"
-#~ msgstr "PIN Incorrecte"
-
-#~ msgid "Your attendance records will be displayed here."
-#~ msgstr "Els registres d'assistència es mostraran aquí."

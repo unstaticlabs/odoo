@@ -6,25 +6,25 @@
 # Martin Trigaux, 2022
 # Yenthe Van Ginneken <yenthespam@gmail.com>, 2022
 # Jolien De Paepe, 2022
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2023, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-29 10:18+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-04-28 14:40+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "stock_account/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: stock_account
 #. odoo-python
@@ -166,8 +166,8 @@ msgstr "Analytische rekeningboekingsregel"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-msgid "Analytic Plans"
-msgstr "Analytische dimensies"
+msgid "Analytic Plan"
+msgstr "Analytisch plan"
 
 #. module: stock_account
 #. odoo-javascript
@@ -216,6 +216,12 @@ msgid "Bacon"
 msgstr "Bacon"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr "Sluitingsdatum"
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 msgid "Closing: Location Reclassification - [%(account)s]"
@@ -240,10 +246,6 @@ msgstr "Oorsprong cogs"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-msgid "Companies"
-msgstr "Bedrijven"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 msgid "Company"
@@ -415,7 +417,7 @@ msgstr "Partijen & serienummers weergeven op facturen"
 #: model:ir.model.fields,field_description:stock_account.field_stock_quant__display_name
 #: model:ir.model.fields,field_description:stock_account.field_stock_return_picking_line__display_name
 msgid "Display Name"
-msgstr "Schermnaam"
+msgstr "Weergavenaam"
 
 #. module: stock_account
 #: model:res.groups,name:stock_account.group_lot_on_invoice
@@ -541,9 +543,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Referentie/reden voor voorraadaanpassing"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr "Voorraadafsluiting"
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-msgid "Inventory Locations"
-msgstr "Voorraadlocaties"
+msgid "Inventory Location"
+msgstr "Voorraadlocatie"
 
 #. module: stock_account
 #. odoo-javascript
@@ -682,7 +690,7 @@ msgstr "Maandelijks"
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__move_id
 msgid "Move"
-msgstr "Verplaatsing"
+msgstr "verplaatsing"
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.product_value_form_view
@@ -830,8 +838,8 @@ msgstr "Productie WIP Overheadrekening"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-msgid "Quants"
-msgstr "Aantallen"
+msgid "Quant"
+msgstr "Hoeveelheid"
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -1223,9 +1231,6 @@ msgstr "stock_move_id"
 msgid "units"
 msgstr "eenheden"
 
-#~ msgid "6.00"
-#~ msgstr "6.00"
-
 #~ msgid ""
 #~ "Value of the product (automatically computed in AVCO).\n"
 #~ "        Used to value the product when the purchase cost is not known "
@@ -1237,458 +1242,12 @@ msgstr "eenheden"
 #~ "niet bekend zijn (bv. voorraadaanpassing).\n"
 #~ "        Wordt gebruikt om marges op verkooporders te berekenen."
 
+#~ msgid "6.00"
+#~ msgstr "6.00"
+
 #~ msgid ""
 #~ "You cannot modify the scheduled date of this operation because it falls "
 #~ "within a locked fiscal period."
 #~ msgstr ""
 #~ "Je kan de geplande datum van deze bewerking niet wijzigen omdat deze "
 #~ "binnen een vergrendelde boekhoudperiode valt."
-
-#~ msgid "%(quantity)s %(uom)s at product's standard price %(price)s"
-#~ msgstr ""
-#~ "%(quantity)s %(uom)s tegen de standaardprijs van het product %(price)s"
-
-#~ msgid "From company"
-#~ msgstr "Van bedrijf"
-
-#~ msgid "Inventory Variation"
-#~ msgstr "Voorraadmutatie"
-
-#~ msgid ""
-#~ "Manual: The accounting entries to value the inventory are not posted "
-#~ "automatically.\n"
-#~ "        Automated: An accounting entry is automatically created to value "
-#~ "the inventory when a product enters or leaves the company.\n"
-#~ "        "
-#~ msgstr ""
-#~ "Handmatig: de boekingen om de voorraad te waarderen worden niet "
-#~ "automatisch geboekt.\n"
-#~ "Realtime: een boeking wordt automatisch gemaakt om de voorraad te "
-#~ "waarderen wanneer een product het bedrijf binnenkomt of verlaat.\n"
-#~ "        "
-
-#~ msgid "None (only useful for continental)"
-#~ msgstr "Geen (enkel nuttig voor continentale methode)"
-
-#~ msgid ""
-#~ "Used for inventory valuation. When set on a virtual location (non "
-#~ "internal type), this account will be used to hold the value of products "
-#~ "into this location, instead of the generic Stock Account set on the "
-#~ "product. This has no effect for internal locations.In real-time: The "
-#~ "product's account will be used as counterparty account.During closing: "
-#~ "The company's stock valuation account will be used as counterparty "
-#~ "account."
-#~ msgstr ""
-#~ "Gebruikt voor voorraadwaardering. Als dit wordt ingesteld op een virtuele "
-#~ "locatie (niet-intern), wordt deze rekening gebruikt om de waarde van "
-#~ "producten op deze locatie te registreren, in plaats van de algemene "
-#~ "voorraadrekening die op het product is ingesteld. Dit heeft geen effect "
-#~ "op interne locaties. In realtime: De rekening van het product zal worden "
-#~ "gebruikt als tegenrekening. Tijdens het afsluiten: De "
-#~ "voorraadwaarderingsrekening van het bedrijf wordt gebruikt als "
-#~ "tegenrekening."
-
-#~ msgid " Product cost updated from %(previous)s to %(new_cost)s."
-#~ msgstr " Product kostprijs bijgewerkt van %(previous)s naar %(new_cost)s."
-
-#~ msgid ""
-#~ "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
-#~ msgstr ""
-#~ "%(user)s heeft kostprijs gewijzigd van %(previous)s naar %(new_price)s - %"
-#~ "(product)s"
-
-#~ msgid ""
-#~ "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - %"
-#~ "(product)s"
-#~ msgstr ""
-#~ "%(user)s heeft voorraadwaarde aangepast van  %(previous)s naar %"
-#~ "(new_value)s - %(product)s"
-
-#~ msgid ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Use a "
-#~ "negative added value to record a decrease in the product value</small>"
-#~ msgstr ""
-#~ ")\n"
-#~ "                            <small class=\"mx-2 fst-italic\">Gebruik een "
-#~ "negatieve toegevoegde waarde om een daling van de productwaarde vast te "
-#~ "leggen</small>"
-
-#~ msgid "<b>Set other input/output accounts on specific </b>"
-#~ msgstr ""
-#~ "<b>Stel overige voorraadtoename- en voorraadafname rekeningen in op "
-#~ "specifieke </b>"
-
-#~ msgid "Account Move"
-#~ msgstr "Boeking"
-
-#~ msgid "Account Stock Properties"
-#~ msgstr "Voorraadrekeningen"
-
-#~ msgid "Accounting Entries"
-#~ msgstr "Financiële boekingen"
-
-#~ msgid "Add Manual Valuation"
-#~ msgstr "Voeg handmatige waardering toe"
-
-#~ msgid "Added value"
-#~ msgstr "Toegevoegde waarde"
-
-#~ msgid "Automated"
-#~ msgstr "Geautomatiseerd"
-
-#~ msgid "Cancel"
-#~ msgstr "Annuleren"
-
-#~ msgid ""
-#~ "Cannot find a stock input account for the product %s. You must define one "
-#~ "on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Kan geen voorraadtoename rekening vinden voor het product %s. Deze moet "
-#~ "ingesteld worden op de productcategorie, of op de locatie, vóór het "
-#~ "verwerken van deze bewerking."
-
-#~ msgid ""
-#~ "Cannot find a stock output account for the product %s. You must define "
-#~ "one on the product category, or on the location, before processing this "
-#~ "operation."
-#~ msgstr ""
-#~ "Kan geen voorraadtoename rekening vinden voor het product %s. Deze moet "
-#~ "ingesteld worden op de productcategorie, of op de locatie, vóór het "
-#~ "verwerken van deze bewerking."
-
-#~ msgid ""
-#~ "Changing your cost method is an important change that will impact your "
-#~ "inventory valuation. Are you sure you want to make that change?"
-#~ msgstr ""
-#~ "Het wijzigen van je kostprijsmethode is een belangrijke verandering die "
-#~ "van invloed is op je voorraadwaardering. Weet je zeker dat je de "
-#~ "wijziging wilt aanbrengen?"
-
-#~ msgid "Choose a date to get the valuation at that date"
-#~ msgstr "Kies een datum om de waardering van die datum op te halen"
-
-#~ msgid ""
-#~ "Configuration error. Please configure the price difference account on the "
-#~ "product or its category to process this operation."
-#~ msgstr ""
-#~ "Configuratiefout. Configureer de prijsverschillen rekening op het product "
-#~ "of de categorie om deze bewerking te verwerken."
-
-#~ msgid "Costing method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Wijziging van de kostenmethode voor productcategorie %s: van %s naar %s."
-
-#~ msgid "Counterpart Account"
-#~ msgstr "Tegenrekening"
-
-#~ msgid ""
-#~ "Counterpart journal items for all incoming stock moves will be posted in "
-#~ "this account, unless there is a specific valuation account\n"
-#~ "                set on the source location. This is the default value for "
-#~ "all products in this category. It can also directly be set on each "
-#~ "product."
-#~ msgstr ""
-#~ "Tegenrekening boekingen voor alle inkomende voorraadbewegingen worden op "
-#~ "deze rekening geboekt, maar niet als er een specifieke "
-#~ "waarderingsrekening is\n"
-#~ "ingesteld op de bronlocatie. Dit is de standaardwaarde voor alle "
-#~ "producten in deze categorie. Het kan ook direct op elk product worden "
-#~ "ingesteld."
-
-#~ msgid "Current Quantity"
-#~ msgstr "Huidige hoeveelheid"
-
-#~ msgid "Default unit of measure used for all stock operations."
-#~ msgstr "Standaard maateenheid gebruikt voor alle voorraadbewegingen."
-
-#~ msgid ""
-#~ "Due to a change of product category (from %s to %s), the costing "
-#~ "method                                has changed for product template "
-#~ "%s: from %s to %s."
-#~ msgstr ""
-#~ "Vanwege een wijziging van de productcategorie (van %s naar %s) is de "
-#~ "kostprijsbepaling voor productsjabloon %s: van %s naar %sgewijzigd."
-
-#~ msgid "Group by..."
-#~ msgstr "Groepeer op..."
-
-#~ msgid "Has Remaining Qty"
-#~ msgstr "Heeft overgebleven hoeveelheid"
-
-#~ msgid "Incoming"
-#~ msgstr "Inkomend"
-
-#~ msgid "Invoice Line"
-#~ msgstr "Factuurregel"
-
-#~ msgid "Invoice value correction with invoice currency"
-#~ msgstr "Herstelling van de factuurwaarde met de factuurvaluta"
-
-#~ msgid "Journal"
-#~ msgstr "Dagboek"
-
-#~ msgid "Linked To"
-#~ msgstr "Gelinkt aan"
-
-#~ msgid "Manual Stock Valuation: %s."
-#~ msgstr "Handmatige voorraadwaardering: %s."
-
-#~ msgid "Manual Stock Valuation: No Reason Given."
-#~ msgstr "Handmatige voorraadwaardering: Geen reden opgegeven"
-
-#~ msgid "Moved Quantity"
-#~ msgstr "Verplaatste hoeveelheid"
-
-#~ msgid "New value"
-#~ msgstr "Nieuwe waarde"
-
-#~ msgid "New value by quantity"
-#~ msgstr "Nieuwe waarde per hoeveelheid"
-
-#~ msgid "Open Valuation Layer"
-#~ msgstr "Waardelaag openen"
-
-#~ msgid "Other Info"
-#~ msgstr "Overige info"
-
-#~ msgid "Outgoing"
-#~ msgstr "Uitgaand"
-
-#~ msgid "Product Revaluation"
-#~ msgstr "Productherwaardering"
-
-#~ msgid "Product Template"
-#~ msgstr "Productsjabloon"
-
-#~ msgid "Product value manually modified (from %s to %s)"
-#~ msgstr "Productwaarde handmatig gewijzigd (vanaf %s naar %s)"
-
-#~ msgid "Quantity"
-#~ msgstr "Aantal"
-
-#~ msgid "Quantity Svl"
-#~ msgstr "Hoeveelheid Svl"
-
-#~ msgid "Reason"
-#~ msgstr "Reden"
-
-#~ msgid "Reason of the revaluation"
-#~ msgstr "Reden van herwaardering"
-
-#~ msgid "Related product"
-#~ msgstr "Gerelateerd product"
-
-#~ msgid "Remaining Qty"
-#~ msgstr "Overgebleven hoeveelheid"
-
-#~ msgid "Return Picking"
-#~ msgstr "Retour boeken"
-
-#~ msgid "Revaluation of %s"
-#~ msgstr "Herwaardering van %s"
-
-#~ msgid "Revalue"
-#~ msgstr "Herwaardering"
-
-#~ msgid "Stock Input Account"
-#~ msgstr "Voorraadtoename rekening"
-
-#~ msgid "Stock Output Account"
-#~ msgstr "Voorraadafname rekening"
-
-#~ msgid "Stock Quantity History"
-#~ msgstr "Voorraadhoeveelheid geschiedenis"
-
-#~ msgid "Stock Request an Inventory Count"
-#~ msgstr "Voorraad Een voorraadtelling aanvragen"
-
-#~ msgid "Stock Valuation Account (Incoming)"
-#~ msgstr "Voorraadwaarde rekening (inkomend)"
-
-#~ msgid "Stock Valuation Account (Outgoing)"
-#~ msgstr "Voorraadwaarde rekening (uitgaand)"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Voorraadwaardelaag"
-
-#~ msgid ""
-#~ "The Stock Input and/or Output accounts cannot be the same as the Stock "
-#~ "Valuation account."
-#~ msgstr ""
-#~ "The Stock Input and/or Output accounts cannot be the same as the Stock "
-#~ "Valuation account."
-
-#~ msgid ""
-#~ "The action leads to the creation of a journal entry, for which you don't "
-#~ "have the access rights."
-#~ msgstr ""
-#~ "De actie leidt tot het aanmaken van een financiële boeking, waarvoor je "
-#~ "geen toegangsrechten heeft."
-
-#~ msgid "The added value doesn't have any impact on the stock valuation"
-#~ msgstr "De toegevoegde waarde heeft geen invloed op de voorraadwaardering"
-
-#~ msgid ""
-#~ "The move lines are not in a consistent state: some are entering and other "
-#~ "are leaving the company."
-#~ msgstr ""
-#~ "De boekingsregels bevinden zich niet in een consistente staat: sommige "
-#~ "worden ontvangen en andere verlaten het bedrijf."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they are doing an "
-#~ "intercompany in a single step while they should go through the "
-#~ "intercompany transit location."
-#~ msgstr ""
-#~ "De boekingsregels bevinden zich niet in een consistente staat: ze doen "
-#~ "intercompany in één stap terwijl ze door de intercompany transit locatie "
-#~ "moeten gaan."
-
-#~ msgid ""
-#~ "The move lines are not in a consistent states: they do not share the same "
-#~ "origin or destination company."
-#~ msgstr ""
-#~ "De boekingsregels bevinden zich niet in een consistente staat: ze delen "
-#~ "niet dezelfde bron of bestemmingsbedrijf."
-
-#~ msgid ""
-#~ "There are no valuation layers. Valuation layers are created when there "
-#~ "are product moves that impact the valuation of the stock."
-#~ msgstr ""
-#~ "Er zijn geen waarderingslagen. Waarderingslagen worden gemaakt wanneer er "
-#~ "productbewegingen zijn die van invloed zijn op de waardering van de "
-#~ "voorraad."
-
-#~ msgid "Total Remaining Quantity"
-#~ msgstr "Totale resterende hoeveelheid"
-
-#~ msgid "Unit Value"
-#~ msgstr "Eenheidswaarde"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Maateenheid"
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved from an internal location into this location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Gebruik real-time voorraadwaardering. Wanneer dit is ingesteld op een "
-#~ "virtuele locatie (niet een interne locatie), dan zal deze rekening de "
-#~ "inkoopwaarde bevatten van de producten welke worden verplaatst uit een "
-#~ "interne locatie naar deze locatie, in plaats van de standaard "
-#~ "voorraadafname rekening, zoals ingesteld bij het product. Dit heeft geen "
-#~ "effect voor interne locaties."
-
-#~ msgid ""
-#~ "Used for real-time inventory valuation. When set on a virtual location "
-#~ "(non internal type), this account will be used to hold the value of "
-#~ "products being moved out of this location and into an internal location, "
-#~ "instead of the generic Stock Output Account set on the product. This has "
-#~ "no effect for internal locations."
-#~ msgstr ""
-#~ "Gebruik real-time voorraadwaardering. Wanneer dit is ingesteld op een "
-#~ "virtuele locatie (niet een interne locatie), dan zal deze rekening de "
-#~ "inkoopwaarde bevatten van de producten welke worden verplaatst uit deze "
-#~ "locatie naar een interne locatie, in plaats van de standaard "
-#~ "voorraadafname  rekening, zoals ingesteld bij het product. Dit heeft geen "
-#~ "effect voor interne locaties."
-
-#~ msgid "Valuation Report"
-#~ msgstr "Voorraadwaarde rapport"
-
-#~ msgid "Valuation at Date"
-#~ msgstr "Waardering op huidig moment"
-
-#~ msgid "Valuation method change for product category %s: from %s to %s."
-#~ msgstr ""
-#~ "Wijziging van de waarderingsmethode voor productcategorie %s: van %s naar "
-#~ "%s."
-
-#~ msgid "Value Svl"
-#~ msgstr "Waarde Svl"
-
-#~ msgid "Warning"
-#~ msgstr "Waarschuwing"
-
-#~ msgid ""
-#~ "When doing automated inventory valuation, counterpart journal items for "
-#~ "all outgoing stock moves will be posted in this account,\n"
-#~ "                unless there is a specific valuation account set on the "
-#~ "destination location. This is the default value for all products in this "
-#~ "category.\n"
-#~ "                It can also directly be set on each product."
-#~ msgstr ""
-#~ "Bij het uitvoeren van automatische voorraadwaardering, zal de "
-#~ "tegenboeking voor alle uitgaande voorraadverplaatsingen worden geboekt op "
-#~ "deze rekening, maar niet als er een specifieke waarderingsrekening is "
-#~ "ingesteld op de bestemmingslocatie. Dit is de standaardwaarde voor alle "
-#~ "producten in deze categorie. Het kan ook direct worden ingesteld bij een "
-#~ "product"
-
-#~ msgid "Wizard model to reavaluate a stock inventory for a product"
-#~ msgstr ""
-#~ "Wizard-model om een voorraadvoorraad voor een product opnieuw te evalueren"
-
-#~ msgid "You cannot revalue a product with a standard cost method."
-#~ msgstr ""
-#~ "Je kunt een product niet herwaarderen met een standaardkostenmethode."
-
-#~ msgid "You cannot revalue a product with an empty or negative stock."
-#~ msgstr ""
-#~ "Je kunt een product met geen of negatieve voorraad niet herwaarderen."
-
-#~ msgid ""
-#~ "You cannot update the cost of a product in automated valuation as it "
-#~ "leads to the creation of a journal entry, for which you don't have the "
-#~ "access rights."
-#~ msgstr ""
-#~ "Je kunt de kosten van een product niet bijwerken bij geautomatiseerde "
-#~ "waardering, omdat dit leidt tot het maken van een financiële boeking "
-#~ "waarvoor je geen toegangsrechten heeft."
-
-#~ msgid ""
-#~ "You don't have any input valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Er is geen voorraadtoename rekening gedefinieerd op je productcategorie. "
-#~ "Je moet een er vóór de verwerking van deze bewerking definiëren."
-
-#~ msgid ""
-#~ "You don't have any stock input account defined on your product category. "
-#~ "You must define one before processing this operation."
-#~ msgstr ""
-#~ "Je hebt geen voorraadtoename rekening gedefinieerd voor de "
-#~ "productcategorie. Je moet er een definiëren voordat je deze bewerking "
-#~ "kunt verwerken."
-
-#~ msgid ""
-#~ "You don't have any stock journal defined on your product category, check "
-#~ "if you have installed a chart of accounts."
-#~ msgstr ""
-#~ "Je hebt geen voorraadboek gedefinieerd op je productcategorie, controleer "
-#~ "of je een grootboekschema heeft geïnstalleerd."
-
-#~ msgid ""
-#~ "You don't have any stock valuation account defined on your product "
-#~ "category. You must define one before processing this operation."
-#~ msgstr ""
-#~ "Er is geen voorraadwaardering rekening gedefinieerd op je "
-#~ "productcategorie. Je moet een er vóór de verwerking van deze bewerking "
-#~ "definiëren."
-
-#~ msgid "You must set a counterpart account on your product category."
-#~ msgstr "Je moet een tegenrekening instellen voor je productcategorie."
-
-#~ msgid "by"
-#~ msgstr "in"
-
-#~ msgid "for"
-#~ msgstr "voor"
-
-#~ msgid "locations"
-#~ msgstr "locaties"

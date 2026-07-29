@@ -1,12 +1,21 @@
+/**
+ * @typedef DependencyInManifest
+ * ⚠️ Each dependency of this file in `mail` must be explicitly added in
+ * `web.assets_frontend` in the manifest. This error is not caught by the
+ * standard runbot, only during staging or nightly. The missing dependency might
+ * added by livechat so it only happens when frontend modules are installed and
+ * tested while livechat is not installed.
+ */
+import { getInnerHtml, getOuterHtml } from "@mail/utils/common/html";
+
 import { htmlEscape, markup } from "@odoo/owl";
 
 import { router } from "@web/core/browser/router";
-import { loadEmoji, loader } from "@web/core/emoji_picker/emoji_picker";
-import { normalize } from "@web/core/l10n/utils";
+import { emojiLoader } from "@web/core/emoji_picker/emoji_loader";
+import { formatList, normalize } from "@web/core/l10n/utils";
 import {
     createDocumentFragmentFromContent,
     createElementWithContent,
-    htmlFormatList,
     htmlJoin,
     htmlReplace,
     htmlReplaceAll,
@@ -14,13 +23,19 @@ import {
     isHtmlEmpty,
     setElementContent,
 } from "@web/core/utils/html";
-import { escapeRegExp } from "@web/core/utils/strings";
+import { escapeRegExp, nbsp } from "@web/core/utils/strings";
 import { getOrigin } from "@web/core/utils/urls";
 import { setAttributes } from "@web/core/utils/xml";
 
 const urlRegexp =
     /\b(?:https?:\/\/\d{1,3}(?:\.\d{1,3}){3}|(?:https?:\/\/|(?:www\.))[-a-z0-9@:%._+~#=\u00C0-\u024F\u1E00-\u1EFF]{1,256}(?:\.{1})?(?:[a-z]{2,13}))\b(?:[-a-z0-9@:%_+~#?&[\]^|{}`\\'$//=\u00C0-\u024F\u1E00-\u1EFF]|[.]*[-a-z0-9@:%_+~#?&[\]^|{}`\\'$//=\u00C0-\u024F\u1E00-\u1EFF]|,(?!$| )|\.(?!$| |\.)|;(?!$| ))*/gi;
 const messageUrlRegExp = new RegExp(`^${escapeRegExp(getOrigin())}/mail/message/(\\d+)$`);
+const MENTION_CLASSNAMES = new Set([
+    "o_mail_redirect",
+    "o_message_redirect",
+    "o_channel_redirect",
+    "o-discuss-mention",
+]);
 
 /**
  * @param {string|ReturnType<markup>} rawBody
@@ -54,8 +69,11 @@ export function prettifyMessageText(rawBody, { validMentions = {}, thread } = {}
  */
 export async function generateEmojisOnHtml(htmlBody, { allowEmojiLoading = true } = {}) {
     let body = htmlBody;
-    if (allowEmojiLoading || odoo.loader.modules.get("@web/core/emoji_picker/emoji_data")) {
-        body = await _generateEmojisOnHtml(body);
+    if (allowEmojiLoading && !emojiLoader.loaded) {
+        await emojiLoader.load();
+    }
+    if (emojiLoader.loaded) {
+        body = _generateEmojisOnHtml(body);
     }
     return body;
 }
@@ -148,8 +166,7 @@ function linkify(text) {
             });
             link.classList.add("o_message_redirect");
         }
-        // markup: outerHTML is safe when used as a node
-        result = htmlJoin([result, markup(link.outerHTML)]);
+        result = htmlJoin([result, getOuterHtml(link)]);
         curIndex = match.index + match[0].length;
     }
     return htmlJoin([result, text.slice(curIndex)]);
@@ -175,10 +192,10 @@ export function addLink(node, transformChildren) {
         return node.textContent;
     }
     if (node.tagName === "A") {
-        return markup(node.outerHTML);
+        return getOuterHtml(node);
     }
     transformChildren();
-    return markup(node.outerHTML);
+    return getOuterHtml(node);
 }
 
 function generateMentionElement({ className, id, model, text }) {
@@ -229,15 +246,15 @@ export function generateSpecialMentionElement(label) {
     return link;
 }
 
-/** @param {import("models").Thread} thread */
-export function generateThreadMentionElement(thread) {
+/** @param {import("models").DiscussChannel} channel */
+export function generateChannelMentionElement(channel) {
     return generateMentionElement({
         className: `o_channel_redirect${
-            thread.parent_channel_id ? " o_channel_redirect_asThread" : ""
+            channel.parent_channel_id ? " o_channel_redirect_asThread" : ""
         }`,
-        id: thread.id,
+        id: channel.id,
         model: "discuss.channel",
-        text: `#${thread.fullNameWithParent}`,
+        text: `#${channel.fullNameWithParent}`,
     });
 }
 
@@ -253,7 +270,7 @@ export function generateThreadMentionElement(thread) {
  */
 function generateMentionsLinks(
     body,
-    { partners = [], roles = [], threads = [], specialMentions = [], thread }
+    { channels = [], partners = [], roles = [], specialMentions = [], thread }
 ) {
     const mentions = [];
     for (const partner of partners) {
@@ -265,11 +282,11 @@ function generateMentionsLinks(
         });
         body = htmlReplace(body, text, placeholder);
     }
-    for (const thread of threads) {
-        const placeholder = `#-mention-channel-${thread.id}`;
-        const text = `#${thread.fullNameWithParent}`;
+    for (const channel of channels) {
+        const placeholder = `#-mention-channel-${channel.id}`;
+        const text = `#${channel.fullNameWithParent}`;
         mentions.push({
-            link: generateThreadMentionElement(thread),
+            link: generateChannelMentionElement(channel),
             placeholder,
         });
         body = htmlReplace(body, text, placeholder);
@@ -294,8 +311,7 @@ function generateMentionsLinks(
     }
     for (const mention of mentions) {
         const link = mention.link;
-        // markup: outerHTML is safe when used as a node
-        body = htmlReplace(body, mention.placeholder, markup(link.outerHTML));
+        body = htmlReplace(body, mention.placeholder, getOuterHtml(link));
     }
     return htmlEscape(body);
 }
@@ -303,13 +319,11 @@ function generateMentionsLinks(
 /**
  * @private
  * @param {string|ReturnType<markup>} htmlString
- * @returns {Promise<ReturnType<markup>>}
  */
-async function _generateEmojisOnHtml(htmlString) {
-    const { emojis } = await loadEmoji();
-    for (const emoji of emojis) {
-        for (const source of [...emoji.shortcodes, ...emoji.emoticons]) {
-            const escapedSource = htmlEscape(String(source));
+function _generateEmojisOnHtml(htmlString) {
+    for (const emoji of emojiLoader.emojis) {
+        for (const source of emoji.shortcodes.concat(emoji.emoticons)) {
+            const escapedSource = htmlEscape(source);
             const regexp = new RegExp(
                 "(\\s|^)(" + escapeRegExp(escapedSource) + ")(?=\\s|$|<)",
                 "g"
@@ -321,10 +335,19 @@ async function _generateEmojisOnHtml(htmlString) {
 }
 
 /**
+ * @deprecated
  * @param {string|ReturnType<markup>} body
  * @returns {ReturnType<markup>}
  */
 export function getNonEditableMentions(body) {
+    return prepareBodyForEditing(body);
+}
+
+/**
+ * @param {string|ReturnType<markup>} body
+ * @returns {ReturnType<markup>}
+ */
+export function prepareBodyForEditing(body) {
     const doc = createDocumentFragmentFromContent(body);
     for (const block of doc.body.querySelectorAll(".o_mail_reply_hide")) {
         block.classList.remove("o_mail_reply_hide");
@@ -341,7 +364,13 @@ export function getNonEditableMentions(body) {
     for (const mention of doc.body.querySelectorAll(".o-discuss-mention")) {
         mention.setAttribute("contenteditable", false);
     }
-    return markup(doc.body.innerHTML);
+    // The "(edited)" label is added by the server and must never be editable.
+    // Remove it so that CTRL+A does not select it and it is always re-added at
+    // the end by the server upon saving.
+    for (const edited of doc.body.querySelectorAll(".o-mail-Message-edited")) {
+        edited.remove();
+    }
+    return getInnerHtml(doc.body);
 }
 
 /**
@@ -447,8 +476,89 @@ export function trimEmptyBlocksAround(content) {
     };
     trimBoundaryParagraph("start");
     trimBoundaryParagraph("end");
-    // markup: innerHTML of the body is safe as it is generated from a DocumentFragment created from a trusted source and operations on body, the trim and removeNode, preserve it "safe".
-    return changed ? markup(body.innerHTML) : content;
+    return changed ? getInnerHtml(body) : content;
+}
+
+/**
+ * Converts an html string to inline representation.
+ * - Links and mentions are preserved
+ * - For the rest: text content of nodes
+ *
+ * @param {string|ReturnType<markup>} htmlString
+ * @returns {ReturnType<markup>}
+ */
+export function htmlToHtmlInline(htmlString) {
+    const doc = createDocumentFragmentFromContent(htmlString || "");
+    const body = doc.body;
+    const previewBody = body.ownerDocument.createElement("body");
+
+    /** @param {HTMLElement} [node] */
+    const isBlock = (node) =>
+        node?.nodeType === Node.ELEMENT_NODE && ["DIV", "P"].includes(node?.tagName);
+
+    /**
+     * @param {HTMLElement} parent
+     * @param {string} [text]
+     */
+    const appendText = (parent, text) => {
+        if (text) {
+            parent.append(body.ownerDocument.createTextNode(text));
+        }
+    };
+
+    /**
+     * @param {HTMLElement} parent
+     * @param {HTMLElement[]} nodes
+     */
+    const appendInlinePreviewChildren = (parent, nodes) => {
+        for (let index = 0; index < nodes.length; index++) {
+            const node = nodes[index];
+            appendInlinePreview(parent, node);
+            if (isBlock(node) && isBlock(nodes[index + 1])) {
+                appendText(parent, nbsp);
+            }
+        }
+    };
+
+    /**
+     * @param {HTMLElement} parent
+     * @param {HTMLElement} node
+     */
+    const appendInlinePreview = (parent, node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            appendText(parent, node.textContent);
+            return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+        if (node.tagName === "BR") {
+            appendText(parent, nbsp);
+            return;
+        }
+        if (node.tagName === "A") {
+            const href = node.getAttribute("href");
+            if ([...node.classList].some((cls) => MENTION_CLASSNAMES.has(cls))) {
+                parent.append(node);
+            } else if (href) {
+                const link = body.ownerDocument.createElement("a");
+                link.setAttribute("href", href);
+                for (const attr of ["target", "rel"]) {
+                    if (node.hasAttribute(attr)) {
+                        link.setAttribute(attr, node.getAttribute(attr));
+                    }
+                }
+                link.append(body.ownerDocument.createTextNode(href));
+                parent.append(link);
+            }
+            return;
+        }
+        appendInlinePreviewChildren(parent, [...node.childNodes]);
+    };
+
+    appendInlinePreviewChildren(previewBody, [...body.childNodes]);
+
+    return htmlTrim(getInnerHtml(previewBody)) ?? "";
 }
 
 export function cleanTerm(term) {
@@ -518,7 +628,7 @@ export const EMOJI_REGEX = new RegExp(
  * @returns {ReturnType<markup>}
  */
 export function decorateEmojis(content) {
-    if (!loader.loaded || !content) {
+    if (!emojiLoader.loaded || !content) {
         return content;
     }
     const doc = createDocumentFragmentFromContent(content);
@@ -534,18 +644,19 @@ export function decorateEmojis(content) {
         const span = document.createElement("span");
         setElementContent(
             span,
-            htmlReplaceAll(node.textContent, loader.loaded.emojiRegex, (codepoints) =>
-                markup(
-                    `<span class="o-mail-emoji" title="${htmlFormatList(
-                        loader.loaded.emojiValueToShortcodes[codepoints],
-                        { style: "unit-narrow" }
-                    )}">${htmlEscape(codepoints)}</span>`
-                )
-            )
+            htmlReplaceAll(node.textContent, EMOJI_REGEX, (codepoints) => {
+                if (!emojiLoader.map.has(codepoints)) {
+                    return codepoints;
+                }
+                const title = formatList(emojiLoader.map.get(codepoints).shortcodes, {
+                    style: "unit-narrow",
+                });
+                return markup`<span class="o-mail-emoji" title="${title}">${codepoints}</span>`;
+            })
         );
         node.replaceWith(...span.childNodes);
     }
-    return markup(doc.body.innerHTML);
+    return getInnerHtml(doc.body);
 }
 
 /**

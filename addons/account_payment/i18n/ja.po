@@ -10,17 +10,18 @@
 # Noma Yuki, 2022
 # Ryoko Tsuda <ryoko@quartile.co>, 2023
 # Andy Yiu, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
 # Sayaka Yamada <sayaka@quartile.co>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 18:58+0000\n"
-"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 13:17+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -141,7 +142,8 @@ msgstr "顧客が %s以前に支払う場合、値引きが適用されます。
 msgid ""
 "A payment has already been made on this invoice, please make sure to not pay "
 "twice."
-msgstr "この請求書はすでに支払されています。二重払いとならないようご注意下さい。"
+msgstr ""
+"この請求書はすでに支払されています。二重払いとならないようご注意下さい。"
 
 #. module: account_payment
 #. odoo-python
@@ -154,6 +156,11 @@ msgstr "参照%sを伴う支払取引がすでに存在します。"
 #: code:addons/account_payment/models/account_payment.py:0
 msgid "A token is required to create a new payment transaction."
 msgstr "新しい支払い取引を作成するには、トークンが必要です。"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr "すべての価格表"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
@@ -170,6 +177,11 @@ msgstr "返金可能額"
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
 msgstr "請求残高"
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
+msgstr "金額:"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_bank_statement_line__amount_paid
@@ -192,8 +204,9 @@ msgstr "承認された取引"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "銀行取引明細行"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -317,7 +330,8 @@ msgstr "ID"
 msgid ""
 "Impossible to pay all the overdue invoices if they don't share the same "
 "currency."
-msgstr "すべて同じ通貨でなければ、すべての期限超過請求書を支払うことはできません。"
+msgstr ""
+"すべて同じ通貨でなければ、すべての期限超過請求書を支払うことはできません。"
 
 #. module: account_payment
 #: model:ir.model.fields,help:account_payment.field_account_payment_method_line__payment_provider_state
@@ -325,8 +339,8 @@ msgid ""
 "In test mode, a fake payment is processed through a test payment interface.\n"
 "This mode is advised when setting up the provider."
 msgstr ""
-"テストモードでは、偽の支払いがテスト支払インターフェイスを通じて処理されます"
-"。\n"
+"テストモードでは、偽の支払いがテスト支払インターフェイスを通じて処理されま"
+"す。\n"
 "このモードは、プロバイダを設定する際に推奨されます。"
 
 #. module: account_payment
@@ -357,7 +371,7 @@ msgid "Invoices Count"
 msgstr "請求書カウント"
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr "未払顧客請求書"
 
@@ -416,6 +430,15 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr "オンライン支払オプションが設定で無効になっています。"
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+"取引先の価格表が以下のいずれかに一致する場合にのみ、この決済プロバイダーを許"
+"可します。"
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -471,6 +494,7 @@ msgid "Pay overdue"
 msgstr "支払期限超過"
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -488,7 +512,15 @@ msgstr "支払仕訳帳"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+msgid "Payment Method"
+msgstr "支払方法"
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+msgid "Payment Method Line"
+msgstr "支払方法明細"
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "支払方法"
@@ -528,15 +560,15 @@ msgid "Payment Transactions"
 msgstr "支払取引"
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "支払"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr "期限超過請求書を支払うにはログインして下さい。"
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+msgid "Pricelists"
+msgstr "価格表"
 
 #. module: account_payment
 #. odoo-python
@@ -750,8 +782,8 @@ msgid ""
 "You cannot uninstall this module as payments using this payment method "
 "already exist."
 msgstr ""
-"この支払い方法を使用した支払が既に存在するため、このモジュールを"
-"アンインストールすることはできません。"
+"この支払い方法を使用した支払が既に存在するため、このモジュールをアンインス"
+"トールすることはできません。"
 
 #. module: account_payment
 #. odoo-python
@@ -781,24 +813,17 @@ msgid "has been applied."
 msgstr "適用されました。"
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr "この請求書は既に支払われています。二重に支払わないようご注意ください。"
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr "期限超過"
 
-#~ msgid "Code"
-#~ msgstr "コード"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>適用可能な決済オプションが見つかりませんでした</strong><br/>\n"
-#~ "                                エラーと思われる場合は、サイトの管理者まで"
-#~ "お問い合わせください。"
-
-#~ msgid "Pay with"
-#~ msgstr "お支払"
-
-#~ msgid "Register Payment"
-#~ msgstr "支払登録"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr "価格表は許可されていません"

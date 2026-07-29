@@ -6,13 +6,13 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-01 23:26+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 04:43+0000\n"
 "Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "snailmail/vi/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -114,10 +114,6 @@ msgstr "Màu sắc"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "Công ty"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "Công ty"
@@ -288,8 +284,8 @@ msgstr "Tin nhắn"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "Thông báo thông điệp"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -411,11 +407,6 @@ msgstr "Thư bưu điện"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "Màu sắc thư bưu điện"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "Hình nền thư bưu điện chỉ đọc"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -628,74 +619,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "Mã bưu chính"
-
-#~ msgid "Address"
-#~ msgstr "Địa chỉ"
-
-#~ msgid "Buy credits"
-#~ msgstr "Buy credits"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "Cancel Letter"
-
-#~ msgid "Cancel letter"
-#~ msgstr "Cancel letter"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "Hủy thông báo thất bại"
-
-#~ msgid "Canceled"
-#~ msgstr "Đã huỷ"
-
-#~ msgid "Close"
-#~ msgstr "Đóng"
-
-#~ msgid "Failed letter"
-#~ msgstr "Failed letter"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "Kiểu thông điệp: email đối với thông điệp bằng email, thông báo đối với "
-#~ "các thông điệp hệ thống, bình luận đối với các loại thông điệp khác (ví "
-#~ "dụ: phản hồi của người dùng)"
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-
-#~ msgid "Partner"
-#~ msgstr "Đối tác"
-
-#~ msgid "Street 2..."
-#~ msgstr "Địa chỉ, đường..."
-
-#~ msgid "Street..."
-#~ msgstr "Địa chỉ..."
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "Update Config and Re-send"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "Update address and re-send"
-
-#~ msgid "Update address of partner"
-#~ msgstr "Update address of partner"
-
-#~ msgid "ZIP"
-#~ msgstr "Mã bưu điện"

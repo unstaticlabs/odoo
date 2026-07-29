@@ -5,16 +5,16 @@
 # Translators:
 # erpgo translator <jumshud@erpgo.az>, 2022
 # Jumshud Sultanov <cumshud@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:22+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 14:15+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Azerbaijani <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Azerbaijani <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_setup/az/>\n"
 "Language: az\n"
 "MIME-Version: 1.0\n"
@@ -107,8 +107,9 @@ msgstr ""
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
+#, fuzzy
 msgid "API Keys"
-msgstr ""
+msgstr "API Açarları"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -139,14 +140,10 @@ msgid "Add fun feedback and motivate your employees"
 msgstr "Maraqlı rəylər əlavə edin və işçilərinizi həvəsləndirin"
 
 #. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
-msgstr ""
-
-#. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_calendar
 msgid "Allow the users to synchronize their calendar  with Google Calendar"
-msgstr "İstifadəçilərə təqvimlərini Google Təqvimlə sinxronlaşdırmağa icazə ver"
+msgstr ""
+"İstifadəçilərə təqvimlərini Google Təqvimlə sinxronlaşdırmağa icazə ver"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_microsoft_calendar
@@ -365,11 +362,6 @@ msgstr "İmport və Eksport"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
-msgstr ""
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Integrations"
 msgstr "İnteqrasiyalar"
 
@@ -403,11 +395,6 @@ msgstr "Dillər"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
 msgstr "Sxem"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
-msgstr ""
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -625,49 +612,3 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_recaptcha
 msgid "reCAPTCHA"
 msgstr ""
-
-#~ msgid "Asterisk (VoIP)"
-#~ msgstr "Asterisk (IP telefoniya)"
-
-#~ msgid ""
-#~ "Automatically generate counterpart documents for orders/invoices between "
-#~ "companies"
-#~ msgstr ""
-#~ "Şirkətlərarası sifarişlər / fakturalar üçün avtomatik olaraq tərəfdaş "
-#~ "sənədləri yaradın"
-
-#~ msgid ""
-#~ "By default, new users get highest access rights for all installed apps."
-#~ msgstr ""
-#~ "Susmaya görə olaraq, yeni istifadəçilər quraşdırılmış bütün tətbiqlər "
-#~ "üzrə ən yüksək giriş hüquqlarını əldə edirlər."
-
-#~ msgid "Default User Template not found."
-#~ msgstr "Defolt İstifadəçi şablonu tapılmadı"
-
-#~ msgid "Documentation"
-#~ msgstr "Sənədləşmə"
-
-#~ msgid "Geo Localization"
-#~ msgstr "Coğrafi Lokalizasiya"
-
-#~ msgid "GeoLocalize your partners"
-#~ msgstr "Tərəfdaşlarınızı coğrafi lokallaşdırın"
-
-#~ msgid "Google Calendar"
-#~ msgstr "Google Təqvim"
-
-#~ msgid "On Apple Store"
-#~ msgstr "Apple Store-da"
-
-#~ msgid "On Google Play"
-#~ msgstr "Google Play-də"
-
-#~ msgid "Outlook Calendar"
-#~ msgstr "Outlook Təqvim"
-
-#~ msgid "Synchronize your calendar with Google Calendar"
-#~ msgstr "Təqviminizi Google Təqvimi ilə sinxronizasiya edin"
-
-#~ msgid "Synchronize your calendar with Outlook"
-#~ msgstr "Təqviminizi Outlook ilə sinxronizasiya edin"

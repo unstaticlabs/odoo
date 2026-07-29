@@ -1,11 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import re
 from collections import defaultdict
 from datetime import datetime, time
-from statistics import mode
-import re
-
-import pytz
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, AccessError, ValidationError
@@ -27,20 +24,20 @@ class AccountAnalyticLine(models.Model):
 
     @api.model
     def _get_favorite_project_id(self, employee_id=False):
+        """ Return the project linked to at least 3 of the employee's 5 most recent
+        timesheets, if any, since they are the most likely to keep logging time on it. """
         last_timesheets = self.search_fetch(
             self._get_favorite_project_id_domain(employee_id), ['project_id'], limit=5
         )
-        if not last_timesheets:
-            internal_project = self.env.company.internal_project_id
-            return internal_project.has_access('read') and internal_project.active and internal_project.allow_timesheets and internal_project.id
-        return mode([t.project_id.id for t in last_timesheets])
+        project_ids = [t.project_id.id for t in last_timesheets]
+        return next((pid for pid in project_ids if project_ids.count(pid) >= 3), False)
 
     @api.model
     def default_get(self, fields):
         result = super().default_get(fields)
         if not self.env.context.get('default_employee_id') and 'employee_id' in fields and result.get('user_id'):
             result['employee_id'] = self.env['hr.employee'].search([('user_id', '=', result['user_id']), ('company_id', '=', result.get('company_id', self.env.company.id))], limit=1).id
-        if not self.env.context.get('default_project_id') and self.env.context.get('is_timesheet'):
+        if not self.env.context.get('default_project_id') and self.env.context.get('is_timesheet') and 'project_id' in fields:
             employee_id = result.get('employee_id', self.env.context.get('default_employee_id', False))
             favorite_project_id = self._get_favorite_project_id(employee_id)
             if favorite_project_id:
@@ -207,6 +204,8 @@ class AccountAnalyticLine(models.Model):
         ):
             raise AccessError(_("You cannot access timesheets that are not yours."))
 
+        super()._check_can_write(values)
+
     def _check_can_create(self):
         # override in other modules to check current user has create access
         pass
@@ -220,7 +219,7 @@ class AccountAnalyticLine(models.Model):
         employee_ids = []
         # If batch creating from the calendar view, prefetch all employees to avoid fetching them one by one in the loop
         if self.env.context.get('timesheet_calendar'):
-            self.env['hr.employee'].browse([vals.get('employee_id') for vals in vals_list])
+            self.env['hr.employee'].browse([vals['employee_id'] for vals in vals_list if vals.get('employee_id')])
         # 1/ Collect the user_ids and employee_ids from each timesheet vals
         skipped_vals = 0
         valid_vals = 0
@@ -358,7 +357,6 @@ class AccountAnalyticLine(models.Model):
 
     def write(self, vals):
         values = vals
-        self._check_can_write(values)
 
         task = self.env['project.task'].sudo().browse(values.get('task_id'))
         project = self.env['project.project'].sudo().browse(values.get('project_id'))

@@ -6,12 +6,8 @@
             <t t-if="forums">
                 <t t-set="courses_discussions" t-value="forums.filtered(lambda f: f.slide_channel_id)"/>
                 <t t-set="regular_forums" t-value="forums - courses_discussions"/>
-                <t t-call="website_forum.forum_all_all_entries">
-                    <t t-set="_forums" t-value="regular_forums"/>
-                </t>
-                <t t-call="website_forum.forum_all_all_entries">
-                    <t t-set="_forums" t-value="courses_discussions"/>
-                </t>
+                <t t-call="website_forum.forum_all_all_entries" _forums="regular_forums"/>
+                <t t-call="website_forum.forum_all_all_entries" _forums="courses_discussions"/>
             </t>
         </xpath>
     </template>
@@ -34,9 +30,7 @@
                 <li class="breadcrumb-item text-nowrap">
                     <a t-attf-href="/slides/#{slug(forum.slide_channel_id)}#{'/' + slug(category) if category else ''}" t-out="forum.name"/>
                 </li>
-                <li class="breadcrumb-item text-nowrap">
-                    <strong>Forum</strong>
-                </li>
+                <li class="breadcrumb-item text-nowrap active">Forum</li>
             </ol>
         </xpath>
     </template>

@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * mrp_subcontracting_purchase
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 07:54+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-01-16 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 04:47+0000\n"
+"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
 "Language-Team: Catalan <https://translate.odoo.com/projects/odoo-19/"
 "mrp_subcontracting_purchase/ca/>\n"
 "Language: ca\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
@@ -153,6 +153,3 @@ msgstr "Transferència"
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Vendor Lead Time"
 msgstr "Termini de lliurament del proveïdor"
-
-#~ msgid "Stock Valuation Layer"
-#~ msgstr "Capa de valoració d'estoc"

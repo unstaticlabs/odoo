@@ -1,13 +1,13 @@
+import base64
 import gzip
 import json
 import re
-import base64
 from datetime import datetime
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import requests
 from lxml import etree
-from pytz import timezone
 from requests.exceptions import RequestException
 
 from odoo import _, api, fields, models, release
@@ -112,7 +112,7 @@ class L10n_Es_Edi_TbaiDocument(models.Model):
         if not self.company_id.vat:
             return _("Please configure the Tax ID on your company for TicketBAI.")
 
-        if self.company_id.l10n_es_tbai_tax_agency == 'bizkaia' and self.company_id._l10n_es_freelancer() and not self.env['ir.config_parameter'].sudo().get_param('l10n_es_edi_tbai.epigrafe', False):
+        if self.company_id.l10n_es_tbai_tax_agency == 'bizkaia' and self.company_id._l10n_es_freelancer() and not self.env['ir.config_parameter'].sudo().get_str('l10n_es_edi_tbai.epigrafe'):
             return _("In order to use Ticketbai Batuz for freelancers, you will need to configure the "
                         "Epigrafe or Main Activity.  In this version, you need to go in debug mode to "
                         "Settings > Technical > System Parameters and set the parameter 'l10n_es_edi_tbai.epigrafe'"
@@ -304,7 +304,7 @@ class L10n_Es_Edi_TbaiDocument(models.Model):
             'sender_vat': sender.vat[2:] if sender.vat.startswith('ES') else sender.vat,
             'fiscal_year': str(self.date.year),
             'freelancer': freelancer,
-            'epigrafe': self.env['ir.config_parameter'].sudo().get_param('l10n_es_edi_tbai.epigrafe', '')
+            'epigrafe': self.env['ir.config_parameter'].sudo().get_str('l10n_es_edi_tbai.epigrafe')
         }
         lroe_values.update({'tbai_b64_list': [base64.b64encode(self.xml_attachment_id.raw).decode()]})
         lroe_str = self.env['ir.qweb']._render('l10n_es_edi_tbai.template_LROE_240_main', lroe_values)
@@ -349,7 +349,7 @@ class L10n_Es_Edi_TbaiDocument(models.Model):
             **self._get_header_values(),
             **self._get_sender_values(),
             **(self._get_recipient_values(values['partner'], values["is_simplified"]) if values['partner'] and not self.is_cancel or not values['is_sale'] else {}),
-            'datetime_now': datetime.now(tz=timezone('Europe/Madrid')),
+            'datetime_now': datetime.now(tz=ZoneInfo('Europe/Madrid')),
             'format_date': lambda d: datetime.strftime(d, '%d-%m-%Y'),
             'format_time': lambda d: datetime.strftime(d, '%H:%M:%S'),
             'format_float': format_float,
@@ -747,7 +747,7 @@ class L10n_Es_Edi_TbaiDocument(models.Model):
             'sender': sender,
             'sender_vat': sender.vat[2:] if sender.vat.startswith('ES') else sender.vat,
             'fiscal_year': str(self.date.year),
-            'epigrafe': self.env['ir.config_parameter'].sudo().get_param('l10n_es_edi_tbai.epigrafe', ''),
+            'epigrafe': self.env['ir.config_parameter'].sudo().get_str('l10n_es_edi_tbai.epigrafe'),
             'batuz_correction': self.env.context.get('batuz_correction'),
         }
         lroe_values.update(values)

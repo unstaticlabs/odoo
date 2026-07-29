@@ -1,10 +1,7 @@
 from odoo import Command
 from lxml import etree
 from odoo.addons.account_edi_ubl_cii.tests.common import TestUblBis3Common, TestUblCiiBECommon
-try:
-    from odoo.addons.test_mimetypes.tests.test_guess_mimetypes import contents
-except ImportError:
-    contents = None
+from odoo.addons.base.tests.files import DOCX_RAW, XLSX_RAW
 
 from odoo.exceptions import UserError
 from odoo.tests import tagged
@@ -37,11 +34,10 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
         self._assert_invoice_ubl_file(invoice, 'test_invoice_item_description_name')
 
     def test_invoice_payee_financial_account(self):
-        bank_kbc = self.env['res.bank'].create({
-            'name': 'KBC',
-            'bic': 'KREDBEBB',
+        self.env.company.bank_ids[0].write({
+            'bank_name': 'KBC',
+            'bank_bic': 'KREDBEBB',
         })
-        self.env.company.bank_ids[0].bank_id = bank_kbc
 
         tax_21 = self.percent_tax(21.0)
         product = self._create_product(lst_price=100.0, taxes_id=tax_21)
@@ -74,6 +70,8 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
 
     def test_invoice_price_unit_more_decimals(self):
         tax_21 = self.percent_tax(21.0)
+        decimal_precision = self.env['decimal.precision'].search([('name', '=', 'Product Price')], limit=1)
+        decimal_precision.digits = 4
         product = self._create_product(lst_price=0.4567, taxes_id=tax_21)
         invoice = self._create_invoice_one_line(
             product_id=product,
@@ -88,6 +86,8 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
     def test_invoice_BR_CO_10_line_extension_amount_sum_lines(self):
         """ [BR_CO_10] Sum of Invoice line net amount (BT-106) = Σ Invoice line net amount (BT-131). """
         tax_21 = self.percent_tax(21.0)
+        decimal_precision = self.env['decimal.precision'].search([('name', '=', 'Product Price')], limit=1)
+        decimal_precision.digits = 4
         product = self._create_product(lst_price=0.4567, taxes_id=tax_21)
         invoice = self._create_invoice(
             partner_id=self.partner_be,
@@ -603,7 +603,6 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
         self._assert_invoice_ubl_file(invoice, 'test_invoice_sent_to_luxembourg_dig')
 
     def test_invoice_sent_to_partner_with_gln(self):
-        self.ensure_installed('account_add_gln')
         self.partner_be.global_location_number = "222222222222"
 
         tax_21 = self.percent_tax(21.0)
@@ -622,7 +621,7 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
 
     def test_invoice_send_and_print_additional_documents(self):
         """ Ensure an additional document is added to the UBL under AdditionalDocumentReference. """
-        self.ensure_installed('test_mimetypes')
+        self.ensure_installed('test_orm')
 
         tax_21 = self.percent_tax(21.0)
         product = self._create_product(lst_price=1039.99, taxes_id=tax_21)
@@ -635,13 +634,13 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
         # Supported
         xlsx_attachment = self.env['ir.attachment'].create({
             'name': 'xlsx attachment',
-            'raw': contents('xlsx'),
+            'raw': XLSX_RAW,
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         })
         # Not supported
         docx_attachment = self.env['ir.attachment'].create({
             'name': 'docx attachment',
-            'raw': contents('docx'),
+            'raw': DOCX_RAW,
             'mimetype': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         })
         xml_attachment = self.env['ir.attachment'].create({
@@ -718,12 +717,12 @@ class TestUblExportBis3BE(TestUblBis3Common, TestUblCiiBECommon):
         self._assert_invoice_ubl_file(invoice, 'test_invoice_product_commodity_code_unspsc')
 
     def test_invoice_product_commodity_code_cpv(self):
-        self.ensure_installed('l10n_ro_cpv_code')
+        self.ensure_installed('l10n_ro_edi')
         tax_21 = self.percent_tax(21.0)
         product = self._create_product(
             lst_price=10.0,
             taxes_id=tax_21,
-            cpv_code_id=self.env.ref('l10n_ro_cpv_code.351131100'),
+            cpv_code_id=self.env.ref('l10n_ro_edi.351131100'),
         )
         invoice = self._create_invoice_one_line(
             product_id=product,

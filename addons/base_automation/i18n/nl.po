@@ -7,17 +7,17 @@
 # Gunther Clauwaert <gclauwae@hotmail.com>, 2022
 # Erwin van der Ploeg <erwin@odooexperts.nl>, 2022
 # Jolien De Paepe, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # Bren Driesen <brdri@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 22:38+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2026-06-06 13:37+0000\n"
+"Last-Translator: Bren Driesen <brdri@odoo.com>\n"
+"Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_automation/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -93,8 +93,8 @@ msgid ""
 "<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
 "<code>timezone</code>: useful Python libraries"
 msgstr ""
-"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, <code>"
-"timezone</code>: handige Python libraries"
+"<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
+"<code>timezone</code>: handige Python libraries"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_kanban
@@ -161,6 +161,11 @@ msgstr "Activiteiten"
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Activiteit uitzondering decoratie"
+
+#. module: base_automation
+#: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_plans_ids
+msgid "Activity Plans"
+msgstr "Activiteitenplannen"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_state
@@ -530,8 +535,8 @@ msgstr "Modelnaam"
 #. odoo-python
 #: code:addons/base_automation/models/ir_actions_server.py:0
 msgid ""
-"Model of action %(action_name)s should match the one from automated rule %"
-"(rule_name)s."
+"Model of action %(action_name)s should match the one from automated rule "
+"%(rule_name)s."
 msgstr ""
 "Het actiemodel %(action_name)s moet overeenkomen met dat van "
 "geautomatiseerde regel%(rule_name)s."
@@ -690,13 +695,9 @@ msgstr "SMS fout bij versturen"
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
+#: model:ir.model,name:base_automation.model_ir_cron
 msgid "Scheduled Action"
 msgstr "Geplande actie"
-
-#. module: base_automation
-#: model:ir.model,name:base_automation.model_ir_cron
-msgid "Scheduled Actions"
-msgstr "Geplande acties"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -820,14 +821,15 @@ msgstr "Doel Record"
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "Target model of actions %(action_names)s are different from rule model."
-msgstr "Het doelmodel van acties %(action_names)s verschilt van het regelmodel."
+msgstr ""
+"Het doelmodel van acties %(action_names)s verschilt van het regelmodel."
 
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid ""
-"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the \"%"
-"(state_value)s\" action type"
+"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the "
+"\"%(state_value)s\" action type"
 msgstr ""
 "\"%(trigger_value)s\" %(trigger_label)s kan alleen gebruikt worden met het "
 "actietype \"%(state_value)s\""
@@ -976,7 +978,7 @@ msgstr "Websiteberichten"
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__website_message_ids
 msgid "Website communication history"
-msgstr "Website communicatie geschiedenis"
+msgstr "Website communicatiegeschiedenis"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__trg_date_calendar_id
@@ -1053,22 +1055,3 @@ msgstr "geen actie gedefinieerd..."
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "path"
 msgstr "pad"
-
-#~ msgid "Action Name"
-#~ msgstr "Actienaam"
-
-#~ msgid "Delay after trigger date"
-#~ msgstr "Vertraging na activeerdatum"
-
-#~ msgid "Delay type"
-#~ msgstr "Soort vertraging"
-
-#~ msgid ""
-#~ "If present, this condition must be satisfied before the update of the "
-#~ "record."
-#~ msgstr ""
-#~ "Indien aanwezig, moet aan deze conditie zijn voldaan, voor het bijwerken "
-#~ "van het record."
-
-#~ msgid "Least Delay Msg"
-#~ msgstr "Minste vertraging boodschap"

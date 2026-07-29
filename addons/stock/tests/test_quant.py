@@ -9,9 +9,10 @@ from odoo import Command, fields
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.addons.stock.tests.common import TestStockCommon
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import Form
+from odoo.tests import tagged, Form
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockQuant(TestStockCommon):
 
     @classmethod
@@ -496,7 +497,7 @@ class TestStockQuant(TestStockCommon):
             'location_id': stock_location.id,
             'location_dest_id': dst_location.id,
             'product_uom_qty': 5,
-            'product_uom': self.product_consu.uom_id.id,
+            'uom_id': self.product_consu.uom_id.id,
         })
         move._action_confirm()
         move.quantity = 5
@@ -778,7 +779,7 @@ class TestStockQuant(TestStockCommon):
         move = self.env['stock.move'].create({
             'product_id': self.productA.id,
             'product_uom_qty': 1,
-            'product_uom': self.productA.uom_id.id,
+            'uom_id': self.productA.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
         })
@@ -793,7 +794,7 @@ class TestStockQuant(TestStockCommon):
             move = self.env['stock.move'].create({
                 'product_id': self.productA.id,
                 'product_uom_qty': 1,
-                'product_uom': self.productA.uom_id.id,
+                'uom_id': self.productA.uom_id.id,
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
             })
@@ -815,7 +816,7 @@ class TestStockQuant(TestStockCommon):
         move = self.env['stock.move'].create({
             'product_id': self.productA.id,
             'product_uom_qty': 1,
-            'product_uom': self.productA.uom_id.id,
+            'uom_id': self.productA.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.shelf_2.id,
         })
@@ -845,7 +846,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 10,
-                'product_uom': self.productA.uom_id.id,
+                'uom_id': self.productA.uom_id.id,
             })],
             'state': 'draft',
         })
@@ -907,7 +908,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 1,
-                'product_uom': self.product_serial.uom_id.id,
+                'uom_id': self.product_serial.uom_id.id,
             })],
         })
         receipt01.action_confirm()
@@ -942,7 +943,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 1,
-                'product_uom': self.product_serial.uom_id.id,
+                'uom_id': self.product_serial.uom_id.id,
             })],
         })
         receipt02.action_confirm()
@@ -1141,8 +1142,8 @@ class TestStockQuant(TestStockCommon):
         generate barcodes longer than the given limit and use the given separator.
         """
         # Initial config.
-        self.env['ir.config_parameter'].set_param('stock.agg_barcode_max_length', 400)
-        self.env['ir.config_parameter'].set_param('stock.barcode_separator', ';')
+        self.env['ir.config_parameter'].set_int('stock.agg_barcode_max_length', 400)
+        self.env['ir.config_parameter'].set_str('stock.barcode_separator', ';')
         # Create some products with a valid EAN-13 and LN/SN for tracked ones.
         product_ean13 = self.env['product.product'].create({
             'name': 'Product Test EAN13',
@@ -1220,8 +1221,8 @@ class TestStockQuant(TestStockCommon):
         )
 
         # Use another separator and set a lower aggregate barcode's max length.
-        self.env['ir.config_parameter'].set_param('stock.barcode_separator', '|')
-        self.env['ir.config_parameter'].set_param('stock.agg_barcode_max_length', 160)
+        self.env['ir.config_parameter'].set_str('stock.barcode_separator', '|')
+        self.env['ir.config_parameter'].set_int('stock.agg_barcode_max_length', 160)
         aggregate_barcodes = quants.sorted(lambda q: q.product_id.id).get_aggregate_barcodes()
         # Check we have now two aggregate barcodes (306 char but limit at 160).
         self.assertEqual(len(aggregate_barcodes), 2)
@@ -1245,8 +1246,8 @@ class TestStockQuant(TestStockCommon):
         regardless the product's barcode is a valid EAN or not.
         """
         # Initial config.
-        self.env['ir.config_parameter'].set_param('stock.agg_barcode_max_length', 400)
-        self.env['ir.config_parameter'].set_param('stock.barcode_separator', ';')
+        self.env['ir.config_parameter'].set_int('stock.agg_barcode_max_length', 400)
+        self.env['ir.config_parameter'].set_str('stock.barcode_separator', ';')
         # Creates some product with not GS1 compliant barcodes.
         product = self.env['product.product'].create({
             'name': "Product Test",
@@ -1351,7 +1352,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': stock_location.id,
                 'location_dest_id': dst_location.id,
                 'product_uom_qty': 5,
-                'product_uom': product.uom_id.id,
+                'uom_id': product.uom_id.id,
             })],
         })
         picking.action_confirm()
@@ -1386,7 +1387,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': self.supplier_location.id,
                 'location_dest_id': self.stock_location.id,
                 'product_uom_qty': 5,
-                'product_uom': self.productA.uom_id.id,
+                'uom_id': self.productA.uom_id.id,
             })],
         })
         picking.action_confirm()
@@ -1487,7 +1488,7 @@ class TestStockQuant(TestStockCommon):
         self.productA.categ_id.packaging_reserve_method = 'full'
         # Delivery for 26 units
         delivery = self.env['stock.picking'].create({
-            'picking_type_id': self.ref('stock.picking_type_out'),
+            'picking_type_id': self.picking_type_out.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.ref('stock.stock_location_customers'),
             'move_ids': [Command.create({
@@ -1495,7 +1496,7 @@ class TestStockQuant(TestStockCommon):
                 'location_id': self.stock_location.id,
                 'location_dest_id': self.ref('stock.stock_location_customers'),
                 'product_uom_qty': 26,
-                'product_uom': self.productA.uom_id.id,
+                'uom_id': self.productA.uom_id.id,
             })],
             'state': 'draft',
         })
@@ -1517,7 +1518,7 @@ class TestStockQuant(TestStockCommon):
         customer_location = self.env.ref('stock.stock_location_customers')
         self.env['stock.quant']._update_available_quantity(self.productA, self.stock_location, 8.0)
         first_delivery = self.env['stock.picking'].create({
-            'picking_type_id': self.ref('stock.picking_type_out'),
+            'picking_type_id': self.picking_type_out.id,
             'location_id': self.stock_location.id,
             'location_dest_id': customer_location.id,
             'move_ids': [Command.create({
@@ -1560,6 +1561,7 @@ class TestStockQuant(TestStockCommon):
         }])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestStockQuantRemovalStrategy(TestStockCommon):
 
     @classmethod
@@ -1579,7 +1581,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
     def _generate_data(self, packages_data):
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
         })
@@ -1589,7 +1591,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
         ml_common_vals = {
             'move_id': move.id,
             'product_id': self.product.id,
-            'product_uom_id': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
         }
@@ -1629,7 +1631,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
         # Out 1000 should selecte a package with 1000 units inside
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_uom_qty': 1000,
@@ -1657,7 +1659,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
         # Out 1000 should select a package with 1000 units inside
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_uom_qty': 1280,
@@ -1687,7 +1689,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
 
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_uom_qty': 13,
@@ -1720,7 +1722,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
 
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
             'product_uom_qty': 90,
@@ -1746,7 +1748,7 @@ class TestStockQuantRemovalStrategy(TestStockCommon):
         move = self.env['stock.move'].create({
             'product_id': self.product.id,
             'product_uom_qty': 1,
-            'product_uom': self.product.uom_id.id,
+            'uom_id': self.product.uom_id.id,
             'location_id': self.stock_location.id,
             'location_dest_id': self.customer_location.id,
         })

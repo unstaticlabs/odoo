@@ -129,7 +129,7 @@ export class BlockTab extends Component {
                 });
 
                 if (snippetEl) {
-                    await scrollTo(snippetEl, { extraOffset: 50 });
+                    await this.scrollToDroppedSnippet(snippetEl);
                     await this.processDroppedSnippet(snippetEl);
                 }
                 this.state.ongoingInsertion = false;
@@ -187,7 +187,7 @@ export class BlockTab extends Component {
         });
 
         if (selectedSnippetEl) {
-            await scrollTo(selectedSnippetEl, { extraOffset: 50 });
+            await this.scrollToDroppedSnippet(selectedSnippetEl);
             await this.processDroppedSnippet(selectedSnippetEl);
         } else {
             this.cancelDragAndDrop();
@@ -230,7 +230,7 @@ export class BlockTab extends Component {
             let scrollingElement =
                 this.shared.dropzone.getDropRootElement() ||
                 getScrollingElement(this.document) ||
-                this.editable.querySelector(".o_editable");
+                this.editable.querySelector(".o_savable");
             if (!isScrollableY(scrollingElement)) {
                 scrollingElement =
                     closestScrollableY(this.document.defaultView.frameElement) ?? scrollingElement;
@@ -337,6 +337,19 @@ export class BlockTab extends Component {
                     dynamicSvgEl.src = colorCustomizedURL.pathname + colorCustomizedURL.search;
                 });
 
+                const dragImagePreviewSrc = snippet.dragImagePreviewSrc;
+                // Use an image as a placeholder for a snippet that takes too
+                // long to load or doesn’t load when dragging over a dropzone.
+                if (dragImagePreviewSrc) {
+                    const dragPreviewEl = document.createElement("div");
+                    dragPreviewEl.classList.add("o_snippet_drag_preview");
+                    const imgPreviewEl = document.createElement("img");
+                    imgPreviewEl.src = dragImagePreviewSrc;
+                    imgPreviewEl.classList.add("img-fluid", "mx-auto");
+                    dragPreviewEl.appendChild(imgPreviewEl);
+                    snippetEl.appendChild(dragPreviewEl);
+                    snippetEl.classList.add("o_snippet_previewing_on_drag");
+                }
                 // The dragged element may change while dragging.
                 Object.assign(this.dragState, { draggedEl: snippetEl, snippetEl, snippet });
 
@@ -423,6 +436,11 @@ export class BlockTab extends Component {
 
                 if (currentDropzoneEl) {
                     let draggedEl = this.dragState.draggedEl;
+
+                    // If a preview image was displayed during the drag, we remove it.
+                    draggedEl.querySelector(".o_snippet_drag_preview")?.remove();
+                    this.dragState.snippetEl.classList.remove("o_snippet_previewing_on_drag");
+
                     if (isDroppedOver) {
                         this.env.editor.dispatchTo("on_snippet_dropped_over_handlers", {
                             droppedEl: draggedEl,
@@ -480,6 +498,18 @@ export class BlockTab extends Component {
         };
 
         this.draggableComponent = useDragAndDrop(dragAndDropOptions);
+    }
+
+    /**
+     * Scroll to the dropped snippet and leave a space of 50px above to show
+     * what is above. If the snippet takes 100% of the screen height, we show it
+     * by not having an extra offset above it.
+     *
+     * @param {HTMLElement} snippetEl
+     */
+    async scrollToDroppedSnippet(snippetEl) {
+        const isFullScreenHeight = snippetEl.matches(".o_full_screen_height");
+        await scrollTo(snippetEl, { extraOffset: isFullScreenHeight ? 0 : 50 });
     }
 
     /**

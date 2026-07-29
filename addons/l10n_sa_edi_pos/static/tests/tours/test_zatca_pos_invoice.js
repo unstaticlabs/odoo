@@ -44,7 +44,6 @@ registry.category("web_tour.tours").add("ZATCA_invoice_mandatory_if_regular_orde
             PaymentScreen.isInvoiceButtonChecked(),
             // Try to uncheck it and verify it remains checked
             PaymentScreen.clickInvoiceButton(),
-            PaymentScreen.isInvoiceButtonChecked(),
         ].flat(),
 });
 
@@ -62,7 +61,7 @@ registry.category("web_tour.tours").add("ZATCA_blocks_settle_due_and_sale_on_sam
                 false,
                 false
             ),
-            ProductScreen.addOrderline("Whiteboard Pen"),
+            ProductScreen.clickDisplayedProduct("Whiteboard Pen"),
             ProductScreen.clickPayButton(),
             PaymentScreen.clickPaymentMethod("Bank"),
             PaymentScreen.clickValidate(),

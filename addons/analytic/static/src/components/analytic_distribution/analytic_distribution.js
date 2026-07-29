@@ -1,5 +1,5 @@
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { evaluateExpr } from "@web/core/py_js/py";
 import { getNextTabableElement, getPreviousTabableElement } from "@web/core/utils/ui";
 import { usePosition } from "@web/core/position/position_hook";
@@ -11,7 +11,7 @@ import { _t } from "@web/core/l10n/translation";
 import { useRecordObserver } from "@web/model/relational_model/utils";
 
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { TagsList } from "@web/core/tags_list/tags_list";
+import { BadgeTag } from "@web/core/tags_list/badge_tag";
 import { useOpenMany2XRecord } from "@web/views/fields/relational_utils";
 import { formatPercentage } from "@web/views/fields/formatters";
 
@@ -29,7 +29,7 @@ import {
 export class AnalyticDistribution extends Component {
     static template = "analytic.AnalyticDistribution";
     static components = {
-        TagsList,
+        BadgeTag,
         Record,
         Field,
     }
@@ -75,6 +75,9 @@ export class AnalyticDistribution extends Component {
 
         useExternalListener(window, "click", this.onWindowClick, true);
         useExternalListener(window, "resize", this.onWindowResized);
+        useBus(this.props.record.model.bus, "NEED_LOCAL_CHANGES", ({ detail }) =>
+            detail.proms.push(this.commitChanges())
+        );
 
         this.openTemplate = useOpenMany2XRecord({
             resModel: "account.analytic.distribution.model",
@@ -217,7 +220,7 @@ export class AnalyticDistribution extends Component {
             return {
                 id: accs[0].planId,
                 text: accs.reduce((p, n) => p + (p.length ? " | " : "") + (this.planIsComplete(n.total) ? n.accName : `${formatPercentage(n.total)} ${n.accName}`) , ""),
-                colorIndex: accs[0].planColor,
+                color: accs[0].planColor,
                 onClick: (ev) => this.tagClicked(ev),
             };
         });
@@ -491,11 +494,16 @@ export class AnalyticDistribution extends Component {
     async save() {
         await this.props.record.update({ [this.props.name]: this.dataToJson() });
         if (this.props.multi_edit) {
-            await this.props.record.model.root.load();
             await this.jsonToData(this.props.record.data[this.props.name]);
             this.initialFormattedData = this.state.formattedData;
             this.state.formattedData = [];
             this.state.update_plan = {};
+        }
+    }
+
+    async commitChanges() {
+        if (this.isDropdownOpen) {
+            await this.save();
         }
     }
 

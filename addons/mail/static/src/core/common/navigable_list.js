@@ -1,4 +1,4 @@
-import { ImStatus } from "@mail/core/common/im_status";
+import { DiscussAvatar } from "@mail/core/common/discuss_avatar";
 import { onExternalClick } from "@mail/utils/common/hooks";
 import { markEventHandled, isEventHandled } from "@web/core/utils/misc";
 
@@ -9,7 +9,7 @@ import { usePosition } from "@web/core/position/position_hook";
 import { useService } from "@web/core/utils/hooks";
 
 export class NavigableList extends Component {
-    static components = { ImStatus };
+    static components = { DiscussAvatar };
     static template = "mail.NavigableList";
     static props = {
         anchorRef: { optional: true },
@@ -20,6 +20,7 @@ export class NavigableList extends Component {
         position: { type: String, optional: true },
         closeOnSelect: { type: Boolean, optional: true },
         isLoading: { type: Boolean, optional: true },
+        rememberPosition: { type: Boolean, optional: true }
     };
     static defaultProps = {
         position: "bottom",
@@ -48,7 +49,7 @@ export class NavigableList extends Component {
             this.close();
         });
         // position and size
-        usePosition("root", () => this.props.anchorRef, { position: this.props.position });
+        usePosition("root", () => this.props.anchorRef, { position: this.props.position, rememberPosition: this.props.rememberPosition });
         useEffect(
             () => {
                 this.open();

@@ -6,17 +6,17 @@
 # Wil Odoo, 2025
 # Tony Ng, 2025
 #
-# Ho Pak Wai <wai@users.noreply.translate.odoo.com>, 2026.
 # "Tony Ng (ngto)" <ngto@odoo.com>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 19:13+0000\n"
-"Last-Translator: Ho Pak Wai <wai@users.noreply.translate.odoo.com>\n"
+"POT-Creation-Date: 2026-02-04 18:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:27+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_event_exhibitor/zh_Hant/>\n"
+"projects/odoo-s19-2/website_event_exhibitor/zh_Hant/>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -50,7 +50,8 @@ msgstr ""
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
 msgid ""
 "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">Discover more</a>"
-msgstr "<a href=\"#\" class=\"btn btn-primary o_translate_inline\">了解更多</a>"
+msgstr ""
+"<a href=\"#\" class=\"btn btn-primary o_translate_inline\">了解更多</a>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -63,8 +64,8 @@ msgid ""
 "<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"Arrow icon\" "
 "title=\"Arrow\"/>"
 msgstr ""
-"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"箭嘴圖示\" title=\"箭"
-"嘴\"/>"
+"<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"箭嘴圖示\" title=\"箭嘴"
+"\"/>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_aside
@@ -105,6 +106,12 @@ msgstr "活動"
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "活動異常圖示"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_plans_ids
+#, fuzzy
+msgid "Activity Plans"
+msgstr "活動計劃"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
@@ -157,8 +164,9 @@ msgstr "已封存"
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_1
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_2
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
+#, fuzzy
 msgid "As a team, we are happy to contribute to this event."
-msgstr ""
+msgstr "作為一個團隊，我們很高興為這次活動做出貢獻."
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_attachment_count
@@ -169,6 +177,17 @@ msgstr "附件數目"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
 msgstr "與會者將能夠加入會議"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__publish_on
+#, fuzzy
+msgid "Auto publish on"
+msgstr "自動發佈於"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "在選定的日期及時間，自動發佈頁面。"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -227,8 +246,9 @@ msgstr "請返回於"
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_1
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_2
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
+#, fuzzy
 msgid "Come see us live, we hope to meet you!"
-msgstr ""
+msgstr "歡迎觀看我們的直播，希望見到你！"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -429,8 +449,9 @@ msgstr "金級"
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_1
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_2
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_sponsor_3
+#, fuzzy
 msgid "Happy to be Sponsor"
-msgstr ""
+msgstr "很高興成為贊助商"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__has_message
@@ -661,6 +682,12 @@ msgstr "電話"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Published"
 msgstr "已發佈"
+
+#. module: website_event_exhibitor
+#: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__published_date
+#, fuzzy
+msgid "Published date"
+msgstr "發佈日期"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
@@ -955,6 +982,11 @@ msgstr ""
 "                <br/>"
 
 #. module: website_event_exhibitor
+#: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
+msgid "sponsor"
+msgstr ""
+
+#. module: website_event_exhibitor
 #. odoo-javascript
 #: code:addons/website_event_exhibitor/static/src/components/exhibitor_connect_closed_dialog/exhibitor_connect_closed_dialog.xml:0
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -967,12 +999,3 @@ msgstr "開始於"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "starts on"
 msgstr "開始在"
-
-#~ msgid "Event Page"
-#~ msgstr "活動頁面"
-
-#~ msgid "Group By"
-#~ msgstr "分組依據"
-
-#~ msgid "sponsor"
-#~ msgstr "贊助"

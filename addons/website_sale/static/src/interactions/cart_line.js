@@ -1,3 +1,4 @@
+import { markup } from '@odoo/owl';
 import { Interaction } from '@web/public/interaction';
 import { browser } from '@web/core/browser/browser';
 import { registry } from '@web/core/registry';
@@ -62,6 +63,8 @@ export class CartLine extends Interaction {
             quantity: quantity,
         }));
 
+        data['website_sale.cart_lines'] = markup(data['website_sale.cart_lines']);
+
         if (!data.cart_quantity) {
             // Ensure the last cart removal is recorded.
             browser.sessionStorage.setItem('website_sale_cart_quantity', 0);
@@ -73,9 +76,9 @@ export class CartLine extends Interaction {
         );
 
         const cart = this.el.closest('#shop_cart');
-        // `updateCartNavBar` regenerates the cart lines and `updateQuickReorderSidebar`
-        // regenerates the quick reorder products, so we need to stop and start interactions
-        // to make sure the regenerated cart lines and reorder products are properly handled.
+        // `updateCartNavBar` regenerates the cart lines and `updateQuickReorderSidebar` regenerates
+        // the quick reorder products, so we need to stop and start interactions to make sure the
+        // regenerated cart lines and reorder products are properly handled.
         this.services['public.interactions'].stopInteractions(cart);
         wSaleUtils.updateCartNavBar(data);
         wSaleUtils.updateQuickReorderSidebar(data);

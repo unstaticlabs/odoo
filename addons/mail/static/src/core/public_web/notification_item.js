@@ -1,5 +1,7 @@
+import { DiscussAvatar } from "@mail/core/common/discuss_avatar";
 import { isToday } from "@mail/utils/common/dates";
 import { useHover } from "@mail/utils/common/hooks";
+import { MessageSeenIndicator } from "@mail/discuss/core/common/message_seen_indicator";
 
 import { Component, useRef, useSubEnv } from "@odoo/owl";
 
@@ -9,7 +11,7 @@ import { useService } from "@web/core/utils/hooks";
 const { DateTime } = luxon;
 
 export class NotificationItem extends Component {
-    static components = { ActionSwiper };
+    static components = { ActionSwiper, DiscussAvatar, MessageSeenIndicator };
     static props = [
         "counter?",
         "datetime?",
@@ -24,6 +26,7 @@ export class NotificationItem extends Component {
         "slots?",
         "isActive?",
         "nameMaxLine?",
+        "persona?",
         "textMaxLine?",
         "thread?",
     ];
@@ -56,6 +59,10 @@ export class NotificationItem extends Component {
 
     onClick(ev) {
         this.props.onClick(this.markAsReadRef.el?.contains(ev.target));
+    }
+
+    get message() {
+        return this.props.thread?.newestPersistentOfAllMessage;
     }
 
     webkitLineClamp(maxLine) {

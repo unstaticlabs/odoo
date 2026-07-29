@@ -16,18 +16,15 @@
     </t>
 
     <t t-name="website.s_website_form_recaptcha_legal">
-        <div class="col-12 s_website_form_recaptcha" data-name="Recaptcha Legal">
-            <div t-attf-style="width: #{labelWidth or '200px'}" class="s_website_form_label"/>
-            <div class="col-sm">
-                <t t-call="google_recaptcha.recaptcha_legal_terms"/>
-            </div>
+        <div class="col-12 s_website_form_recaptcha" data-name="Recaptcha Legal" style="text-align: right;">
+            <t t-call="google_recaptcha.recaptcha_legal_terms"/>
         </div>
     </t>
 
     <!-- Generic Field Layout -->
     <!-- Changes made here needs to be reflected in the different Form view (Contact Us, Jobs, ...) -->
     <t t-name="website.form_field">
-        <div t-attf-class="s_website_form_field mb-3 #{field.formatInfo.col or 'col-12'} #{field.custom and 's_website_form_custom' or ''} #{(field.required and 's_website_form_required' or '') or (field.modelRequired and 's_website_form_model_required' or '')} #{field.hidden and 's_website_form_field_hidden' or ''} #{field.dnone and 's_website_form_dnone' or ''}"
+        <div t-attf-class="s_website_form_field mb-3 #{field.formatInfo.col or 'col-12'} #{field.formatInfo.offset} #{field.custom and 's_website_form_custom' or ''} #{(field.required and 's_website_form_required' or '') or (field.modelRequired and 's_website_form_model_required' or '')} #{field.hidden and 's_website_form_field_hidden' or ''} #{field.dnone and 's_website_form_dnone' or ''}"
             t-att-data-type="field.type"
             data-name="Field"
             t-att-data-translated-name="defaultName">
@@ -292,9 +289,15 @@
                         disabled=""
                     />
                 </t>
-                <select t-else="" class="form-select s_website_form_input" t-att-name="field.name" t-att-required="field.required || field.modelRequired || None" t-att-id="field.id">
+                <select t-else="" class="form-select s_website_form_input" t-att-name="field.name"
+                    t-att-required="field.required || field.modelRequired || None" t-att-id="field.id"
+                    t-attf-data-link-state-to-country="{{ field.name == 'state_id' and (field.linkStateToCountry ? 'true' : 'false') }}">
                     <t t-foreach="field.records" t-as="record" t-key="record_index">
-                        <option t-out="record.display_name" t-att-id="field.id + record_index" t-att-value="record.id" t-att="{selected: record.selected and 'selected' or None}"/>
+                        <option t-out="record.display_name" t-att-id="field.id + record_index" t-att-value="record.id"
+                            t-att="{
+                                selected: record.selected and 'selected' or None,
+                                'data-country-id': field.name == 'state_id' and (record.country_id and record.country_id[0]) or None
+                            }" />
                     </t>
                 </select>
             </t>
@@ -370,7 +373,7 @@
                 t-att="field.maxFilesNumber > 1 and {'multiple': ''} or {}"
                 t-att-id="field.id"
                 t-att-data-max-files-number="field.maxFilesNumber or '1'"
-                t-att-data-max-file-size="field.maxFileSize or '1'"
+                t-att-data-max-file-size="field.maxFileSize or '64'"
             />
         </t>
     </t>

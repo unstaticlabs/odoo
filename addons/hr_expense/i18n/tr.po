@@ -21,17 +21,17 @@
 # Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2022
 # Murat Kaplan <muratk@projetgrup.com>, 2023
 # Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
-# Odoo Turkish Import <dyki+tr@odoo.com>, 2025, 2026.
+# Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 18:45+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"PO-Revision-Date: 2025-11-21 14:45+0000\n"
+"Last-Translator: Odoo Turkish Import <dyki+tr@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-19/"
 "hr_expense/tr/>\n"
 "Language: tr\n"
@@ -39,7 +39,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: hr_expense
 #. odoo-python
@@ -93,6 +93,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "(incl"
 msgstr "(dahil:"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "--<br/>"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -154,6 +159,16 @@ msgid "<span>The total amount doesn't match the original amount.</span>"
 msgstr "<span>Toplam tutar, orijinal tutarla eşleşmiyor.</span>"
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "<strong>expenses</strong> pending approval, from:"
+msgstr ""
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "A new expense is waiting for your approval in Odoo."
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__account_id
 msgid "Account"
 msgstr "Hesap"
@@ -188,6 +203,11 @@ msgstr "Aktiviteler"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Etkinlik İstisna Dekorasyonu"
+
+#. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__activity_state
@@ -265,8 +285,10 @@ msgstr "Masraf hesabı gerekiyor"
 #. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/views/expense_form_view.js:0
-msgid "An expense of same category, amount and date already exists."
-msgstr "Aynı kategoride, tutarda ve tarihte bir masraf zaten mevcut."
+msgid ""
+"An expense with the same category, amount, and date already exists.\n"
+"Are you sure you want to submit this one as well?"
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_account_analytic_account
@@ -389,14 +411,6 @@ msgid "Can Reset"
 msgstr "Sıfırlayabilir"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_approve_duplicate_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_post_wizard_view
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_refuse_wizard_view_form
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_split
-msgid "Cancel"
-msgstr "İptal"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__product_id
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.product_product_expense_form_view
@@ -425,10 +439,6 @@ msgstr "İletişim"
 
 #. module: hr_expense
 #: model:ir.model,name:hr_expense.model_res_company
-msgid "Companies"
-msgstr "Şirketler"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__company_id
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__company_id
@@ -515,7 +525,6 @@ msgstr "Geçerli Kur"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
 msgid "Dear"
 msgstr "Sayın"
 
@@ -603,12 +612,6 @@ msgid "Domain"
 msgstr "Alan Adı"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/mixins/qrcode.js:0
-msgid "Download our App"
-msgstr "Uygulamamızı İndirin"
-
-#. module: hr_expense
 #: model:ir.model.fields.selection,name:hr_expense.selection__hr_expense__state__draft
 #: model:mail.message.subtype,name:hr_expense.mt_expense_reset
 msgid "Draft"
@@ -620,6 +623,12 @@ msgstr "Taslak"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__duplicate_expense_ids
 msgid "Duplicate Expense"
 msgstr "Yinelenen Masraf"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Duplicate Expense found"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -656,6 +665,18 @@ msgid "Employee Expenses"
 msgstr "Personel Masrafları"
 
 #. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description and select a category to proceed."
+msgstr ""
+
+#. module: hr_expense
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Enter a description to proceed."
+msgstr ""
+
+#. module: hr_expense
 #. odoo-javascript
 #: code:addons/hr_expense/static/src/js/tours/hr_expense.js:0
 msgid ""
@@ -665,6 +686,8 @@ msgstr ""
 "yapılandırın."
 
 #. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/webclient/share_target/expense_share_target_item.js:0
 #: model:account.journal,name:hr_expense.hr_expense_account_journal
 #: model:ir.model,name:hr_expense.model_hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_account_bank_statement_line__expense_ids
@@ -699,7 +722,6 @@ msgstr "Masraf Onayı Kopyası"
 
 #. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_employee__expense_manager_id
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_employee_search_view
 msgid "Expense Approver"
 msgstr "Masraf Onaylayan"
 
@@ -809,11 +831,6 @@ msgid "Expense split"
 msgstr "Masraf bölünmesi"
 
 #. module: hr_expense
-#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
-msgid "Expense to Approve"
-msgstr "Onaylanacak Gider"
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/account_move.py:0
 #: code:addons/hr_expense/models/account_payment.py:0
@@ -847,11 +864,6 @@ msgid "Expenses Report"
 msgstr "Masraflar Raporu"
 
 #. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "Expenses approval"
-msgstr ""
-
-#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "Expenses of %(employee)s"
@@ -863,6 +875,7 @@ msgid "Expenses of Your Team Member"
 msgstr "Ekip Üyelerinizin Masrafları"
 
 #. module: hr_expense
+#: model:ir.actions.act_window,name:hr_expense.action_hr_expense_department_to_approve
 #: model:ir.model.fields,field_description:hr_expense.field_hr_department__expenses_to_approve_count
 msgid "Expenses to Approve"
 msgstr "Onaylanacak Giderler"
@@ -953,14 +966,14 @@ msgid "Guideline"
 msgstr "Yönerge"
 
 #. module: hr_expense
-#: model:ir.actions.server,name:hr_expense.ir_cron_send_submitted_expenses_mail_ir_actions_server
-msgid "HR Expense: Send Submitted Expenses Mail"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__has_message
 msgid "Has Message"
 msgstr "Mesaj Var"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Hi"
+msgstr ""
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_travel_accommodation_product_template
@@ -1127,6 +1140,11 @@ msgid "Label Currency Rate"
 msgstr "Kur Etiketi"
 
 #. module: hr_expense
+#: model:ir.model.fields,field_description:hr_expense.field_hr_expense__last_notification_date
+msgid "Last Notification Date"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_approve_duplicate__write_uid
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_post_wizard__write_uid
@@ -1274,13 +1292,6 @@ msgstr "Adı"
 #: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "New expense entries"
 msgstr "Yeni gider girişleri"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid ""
-"New expenses are waiting for your approval. You can Review them by following "
-"this link."
-msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -1497,6 +1508,11 @@ msgid "Pay"
 msgstr ""
 
 #. module: hr_expense
+#: model:ir.model,name:hr_expense.model_account_payment
+msgid "Payment"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__payment_method_line_id
 msgid "Payment Method"
 msgstr "Ödeme Yöntemi"
@@ -1522,11 +1538,6 @@ msgstr "Ödeme Yöntemleri"
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__company_expense_allowed_payment_method_line_ids
 msgid "Payment methods available for expenses paid by company"
 msgstr "Şirket tarafından ödenen giderler için kullanılabilir ödeme yöntemleri"
-
-#. module: hr_expense
-#: model:ir.model,name:hr_expense.model_account_payment
-msgid "Payments"
-msgstr "Ödemeler"
 
 #. module: hr_expense
 #: model_terms:product.template,description:hr_expense.expense_product_communication_product_template
@@ -1728,6 +1739,11 @@ msgid "Restaurants, business lunches, etc."
 msgstr "Restoranlar, iş yemekleri vb."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Review Expenses"
+msgstr ""
+
+#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "SMS İleti hatası"
@@ -1755,10 +1771,10 @@ msgid "Scan"
 msgstr "Tara"
 
 #. module: hr_expense
-#. odoo-javascript
-#: code:addons/hr_expense/static/src/components/qrcode_action.xml:0
-msgid "Scan this QR code to get the Odoo app:"
-msgstr "Odoo uygulamasını indirmek için bu QR kodunu tara :"
+#. odoo-python
+#: code:addons/hr_expense/models/hr_expense.py:0
+msgid "Select a category to proceed."
+msgstr ""
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_employee__expense_manager_id
@@ -1847,11 +1863,6 @@ msgid "Split Possible"
 msgstr "Bölme Mümkün"
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_product_product__standard_price_update_warning
-msgid "Standard Price Update Warning"
-msgstr "Standart Fiyat Güncellemesi Uyarısı"
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense__state
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_search
 #: model_terms:ir.ui.view,arch_db:hr_expense.view_move_list_expense
@@ -1877,6 +1888,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "Submit"
 msgstr "Gönder"
+
+#. module: hr_expense
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/views/expense_form_view.js:0
+msgid "Submit Expense"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -1950,6 +1967,11 @@ msgstr "Vergiler"
 #: model:res.groups,name:hr_expense.group_hr_expense_team_approver
 msgid "Team Approver"
 msgstr "Ekip Onaycısı"
+
+#. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "Thanks,"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-python
@@ -2043,13 +2065,9 @@ msgstr ""
 #. odoo-python
 #: code:addons/hr_expense/models/product_product.py:0
 msgid ""
-"There are unsubmitted expenses linked to this category. Updating the "
-"category cost will change expense amounts. Make sure it is what you want to "
-"do."
+"There are draft expenses linked to this category. Updating the category cost "
+"will change expense amounts. Make sure it is what you want to do."
 msgstr ""
-"Bu kategori ile bağlantılı gönderilmemiş giderler var. Kategori maliyetini "
-"güncellemek, gider tutarlarını değiştirecektir. Bu işlemi gerçekleştirmek "
-"istediğinizden emin olun."
 
 #. module: hr_expense
 #: model_terms:web_tour.tour,rainbow_man_message:hr_expense.hr_expense_tour
@@ -2172,10 +2190,10 @@ msgid "Untaxed Amount"
 msgstr "Vergi Hariç Tutar"
 
 #. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "Untitled Expense %s"
-msgstr "İsimsiz Gider %s"
+#. odoo-javascript
+#: code:addons/hr_expense/static/src/components/hr_expense_product_form_view.js:0
+msgid "Update cost"
+msgstr ""
 
 #. module: hr_expense
 #. odoo-javascript
@@ -2210,11 +2228,6 @@ msgstr "Tedarikçi"
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
 msgid "View Expense"
 msgstr "Masrafları Görüntüle"
-
-#. module: hr_expense
-#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
-msgid "View expenses"
-msgstr "Masrafları görüntüle"
 
 #. module: hr_expense
 #. odoo-python
@@ -2271,12 +2284,6 @@ msgstr "Seçilen bir üründe vergi tanımlanıp tanımlanmadığı"
 #: model:ir.model.fields,field_description:hr_expense.field_hr_expense_split__wizard_id
 msgid "Wizard"
 msgstr "Sihirbaz"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid "You can not submit an expense without a category."
-msgstr "Kategorisi olmayan bir harcama gönderemezsiniz."
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_register
@@ -2385,6 +2392,11 @@ msgid "You cannot split an expense that is already posted."
 msgstr "Zaten gönderilmiş olan bir gideri bölemezsiniz."
 
 #. module: hr_expense
+#: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_submitted_expenses
+msgid "You currently have"
+msgstr ""
+
+#. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You do not have the required permission to submit this expense."
@@ -2413,16 +2425,6 @@ msgstr "Muhasebe kayıtları oluşturma hakkınız yoktur."
 #: code:addons/hr_expense/models/hr_expense.py:0
 msgid "You need to add a manual payment method on the journal (%s)"
 msgstr "Yevmiyeye manuel bir ödeme yöntemi eklemeniz gerekiyor (%s)"
-
-#. module: hr_expense
-#. odoo-python
-#: code:addons/hr_expense/models/hr_expense.py:0
-msgid ""
-"You need to have at least one category that can be expensed in your database "
-"to proceed!"
-msgstr ""
-"Devam edebilmek için veri tabanınızda masraf olarak kaydedilebilir en az bir "
-"kategori bulunmalıdır!"
 
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_template_refuse_reason
@@ -2508,392 +2510,3 @@ msgstr "aynı makbuzla zaten mevcut."
 
 #~ msgid "2023-08-11"
 #~ msgstr "2023-08-11"
-
-#~ msgid ""
-#~ "New expenses are awaiting your approval.\n"
-#~ "                You can review them by following this link"
-#~ msgstr ""
-#~ "Yeni harcamalar onayınızı bekliyor.\n"
-#~ "                Bu bağlantıyı takip ederek onları inceleyebilirsiniz"
-
-#~ msgid "View Attachments"
-#~ msgstr "Ekleri Görüntüle"
-
-#~ msgid "Accounting Settings"
-#~ msgstr "Muhasebe Ayarları"
-
-#~ msgid "You should install a Fiscal Localization first."
-#~ msgstr "Önce bir Mali Yerelleştirme modülü kurmalısınız."
-
-#~ msgid ""
-#~ "'Expenses - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-#~ msgstr ""
-#~ "'Masraflar - %s - %s' % (object.employee_id.name, "
-#~ "(object.name).replace('/', ''))"
-
-#~ msgid ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">Use this reference "
-#~ "as a subject prefix when submitting by email.</i></span>"
-#~ msgstr ""
-#~ "<span class=\"d-inline-block\"><i class=\"text-muted\">E-posta ile "
-#~ "gönderirken bu referansı konu öneki olarak kullanın.</i></span>"
-
-#~ msgid "<strong>Date:</strong>"
-#~ msgstr "<strong>Tarih:</strong>"
-
-#~ msgid "<strong>Description:</strong>"
-#~ msgstr "<strong>Açıklama:</strong>"
-
-#~ msgid "<strong>Employee:</strong>"
-#~ msgstr "<strong>Personel:</strong>"
-
-#~ msgid "<strong>Payment By:</strong>"
-#~ msgstr "<strong>Ödemeyi Yapan:</strong>"
-
-#~ msgid "<strong>Total</strong>"
-#~ msgstr "<strong>Toplam</strong>"
-
-#~ msgid "<strong>Validated By:</strong>"
-#~ msgstr "<strong>Onaylayan:</strong>"
-
-#~ msgid "All Expense Reports"
-#~ msgstr "Tüm Masraf Formları"
-
-#~ msgid "All Reports"
-#~ msgstr "Tüm Formlar"
-
-#~ msgid "An expense report must contain only lines from the same company."
-#~ msgstr "Bir masraf formu yalnızca aynı şirkete ait satırlar içermelidir."
-
-#~ msgid "Apple App Store"
-#~ msgstr "Apple Uygulama Mağazası"
-
-#~ msgid "Approve Report"
-#~ msgstr "Formu Onayla"
-
-#~ msgid "Approved By"
-#~ msgstr "Tarafından Onaylanan"
-
-#~ msgid "Approved On"
-#~ msgstr "Onaylandı"
-
-#~ msgid "Bill Reference"
-#~ msgstr "Referans"
-
-#~ msgid "Can be Expensed"
-#~ msgstr "Masraf Olabilir"
-
-#~ msgid "Categories"
-#~ msgstr "Kategoriler"
-
-#~ msgid "Certified honest and conform,<br/>(Date and signature).<br/><br/>"
-#~ msgstr "Doğru ve uygun sertifikalı,<br/>(Tarih ve imza).<br/><br/>"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Ölçü Birimleri arası dönüştürme yalnızca aynı kategoriye sahiplerse "
-#~ "yapılabilir. Dönüşümler oranlara göre yapılacaktır."
-
-#~ msgid "Create Report"
-#~ msgstr "Form Oluştur"
-
-#~ msgid "Create a new expense report"
-#~ msgstr "Yeni bir masraf formu oluştur"
-
-#~ msgid "Create a report to submit one or more expenses to your manager."
-#~ msgstr ""
-#~ "Yöneticinize bir veya daha fazla masraf göndermek için bir rapor "
-#~ "oluşturun."
-
-#~ msgid "Date"
-#~ msgstr "Tarih"
-
-#~ msgid "Default Journals"
-#~ msgstr "Varsayılan Yevmiyeler"
-
-#~ msgid "Did you try the mobile app?"
-#~ msgstr "Mobil uygulamayı denediniz mi?"
-
-#~ msgid "Done"
-#~ msgstr "Biten"
-
-#~ msgid "Drag and drop files to create expenses"
-#~ msgstr "Masraflar oluşturmak için dosyaları sürükleyip bırakın"
-
-#~ msgid "Employee Home Address"
-#~ msgstr "Personel Ev Adresi"
-
-#~ msgid "Expense Journal"
-#~ msgstr "Masraf Yevmiyesi"
-
-#~ msgid "Expense Lines"
-#~ msgstr "Masraf Satırları"
-
-#~ msgid "Expense Lines Are Editable By Current User"
-#~ msgstr "Masraf Satırları Geçerli Kullanıcı Tarafından Düzenlenebilir"
-
-#~ msgid "Expense Report"
-#~ msgstr "Masraf Formu"
-
-#~ msgid "Expense Report Summary"
-#~ msgstr "Masraf Formu Özeti"
-
-#~ msgid "Expense Reports"
-#~ msgstr "Masraf Formları"
-
-#~ msgid "Expense Reports Analysis"
-#~ msgstr "Masraf Formları Analizi"
-
-#~ msgid "Expense Reports to Approve"
-#~ msgstr "Onaylanacak Masraf Formları"
-
-#~ msgid "Expense Sheet"
-#~ msgstr "Masraf Formu"
-
-#~ msgid "Expense report approved"
-#~ msgstr "Masraf formu onaylandı"
-
-#~ msgid "Expense report paid"
-#~ msgstr "Masraf formu ödendi"
-
-#~ msgid "Expense report refused"
-#~ msgstr "Masraf formu reddedildi"
-
-#~ msgid ""
-#~ "Expense reports regroup all the expenses incurred during a specific event."
-#~ msgstr ""
-#~ "Masraf formları belirli bir etkinlik esnasında oluşan tüm masrafları "
-#~ "biraraya gruplar."
-
-#~ msgid "Expenses Reports to Approve"
-#~ msgstr "Onaylanacak Masraf Formları"
-
-#~ msgid "Expenses by Date"
-#~ msgstr "Tarihe Göre Masraflar"
-
-#~ msgid "Former Employees"
-#~ msgstr "Eski Personeller"
-
-#~ msgid "General Information"
-#~ msgstr "Genel Bilgi"
-
-#~ msgid "Google Play Store"
-#~ msgstr "Google Play Mağazası"
-
-#~ msgid "Group By"
-#~ msgstr "Grupla"
-
-#~ msgid "Handle lines with different currencies"
-#~ msgstr "Farklı para birimlerine sahip satırların üstesinden gel"
-
-#~ msgid "Internal Note"
-#~ msgstr "İç Not"
-
-#~ msgid "Label Convert Rate"
-#~ msgstr "Etiket Dönüştürme Oranı"
-
-#~ msgid ""
-#~ "Managers can approve the report here, then an accountant can post the "
-#~ "accounting entries."
-#~ msgstr ""
-#~ "Yöneticiler raporu buradan onaylayabilir, ardından bir muhasebeci yevmiye "
-#~ "kayıtlarını onaylayabilir."
-
-#~ msgid "My Reports"
-#~ msgstr "Formlarım"
-
-#~ msgid "New Expense Report"
-#~ msgstr "Yeni Masraf Formu"
-
-#~ msgid "New Expense Reports"
-#~ msgstr "Yeni Masraf Raporları"
-
-#~ msgid "No Home Address found for the employee %s, please configure one."
-#~ msgstr "%s personeli için Ev Adresi bulunamadı, lütfen ayarlayın."
-
-#~ msgid "No expense report found. Let's create one!"
-#~ msgstr "Masraf formu bulunamadı. Bir tane oluşturalım!"
-
-#~ msgid "No expense reports found. Let's create one!"
-#~ msgstr "Masraf formu bulunamadı. Bir tane oluşturalım!"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Eylem gerektiren mesaj adedi"
-
-#~ msgid ""
-#~ "Once your <b>Expense Report</b> is ready, you can submit it to your "
-#~ "manager and wait for approval."
-#~ msgstr ""
-#~ "<b>Masraf Raporunuz</b> hazır olduğunda, yöneticinize gönderebilir ve "
-#~ "onay için bekleyebilirsiniz."
-
-#~ msgid "Only HR Officers or the concerned employee can reset to draft."
-#~ msgstr "Sadece İK Yetkilileri veya ilgili çalışan taslağı sıfırlayabilir."
-
-#~ msgid "Or"
-#~ msgstr "Veya"
-
-#~ msgid "Others"
-#~ msgstr "Diğerleri"
-
-#~ msgid "Partial"
-#~ msgstr "Parçalı"
-
-#~ msgid "Payment Status"
-#~ msgstr "Ödeme Durumu"
-
-#~ msgid "Price"
-#~ msgstr "Fiyat"
-
-#~ msgid "Price in Company Currency"
-#~ msgstr "Şirket Para Biriminde Fiyat"
-
-#~ msgid "Qty"
-#~ msgstr "Miktar"
-
-#~ msgid "Reason to refuse Expense"
-#~ msgstr "Masrafı reddetme nedeni"
-
-#~ msgid "Ref."
-#~ msgstr "Ref."
-
-#~ msgid "Reference Is Editable By Current User"
-#~ msgstr "Referans Mevcut Kullanıcı Tarafından Düzenlenebilir"
-
-#~ msgid "Refused Expenses"
-#~ msgstr "Reddedilen Masraflar"
-
-#~ msgid "Register Payment"
-#~ msgstr "Ödeme Kaydet"
-
-#~ msgid "Reimburse expenses in payslips"
-#~ msgstr "Masrafları maaş bordrosunda öde"
-
-#~ msgid "Reset to Draft"
-#~ msgstr "Taslağa Ayarla"
-
-#~ msgid "Sample"
-#~ msgstr "Örneklem"
-
-#~ msgid ""
-#~ "Selected Unit of Measure for expense %(expense)s does not belong to the "
-#~ "same category as the Unit of Measure of product %(product)s."
-#~ msgstr ""
-#~ "Masraf %(expense)s için seçilen Ölçü Birimi, ürün %(product)s Ölçü Birimi "
-#~ "ile aynı kategoriye ait değildir."
-
-#~ msgid "Setup your domain alias"
-#~ msgstr "Alan takma adınızı ayarlayınız"
-
-#~ msgid "Sheet"
-#~ msgstr "Çizelge"
-
-#~ msgid "Sheet Is Editable"
-#~ msgstr "Sayfa Düzenlenebilir"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Bir sonraki eylem tarihi bugünden önce olan tüm kayıtları göster"
-
-#~ msgid ""
-#~ "Snap pictures of your receipts and let Odoo<br> automatically create "
-#~ "expenses for you."
-#~ msgstr ""
-#~ "Fişlerinizin fotoğrafını çekin ve Odoo<br> otomatik olarak masrafları "
-#~ "yaratınız."
-
-#~ msgid "Specify expense journal to generate accounting entries."
-#~ msgstr "Yevmiye kayıtları oluşturmak için masraf yevmiyesini belirtin."
-
-#~ msgid "The journal must be set on posted expense"
-#~ msgstr "Yevmiye işlenen masraf üzerinden ayarlanmalıdır"
-
-#~ msgid ""
-#~ "This note will be shown to users when they select this expense product."
-#~ msgstr ""
-#~ "Bu not, kullanıcılara bu masraf ürününü seçtiklerinde gösterilecektir."
-
-#~ msgid "To Report"
-#~ msgstr "Gönderilecek"
-
-#~ msgid "Unit Price Display"
-#~ msgstr "Birim Fiyat Göstergesi"
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Ölçü Birimi"
-
-#~ msgid "UoM Category"
-#~ msgstr "UoM Kategorisi"
-
-#~ msgid "User"
-#~ msgstr "Kullanıcı"
-
-#~ msgid "View Report"
-#~ msgstr "Formu Göster"
-
-#~ msgid "Wasting time recording your receipts? Let’s try a better way."
-#~ msgstr ""
-#~ "Masraflarınızı kaydederken zaman mı harcıyorsunuz? Haydi daha iyi bir yol "
-#~ "deneyelim."
-
-#~ msgid ""
-#~ "When the cost of an expense product is different than 0, then the user "
-#~ "using this product won't be able to change the amount of the expense, "
-#~ "only the quantity. Use a cost different than 0 for expense categories "
-#~ "funded by the company at fixed cost like allowances for mileage, per "
-#~ "diem, accommodation or meal."
-#~ msgstr ""
-#~ "Bir masraf ürününün maliyeti 0'dan farklı olduğunda, bu ürünü kullanan "
-#~ "kullanıcı masrafın tutarını değiştiremez, sadece miktarını "
-#~ "değiştirebilir. Kilometre, harcırah, konaklama veya yemek ödenekleri gibi "
-#~ "şirket tarafından sabit maliyetle finanse edilen masraf kategorileri için "
-#~ "0'dan farklı bir maliyet kullanın."
-
-#~ msgid "You are not authorized to edit the reference of this expense report."
-#~ msgstr "Bu masraf formunun referansını düzenleme yetkiniz yok."
-
-#~ msgid "You are not authorized to edit this expense report."
-#~ msgstr "Bu masraf formunu düzenleme yetkiniz yok."
-
-#~ msgid "You can not create report without category."
-#~ msgstr "Kategori olmadan rapor oluşturamazsınız."
-
-#~ msgid "You can only generate accounting entry for approved expense(s)."
-#~ msgstr ""
-#~ "Sadece onaylanmış masraf(lar) için muhasebe girişi oluşturabilirsiniz."
-
-#~ msgid "You cannot add expenses of another employee."
-#~ msgstr "Başka çalışanlara masraf ekleyemezsiniz."
-
-#~ msgid "You cannot delete a posted or paid expense."
-#~ msgstr "İşlenmiş veya ödenmiş masrafı silemezsiniz."
-
-#~ msgid ""
-#~ "You cannot do this modification since the payment is linked to an expense "
-#~ "report."
-#~ msgstr ""
-#~ "Ödeme bir masraf raporuna bağlı olduğu için bu değişikliği yapamazsınız."
-
-#~ msgid ""
-#~ "You cannot report expenses for different employees in the same report."
-#~ msgstr "Aynı formda farklı çalışanların harcamalarını gönderemezsiniz."
-
-#~ msgid "You cannot report the expenses without amount!"
-#~ msgstr "Tutarı olmayan masrafları raporlayamazsınız!"
-
-#~ msgid "You cannot report twice the same line!"
-#~ msgstr "Aynı satırı birden fazla gönderemezsiniz!"
-
-#~ msgid "You have no expense to report"
-#~ msgstr "Raporlanacak bir masrafınız yok"
-
-#~ msgid "e.g. Trip to NY"
-#~ msgstr "örn. NY seyahati"
-
-#~ msgid "to be reimbursed"
-#~ msgstr "personele geri ödenecek"
-
-#~ msgid "under validation"
-#~ msgstr "doğrulama aşamasında"

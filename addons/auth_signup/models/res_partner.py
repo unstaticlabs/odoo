@@ -29,10 +29,12 @@ class ResPartner(models.Model):
     def _get_signup_url(self):
         self.ensure_one()
         result = self.sudo()._get_signup_url_for_action()
-        if any(u._is_internal() for u in self.user_ids if u != self.env.user):
-            self.env['res.users'].check_access('write')
-        if any(u._is_portal() for u in self.user_ids if u != self.env.user):
-            self.env['res.partner'].check_access('write')
+        internal_users = self.user_ids.filtered(lambda u: u._is_internal())
+        if internal_users:
+            internal_users.check_access('write')
+        portal_users = self.user_ids.filtered(lambda u: u._is_portal())
+        if portal_users:
+            portal_users.partner_id.check_access('write')
         return result.get(self.id, False)
 
     def _get_signup_url_for_action(self, url=None, action=None, view_type=None, menu_id=None, res_id=None, model=None):
@@ -183,9 +185,9 @@ class ResPartner(models.Model):
         self.ensure_one()
         if not expiration:
             if self.signup_type == 'reset':
-                expiration = int(self.env['ir.config_parameter'].get_param("auth_signup.reset_password.validity.hours", 4))
+                expiration = self.env['ir.config_parameter'].get_int("auth_signup.reset_password.validity.hours") or 4
             else:
-                expiration = int(self.env['ir.config_parameter'].get_param("auth_signup.signup.validity.hours", 144))
+                expiration = self.env['ir.config_parameter'].get_int("auth_signup.signup.validity.hours") or 144
         plist = [self.id, self.user_ids.ids, self._get_login_date(), self.signup_type]
         payload = tools.hash_sign(self.sudo().env, 'signup', plist, expiration_hours=expiration)
         return payload

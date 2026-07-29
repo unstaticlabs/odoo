@@ -44,15 +44,16 @@
                         <div groups="base.group_user" invisible="composition_mode != 'comment' or subtype_is_log" class="d-flex gap-3">
                             <field name="partner_ids" widget="many2many_tags_email" placeholder="Followers only" class="w-auto flex-grow-1"
                                 invisible="composition_comment_option == 'forward' or (composition_comment_option != 'reply_all' and not context.get('clicked_on_full_composer', False))"
-                                context="{'form_view_ref': 'base.view_partner_simple_form'}"
-                                options="{'edit_tags': True}"/>
+                                context="{'form_view_ref': 'base.view_partner_simple_form', 'show_email': True}"
+                                options="{'on_tag_click': 'open_form'}"/>
                             <field name="partner_ids" widget="many2many_tags_email" placeholder="Add recipients..." class="w-auto flex-grow-1"
                                 required="composition_comment_option == 'forward' or (composition_comment_option != 'reply_all' and not context.get('clicked_on_full_composer', False) and composition_mode == 'comment' and not notified_bcc_contains_share)"
                                 invisible="composition_comment_option != 'forward' and (context.get('clicked_on_full_composer', False) or composition_comment_option == 'reply_all' )"
-                                options="{'edit_tags': True}"
+                                options="{'on_tag_click': 'open_form'}"
                                 context="{'force_email': True, 'show_email': True, 'form_view_ref': 'base.view_partner_simple_form', 'forward_mode': True}"/>
                         </div>
-                        <field name="subject" placeholder="e.g. Welcome to MyCompany!" required="True"/>
+                        <field name="subject" placeholder="Default Subject" required="0" invisible="composition_mode == 'mass_mail'"/>
+                        <field name="subject" placeholder="e.g. Welcome to MyCompany!" required="1" invisible="composition_mode != 'mass_mail'"/>
                         <field name="reply_to" placeholder="e.g. info@company.com"
                             invisible="reply_to_mode == 'update'"
                             required="reply_to_mode != 'update'"/>
@@ -97,10 +98,10 @@
                                 invisible="(not subtype_is_log or composition_mode == 'comment' and not composition_batch and scheduled_date) or partner_ids_all_have_email"/>
                         <button string="Schedule" name="action_schedule_message" type="object" class="btn-primary" data-hotkey="q" disabled="1"
                                 invisible="(composition_mode != 'comment' or composition_batch or not scheduled_date) or partner_ids_all_have_email"/>
-                        <button string="Discard" class="btn-secondary w-auto" special="cancel" data-hotkey="x" />
+                        <button class="btn-secondary" special="cancel" data-hotkey="x"/>
                         <field name="attachment_ids" widget="mail_composer_attachment_selector" invisible="not can_edit_body"/>
-                        <field name="template_id" widget="mail_composer_template_selector"/>
                         <field name="scheduled_date" widget="text_scheduled_date" invisible="composition_batch or composition_mode != 'comment'"/>
+                        <field name="template_id" widget="mail_composer_template_selector"/>
                     </footer>
                 </form>
             </field>
@@ -117,7 +118,7 @@
                     </group>
                     <footer>
                         <button name="create_mail_template" type="object" class="btn btn-primary" string="Save Template"/>
-                        <button class="btn btn-secondary" string="Discard" special="cancel"/>
+                        <button class="btn btn-secondary" special="cancel"/>
                     </footer>
                 </form>
             </field>

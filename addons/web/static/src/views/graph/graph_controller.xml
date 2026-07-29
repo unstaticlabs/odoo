@@ -7,6 +7,7 @@
                 measures="model.metaData.measures"
                 activeMeasures="[model.metaData.measure]"
                 onMeasureSelected.bind="this.onMeasureSelected"
+                multiSelect="false"
             />
         </div>
         <div class="btn-group" role="toolbar" aria-label="Change graph">
@@ -57,15 +58,15 @@
                 <t t-set-slot="control-panel-additional-actions">
                     <CogMenu/>
                 </t>
-                <t t-set-slot="layout-actions">
+                <t t-set-slot="control-panel-actions">
                     <SearchBar toggler="searchBarToggler"/>
                 </t>
                 <t t-set-slot="control-panel-navigation-additional">
                     <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
                 </t>
                 <t t-if="model.isReady and model.data">
-					<t t-if="!model.hasData() or model.useSampleModel and props.info.noContentHelp">
-						<ActionHelper noContentHelp="props.info.noContentHelp" showRibbon="model.useSampleModel"/>
+                    <t t-if="!model.hasData() or model.useSampleModel and props.info.noContentHelp">
+                        <ActionHelper noContentHelp="props.info.noContentHelp" />
                     </t>
                     <t t-component="props.Renderer" model="model" buttonTemplate="props.buttonTemplate" />
                 </t>

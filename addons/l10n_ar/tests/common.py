@@ -66,7 +66,7 @@ class TestArCommon(AccountTestInvoicingCommon):
 
         # ==== Bank Account ====
         cls.bank_account_ri = cls.env['res.partner.bank'].create({
-            'acc_number': '7982898111100056688080',
+            'account_number': '7982898111100056688080',
             'partner_id': cls.company_ri.partner_id.id,
             'company_id': cls.company_ri.id,
             'allow_out_payment': True,
@@ -76,7 +76,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         cls.partner_afip = cls.env.ref("l10n_ar.partner_afip")
         cls.res_partner_adhoc = cls.env['res.partner'].create({
             "name": "ADHOC SA",
-            "is_company": 1,
             "city": "Rosario",
             "zip": "2000",
             "state_id": cls.env.ref("base.state_ar_s").id,
@@ -96,7 +95,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         })
         cls.res_partner_gritti_mono = cls.env['res.partner'].create({
             "name": "Gritti Agrimensura (Monotributo)",
-            "is_company": 1,
             "city": "Rosario",
             "zip": "2000",
             "state_id": cls.env.ref("base.state_ar_s").id,
@@ -111,7 +109,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         })
         cls.res_partner_montana_sur = cls.env['res.partner'].create({
             "name": "Montana Sur",
-            "is_company": 1,
             "city": "San Martin de los Andes",
             "state_id": cls.env.ref("base.state_ar_v").id,
             "country_id": cls.env.ref("base.ar").id,
@@ -125,7 +122,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         })
         cls.res_partner_servicios_globales = cls.env['res.partner'].create({
             "name": "Servicios Globales SRL (IVA Sujeto Exento)",
-            "is_company": 1,
             "city": "Rosario",
             "zip": "2000",
             "state_id": cls.env.ref("base.state_ar_s").id,
@@ -140,7 +136,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         })
         cls.res_partner_barcelona_food = cls.env['res.partner'].create({
             "name": "Barcelona Food",
-            "is_company": 1,
             "city": "Barcelona",
             "zip": "11002",
             "country_id": cls.env.ref("base.es").id,
@@ -154,7 +149,6 @@ class TestArCommon(AccountTestInvoicingCommon):
         })
         cls.partner_mipyme = cls.env['res.partner'].create({
             "name": "Trenes Argentinos (Mipyme)",
-            "is_company": 1,
             "city": "Buenos Aires",
             "zip": "1524",
             "state_id": cls.env.ref("base.state_ar_c").id,

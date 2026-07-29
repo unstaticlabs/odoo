@@ -31,4 +31,4 @@ class TestUi(TestPosHrHttpCommon, TestFrontendCommon):
         order = self.env['pos.order'].search([
             ('config_id', '=', self.main_pos_config.id)
         ], order='id desc', limit=1)
-        self.assertIn("Test Employee 3", order.message_ids[0].body)
+        self.assertNotIn("Mitchell Admin", order.message_ids[0].body)

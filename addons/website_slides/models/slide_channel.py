@@ -407,7 +407,7 @@ class SlideChannel(models.Model):
     def _compute_partner_has_new_content(self):
         new_published_slides = self.env['slide.slide'].sudo().search([
             ('is_published', '=', True),
-            ('date_published', '>', fields.Datetime.now() - relativedelta(days=7)),
+            ('published_date', '>', fields.Datetime.now() - relativedelta(days=7)),
             ('channel_id', 'in', self.ids),
             ('is_category', '=', False)
         ])
@@ -612,6 +612,16 @@ class SlideChannel(models.Model):
     def _mail_get_partner_fields(self, introspect_fields=False):
         return []
 
+    def _mail_get_operation_for_mail_message_operation(self, message_operation):
+        # posting messages on channels user is a member requires only read access
+        operations = super()._mail_get_operation_for_mail_message_operation(message_operation)
+        if message_operation == 'create':
+            return (
+                (Domain('is_member', '=', True), 'read'),
+                *operations,
+            )
+        return operations
+
     # ---------------------------------------------------------
     # Business / Actions
     # ---------------------------------------------------------
@@ -672,7 +682,7 @@ class SlideChannel(models.Model):
         local_context = dict(
             self.env.context,
             default_channel_id=self.id if len(self) == 1 else False,
-            default_email_layout_xmlid='website_slides.mail_notification_channel_invite',
+            default_email_layout_xmlid='mail.mail_notification_layout',
             default_enroll_mode=enroll_mode,
             default_template_id=mail_template and mail_template.id or False,
             default_use_template=bool(mail_template),
@@ -1051,11 +1061,12 @@ class SlideChannel(models.Model):
                 domain.append([('tag_ids', 'in', tags_.ids)])
         if slide_category and 'nbr_%s' % slide_category in self:
             domain.append([('nbr_%s' % slide_category, '>', 0)])
-        search_fields = ['name']
-        fetch_fields = ['name', 'website_url']
+        search_fields = ['name', 'tag_ids.name']
+        fetch_fields = ['name', 'website_url', 'tag_ids']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
+            'tags': {'name': 'tag_ids', 'type': 'tags', 'match': True},
         }
         if with_description:
             search_fields.append('description_short')
@@ -1072,6 +1083,12 @@ class SlideChannel(models.Model):
             'mapping': mapping,
             'icon': 'fa-graduation-cap',
         }
+
+    def _search_render_results(self, fetch_fields, mapping, icon, limit):
+        results_data = super()._search_render_results(fetch_fields, mapping, icon, limit)
+        for channel, data in zip(self, results_data):
+            data['tag_ids'] = channel.tag_ids.read(['name'])
+        return results_data
 
     def _get_placeholder_filename(self, field):
         image_fields = ['image_%s' % size for size in [1920, 1024, 512, 256, 128]]

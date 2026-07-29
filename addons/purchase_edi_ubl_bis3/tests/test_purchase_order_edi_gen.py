@@ -14,6 +14,7 @@ class TestPurchaseOrderEDIGen(AccountTestInvoicingCommon):
         self.env.company.vat = 'BE0477472701'
         self.partner_a.country_id = self.env.ref('base.nl')
         self.partner_a.vat = 'NL123456782B90'
+        self.product_a.default_code = 'AAA'
         tax = self.company_data['default_tax_sale']
 
         po = self.env['purchase.order'].create({

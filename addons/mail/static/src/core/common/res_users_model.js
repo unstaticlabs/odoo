@@ -1,35 +1,25 @@
-import { markup } from "@odoo/owl";
 import { createElementWithContent } from "@web/core/utils/html";
-import { fields, Record } from "@mail/core/common/record";
+import { fields, Record } from "@mail/model/export";
+import { getOuterHtml } from "@mail/utils/common/html";
 
 export class ResUsers extends Record {
     static _name = "res.users";
-    static id = "id";
+    static _inherits = { "res.partner": "partner_id" };
 
     /** @type {number} */
     id;
     company_id = fields.One("res.company");
     /** @type {string} */
-    get email() {
-        return this.partner_id?.email;
-    }
-    /** @type {string} */
     im_status;
     /** @type {boolean} */
     is_admin;
-    /** @type {string} */
-    get name() {
-        return this.partner_id?.name;
-    }
     /** @type {"email" | "inbox"} */
     notification_type;
-    partner_id = fields.One("res.partner");
-    /** @type {string} */
-    get phone() {
-        return this.partner_id?.phone;
-    }
+    partner_id = fields.One("res.partner", { inverse: "user_ids" });
     /** @type {boolean} false when the user is an internal user, true otherwise */
     share;
+    /** @type {boolean} */
+    active;
     /** @type {ReturnType<import("@odoo/owl").markup>|string|undefined} */
     signature = fields.Html(undefined);
 
@@ -47,7 +37,7 @@ export class ResUsers extends Record {
             document.createElement("br"),
             ...createElementWithContent("div", this.signature).childNodes
         );
-        return markup(divElement.outerHTML);
+        return getOuterHtml(divElement);
     }
 }
 

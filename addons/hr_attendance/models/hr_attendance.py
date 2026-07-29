@@ -1,24 +1,23 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import pytz
-
 from calendar import monthrange
 from collections import defaultdict
-from datetime import datetime, timedelta, time
-from dateutil.rrule import rrule, DAILY
-from dateutil.relativedelta import relativedelta, MO, SU
+from datetime import UTC, datetime, time, timedelta
 from itertools import chain
-from operator import itemgetter
-from pytz import timezone, utc
 from random import randint
+from zoneinfo import ZoneInfo
 
-from odoo import models, fields, api, exceptions, _
+from dateutil.relativedelta import MO, SU, relativedelta
+from dateutil.rrule import DAILY, rrule
+
+from odoo import _, api, exceptions, fields, models
 from odoo.exceptions import AccessError
 from odoo.fields import Domain
 from odoo.http import request
-from odoo.tools import convert, float_is_zero, format_duration, format_time, format_datetime
+from odoo.tools import convert, float_is_zero, format_datetime, format_duration, format_time
 from odoo.tools.date_utils import sum_intervals
 from odoo.tools.intervals import Intervals
+
 
 def get_google_maps_url(latitude, longitude):
     return "https://maps.google.com?q=%s,%s" % (latitude, longitude)
@@ -31,11 +30,10 @@ class HrAttendance(models.Model):
     _inherit = ["mail.thread"]
 
     def _default_employee(self):
-        if self.env.user.has_group('hr_attendance.group_hr_attendance_user'):
-            return self.env.user.employee_id
+        return self.env.user.employee_id
 
     employee_id = fields.Many2one('hr.employee', string="Employee", default=_default_employee, required=True,
-        ondelete='cascade', index=True, group_expand='_read_group_employee_id')
+        ondelete='cascade', index=True)
     department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id",
         readonly=True)
     manager_id = fields.Many2one(comodel_name='hr.employee', related="employee_id.parent_id", readonly=True,
@@ -43,6 +41,8 @@ class HrAttendance(models.Model):
     attendance_manager_id = fields.Many2one('res.users', related="employee_id.attendance_manager_id",
         export_string_translation=False)
     is_manager = fields.Boolean(compute="_compute_is_manager")
+    is_own = fields.Boolean(compute="_compute_is_manager")
+    can_edit = fields.Boolean(compute="_compute_can_edit")
     check_in = fields.Datetime(string="Check In", default=fields.Datetime.now, required=True, tracking=True, index=True)
     check_out = fields.Datetime(string="Check Out", tracking=True)
     date = fields.Date(string="Date", compute='_compute_date', store=True, index=True, precompute=True, required=True)
@@ -87,8 +87,8 @@ class HrAttendance(models.Model):
             if not attendance.employee_id or not attendance.check_in:  # weird precompute edge cases. Never after creation
                 attendance.date = datetime.today()
                 continue
-            tz = timezone(attendance.employee_id._get_tz())
-            attendance.date = utc.localize(attendance.check_in).astimezone(tz).date()
+            tz = ZoneInfo(attendance.employee_id._get_tz())
+            attendance.date = attendance.check_in.replace(tzinfo=UTC).astimezone(tz).date()
 
     @api.depends("worked_hours", "overtime_hours")
     def _compute_expected_hours(self):
@@ -147,13 +147,27 @@ class HrAttendance(models.Model):
                     check_out=format_time(self.env, attendance.check_out, time_format=None, tz=tz, lang_code=self.env.lang),
                 )
 
+    @api.depends_context('uid')
     @api.depends('employee_id')
     def _compute_is_manager(self):
         have_manager_right = self.env.user.has_group('hr_attendance.group_hr_attendance_user')
         have_officer_right = self.env.user.has_group('hr_attendance.group_hr_attendance_officer')
+        have_own_right = self.env.user.has_group('hr_attendance.group_hr_attendance_own')
         for attendance in self:
             attendance.is_manager = have_manager_right or \
                 (have_officer_right and attendance.attendance_manager_id.id == self.env.user.id)
+            attendance.is_own = have_own_right and attendance.employee_id.user_id == self.env.user
+
+    @api.depends('employee_id.company_id.attendance_overtime_validation', 'is_manager', 'is_own', 'overtime_status')
+    def _compute_can_edit(self):
+        for attendance in self:
+            validation = attendance.employee_id.company_id.attendance_overtime_validation
+            if attendance.is_manager:
+                attendance.can_edit = True
+            elif attendance.is_own:
+                attendance.can_edit = not (attendance.overtime_status == 'approved' and validation == 'by_manager')
+            else:
+                attendance.can_edit = False
 
     def _get_employee_calendar(self):
         self.ensure_one()
@@ -179,19 +193,14 @@ class HrAttendance(models.Model):
         :returns: float, hours worked
         """
         self.ensure_one()
-        calendar = self._get_employee_calendar()
-        resource = self.employee_id.resource_id
-        tz = timezone(resource.tz) if not calendar else timezone(calendar.tz)
-        start_dt_tz = utc.localize(max(self.check_in, start_dt)).astimezone(tz)
-        end_dt_tz = utc.localize(min(self.check_out, end_dt)).astimezone(tz)
+        tz = ZoneInfo(self.employee_id._get_tz(self.check_in))
+        start_dt_tz = max(self.check_in, start_dt).replace(tzinfo=UTC).astimezone(tz)
+        end_dt_tz = min(self.check_out, end_dt).replace(tzinfo=UTC).astimezone(tz)
 
         if end_dt_tz < start_dt_tz:
             return 0.0
 
-        lunch_intervals = []
-        if not resource._is_flexible():
-            lunch_intervals = self.employee_id._employee_attendance_intervals(start_dt_tz, end_dt_tz, lunch=True)
-        attendance_intervals = Intervals([(start_dt_tz, end_dt_tz, self)]) - lunch_intervals
+        attendance_intervals = Intervals([(start_dt_tz, end_dt_tz, self)])
         return sum_intervals(attendance_intervals)
 
     @api.constrains('check_in', 'check_out')
@@ -250,12 +259,12 @@ class HrAttendance(models.Model):
         # Returns a tuple containing the datetime in naive UTC of the employee's start of the day
         # and the date it was for that employee
         if not dt.tzinfo:
-            calendar_tz = employee._get_calendar_tz_batch(dt)[employee.id]
-            date_employee_tz = pytz.utc.localize(dt).astimezone(pytz.timezone(calendar_tz))
+            employee_tz = employee._get_tz(dt)[employee.id]
+            date_employee_tz = dt.replace(tzinfo=UTC).astimezone(ZoneInfo(employee_tz))
         else:
             date_employee_tz = dt
         start_day_employee_tz = date_employee_tz.replace(hour=0, minute=0, second=0)
-        return (start_day_employee_tz.astimezone(pytz.utc).replace(tzinfo=None), start_day_employee_tz.date())
+        return (start_day_employee_tz.astimezone(UTC).replace(tzinfo=None), start_day_employee_tz.date())
 
     def _get_week_date_range(self):
         assert self
@@ -270,9 +279,9 @@ class HrAttendance(models.Model):
             return Domain.FALSE
         domain_list = []
         for employee, attendances in self.filtered(lambda att: att.check_out).grouped('employee_id').items():
-            tz = timezone(employee.tz)
-            local_check_in = utc.localize(min(attendances.mapped('check_in'))).astimezone(tz)
-            local_check_out = utc.localize(max(attendances.mapped('check_out'))).astimezone(tz)
+            tz = ZoneInfo(employee.sudo()._get_tz())
+            local_check_in = min(attendances.mapped('check_in')).replace(tzinfo=UTC).astimezone(tz)
+            local_check_out = max(attendances.mapped('check_out')).replace(tzinfo=UTC).astimezone(tz)
             rulesets = attendances.mapped(lambda att: att.employee_id.sudo()._get_version(att.date)).ruleset_id
             # append this domain only for weekly rules
             if any(rule.quantity_period == 'week' for rule in rulesets.sudo().rule_ids):
@@ -284,8 +293,8 @@ class HrAttendance(models.Model):
 
             domain_list.append(Domain.AND([
                 Domain('employee_id', '=', employee.id),
-                Domain('check_in', '<=', datetime.combine(date_to, datetime.max.time()).replace(tzinfo=tz).astimezone(utc).replace(tzinfo=None)),
-                Domain('check_out', '>=', datetime.combine(date_from, datetime.min.time()).replace(tzinfo=tz).astimezone(utc).replace(tzinfo=None)),
+                Domain('check_in', '<=', datetime.combine(date_to, datetime.max.time()).replace(tzinfo=tz).astimezone(UTC).replace(tzinfo=None)),
+                Domain('check_out', '>=', datetime.combine(date_from, datetime.min.time()).replace(tzinfo=tz).astimezone(UTC).replace(tzinfo=None)),
             ]))
         if not domain_list:
             return Domain.FALSE
@@ -320,31 +329,50 @@ class HrAttendance(models.Model):
             return
 
         start_check_in = min(all_attendances.mapped('check_in')).date() - relativedelta(days=1)  # for timezone
-        min_check_in = utc.localize(datetime.combine(start_check_in, datetime.min.time()))
+        min_check_in = datetime.combine(start_check_in, time.min).replace(tzinfo=UTC)
 
-        start_check_out = max(all_attendances.mapped('check_out')).date() + relativedelta(days=1)
-        max_check_out = utc.localize(datetime.combine(start_check_out, datetime.max.time()))  # for timezone
+        end_check_out = max(all_attendances.mapped('check_out')).date() + relativedelta(days=1)
+        max_check_out = datetime.combine(end_check_out, time.max).replace(tzinfo=UTC)  # for timezone
 
-        version_periods_by_employee = all_attendances.employee_id.sudo()._get_version_periods(min_check_in, max_check_out)
+        version_periods_by_employee = all_attendances.employee_id.sudo()._get_version_periods(start_check_in, end_check_out)
+        version_periods_by_employee = {
+            emp: [
+                (
+                    datetime.combine(p_start, time.min).replace(tzinfo=UTC),
+                    datetime.combine(p_stop, time.max).replace(tzinfo=UTC),
+                    v)
+                for p_start, p_stop, v in periods
+            ]
+            for emp, periods in version_periods_by_employee.items()
+        }
         attendances_by_employee = all_attendances.grouped('employee_id')
         attendances_by_ruleset = defaultdict(lambda: self.env['hr.attendance'])
         for employee, emp_attendance in attendances_by_employee.items():
+            if employee not in version_periods_by_employee:
+                continue
             for attendance in emp_attendance:
-                version_sudo = employee.sudo()._get_version(attendance._get_localized_times()[0])
-                ruleset_sudo = version_sudo.ruleset_id
-                if ruleset_sudo:
-                    attendances_by_ruleset[ruleset_sudo] += attendance
+                attendance_intervals = Intervals([(
+                    attendance.check_in.replace(tzinfo=UTC),
+                    attendance.check_out.replace(tzinfo=UTC),
+                    self.env['hr.version'])])
+                inter = Intervals(version_periods_by_employee[employee]) & attendance_intervals
+                if not inter:
+                    continue
+                version = inter._items[0][2]
+                ruleset = version.ruleset_id
+                if ruleset:
+                    attendances_by_ruleset[ruleset] += attendance
         employees = all_attendances.employee_id
         schedules_intervals_by_employee = employees._get_schedules_by_employee_by_work_type(min_check_in, max_check_out, version_periods_by_employee)
         overtime_vals_list = []
-        for ruleset_sudo, ruleset_attendances in attendances_by_ruleset.items():
+        for ruleset, ruleset_attendances in attendances_by_ruleset.items():
             attendances_dates = list(chain(*ruleset_attendances._get_dates().values()))
             overtime_vals_list.extend([
                 {
                     **val,
                     'status': 'to_approve'
                 } if (val['employee_id'], val['date']) in manual_overtimes else val
-                for val in ruleset_sudo.rule_ids._generate_overtime_vals_v2(min(attendances_dates), max(attendances_dates), ruleset_attendances, schedules_intervals_by_employee)
+                for val in ruleset.rule_ids._generate_overtime_vals_v2(min(attendances_dates), max(attendances_dates), ruleset_attendances, schedules_intervals_by_employee)
             ])
         self.env['hr.attendance.overtime.line'].create(overtime_vals_list)
         self.env.add_to_compute(self._fields['overtime_hours'], all_attendances)
@@ -553,24 +581,6 @@ class HrAttendance(models.Model):
             'url': self.env.company.attendance_kiosk_url + '?from_trial_mode=True'
         }
 
-    def _read_group_employee_id(self, resources, domain):
-        user_domain = Domain(self.env.context.get('user_domain') or Domain.TRUE)
-        employee_domain = Domain('company_id', 'in', self.env.context.get('allowed_company_ids', []))
-        if not self.env.user.has_group('hr_attendance.group_hr_attendance_user'):
-            employee_domain &= Domain('attendance_manager_id', '=', self.env.user.id)
-        if user_domain.is_true():
-            # Workaround to make it work only for list view.
-            if 'gantt_start_date' in self.env.context:
-                return self.env['hr.employee'].search(employee_domain)
-            return resources & self.env['hr.employee'].search(employee_domain)
-        else:
-            employee_name_domain = Domain.OR(
-                Domain('name', condition.operator, condition.value)
-                for condition in user_domain.iter_conditions()
-                if condition.field_expr == 'employee_id'
-            )
-            return resources | self.env['hr.employee'].search(employee_name_domain & employee_domain)
-
     def _linked_overtimes(self):
         return self.env['hr.attendance.overtime.line'].search([
             ('time_start', 'in', self.mapped('check_in')),
@@ -586,12 +596,12 @@ class HrAttendance(models.Model):
     def _cron_auto_check_out(self):
         def check_in_tz(attendance):
             """Returns check-in time in calendar's timezone."""
-            return attendance.check_in.astimezone(pytz.timezone(attendance.employee_id._get_version(attendance.date)._get_tz()))
+            return attendance.check_in.astimezone(ZoneInfo(attendance.employee_id._get_tz(attendance.date)))
 
         to_verify = self.env['hr.attendance'].search(
             [('check_out', '=', False),
              ('employee_id.company_id.auto_check_out', '=', True),
-             ('employee_id.resource_calendar_id.flexible_hours', '=', False)]
+             ('employee_id.resource_calendar_id', '!=', False)]
         )
 
         if not to_verify:
@@ -616,7 +626,7 @@ class HrAttendance(models.Model):
 
             for att in to_verify_company:
 
-                employee_timezone = pytz.timezone(att.employee_id._get_version(att.date)._get_tz())
+                employee_timezone = ZoneInfo(att.employee_id._get_tz(att.date))
                 check_in_datetime = check_in_tz(att)
                 now_datetime = fields.Datetime.now().astimezone(employee_timezone)
                 current_attendance_duration = (now_datetime - check_in_datetime).total_seconds() / 3600
@@ -632,7 +642,7 @@ class HrAttendance(models.Model):
 
                 # Attendances where Last open attendance time + previously worked time on that day + tolerance greater than the attendances hours (including lunch) in his calendar
                 if (current_attendance_duration + previous_attendances_duration - max_tol) > expected_worked_hours:
-                    att.check_out = check_in_datetime.replace(hour=23, minute=59, second=59).astimezone(utc).replace(tzinfo=None)
+                    att.check_out = check_in_datetime.replace(hour=23, minute=59, second=59).astimezone(UTC).replace(tzinfo=None)
                     excess_hours = att.worked_hours - (expected_worked_hours + max_tol - previous_attendances_duration)
                     att.write({
                         "check_out": max(att.check_out - relativedelta(hours=excess_hours), att.check_in + relativedelta(seconds=1)),
@@ -657,13 +667,13 @@ class HrAttendance(models.Model):
         absent_employees = self.env['hr.employee'].search([
             ('id', 'not in', checked_in_employees.ids),
             ('company_id', 'in', companies.ids),
-            ('resource_calendar_id.flexible_hours', '=', False),
+            ('resource_calendar_id', '!=', False),
             ('current_version_id.contract_date_start', '<=', fields.Date.today() - relativedelta(days=1))
         ])
 
         for emp in absent_employees:
-            local_day_start = pytz.timezone(emp._get_tz()).localize(yesterday)
-            check_in_utc = local_day_start.astimezone(pytz.utc)
+            local_day_start = yesterday.replace(tzinfo=ZoneInfo(emp._get_tz()))
+            check_in_utc = local_day_start.astimezone(UTC)
             technical_attendances_vals.append({
                 'check_in': check_in_utc.strftime('%Y-%m-%d %H:%M:%S'),
                 'check_out': (check_in_utc + relativedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S'),
@@ -683,9 +693,9 @@ class HrAttendance(models.Model):
 
     def _get_localized_times(self):
         self.ensure_one()
-        tz = timezone(self.employee_id.sudo()._get_version(self.check_in.date()).tz)
-        localized_start = utc.localize(self.check_in).astimezone(tz).replace(tzinfo=None)
-        localized_end = utc.localize(self.check_out).astimezone(tz).replace(tzinfo=None)
+        tz = ZoneInfo(self.employee_id.sudo()._get_version(self.check_in.date()).tz)
+        localized_start = self.check_in.replace(tzinfo=UTC).astimezone(tz).replace(tzinfo=None)
+        localized_end = self.check_out.replace(tzinfo=UTC).astimezone(tz).replace(tzinfo=None)
         return localized_start, localized_end
 
     def _get_dates(self):

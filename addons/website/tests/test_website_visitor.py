@@ -1,14 +1,14 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import random
-
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
+from odoo.tests import HttpCase, common, tagged
+
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 from odoo.addons.website.models.website_visitor import WebsiteVisitor
-from odoo.tests import common, tagged, HttpCase
 
 
 class MockVisitor(common.BaseCase):
@@ -89,7 +89,7 @@ class WebsiteVisitorTestsCommon(MockVisitor, HttpCaseWithUserDemo):
         self.user_portal = self.env['res.users'].search([('login', '=', 'portal')])
         self.partner_portal = self.user_portal.partner_id
         if not self.user_portal:
-            self.env['ir.config_parameter'].sudo().set_param('auth_password_policy.minlength', 4)
+            self.env['ir.config_parameter'].sudo().set_int('auth_password_policy.minlength', 4)
             self.partner_portal = self.env['res.partner'].create({
                 'name': 'Joel Willis',
                 'email': 'joel.willis63@example.com',
@@ -140,7 +140,7 @@ class WebsiteVisitorTestsCommon(MockVisitor, HttpCaseWithUserDemo):
 
         WebsiteVisitor = self.env['website.visitor']
 
-        self.env['ir.config_parameter'].sudo().set_param('website.visitor.live.days', 7)
+        self.env['ir.config_parameter'].sudo().set_int('website.visitor.live.days', 7)
 
         # ensure we keep a single query by correct usage of "not in"
         # (+1 query to fetch the 'ir.config_parameter')
@@ -191,11 +191,12 @@ class WebsiteVisitorTestsCommon(MockVisitor, HttpCaseWithUserDemo):
         # require the session id.
         res = self.url_open('/web/login')
         csrf_anchor = '<input type="hidden" name="csrf_token" value="'
-        self.url_open('/web/login', timeout=200, data={
+        res = self.url_open('/web/login', timeout=200, data={
             'login': login,
             'password': pwd,
             'csrf_token': res.text.partition(csrf_anchor)[2].partition('"')[0],
         })
+        self.session = res.session
 
 
 class WebsiteVisitorTests(WebsiteVisitorTestsCommon):
@@ -243,7 +244,13 @@ class WebsiteVisitorTests(WebsiteVisitorTestsCommon):
         # Portal connects
         # ------------------------------------------------------------
 
-        self.url_open('/web/session/logout')
+        self.url_open(
+            '/web/session/logout',
+            method='POST',
+            data={
+                "csrf_token": self.csrf_token(),
+            },
+        )
         self._authenticate_via_web(self.user_portal.login, 'portal')
 
         self.assertFalse(
@@ -268,7 +275,13 @@ class WebsiteVisitorTests(WebsiteVisitorTestsCommon):
         # ------------------------------------------------------------
 
         # portal user disconnects
-        self.url_open('/web/session/logout')
+        self.url_open(
+            '/web/session/logout',
+            method='POST',
+            data={
+                "csrf_token": self.csrf_token(),
+            },
+        )
 
         # visit some pages
         self.url_open(self.tracked_page.url)
@@ -302,7 +315,13 @@ class WebsiteVisitorTests(WebsiteVisitorTestsCommon):
         # ------------------------------------------------------------
 
         # admin disconnects
-        self.url_open('/web/session/logout')
+        self.url_open(
+            '/web/session/logout',
+            method='POST',
+            data={
+                "csrf_token": self.csrf_token(),
+            },
+        )
 
         # visit some pages
         self.url_open(self.tracked_page.url)

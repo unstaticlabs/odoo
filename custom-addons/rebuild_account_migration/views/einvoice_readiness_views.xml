@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_rebuild_einvoice_readiness_list" model="ir.ui.view">
+        <field name="name">res.company.einvoice.readiness.list</field>
+        <field name="model">res.company</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0">
+                <field name="name"/>
+                <field name="rebuild_einvoice_readiness_status" widget="badge"
+                    decoration-success="rebuild_einvoice_readiness_status in ('ready_inactive', 'active')"
+                    decoration-info="rebuild_einvoice_readiness_status == 'activation_required'"
+                    decoration-warning="rebuild_einvoice_readiness_status == 'not_verified'"
+                    decoration-danger="rebuild_einvoice_readiness_status == 'configuration_incomplete'"/>
+                <field name="rebuild_einvoice_capability_status" widget="badge"
+                    decoration-success="rebuild_einvoice_capability_status == 'test_passed'"
+                    decoration-warning="rebuild_einvoice_capability_status == 'not_verified'"
+                    decoration-danger="rebuild_einvoice_capability_status == 'module_missing'"/>
+                <field name="rebuild_einvoice_connection_status" widget="badge"
+                    decoration-success="rebuild_einvoice_connection_status == 'active'"
+                    decoration-info="rebuild_einvoice_connection_status in ('test', 'registration_pending', 'connected_suspended')"
+                    decoration-muted="rebuild_einvoice_connection_status == 'inactive'"
+                    decoration-danger="rebuild_einvoice_connection_status == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_company_rebuild_einvoice_readiness_form" model="ir.ui.view">
+        <field name="name">res.company.einvoice.readiness.form</field>
+        <field name="model">res.company</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_rebuild_run_einvoice_acceptance_test"
+                        type="object" string="Test Reception"
+                        class="oe_highlight"
+                        title="Create a safe representative supplier invoice through the native decoder. No provider, supplier, directory, or external endpoint is contacted."
+                        groups="account.group_account_manager"
+                        invisible="rebuild_einvoice_connection_status == 'active'"/>
+                    <button name="action_rebuild_approve_einvoice_activation"
+                        type="object" string="Approve Activation"
+                        class="oe_highlight"
+                        title="Record Accounting Manager approval on the deployed production system. This does not register the company or enable retrieval."
+                        groups="account.group_account_manager"
+                        invisible="rebuild_einvoice_activation_approved or rebuild_einvoice_environment != 'production'"/>
+                    <button name="action_rebuild_revoke_einvoice_activation"
+                        type="object" string="Revoke Approval and Suspend"
+                        title="Disable every electronic-invoice job and remove production approval. Existing bills and evidence are preserved."
+                        groups="account.group_account_manager"
+                        invisible="not rebuild_einvoice_activation_approved"/>
+                    <button name="action_rebuild_enable_einvoice_exchange"
+                        type="object" string="Start Reception"
+                        class="oe_highlight"
+                        title="Enable invoice reception jobs after approved-platform registration is connected. E-reporting jobs remain disabled."
+                        groups="account.group_account_manager"
+                        invisible="rebuild_einvoice_connection_status != 'connected_suspended'"/>
+                    <button name="action_rebuild_suspend_einvoice_exchange"
+                        type="object" string="Pause Reception"
+                        title="Stop scheduled reception immediately. Existing bills and evidence are preserved."
+                        groups="account.group_account_manager"
+                        invisible="rebuild_einvoice_connection_status != 'active'"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Ready but inactive"
+                        bg_color="text-bg-secondary"
+                        invisible="rebuild_einvoice_readiness_status != 'ready_inactive'"/>
+                    <widget name="web_ribbon" title="Configuration incomplete"
+                        bg_color="text-bg-danger"
+                        invisible="rebuild_einvoice_readiness_status != 'configuration_incomplete'"/>
+                    <widget name="web_ribbon" title="Production activation required"
+                        bg_color="text-bg-info"
+                        invisible="rebuild_einvoice_readiness_status != 'activation_required'"/>
+                    <widget name="web_ribbon" title="Active"
+                        bg_color="text-bg-success"
+                        invisible="rebuild_einvoice_readiness_status != 'active'"/>
+                    <div class="oe_title">
+                        <h1>E-Invoicing</h1>
+                        <h2><field name="name" readonly="1"/></h2>
+                    </div>
+                    <p class="text-muted">
+                        Configure and test incoming supplier invoices here. The live
+                        connection is activated separately in production.
+                    </p>
+
+                    <separator string="Status"/>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Reception readiness</div>
+                            <field name="rebuild_einvoice_readiness_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Offline test</div>
+                            <field name="rebuild_einvoice_test_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Live connection</div>
+                            <field name="rebuild_einvoice_connection_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3" role="status"
+                        invisible="rebuild_einvoice_readiness_status == 'active'">
+                        <div class="fw-bold mb-1">
+                            <field name="rebuild_einvoice_next_action"
+                                nolabel="1" readonly="1"/>
+                        </div>
+                        <field name="rebuild_einvoice_next_steps"
+                            widget="html" nolabel="1" readonly="1"
+                            class="w-100"/>
+                    </div>
+                    <div class="alert alert-success mt-3" role="status"
+                        invisible="rebuild_einvoice_readiness_status != 'active'">
+                        Reception is active. Monitor the connection and received invoices.
+                    </div>
+
+                    <separator string="Reception setup"/>
+                    <p class="text-muted">
+                        These values identify the company and decide where received
+                        supplier invoices become draft bills.
+                    </p>
+                    <group>
+                        <group string="Company identity">
+                            <field name="account_fiscal_country_id"
+                                string="Accounting Country"/>
+                            <field name="vat" string="French VAT Number"/>
+                            <field name="company_registry"
+                                string="SIREN or SIRET"/>
+                            <field name="peppol_eas"
+                                string="Identifier Scheme"
+                                help="Use scheme 0225 for a French SIRET identifier."/>
+                            <field name="peppol_endpoint"
+                                string="E-Invoicing Identifier"
+                                help="Company identifier published to the French electronic-invoicing directory."/>
+                        </group>
+                        <group string="Incoming bills">
+                            <field name="peppol_purchase_journal_id"
+                                string="Purchase Journal"
+                                help="Received supplier invoices are created as draft bills in this journal."/>
+                            <field name="rebuild_einvoice_tested_at"/>
+                            <field name="rebuild_einvoice_test_reception_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Reception History">
+                            <field name="rebuild_einvoice_reception_ids" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="received_at"/>
+                                    <field name="is_test"/>
+                                    <field name="document_kind"/>
+                                    <field name="document_reference"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount_total"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="status" widget="badge"
+                                        decoration-success="status == 'bill_created'"
+                                        decoration-warning="status in ('duplicate', 'rejected')"
+                                        decoration-danger="status == 'technical_error'"/>
+                                    <field name="move_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Production connection">
+                            <p class="text-muted">
+                                Default: Odoo Approved Platform for France.
+                                <a href="https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing"
+                                    target="_blank">Provider documentation</a>.
+                                Identity verification and terms are completed during
+                                deliberate production activation.
+                            </p>
+                            <group>
+                                <group string="Platform">
+                                    <field name="rebuild_einvoice_provider"
+                                        readonly="1"/>
+                                    <field name="rebuild_einvoice_provider_contract_status"/>
+                                    <field name="account_peppol_contact_email"
+                                        string="Contact Email"/>
+                                </group>
+                                <group string="Activation">
+                                    <field name="rebuild_einvoice_environment"/>
+                                    <field name="rebuild_einvoice_activation_approved"/>
+                                    <field name="rebuild_einvoice_approved_by_id"/>
+                                    <field name="rebuild_einvoice_approved_at"/>
+                                    <field name="l10n_fr_pdp_annuaire_start_date"
+                                        string="Directory Effective Date"
+                                        readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Connection">
+                            <group>
+                                <field name="rebuild_einvoice_last_poll_status" widget="badge"/>
+                                <field name="rebuild_einvoice_last_poll_at"/>
+                                <field name="rebuild_einvoice_last_poll_message"/>
+                            </group>
+                            <p class="text-muted">
+                                No check is expected while reception is inactive. Failures
+                                retain the original document for a safe retry.
+                            </p>
+                        </page>
+                    </notebook>
+                    <field name="rebuild_einvoice_capability_status" invisible="1"/>
+                    <field name="rebuild_einvoice_blockers" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_einvoice_readiness" model="ir.actions.act_window">
+        <field name="name">E-Invoicing</field>
+        <field name="res_model">res.company</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'create': False, 'delete': False}</field>
+    </record>
+    <record id="view_company_rebuild_einvoice_readiness_list_action"
+        model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_company_rebuild_einvoice_readiness_list"/>
+        <field name="act_window_id" ref="action_rebuild_einvoice_readiness"/>
+    </record>
+    <record id="view_company_rebuild_einvoice_readiness_form_action"
+        model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_company_rebuild_einvoice_readiness_form"/>
+        <field name="act_window_id" ref="action_rebuild_einvoice_readiness"/>
+    </record>
+
+    <record id="view_rebuild_einvoice_reception_search" model="ir.ui.view">
+        <field name="name">rebuild.einvoice.reception.search</field>
+        <field name="model">rebuild.einvoice.reception</field>
+        <field name="arch" type="xml">
+            <search string="Electronic Invoice Reception">
+                <field name="document_reference"/>
+                <field name="partner_id"/>
+                <field name="provider_message_uuid"/>
+                <field name="move_id"/>
+                <field name="company_id"/>
+                <filter name="attention" string="Needs Attention"
+                    domain="[('status', 'in', ['rejected', 'technical_error'])]"/>
+                <filter name="duplicates" string="Duplicates Controlled"
+                    domain="[('status', '=', 'duplicate')]"/>
+                <filter name="safe_tests" string="Safe Tests"
+                    domain="[('is_test', '=', True)]"/>
+                <group>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rebuild_einvoice_reception_list" model="ir.ui.view">
+        <field name="name">rebuild.einvoice.reception.list</field>
+        <field name="model">rebuild.einvoice.reception</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0"
+                decoration-success="status == 'bill_created'"
+                decoration-warning="status in ('duplicate', 'rejected')"
+                decoration-danger="status == 'technical_error'">
+                <field name="received_at"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="is_test"/>
+                <field name="document_kind"/>
+                <field name="document_reference"/>
+                <field name="partner_id"/>
+                <field name="invoice_date"/>
+                <field name="amount_total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="status" widget="badge"/>
+                <field name="move_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_einvoice_reception_form" model="ir.ui.view">
+        <field name="name">rebuild.einvoice.reception.form</field>
+        <field name="model">rebuild.einvoice.reception</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_open_bill" type="object" string="Open Vendor Bill"
+                        class="oe_highlight"
+                        title="Open the native draft vendor bill or credit note created from this structured document."
+                        invisible="not move_id"/>
+                    <button name="action_retry_processing" type="object"
+                        string="Retry Processing"
+                        title="Process the retained original document again after correcting configuration or a temporary failure. A duplicate bill is never created."
+                        groups="account.group_account_manager"
+                        invisible="not can_retry"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Safe test"
+                        bg_color="text-bg-info"
+                        invisible="not is_test"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="document_reference"
+                                placeholder="Electronic invoice reception"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="received_at"/>
+                            <field name="document_kind"/>
+                            <field name="document_format"/>
+                            <field name="is_test"/>
+                        </group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="invoice_date"/>
+                            <field name="amount_total"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="move_id"/>
+                            <field name="duplicate_of_id"/>
+                        </group>
+                    </group>
+                    <group string="What Happened">
+                        <field name="processing_summary" nolabel="1"/>
+                        <field name="failure_code" invisible="not failure_code"/>
+                        <field name="attempt_count"/>
+                        <field name="last_attempt_at"/>
+                    </group>
+                    <group string="Original Evidence">
+                        <field name="attachment_id"/>
+                        <field name="filename"/>
+                        <field name="provider_message_uuid"/>
+                        <field name="document_hash"/>
+                    </group>
+                    <group string="Technical Diagnostics" groups="base.group_no_one">
+                        <field name="provider_state"/>
+                        <field name="failure_kind"/>
+                        <field name="technical_details"/>
+                    </group>
+                    <field name="can_retry" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_einvoice_reception" model="ir.actions.act_window">
+        <field name="name">Electronic Invoice Reception</field>
+        <field name="res_model">rebuild.einvoice.reception</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rebuild_einvoice_reception_search"/>
+        <field name="context">{'create': False, 'delete': False}</field>
+    </record>
+
+    <record id="view_move_form_rebuild_einvoice_reception" model="ir.ui.view">
+        <field name="name">account.move.form.einvoice.reception</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="E-Invoice Evidence"
+                    invisible="not rebuild_einvoice_reception_ids">
+                    <field name="rebuild_einvoice_reception_status" widget="badge"/>
+                    <field name="rebuild_einvoice_reception_ids" readonly="1">
+                        <list create="0" delete="0">
+                            <field name="received_at"/>
+                            <field name="is_test"/>
+                            <field name="document_format"/>
+                            <field name="status" widget="badge"/>
+                            <field name="attachment_id"/>
+                            <field name="provider_message_uuid"/>
+                            <field name="processing_summary"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_settings_rebuild_einvoice_activation_gate" model="ir.ui.view">
+        <field name="name">res.config.settings.einvoice.activation.gate</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_fr_pdp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='pdp']/div[@id='l10n_fr_pdp']/div" position="before">
+                <div class="alert alert-info" role="alert">
+                    <strong><field name="rebuild_einvoice_readiness_status"/></strong>
+                    · <field name="rebuild_einvoice_capability_status"/>
+                    · <field name="rebuild_einvoice_connection_status"/>
+                    <p class="mb-0">
+                        Review prerequisites and run the offline test under
+                        Accounting &gt; Configuration &gt; Invoicing &gt;
+                        E-Invoicing before opening live approved-platform registration.
+                    </p>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='action_open_peppol_form']" position="attributes">
+                <attribute name="invisible">not rebuild_einvoice_activation_approved or rebuild_einvoice_environment != 'production'</attribute>
+            </xpath>
+            <xpath expr="//block[@id='pdp']" position="inside">
+                <field name="rebuild_einvoice_provider" invisible="1"/>
+                <field name="rebuild_einvoice_provider_contract_status" invisible="1"/>
+                <field name="rebuild_einvoice_environment" invisible="1"/>
+                <field name="rebuild_einvoice_activation_approved" invisible="1"/>
+                <field name="rebuild_einvoice_capability_status" invisible="1"/>
+                <field name="rebuild_einvoice_readiness_status" invisible="1"/>
+                <field name="rebuild_einvoice_connection_status" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_rebuild_einvoice_readiness"
+        name="E-Invoicing"
+        parent="account.account_invoicing_menu"
+        action="action_rebuild_einvoice_readiness"
+        sequence="5"
+        groups="account.group_account_manager"/>
+    <menuitem id="menu_rebuild_einvoice_reception"
+        name="Electronic Invoice Reception"
+        parent="account.account_audit_control_menu"
+        action="action_rebuild_einvoice_reception"
+        sequence="12"
+        groups="account.group_account_readonly"/>
+</odoo>

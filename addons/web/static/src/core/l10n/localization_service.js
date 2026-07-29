@@ -10,7 +10,7 @@ import {
     translatedTerms,
     translatedTermsGlobal,
     translationLoaded,
-    translationIsReady,
+    translationResolvers,
 } from "./translation";
 import { objectToUrlEncodedString } from "../utils/urls";
 import { IndexedDB } from "../utils/indexed_db";
@@ -101,7 +101,7 @@ export const localizationService = {
         }
 
         translatedTerms[translationLoaded] = true;
-        translationIsReady.resolve(true);
+        translationResolvers.resolve(true);
 
         const locale = user.lang || browser.navigator.language;
         Settings.defaultLocale = locale;
@@ -111,6 +111,7 @@ export const localizationService = {
                 break;
             }
         }
+        localization.locale = locale;
         localization.code = jsToPyLocale(locale);
         return localization;
     },

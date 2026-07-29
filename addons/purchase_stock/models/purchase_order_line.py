@@ -33,6 +33,7 @@ class PurchaseOrderLine(models.Model):
     forecasted_issue = fields.Boolean(compute='_compute_forecasted_issue')
     is_storable = fields.Boolean(related='product_id.is_storable')
     location_final_id = fields.Many2one('stock.location', 'Location from procurement')
+    date_promised = fields.Datetime('Promised Date', help="Delivery Date promised by the vendor. If the vendor delivers products after this date, their On-Time rate will be negatively impacted.")
 
     def _compute_qty_received_method(self):
         super(PurchaseOrderLine, self)._compute_qty_received_method()
@@ -48,7 +49,11 @@ class PurchaseOrderLine(models.Model):
             moves = moves.filtered(lambda r: fields.Date.context_today(r, r.date) <= accrual_date)
         return moves
 
-    @api.depends('move_ids.state', 'move_ids.product_uom', 'move_ids.quantity')
+    def _set_date_promised(self):
+        for line in self:
+            line.date_promised = line.date_planned
+
+    @api.depends('move_ids.state', 'move_ids.uom_id', 'move_ids.quantity')
     def _compute_qty_received(self):
         super()._compute_qty_received()
 
@@ -64,17 +69,17 @@ class PurchaseOrderLine(models.Model):
                     if move.state == 'done':
                         if move._is_purchase_return():
                             if not move.origin_returned_move_id or move.to_refund:
-                                total -= move.product_uom._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
+                                total -= move.uom_id._compute_quantity(move.quantity, line.uom_id, rounding_method='HALF-UP')
                         elif move.origin_returned_move_id and move.origin_returned_move_id._is_dropshipped() and not move._is_dropshipped_returned():
                             # Edge case: the dropship is returned to the stock, no to the supplier.
                             # In this case, the received quantity on the PO is set although we didn't
                             # receive the product physically in our stock. To avoid counting the
                             # quantity twice, we do nothing.
                             pass
-                        elif move.origin_returned_move_id and move.origin_returned_move_id._is_purchase_return() and not move.to_refund:
+                        elif move.origin_returned_move_id and move.origin_returned_move_id._is_purchase_return() and not move.to_refund or not move._should_count_for_quantity_received():
                             pass
                         else:
-                            total += move.product_uom._compute_quantity(move.quantity, line.product_uom_id, rounding_method='HALF-UP')
+                            total += move.uom_id._compute_quantity(move.quantity, line.uom_id, rounding_method='HALF-UP')
                 line._track_qty_received(total)
                 received_qties[line] = total
         return received_qties
@@ -94,15 +99,19 @@ class PurchaseOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         lines = super().create(vals_list)
+        confirmed_lines = lines.filtered(lambda l: l.order_id.state == 'purchase' and not l.display_type)
         if not self.env.context.get('bypass_move_update'):
-            lines.filtered(lambda l: l.order_id.state == 'purchase')._create_or_update_picking()
+            confirmed_lines._create_or_update_picking()
+        confirmed_lines._set_date_promised()
         return lines
 
     def write(self, vals):
         values = vals
-        if values.get('date_planned'):
-            new_date = fields.Datetime.to_datetime(values['date_planned'])
-            self.filtered(lambda l: not l.display_type)._update_move_date_deadline(new_date)
+        if values.get('date_planned') or values.get('date_promised'):
+            new_date_planned = values.get('date_planned')
+            new_date_promised = values.get('date_promised')
+            self.filtered(lambda line: not line.display_type)._update_move_dates(new_date_planned, new_date_promised)
+
         lines = self.filtered(lambda l: l.order_id.state == 'purchase'
                                         and not l.display_type)
 
@@ -115,9 +124,9 @@ class PurchaseOrderLine(models.Model):
                 moves = line.move_ids.filtered(lambda s: s.state not in ('cancel', 'done') and s.product_id == line.product_id)
                 moves.write({'price_unit': line._get_stock_move_price_unit()})
         if 'product_qty' in values:
-            lines = lines.filtered(lambda l: l.product_uom_id.compare(previous_product_qty[l.id], l.product_qty) != 0)
+            lines = lines.filtered(lambda l: l.uom_id.compare(previous_product_qty[l.id], l.product_qty) != 0)
             lines.with_context(previous_product_qty=previous_product_uom_qty)._create_or_update_picking()
-        valuation_trigger = ['price_unit', 'product_qty', 'product_uom']
+        valuation_trigger = ['price_unit', 'product_qty', 'uom_id']
         if any(field in valuation_trigger for field in values):
             self.move_ids.filtered(lambda m: m.is_valued)._set_value()
         return result
@@ -158,19 +167,26 @@ class PurchaseOrderLine(models.Model):
     # Business methods
     # --------------------------------------------------
 
-    def _update_move_date_deadline(self, new_date):
-        """ Updates corresponding move picking line deadline dates that are not yet completed. """
+    def _update_move_dates(self, date_planned=False, date_promised=False):
+        """ Updates corresponding move picking line deadline dates or dates scheduled that are not yet completed. """
+        if not date_planned and not date_promised:
+            return False
         moves_to_update = self.move_ids.filtered(lambda m: m.state not in ('done', 'cancel'))
         if not moves_to_update:
             moves_to_update = self.move_dest_ids.filtered(lambda m: m.state not in ('done', 'cancel'))
         for move in moves_to_update:
-            move.date_deadline = new_date
+            if date_planned:
+                if move.picking_id.picking_type_code == "incoming":
+                    move.date = date_planned
+                else:
+                    move.date_deadline = date_planned
+            if date_promised and move.picking_id.picking_type_code == "incoming":
+                move.date_deadline = date_promised
 
     def _create_or_update_picking(self):
         for line in self:
             if line.product_id and line.product_id.type == 'consu':
-                rounding = line.product_uom_id.rounding
-                if float_compare(line.product_qty, line.qty_invoiced, precision_rounding=rounding) < 0 and line.invoice_lines:
+                if line.uom_id.compare(line.product_qty, line.qty_invoiced) < 0 and line.invoice_lines:
                     # If the quantity is now below the invoiced quantity, create an activity on the vendor bill
                     # inviting the user to create a refund.
                     line.invoice_lines[0].move_id.activity_schedule(
@@ -201,7 +217,7 @@ class PurchaseOrderLine(models.Model):
     def _get_move_dests_initial_demand(self, move_dests):
         return self.product_id.uom_id._compute_quantity(
             sum(move_dests.filtered(lambda m: m.state != 'cancel' and m.location_dest_id.usage != 'supplier').mapped('product_qty')),
-            self.product_uom_id, rounding_method='HALF-UP')
+            self.uom_id, rounding_method='HALF-UP')
 
     def _prepare_stock_moves(self, picking):
         """ Prepare the stock moves data for one order line. This function returns a list of
@@ -225,19 +241,21 @@ class PurchaseOrderLine(models.Model):
         else:
             qty_to_attach = move_dests_initial_demand - qty
 
-        if self.product_uom_id.compare(qty_to_attach, 0.0) > 0:
+        if self.uom_id.compare(qty_to_attach, 0.0) > 0:
             qty_to_push = self.product_qty - move_dests_initial_demand
-            product_uom_qty, product_uom = self.product_uom_id._adjust_uom_quantities(qty_to_attach, self.product_id.uom_id)
+            product_uom_qty, product_uom = self.uom_id._adjust_uom_quantities(qty_to_attach, self.product_id.uom_id)
             res.append(self._prepare_stock_move_vals(picking, price_unit, product_uom_qty, product_uom))
-        if not self.product_uom_id.is_zero(qty_to_push):
-            product_uom_qty, product_uom = self.product_uom_id._adjust_uom_quantities(qty_to_push, self.product_id.uom_id)
+        if not self.uom_id.is_zero(qty_to_push):
+            product_uom_qty, product_uom = self.uom_id._adjust_uom_quantities(qty_to_push, self.product_id.uom_id)
             extra_move_vals = self._prepare_stock_move_vals(picking, price_unit, product_uom_qty, product_uom)
             extra_move_vals['move_dest_ids'] = False  # don't attach
             res.append(extra_move_vals)
         return res
 
-    def _get_stock_move_price_unit(self):
+    def _get_stock_move_price_unit(self, at_date=False):
         self.ensure_one()
+        if not at_date:
+            at_date = fields.Date.today()
         order = self.order_id
         price_unit = self.price_unit_discounted
         price_unit_prec = self.env['decimal.precision'].precision_get('Product Price')
@@ -252,13 +270,12 @@ class PurchaseOrderLine(models.Model):
                 rounding_method="round_globally",
             )['total_void']
             price_unit = price_unit / qty
-        if self.product_uom_id.id != self.product_id.uom_id.id:
-            price_unit /= self.product_uom_id.factor
+        if self.uom_id.id != self.product_id.uom_id.id:
+            price_unit /= self.uom_id.factor
             price_unit *= self.product_id.uom_id.factor
         if order.currency_id != order.company_id.currency_id:
-            conversion_date = self.env.context.get('conversion_date', self.date_order) or fields.Date.today()
             price_unit = order.currency_id._convert(
-                price_unit, order.company_id.currency_id, self.company_id, conversion_date, round=False)
+                price_unit, order.company_id.currency_id, self.company_id, at_date, round=False)
         return float_round(price_unit, precision_digits=price_unit_prec)
 
     def _get_qty_procurement(self):
@@ -267,10 +284,10 @@ class PurchaseOrderLine(models.Model):
         outgoing_moves, incoming_moves = self._get_outgoing_incoming_moves()
         for move in outgoing_moves:
             qty_to_compute = move.quantity if move.state == 'done' else move.product_uom_qty
-            qty -= move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
+            qty -= move.uom_id._compute_quantity(qty_to_compute, self.uom_id, rounding_method='HALF-UP')
         for move in incoming_moves:
             qty_to_compute = move.quantity if move.state == 'done' else move.product_uom_qty
-            qty += move.product_uom._compute_quantity(qty_to_compute, self.product_uom_id, rounding_method='HALF-UP')
+            qty += move.uom_id._compute_quantity(qty_to_compute, self.uom_id, rounding_method='HALF-UP')
         return qty
 
     def _check_orderpoint_picking_type(self):
@@ -309,7 +326,7 @@ class PurchaseOrderLine(models.Model):
             'propagate_cancel': self.propagate_cancel,
             'warehouse_id': self.order_id.picking_type_id.warehouse_id.id,
             'product_uom_qty': product_uom_qty,
-            'product_uom': product_uom.id,
+            'uom_id': product_uom.id,
             'sequence': self.sequence,
         }
 
@@ -335,10 +352,11 @@ class PurchaseOrderLine(models.Model):
         if values.get('product_description_variants'):
             line_description = values['product_description_variants']
         supplier = values.get('supplier')
-        if not values.get('force_uom') and supplier.product_uom_id != product_uom:
-            product_qty = product_uom._compute_quantity(product_qty, supplier.product_uom_id)
-            product_uom = supplier.product_uom_id
-        res = self.with_context(procurement_values=values)._prepare_purchase_order_line(product_id, product_qty, product_uom, company_id, supplier.partner_id, po)
+        if not values.get('force_uom') and supplier and supplier.uom_id != product_uom:
+            product_qty = product_uom._compute_quantity(product_qty, supplier.uom_id)
+            product_uom = supplier.uom_id
+        partner = values.get('procurement_partner')
+        res = self.with_context(procurement_values=values)._prepare_purchase_order_line(product_id, product_qty, product_uom, company_id, partner, po)
         # We need to keep the vendor name set in _prepare_purchase_order_line. To avoid redundancy
         # in the line name, we add the line_description only if different from the product name.
         # This way, we shoud not lose any valuable information.
@@ -380,7 +398,7 @@ class PurchaseOrderLine(models.Model):
         lines = self.filtered(
             lambda l: l.propagate_cancel == values['propagate_cancel']
             and (l.orderpoint_id in [values['orderpoint_id'], False] if values['orderpoint_id'] and not values['move_dest_ids'] else True)
-            and (l.product_uom_id == product_uom if values.get('force_uom') else True)
+            and (l.uom_id == product_uom if values.get('force_uom') else True)
         )
 
         # In case 'product_description_variants' is in the values, we also filter on the PO line
@@ -416,7 +434,7 @@ class PurchaseOrderLine(models.Model):
         if not self.move_ids or move_to_update:  # Only change the date if there is no move done or none
             super()._update_date_planned(updated_date)
         if move_to_update:
-            self._update_move_date_deadline(updated_date)
+            self._update_move_dates(date_planned=updated_date)
 
     @api.model
     def _update_qty_received_method(self):

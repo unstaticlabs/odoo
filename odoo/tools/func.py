@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import functools
 import typing
-import warnings
 from collections.abc import Callable  # noqa: TC003
 from inspect import Parameter, getsourcefile, signature
 
@@ -12,12 +11,8 @@ __all__ = [
     'conditional',
     'lazy',
     'lazy_classproperty',
-    'lazy_property',
     'reset_cached_properties',
 ]
-
-T = typing.TypeVar("T")
-P = typing.ParamSpec("P")
 
 
 def reset_cached_properties(obj) -> None:
@@ -29,25 +24,7 @@ def reset_cached_properties(obj) -> None:
             del obj_dict[name]
 
 
-class lazy_property(functools.cached_property):
-    def __init__(self, func):
-        super().__init__(func)
-        warnings.warn(
-            "lazy_property is deprecated since Odoo 19, use `functools.cached_property`",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-
-    @staticmethod
-    def reset_all(instance):
-        warnings.warn(
-            "lazy_property is deprecated since Odoo 19, use `reset_cache_properties` directly",
-            category=DeprecationWarning,
-        )
-        reset_cached_properties(instance)
-
-
-def conditional(condition: typing.Any, decorator: Callable[[T], T]) -> Callable[[T], T]:
+def conditional[T](condition: typing.Any, decorator: Callable[[T], T]) -> Callable[[T], T]:
     """ Decorator for a conditionally applied decorator.
 
         Example::
@@ -80,7 +57,7 @@ def filter_kwargs(func: Callable, kwargs: dict[str, typing.Any]) -> dict[str, ty
     return {key: kwargs[key] for key in kwargs if key not in leftovers}
 
 
-def synchronized(lock_attr: str = '_lock') -> Callable[[Callable[P, T]], Callable[P, T]]:
+def synchronized[**P, T](lock_attr: str = '_lock') -> Callable[[Callable[P, T]], Callable[P, T]]:
     def synchronized_lock(func, /):
         @functools.wraps(func)
         def locked(inst, *args, **kwargs):
@@ -112,7 +89,7 @@ def frame_codeinfo(fframe, back=0):
         return "<unknown>", ''
 
 
-class classproperty(typing.Generic[T]):
+class classproperty[T]:
     def __init__(self, fget: Callable[[typing.Any], T]) -> None:
         self.fget = classmethod(fget)
 
@@ -124,15 +101,15 @@ class classproperty(typing.Generic[T]):
         return self.fget.__doc__
 
 
-class lazy_classproperty(classproperty[T], typing.Generic[T]):
-    """ Similar to :class:`lazy_property`, but for classes. """
+class lazy_classproperty[T](classproperty[T]):
+    """ Similar to ``functools.cached_property``, but for classes. """
     def __get__(self, cls, owner: type | None = None, /) -> T:
         val = super().__get__(cls, owner)
         setattr(owner, self.fget.__name__, val)
         return val
 
 
-class lazy(object):
+class lazy:
     """ A proxy to the (memoized) result of a lazy evaluation:
 
     .. code-block::

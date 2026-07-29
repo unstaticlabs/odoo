@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 05:26+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/"
-"stock_account/uz/>\n"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: stock_account
 #. odoo-python
@@ -189,9 +187,8 @@ msgstr "Tahliliy hisob qatori"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_account_analytic_plan
-#, fuzzy
-msgid "Analytic Plans"
-msgstr "Tahliliy rejalar"
+msgid "Analytic Plan"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -246,6 +243,12 @@ msgid "Bacon"
 msgstr "Bekon"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__closing_datetime
+#: model:ir.model.fields,field_description:stock_account.field_account_move__closing_datetime
+msgid "Closing Date"
+msgstr ""
+
+#. module: stock_account
 #. odoo-python
 #: code:addons/stock_account/models/res_company.py:0
 #, fuzzy
@@ -274,11 +277,6 @@ msgstr "Sotilgan mahsulotlar tannarxi kelib chiqishi"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_res_company
-#, fuzzy
-msgid "Companies"
-msgstr "Kompaniyalar"
-
-#. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_product_value__company_id
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__company_id
 #, fuzzy
@@ -608,10 +606,15 @@ msgid "Inventory Adjustment Reference / Reason"
 msgstr "Zaxiralarni tuzatish ma'lumotnomasi / sababi"
 
 #. module: stock_account
+#: model:ir.model.fields,field_description:stock_account.field_account_bank_statement_line__inventory_closing
+#: model:ir.model.fields,field_description:stock_account.field_account_move__inventory_closing
+msgid "Inventory Closing"
+msgstr ""
+
+#. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_location
-#, fuzzy
-msgid "Inventory Locations"
-msgstr "Inventar joylashuvlari"
+msgid "Inventory Location"
+msgstr ""
 
 #. module: stock_account
 #. odoo-javascript
@@ -929,9 +932,8 @@ msgstr "Ishlab chiqarish WIP qo‘shimcha xarajatlar hisobi"
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_quant
-#, fuzzy
-msgid "Quants"
-msgstr "Kvantlar"
+msgid "Quant"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_avco_report__reference
@@ -998,9 +1000,9 @@ msgid ""
 msgstr ""
 "Standart narx: Mahsulotlar ularga belgilangan standart qiymat bo‘yicha "
 "baholanadi.         O‘rtacha tannarx (AVCO): Mahsulotlar o‘rtacha tortilgan "
-"tannarx bo‘yicha baholanadi.         Birinchi kirish, birinchi chiqish (FIFO)"
-": Mahsulotlar kompaniyaga birinchi kirib, birinchi chiqib ketish tamoyili "
-"asosida baholanadi."
+"tannarx bo‘yicha baholanadi.         Birinchi kirish, birinchi chiqish "
+"(FIFO): Mahsulotlar kompaniyaga birinchi kirib, birinchi chiqib ketish "
+"tamoyili asosida baholanadi."
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_avco_report

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
@@ -24,4 +23,5 @@
     ],
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',
+    'iap_paid_service': True,
 }

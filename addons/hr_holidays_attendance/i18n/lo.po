@@ -1,125 +1,116 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * hr_holidays_attendance
+# 	* hr_holidays_attendance
 #
-# Bone NI <bounkirdni@gmail.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 11:43+0000\n"
-"Last-Translator: Bone NI <bounkirdni@gmail.com>\n"
-"Language-Team: Lao <https://translate.odoo.com/projects/odoo-19/"
-"hr_holidays_attendance/lo/>\n"
-"Language: lo\n"
+"POT-Creation-Date: 2026-03-06 18:36+0000\n"
+"PO-Revision-Date: 2026-03-06 18:36+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: \n"
 
 #. module: hr_holidays_attendance
 #. odoo-python
-#: code:addons/hr_holidays_attendance/models/hr_leave_type.py:0
+#: code:addons/hr_holidays_attendance/models/hr_work_entry_type.py:0
 msgid "%s hours available"
-msgstr "ມີ %s ຊົ່ວໂມງ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave_accrual_level
 msgid "Accrual Plan Level"
-msgstr "ລະດັບແຜນການສະສົມ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__active
 msgid "Active"
-msgstr "ເປີດໃຊ້ງານ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__leave_hours
 msgid "Approved Time Off"
-msgstr "ການລາພັກທີ່ອະນຸມັດແລ້ວ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
 msgid "Approved Time Offs"
-msgstr "ລາຍການລາພັກທີ່ອະນຸມັດແລ້ວ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Archived Employees"
-msgstr "ພະນັກງານທີ່ຖືກຈັດເກັບແລ້ວ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_attendance_overtime_line
 msgid "Attendance Overtime Line"
-msgstr "ລາຍການເວລາເຮັດວຽກລ່ວງເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
 msgid "Attendance Records"
-msgstr "ບັນທຶກການລົງເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave_attendance_report
 msgid "Attendance and Leave Analysis Report"
-msgstr "ບົດລາຍງານການວິເຄາະການລົງເວລາ ແລະ ການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__attendance_ids
 msgid "Attendances"
-msgstr "ການລົງເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/xml/time_off_calendar.xml:0
 msgid "Available"
-msgstr "ຫວ່າງ/ໃຊ້ໄດ້"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Balance"
-msgstr "ຍອດຄົງເຫຼືອ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_line__compensable_as_leave
 msgid "Compensable as Time Off"
-msgstr "ທົດແທນເປັນມື້ລາພັກໄດ້"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__date
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Date"
-msgstr "ວັນທີ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/xml/time_off_calendar.xml:0
 msgid "Days"
-msgstr "ມື້"
+msgstr ""
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_employee_view_form_inherit
 msgid "Deduct Extra Hours"
-msgstr "ຫັກຊົ່ວໂມງເພີ່ມ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__department_id
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Department"
-msgstr "ພະແນກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__difference_hours
 msgid "Difference"
-msgstr "ສ່ວນຕ່າງ"
-
-#. module: hr_holidays_attendance
-#: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_manager_view_form
-msgid "Discard"
-msgstr "ຍົກເລີກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_line__display_name
@@ -129,61 +120,61 @@ msgstr "ຍົກເລີກ"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__display_name
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__display_name
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__display_name
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__display_name
 msgid "Display Name"
-msgstr "ຊື່ທີ່ສະແດງ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
 msgid "Duration"
-msgstr "ໄລຍະເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_employee
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__employee_id
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Employee"
-msgstr "ພະນັກງານ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave__employee_overtime
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__employee_overtime
 msgid "Employee Overtime"
-msgstr "ເວລາລ່ວງເວລາຂອງພະນັກງານ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Employees"
-msgstr "ພະນັກງານ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__expected_hours
 msgid "Expected Hours"
-msgstr "ຊົ່ວໂມງທີ່ຄາດໄວ້"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_attendance_holidays_hr_leave_allocation_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_view_form
 msgid "Extra Hours Available"
-msgstr "ຊົ່ວໂມງເພີ່ມທີ່ມີ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__frequency
 msgid "Frequency"
-msgstr "ຄວາມຖີ່"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_rule__compensable_as_leave
 msgid "Give back as time off"
-msgstr "ຄືນໃຫ້ເປັນມື້ລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/xml/time_off_calendar.xml:0
 msgid "Hours"
-msgstr "ຊົ່ວໂມງ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_attendance_overtime_line__id
@@ -193,11 +184,11 @@ msgstr "ຊົ່ວໂມງ"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_accrual_level__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__id
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__id
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_work_entry_type__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_ir_ui_menu__id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_resource_calendar_leaves__id
 msgid "ID"
-msgstr "ລະຫັດ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_attendance_report__active
@@ -205,42 +196,39 @@ msgid ""
 "If the active field is set to False, it will allow you to hide the resource "
 "record without removing it."
 msgstr ""
-"ຫາກຊ່ອງທີ່ເປີດໃຊ້ງານຖືກຕັ້ງເປັນ False, ມັນຈະຊ່ວຍໃຫ້ທ່ານສາມາດເຊື່ອງຂໍ້ມູນຊັບພະຍາກອນໄດ້ໂດຍບໍ່ຕ້ອງລຶບມັນອ"
-"ອກ."
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__job_id
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Job Position"
-msgstr "ຕຳແໜ່ງງານ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Last 2 Months"
-msgstr "2 ເດືອນຜ່ານມາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_ir_ui_menu
 msgid "Menu"
-msgstr "ເມນູ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Missing Hours"
-msgstr "ຊົ່ວໂມງທີ່ຂາດ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.actions.act_window,name:hr_holidays_attendance.hr_leave_allocation_overtime_manager_action
 msgid "New Allocation Request"
-msgstr "ຄຳຮ້ອງຂໍການຈັດສັນໃໝ່"
+msgstr ""
 
 #. module: hr_holidays_attendance
-#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
+#: model:ir.model.fields,help:hr_holidays_attendance.field_hr_work_entry_type__overtime_deductible
 msgid ""
 "Once a time off of this type is approved, extra hours in attendances will be"
 " deducted."
 msgstr ""
-"ເມື່ອການລາພັກປະເພດນີ້ໄດ້ຮັບການອະນຸມັດ, ຊົ່ວໂມງເຮັດວຽກເພີ່ມໃນການລົງເວລາຈະຖືກຫັກອອກ."
 
 #. module: hr_holidays_attendance
 #. odoo-python
@@ -249,122 +237,121 @@ msgid ""
 "Only an Officer or Administrator is allowed to edit the allocation duration "
 "in this status."
 msgstr ""
-"ອະນຸຍາດໃຫ້ພຽງແຕ່ເຈົ້າໜ້າທີ່ ຫຼື ຜູ້ດູແລລະບົບ ເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂໄລຍະເວລາການຈັດສັນໃນສະຖານະນີ້."
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave__overtime_deductible
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__overtime_deductible
 msgid "Overtime Deductible"
-msgstr "ການຫັກເວລາລ່ວງເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_attendance_overtime_rule
 msgid "Overtime Rule"
-msgstr "ກົດລະບຽບເວລາລ່ວງເວລາ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields.selection,name:hr_holidays_attendance.selection__hr_leave_accrual_level__frequency__worked_hours
 msgid "Per Hour Worked"
-msgstr "ຕໍ່ຊົ່ວໂມງທີ່ເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Remaining Extra Hours:"
-msgstr "ຊົ່ວໂມງເພີ່ມຄົງເຫຼືອ:"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_resource_calendar_leaves
 msgid "Resource Time Off Detail"
-msgstr "ລາຍລະອຽດການລາພັກຂອງຊັບພະຍາກອນ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_manager_view_form
 msgid "Save"
-msgstr "ບັນທຶກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-python
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 msgid "The employee does not have enough extra hours to request this leave."
-msgstr "ພະນັກງານບໍ່ມີຊົ່ວໂມງເພີ່ມພຽງພໍເພື່ອຂໍລາພັກນີ້."
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-python
 #: code:addons/hr_holidays_attendance/models/hr_leave_allocation.py:0
 msgid ""
 "The employee does not have enough overtime hours to request this leave."
-msgstr "ພະນັກງານບໍ່ມີຊົ່ວໂມງລ່ວງເວລາພຽງພໍເພື່ອຂໍລາພັກນີ້."
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave
 msgid "Time Off"
-msgstr "ການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave_allocation
 msgid "Time Off Allocation"
-msgstr "ການຈັດສັນການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.actions.act_window,name:hr_holidays_attendance.hr_leave_attendance_report_action
 #: model:ir.ui.menu,name:hr_holidays_attendance.hr_leave_attendance_report
 msgid "Time Off Ledger"
-msgstr "ບັນຊີການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Time Off Taken from Extra Hours:"
-msgstr "ການລາພັກທີ່ຫັກຈາກຊົ່ວໂມງເພີ່ມ:"
+msgstr ""
 
 #. module: hr_holidays_attendance
-#: model:ir.model,name:hr_holidays_attendance.model_hr_leave_type
-msgid "Time Off Type"
-msgstr "ປະເພດການລາພັກ"
-
-#. module: hr_holidays_attendance
-#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__leave_type_names
+#: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__work_entry_type_names
 msgid "Time Off Types"
-msgstr "ປະເພດການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__leave_ids
 msgid "Time Offs"
-msgstr "ລາຍການລາພັກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Total Compensable Extra Hours:"
-msgstr "ຊົ່ວໂມງເພີ່ມທີ່ສາມາດທົດແທນໄດ້ທັງໝົດ:"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/views/extra_hours_list_view.xml:0
 msgid "Total Extra Hours Worked:"
-msgstr "ຊົ່ວໂມງເພີ່ມທີ່ເຮັດວຽກທັງໝົດ:"
+msgstr ""
+
+#. module: hr_holidays_attendance
+#: model:ir.model,name:hr_holidays_attendance.model_hr_work_entry_type
+msgid "Work Entry Type"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_form
 msgid "Worked Extra Hours"
-msgstr "ຊົ່ວໂມງເພີ່ມທີ່ເຮັດວຽກແລ້ວ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__worked_hours
 msgid "Worked Hours"
-msgstr "ຊົ່ວໂມງທີ່ເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_attendance_report__difference_hours
 msgid "Worked Hours - Expected Hours + Approved Time Off"
-msgstr "ຊົ່ວໂມງເຮັດວຽກ - ຊົ່ວໂມງຄາດໄວ້ + ການລາພັກທີ່ອະນຸມັດແລ້ວ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_attendance_report__schedule_id
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_attendance_report_view_search
 msgid "Working Schedule"
-msgstr "ຕາຕະລາງການເຮັດວຽກ"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-python
@@ -373,17 +360,15 @@ msgid ""
 "You can't base accrued time on hours worked, because time is accrued at the "
 "start of the period."
 msgstr ""
-"ທ່ານບໍ່ສາມາດອີງໃສ່ເວລາສະສົມຕາມຊົ່ວໂມງທີ່ເຮັດວຽກໄດ້, ເພາະວ່າເວລາຈະຖືກສະສົມໃນຕອນເລີ່ມຕົ້ນຂອງໄລຍະເວ"
-"ລາ."
 
 #. module: hr_holidays_attendance
 #. odoo-python
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 msgid "You do not have enough extra hours to request this leave"
-msgstr "ທ່ານບໍ່ມີຊົ່ວໂມງເພີ່ມພຽງພໍເພື່ອຂໍລາພັກນີ້"
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. odoo-javascript
 #: code:addons/hr_holidays_attendance/static/src/components/accrual_levels/accrual_levels.xml:0
 msgid "every worked hour."
-msgstr "ທຸກໆຊົ່ວໂມງທີ່ເຮັດວຽກ."
+msgstr ""

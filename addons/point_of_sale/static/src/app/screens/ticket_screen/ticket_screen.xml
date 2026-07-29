@@ -3,20 +3,21 @@
 
     <t t-name="point_of_sale.TicketScreen">
         <t t-set="_filteredOrderList" t-value="getFilteredOrderList()" />
-        <div class="ticket-screen screen h-100 bg-100">
+        <div class="ticket-screen screen h-100 bg-100" t-att-class="{'loading-orders': this.pos.loadingOrderState}">
             <div class="screen-full-width d-flex w-100 h-100">
                 <t t-set="usePreset" t-value="pos.config.use_presets and pos.models['pos.preset'].length > 1" />
                 <div t-if="!ui.isSmall || pos.ticket_screen_mobile_pane === 'left'" class="rightpane pane-border d-flex flex-column flex-grow-1 w-100 h-100 h-lg-100 pe-lg-0 bg-view border-end overflow-y-auto">
-                    <div class="controls d-grid d-sm-flex align-items-center justify-content-between gap-2 gap-sm-3 p-2 border-bottom bg-view">
+                    <div class="controls d-sm-flex align-items-center justify-content-between gap-2 gap-sm-3 p-2 border-bottom bg-view">
+                        <button class="settle-tips btn btn-lg btn-primary" t-if="state.filter == 'TIPPING'" t-on-click="settleTips">Settle</button>
                         <SearchBar
                             config="getSearchBarConfig()"
                             placeholder.translate="Search Orders..."
                             onSearch.bind="onSearch"
                             onFilterSelected.bind="onFilterSelected" />
-                        <div class="buttons d-flex gap-1" t-if="usePreset">
+                        <div class="filter-buttons buttons d-flex gap-1 overflow-auto" t-if="usePreset" t-att-class="{'mt-2 mt-sm-0': ui.isSmall}">
                             <button t-foreach="pos.models['pos.preset'].getAll()" t-as="preset" t-key="preset.id"
                                 class="btn btn-lg btn-secondary text-nowrap" t-on-click="() => this.onPresetSelected(preset)"
-                                t-attf-class="{{this.state.selectedPreset === preset ? 'active' : ''}}">
+                                t-att-class="{'active': this.state.selectedPreset === preset}">
                                 <t t-esc="preset.name"/>
                             </button>
                         </div>
@@ -89,6 +90,10 @@
                                                 <button t-if="!shouldHideDeleteButton(order) and this.pos.cashier._role !== 'minimal'" t-on-click.stop="() => this.onDeleteOrder(order)" class="btn btn-link btn-lg text-danger">
                                                     <i class="fa fa-trash" aria-hidden="true"/>
                                                 </button>
+                                                <div t-if="state.filter == 'TIPPING'" class="col end narrow p-2" name="tip">
+                                                    <div t-if="ui.isSmall">Tip</div>
+                                                    <div><TipCell order="order" /></div>
+                                                </div>
                                             </td>
                                         </tr>
                                     </t>
@@ -125,6 +130,10 @@
                                                 <i class="fa fa-trash" aria-hidden="true"/>
                                             </div>
                                         </div>
+                                        <div t-if="state.filter == 'TIPPING'" class="col end narrow p-2" name="tip">
+                                            <div t-if="ui.isSmall">Tip</div>
+                                            <div><TipCell order="order" /></div>
+                                        </div>
                                     </div>
                                 </div>
                             </t>
@@ -142,10 +151,11 @@
                         <button class="btn-switchpane load-order-button primary btn btn-primary btn-lg lh-lg w-50 py-3"
                             t-att-disabled="!_selectedSyncedOrder"
                             t-if="!isOrderSynced"
+                            t-att-class="{'syncing': _selectedSyncedOrder and this.pos.isOrderSyncing(_selectedSyncedOrder, false)}"
                             t-on-click="() => this.setOrder(_selectedSyncedOrder)">
                             <span class="d-block">Load Order</span>
                         </button>
-                        <button class="btn-switchpane btn btn-lg lh-lg py-3 secondary review-button" t-att-class="isOrderSynced ? 'w-100 btn-primary' : 'w-50 btn-light'" t-on-click="switchPane">
+                        <button class="btn-switchpane btn btn-lg lh-lg py-3 btn-secondary review-button" t-att-class="isOrderSynced ? 'w-100 btn-primary' : 'w-50 btn-secondary'" t-on-click="switchPane">
                             <span class="d-block">Review</span>
                         </button>
                     </div>
@@ -160,32 +170,20 @@
                         </div>
                         <OrderDisplay order="_selectedSyncedOrder" t-if="_selectedSyncedOrder" t-slot-scope="scope">
                             <t t-set="line" t-value="scope.line" />
-                            <Orderline line="line" t-on-click="() => this.onClickOrderline(line)" class="{'selected': line.id === _selectedOrderlineId}">
+                            <t t-set="qty" t-value="line.order_id?.uiState?.lineToRefund?.[line.uuid]?.qty" />
+                            <Orderline line="line" t-on-click="() => this.onClickOrderline(line)" toRefund="qty" class="{'selected': line.id === _selectedOrderlineId}">
                                 <t t-set="toRefundDetail" t-value="line.order_id?.uiState?.lineToRefund?.[line.uuid]" />
                                 <li t-if="!pos.isProductQtyZero(line.refundedQty)"
                                     class="info refund-note mt-1">
-                                    <strong t-esc="env.utils.formatProductQty(line.refundedQty)" />
+                                    <strong t-esc="env.utils.formatProductQty(line.refundedQty, false)" />
                                     <span> Refunded</span>
-                                </li>
-                                <li t-if="!pos.isProductQtyZero(toRefundDetail?.qty)" class="info to-refund-highlight refund-note mt-1 fw-bold text-primary">
-                                    <t t-set="_destinationOrderUid" t-value="toRefundDetail.destinationOrder?.uuid"/>
-                                    <t t-set="refundQty" t-value="env.utils.formatProductQty(toRefundDetail.qty)"/>
-                                    <t t-if="_destinationOrderUid">
-                                        Refunding <t t-esc="refundQty" /> in
-                                        <span t-esc="_destinationOrderUid"
-                                            class="order-link ms-1 text-decoration-underline cursor-pointer"
-                                            t-on-click.stop="() => this.onClickRefundOrderUid(_destinationOrderUid)" />
-                                    </t>
-                                    <t t-else="">
-                                        To Refund: <t t-esc="refundQty" />
-                                    </t>
                                 </li>
                             </Orderline>
                         </OrderDisplay>
                         <div class="pads">
                             <t t-if="isOrderSynced">
                                 <div class="control-buttons d-flex gap-2 pb-2">
-                                    <button class="edit-order-payment control-button btn btn-secondary btn-lg lh-lg flex-grow-1 flex-shrink-1" t-on-click="() => this.pos.orderDetails(_selectedSyncedOrder)">
+                                    <button class="edit-order-payment control-button btn btn-secondary btn-lg lh-lg flex-grow-1 flex-shrink-1" t-on-click="() => this.pos.showOrderDetails(_selectedSyncedOrder)">
                                         <i class="fa fa-pencil-square-o me-1" /> Details
                                     </button>
                                     <InvoiceButton
@@ -199,6 +197,7 @@
                                     <Numpad class="'pb-2'" buttons="getNumpadButtons()"/>
                                         <ActionpadWidget
                                             partner="getSelectedOrder()?.getPartner()"
+                                            buttonClasses="!getHasItemsToRefund() ? 'disabled' : ''"
                                             actionName.translate="Refund"
                                             actionToTrigger.bind="onDoRefund"
                                         />
@@ -208,11 +207,12 @@
                                 <BackButton t-if="ui.isSmall" onClick="() => pos.onClickBackButton()"/>
                                 <button class="button btn btn-secondary btn-lg d-flex flex-row align-items-center justify-content-center"
                                     t-on-click="() => this.onClickReprintAll(_selectedSyncedOrder)"
-                                    t-if="this.pos.unwatched.printers.length and _selectedSyncedOrder.uiState.lastPrints.length">
+                                    t-if="this.pos.ticketPrinter.hasPreparationPrinters and _selectedSyncedOrder.lastPrints.length">
                                     <i class="fa fa-cutlery" aria-hidden="true"/>
                                 </button>
                                 <button class="button validation load-order-button w-100 btn btn-lg btn-primary py-3"
                                     t-att-disabled="!_selectedSyncedOrder"
+                                    t-att-class="{'syncing': _selectedSyncedOrder and this.pos.isOrderSyncing(_selectedSyncedOrder, false)}"
                                     t-on-click="() => this.setOrder(_selectedSyncedOrder)">
                                     <span class="d-block">Load Order</span>
                                 </button>

@@ -6,16 +6,15 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025.
-# Deleted User <noreply+31@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 18:35+0000\n"
-"PO-Revision-Date: 2026-06-30 19:14+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-04-03 18:37+0000\n"
+"PO-Revision-Date: 2025-10-16 06:07+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
 "Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
 "pos_discount/vi/>\n"
 "Language: vi\n"
@@ -23,7 +22,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
+
+#. module: pos_discount
+#: model_terms:ir.ui.view,arch_db:pos_discount.pos_session_sales_details
+msgid "<strong>Amount of global discounts</strong>:"
+msgstr ""
+
+#. module: pos_discount
+#: model_terms:ir.ui.view,arch_db:pos_discount.pos_session_sales_details
+msgid "<strong>Number of global discounts</strong>:"
+msgstr ""
 
 #. module: pos_discount
 #. odoo-python
@@ -47,6 +56,7 @@ msgstr "Cài đặt cấu hình"
 
 #. module: pos_discount
 #. odoo-javascript
+#: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 #: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.xml:0
 #: model:product.template,name:pos_discount.product_product_consumable_product_template
 msgid "Discount"
@@ -58,8 +68,6 @@ msgid "Discount %"
 msgstr "% chiết khấu"
 
 #. module: pos_discount
-#. odoo-javascript
-#: code:addons/pos_discount/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__discount_pc
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__pos_discount_pc
 msgid "Discount Percentage"
@@ -75,20 +83,16 @@ msgstr "Sản phẩm chiết khấu"
 #: model:ir.model.fields,field_description:pos_discount.field_account_move_line__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_product_template__display_name
+#: model:ir.model.fields,field_description:pos_discount.field_report_point_of_sale_report_saledetails__display_name
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__display_name
 msgid "Display Name"
 msgstr "Tên hiển thị"
 
 #. module: pos_discount
-#. odoo-javascript
-#: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
-msgid "Error"
-msgstr "Lỗi"
-
-#. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_account_move_line__id
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__id
 #: model:ir.model.fields,field_description:pos_discount.field_product_template__id
+#: model:ir.model.fields,field_description:pos_discount.field_report_point_of_sale_report_saledetails__id
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__id
 msgid "ID"
 msgstr "ID"
@@ -105,6 +109,12 @@ msgid "No discount product found"
 msgstr "Không tìm thấy sản phẩm chiết khấu nào"
 
 #. module: pos_discount
+#. odoo-javascript
+#: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
+msgid "Oh snap !"
+msgstr ""
+
+#. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_pos_config__iface_discount
 msgid "Order Discounts"
 msgstr "Chiết khấu đơn hàng"
@@ -113,6 +123,11 @@ msgstr "Chiết khấu đơn hàng"
 #: model:ir.model,name:pos_discount.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr "Cấu hình POS"
+
+#. module: pos_discount
+#: model:ir.model,name:pos_discount.model_report_point_of_sale_report_saledetails
+msgid "Point of Sale Details"
+msgstr ""
 
 #. module: pos_discount
 #: model:ir.model.fields,field_description:pos_discount.field_res_config_settings__pos_discount_product_id
@@ -150,12 +165,3 @@ msgstr "Sản phẩm được dùng để áp dụng chiết khấu trên phiế
 #: code:addons/pos_discount/static/src/app/screens/ticket_screen/ticket_screen.js:0
 msgid "You cannot edit a discount line."
 msgstr ""
-
-#~ msgid "No tax"
-#~ msgstr "Không có thuế"
-
-#~ msgid "Point of Sale Session"
-#~ msgstr "Phiên POS"
-
-#~ msgid "Tax: %s"
-#~ msgstr "Thuế: %s"

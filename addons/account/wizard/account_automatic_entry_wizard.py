@@ -241,11 +241,11 @@ class AccountAutomaticEntryWizard(models.TransientModel):
                     'partner_id': partner.id or None,
                     'currency_id': currency.id,
                     'amount_currency': (account_balance > 0 and -1 or 1) * abs(account_amount_currency),
-                    'analytic_distribution': analytic_distribution,
+                    'analytic_distribution': analytic_distribution and dict(analytic_distribution),
                 })
 
         # Get the lowest child company based on accounts used to avoid access error
-        accounts = self.env['account.account'].browse([line['account_id'] for line in line_vals])
+        accounts = self.env['account.account'].browse(account_id for line in line_vals if (account_id := line['account_id']))
         companies = accounts.company_ids.filtered(lambda c: self.env.company in c.parent_ids) | self.env.company
         lowest_child_company = max(companies, key=lambda company: len(company.parent_ids))
 

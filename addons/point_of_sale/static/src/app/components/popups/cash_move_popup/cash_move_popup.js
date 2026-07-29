@@ -3,15 +3,12 @@ import { useService } from "@web/core/utils/hooks";
 import { parseFloat } from "@web/views/fields/parsers";
 import { Component, useState } from "@odoo/owl";
 import { usePos } from "@point_of_sale/app/hooks/pos_hook";
-
-import { CashMoveReceipt } from "@point_of_sale/app/components/popups/cash_move_popup/cash_move_receipt/cash_move_receipt";
 import { CashMoveListPopup } from "@point_of_sale/app/components/popups/cash_move_popup/cash_move_list_popup/cash_move_list_popup";
 import { Dialog } from "@web/core/dialog/dialog";
 import { useAsyncLockedMethod } from "@point_of_sale/app/hooks/hooks";
 import { Input } from "@point_of_sale/app/components/inputs/input/input";
 import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { NumberPopup } from "@point_of_sale/app/components/popups/number_popup/number_popup";
-import { formatDateTime } from "@web/core/l10n/dates";
 
 const { DateTime } = luxon;
 
@@ -24,8 +21,6 @@ export class CashMovePopup extends Component {
         this.notification = useService("notification");
         this.pos = usePos();
         this.dialog = useService("dialog");
-        this.hardwareProxy = useService("hardware_proxy");
-        this.printer = useService("printer");
         this.state = useState({
             /** @type {'in'|'out'} */
             type: "out",
@@ -74,12 +69,11 @@ export class CashMovePopup extends Component {
             sequence_number: 0,
             pos_reference: "",
         });
-        await this.printer.print(CashMoveReceipt, {
+        await this.pos.ticketPrinter.printCashMoveReceipt({
             reason,
             translatedType,
             order: order,
             formattedAmount,
-            date: formatDateTime(DateTime.now()),
         });
         this.pos.models["pos.order"].delete(order);
 
@@ -129,8 +123,5 @@ export class CashMovePopup extends Component {
         if (result) {
             this.state.amount = result;
         }
-    }
-    async cancel() {
-        this.props.close();
     }
 }

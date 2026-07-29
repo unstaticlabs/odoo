@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.saas~18\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-29 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:17+0000\n"
+"POT-Creation-Date: 2026-05-29 17:37+0000\n"
+"PO-Revision-Date: 2026-06-13 18:48+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Kabyle <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Kabyle <https://translate.odoo.com/projects/odoo-s19-2/"
 "account_payment/kab/>\n"
 "Language: kab\n"
 "MIME-Version: 1.0\n"
@@ -134,10 +134,16 @@ msgid "A token is required to create a new payment transaction."
 msgstr ""
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.payment_provider_form
+msgid "All Pricelists"
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
+#, fuzzy
 msgid "Amount"
-msgstr ""
+msgstr "Azal"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_account_payment__amount_available_for_refund
@@ -147,6 +153,11 @@ msgstr ""
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__invoice_amount_due
 msgid "Amount Due"
+msgstr ""
+
+#. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "Amount of"
 msgstr ""
 
 #. module: account_payment
@@ -170,8 +181,9 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_bank_statement_line
+#, fuzzy
 msgid "Bank Statement Line"
-msgstr ""
+msgstr "Ligne de relevé de banque"
 
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.account_invoice_view_form_inherit_payment
@@ -187,8 +199,9 @@ msgstr "Mdel"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_res_config_settings
+#, fuzzy
 msgid "Config Settings"
-msgstr ""
+msgstr "Sefrek aɣewwaṛ"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__create_uid
@@ -223,8 +236,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__display_name
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__display_name
 #: model:ir.model.fields,field_description:account_payment.field_res_config_settings__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "Isem n Ubeqqeḍ"
 
 #. module: account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_link_wizard__display_open_installments
@@ -332,7 +346,7 @@ msgid "Invoices Count"
 msgstr ""
 
 #. module: account_payment
-#: model_terms:ir.ui.view,arch_db:account_payment.portal_my_home_account_payment
+#: model:portal.entry,name:account_payment.portal_entry_overdue_invoices
 msgid "Invoices to pay"
 msgstr ""
 
@@ -387,6 +401,13 @@ msgid "Online payment option is not enabled in Configuration."
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model.fields,help:account_payment.field_payment_provider__available_pricelist_ids
+msgid ""
+"Only allow this payment provider when the partner's pricelist matches one of "
+"these."
+msgstr ""
+
+#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/portal.py:0
 msgid "Overdue invoices should share the same company."
@@ -406,8 +427,9 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model.fields.selection,name:account_payment.selection__payment_refund_wizard__support_refund__partial
+#, fuzzy
 msgid "Partial"
-msgstr ""
+msgstr "Partiel"
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_register
@@ -442,6 +464,7 @@ msgid "Pay overdue"
 msgstr ""
 
 #. module: account_payment
+#: model:ir.model,name:account_payment.model_account_payment
 #: model:ir.model.fields,field_description:account_payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:account_payment.field_payment_transaction__payment_id
 msgid "Payment"
@@ -459,7 +482,15 @@ msgstr ""
 
 #. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method
+msgid "Payment Method"
+msgstr ""
+
+#. module: account_payment
 #: model:ir.model,name:account_payment.model_account_payment_method_line
+msgid "Payment Method Line"
+msgstr ""
+
+#. module: account_payment
 #: model:ir.ui.menu,name:account_payment.payment_method_menu
 msgid "Payment Methods"
 msgstr "Tarrayin n ufru"
@@ -499,15 +530,16 @@ msgid "Payment Transactions"
 msgstr ""
 
 #. module: account_payment
-#: model:ir.model,name:account_payment.model_account_payment
-msgid "Payments"
-msgstr "Afru"
-
-#. module: account_payment
 #. odoo-python
 #: code:addons/account_payment/controllers/payment.py:0
 msgid "Please log in to pay your overdue invoices"
 msgstr ""
+
+#. module: account_payment
+#: model:ir.model.fields,field_description:account_payment.field_payment_provider__available_pricelist_ids
+#, fuzzy
+msgid "Pricelists"
+msgstr "Tibdarin n ssuma"
 
 #. module: account_payment
 #. odoo-python
@@ -518,8 +550,9 @@ msgstr ""
 #. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_overdue_invoices_page
+#, fuzzy
 msgid "Reference"
-msgstr ""
+msgstr "Tamsisɣelt"
 
 #. module: account_payment
 #. odoo-python
@@ -745,12 +778,17 @@ msgid "has been applied."
 msgstr ""
 
 #. module: account_payment
+#: model_terms:ir.ui.view,arch_db:account_payment.portal_invoice_payment
+msgid "is already paid on this invoice, please make sure to not pay twice."
+msgstr ""
+
+#. module: account_payment
 #: model_terms:ir.ui.view,arch_db:account_payment.portal_my_invoices_payment
 msgid "overdue"
 msgstr ""
 
-#~ msgid "Code"
-#~ msgstr "Tangalt"
-
-#~ msgid "Companies"
-#~ msgstr "Tikebbaniyin"
+#. module: account_payment
+#. odoo-python
+#: code:addons/account_payment/models/payment_provider.py:0
+msgid "pricelist not allowed"
+msgstr ""

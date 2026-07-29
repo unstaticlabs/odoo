@@ -1,17 +1,16 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from datetime import UTC
+from zoneinfo import ZoneInfo
 
 import babel
 import base64
 import contextlib
 import json
 import logging
-import pytz
 import re
 from collections import defaultdict
 from functools import reduce
 from operator import getitem
-
-from pytz import timezone
 
 from odoo import api, fields, models, tools
 from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
@@ -54,7 +53,8 @@ class LoggerProxy:
 
 class IrActionsActions(models.Model):
     _name = 'ir.actions.actions'
-    _description = 'Actions'
+    _description = 'Action'
+    _clear_cache_name = 'default'  # self.get_bindings() depends on action records
     _table = 'ir_actions'
     _order = 'name, id'
     _allow_sudo_commands = False
@@ -107,19 +107,6 @@ class IrActionsActions(models.Model):
         for record in self:
             record.xml_id = res.get(record.id)
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        res = super().create(vals_list)
-        # self.get_bindings() depends on action records
-        self.env.registry.clear_cache()
-        return res
-
-    def write(self, vals):
-        res = super().write(vals)
-        # self.get_bindings() depends on action records
-        self.env.registry.clear_cache()
-        return res
-
     def unlink(self):
         """unlink ir.action.todo/ir.filters which are related to actions which will be deleted.
            NOTE: ondelete cascade will not work on ir.actions.actions so we will need to do it manually."""
@@ -127,10 +114,7 @@ class IrActionsActions(models.Model):
         todos.unlink()
         filters = self.env['ir.filters'].with_context(active_test=False).search([('action_id', 'in', self.ids)])
         filters.unlink()
-        res = super().unlink()
-        # self.get_bindings() depends on action records
-        self.env.registry.clear_cache()
-        return res
+        return super().unlink()
 
     @api.ondelete(at_uninstall=True)
     def _unlink_check_home_action(self):
@@ -145,7 +129,7 @@ class IrActionsActions(models.Model):
             'time': tools.safe_eval.time,
             'datetime': tools.safe_eval.datetime,
             'dateutil': tools.safe_eval.dateutil,
-            'timezone': timezone,
+            'timezone': ZoneInfo,
             'float_compare': float_compare,
             'b64encode': base64.b64encode,
             'b64decode': base64.b64decode,
@@ -285,7 +269,7 @@ class IrActionsAct_Window(models.Model):
             can be set on the action.
         """
         for act in self:
-            act.views = [(view.view_id.id, view.view_mode) for view in act.view_ids]
+            views = [(view.view_id.id, view.view_mode) for view in act.view_ids]
             got_modes = [view.view_mode for view in act.view_ids]
             all_modes = act.view_mode.split(',')
             missing_modes = [mode for mode in all_modes if mode not in got_modes]
@@ -293,8 +277,9 @@ class IrActionsAct_Window(models.Model):
                 if act.view_id.type in missing_modes:
                     # reorder missing modes to put view_id first if present
                     missing_modes.remove(act.view_id.type)
-                    act.views.append((act.view_id.id, act.view_id.type))
-                act.views.extend([(False, mode) for mode in missing_modes])
+                    views.append((act.view_id.id, act.view_id.type))
+                views.extend([(False, mode) for mode in missing_modes])
+            act.views = views
 
     @api.constrains('view_mode')
     def _check_view_mode(self):
@@ -321,10 +306,11 @@ class IrActionsAct_Window(models.Model):
     usage = fields.Char(string='Action Usage',
                         help="Used to filter menu and home actions from the user form.")
     view_ids = fields.One2many('ir.actions.act_window.view', 'act_window_id', string='No of Views')
-    views = fields.Binary(compute='_compute_views',
-                          help="This function field computes the ordered list of views that should be enabled " \
-                               "when displaying the result of an action, federating view mode, views and " \
-                               "reference view. The result is returned as an ordered list of pairs (view_id,view_mode).")
+    views = fields.Json(compute='_compute_views',
+        help="This function field computes the ordered list of views that should be enabled "
+            "when displaying the result of an action, federating view mode, views and "
+            "reference view. The result is returned as an ordered list of pairs (view_id,view_mode)."
+    )
     limit = fields.Integer(default=80, help='Default limit for the list view')
     group_ids = fields.Many2many('res.groups', 'ir_act_window_group_rel',
                                  'act_id', 'gid', string='Groups')
@@ -356,15 +342,10 @@ class IrActionsAct_Window(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self.env.registry.clear_cache()
         for vals in vals_list:
             if not vals.get('name') and vals.get('res_model'):
                 vals['name'] = self.env[vals['res_model']]._description
         return super().create(vals_list)
-
-    def unlink(self):
-        self.env.registry.clear_cache()
-        return super().unlink()
 
     def exists(self):
         ids = self._existing()
@@ -515,7 +496,7 @@ class IrActionsServerHistory(models.Model):
             locale = get_lang(self.env).code
             tzinfo = self.env.tz
             datetime = history.create_date.replace(microsecond=0)
-            datetime = pytz.utc.localize(datetime, is_dst=False)
+            datetime = datetime.replace(tzinfo=UTC)
             datetime = datetime.astimezone(tzinfo) if tzinfo else datetime
             date_label = babel.dates.format_datetime(
                 datetime,
@@ -584,7 +565,7 @@ class IrActionsServer(models.Model):
       server actions
     """
     _name = 'ir.actions.server'
-    _description = 'Server Actions'
+    _description = 'Server Action'
     _table = 'ir_act_server'
     _inherit = ['ir.actions.actions']
     _order = 'sequence,name,id'
@@ -1122,7 +1103,7 @@ class IrActionsServer(models.Model):
                     VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (self.env.uid, 'server', self.env.cr.dbname, __name__, level, message, "action", action.id, action.name))
 
-        eval_context = super(IrActionsServer, self)._get_eval_context(action=action)
+        eval_context = super()._get_eval_context(action=action)
         model_name = action.model_id.sudo().model
         model = self.env[model_name]
         record = None
@@ -1349,7 +1330,7 @@ class IrActionsTodo(models.Model):
     Configuration Wizards
     """
     _name = 'ir.actions.todo'
-    _description = "Configuration Wizards"
+    _description = "Configuration Wizard"
     _rec_name = 'action_id'
     _order = "sequence, id"
     _allow_sudo_commands = False
@@ -1361,14 +1342,14 @@ class IrActionsTodo(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        todos = super(IrActionsTodo, self).create(vals_list)
+        todos = super().create(vals_list)
         for todo in todos:
             if todo.state == "open":
                 self.ensure_one_open_todo()
         return todos
 
     def write(self, vals):
-        res = super(IrActionsTodo, self).write(vals)
+        res = super().write(vals)
         if vals.get('state', '') == 'open':
             self.ensure_one_open_todo()
         return res
@@ -1389,7 +1370,7 @@ class IrActionsTodo(models.Model):
                     self -= todo_open_menu
             except ValueError:
                 pass
-        return super(IrActionsTodo, self).unlink()
+        return super().unlink()
 
     def action_launch(self):
         """ Launch Action of Wizard"""
@@ -1440,22 +1421,20 @@ class IrActionsClient(models.Model):
     target = fields.Selection([('current', 'Current Window'), ('new', 'New Window'), ('fullscreen', 'Full Screen'), ('main', 'Main action of Current Window')], default="current", string='Target Window')
     res_model = fields.Char(string='Destination Model', help="Optional model, mostly used for needactions.")
     context = fields.Char(string='Context Value', default="{}", required=True, help="Context dictionary as Python expression, empty by default (Default: {})")
-    params = fields.Binary(compute='_compute_params', inverse='_inverse_params', string='Supplementary arguments',
-                           help="Arguments sent to the client along with "
-                                "the view tag")
-    params_store = fields.Binary(string='Params storage', readonly=True, attachment=False)
+    params = fields.Json(
+        compute='_compute_params', inverse='_inverse_params', string='Supplementary arguments',
+        help="Arguments sent to the client along with the view tag")
+    params_store = fields.Text(string='Params storage', readonly=True)
 
     @api.depends('params_store')
     def _compute_params(self):
-        self_bin = self.with_context(bin_size=False, bin_size_params_store=False)
-        for record, record_bin in zip(self, self_bin):
-            record.params = record_bin.params_store and safe_eval(record_bin.params_store, {'uid': self.env.uid})
+        for record in self:
+            record.params = record.params_store and safe_eval(record.params_store, {'uid': self.env.uid})
 
     def _inverse_params(self):
         for record in self:
             params = record.params
             record.params_store = repr(params) if isinstance(params, dict) else params
-
 
     def _get_readable_fields(self):
         return super()._get_readable_fields() | {

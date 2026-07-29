@@ -8,6 +8,7 @@ from odoo.tests.common import tagged, TransactionCase
 
 
 @tagged('hr_attendance_overtime_ruleset')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestHrAttendanceOvertime(TransactionCase):
     """ Tests for overtime """
 
@@ -55,11 +56,11 @@ class TestHrAttendanceOvertime(TransactionCase):
             'full_time_required_hours': 38,
             'attendance_ids': [
                 (5, 0, 0),  # Clear existing attendances
-                (0, 0, {'name': 'Monday', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 16, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 16, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Wednesday', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 16, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 16, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 16, 'day_period': 'morning'}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 8, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 8, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 8, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 8, 'hour_to': 16}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 8, 'hour_to': 16}),
             ],
         })
 

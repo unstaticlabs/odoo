@@ -3,16 +3,16 @@
 # * base_automation
 #
 # Translators:
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Anastasiia Koroleva (koan)" <koan@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 05:15+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
+"POT-Creation-Date: 2025-12-16 18:36+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Russian <https://translate.odoo.com/projects/odoo-19/"
 "base_automation/ru/>\n"
 "Language: ru\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_automation
 #. odoo-javascript
@@ -91,8 +91,8 @@ msgid ""
 "<code>time</code>, <code>datetime</code>, <code>dateutil</code>, "
 "<code>timezone</code>: useful Python libraries"
 msgstr ""
-"<code>time</code> , <code>датачас</code> , <code>dateutil</code> , <code>"
-"часова зона</code> : полезные библиотеки Python"
+"<code>time</code> , <code>датачас</code> , <code>dateutil</code> , "
+"<code>часова зона</code> : полезные библиотеки Python"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_kanban
@@ -123,7 +123,7 @@ msgstr ""
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_server_action_form
 msgid "<span class=\"o_stat_text\">Automation</span>"
-msgstr "<span class=\"o_stat_text\">Автоматизация</span>"
+msgstr ""
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -159,6 +159,11 @@ msgstr "Активность"
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Оформление задачи-исключения"
+
+#. module: base_automation
+#: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_state
@@ -283,7 +288,7 @@ msgstr "Задержка"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trg_date_range_mode
 msgid "Delay mode"
-msgstr "Режим задержки"
+msgstr ""
 
 #. module: base_automation
 #. odoo-python
@@ -291,13 +296,11 @@ msgstr "Режим задержки"
 msgid ""
 "Delay must be positive. Set 'Delay mode' to 'Before' to negate the delay."
 msgstr ""
-"Задержка должна быть положительной. Установите «Режим задержки» на «До», "
-"чтобы сделать задержку отрицательной."
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trg_date_range_type
 msgid "Delay unit"
-msgstr "Единица измерения задержки"
+msgstr ""
 
 #. module: base_automation
 #. odoo-javascript
@@ -371,7 +374,7 @@ msgstr "Подписчики"
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "Following child actions have warnings: %(children)s"
-msgstr "Следующие дочерние действия имеют предупреждения: %(children)s"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__activity_type_icon
@@ -446,8 +449,6 @@ msgid ""
 "If renewed, update the secret URL in the third-party app that calls this "
 "webhook."
 msgstr ""
-"При продлении обновите секретный URL в стороннем приложении, которое "
-"вызывает этот вебхук."
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_search
@@ -528,8 +529,8 @@ msgstr "Название модели"
 #. odoo-python
 #: code:addons/base_automation/models/ir_actions_server.py:0
 msgid ""
-"Model of action %(action_name)s should match the one from automated rule %"
-"(rule_name)s."
+"Model of action %(action_name)s should match the one from automated rule "
+"%(rule_name)s."
 msgstr ""
 "Модель действия %(action_name)s должна совпадать с моделью из "
 "автоматического правила %(rule_name)s."
@@ -614,12 +615,12 @@ msgstr "В архиве"
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_create
 msgid "On create"
-msgstr "При создании"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_create_or_write
 msgid "On create and edit"
-msgstr "При создании и редактировании"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_unlink
@@ -654,7 +655,7 @@ msgstr "На веб-крючке"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__previous_domain
 msgid "Previous Domain"
-msgstr "Предыдущий домен"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_priority_set
@@ -689,23 +690,19 @@ msgstr "Ошибка доставки СМС"
 #. module: base_automation
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
-msgid "Scheduled Action"
-msgstr "Запланированные действия"
-
-#. module: base_automation
 #: model:ir.model,name:base_automation.model_ir_cron
-msgid "Scheduled Actions"
+msgid "Scheduled Action"
 msgstr "Запланированные действия"
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
 msgid "Scheduled action"
-msgstr "Запланированное действие"
+msgstr ""
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
 msgid "Secret URL"
-msgstr "Секретная ссылка"
+msgstr ""
 
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
@@ -756,7 +753,7 @@ msgstr "Server Action"
 #. module: base_automation
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
 msgid "Set an explicit name"
-msgstr "Задать явное имя"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__trg_selection_field_id
@@ -825,8 +822,8 @@ msgstr "Целевая модель действий %(action_names)s отлич
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid ""
-"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the \"%"
-"(state_value)s\" action type"
+"The \"%(trigger_value)s\" %(trigger_label)s can only be used with the "
+"\"%(state_value)s\" action type"
 msgstr ""
 "Знак \"%(trigger_value)s\" %(trigger_label)s можно использовать только с "
 "типом действия \"%(state_value)s\""
@@ -854,7 +851,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "The scheduled action for Automation Rules seems to have vanished."
-msgstr "Запланированное действие для правил автоматизации, похоже, исчезло."
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__record_getter
@@ -931,7 +928,7 @@ msgstr "Используйте календарь"
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__url
 msgid "Use this URL in the third-party app to call this webhook."
-msgstr "Используйте этот URL в стороннем приложении для вызова этого вебхука."
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_user_set
@@ -1021,7 +1018,6 @@ msgstr ""
 #: code:addons/base_automation/static/src/base_automation_error_dialog.xml:0
 msgid "You can ask an administrator to disable or fix this automation."
 msgstr ""
-"Вы можете попросить администратора отключить или исправить эту автоматизацию."
 
 #. module: base_automation
 #. odoo-python
@@ -1048,245 +1044,4 @@ msgstr "действие не определено..."
 #. odoo-python
 #: code:addons/base_automation/models/base_automation.py:0
 msgid "path"
-msgstr "путь"
-
-#~ msgid ""
-#~ "<span invisible=\"evaluation_type != 'value'\">to</span>\n"
-#~ "                                                                <span "
-#~ "invisible=\"evaluation_type != 'equation'\">as</span>"
-#~ msgstr ""
-#~ "<span invisible=\"evaluation_type != 'value'\">на</span>\n"
-#~ "                                                                <span "
-#~ "invisible=\"evaluation_type != 'equation'\">как</span>"
-
-#~ msgid ""
-#~ "<span invisible=\"trigger != 'on_time_created'\">after creation</span>\n"
-#~ "                                    <span invisible=\"trigger != "
-#~ "'on_time_updated'\">after last update</span>\n"
-#~ "                                    <span invisible=\"trigger != "
-#~ "'on_time'\">after</span>"
-#~ msgstr ""
-#~ "<span invisible=\"trigger != 'on_time_created'\">после создания</span>\n"
-#~ "                                    <span invisible=\"trigger != "
-#~ "'on_time_updated'\">после последнего обновления</span>\n"
-#~ "                                    <span invisible=\"trigger != "
-#~ "'on_time'\">после</span>"
-
-#~ msgid "<span>by adding</span>"
-#~ msgstr "<span>добавив</span>"
-
-#~ msgid "<span>by clearing it</span>"
-#~ msgstr "<span>очистив его</span>"
-
-#~ msgid "<span>by removing</span>"
-#~ msgstr "<span>удалив</span>"
-
-#~ msgid "<span>by setting it to</span>"
-#~ msgstr "<span>установив его на</span>"
-
-#~ msgid ""
-#~ "<strong><i class=\"fa fa-lock\"/> Keep it secret, keep it safe.</strong>"
-#~ msgstr ""
-#~ "<strong><i class=\"fa fa-lock\"/> Храните его в тайне, берегите его.</"
-#~ "strong>"
-
-#~ msgid "Action Name"
-#~ msgstr "Название действия"
-
-#~ msgid "Add an action"
-#~ msgstr "Добавить действие"
-
-#~ msgid "Add followers"
-#~ msgstr "Добавить последователей"
-
-#~ msgid "Add followers: %(partner_names)s"
-#~ msgstr "Добавить последователей: %(partner_names)s"
-
-#~ msgid ""
-#~ "Change the URL's secret if you think the URL is no longer secure. You "
-#~ "will have to update any automated system that calls this webhook to the "
-#~ "new URL."
-#~ msgstr ""
-#~ "Измените секрет URL, если считаете, что он больше не является безопасным. "
-#~ "Вам придется обновить все автоматизированные системы, вызывающие этот веб-"
-#~ "крючок, на новый URL."
-
-#~ msgid "Compute"
-#~ msgstr "Вычислять"
-
-#~ msgid "Create %(model_name)s with name %(value)s"
-#~ msgstr "Создать %(model_name)s с именем %(value)s"
-
-#~ msgid "Create a new Record"
-#~ msgstr "Создать новую запись"
-
-#~ msgid "Create activity: %(activity_name)s"
-#~ msgstr "Создать активность: %(activity_name)s"
-
-#~ msgid "Create next activity"
-#~ msgstr "Создать следующее действие"
-
-#~ msgid "Date Field"
-#~ msgstr "Поле даты"
-
-#~ msgid ""
-#~ "Delay after the trigger date. You can put a negative number if you need a "
-#~ "delay before the trigger date, like sending a reminder 15 minutes before "
-#~ "a meeting."
-#~ msgstr ""
-#~ "Задержка после даты срабатывания. Вы можете поставить отрицательное "
-#~ "число, если вам нужна задержка до даты срабатывания, например отправить "
-#~ "напоминание за 15 минут до встречи."
-
-#~ msgid "Delay after trigger date"
-#~ msgstr "Отсрочка после даты срабатывания"
-
-#~ msgid "Delay type"
-#~ msgstr "Тип задержки"
-
-#~ msgid "Delete Action"
-#~ msgstr "Действие удаления"
-
-#~ msgid "Disable Automation Rule"
-#~ msgstr "Отключить правило автоматизации"
-
-#~ msgid ""
-#~ "Disabling this automation rule will enable you to continue your workflow\n"
-#~ "                but any data created after this could potentially be "
-#~ "corrupted,\n"
-#~ "                as you are effectively disabling a customization that may "
-#~ "set\n"
-#~ "                important and/or required fields."
-#~ msgstr ""
-#~ "Отключение этого правила автоматизации позволит вам продолжить рабочий "
-#~ "процесс\n"
-#~ "                но все данные, созданные после этого, могут быть "
-#~ "повреждены,\n"
-#~ "                поскольку вы фактически отключаете настройку, которая "
-#~ "может устанавливать\n"
-#~ "                важные и/или обязательные поля."
-
-#~ msgid "Edit Automation Rule"
-#~ msgstr "Редактирование правила автоматизации"
-
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgid "Execute Python Code"
-#~ msgstr "Выполнение кода Python"
-
-#~ msgid "Execute several actions"
-#~ msgstr "Выполните несколько действий"
-
-#~ msgid "Extra Conditions"
-#~ msgstr "Дополнительные условия"
-
-#~ msgid "Generic User"
-#~ msgstr "Общий пользователь"
-
-#~ msgid ""
-#~ "If present, this condition must be satisfied before the update of the "
-#~ "record."
-#~ msgstr ""
-#~ "Если это условие присутствует, оно должно быть выполнено до обновления "
-#~ "записи."
-
-#~ msgid "Least Delay Msg"
-#~ msgstr "Сообщение с наименьшей задержкой"
-
-#~ msgid "Model on which the automation rule runs."
-#~ msgstr "Модель, на которой выполняется правило автоматизации."
-
-#~ msgid ""
-#~ "Note that this automation rule can be triggered up to %d minutes after "
-#~ "its schedule."
-#~ msgstr ""
-#~ "Обратите внимание, что это правило автоматизации может срабатывать не "
-#~ "более чем через %d минут после своего расписания."
-
-#~ msgid "On creation"
-#~ msgstr "О создании"
-
-#~ msgid "On save"
-#~ msgstr "При сохранении"
-
-#~ msgid "Post as Message"
-#~ msgstr "Отправить в виде сообщения"
-
-#~ msgid "Post as Note"
-#~ msgstr "Сообщение в виде заметки"
-
-#~ msgid "Remove followers"
-#~ msgstr "Удалить последователей"
-
-#~ msgid "Remove followers: %(partner_names)s"
-#~ msgstr "Удалить последователей: %(partner_names)s"
-
-#~ msgid "Rotate Secret"
-#~ msgstr "Секрет поворота"
-
-#~ msgid "Send SMS Text Message"
-#~ msgstr "Отправить текстовое сообщение SMS"
-
-#~ msgid "Send SMS: %(template_name)s"
-#~ msgstr "Отправить SMS: %(template_name)s"
-
-#~ msgid "Send Webhook Notification"
-#~ msgstr "Отправка уведомления с помощью вебхука"
-
-#~ msgid "Send email"
-#~ msgstr "Оправить письмо"
-
-#~ msgid "Send email: %(template_name)s"
-#~ msgstr "Отправить письмо: %(template_name)s"
-
-#~ msgid "Specific User"
-#~ msgstr "Конкретный пользователь"
-
-#~ msgid "Trigger Reference Display Name"
-#~ msgstr "Ссылка на триггер Отображаемое имя"
-
-#~ msgid "Type"
-#~ msgstr "Тип"
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "URL will be created once the rule is saved."
-#~ msgstr "URL будет создан после сохранения правила."
-
-#~ msgid "Update"
-#~ msgstr "Обновить"
-
-#~ msgid "Update the Record"
-#~ msgstr "Обновить запись"
-
-#~ msgid "Weeks"
-#~ msgstr "Недель"
-
-#~ msgid ""
-#~ "When calculating a day-based timed condition, it is possibleto use a "
-#~ "calendar to compute the date based on working days."
-#~ msgstr ""
-#~ "При расчете временного условия на основе дня можно использовать календарь "
-#~ "для вычисления даты на основе рабочих дней."
-
-#~ msgid ""
-#~ "You can ask an administrator to disable or correct this automation rule."
-#~ msgstr ""
-#~ "Вы можете попросить администратора отключить или исправить это правило "
-#~ "автоматизации."
-
-#~ msgid "You can disable this automation rule or edit it to solve the issue."
-#~ msgstr ""
-#~ "Вы можете отключить это правило автоматизации или отредактировать его, "
-#~ "чтобы решить проблему."
-
-#~ msgid ""
-#~ "Your webhook URL contains a secret. Don't share it online or carelessly."
-#~ msgstr ""
-#~ "URL-адрес вашего веб-хука содержит секрет. Не сообщайте его в Интернете "
-#~ "или по неосторожности."
-
-#~ msgid "e.g. Support flow"
-#~ msgstr "например, поток поддержки"
+msgstr ""

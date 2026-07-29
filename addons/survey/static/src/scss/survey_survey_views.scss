@@ -113,6 +113,14 @@
     }
 }
 
+.o_survey_form {
+    .o_survey_description_editor {
+        .odoo-editor-editable {
+            min-height: 6em;
+        }
+    }
+}
+
 // TOOLS
 .icon_rotates {
     transform: rotate(180deg);
@@ -120,8 +128,15 @@
 
 /* Style of the tiles allowing the user to load a sample survey. */
 
-.o_survey_sample_card:hover {
-    background: var(--SurveySampleCard-background-hover, #{$o-gray-200});
+.o_survey_sample_card {
+    &:hover {
+        background: var(--SurveySampleCard-background--hover, #{$o-gray-200});
+    }
+
+    &:focus-visible {
+        box-shadow: 0 0 0 #{$btn-focus-width} RGBA(#{$btn-link-focus-shadow-rgb}, .5);
+        outline: none;
+    }
 }
 
 .o_form_label.o_form_label_readonly.o_survey_label_survey_start_url{
@@ -130,5 +145,13 @@
 }
 
 .o_nocontent_help:has(.o_survey_load_sample) {
-    max-width: unset !important;
+    max-width: unset;
+
+    @include media-breakpoint-up(sm) {
+        max-width: 90%;
+    }
+
+    @include media-breakpoint-up(lg) {
+        max-width: 80%;
+    }
 }

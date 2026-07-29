@@ -2,8 +2,7 @@
 
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
-from odoo.tests import Form, tagged
-from odoo import Command
+from odoo.tests import tagged, Form
 
 
 class TestMrpAnalyticAccount(TransactionCase):
@@ -64,6 +63,7 @@ class TestMrpAnalyticAccount(TransactionCase):
         cls.project.account_id = False
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAnalyticAccount(TestMrpAnalyticAccount):
     def test_mo_analytic(self):
         """Test the amount on analytic line will change when consumed qty of the
@@ -246,14 +246,14 @@ class TestAnalyticAccount(TestMrpAnalyticAccount):
         mo_no_company = self.env['mrp.production'].create({
             'product_id': self.product.id,
             'project_id': project_aa_no_company.id,
-            'product_uom_id': self.bom.product_uom_id.id,
+            'uom_id': self.bom.uom_id.id,
         })
 
         mo_no_c_form = Form(mo_no_company)
         wo = self.env['mrp.workorder'].create({
             'name': 'Work_order',
             'workcenter_id': self.workcenter.id,
-            'product_uom_id': self.bom.product_uom_id.id,
+            'uom_id': self.bom.uom_id.id,
             'production_id': mo_no_c_form.id,
             'duration': 60,
         })
@@ -281,12 +281,12 @@ class TestAnalyticAccount(TestMrpAnalyticAccount):
         bom = self.env['mrp.bom'].create({
                 'product_tmpl_id': product.product_tmpl_id.id,
                 'product_qty': 1,
-                'product_uom_id': product.uom_id.id,
+                'uom_id': product.uom_id.id,
                 'type': 'normal',
                 'bom_line_ids': [(0, 0, {
                     'product_id': component.id,
                     'product_qty': 1,
-                    'product_uom_id': component.uom_id.id,
+                    'uom_id': component.uom_id.id,
                 })],
         })
         analytic_account = self.env['account.analytic.account'].create({
@@ -490,46 +490,3 @@ class TestAnalyticAccount(TestMrpAnalyticAccount):
         mo.action_confirm()
         mo.button_mark_done()
         self.assertEqual(mo.move_raw_ids.analytic_account_line_ids.category, 'manufacturing_order')
-
-
-@tagged('post_install', '-at_install')
-class TestAnalyticAccountTimesheet(TestMrpAnalyticAccount):
-    def test_analytic_account_access(self):
-        """ This test make sure that a user can scrap an order even without accounting rights """
-        if not self.env['ir.module.module'].search([('name', '=', 'timesheet_grid'), ('state', '=', 'installed')]):
-            self.skipTest("timesheet_grid is not installed, the access error won't trigger")
-
-        test_user = self.env['res.users'].create({
-            'name': 'Test MRP User',
-            'login': 'test_mrp_user',
-            'group_ids': [Command.set([
-                self.ref('mrp.group_mrp_user'),
-                self.ref('project.group_project_user'),
-                self.ref('hr_timesheet.group_hr_timesheet_approver')
-            ])],
-        })
-
-        quant = self.env['stock.quant'].with_context(inventory_mode=True).create({
-                'product_id': self.component.id,
-                'inventory_quantity': 10,
-                'location_id': self.env.ref("stock.warehouse0").lot_stock_id.id,
-            })
-        quant.action_apply_inventory()
-
-        def _create_confirmed_mo():
-            mo_form = Form(self.env['mrp.production'])
-            mo_form.product_id = self.product
-            mo_form.bom_id = self.bom
-            mo_form.product_qty = 1.0
-            mo_form.project_id = self.project
-            mo = mo_form.save()
-            mo.action_confirm()
-            return mo
-
-        _create_confirmed_mo().button_mark_done()
-        mo2 = _create_confirmed_mo()
-        self.env['stock.scrap'].with_user(test_user).create({
-            'product_id': self.component.id,
-            'scrap_qty': 1.0,
-            'production_id': mo2.id,
-        }).action_validate()

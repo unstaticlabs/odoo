@@ -71,7 +71,7 @@ test("simple click on Image", async () => {
     await click(":iframe img.a_nice_img");
     await waitFor("div.o-tooltip");
     expect("div.o-tooltip").toHaveCount(1);
-    await advanceTime(1600);
+    await advanceTime(3100);
     expect("div.o-tooltip").toHaveCount(0);
 });
 
@@ -234,7 +234,6 @@ test("pasted/dropped images are converted to attachments on snippet save", async
     // Save snippet of section 1 and check if its image has been saved as attachment
     await contains(":iframe [test-id='1']").click();
     await contains("button.oe_snippet_save").click();
-    await contains(".modal button:contains(Save)").click();
     await expect.waitForSteps(["add_data image-1.png", "save snippet"]);
 
     // Save and check if image of section 2 has been saved as attachment

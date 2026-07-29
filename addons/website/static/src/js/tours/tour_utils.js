@@ -32,29 +32,6 @@ export function assertCssVariable(variableName, variableValue, trigger = ":ifram
         },
     };
 }
-export function assertPathName(pathname, trigger) {
-    return {
-        content: `Check if we have been redirected to ${pathname}`,
-        trigger: trigger,
-        async run() {
-            await new Promise((resolve) => {
-                let elapsedTime = 0;
-                const intervalTime = 100;
-                const interval = setInterval(() => {
-                    if (window.location.pathname.startsWith(pathname)) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                    elapsedTime += intervalTime;
-                    if (elapsedTime >= 5000) {
-                        clearInterval(interval);
-                        console.error(`The pathname ${pathname} has not been found`);
-                    }
-                }, intervalTime);
-            });
-        },
-    };
-}
 
 export function changeBackground(snippet, position = "bottom") {
     return [
@@ -134,7 +111,8 @@ export function changeOption(
 ) {
     const noPalette = allowPalette
         ? ""
-        : !document.querySelector(".o_popover .o_font_color_selector") && ".o_customize_tab";
+        : !document.querySelector(".o_popover .o_font_color_selector") &&
+          ".o-tab-content > [role='tabpanel']";
     const option_block = `${noPalette} [data-container-title='${blockName}']`;
     return {
         trigger: `${option_block} ${actionId}, ${option_block} [data-action-id="${actionId}"]`,
@@ -482,6 +460,16 @@ export function selectSnippetColumn(snippet, index = 0, position = "bottom") {
     };
 }
 
+export function unfoldOptionsGroup(name) {
+    return [
+        {
+            content: `Unfold the "${name}" group`,
+            trigger: `.options-container[data-container-title="${name}"] .options-container-label i.fa-caret-right`,
+            run: "click",
+        },
+    ];
+}
+
 export function prepend_trigger(steps, prepend_text = "") {
     for (const step of steps) {
         if (!step.noPrepend && prepend_text) {
@@ -606,7 +594,7 @@ export function registerBackendAndFrontendTour(name, options, steps) {
     }
 
     return registry.category("web_tour.tours").add(name, {
-        url: options.url,
+        ...options,
         steps: () => steps(),
     });
 }
@@ -772,6 +760,52 @@ export function clickToolbarButton(elementName, selector, button, expand = false
         });
     }
     return steps;
+}
+
+export function changeBackgroundShape(shape = "html_builder/Connections/01") {
+    return [
+        {
+            content: "Open Background Shape selector",
+            trigger: "div[data-label='Background'] ~ div[data-label='Shape'] button.o-hb-btn",
+            run: "click",
+        },
+        {
+            content: "Wait for panel to open",
+            trigger: ".hb-sliding-panel.d-block",
+        },
+        {
+            content: "Pick a Background Shape",
+            trigger: `.o_pager_container .o-hb-bg-shape-btn [data-action-id='setBackgroundShape'][data-action-value='${shape}']`,
+            run: "click",
+        },
+        {
+            content: "Wait for panel to close",
+            trigger: ".options-container:visible",
+        },
+    ];
+}
+
+export function changeImageShape(shape = "html_builder/geometric/geo_shuriken") {
+    return [
+        {
+            content: "Open Image Shape selector",
+            trigger: "div[data-label='Media'] ~ div[data-label='Shape'] button.o-hb-btn",
+            run: "click",
+        },
+        {
+            content: "Wait for panel to open",
+            trigger: ".hb-sliding-panel.d-block",
+        },
+        {
+            content: "Pick an Image Shape",
+            trigger: `.o_pager_container .o-hb-img-shape-btn [data-action-id='setImageShape'][data-action-value='${shape}']`,
+            run: "click",
+        },
+        {
+            content: "Wait for panel to close",
+            trigger: ".options-container:visible",
+        },
+    ];
 }
 
 /**

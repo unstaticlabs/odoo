@@ -518,7 +518,7 @@ test("input field: change value before pending onchange returns", async () => {
     let def;
     onRpc("onchange", () => def);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_field_widget[name='name'] input").toHaveValue("My little Name Value", {
         message: "should contain the default value",
     });
@@ -610,7 +610,7 @@ test("input field: change value before pending onchange returns (with fieldDebou
 
     onRpc("onchange", () => def);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_field_widget[name='name'] input").toHaveValue("My little Name Value", {
         message: "should contain the default value",
     });
@@ -810,7 +810,7 @@ test("input field: set and remove value, then wait for onchange", async () => {
             </field>
         </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".o_field_widget[name=name] input").toHaveValue("");
     await fieldInput("name").edit("test", { confirm: false });
     await fieldInput("name").clear({ confirm: false });
@@ -1033,7 +1033,7 @@ test("translate button not clickable for an unsaved record inside a one2many", a
     await contains(".o_list_char").click();
     expect(".o_selected_row .btn.o_field_translate").toHaveCount(1);
 
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     await fieldInput("name").edit("new line", { confirm: false });
 
     expect(".o_selected_row .btn.o_field_translate").toHaveClass("text-muted");

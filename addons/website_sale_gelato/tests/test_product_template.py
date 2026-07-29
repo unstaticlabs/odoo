@@ -19,10 +19,10 @@ class TestProductTemplate(GelatoCommon):
             self.gelato_template.is_published = True
 
     def test_prevent_removing_print_images_from_published_product(self):
-        self.gelato_template.gelato_image_ids[0].datas = 'test'
-        self.gelato_template.gelato_image_ids[1].datas = 'test'
+        self.gelato_template.gelato_image_ids[0].raw = 'test'
+        self.gelato_template.gelato_image_ids[1].raw = 'test'
 
         self.write = self.gelato_template.is_published = True
 
         with self.assertRaises(ValidationError):
-            self.gelato_template.gelato_image_ids[1].datas = ''
+            self.gelato_template.gelato_image_ids[1].raw = ''

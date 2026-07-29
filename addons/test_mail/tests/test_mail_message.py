@@ -112,34 +112,20 @@ class TestMessageHelpersRobustness(MailCommon, HttpCase):
         # set notifications to unread, so that we can simulate inbox usage
         p2_notifications = self.env['mail.notification'].search([('res_partner_id', '=', self.partner_employee_2.id)])
         p2_notifications.is_read = False
-
         self.authenticate(self.user_employee_2.login, self.user_employee_2.login)
-        result = self.make_jsonrpc_request("/mail/inbox/messages", {})['data']
+        data = self.make_jsonrpc_request("/mail/data", {"fetch_params": ["/mail/inbox/messages"]})
         self.assertEqual(
-            {r['thread']['id'] if r['thread'] else False for r in result['mail.message']},
-            set((self.test_records_simple - self.deleted_record).ids + [False]),
-            'Currently reading message on missing record, crash avoided, void thread for missing record'
+            {r["thread"]["id"] for r in data["mail.message"]},
+            set(self.test_records_simple.ids),
+            "Currently reading message on missing record, crash avoided",
         )
         p2_notifications.with_user(self.user_employee_2).mail_message_id.set_message_done()
-
-        result = self.make_jsonrpc_request("/mail/history/messages", {})['data']
+        data = self.make_jsonrpc_request("/mail/data", {"fetch_params": ["/mail/history/messages"]})
         self.assertEqual(
-            {r['thread']['id'] if r['thread'] else False for r in result['mail.message']},
-            set((self.test_records_simple - self.deleted_record).ids + [False]),
-            'Currently reading message on missing record, crash avoided'
+            {r["thread"]["id"] for r in data["mail.message"]},
+            set(self.test_records_simple.ids),
+            "Currently reading message on missing record, crash avoided",
         )
-
-    def test_message_link_by_employee(self):
-        record = self.test_records_simple[0]
-        thread_message = record.message_post(body='Thread Message', message_type='comment')
-        deleted_message = record.message_post(body='', message_type='comment')
-        self.authenticate(self.user_employee.login, self.user_employee.login)
-        with self.subTest(thread_message=thread_message):
-            expected_url = self.base_url() + f'/odoo/{thread_message.model}/{thread_message.res_id}?highlight_message_id={thread_message.id}'
-            res = self.url_open(f'/mail/message/{thread_message.id}')
-            self.assertEqual(res.url, expected_url)
-        with self.subTest(deleted_message=deleted_message):
-            res = self.url_open(f'/mail/message/{deleted_message.id}')
 
     def test_notify_cancel_by_type(self):
         """ Test canceling notifications, notably when having missing records. """
@@ -184,7 +170,7 @@ class TestMessageValues(MailCommon):
         note_subtype = self.env.ref('mail.mt_note')
         _attach_1 = self.env['ir.attachment'].with_user(self.user_employee).create({
             'name': 'Attach1',
-            'datas': 'bWlncmF0aW9uIHRlc3Q=',
+            'raw': b'migration test',
             'res_id': 0,
             'res_model': 'mail.compose.message',
         })
@@ -197,14 +183,14 @@ class TestMessageValues(MailCommon):
             message_type='comment',
             subtype_id=note_subtype.id,
         )
-        message.write({'starred_partner_ids': [(4, self.partner_admin.id)]})
+        message.write({'bookmarked_partner_ids': [(4, self.partner_admin.id)]})
 
         # check content
         self.assertEqual(len(message.attachment_ids), 1)
         self.assertFalse(is_html_empty(message.body))
         self.assertEqual(len(message.sudo().notification_ids), 1)
         self.assertEqual(message.notified_partner_ids, self.partner_admin)
-        self.assertEqual(message.starred_partner_ids, self.partner_admin)
+        self.assertEqual(message.bookmarked_partner_ids, self.partner_admin)
         self.assertFalse(message.sudo().tracking_value_ids)
 
         # Reset body case
@@ -221,7 +207,7 @@ class TestMessageValues(MailCommon):
         record._message_update_content(message, body="", attachment_ids=[])
         self.assertFalse(message.attachment_ids)
         self.assertEqual(message.notified_partner_ids, self.partner_admin)
-        self.assertEqual(message.starred_partner_ids, self.partner_admin)
+        self.assertEqual(message.bookmarked_partner_ids, self.partner_admin)
         self.assertFalse(message.sudo()._filter_empty(), 'Subtype with description')
 
         # Completely emptied now
@@ -229,7 +215,7 @@ class TestMessageValues(MailCommon):
         self.assertEqual(message.sudo()._filter_empty(), message)
         record._message_update_content(message.sudo(), body="", attachment_ids=[])
         self.assertEqual(message.notified_partner_ids, self.partner_admin)  # message still notified (albeit content is removed)
-        self.assertEqual(message.starred_partner_ids, self.partner_admin)  # starred messages stay (albeit content is removed)
+        self.assertEqual(message.bookmarked_partner_ids, self.partner_admin)  # bookmarked messages stay (albeit content is removed)
 
         # test tracking values
         record.write({'user_id': self.user_admin.id})
@@ -243,10 +229,10 @@ class TestMessageValues(MailCommon):
             record._message_update_content(tracking_message, body="", attachment_ids=[])
 
     @mute_logger('odoo.models.unlink')
-    def test_mail_message_to_store_access(self):
+    def test_mail_message_store_access(self):
         """
         User that doesn't have access to a record should still be able to fetch
-        the record_name inside message _to_store.
+        the record_name inside message.
         """
         company_2 = self.env['res.company'].create({'name': 'Second Test Company'})
         record1 = self.env['mail.test.multi.company'].create({
@@ -255,18 +241,17 @@ class TestMessageValues(MailCommon):
         })
         message = record1.message_post(body='', partner_ids=[self.user_employee.partner_id.id])
         # We need to flush and invalidate the ORM cache since the record_name
-        # is already cached from the creation. Otherwise it will leak inside
-        # message _to_store.
+        # is already cached from the creation.
         self.env.flush_all()
         self.env.invalidate_all()
-        res = Store().add(message.with_user(self.user_employee)).get_result()
-        self.assertEqual(res["mail.message"][0].get("record_name"), "Test1")
+        store_1 = Store().add(message.with_user(self.user_employee), "_store_message_fields")
+        self.assertEqual(store_1.get_result()["mail.message"][0].get("record_name"), "Test1")
 
         record1.write({"name": "Test2"})
         self.env.flush_all()
         self.env.invalidate_all()
-        res = Store().add(message.with_user(self.user_employee)).get_result()
-        self.assertEqual(res["mail.message"][0].get('record_name'), 'Test2')
+        store_2 = Store().add(message.with_user(self.user_employee), "_store_message_fields")
+        self.assertEqual(store_2.get_result()["mail.message"][0].get('record_name'), 'Test2')
 
         # check model not inheriting from mail.thread -> should not crash
         record_nothread = self.env['mail.test.nothread'].create({'name': 'NoThread'})
@@ -274,7 +259,7 @@ class TestMessageValues(MailCommon):
             'model': record_nothread._name,
             'res_id': record_nothread.id,
         })
-        formatted = Store().add(message).get_result()["mail.message"][0]
+        formatted = Store().add(message, "_store_message_fields").get_result()["mail.message"][0]
         self.assertEqual(formatted['record_name'], record_nothread.name)
 
     def test_records_by_message(self):
@@ -309,11 +294,11 @@ class TestMessageValues(MailCommon):
         self.assertEqual(m2_records, record3)
         self.assertEqual(m2_records._prefetch_ids, tuple(record3.ids))
         # methods called on individual message from a batch: prefetch from batch is kept
-        records_by_model_name = next(iter(messages))._records_by_model_name()
+        records_by_model_name = messages[0]._records_by_model_name()
         test_simple_records = records_by_model_name["mail.test.simple"]
         self.assertEqual(test_simple_records, record1)
         self.assertEqual(test_simple_records._prefetch_ids, tuple((record1 + record2).ids))
-        record_by_message = next(iter(messages))._record_by_message()
+        record_by_message = messages[0]._record_by_message()
         m0_records = record_by_message[messages[0]]
         self.assertEqual(m0_records, record1)
         self.assertEqual(m0_records._prefetch_ids, tuple((record1 + record2).ids))
@@ -482,3 +467,4 @@ class TestMessageValues(MailCommon):
         """ Test various values on mail.message, notably default values """
         msg = self.env['mail.message'].create({'model': self.alias_record._name, 'res_id': self.alias_record.id})
         self.assertEqual(msg.message_type, 'comment', 'Message should be comments by default')
+

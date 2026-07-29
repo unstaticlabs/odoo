@@ -35,7 +35,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'account_purchase_tax_id': 'vs_tuz_23',
                 'expense_account_id': 'chart_sk_504000',
                 'income_account_id': 'chart_sk_604000',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'chart_sk_112000',
             },
         }

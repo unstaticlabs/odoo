@@ -59,17 +59,16 @@ class AccountMove(models.Model):
                 inv_qty, inv_line = total_invs.pop(0)
                 # Match all moves and related invoice lines FIFO looking for when the matched invoice_line matches line
                 for move in done_moves_related.sorted(lambda m: (m.date, m.id)):
-                    rounding = move.product_uom.rounding
                     move_qty = move.product_qty
                     while (
-                        float_compare(move_qty, 0, precision_rounding=rounding) > 0
-                        and float_compare(inv_qty, 0, precision_rounding=rounding) > 0
+                        (move.uom_id.compare(move_qty, 0) > 0)
+                        and (move.uom_id.compare(inv_qty, 0) > 0)
                     ):
                         invoice_line = inv_line
-                        if float_compare(inv_qty, move_qty, precision_rounding=rounding) > 0:
+                        if move.uom_id.compare(inv_qty, move_qty) > 0:
                             inv_qty -= move_qty
                             move_qty = 0
-                        if float_compare(inv_qty, move_qty, precision_rounding=rounding) <= 0:
+                        if move.uom_id.compare(inv_qty, move_qty) <= 0:
                             move_qty -= inv_qty
                             inv_qty = 0
                             if total_invs:

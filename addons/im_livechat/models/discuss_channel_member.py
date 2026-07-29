@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from odoo import api, models, fields
 from odoo.fields import Domain
 from odoo.addons.mail.tools.discuss import Store
+from odoo.addons.web.models.models import lazymapping
 
 
 class DiscussChannelMember(models.Model):
@@ -14,6 +15,7 @@ class DiscussChannelMember(models.Model):
     livechat_member_type = fields.Selection(
         [("agent", "Agent"), ("visitor", "Visitor"), ("bot", "Chatbot")],
         compute="_compute_livechat_member_type",
+        compute_sql="_compute_sql_livechat_member_type",
         # sudo - reading the history of a member the user has access to is acceptable.
         compute_sudo=True,
         inverse="_inverse_livechat_member_type",
@@ -51,12 +53,31 @@ class DiscussChannelMember(models.Model):
                 member.sudo().livechat_member_type = "visitor"
                 continue
             member.sudo().livechat_member_type = "agent"
+        stores = lazymapping(lambda channel: Store(bus_channel=channel))
+        for history in members.livechat_member_history_ids:
+            # sudo - visitor can access the channel member history of an accessible channel
+            stores[history.channel_id].add(
+                history.channel_id,
+                lambda res, history=history: res.many(
+                    "livechat_channel_member_history_ids",
+                    "_store_member_history_fields",
+                    mode="ADD",
+                    value=history,
+                    sudo=True,
+                ),
+            )
+        for store in stores.values():
+            store.bus_send()
         return members
 
     @api.depends("livechat_member_history_ids.livechat_member_type")
     def _compute_livechat_member_type(self):
         for member in self:
             member.livechat_member_type = member.livechat_member_history_ids.livechat_member_type
+
+    def _compute_sql_livechat_member_type(self, table):
+        history = table._join("livechat_member_history_ids")
+        return history.livechat_member_type
 
     @api.depends("livechat_member_history_ids.chatbot_script_id")
     def _compute_chatbot_script_id(self):
@@ -69,6 +90,8 @@ class DiscussChannelMember(models.Model):
             member.agent_expertise_ids = member.livechat_member_history_ids.agent_expertise_ids
 
     def _create_or_update_history(self, values_by_member):
+        if self.channel_id.livechat_end_dt:
+            return
         members_without_history = self.filtered(lambda m: not m.livechat_member_history_ids)
         history_domain = Domain.OR(
             [
@@ -135,49 +158,45 @@ class DiscussChannelMember(models.Model):
             ('channel_id.channel_type', '=', 'livechat'),
         ])
         sessions_to_be_unpinned = members.filtered(lambda m: m.message_unread_counter == 0)
-        sessions_to_be_unpinned.write({'unpin_dt': fields.Datetime.now()})
         sessions_to_be_unpinned.channel_id.livechat_end_dt = fields.Datetime.now()
+        stores = lazymapping(lambda member: Store(bus_channel=member._bus_channel()))
         for member in sessions_to_be_unpinned:
-            Store(bus_channel=member._bus_channel()).add(
-                member.channel_id,
-                {"close_chat_window": True, "livechat_end_dt": fields.Datetime.now()},
-            ).bus_send()
+            stores[member].add(member.channel_id, {"close_chat_window": True})
+        for store in stores.values():
+            store.bus_send()
+        sessions_to_be_unpinned.unpin_dt = fields.Datetime.now()
 
-    def _to_store_defaults(self, target):
-        return super()._to_store_defaults(target) + [
-            Store.Attr(
-                "livechat_member_type",
-                predicate=lambda member: member.channel_id.channel_type == "livechat",
-            )
-        ]
+    def _store_member_fields(self, res: Store.FieldList):
+        super()._store_member_fields(res)
+        res.attr(
+            "livechat_member_type",
+            predicate=lambda m: m.channel_id.channel_type == "livechat",
+        )
 
-    def _get_store_partner_fields(self, fields):
-        self.ensure_one()
-        if self.channel_id.channel_type == 'livechat':
-            new_fields = [
-                "active",
-                "avatar_128",
-                Store.One("country_id", ["code", "name"]),
-                "im_status",
-                "is_public",
-                *self.env["res.partner"]._get_store_livechat_username_fields(),
-            ]
-            if self.livechat_member_type == "visitor":
-                new_fields += ["offline_since", "email"]
-            return new_fields
-        return super()._get_store_partner_fields(fields)
+    def _store_partner_dynamic_fields(self, partner_res: Store.FieldList):
+        super()._store_partner_dynamic_fields(partner_res)
+        if self.channel_id.channel_type != "livechat":
+            return
+        partner_res.clear()
+        partner_res.attr("active")
+        partner_res.one("country_id", ["code", "name"])
+        partner_res.attr("is_public")
+        partner_res.from_method("_store_avatar_fields")
+        partner_res.from_method("_store_livechat_username_fields")
+        partner_res.from_method("_store_mention_fields")
+        if self.livechat_member_type == "visitor":
+            partner_res.extend(["offline_since", "email"])
+        if partner_res.is_for_internal_users():
+            partner_res.from_method("_store_im_status_fields")
 
-    def _get_store_guest_fields(self, fields):
-        self.ensure_one()
-        if self.channel_id.channel_type == 'livechat':
-            return [
-                "avatar_128",
-                Store.One("country_id", ["code", "name"]),
-                "im_status",
-                "name",
-                "offline_since",
-            ]
-        return super()._get_store_guest_fields(fields)
+    def _store_guest_dynamic_fields(self, guest_res: Store.FieldList):
+        super()._store_guest_dynamic_fields(guest_res)
+        if self.channel_id.channel_type != "livechat":
+            return
+        guest_res.clear()
+        guest_res.one("country_id", ["code", "name"])
+        guest_res.attr("offline_since")
+        guest_res.from_method("_store_guest_fields")
 
     def _get_rtc_invite_members_domain(self, *a, **kw):
         domain = super()._get_rtc_invite_members_domain(*a, **kw)

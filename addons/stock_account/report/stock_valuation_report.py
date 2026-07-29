@@ -30,6 +30,7 @@ class StockValuationReport(models.AbstractModel):
         # Check if date is a string instance
         if isinstance(date, str):
             date = fields.Date.from_string(date)
+
         if date == fields.Date.context_today(self):
             date = False
         # PERF: only products holding stock contribute to the valuation. Match the

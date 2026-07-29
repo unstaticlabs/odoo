@@ -3,7 +3,7 @@ export const purchaseForm = {
         const fieldAndLabelDict = {
             product: { fieldName: "product_id", label: "product" },
             quantity: { fieldName: "product_qty", label: "quantity" },
-            unit: { fieldName: "product_uom_id", label: "unit of measure" },
+            unit: { fieldName: "uom_id", label: "unit of measure" },
             unitPrice: { fieldName: "price_unit", label: "unit price" },
             discount: { fieldName: "discount", label: "discount" },
             totalPrice: { fieldName: "price_subtotal", label: "subtotal price" },
@@ -21,9 +21,7 @@ export const purchaseForm = {
             };
             for (const key in values) {
                 if (!Object.keys(fieldAndLabelDict).includes(key)) {
-                    throw new Error(
-                        `'checkPurchaseOrderLineValues' is called with unsupported key: ${key}`
-                    );
+                    throw new Error(`'checkLineValues' is called with unsupported key: ${key}`);
                 }
                 const value = values[key];
                 const { fieldName, label } = fieldAndLabelDict[key];
@@ -116,13 +114,7 @@ export const purchaseForm = {
 
 export const productCatalog = {
     addProduct(productName) {
-        const trigger = `.o_kanban_record:contains("${productName}") button:has(.fa-plus,.fa-shopping-cart)`;
-        return [{ trigger, run: "click" }];
-    },
-
-    /** Remove a product from the PO by clicking the "trash" button */
-    removeProduct(productName) {
-        const trigger = `.o_kanban_record:contains("${productName}") button:has(.fa-trash)`;
+        const trigger = `.o_kanban_record:contains("${productName}") button:has(.oi-plus,.fa-shopping-cart)`;
         return [{ trigger, run: "click" }];
     },
 
@@ -136,6 +128,12 @@ export const productCatalog = {
         const trigger = `.o_kanban_record:contains("${productName}") .o_product_catalog_quantity:contains("${uom}")`;
         const content = `Check that the kanban record card for product "${productName}" uses ${uom} as the UoM`;
         return [{ content, trigger }];
+    },
+
+    /** Remove a product from the PO by clicking the "trash" button */
+    removeProduct(productName) {
+        const trigger = `.o_kanban_record:contains("${productName}") button:has(.fa-trash)`;
+        return [{ trigger, run: "click" }];
     },
 
     waitForQuantity(productName, quantity) {

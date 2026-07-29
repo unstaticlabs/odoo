@@ -1,10 +1,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command
-from odoo.tests.common import HttpCase, new_test_user, tagged
+from odoo.tests.common import HttpCase, new_test_user
 
 
-@tagged("post_install", "-at_install")
 class TestDiscussMentionSuggestions(HttpCase):
     def test_mention_suggestions_group_restricted_channel(self):
         user_admin = self.env.ref("base.user_admin")

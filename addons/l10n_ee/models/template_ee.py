@@ -36,7 +36,6 @@ class AccountChartTemplate(models.AbstractModel):
                 'expense_account_id': 'l10n_ee_50',
                 'l10n_ee_rounding_difference_loss_account_id': 'l10n_ee_6851',
                 'l10n_ee_rounding_difference_profit_account_id': 'l10n_ee_431',
-                'account_stock_journal_id': 'inventory_valuation',
                 'account_stock_valuation_id': 'l10n_ee_1030',
             },
         }

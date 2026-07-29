@@ -23,6 +23,7 @@ from odoo.addons.base.models import ir_ui_view
 _logger = logging.getLogger(__name__)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class ViewXMLID(common.TransactionCase):
     def test_model_data_id(self):
         """ Check whether views know their xmlid record. """
@@ -76,6 +77,7 @@ class ViewCase(TransactionCaseWithUserDemo):
             self.assertIn(expected_message, message)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestNodeLocator(common.TransactionCase):
     """
     The node locator returns None when it can not find a node, and the first
@@ -172,6 +174,7 @@ class TestNodeLocator(common.TransactionCase):
         self.assertIsNone(node)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestViewInheritance(ViewCase):
     def arch_for(self, name, view_type='form', parent=None):
         """ Generates a trivial view of the specified ``view_type``.
@@ -621,6 +624,7 @@ class TestViewInheritance(ViewCase):
         self.assertEqual(not_broken.invalid_locators, [{"broken_hierarchy": True}])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestApplyInheritanceSpecs(ViewCase):
     """ Applies a sequence of inheritance specification nodes to a base
     architecture. IO state parameters (cr, uid, model, context) are used for
@@ -806,6 +810,7 @@ class TestApplyInheritanceSpecs(ViewCase):
             self.View.apply_inheritance_specs(self.base_arch, spec)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestApplyInheritanceWrapSpecs(ViewCase):
     def setUp(self):
         super(TestApplyInheritanceWrapSpecs, self).setUp()
@@ -828,6 +833,7 @@ class TestApplyInheritanceWrapSpecs(ViewCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestApplyInheritanceMoveSpecs(ViewCase):
     def setUp(self):
         super(TestApplyInheritanceMoveSpecs, self).setUp()
@@ -1030,6 +1036,7 @@ class TestApplyInheritanceMoveSpecs(ViewCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestNoModel(ViewCase):
     def test_create_view_nomodel(self):
         view = self.View.create({
@@ -1081,6 +1088,7 @@ class TestNoModel(ViewCase):
         self.assertEqual(view.arch, ARCH % TEXT_FR)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestTemplating(ViewCase):
     def setUp(self):
         super(TestTemplating, self).setUp()
@@ -1166,7 +1174,7 @@ class TestTemplating(ViewCase):
             'type': 'qweb',
             'arch': """<hello>
                 <world></world>
-                <world><t t-esc="hello"/></world>
+                <world><t t-out="hello"/></world>
                 <world></world>
             </hello>
             """
@@ -1205,7 +1213,7 @@ class TestTemplating(ViewCase):
         [initial] = arch.xpath('/hello[1]/world[3]')
         self.assertFalse(
             initial.get('data-oe-xpath'),
-            'node containing t-esc is not branded')
+            'node containing t-out is not branded')
 
         # The most important assert
         # Fourth world - should have a correct oe-xpath, which is 3rd in main view
@@ -1221,7 +1229,7 @@ class TestTemplating(ViewCase):
             'type': 'qweb',
             'arch': """<hello>
                 <world></world>
-                <world><t t-esc="hello"/></world>
+                <world><t t-out="hello"/></world>
                 <world></world>
             </hello>
             """
@@ -1259,7 +1267,7 @@ class TestTemplating(ViewCase):
         [initial] = arch.xpath('/hello[1]/world[2]')
         self.assertFalse(
             initial.get('data-oe-xpath'),
-            'node containing t-esc is not branded')
+            'node containing t-out is not branded')
 
         # The most important assert
         # Third world - should have a correct oe-xpath, which is 3rd in main view
@@ -1273,14 +1281,14 @@ class TestTemplating(ViewCase):
         view1 = self.View.create({
             'name': "Base view",
             'type': 'qweb',
-            # The t-esc node is to ensure branding is distributed to both
+            # The t-out node is to ensure branding is distributed to both
             # <world/> elements from the start
             'arch': """
                 <hello>
                     <world></world>
                     <world></world>
 
-                    <t t-esc="foo"/>
+                    <t t-out="foo"/>
                 </hello>
             """
         })
@@ -1801,7 +1809,7 @@ class TestTemplating(ViewCase):
             'name': "Base View",
             'type': 'qweb',
             'arch': """<root>
-                <item><span t-esc="foo"/></item>
+                <item><span t-out="foo"/></item>
             </root>""",
         })
 
@@ -1809,7 +1817,7 @@ class TestTemplating(ViewCase):
         arch = etree.fromstring(arch_string)
         self.View.distribute_branding(arch)
 
-        self.assertEqual(arch, E.root(E.item(E.span({'t-esc': "foo"}))))
+        self.assertEqual(arch, E.root(E.item(E.span({'t-out': "foo"}))))
 
     def test_ignore_unbrand(self):
         view1 = self.View.create({
@@ -1817,7 +1825,7 @@ class TestTemplating(ViewCase):
             'type': 'qweb',
             'arch': """<root>
                 <item order="1" t-ignore="true">
-                    <t t-esc="foo"/>
+                    <t t-out="foo"/>
                 </item>
             </root>"""
         })
@@ -1842,7 +1850,7 @@ class TestTemplating(ViewCase):
             E.root(
                 E.item(
                     {'t-ignore': 'true', 'order': '1'},
-                    E.t({'t-esc': 'foo'}),
+                    E.t({'t-out': 'foo'}),
                     E.item(
                         {'order': '2'},
                         E.content(
@@ -3497,11 +3505,11 @@ class TestViews(ViewCase):
 
     def test_valid_focusable_button(self):
         self.assertValid('<form><a class="btn" role="button"/></form>')
-        self.assertValid('<form><button class="btn" role="button"/></form>')
+        self.assertValid('<form><button class="btn"/></form>')
         self.assertValid('<form><select class="btn" role="button"/></form>')
-        self.assertValid('<form><input type="button" class="btn" role="button"/></form>')
-        self.assertValid('<form><input type="submit" class="btn" role="button"/></form>')
-        self.assertValid('<form><input type="reset" class="btn" role="button"/></form>')
+        self.assertValid('<form><input type="button" class="btn"/></form>')
+        self.assertValid('<form><input type="submit" class="btn"/></form>')
+        self.assertValid('<form><input type="reset" class="btn"/></form>')
         self.assertValid('<form><div type="reset" class="btn btn-group" role="button"/></form>')
         self.assertValid('<form><div type="reset" class="btn btn-toolbar" role="button"/></form>')
         self.assertValid('<form><div type="reset" class="btn btn-addr" role="button"/></form>')
@@ -3621,11 +3629,11 @@ class TestViews(ViewCase):
         arch = "<form>%s</form>"
 
         self.assertInvalid(
-            arch % ('<span t-esc="x"/>'),
+            arch % ('<span t-out="x"/>'),
             """Error while validating view near:
 
-<form __validate__="1"><span t-esc="x"/></form>
-Forbidden owl directive used in arch (t-esc).""",
+<form __validate__="1"><span t-out="x"/></form>
+Forbidden owl directive used in arch (t-out).""",
         )
 
         self.assertInvalid(
@@ -3639,7 +3647,7 @@ Forbidden owl directive used in arch (t-on-click).""",
     @mute_logger('odoo.addons.base.models.ir_ui_view')
     def test_forbidden_owl_directives_in_kanban(self):
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
-        self.assertValid(arch % ('<span t-esc="record.resId"/>'))
+        self.assertValid(arch % ('<span t-out="record.resId"/>'))
         self.assertValid(arch % ('<t t-debug=""/>'))
 
         self.assertInvalid(
@@ -3655,14 +3663,6 @@ Forbidden owl directive used in arch (t-on-click).""",
         arch = "<form>%s</form>"
 
         self.assertInvalid(
-            arch % ('<span data-tooltip="Test"/>'),
-            """Error while validating view near:
-
-<form __validate__="1"><span data-tooltip="Test"/></form>
-Forbidden attribute used in arch (data-tooltip)."""
-        )
-
-        self.assertInvalid(
             arch % ('<span data-tooltip-template="test"/>'),
             """Error while validating view near:
 
@@ -3675,27 +3675,11 @@ Forbidden attribute used in arch (data-tooltip-template)."""
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
 
         self.assertInvalid(
-            arch % ('<span data-tooltip="Test"/>'),
-            """Error while validating view near:
-
-<kanban __validate__="1"><templates><t t-name="card"><span data-tooltip="Test"/></t></templates></kanban>
-Forbidden attribute used in arch (data-tooltip)."""
-        )
-
-        self.assertInvalid(
             arch % ('<span data-tooltip-template="test"/>'),
             """Error while validating view near:
 
 <kanban __validate__="1"><templates><t t-name="card"><span data-tooltip-template="test"/></t></templates></kanban>
 Forbidden attribute used in arch (data-tooltip-template)."""
-        )
-
-        self.assertInvalid(
-            arch % ('<span t-att-data-tooltip="test"/>'),
-            """Error while validating view near:
-
-<kanban __validate__="1"><templates><t t-name="card"><span t-att-data-tooltip="test"/></t></templates></kanban>
-Forbidden attribute used in arch (t-att-data-tooltip)."""
         )
 
         self.assertInvalid(
@@ -3710,10 +3694,10 @@ Forbidden attribute used in arch (t-attf-data-tooltip-template)."""
     def test_forbidden_use_of___comp___in_kanban(self):
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
         self.assertInvalid(
-            arch % '<t t-esc="__comp__.props.resId"/>',
+            arch % '<t t-out="__comp__.props.resId"/>',
             """Error while validating view near:
 
-<kanban __validate__="1"><templates><t t-name="card"><t t-esc="__comp__.props.resId"/></t></templates></kanban>
+<kanban __validate__="1"><templates><t t-name="card"><t t-out="__comp__.props.resId"/></t></templates></kanban>
 Forbidden use of `__comp__` in arch."""
         )
 
@@ -3815,6 +3799,7 @@ class TestDebugger(common.TransactionCase):
         self.assertEqual([v.xml_id for v in views_with_t_debug], [])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestViewTranslations(common.TransactionCase):
     # these tests are essentially the same as in test_translate.py, but they use
     # the computed field 'arch' instead of the translated field 'arch_db'
@@ -3979,6 +3964,7 @@ class TestViewTranslations(common.TransactionCase):
             view.write({'mode': 'extension'})
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class ViewModeField(ViewCase):
     """
     This should probably, eventually, be folded back into other test case
@@ -4095,6 +4081,7 @@ class ViewModeField(ViewCase):
         self.assertEqual(view.mode, 'primary')
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestDefaultView(ViewCase):
     def testDefaultViewBase(self):
         self.View.create({
@@ -4145,6 +4132,7 @@ class TestDefaultView(ViewCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestViewCombined(ViewCase):
     """
     * When asked for a view, instead of looking for the closest parent with
@@ -4580,6 +4568,7 @@ class TestViewCombined(ViewCase):
             {'a4': arch_a4, 'c2': arch_c2})
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestOptionalViews(ViewCase):
     """
     Tests ability to enable/disable inherited views, formerly known as
@@ -4669,6 +4658,7 @@ class TestOptionalViews(ViewCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestXPathExtentions(common.BaseCase):
     def test_hasclass(self):
         tree = E.node(
@@ -4693,6 +4683,7 @@ class TestXPathExtentions(common.BaseCase):
             1)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestQWebRender(ViewCase):
 
     def test_render(self):
@@ -4760,6 +4751,7 @@ class TestQWebRender(ViewCase):
         self.assertNotEqual(content1, content3)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestValidationTools(common.BaseCase):
 
     def test_get_expression_identities(self):
@@ -4785,6 +4777,7 @@ class TestValidationTools(common.BaseCase):
         )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAccessRights(TransactionCaseWithUserDemo):
 
     @common.users('demo')
@@ -4840,7 +4833,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
         # NEVER add new name in this list ! The new addons must add comment for all always invisible field.
         only_log_modules = (
             'account',
-            'account_3way_match',
             'account_accountant',
             'account_asset',
             'account_asset_fleet',
@@ -4848,7 +4840,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'account_avatax',
             'account_avatax_geolocalize',
             'account_base_import',
-            'account_batch_payment',
             'account_budget',
             'account_check_printing',
             'account_consolidation',
@@ -4942,7 +4933,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'hr_gamification',
             'hr_holidays',
             'hr_holidays_attendance',
-            'hr_hourly_cost',
             'hr_maintenance',
             'hr_payroll',
             'hr_payroll_account',
@@ -4958,13 +4948,7 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'hr_skills_slides',
             'hr_timesheet',
             'hr_work_entry',
-            'hr_work_entry_holidays_enterprise',
             'im_livechat',
-            'industry_fsm',
-            'industry_fsm_report',
-            'industry_fsm_sale',
-            'industry_fsm_sale_report',
-            'industry_fsm_stock',
             'iot',
             'knowledge',
             'l10n_ae_hr_payroll',
@@ -5000,6 +4984,7 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'l10n_ec_edi_stock',
             'l10n_ec_sale',
             'l10n_eg_edi_eta',
+            'l10n_eg_hr_payroll',
             'l10n_employment_hero',
             'l10n_es_edi_facturae',
             'l10n_es_edi_sii',
@@ -5025,7 +5010,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'l10n_it_xml_export',
             'l10n_jo_edi',
             'l10n_jo_hr_payroll',
-            'l10n_jp_zengin',
             'l10n_ke_edi_oscu',
             'l10n_ke_edi_oscu_mrp',
             'l10n_ke_edi_oscu_pos',
@@ -5037,7 +5021,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'l10n_lu_hr_payroll',
             'l10n_lu_reports',
             'l10n_ma_hr_payroll',
-            'l10n_mx',
             'l10n_mx_hr_payroll',
             'l10n_mx_edi',
             'l10n_mx_edi_pos',
@@ -5077,7 +5060,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'mail',
             'mail_group',
             'maintenance',
-            'maintenance_worksheet',
             'marketing_automation',
             'mass_mailing',
             'mass_mailing_crm',
@@ -5106,7 +5088,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'planning',
             'point_of_sale',
             'portal',
-            'pos_enterprise',
             'pos_hr',
             'pos_iot',
             'pos_online_payment',
@@ -5129,8 +5110,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'quality_control',
             'quality_control_iot',
             'quality_control_picking_batch',
-            'quality_control_worksheet',
-            'quality_iot',
             'quality_mrp',
             'quality_mrp_workorder',
             'rating',
@@ -5186,38 +5165,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'voip',
             'web',
             'web_studio',
-            'website',
-            'website_appointment',
-            'website_blog',
-            'website_crm_iap_reveal',
-            'website_crm_partner_assign',
-            'website_customer',
-            'website_delivery_sendcloud',
-            'website_event',
-            'website_event_booth_exhibitor',
-            'website_event_exhibitor',
-            'website_event_social',
-            'website_event_track',
-            'website_event_track_gantt',
-            'website_event_track_quiz',
-            'website_event_track_social',
-            'website_event_twitter_wall',
-            'website_forum',
-            'website_helpdesk_forum',
-            'website_hr_recruitment',
-            'website_knowledge',
-            'website_sale',
-            'website_sale_loyalty',
-            'website_sale_slides',
-            'website_sale_stock',
-            'website_slides',
-            'website_slides_survey',
-            'website_sms',
-            'website_studio',
-            'website_twitter_wall',
-            'whatsapp',
-            'whatsapp_payment',
-            'worksheet',
         )
 
         modules_without_error = set(self.env['ir.module.module'].search([('state', '=', 'installed'), ('name', 'in', only_log_modules)]).mapped('name'))
@@ -5255,6 +5202,8 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
         if modules_without_error:
             _logger.error('Please remove this module names from the white list of this current test: %r', sorted(modules_without_error))
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class CompRegexTest(common.TransactionCase):
     def test_comp_regex(self):
         self.assertIsNone(re.search(ir_ui_view.COMP_REGEX, ""))
@@ -5277,7 +5226,7 @@ class CompRegexTest(common.TransactionCase):
         self.assertIsNotNone(re.search(ir_ui_view.COMP_REGEX, "{{ __comp__ }}"))
 
 
-@common.tagged('at_install', 'modifiers')
+@common.tagged('at_install', '-post_install', 'modifiers')
 class ViewModifiers(ViewCase):
 
     @mute_logger('odoo.addons.base.models.ir_ui_view')

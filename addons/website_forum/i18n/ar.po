@@ -6,15 +6,15 @@
 # Martin Trigaux, 2022
 # Niyas Raphy, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:39+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2025-11-09 15:11+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
 "website_forum/ar/>\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_forum
 #. odoo-javascript
@@ -210,7 +210,8 @@ msgstr "&amp;nbsp;"
 #: model_terms:forum.forum,faq:website_forum.forum_help
 #: model_terms:ir.ui.view,arch_db:website_forum.default_faq
 msgid "(The above section was adapted from Stackoverflow’s FAQ.)"
-msgstr "(تم اقتباس القسم أعلاه بتصرف من الأسئلة الشائعة في موقع Stackoverflow.)"
+msgstr ""
+"(تم اقتباس القسم أعلاه بتصرف من الأسئلة الشائعة في موقع Stackoverflow.)"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.forum_forum_view_form
@@ -275,8 +276,8 @@ msgid ""
 "<b>Answers should not add or expand questions</b>. Instead either edit the "
 "question or add a question comment."
 msgstr ""
-"<b>لا ينبغي أن تضيف الإجابات أسئلة جديدة أو تزيد من غموض السؤال</b>.بدلًا من ذلك"
-"، يمكنك تحرير السؤال أو إضافة تعليق."
+"<b>لا ينبغي أن تضيف الإجابات أسئلة جديدة أو تزيد من غموض السؤال</b>.بدلًا من "
+"ذلك، يمكنك تحرير السؤال أو إضافة تعليق."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -307,9 +308,9 @@ msgid ""
 "to dilute the essence of questions and answers. For brief discussions please "
 "use commenting facility."
 msgstr ""
-"<b>يجب ألا تتسبب الأسئلة في بداية مناقشات</b> صفحة الأسئلة والأجوبة المجتمعية "
-"هذه ليست مجموعة مناقشة. يرجى تفادي المناقشات في إجاباتك حيث أنها خارج إطار "
-"الأسئلة والأجوبة. للمناقشات الموجزة، يرجى استخدام صفحة التعليقات."
+"<b>يجب ألا تتسبب الأسئلة في بداية مناقشات</b> صفحة الأسئلة والأجوبة "
+"المجتمعية هذه ليست مجموعة مناقشة. يرجى تفادي المناقشات في إجاباتك حيث أنها "
+"خارج إطار الأسئلة والأجوبة. للمناقشات الموجزة، يرجى استخدام صفحة التعليقات."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -320,9 +321,9 @@ msgid ""
 "to include links to other questions or answers providing relevant additional "
 "information."
 msgstr ""
-"<b>لا ينبغي أن تكون الإجابات مجرد إشارة لأسئلة أخرى</b>. بدلاً من ذلك، أضف تعليقاً "
-"على السؤال للإشارة إلى \"احتمالية كون السؤال مكرراً...\". لكن يمكنك إضافة "
-"روابط لأسئلة أو إجابات أخرى لتوفير معلومات إضافية ذات صلة."
+"<b>لا ينبغي أن تكون الإجابات مجرد إشارة لأسئلة أخرى</b>. بدلاً من ذلك، أضف "
+"تعليقاً على السؤال للإشارة إلى \"احتمالية كون السؤال مكرراً...\". لكن يمكنك "
+"إضافة روابط لأسئلة أو إجابات أخرى لتوفير معلومات إضافية ذات صلة."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -333,9 +334,9 @@ msgid ""
 "include links to other questions or answers providing relevant additional "
 "information."
 msgstr ""
-"<b>لا ينبغي أن تكون الإجابات مجرد إشارة لأسئلة أخرى</b>. بدلاً من ذلك، أضف تعليقاً "
-"على السؤال للإشارة إلى <i>\"احتمالية كون السؤال مكرراً...\"</i>. لكن يمكنك "
-"إضافة روابط لأسئلة أو إجابات أخرى لتوفير معلومات إضافية ذات صلة."
+"<b>لا ينبغي أن تكون الإجابات مجرد إشارة لأسئلة أخرى</b>. بدلاً من ذلك، أضف "
+"تعليقاً على السؤال للإشارة إلى <i>\"احتمالية كون السؤال مكرراً...\"</i>. لكن "
+"يمكنك إضافة روابط لأسئلة أو إجابات أخرى لتوفير معلومات إضافية ذات صلة."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -346,9 +347,9 @@ msgid ""
 "Links are welcome, but should be complementary to answer, referring sources "
 "or additional reading."
 msgstr ""
-"<b>لا ينبغي أن تكون الإجابات مجرد روابط لصفحات ويب تحتوي على حلول</b>. بدلًا من "
-"ذلك، اكتب نص الحل في إجابتك، حتى لو بمجرد النسخ واللصق. يمكنك استخدام الروابط"
-"، لكن ينبغي أن تكون مكملة للإجابة، لذكر المصادر أو معلومات إضافية."
+"<b>لا ينبغي أن تكون الإجابات مجرد روابط لصفحات ويب تحتوي على حلول</b>. بدلًا "
+"من ذلك، اكتب نص الحل في إجابتك، حتى لو بمجرد النسخ واللصق. يمكنك استخدام "
+"الروابط، لكن ينبغي أن تكون مكملة للإجابة، لذكر المصادر أو معلومات إضافية."
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -385,7 +386,8 @@ msgstr ""
 "<b>حاول تقديم إجابات موجزة.</b> إذا أردت التعليق على السؤال أو الإجابة،\n"
 "        <b>استخدم أداة التعليق</b>. تذكر أنه بوسعك دائماً <b>مراجعة إجاباتك</"
 "b>\n"
-"        - لا حاجة للإجابة على نفس السؤال مرتين. وفضلاً، <b>لا تنسى التصويت</b>\n"
+"        - لا حاجة للإجابة على نفس السؤال مرتين. وفضلاً، <b>لا تنسى التصويت</"
+"b>\n"
 "        - فهو يساعد على تحديد أفضل الأسئلة والإجابات!"
 
 #. module: website_forum
@@ -882,8 +884,8 @@ msgid ""
 "After posting the user will be proposed to share its question or answer on "
 "social networks, enabling social network propagation of the forum content."
 msgstr ""
-"بعد النشر سيُعرض على المستخدم نشر سؤاله أو إجابته على شبكات التواصل الاجتماعي، "
-"وتمكين نشر محتوى المنتدى على شبكة التواصل الاجتماعي."
+"بعد النشر سيُعرض على المستخدم نشر سؤاله أو إجابته على شبكات التواصل "
+"الاجتماعي، وتمكين نشر محتوى المنتدى على شبكة التواصل الاجتماعي."
 
 #. module: website_forum
 #. odoo-python
@@ -2124,7 +2126,8 @@ msgstr "المساعدة"
 #: model_terms:ir.ui.view,arch_db:website_forum.user_votes
 msgid "Help moderating the forums by upvoting and downvoting posts. <br/>"
 msgstr ""
-"ساعد في الإشراف على المنتديات عن طريق التصويت مؤيداً أو معارضاً للمنشورات. <br/>"
+"ساعد في الإشراف على المنتديات عن طريق التصويت مؤيداً أو معارضاً للمنشورات. <br/"
+">"
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -2200,8 +2203,8 @@ msgid ""
 msgstr ""
 "إذا كنت ضمن تلك الأمثلة المذكورة، أو إذا كان دافعك لطرح سؤال هو \"أود "
 "المشاركة في مناقشة حول ______\"، فلا يجب أن تقوم بطرح سؤالك هنا، وإنما في "
-"القائمة البريدية. ولكن إذا كان دافعك هو \"أود من الآخرين شرح ______ لي\"، فلا "
-"بأس بذلك."
+"القائمة البريدية. ولكن إذا كان دافعك هو \"أود من الآخرين شرح ______ لي\"، "
+"فلا بأس بذلك."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.mark_as_offensive
@@ -2384,11 +2387,6 @@ msgstr "مخطط"
 #: model_terms:gamification.badge,description:website_forum.badge_25
 msgid "Left 10 answers with score of 10 or more"
 msgstr "ترك 10 إجابات وحصل على 10 تصويتات أو أكثر"
-
-#. module: website_forum
-#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
-msgid "Link to questions with the tag"
-msgstr "رابط للأسئلة التي بها علامة التصنيف"
 
 #. module: website_forum
 #. odoo-javascript
@@ -3361,8 +3359,8 @@ msgid ""
 "Tap into the collective knowledge of our community by asking your questions "
 "in our forums,<br/> where helpful members are ready to assist you."
 msgstr ""
-"استفد من معرفة مجتمعنا بأكمله عن طريق طرح الأسئلة في منتدياتنا، <br/>حيث ستجد "
-"الكثير من الأعضاء المتأهبين لمساعدتك."
+"استفد من معرفة مجتمعنا بأكمله عن طريق طرح الأسئلة في منتدياتنا، <br/>حيث "
+"ستجد الكثير من الأعضاء المتأهبين لمساعدتك."
 
 #. module: website_forum
 #: model:gamification.badge,name:website_forum.badge_32
@@ -3389,6 +3387,20 @@ msgstr "شكراً لمنشورك!"
 #: code:addons/website_forum/models/forum_post.py:0
 msgid "The accepted answer is deleted"
 msgstr "تم حذف الإجابة المقبولة"
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_absolute_url
+msgid "The full absolute URL to access the document through the website."
+msgstr ""
+
+#. module: website_forum
+#: model:ir.model.fields,help:website_forum.field_forum_forum__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,help:website_forum.field_forum_tag__website_url
+msgid "The full relative URL to access the document through the website."
+msgstr ""
 
 #. module: website_forum
 #: model_terms:forum.forum,faq:website_forum.forum_help
@@ -3469,8 +3481,9 @@ msgid ""
 "represents number of votes for a post, and 'days' is number of days since "
 "the post creation"
 msgstr ""
-"تستخدم هذه المعادلة لترتيب المنشورات حسب الأهمية. يعبر المتغير 'أصوات' عن عدد "
-"الأصوات التي حصل عليها المنشور، والمتغير 'أيام' عن عدد الأيام منذ إنشاء المنشور"
+"تستخدم هذه المعادلة لترتيب المنشورات حسب الأهمية. يعبر المتغير 'أصوات' عن "
+"عدد الأصوات التي حصل عليها المنشور، والمتغير 'أيام' عن عدد الأيام منذ إنشاء "
+"المنشور"
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.header
@@ -3779,6 +3792,13 @@ msgid "Website / Forum"
 msgstr "الموقع الإلكتروني/المنتدى"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_post__website_absolute_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_absolute_url
+msgid "Website Absolute URL"
+msgstr ""
+
+#. module: website_forum
 #: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_message_ids
 #: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_message_ids
@@ -3786,7 +3806,9 @@ msgid "Website Messages"
 msgstr "رسائل الموقع الإلكتروني"
 
 #. module: website_forum
+#: model:ir.model.fields,field_description:website_forum.field_forum_forum__website_url
 #: model:ir.model.fields,field_description:website_forum.field_forum_post__website_url
+#: model:ir.model.fields,field_description:website_forum.field_forum_tag__website_url
 msgid "Website URL"
 msgstr "رابط URL للموقع الإلكتروني"
 
@@ -3931,9 +3953,9 @@ msgid ""
 "that you face. Chatty, open-ended questions diminish the usefulness of this "
 "site and push other questions off the front page."
 msgstr ""
-"عليك فقط طرح الأسئلة العملية التي يمكن الإجابة عليها بناءً على المشاكل الفعلية "
-"التي تواجهها. تقلل الأسئلة الحوارية والمفتوحة من فائدة هذا الموقع وتدفع "
-"بالأسئلة الأخرى بعيداً عن الصفحة الرئيسية."
+"عليك فقط طرح الأسئلة العملية التي يمكن الإجابة عليها بناءً على المشاكل "
+"الفعلية التي تواجهها. تقلل الأسئلة الحوارية والمفتوحة من فائدة هذا الموقع "
+"وتدفع بالأسئلة الأخرى بعيداً عن الصفحة الرئيسية."
 
 #. module: website_forum
 #: model_terms:ir.ui.view,arch_db:website_forum.display_post_question_block
@@ -4267,516 +4289,3 @@ msgstr "يمكن عرض سيرتك الذاتية كتلميح"
 #: model_terms:ir.ui.view,arch_db:website_forum.follow
 msgid "your email..."
 msgstr "بريدك الإلكتروني..."
-
-#~ msgid ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> Return to questions "
-#~ "list</a>"
-#~ msgstr ""
-#~ "<a class=\"btn-link o_translate_inline\" t-attf-href=\"/forum\"><i "
-#~ "class=\"oi oi-arrow-right display-inline-block\"/> العودة إلى قائمة "
-#~ "الأسئلة</a>"
-
-#~ msgid "%d karma required to unlink a comment."
-#~ msgstr "%d نقاط كارما مطلوبة لإبداء عدم الإعجاب بتعليق. "
-
-#~ msgid "&amp;nbsp;and&amp;nbsp;"
-#~ msgstr "&amp;nbsp;و&amp;nbsp;"
-
-#~ msgid ", by"
-#~ msgstr "، بواسطة "
-
-#~ msgid ", consider <b>adding an example</b>."
-#~ msgstr "، اعتبر <b>إضافة مثال</b>. "
-
-#~ msgid "0 Answers"
-#~ msgstr "0 إجابات "
-
-#~ msgid "<b> [Offensive]</b>"
-#~ msgstr "<b> [مسيء]</b>"
-
-#~ msgid "<b>Tags</b> I Follow"
-#~ msgstr "<b>علامات التصنيف</b> التي تتبعها "
-
-#~ msgid ""
-#~ "<b>This forum is empty.</b><br/>\n"
-#~ "                    Be the first one asking a question"
-#~ msgstr ""
-#~ "<b>هذا المنتدى فارغ.</b><br/>\n"
-#~ "                    كن أول من يطرح سؤالاً "
-
-#~ msgid "<b>What kinds of questions can I ask here?</b>"
-#~ msgstr "<b>أي أنواع الأسئلة يمكنني طرحها هنا؟</b> "
-
-#~ msgid "<b>What should I avoid in my answers?</b>"
-#~ msgstr "<b>ما الذي علي تجنبه في إجاباتي؟</b> "
-
-#~ msgid "<b>What should I avoid in my questions?</b>"
-#~ msgstr "<b>ما الذي علي تجنبه في أسئلتي؟</b>"
-
-#~ msgid "<b>[Answer]</b>"
-#~ msgstr "<b>[إجابة]</b>"
-
-#~ msgid ""
-#~ "<b>|</b>\n"
-#~ "                    <span class=\"fa fa-trophy bg-gold ms-2\" "
-#~ "role=\"img\" aria-label=\"Gold badge\" title=\"Gold badge\"/>"
-#~ msgstr ""
-#~ "<b>|</b>\n"
-#~ "                    <span class=\"fa fa-trophy bg-gold ms-2\" "
-#~ "role=\"img\" aria-label=\"Gold badge\" title=\"شارة ذهبية \"/>"
-
-#~ msgid "<em class=\"d-block mb-2\">or</em>"
-#~ msgstr "<em class=\"d-block mb-2\">أو</em> "
-
-#~ msgid "<i class=\" fa fa-comment text-muted me-1\"/>Comment"
-#~ msgstr "<i class=\" fa fa-comment text-muted me-1\"/>تعليق "
-
-#~ msgid "<i class=\"fa fa-bell fa-fw\"/> Followed Posts"
-#~ msgstr "<i class=\"fa fa-bell fa-fw\"/> المنشورات المتابعة "
-
-#~ msgid "<i class=\"fa fa-bug\"/> Filter Tool"
-#~ msgstr "<i class=\"fa fa-bug\"/> أداة التصفية "
-
-#~ msgid ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>You've Completely Caught Up!</b><br/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-check text-success d-block display-2\"/>\n"
-#~ "            <b>لم تعد متأخراً بعد الآن!</b><br/> "
-
-#~ msgid "<i class=\"fa fa-check-square-o fa-fw\"/> To Validate"
-#~ msgstr "<i class=\"fa fa-check-square-o fa-fw\"/> للتصديق "
-
-#~ msgid "<i class=\"fa fa-flag fa-fw\"/> Flagged"
-#~ msgstr "<i class=\"fa fa-flag fa-fw\"/> معلّم بعلامة "
-
-#~ msgid ""
-#~ "<i class=\"fa fa-flag ms-4 mr4\"/>\n"
-#~ "                                    Flagged"
-#~ msgstr ""
-#~ "<i class=\"fa fa-flag ms-4 mr4\"/>\n"
-#~ "                                    معلّم بعلامة "
-
-#~ msgid "<i class=\"fa fa-question-circle-o fa-fw\"/> My Posts"
-#~ msgstr "<i class=\"fa fa-question-circle-o fa-fw\"/> منشوراتي "
-
-#~ msgid "<i class=\"fa fa-reply me-1\"/>Answer"
-#~ msgstr "<i class=\"fa fa-reply me-1\"/>إجابه"
-
-#~ msgid "<i class=\"fa fa-share-alt text-muted me-1\"/>Share"
-#~ msgstr "<i class=\"fa fa-share-alt text-muted me-1\"/>مشاركة "
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                Share"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt text-muted\"/>\n"
-#~ "                                مشاركة "
-
-#~ msgid "<i class=\"fa fa-star fa-fw\"/> Favourites"
-#~ msgstr "<i class=\"fa fa-star fa-fw\"/> المفضلة "
-
-#~ msgid "<i class=\"fa fa-tags fa-fw\"/> Followed Tags"
-#~ msgstr "<i class=\"fa fa-tags fa-fw\"/> علامات التصنيف المتبعة "
-
-#~ msgid "<i class=\"oi oi-chevron-left small\"/> Back"
-#~ msgstr "<i class=\"oi oi-chevron-left small\"/> العودة"
-
-#~ msgid ""
-#~ "<small class=\"text-muted\">\n"
-#~ "                    Flagged\n"
-#~ "                </small>"
-#~ msgstr ""
-#~ "<small class=\"text-muted\">\n"
-#~ "معلّم بعلامة\n"
-#~ "</small>"
-
-#~ msgid "<span class=\"badge text-bg-info\">Closed</span>"
-#~ msgstr "<span class=\"badge text-bg-info\">مغلق</span>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-trophy bg-bronze ms-2\" role=\"img\" aria-"
-#~ "label=\"Bronze badge\" title=\"Bronze badge\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-trophy bg-bronze ms-2\" role=\"img\" aria-"
-#~ "label=\"Bronze badge\" title=\"شارة برونزية \"/>"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-trophy bg-silver ms-2\" role=\"img\" aria-"
-#~ "label=\"Silver badge\" title=\"Silver badge\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-trophy bg-silver ms-2\" role=\"img\" aria-"
-#~ "label=\"Silver badge\" title=\"شارة فضية \"/>"
-
-#~ msgid "<span class=\"fw-bold\">No answer posted yet.</span>"
-#~ msgstr "<span class=\"fw-bold\">لم يتم نشر إجابة بعد.</span> "
-
-#~ msgid "<span class=\"fw-bold\">No question posted yet.</span>"
-#~ msgstr "<span class=\"fw-bold\">لم يتم نشر سؤال بعد.</span> "
-
-#~ msgid "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-#~ msgstr "<span class=\"mx-1 d-none d-sm-inline\">&amp;nbsp;|</span>"
-
-#~ msgid "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-#~ msgstr "<span class=\"mx-1 text-400 d-none d-lg-block\">|</span>"
-
-#~ msgid "<span class=\"mx-1\">|</span>"
-#~ msgstr "<span class=\"mx-1\">|</span>"
-
-#~ msgid ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-#~ msgstr ""
-#~ "<span class=\"mx-1\">|</span>\n"
-#~ "                    <i class=\"fa fa-star\"/>"
-
-#~ msgid "<span class=\"mx-3  mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-#~ msgstr "<span class=\"mx-3  mx-lg-2 text-400 d-none d-md-inline\">|</span>"
-
-#~ msgid "<span class=\"navbar-text me-1\">Go to:</span>"
-#~ msgstr "<span class=\"navbar-text me-1\">اذهب إلى:</span> "
-
-#~ msgid "<span class=\"navbar-text me-3\">Show Tags Starting By</span>"
-#~ msgstr ""
-#~ "<span class=\"navbar-text me-3\">إظهار علامات التصنيف التي تبدأ بـ</span> "
-
-#~ msgid ""
-#~ "<span class=\"o_wforum_answer_correct_badge border small border-success "
-#~ "rounded-pill fw-bold text-success ms-2 px-2\">\n"
-#~ "                            Best Answer\n"
-#~ "                        </span>"
-#~ msgstr ""
-#~ "<span class=\"o_wforum_answer_correct_badge border small border-success "
-#~ "rounded-pill fw-bold text-success ms-2 px-2\">\n"
-#~ "                            أفضل إجابة\n"
-#~ "                        </span>"
-
-#~ msgid "<span>By </span>"
-#~ msgstr "<span>بواسطة </span>"
-
-#~ msgid "A clear, explicit and concise title"
-#~ msgstr "عنوان واضح، صريح، ومختصر "
-
-#~ msgid "About"
-#~ msgstr "حول "
-
-#~ msgid "All Forums"
-#~ msgstr "كافة المنتديات "
-
-#~ msgid "All Tags"
-#~ msgstr "كافة علامات التصنيف "
-
-#~ msgid "Allow Bump"
-#~ msgstr "السماح بترقية المشاركات"
-
-#~ msgid "Amazing! There are no unanswered questions left!"
-#~ msgstr "مذهل! لم تتبق أي أسئلة بلا إجابات! "
-
-#~ msgid "Answer"
-#~ msgstr "الإجابة "
-
-#~ msgid "Back"
-#~ msgstr "العودة"
-
-#~ msgid "Be less specific in your wording for a wider search result"
-#~ msgstr "اطرح سؤالاً عاماً أكثر لنتائج بحث شاملة أكثر "
-
-#~ msgid "Browse All"
-#~ msgstr "تصفح الكل"
-
-#~ msgid "Bumped on"
-#~ msgstr "مرقّى على"
-
-#~ msgid ""
-#~ "Check this box to display a popup for posts older than 10 days without "
-#~ "any given answer. The popup will offer to share it on social networks. "
-#~ "When shared, a question is bumped at the top of the forum."
-#~ msgstr ""
-#~ "حدد هذا المربع لعرض نافذة منبثقة للمنشورات التي مرّ على نشرها أكثر من 10 "
-#~ "أيام دون إجابة. ستعرض النافذة مشاركة الأسئلة على شبكات التواصل الاجتماعي. "
-#~ "عند المشاركة، يتم ترقية السؤال للأعلى بالمنتدى. "
-
-#~ msgid "Check your spelling and try again"
-#~ msgstr "تحقق من التهجئة ثم حاول مجدداً "
-
-#~ msgid "Click to answer."
-#~ msgstr "اضغط للإجابة. "
-
-#~ msgid "Close Post"
-#~ msgstr "إغلاق المنشور "
-
-#~ msgid "Comment this post..."
-#~ msgstr "التعليق على هذا المنشور... "
-
-#~ msgid "Comments"
-#~ msgstr "التعليقات"
-
-#~ msgid "Convert all answers to comments and vice versa"
-#~ msgstr "تحويل كافة الإجابات إلى تعليقات والعكس"
-
-#~ msgid "Convert as a answer"
-#~ msgstr "التحويل إلى إجابة "
-
-#~ msgid "Convert as a comment"
-#~ msgstr "التحويل إلى تعليق "
-
-#~ msgid "Convert own answers to comments and vice versa"
-#~ msgstr "تحويل إجاباته إلى تعليقات والعكس"
-
-#~ msgid "Date (high to low)"
-#~ msgstr "التاريخ (من الأحدث إلى الأقدم)"
-
-#~ msgid "Date (low to high)"
-#~ msgstr "التاريخ (من الأقدم إلى الأحدث)"
-
-#~ msgid "Edit Forum in Backend"
-#~ msgstr "تحرير المنتدي في الواجهة الخلفية "
-
-#~ msgid ""
-#~ "Example\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-#~ msgstr ""
-#~ "مثال\n"
-#~ "                        <i class=\"fa fa-question-circle\"/>"
-
-#~ msgid "Following"
-#~ msgstr "متابع "
-
-#~ msgid "Group By"
-#~ msgstr "تجميع حسب"
-
-#~ msgid "Hide Intro"
-#~ msgstr "إخفاء المقدمة"
-
-#~ msgid "I'm <b>Following</b>"
-#~ msgstr "أنا <b>متابع</b> "
-
-#~ msgid "I'm Following"
-#~ msgstr "أنا متابع "
-
-#~ msgid "Karma"
-#~ msgstr "نقاط الكارما"
-
-#~ msgid "Last Post:"
-#~ msgstr "آخر منشور: "
-
-#~ msgid "Last activity date"
-#~ msgstr "تاريخ آخر نشاط"
-
-#~ msgid "Menu"
-#~ msgstr "القائمة"
-
-#~ msgid "Moderation"
-#~ msgstr "الإشراف "
-
-#~ msgid "More"
-#~ msgstr "المزيد "
-
-#~ msgid "Most answered"
-#~ msgstr "الأكثر إجابة"
-
-#~ msgid "Most voted"
-#~ msgstr "الأكثر تصويتًا"
-
-#~ msgid ""
-#~ "Move this question to the top of the list by sharing it on social "
-#~ "networks."
-#~ msgstr "انقل هذا السؤال لأعلى القائمة بمشاركته على شبكات التواصل الاجتماعي."
-
-#~ msgid "My <b>Favourites</b>"
-#~ msgstr " <b>المفضلة</b> الخاصة بي "
-
-#~ msgid "My <b>Posts</b>"
-#~ msgstr "<b>منشوراتي</b> "
-
-#~ msgid "My Favourites"
-#~ msgstr "المفضلة الخاصة بي "
-
-#~ msgid "No activities yet!"
-#~ msgstr "لا توجد أنشطة بعد! "
-
-#~ msgid "No favourite questions in this forum (yet).<br/>"
-#~ msgstr "لا توجد أسئلة مفضلة في هذا المنتدى (حتى الآن)<br/>"
-
-#~ msgid "No flagged posts"
-#~ msgstr "لا توجد منشورات معلّمة "
-
-#~ msgid "No post to be validated"
-#~ msgstr "لا توجد منشورات لتصديقها "
-
-#~ msgid "No tags"
-#~ msgstr "لا توجد علامات تصنيف "
-
-#~ msgid "No vote given by you yet!"
-#~ msgstr "لم تقم بالتصويت بعد! "
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "عدد الرسائل التي تتطلب اتخاذ إجراء "
-
-#~ msgid "Only one answer per question is allowed"
-#~ msgstr "يُسمح بإجابة واحدة لكل سؤال "
-
-#~ msgid "Order by"
-#~ msgstr "الترتيب حسب "
-
-#~ msgid "Our forums"
-#~ msgstr "منتدياتنا"
-
-#~ msgid "People"
-#~ msgstr "الأشخاص "
-
-#~ msgid "Post Comment"
-#~ msgstr "نشر تعليق"
-
-#~ msgid "Posts:"
-#~ msgstr "المنشورات: "
-
-#~ msgid "Question by"
-#~ msgstr "سؤال بواسطة "
-
-#~ msgid "Read the guidelines to know how to gain karma."
-#~ msgstr "اقرأ اللوائح لمعرفة كيفية الحصول على نقاط الكارما. "
-
-#~ msgid "Read: #{question.name}"
-#~ msgstr "قراءة: #{question.name} "
-
-#~ msgid "Register"
-#~ msgstr "تسجيل"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "قصر إمكانية النشر على هذا الموقع الإلكتروني. "
-
-#~ msgid "Return to the forum."
-#~ msgstr "العودة إلى المنتدى. "
-
-#~ msgid "Return to the question list."
-#~ msgstr "العودة إلى قائمة الأسئلة."
-
-#~ msgid "Search Tips"
-#~ msgstr "البحث عن النصائح "
-
-#~ msgid "See"
-#~ msgstr "انظر "
-
-#~ msgid "Show"
-#~ msgstr "عرض"
-
-#~ msgid "Show Tags Starting By"
-#~ msgstr "إظهار علامات التصنيف التي تبدأ بـ "
-
-#~ msgid "Sign in"
-#~ msgstr "تسجيل الدخول"
-
-#~ msgid "Sorry you must be logged in to perform this action"
-#~ msgstr "عذرًا، يجب أن تسجل دخولك لتقوم بهذا الإجراء"
-
-#~ msgid "Sorry you must be logged to flag a post"
-#~ msgstr "عذرًا، يجب أن تسجل دخولك لتتمكن من وضع علامة على منشور "
-
-#~ msgid "Sorry you must be logged to vote"
-#~ msgstr "عذرًا، يجب أن تسجل دخولك لتتمكن من التصويت"
-
-#~ msgid "Sorry, anonymous users cannot choose correct answer."
-#~ msgstr "عذرًا، لا يمكن للمستخدمين المجهولين اختيار إجابة صحيحة."
-
-#~ msgid "Sorry, we could not find any <b>%s</b> result <b>%s</b> %s%s%s."
-#~ msgstr "عذراً، لم نتمكن من العثور على أي <b>%s</b> نتائج <b>%s</b> %s%s%s. "
-
-#~ msgid "Tags I Follow"
-#~ msgstr "علامات التصنيف التي أتبعها "
-
-#~ msgid "Teaser"
-#~ msgstr "العرض التشويقي"
-
-#~ msgid ""
-#~ "Technical field allowing to bump a question. Writing on this field will "
-#~ "trigger a write on write_date and therefore bump the post. Directly "
-#~ "writing on write_date is currently not supported and this field is a "
-#~ "workaround."
-#~ msgstr ""
-#~ "حقل تقني يسمح بترقية السؤال. ستؤدي الكتابة في هذا الحقل إلى تفعيل الكتابة "
-#~ "في write_date، وبالتالي ترقية المشاركة. الكتابة المباشرة على write_date "
-#~ "غير مدعومة حاليًا وهذا الحقل هو حل بديل."
-
-#~ msgid ""
-#~ "This community is for professional and enthusiast users, partners and "
-#~ "programmers."
-#~ msgstr ""
-#~ "هذا المجتمع خاص للمستخدمين المحترفين والراغبين في تعلم المزيد والشركاء "
-#~ "والمبرمجين. "
-
-#~ msgid "Toggle favorite status"
-#~ msgstr "تبديل الحالة المفضلة"
-
-#~ msgid "Topics"
-#~ msgstr "المواضيع"
-
-#~ msgid "Trending"
-#~ msgstr "الأكثر رواجاً "
-
-#~ msgid "Try searching for one or two words"
-#~ msgstr "جرب البحث عن كلمة أو كلمتين "
-
-#~ msgid "Unlink all comments"
-#~ msgstr "إلغاء ربط كافة التعليقات "
-
-#~ msgid "Unlink own comments"
-#~ msgstr "إلغاء ربط تعليقاتك "
-
-#~ msgid "Waiting for validation"
-#~ msgstr "بانتظار التصديق "
-
-#~ msgid "Waiting post"
-#~ msgstr "منشور قيد الانتظار "
-
-#~ msgid "You have no posts in this forum (yet)."
-#~ msgstr "لا تملك أي منشورات في هذا المنتدى (حتى الآن). "
-
-#~ msgid "You're not following any topic in this forum (yet).<br/>"
-#~ msgstr "أنت لا تتابع أي موضوع في هذا المنتدى (حتى الآن).<br/> "
-
-#~ msgid "[Closed]"
-#~ msgstr "[مغلق] "
-
-#~ msgid "[Deleted]"
-#~ msgstr "[محذوف] "
-
-#~ msgid "[Offensive]"
-#~ msgstr "[مسيء] "
-
-#~ msgid "activity date"
-#~ msgstr "تاريخ النشاط "
-
-#~ msgid "in your followed list"
-#~ msgstr "في قائمة متابعاتك "
-
-#~ msgid "most answered"
-#~ msgstr "الأكثر إجابة"
-
-#~ msgid "most voted"
-#~ msgstr "الأكثر تصويتًا"
-
-#~ msgid "newest"
-#~ msgstr "الأحدث "
-
-#~ msgid "solved"
-#~ msgstr "تم حلّها "
-
-#~ msgid "to partecipate"
-#~ msgstr "للمشاركة "
-
-#~ msgid "trending"
-#~ msgstr "رائج "
-
-#~ msgid "unanswered"
-#~ msgstr "بلا إجابة"
-
-#~ msgid "unsolved"
-#~ msgstr "لم يتم حله "
-
-#~ msgid "| Flagged"
-#~ msgstr "مُعلّم بعلامة "
-
-#~ msgid "圾 Text"
-#~ msgstr "圾 النص "

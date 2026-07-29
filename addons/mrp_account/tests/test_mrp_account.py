@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import timedelta
 
 from odoo.addons.mrp_account.tests.common import TestBomPriceCommon, TestBomPriceOperationCommon
-from odoo.tests import Form
+from odoo.tests import Form, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools import float_compare, float_round
 from odoo import Command, fields
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMrpAccount(TestBomPriceCommon):
 
     def test_00_production_order_with_accounting(self):
@@ -165,6 +165,11 @@ class TestMrpAccount(TestBomPriceCommon):
         self.assertEqual(productB_debit_line.account_id, self.account_stock_valuation)
         self.assertEqual(productB_credit_line.account_id, self.account_production)
 
+    def test_mrp_user_without_account_permissions_can_create_bom(self):
+        mrp_user = new_test_user(self.env, 'temp_mrp_user', 'mrp.group_mrp_user')
+        mo_1 = self._create_mo(self.bom_1, 1)
+        mo_1.with_user(mrp_user).button_mark_done()
+
     def test_delivery_validate_after_product_converted_to_kit(self):
         """
         Create a delivery for a product, make the product a kit then
@@ -208,18 +213,13 @@ class TestMrpAccount(TestBomPriceCommon):
         """ Test that the overview takes into account the uom of the component in the price computation
         """
         self.screw.uom_id = self.env.ref('uom.product_uom_pack_6')
-        self.bom_1.bom_line_ids.filtered(lambda l: l.product_id == self.screw).product_uom_id = self.env.ref('uom.product_uom_unit')
+        self.bom_1.bom_line_ids.filtered(lambda l: l.product_id == self.screw).uom_id = self.env.ref('uom.product_uom_unit')
         mo = self._create_mo(self.bom_1, 1)
         overview_values = self.env['report.mrp.report_mo_overview'].get_report_values(mo.id)
         self.assertEqual(round(overview_values['data']['summary']['mo_cost'], 2), 677.08, "718.75 - 50 + 50/6")
         mo.button_mark_done()
         overview_values = self.env['report.mrp.report_mo_overview'].get_report_values(mo.id)
         self.assertEqual(round(overview_values['data']['summary']['mo_cost'], 2), 677.08)
-
-    def test_mrp_user_without_account_permissions_can_create_bom(self):
-        mrp_user = new_test_user(self.env, 'temp_mrp_user', 'mrp.group_mrp_user')
-        mo_1 = self._create_mo(self.bom_1, 1)
-        mo_1.with_user(mrp_user).button_mark_done()
 
     def test_stock_valuation_report_cost_of_production_past_date(self):
         date_before = fields.Datetime.now() - timedelta(days=1)
@@ -555,7 +555,6 @@ class TestMrpAccountWorkorder(TestBomPriceOperationCommon):
         production = mo_form.save()
 
         production.move_raw_ids.picked = True
-        production._post_inventory()
         production.button_mark_done()
 
         labour_moves = self.env['account.move'].search([

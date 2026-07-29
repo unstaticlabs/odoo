@@ -67,5 +67,5 @@ export async function mailCanCopyTextToClipboardMobile() {
     await contains(".o-mail-Message", { count: 2 });
     await contains(".o-mail-Message:contains('Hello world')");
     await click(".o-mail-Message:contains('Hello world') [title='Expand']");
-    await contains(".o-dropdown-item:contains('Copy to Clipboard')");
+    await contains(".o-dropdown-item:contains('Copy Text')");
 }

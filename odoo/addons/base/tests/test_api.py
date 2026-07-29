@@ -1,13 +1,16 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from pprint import pformat
 
 from odoo import models, Command
 from odoo.addons.base.tests.common import SavepointCaseWithUserDemo
-from odoo.tools import mute_logger, unique, lazy
+from odoo.tools import SQL, mute_logger, unique, lazy
 from odoo.tools.constants import PREFETCH_MAX
+from odoo.tests import tagged
+
 from odoo.exceptions import AccessError
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestAPI(SavepointCaseWithUserDemo):
     """ test the new API of the ORM """
 
@@ -246,11 +249,11 @@ class TestAPI(SavepointCaseWithUserDemo):
         # fetch data in the cache
         for p in partners:
             p.name, p.company_id.name, p.user_id.name, p.contact_address
-        self.env.cache.check(self.env)
+        self.check_cache_consistency()
 
         # change its parent
         child.write({'parent_id': partner2.id})
-        self.env.cache.check(self.env)
+        self.check_cache_consistency()
 
         # check recordsets
         self.assertEqual(child.parent_id, partner2)
@@ -258,16 +261,16 @@ class TestAPI(SavepointCaseWithUserDemo):
         self.assertIn(child, partner2.child_ids)
         self.assertEqual(set(partner1.child_ids + child), set(children1))
         self.assertEqual(set(partner2.child_ids), set(children2 + child))
-        self.env.cache.check(self.env)
+        self.check_cache_consistency()
 
         # delete it
         child.unlink()
-        self.env.cache.check(self.env)
+        self.check_cache_consistency()
 
         # check recordsets
         self.assertEqual(set(partner1.child_ids), set(children1) - set([child]))
         self.assertEqual(set(partner2.child_ids), set(children2))
-        self.env.cache.check(self.env)
+        self.check_cache_consistency()
 
         # convert from the cache format to the write format
         partner = partner1
@@ -275,6 +278,57 @@ class TestAPI(SavepointCaseWithUserDemo):
         data = partner._convert_to_write(partner._cache)
         self.assertEqual(data['country_id'], partner.country_id.id)
         self.assertEqual(data['child_ids'], [Command.set(partner.child_ids.ids)])
+
+    def check_cache_consistency(self):
+        env = self.env
+        depends_context = env.registry.field_depends_context
+        invalids = []
+
+        def process(model, field, field_cache):
+            # ignore new records and records to flush
+            dirty_ids = env.transaction.field_dirty.get(field, ())
+            ids = [id_ for id_ in field_cache if id_ and id_ not in dirty_ids]
+            if not ids:
+                return
+
+            # select the column for the given ids
+            query = models.Query(model)
+            sql_id = query.table.id
+            sql_field = query.table[field.name]
+            if field.type == 'binary' and (
+                model.env.context.get('bin_size') or model.env.context.get('bin_size_' + field.name)
+            ):
+                sql_field = SQL('pg_size_pretty(length(%s)::bigint)', sql_field)
+            query.add_where(SQL("%s IN %s", sql_id, tuple(ids)))
+            env.cr.execute(query.select(sql_id, sql_field))
+
+            # compare returned values with corresponding values in cache
+            for id_, value in env.cr.fetchall():
+                cached = field_cache[id_]
+                if value == cached or (not value and not cached):
+                    continue
+                invalids.append((model.browse((id_,)), field, {'cached': cached, 'fetched': value}))
+
+        for field, field_cache in env.transaction.field_data.items():
+            # check column fields only
+            if not field.store or not field.column_type or field.translate or field.company_dependent:
+                continue
+
+            model = env[field.model_name]
+            if field in depends_context:
+                for context_keys, inner_cache in field_cache.items():
+                    context = dict(zip(depends_context[field], context_keys))
+                    if 'company' in context:
+                        # the cache key 'company' actually comes from context
+                        # key 'allowed_company_ids' (see property env.company
+                        # and method env.cache_key())
+                        context['allowed_company_ids'] = [context.pop('company')]
+                    process(model.with_context(context), field, inner_cache)
+            else:
+                process(model, field, field_cache)
+
+        if invalids:
+            self.fail("Invalid cache: %s" % pformat(invalids))
 
     @mute_logger('odoo.models')
     def test_60_prefetch(self):
@@ -301,7 +355,7 @@ class TestAPI(SavepointCaseWithUserDemo):
             if partner._cache['state_id'] is not None
         }
         self.assertTrue(len(state_ids) > 1)
-        self.assertItemsEqual(state_ids, state._prefetch_ids)
+        self.assertEqual(state_ids, set(state._prefetch_ids))
 
         # reading ONE partner country should fetch ALL partners' countries
         for partner in partners:
@@ -314,25 +368,25 @@ class TestAPI(SavepointCaseWithUserDemo):
     @mute_logger('odoo.models')
     def test_60_prefetch_model(self):
         """ Check the prefetching model. """
-        partners = self.env['res.partner'].search([('id', 'in', self.partners.ids)], limit=PREFETCH_MAX)
-        self.assertTrue(partners)
+        partners = self.partners
+        self.assertGreater(len(partners), 5)
 
-        def same_prefetch(a, b):
-            self.assertEqual(set(a._prefetch_ids), set(b._prefetch_ids))
-
-        def diff_prefetch(a, b):
-            self.assertNotEqual(set(a._prefetch_ids), set(b._prefetch_ids))
+        prefetch_ids = partners._prefetch_ids
+        self.assertIsInstance(prefetch_ids, tuple)
 
         # the recordset operations below use different prefetch sets
-        diff_prefetch(partners, partners.browse())
-        diff_prefetch(partners, partners[0])
-        diff_prefetch(partners, partners[:5])
+        part = partners.browse(partners.ids[:5])
+        self.assertNotEqual(prefetch_ids, partners.browse()._prefetch_ids)
+        self.assertNotEqual(prefetch_ids, part._prefetch_ids)
 
         # the recordset operations below share the prefetch set
-        same_prefetch(partners, partners.browse(partners.ids))
-        same_prefetch(partners, partners.with_user(self.user_demo))
-        same_prefetch(partners, partners.with_context(active_test=False))
-        same_prefetch(partners, partners[:10].with_prefetch(partners._prefetch_ids))
+        self.assertEqual(prefetch_ids, partners.browse(partners.ids)._prefetch_ids)
+        self.assertEqual(prefetch_ids, partners.with_user(self.user_demo)._prefetch_ids)
+        self.assertEqual(prefetch_ids, partners.with_context(active_test=False)._prefetch_ids)
+        self.assertEqual(prefetch_ids, part.with_prefetch(prefetch_ids)._prefetch_ids)
+        self.assertEqual(set(prefetch_ids), set(partners.filtered('country_id')._prefetch_ids))
+        self.assertEqual(prefetch_ids, partners[0]._prefetch_ids)
+        self.assertEqual(set(prefetch_ids), set(partners[:5]._prefetch_ids))
 
         # iteration and relational fields should use the same prefetch set
         self.assertEqual(type(partners).country_id.type, 'many2one')
@@ -348,40 +402,144 @@ class TestAPI(SavepointCaseWithUserDemo):
         vals1 = {
             'name': 'Non-empty relational fields',
             'country_id': self.ref('base.be'),
-            'bank_ids': [Command.create({'acc_number': 'FOO42'})],
+            'bank_ids': [Command.create({'account_number': 'FOO42'})],
             'category_id': [Command.link(self.partner_category.id)],
         }
-        partners = partners.create(vals0) + partners.create(vals1)
+        partners = partners.create([vals0, vals1])
         for partner in partners:
-            same_prefetch(partner, partners)
-            same_prefetch(partner.country_id, partners.country_id)
-            same_prefetch(partner.bank_ids, partners.bank_ids)
-            same_prefetch(partner.category_id, partners.category_id)
+            self.assertEqual(partner._prefetch_ids, partners._prefetch_ids)
+            self.assertEqual(set(partner.country_id._prefetch_ids), set(partners.country_id._prefetch_ids))
+            self.assertEqual(set(partner.bank_ids._prefetch_ids), set(partners.bank_ids._prefetch_ids))
+            self.assertEqual(set(partner.category_id._prefetch_ids), set(partners.category_id._prefetch_ids))
+
+        # records concatenation, union, intersection, difference
+        partners = self.partners
+        prefetch_ids = partners._prefetch_ids
+        part = partners.browse(partners.ids[:5])
+        ners = partners.browse(partners.ids[5:])
+        self.assertNotEqual(part._prefetch_ids, ners._prefetch_ids)
+
+        self.assertEqual(set(prefetch_ids), set((partners & ners)._prefetch_ids))
+        self.assertEqual(set(prefetch_ids), set((partners - ners)._prefetch_ids))
+
+        # those are not the same prefetch object, but they return the same ids
+        self.assertNotEqual(prefetch_ids, (part + ners)._prefetch_ids)
+        self.assertNotEqual(prefetch_ids, (part | ners)._prefetch_ids)
+        self.assertEqual(set(prefetch_ids), set((part + ners)._prefetch_ids))
+        self.assertEqual(set(prefetch_ids), set((part | ners)._prefetch_ids))
+
+        # combining concatenation and union with relational fields
+        child_ids = partners.child_ids._ids
+        self.assertEqual(set(child_ids), set(partners.child_ids._prefetch_ids))
+        self.assertEqual(set(child_ids), set((part.child_ids + ners.child_ids)._prefetch_ids))
+        self.assertEqual(set(child_ids), set((part.child_ids | ners.child_ids)._prefetch_ids))
+
+        prefetch_ids = partners.child_ids._prefetch_ids
+        children = [partner.child_ids[:1] for partner in partners]
+        for child in children:
+            self.assertEqual(set(prefetch_ids), set(child._prefetch_ids))
+
+        self.assertEqual(set(prefetch_ids), set(partners.browse().concat(*children)._prefetch_ids))
+        self.assertEqual(set(prefetch_ids), set(partners.browse().union(*children)._prefetch_ids))
+
+    def test_60_prefetch_model_performance(self):
+        # number of records, and number of children per record
+        RECORDS = PREFETCH_MAX
+        CHILDREN = 7
+
+        country = self.ref('base.be')
+        partners = self.env['res.partner'].create([{
+            'name': f'Partner {i}',
+            'child_ids': [
+                Command.create({'name': f'Child {i} {j}', 'country_id': country})
+                for j in range(CHILDREN)],
+        } for i in range(RECORDS)
+        ])
+
+        with self.subTest("Prefetch size"):
+            # incremental concatenation/union should not cause a recursion error
+            result = partners.browse()
+            for partner in partners:
+                result += partner.with_prefetch()
+            main_size = RECORDS * 2  # current ids + prefetched ids
+            self.assertEqual(len(list(result._prefetch_ids)), main_size)
+
+            # get the children
+            children = partners[0].child_ids
+            main_size = RECORDS * CHILDREN  # total number of children
+            self.assertEqual(len(list(children._prefetch_ids)), main_size)
+
+            # union with all children
+            children |= children.parent_id.child_ids
+            main_size *= 2  # because PrefetchUnion has both prefetch and ids
+            self.assertEqual(len(list(children._prefetch_ids)), main_size + CHILDREN)
+
+            # now incrementally build
+            result = partners.browse()
+            for child in children:
+                result += child
+            self.assertEqual(len(list(result._prefetch_ids)), main_size + CHILDREN)
+
+            # country of first child (harder case)
+            result = partners.country_id.browse()
+            for partner in partners[:11]:
+                result += partner.child_ids[0].country_id
+            main_size = RECORDS * CHILDREN + 11
+            self.assertEqual(len(list(result._prefetch_ids)), main_size)
+
+        # when building subsets of large recordsets, prefetch in priority the
+        # records in the subset
+        with self.subTest("Prefetch priority"):
+            children = partners.child_ids.with_prefetch()
+
+            records = children.filtered(lambda child: child.name.endswith('1'))
+            records.invalidate_model(['name'])
+            records.mapped('name')
+            fetched_ids = records._fields['name']._get_all_cache_ids(records.env)
+            self.assertEqual(set(fetched_ids), set(records._ids))
+
+            records = children[500 : RECORDS + 500]
+            records.invalidate_model(['name'])
+            records.mapped('name')
+            fetched_ids = records._fields['name']._get_all_cache_ids(records.env)
+            self.assertEqual(set(fetched_ids), set(records._ids))
+
+            records = children - children[500 : RECORDS + 500]
+            records.invalidate_model(['name'])
+            records.mapped('name')
+            fetched_ids = records._fields['name']._get_all_cache_ids(records.env)
+            self.assertEqual(set(fetched_ids), set(records._ids))
+
+            records = self.env['res.partner'].concat(*[partner.child_ids[0] for partner in partners])
+            records.invalidate_model(['name'])
+            records.mapped('name')
+            fetched_ids = records._fields['name']._get_all_cache_ids(records.env)
+            self.assertEqual(set(fetched_ids), set(records._ids))
 
     @mute_logger('odoo.models')
     def test_60_prefetch_read(self):
         """ Check that reading a field computes it on self only. """
         Partner = self.env['res.partner']
-        field = type(Partner).company_type
+        field = Partner._fields['vat_label']
         self.assertTrue(field.compute and not field.store)
 
         partner1 = Partner.create({'name': 'Foo'})
         partner2 = Partner.create({'name': 'Bar', 'parent_id': partner1.id})
         self.assertEqual(partner1.child_ids, partner2)
 
-        # reading partner1 should not prefetch 'company_type' on partner2
+        # reading partner1 should not prefetch 'vat_label' on partner2
         self.env.clear()
         partner1 = partner1.with_prefetch()
-        partner1.read(['company_type'])
-        self.assertIn('company_type', partner1._cache)
-        self.assertNotIn('company_type', partner2._cache)
+        partner1.read(['vat_label'])
+        self.assertIn('vat_label', partner1._cache)
+        self.assertNotIn('vat_label', partner2._cache)
 
-        # reading partner1 should not prefetch 'company_type' on partner2
+        # reading partner1 should not prefetch 'vat_label' on partner2
         self.env.clear()
         partner1 = partner1.with_prefetch()
-        partner1.read(['child_ids', 'company_type'])
-        self.assertIn('company_type', partner1._cache)
-        self.assertNotIn('company_type', partner2._cache)
+        partner1.read(['child_ids', 'vat_label'])
+        self.assertIn('vat_label', partner1._cache)
+        self.assertNotIn('vat_label', partner2._cache)
 
     def test_60_reversed(self):
         records = self.partners
@@ -406,26 +564,26 @@ class TestAPI(SavepointCaseWithUserDemo):
         self.assertEqual(list(reversed(last._prefetch_ids)), prefetch_ids)
 
         # check prefetching across many2one field
-        prefetch_ids = records.state_id.ids
+        prefetch_ids = list(unique(records.state_id.ids))
         reversed_ids = list(unique(
             record.state_id.id
             for record in reversed(records)
             if record.state_id
         ))
 
-        self.assertEqual(list(first.state_id._prefetch_ids), prefetch_ids)
-        self.assertEqual(list(last.state_id._prefetch_ids), reversed_ids)
+        self.assertEqual(list(unique(first.state_id._prefetch_ids)), prefetch_ids)
+        self.assertEqual(list(unique(last.state_id._prefetch_ids)), reversed_ids)
 
-        self.assertEqual(list(reversed(first.state_id._prefetch_ids)), reversed_ids)
-        self.assertEqual(list(reversed(last.state_id._prefetch_ids)), prefetch_ids)
+        self.assertEqual(list(unique(reversed(first.state_id._prefetch_ids))), reversed_ids)
+        self.assertEqual(list(unique(reversed(last.state_id._prefetch_ids))), prefetch_ids)
 
         # check prefetching across x2many field
         prefetch_ids = records.child_ids.ids
-        reversed_ids = list(unique(
+        reversed_ids = [
             child.id
             for record in reversed(records)
             for child in record.child_ids
-        ))
+        ]
 
         self.assertEqual(list(first.child_ids._prefetch_ids), prefetch_ids)
         self.assertEqual(list(last.child_ids._prefetch_ids), reversed_ids)
@@ -657,17 +815,6 @@ class TestAPI(SavepointCaseWithUserDemo):
             {'name': "james", 'function': "host"},
             {'name': "rhod", 'function': "guest"}
         ])
-        pn = self.env['res.partner'].new({'name': 'alex', 'function': "host"})
-
-        with self.subTest("Should work with mixes of db and new records"):
-            self.assertEqual(
-                (p0 | p1 | p2 | pn).grouped('function'),
-                {'guest': p0 | p2, 'host': p1 | pn}
-            )
-            self.assertEqual(
-                (p0 | p1 | p2 | pn).grouped(lambda r: len(r.name)),
-                {3: p0, 4: p2 | pn, 5: p1},
-            )
 
         with self.subTest("Should allow cross-group prefetching"):
             byfn = (p0 | p1 | p2).grouped('function')

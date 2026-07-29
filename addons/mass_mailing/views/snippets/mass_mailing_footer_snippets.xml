@@ -13,9 +13,7 @@
                                 t-attf-data-original-src="/web/image/res.company/{{ company_id.id if company_id.id else user_id.company_id.id }}/logo"/>
                         </a>
                     </div>
-                    <div class="o_mail_footer_social pb16" style="text-align: center">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
+                    <t t-call="mass_mailing.s_social_media_template" optionalTextPosition.f="text-center" optionalSnippetClass.f="o_mail_footer_social pb16"/>
                     <p style="text-align: center"><t t-if="company_id"><strong>© <t t-out="company_id.partner_id.name"/></strong><br/><t t-out="company_id.partner_id._display_address()"/><br/></t>You're seeing this because you've shopped with us or joined our mailing list.</p>
                     <p style="text-align: center"><a class="btn btn-link" role="button" href="/unsubscribe_from_list">Unsubscribe</a></p>
                 </div>
@@ -30,9 +28,7 @@
             <div class="row">
                 <div class="col-md-6 col-12">
                     <p t-if="company_id"><strong>© <t t-out="company_id.partner_id.name"/></strong><br/><t t-out="company_id.partner_id._display_address()"/></p>
-                    <div class="o_mail_footer_social pb16">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
+                    <t t-call="mass_mailing.s_social_media_template" optionalTextPosition.f="text-end" optionalSnippetClass.f="o_mail_footer_social pb16"/>
                 </div>
                 <div class="col-md-6 col-12">
                     <p class="text-muted">You're seeing this because you've shopped with us or joined our mailing list.</p>
@@ -58,11 +54,7 @@
                 <div class="col-md-6 col-12">
                     <p><font t-out="company_id.partner_id._display_address()"/></p>
                 </div>
-                <div class="col-md-6 col-12">
-                    <div class="o_mail_footer_social pb16" style="text-align: right">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
-                </div>
+                <t t-call="mass_mailing.s_social_media_template" optionalTextPosition.f="text-end" optionalSnippetClass.f="o_mail_footer_social pb16 col-md-6 col-12"/>
             </div>
         </div>
     </section>
@@ -83,11 +75,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-md-8 col-12">
-                    <div class="o_mail_footer_social pb16" style="text-align: right">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
-                </div>
+                <t t-call="mass_mailing.s_social_media_template" optionalTextPosition.f="text-end" optionalSnippetClass.f="o_mail_footer_social pb16 col-md-8 col-12"/>
             </div>
             <div class="row">
                 <div class="col-md-12 col-12">
@@ -96,29 +84,5 @@
             </div>
         </div>
     </section>
-</template>
-
-<template id="social_links">
-
-    <t t-set="social_links" t-value="company_id._get_social_media_links()"/>
-
-    <p class="mb-0">
-        <a t-att-href="social_links.get('social_facebook')" t-attf-style="{{optionalTextStyle}}" aria-label="Facebook" title="Facebook">
-            <span class="fa fa-facebook"></span>
-        </a>&amp;nbsp;&amp;nbsp;
-        <a t-att-href="social_links.get('social_linkedin')" t-attf-style="margin-left:10px; {{optionalTextStyle or ''}}" aria-label="LinkedIn" title="LinkedIn">
-            <span class="fa fa-linkedin"></span>
-        </a>&amp;nbsp;&amp;nbsp;
-        <a t-att-href="social_links.get('social_twitter')" t-attf-style="margin-left:10px; {{optionalTextStyle or ''}}" aria-label="X" title="X">
-            <span class="fa fa-twitter"></span>
-        </a>&amp;nbsp;&amp;nbsp;
-        <a t-att-href="social_links.get('social_instagram')" t-attf-style="margin-left:10px; {{optionalTextStyle or ''}}" aria-label="Instagram" title="Instagram">
-            <span class="fa fa-instagram"></span>
-        </a>&amp;nbsp;&amp;nbsp;
-        <a t-att-href="social_links.get('social_tiktok')" t-attf-style="margin-left:10px; {{optionalTextStyle or ''}}" aria-label="TikTok" title="TikTok">
-            <span class="fa fa-tiktok"></span>
-        </a>
-    </p>
-
 </template>
 </odoo>

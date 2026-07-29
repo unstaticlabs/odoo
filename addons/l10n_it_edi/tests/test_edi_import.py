@@ -345,6 +345,8 @@ class TestItEdiImport(TestItEdi):
             self.company.l10n_it_edi_purchase_journal_id = preferred_journal
 
         preferred_journal.default_account_id = self.company_data_2['default_journal_purchase'].default_account_id.id
+        # Retry setting the company's default purchase journal: no error since default_account_id is set
+        self.company.l10n_it_edi_purchase_journal_id = preferred_journal
 
         with tools.file_open(f'{self.module}/tests/import_xmls/{filename}', mode='rb') as fd:
             fake_bill_content = fd.read()
@@ -503,9 +505,9 @@ class TestItEdiImport(TestItEdi):
 
         # Check the created bank account
         partner_bank_account = self.env['res.partner.bank'].search([
-            ('acc_number', '=', iban),
+            *self.env['res.company']._check_company_domain(self.company),
+            ('account_number', '=', iban),
             ('partner_id', '=', banksy_partner.id),
-            ('company_id', '=', self.company.id),
         ])
         self.assertEqual(partner_bank_account, banksy_partner.bank_ids)
         self.assertFalse(partner_bank_account.allow_out_payment)
@@ -518,7 +520,7 @@ class TestItEdiImport(TestItEdi):
         }])
 
         banksy_partner.invalidate_recordset(['is_company'])
-        self.assertFalse(invoice.partner_id.is_company)
+        self.assertTrue(invoice.partner_id.is_company)
 
     def test_receive_bill_bank_account_02(self):
         """ When importing a vendor bill, if IBAN is present but the partner's not found, then:
@@ -543,7 +545,7 @@ class TestItEdiImport(TestItEdi):
             'is_company': True,
         }])
         self.assertTrue(invoice.partner_id not in existing_partners)
-        self.assertRecordValues(invoice.partner_bank_id, [{'acc_number': iban, 'allow_out_payment': False}])
+        self.assertRecordValues(invoice.partner_bank_id, [{'account_number': iban, 'allow_out_payment': False}])
 
     def test_receive_bill_bank_account_03(self):
         """Partner retrieved by ``name``, not ``l10n_it_codice_fiscale``
@@ -592,7 +594,7 @@ class TestItEdiImport(TestItEdi):
         # Bank account block stays incoming-only: no res.partner.bank
         # carries the XML IBAN.
         self.assertFalse(self.env['res.partner.bank'].search([
-            ('acc_number', '=', iban),
+            ('account_number', '=', iban),
         ]))
 
     def test_receive_bill_with_multiple_discounts_in_line(self):

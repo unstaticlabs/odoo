@@ -3,21 +3,18 @@
 
 <!-- Index -->
 <template id="index" name="Events" track="1">
-    <t t-call="website.layout">
-        <t t-set="head">
-            <meta t-if="search_tags" name="robots" content="none"/>
-        </t>
-
+    <t t-set="head">
+        <meta t-if="search_tags" name="robots" content="none"/>
+    </t>
+    <t t-call="website.layout" head="head">
         <div id="wrap" class="o_wevent_index">
             <!-- Options -->
-            <t t-set="opt_events_list_cards" t-value="is_view_active('website_event.opt_events_list_cards')"/>
             <t t-set="opt_events_list_columns" t-value="is_view_active('website_event.opt_events_list_columns')"/>
             <!-- Drag/Drop Area -->
             <div id="oe_structure_we_index_0" class="oe_structure oe_empty"/>
             <!-- Topbar -->
-            <t t-call="website_event.index_topbar">
-                <t t-set="search" t-value="original_search or search or searches['search']"/>
-            </t>
+            <t t-call="website_event.index_topbar"
+                search="original_search or search or searches['search']"/>
             <!-- Drag/Drop Area -->
             <div id="oe_structure_we_index_1" class="oe_structure oe_empty"/>
             <!-- Content -->
@@ -75,15 +72,15 @@
                 </div>
             </t>
             <div class="o_wevent_search d-flex w-100 w-lg-25">
-                <t t-call="website.website_search_box_input">
-                    <t t-set="_form_classes" t-valuef="flex-grow-1"/>
-                    <t t-set="_classes" t-valuef="o_wevent_event_searchbar_form"/>
-                    <t t-set="search_type" t-translation="off">events</t>
-                    <t t-set="action" t-value="'/event/'"/>
-                    <t t-set="display_description" t-valuef="true"/>
-                    <t t-set="display_detail" t-valuef="false"/>
-                    <t t-set="search" t-value="search or searches and searches['search']"/>
-                    <t t-set="placeholder">Search an event..</t>
+                <t t-call="website.website_search_box_input"
+                    _form_classes.f="flex-grow-1"
+                    _classes.f="o_wevent_event_searchbar_form"
+                    search_type.translate="events"
+                    action.f="/event/"
+                    display_description.f="true"
+                    display_detail.f="false"
+                    search="search or searches and searches['search']"
+                    placeholder.translate="Search an event..">
                     <t t-foreach="searches" t-as="item">
                         <input t-if="item != 'search' and item_value != 'all'" type="hidden"
                             t-att-name="item" t-att-value="item_value"/>
@@ -158,7 +155,7 @@
 <template id="event_time" inherit_id="website_event.index_topbar" name="Filter by Date">
     <xpath expr="//div[hasclass('o_wevent_search')]" position="before">
         <div class="dropdown d-none d-lg-block">
-            <button role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" title="Filter by Date" aria-label="Filter by date" aria-expanded="false">
+            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" title="Filter by Date" aria-label="Filter by date" aria-expanded="false">
                 <t t-if="current_date" t-out="current_date"/>
                 <t t-else="">Scheduled Events</t>
             </button>
@@ -218,19 +215,25 @@
                     <t t-set="online_event_text">Online Events</t>
                     <t t-out="online_event_text"/>
                 </t>
-                <t t-elif="current_country" t-esc="current_country.name"/>
-                <t t-else="">All countries</t>
+                <t t-elif="current_country" t-out="current_country.name"/>
+                <t t-else="">All Countries</t>
             </button>
             <div class="dropdown-menu">
+                <a t-att-href="keep_event_url(country='all')" t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{searches.get('country') == 'all' and 'active'}" title="All Countries">
+                    All Countries
+                    <span t-out="sum(country['country_id_count'] for country in countries)" class="badge pagination ms-3 text-bg-primary"/>
+                </a>
+                <t t-set="online_count" t-value="sum(country['country_id_count'] for country in countries if not country['country_id'])"/>
                 <t t-foreach="countries" t-as="country">
                     <t t-if="country['country_id']">
                         <t t-set="is_active" t-value="searches.get('country') == str(country['country_id'] and country['country_id'][0])"/>
                         <a t-att-href="keep_event_url(country=country['country_id'][0])" t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{is_active and 'active'}" t-att-title="country['country_id'][1]">
                             <t t-out="country['country_id'][1]"/>
-                            <span t-out="country['country_id_count']" t-attf-class="badge pagination ms-3 text-bg-primary"/>
+                            <span t-if="include_online_events" t-out="country['country_id_count'] + online_count" t-attf-class="badge pagination ms-3 text-bg-primary"/>
+                            <span t-else="" t-out="country['country_id_count']" t-attf-class="badge pagination ms-3 text-bg-primary"/>
                         </a>
                     </t>
-                    <t t-else="">
+                    <t t-elif="not include_online_events">
                         <t t-set="is_active" t-value="searches.get('country') == 'online'"/>
                         <a t-att-href="keep_event_url(country='online')" t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{is_active and 'active'}" title="Online Events">
                             <span>Online Events</span>
@@ -285,9 +288,12 @@
     </xpath>
 </template>
 
+<template id="event_location_include_online" active="True"/>
+
 <!-- Index - Events list -->
 <template id="events_list" name="Events list">
     <!-- Options -->
+    <t t-set="opt_events_list_cards" t-value="is_view_active('website_event.opt_events_list_cards')"/>
     <t t-set="opt_index_sidebar" t-value="is_view_active('website_event.opt_index_sidebar')"/>
     <t t-set="opt_events_event_location" t-value="is_view_active('website_event.event_location')"/>
     <t t-if="opt_events_list_columns" t-set="opt_event_size" t-value="opt_index_sidebar and 'col-md-6' or 'col-md-6 col-lg-4 col-xl-3'"/>
@@ -319,8 +325,7 @@
                     <header t-attf-class="card-header overflow-hidden bg-secondary p-0 border-0 rounded-0 #{opt_events_list_columns and 'col-12' or 'col-4 col-lg-3'} #{(not opt_events_list_cards) and 'shadow-sm'}">
                         <!-- Image + Link -->
                         <div class="d-block h-100 w-100">
-                            <t t-call="website.record_cover">
-                                <t t-set="_record" t-value="event"/>
+                            <t t-call="website.record_cover" _record="event">
                                 <meta itemprop="startDate" t-att-content="event.date_begin.isoformat()"/>
                                 <!-- Short date + (optional) Country Flag -->
                                 <div t-if="opt_events_event_location" t-attf-class="o_wevent_date_with_flag o_wevent_event_date position-absolute shadow-sm o_not_editable #{(not opt_events_list_columns) and 'left'} ">
@@ -356,8 +361,12 @@
                                 <small t-if="event.is_participating" class="o_wevent_participating position-absolute bottom-0 px-3 py-2 w-100 text-bg-success">
                                     <i class="fa fa-check me-2"/>Registered
                                 </small>
+                                <!-- Scheduled -->
+                                <small t-if="event.publish_on" class="o_wevent_scheduled  position-absolute bottom-0 px-3 py-2 w-100 text-bg-warning">
+                                    Scheduled for <span t-field="event.with_context(tz=event.date_tz).publish_on" />
+                                </small>
                                 <!-- Unpublished -->
-                                <small t-if="not event.website_published" class="o_wevent_unpublished position-absolute bottom-0 px-3 py-2 w-100 text-bg-danger">
+                                <small t-elif="not event.website_published" class="o_wevent_unpublished position-absolute bottom-0 px-3 py-2 w-100 text-bg-danger">
                                     <i class="fa fa-ban me-2"/>Unpublished
                                 </small>
                             </t>
@@ -377,9 +386,9 @@
                                 </t>
                             </div>
                             <!-- Title -->
-                            <h5 t-attf-class="card-title my-2 #{not event.website_published and 'text-danger'} #{not opt_events_list_columns and not event.event_registrations_open and 'text-muted'}">
+                            <h2 t-attf-class="card-title my-2 h5 #{not event.website_published and 'text-danger'} #{not opt_events_list_columns and not event.event_registrations_open and 'text-muted'}">
                                 <span t-field="event.name" itemprop="name"/>
-                            </h5>
+                            </h2>
                             <div t-if="not opt_events_list_columns" class="d-inline-flex flex-wrap gap-3">
                                 <!-- Location (List View) -->
                                 <div class="d-flex align-items-center">
@@ -484,20 +493,11 @@
 <!-- Index - Sidebar - Follow us -->
 <template id="index_sidebar_follow_us" inherit_id="website_event.index_sidebar" active="False" name="Follow us" priority="30">
     <xpath expr="//div[@id='o_wevent_index_sidebar']" position="inside">
-        <div class="o_wevent_sidebar_block">
+        <div class="o_wevent_sidebar_block" t-ignore="true">
             <div>
                 <h6 class="o_wevent_sidebar_title">Follow Us</h6>
             </div>
-            <div class="o_wevent_sidebar_social mx-n1">
-                <a t-if="website.social_facebook" t-att-href="website.social_facebook" class="o_wevent_social_link"><i class="fa fa-facebook text-facebook" aria-label="Facebook" title="Facebook"/></a>
-                <a t-if="website.social_twitter" t-att-href="website.social_twitter" class="o_wevent_social_link"><i class="fa fa-twitter text-twitter" aria-label="X" title="X"/></a>
-                <a t-if="website.social_linkedin" t-att-href="website.social_linkedin" class="o_wevent_social_link"><i class="fa fa-linkedin text-linkedin" aria-label="LinkedIn" title="LinkedIn"/></a>
-                <a t-if="website.social_youtube" t-att-href="website.social_youtube" class="o_wevent_social_link"><i class="fa fa-youtube-play text-youtube" aria-label="Youtube" title="Youtube"/></a>
-                <a t-if="website.social_github" t-att-href="website.social_github" class="o_wevent_social_link"><i class="fa fa-github text-github" aria-label="Github" title="Github"/></a>
-                <a t-if="website.social_instagram" t-att-href="website.social_instagram" class="o_wevent_social_link"><i class="fa fa-instagram text-instagram" aria-label="Instagram" title="Instagram"/></a>
-                <a t-if="website.social_tiktok" t-att-href="website.social_tiktok" class="o_wevent_social_link"><i class="fa fa-tiktok text-tiktok" aria-label="TikTok" title="TikTok"/></a>
-                <a t-if="website.social_discord" t-att-href="website.social_discord" class="o_wevent_social_link"><i class="fa fa-discord text-discord" aria-label="Discord" title="Discord"/></a>
-            </div>
+            <t t-snippet-call="website.s_social_media"/>
         </div>
         <div id="oe_structure_website_event_follow_us_1" class="oe_structure"/>
     </xpath>

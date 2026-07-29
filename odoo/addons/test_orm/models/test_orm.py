@@ -962,7 +962,7 @@ class TestOrmComputeDynamicDepends(models.Model):
 
     def _get_full_name_fields(self):
         # the fields to use are stored in a config parameter
-        depends = self.env['ir.config_parameter'].get_param('test_orm.full_name', '')
+        depends = self.env['ir.config_parameter'].get_str('test_orm.full_name')
         return depends.split(',') if depends else []
 
     @api.depends(lambda self: self._get_full_name_fields())
@@ -1080,13 +1080,6 @@ class TestOrmModel_Binary(models.Model):
     binary_x_filename2 = fields.Char()
     binary_related_store = fields.Binary("Binary Related Store", related='binary', store=True, readonly=False)
     binary_related_no_store = fields.Binary("Binary Related No Store", related='binary', store=False, readonly=False)
-    binary_computed = fields.Binary(compute='_compute_binary')
-
-    @api.depends('binary')
-    def _compute_binary(self):
-        # arbitrary value: 'bin_size' must have no effect
-        for record in self:
-            record.binary_computed = [(record.id, bool(record.binary))]
 
 
 class TestOrmModel_Image(models.Model):
@@ -1212,6 +1205,7 @@ class TestOrmTransient_Model(models.TransientModel):
 class TestOrmAttachment(models.Model):
     _name = 'test_orm.attachment'
     _description = 'Attachment'
+    _access_domain_heavy = True
 
     res_model = fields.Char(required=True)
     res_id = fields.Integer(required=True)
@@ -1221,13 +1215,6 @@ class TestOrmAttachment(models.Model):
     def _compute_name(self):
         for rec in self:
             rec.name = self.env[rec.res_model].browse(rec.res_id).display_name
-
-    # override those methods for many2many search
-    def _search(self, domain, offset=0, limit=None, order=None, *, active_test=True, bypass_access=False):
-        return super()._search(domain, offset, limit, order, active_test=active_test, bypass_access=bypass_access)
-
-    def _check_access(self, operation):
-        return super()._check_access(operation)
 
     # DLE P55: `test_cache_invalidation`
     def modified(self, fnames, *args, **kwargs):
@@ -2216,6 +2203,19 @@ class TestOrmModifiedLine(models.Model):
             rec.total_price_quantity = rec.total_price * rec.quantity
 
 
+class TestOrmModifiedLinePositive(models.Model):
+    _name = 'test_orm.modified.line.positive'
+    _description = 'Check perf when m2m without inverse + compute depeding on m2m'
+
+    line_ids = fields.Many2many('test_orm.modified.line')
+    is_positive = fields.Boolean(compute='_compute_have_positive_line')
+
+    @api.depends('line_ids.quantity')
+    def _compute_have_positive_line(self):
+        for rec in self:
+            rec.is_positive = sum(rec.line_ids.mapped('quantity')) > 0
+
+
 class TestOrmRelated_Translation_1(models.Model):
     _name = 'test_orm.related_translation_1'
     _description = 'A model to test translation for related fields'
@@ -2519,10 +2519,6 @@ class BinaryTest(models.Model):
 
     img = fields.Image()
     bin1 = fields.Binary()
-    bin2 = fields.Binary(compute="_compute_bin2")
-
-    def _compute_bin2(self):
-        self.bin2 = {}
 
 
 class CalendarTest(models.Model):

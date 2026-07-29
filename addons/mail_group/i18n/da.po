@@ -3,16 +3,15 @@
 # * mail_group
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-30 21:54+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2026-06-23 17:11+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "mail_group/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -566,11 +565,6 @@ msgid "Description"
 msgstr "Beskrivelse"
 
 #. module: mail_group
-#: model_terms:ir.ui.view,arch_db:mail_group.mail_group_message_reject_form
-msgid "Discard"
-msgstr "Kassér"
-
-#. module: mail_group
 #: model:ir.model.fields,field_description:mail_group.field_mail_group__display_name
 #: model:ir.model.fields,field_description:mail_group.field_mail_group_member__display_name
 #: model:ir.model.fields,field_description:mail_group.field_mail_group_message__display_name
@@ -671,9 +665,8 @@ msgstr "Gruppebesked kan kun knyttes til mailgruppe. Den nuværende model er %s.
 #. module: mail_group
 #. odoo-python
 #: code:addons/mail_group/controllers/portal.py:0
-#, fuzzy
 msgid "Groups"
-msgstr "Grupper"
+msgstr ""
 
 #. module: mail_group
 #: model:ir.model.fields,field_description:mail_group.field_mail_group__moderation_guidelines_msg
@@ -1674,6 +1667,3 @@ msgstr "din e-mail ..."
 
 #~ msgid "_______________________________________________"
 #~ msgstr "_______________________________________________"
-
-#~ msgid "Group By"
-#~ msgstr "Sortér efter"

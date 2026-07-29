@@ -3,6 +3,7 @@
 import { session } from "@web/session";
 import { getDataURLFromFile } from "@web/core/utils/urls";
 import { deserializeDateTime } from "@web/core/l10n/dates";
+import { Time } from "@web/core/l10n/time";
 /*
  * comes from o_spreadsheet.js
  * https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -14,23 +15,6 @@ export function uuidv4() {
             v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
-}
-
-/**
- * Formats the given `url` with correct protocol and port.
- * Useful for communicating to local iot box instance.
- * @param {string} url
- * @returns {string}
- */
-export function deduceUrl(url) {
-    const protocol = odoo.use_lna ? "http:" : window.location.protocol;
-    if (!url.includes("//")) {
-        url = `${protocol}//${url}`;
-    }
-    if (url.indexOf(":", 6) < 0) {
-        url += ":" + (protocol === "https:" ? 443 : 8069);
-    }
-    return url;
 }
 
 export function constructAttributeString(line) {
@@ -240,6 +224,10 @@ export function orderUsageUTCtoLocalUtil(data) {
     return result;
 }
 
+export function getTimeUtil(date) {
+    return Time.from(date).toString();
+}
+
 /**
  * Generates a QR code as a data URL in SVG format for a given URL.
  *
@@ -267,4 +255,20 @@ export function generateQRCodeDataUrl(
 
     const qr_code_svg = new XMLSerializer().serializeToString(svg);
     return "data:image/svg+xml;base64," + window.btoa(qr_code_svg);
+}
+
+const FILETYPE_BY_MAGIC_CHAR = {
+    "/": "jpeg",
+    R: "gif",
+    i: "png",
+    P: "svg+xml",
+    U: "webp",
+};
+// Equivalent to `image_data_uri` from odoo/tools/image.py
+export function imageDataUri(base64Source) {
+    if (!base64Source || typeof base64Source !== "string") {
+        return null;
+    }
+    const imageType = FILETYPE_BY_MAGIC_CHAR[base64Source.charAt(0)] || "png";
+    return `data:image/${imageType};base64,${base64Source}`;
 }

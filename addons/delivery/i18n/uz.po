@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 11:54+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/delivery/"
-"uz/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-10-08 18:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: delivery
 #. odoo-python
@@ -82,7 +80,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 #, fuzzy
 msgid "<span class=\"o_stat_text text-danger\">No debug</span>"
-msgstr "<span class=\"o_stat_text text-danger\">Nosozlikni tuzatish yo‘q</span>"
+msgstr ""
+"<span class=\"o_stat_text text-danger\">Nosozlikni tuzatish yo‘q</span>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -103,9 +102,8 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_report_saleorder_document
-#, fuzzy
-msgid "<strong>Shipping Description</strong>"
-msgstr "<strong>Yetkazib berish tavsifi</strong>"
+msgid "<strong>Delivery Description</strong>"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__carrier_description
@@ -141,9 +139,8 @@ msgstr "Qo‘shish"
 #. odoo-python
 #: code:addons/delivery/models/sale_order.py:0
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
-#, fuzzy
-msgid "Add a shipping method"
-msgstr "Yetkazib berish usulini qo‘shish"
+msgid "Add a delivery method"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
@@ -224,28 +221,9 @@ msgstr "Qaytarishni yaratish mumkin"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 #, fuzzy
 msgid "Carrier"
 msgstr "Tashuvchi"
-
-#. module: delivery
-#. odoo-python
-#: code:addons/delivery/models/delivery_carrier.py:0
-#, fuzzy
-msgid ""
-"Carrier %s cannot have the same tag in both Must Have Tags and Excluded Tags."
-msgstr ""
-"%s tashuvchisida majburiy teglar va istisno teglarda bir xil teg bo‘lishi "
-"mumkin emas."
-
-#. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
-#, fuzzy
-msgid "Carrier Description"
-msgstr "Tashuvchi tavsifi"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__payment_provider__custom_mode__cash_on_delivery
@@ -377,16 +355,9 @@ msgid "Define a new delivery method"
 msgstr "Yetkazib berishning yangi usulini belgilash"
 
 #. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
-#, fuzzy
-msgid "Delivery Carrier"
-msgstr "Yetkazib berish tashuvchisi"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_choose_delivery_carrier
-#, fuzzy
-msgid "Delivery Carrier Selection Wizard"
-msgstr "Yetkazib berish tashuvchisini tanlash ustasi"
+#: model:product.category,name:delivery.product_category_deliveries
+msgid "Deliveries"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
@@ -402,19 +373,29 @@ msgid "Delivery Message"
 msgstr "Yetkazib berish xabari"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_delivery_carrier
+#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
 #: model:ir.model.fields,field_description:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_res_users__property_delivery_carrier_id
 #: model:ir.model.fields,field_description:delivery.field_sale_order__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 #, fuzzy
 msgid "Delivery Method"
 msgstr "Yetkazib berish usuli"
 
 #. module: delivery
+#: model:ir.model,name:delivery.model_choose_delivery_carrier
+msgid "Delivery Method Selection Wizard"
+msgstr ""
+
+#. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
 #: model:ir.ui.menu,name:delivery.sale_menu_action_delivery_carrier_form
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_provider_module_kanban
+#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
 #, fuzzy
 msgid "Delivery Methods"
 msgstr "Yetkazib berish usullari"
@@ -457,16 +438,29 @@ msgid "Delivery cost should be recomputed"
 msgstr "Yetkazib berish narxi qayta hisoblanishi lozim"
 
 #. module: delivery
-#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
-#, fuzzy
+#. odoo-python
+#: code:addons/delivery/models/delivery_carrier.py:0
 msgid ""
-"Delivery zip prefixes are assigned to delivery carriers to restrict\n"
-"            which zips it is available to."
+"Delivery method %(name)s cannot have the same tag in both Must Have Tags and "
+"Excluded Tags."
 msgstr ""
-"Yetkazib berish pochta indeksi prefikslari tashuvchilarga faqat ma'lum "
-"hududlarga xizmat ko‘rsatishni cheklash uchun tayinlanadi."
 
 #. module: delivery
+#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
+msgid ""
+"Delivery method details to be included at bottom sales orders and their "
+"confirmation emails. E.g. Instructions for customers to follow."
+msgstr ""
+
+#. module: delivery
+#: model_terms:ir.actions.act_window,help:delivery.action_delivery_zip_prefix_list
+msgid ""
+"Delivery zip prefixes are assigned to delivery methods to restrict\n"
+"            which zips it is available to."
+msgstr ""
+
+#. module: delivery
+#: model:ir.model.fields,field_description:delivery.field_delivery_carrier__carrier_description
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 #, fuzzy
 msgid "Description"
@@ -483,12 +477,6 @@ msgstr "Manzil"
 #, fuzzy
 msgid "Determine the display order"
 msgstr "Ko‘rsatish tartibini belgilash"
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
-#, fuzzy
-msgid "Discard"
-msgstr "Bekor qilish"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -575,13 +563,10 @@ msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#, fuzzy
 msgid ""
-"Filling this form allows you to make the shipping method available according "
+"Filling this form allows you to make the delivery method available according "
 "to the content of the order or its destination."
 msgstr ""
-"Ushbu shaklni to‘ldirish orqali siz buyurtma tarkibi yoki manzilga qarab "
-"yetkazib berish usulini taqdim etishingiz mumkin."
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_margin
@@ -928,19 +913,12 @@ msgstr "Prefiks allaqachon mavjud!"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__zip_prefix_ids
-#, fuzzy
 msgid ""
-"Prefixes of zip codes that this carrier applies to. Note that regular "
-"expressions can be used to support countries with varying zip code lengths, "
-"i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' "
-"will only match '100' and not '1000')"
+"Prefixes of zip codes that this delivery method applies to. Note that "
+"regular expressions can be used to support countries with varying zip code "
+"lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. "
+"'100$' will only match '100' and not '1000')"
 msgstr ""
-"Ushbu tashuvchi qo‘llaydigan pochta indeksi prefikslari. E'tibor bering, "
-"indeks uzunligi turlicha bo‘lgan mamlakatlarni qo‘llab-quvvatlash uchun "
-"muntazam ifodalardan foydalanish mumkin, ya'ni aniq indeksga mos kelishi "
-"uchun prefiks oxiriga '$' belgisini qo‘shish mumkin (masalan, '100$' faqat "
-"'100' ga mos keladi, '1000' ga emas) '$' ni prefiks oxiriga qo‘shish orqali "
-"aniq zip (masalan."
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -1054,19 +1032,6 @@ msgstr ""
 "qiymatini o‘rnating."
 
 #. module: delivery
-#: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
-#, fuzzy
-msgid "Shipping Method"
-msgstr "Yetkazib berish usuli"
-
-#. module: delivery
-#: model:ir.model,name:delivery.model_delivery_carrier
-#: model_terms:ir.ui.view,arch_db:delivery.res_config_settings_view_form
-#, fuzzy
-msgid "Shipping Methods"
-msgstr "Yetkazib berish usullari"
-
-#. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__shipping_weight
 #, fuzzy
 msgid "Shipping Weight"
@@ -1081,17 +1046,6 @@ msgid ""
 msgstr ""
 "Yuk tashish sug‘urtasi - jo‘natmalari yo‘qolgan, o‘g‘irlangan yoki yo‘lda "
 "shikastlangan jo‘natuvchilarga tovon to‘lashi mumkin bo‘lgan xizmat."
-
-#. module: delivery
-#: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
-#, fuzzy
-msgid ""
-"Shipping method details to be included at bottom sales orders and their "
-"confirmation emails. E.g. Instructions for customers to follow."
-msgstr ""
-"Yetkazib berish usuli tafsilotlari savdo buyurtmalarining pastki qismiga va "
-"ularning tasdiqlash xatlariga kiritiladi. Masalan, mijozlar amal qilishi "
-"kerak bo‘lgan ko‘rsatmalar."
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.free_delivery_carrier
@@ -1157,7 +1111,8 @@ msgstr "Mijoz qaytarish yorlig‘ini mijozlar portalidan yuklab olishi mumkin."
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__return_label_on_delivery
 #, fuzzy
 msgid "The return label is automatically generated at the delivery."
-msgstr "Qaytarish yorlig‘i yetkazib berish vaqtida avtomatik tarzda yaratiladi."
+msgstr ""
+"Qaytarish yorlig‘i yetkazib berish vaqtida avtomatik tarzda yaratiladi."
 
 #. module: delivery
 #: model:ir.model.constraint,message:delivery.constraint_delivery_carrier_shipping_insurance_is_percentage
@@ -1323,13 +1278,10 @@ msgstr ""
 #. module: delivery
 #. odoo-python
 #: code:addons/delivery/models/product_category.py:0
-#, fuzzy
 msgid ""
-"You cannot delete the deliveries product category as it is used on the "
-"delivery carriers products."
+"You cannot delete this product category as it is used on the products linked "
+"to delivery methods."
 msgstr ""
-"Yetkazib berish mahsulotlari toifasini o‘chira olmaysiz, chunki u yetkazib "
-"beruvchilar mahsulotlarida ishlatilmoqda."
 
 #. module: delivery
 #: model_terms:payment.provider,auth_msg:delivery.payment_provider_cod
@@ -1387,4 +1339,5 @@ msgstr "masalan, UPS Express"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 #, fuzzy
 msgid "i.e. https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
-msgstr "ya'ni https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"
+msgstr ""
+"ya'ni https://ekartlogistics.com/shipmenttrack/<shipmenttrackingnumber>"

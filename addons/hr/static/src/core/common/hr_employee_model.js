@@ -1,8 +1,7 @@
-import { Record, fields } from "@mail/core/common/record";
+import { Record, fields } from "@mail/model/export";
 
 export class HrEmployee extends Record {
     static _name = "hr.employee";
-    static id = "id";
 
     /** @type {Boolean} */
     active;

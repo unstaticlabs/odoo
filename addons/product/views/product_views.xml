@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="product_view_list_qty" model="ir.ui.view">
+        <field name="name">product.product.view.list.qty</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Update Quantities" editable="bottom" create="false">
+                <field name="display_name" readonly="1"/>
+                <field name="product_template_variant_value_ids" widget="many2many_tags" groups="product.group_product_variant" readonly="1"/>
+                <field name="qty_available" string="On Hand" decoration-danger="qty_available &lt; 0" sum="Total On Hand"/>
+                <field name="virtual_available" string="Forecasted" decoration-danger="virtual_available &lt; 0" decoration-bf="1" sum="Total Forecasted"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="product_variant_edit_qty_action" model="ir.actions.act_window">
+        <field name="name">Update Variant Quantities</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('product_tmpl_id', '=', active_id)]</field>
+        <field name="context">{'default_product_tmpl_id': active_id, 'create': False}</field>
+        <field name="view_ids"
+                eval="[(5, 0, 0),
+                       (0, 0, {'view_mode': 'list', 'view_id': ref('product_view_list_qty')})]"/>
+    </record>
+
     <!-- base structure of product.template, common with product.product -->
     <record id="product_template_form_view" model="ir.ui.view">
         <field name="name">product.template.common.form</field>
@@ -45,6 +69,10 @@
                             <field name="sale_ok"/>
                             <label for="sale_ok"/>
                         </span>
+                        <span name="purchase_option" class="d-inline-flex" invisible="type == 'combo'">
+                            <field name="purchase_ok"/>
+                            <label for="purchase_ok"/>
+                        </span>
                     </div>
                     <notebook>
                         <page string="General Information" name="general_information">
@@ -59,7 +87,7 @@
                                         invisible="type != 'combo'"
                                         options="{
                                             'no_quick_create': True,
-                                            'edit_tags': True,
+                                            'on_tag_click': 'open_form',
                                         }"
                                     />
                                     <field name="service_tracking" invisible="1 or type != 'service'"/>
@@ -68,6 +96,22 @@
                                         string=""
                                         invisible="not product_tooltip"
                                     />
+                                    <label for="is_storable" class="oe_inline" invisible="type != 'consu'"/>
+                                    <field name="show_qty_update_button" invisible="1"/>
+                                    <div name="tracking_and_qty_no_stock" class="o_row w-100" invisible="type != 'consu'">
+                                        <field name="is_storable"/>
+                                        <div name="product_template_qty_field" class="d-flex" invisible="is_product_variant or not is_storable">
+                                            <a type="action" name="%(product_variant_edit_qty_action)d" invisible="not show_qty_update_button">
+                                                <field name="qty_available" readonly="True"/>
+                                            </a>
+                                            <field name="qty_available" invisible="show_qty_update_button" style="max-width: fit-content;"/>
+                                            <field name="uom_name" class="ms-2 oe_inline" groups="uom.group_uom"/>
+                                        </div>
+                                        <div name="product_product_qty_field" class="d-flex" invisible="not is_product_variant or not is_storable">
+                                            <field name="qty_available" style="max-width: fit-content;"/>
+                                            <field name="uom_name" class="ms-2 oe_inline" groups="uom.group_uom"/>
+                                        </div>
+                                    </div>
                                 </group>
                                 <group name="group_standard_price">
                                     <label for="list_price"/>
@@ -139,12 +183,12 @@
                             </group>
                         </page>
                         <page string="Sales" name="sales" invisible="1 or not sale_ok">
-                            <group name="sale">
+                            <group name="sale" class="o_label_nowrap">
                                 <group string="Upsell &amp; Cross-Sell" name="upsell" invisible="1">
                                     <field
                                         name="uom_ids"
                                         widget="many2many_uom_tags"
-                                        options="{'no_quick_create': True, 'edit_tags': True}"
+                                        options="{'no_quick_create': True, 'on_tag_click': 'open_form'}"
                                         groups="uom.group_uom"
                                         force_save="1"
                                         context="{'product_id': product_variant_id if product_variant_count == 1 else False, 'product_ids': product_variant_ids, 'show_variant_name': product_variant_count > 1}"/>
@@ -152,9 +196,7 @@
                                 <group name="extra_info" string="Extra Info">
                                     <field name="product_tag_ids" widget="many2many_tags" context="{'product_template_id': id}"/>
                                 </group>
-                            </group>
-                            <group>
-                                <group string="Quotation Description" name="description">
+                                <group string="Short Description" name="description">
                                     <field colspan="2" name="description_sale" nolabel="1" placeholder="This note is added to sales orders and invoices."/>
                                 </group>
                             </group>
@@ -162,29 +204,50 @@
                         <page
                             string="Prices"
                             name="sales_price"
-                            groups="product.group_product_pricelist"
-                            invisible="not sale_ok"
+                            invisible="not show_sales_price_page"
                         >
                             <field
-                                name="pricelist_rule_ids"
+                                name="fixed_pricelist_rule_ids"
                                 context="{
+                                    'default_compute_price': 'fixed',
+                                    'default_applied_on': '1_product',
                                     'form_view_ref': 'product.product_pricelist_item_product_template_form_view',
                                 }"
                             >
-                                <list>
+                                <list editable="bottom">
                                     <control>
                                         <create name="add_product_price" string="Add a price"/>
                                     </control>
-                                    <field name="pricelist_id" required="is_pricelist_required"/>
-                                    <field name="name" string="Applied On" column_invisible="parent.product_variant_count &lt; 2"/>
-                                    <field name="price"/>
-                                    <field name="min_quantity"/>
-                                    <field name="date_start" optional="hide"/>
-                                    <field name="date_end" optional="hide"/>
+                                    <field
+                                        name="product_id"
+                                        string="Variant"
+                                        column_invisible="parent.product_variant_count &lt; 2"
+                                        optional="hide"
+                                    />
+                                    <field
+                                        name="pricelist_id"
+                                        required="is_pricelist_required"
+                                        options="{'no_create': True}"
+                                    />
+                                    <field name="min_quantity" optional="show"/>
+                                    <field
+                                        name="date_start"
+                                        string="Validity"
+                                        widget="daterange"
+                                        options="{'end_date_field': 'date_end'}"
+                                        optional="hide"
+                                    />
+                                    <field
+                                        name="fixed_price"
+                                        string="Price"
+                                        widget="monetary"
+                                        options="{'currency_field': 'currency_id'}"
+                                    />
                                     <field name="company_id" groups="base.group_multi_company" optional="hide"/>
 
                                     <!-- Needed for rule edition & creation on product.product form -->
                                     <field name="product_tmpl_id" column_invisible="True"/>
+                                    <field name="currency_id" column_invisible="True"/>
                                 </list>
                             </field>
                         </page>
@@ -232,7 +295,7 @@
         <field name="model">product.template</field>
         <field name="arch" type="xml">
             <search string="Product">
-                <field name="name" string="Product" filter_domain="['|', '|', '|', ('default_code', 'ilike', self), ('product_variant_ids.default_code', 'ilike', self),('name', 'ilike', self), ('barcode', 'ilike', self)]"/>
+                <field name="name" string="Product" filter_domain="['|', '|', '|', '|', ('default_code', 'ilike', self), ('product_variant_ids.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('display_name', '=', self)]"/>
                 <field name="categ_id" filter_domain="[('categ_id', 'child_of', raw_value)]"/>
                 <field name="product_tag_ids" string="Tags"/>
                 <separator/>
@@ -243,6 +306,7 @@
                 <filter string="Favorites" name="favorites" domain="[('is_favorite', '=', True)]"/>
                 <separator/>
                 <filter string="Sales" name="filter_to_sell" domain="[('sale_ok','=',True)]"/>
+                <filter string="Purchase" name="filter_to_purchase" domain="[('purchase_ok', '=', True)]"/>
                 <separator/>
                 <field string="Attributes" name="attribute_line_ids" groups="product.group_product_variant"/>
                 <filter invisible="1" string="My Activities" name="filter_activities_my"
@@ -293,7 +357,7 @@
                     <field name="all_product_tag_ids" string="Tags"/>
                 </field>
                 <field name="name" position="replace">
-                    <field name="name" string="Product" filter_domain="['|', '|', ('default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self)]"/>
+                    <field name="name" string="Product" filter_domain="['|', '|', '|', ('default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('display_name', '=', self)]"/>
                 </field>
                 <field name="attribute_line_ids" position="replace">
                     <field name="product_template_attribute_value_ids" groups="product.group_product_variant"/>
@@ -353,7 +417,7 @@
                                 <field name="product_variant_count" invisible="1"/>
                                 <label for="lst_price" string="Sales Price"/>
                                 <div class="o_row">
-                                    <field name="lst_price" class="oe_inline" widget='monetary' options="{'currency_field': 'currency_id', 'field_digits': True}" readonly="product_variant_count &gt; 1"/>
+                                    <field name="lst_price" class="oe_inline" widget='monetary' options="{'currency_field': 'currency_id', 'field_digits': True}"/>
                                 </div>
                                 <label for="standard_price"/>
                                 <div class="o_row">
@@ -368,6 +432,13 @@
                         </group>
                         <group>
                             <group name="weight" string="Logistics" invisible="type != 'consu'">
+                                <label for="qty_available"  invisible="not is_storable"/>
+                                <div class="d-flex" name="no_stock_variant_qty_edit" invisible="not is_storable">
+                                    <div class="d-flex">
+                                        <field name="qty_available" class="oe_inline"/>
+                                        <field name="uom_name" groups="uom.group_uom"/>
+                                    </div>
+                                </div>
                                 <label for="volume"/>
                                 <div class="d-flex">
                                     <field name="volume" class="oe_inline"/>
@@ -383,9 +454,10 @@
                                 <field
                                     name="uom_ids"
                                     widget="many2many_uom_tags"
-                                    options="{'no_quick_create': True, 'edit_tags': True}"
+                                    options="{'no_quick_create': True, 'on_tag_click': 'open_form'}"
                                     groups="uom.group_uom"
                                     force_save="1"
+                                    readonly="1"
                                     context="{'product_id': id}"/>
                                 <field name="product_tag_ids" widget="many2many_tags" readonly="1"/>
                                 <field name="additional_product_tag_ids" widget="many2many_tags" context="{'product_variant_id': id}"/>
@@ -436,6 +508,13 @@
                     <field name="product_tag_ids" widget="many2many_tags" readonly="1" optional="hide"/>
                     <field name="additional_product_tag_ids" widget="many2many_tags" optional="hide"/>
                     <field name="type" optional="hide" readonly="1"/>
+                    <field name="qty_available" invisible="not is_storable" string="On Hand" readonly="1" optional="show"
+                           decoration-danger="virtual_available &lt; 0" decoration-warning="virtual_available == 0" decoration-bf="1"
+                           sum="Total On Hand"
+                    />
+                    <field name="virtual_available" invisible="not is_storable" string="Forecasted" readonly="1" optional="show"
+                           decoration-danger="virtual_available &lt; 0" decoration-warning="virtual_available == 0" sum="Total Forecasted"
+                    />
                     <field name="uom_id" groups="uom.group_uom" optional="show" readonly="1"/>
                     <field name="product_tmpl_id" readonly="1" column_invisible="True"/>
                     <field name="active" column_invisible="True"/>
@@ -479,11 +558,13 @@
             <field eval="7" name="priority"/>
             <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="arch" type="xml">
-                <xpath expr="//page[@name='sales_price']/field[@name='pricelist_rule_ids']" position="attributes">
+                <xpath expr="//field[@name='fixed_pricelist_rule_ids']" position="attributes">
                     <attribute name="context">
                         {
                             'default_product_id': id,
-                            'form_view_ref': 'product.product_pricelist_item_product_product_form_view'
+                            'default_compute_price': 'fixed',
+                            'default_applied_on': '1_product',
+                            'form_view_ref': 'product.product_pricelist_item_product_product_form_view',
                         }
                     </attribute>
                 </xpath>
@@ -519,7 +600,11 @@
                     <attribute name="context">{'product_template_id': product_tmpl_id}</attribute>
                 </field>
                 <field name="product_tag_ids" position="after">
-                    <field name="additional_product_tag_ids" widget="many2many_tags"/>
+                    <field
+                        name="additional_product_tag_ids"
+                        widget="many2many_tags"
+                        invisible="product_variant_count == 1"
+                    />
                 </field>
                 <field name="uom_ids" position="attributes">
                     <attribute name="context">{'product_id': id}</attribute>
@@ -664,41 +749,37 @@ action = {
                         <div class="o_product_catalog_cancel_global_click">
                             <a role="menuitem" type="open" class="dropdown-item border-top-0">Edit</a>
                         </div>
-                        <div class="container p-0">
-                            <field name="is_favorite" widget="boolean_favorite" class="col-12 pe-0"/>
-                        </div>
+                        <field name="is_favorite" widget="boolean_favorite" class="o_product_catalog_favorite dropdown-item"/>
                     </t>
                     <t t-name="card" class="p-0">
                     <!-- TODO : not getting border when select record -->
-                        <div class="d-flex flex-grow-1 m-2">
-                            <div class="ps-2 d-flex flex-column m-1 overflow-hidden"
+                        <div class="d-flex flex-grow-1 gap-1 m-2">
+                            <div class="d-flex flex-column flex-grow-1 gap-1 overflow-hidden"
                                     t-attf-id="product-{{record.id.raw_value}}">
-                                <div class="d-flex">
-                                    <field name="name" class="fw-bold fs-4 text-reset mb-1 me-2"/>
-                                    <field class="mt-1 me-1"
-                                        name="is_favorite"
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <field name="is_favorite"
                                         widget="boolean_favorite"
                                         invisible="not is_favorite"
                                         nolabel="1"
                                         readonly="1"/>
+                                    <field name="name" class="fw-bold fs-4 text-reset"/>
                                 </div>
+                                <field name="product_template_attribute_value_ids"
+                                    widget="many2many_tags"
+                                    domain="[('id', 'in', parent.ids)]"
+                                    groups="product.group_product_variant"
+                                    options="{'color_field': 'color'}"
+                                    invisible="not product_template_attribute_value_ids"/>
                                 <!-- Used by @web/product/js/product_catalog/order_line to
                                         show the price using a t-portal. -->
                                 <div name="o_kanban_price"
                                         t-attf-id="product-{{record.id.raw_value}}-price"/>
-                                <field name="product_template_attribute_value_ids"
-                                        widget="many2many_tags"
-                                        domain="[('id', 'in', parent.ids)]"
-                                        groups="product.group_product_variant"
-                                        options="{'color_field': 'color'}"
-                                        invisible="not product_template_attribute_value_ids"/>
                             </div>
                             <field
                                 name="image_128"
-                                class="ms-auto"
                                 invisible="not image_128"
                                 widget="image"
-                                options="{'size': [55, 55], 'img_class': 'object-fit-contain'}"
+                                options="{'size': [64, 64], 'img_class': 'object-fit-contain'}"
                                 alt="Product"
                             />
                         </div>

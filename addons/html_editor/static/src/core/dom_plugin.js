@@ -601,7 +601,7 @@ export class DomPlugin extends Plugin {
     /**
      * Determines if a block element can be safely retagged.
      *
-     * Certain blocks (like 'o_editable') should not be retagged because doing so
+     * Certain blocks (like 'o_savable') should not be retagged because doing so
      * will recreate the block, potentially causing issues. This function checks
      * if retagging a block is safe.
      *
@@ -613,14 +613,20 @@ export class DomPlugin extends Plugin {
             (isParagraphRelatedElement(block) ||
                 isListItemElement(block) ||
                 isPhrasingContent(block)) &&
-            this.getResource("unremovable_node_predicates").some((predicate) => predicate(block))
+            this.dependencies.delete.isUnremovable(block)
         );
     }
 
     getBlocksToSet() {
-        const targetedBlocks = [...this.dependencies.selection.getTargetedBlocks()];
+        const isCollapsed = this.dependencies.selection.getEditableSelection().isCollapsed;
+        const targetedNodes = this.dependencies.selection.getTargetedNodes();
+        const lastTargetedNode = targetedNodes.slice(-1)[0];
+        const targetedBlocks = [...new Set(targetedNodes.map(closestBlock).filter(Boolean))];
         return targetedBlocks.filter(
             (block) =>
+                // If the selection ends in a block, the block is not visibly
+                // selected so exclude it.
+                (isCollapsed || block !== lastTargetedNode) &&
                 this.isRetaggingSafe(block) &&
                 !descendants(block).some((descendant) => targetedBlocks.includes(descendant)) &&
                 block.isContentEditable
@@ -637,19 +643,24 @@ export class DomPlugin extends Plugin {
      * @param {string} [param0.extraClass]
      */
     setBlock({ tagName, extraClass = "" }) {
-        let newCandidate = this.document.createElement(tagName.toUpperCase());
-        if (extraClass) {
-            newCandidate.classList.add(extraClass);
-        }
-        if (this.dependencies.baseContainer.isCandidateForBaseContainer(newCandidate)) {
-            const baseContainer = this.dependencies.baseContainer.createBaseContainer(
-                newCandidate.nodeName
-            );
-            this.copyAttributes(newCandidate, baseContainer);
-            newCandidate = baseContainer;
-        }
+        const createNewCandidate = () => {
+            let newCandidate = this.document.createElement(tagName.toUpperCase());
+            if (extraClass) {
+                newCandidate.classList.add(extraClass);
+            }
+            if (this.dependencies.baseContainer.isCandidateForBaseContainer(newCandidate)) {
+                const baseContainer = this.dependencies.baseContainer.createBaseContainer(
+                    newCandidate.nodeName
+                );
+                this.copyAttributes(newCandidate, baseContainer);
+                newCandidate = baseContainer;
+            }
+            return newCandidate;
+        };
+        let newCandidate = createNewCandidate();
+        this.dependencies.split.splitBlockSegments();
         const cursors = this.dependencies.selection.preserveSelection();
-        const newEls = [];
+        let newEl;
         for (const block of this.getBlocksToSet()) {
             if (
                 isParagraphRelatedElement(block) ||
@@ -660,9 +671,13 @@ export class DomPlugin extends Plugin {
                 if (newCandidate.matches(baseContainerGlobalSelector) && isListItemElement(block)) {
                     continue;
                 }
-                this.dispatchTo("before_set_tag_handlers", block, tagName, cursors);
-                const newEl = this.setTagName(block, tagName);
-                cursors.remapNode(block, newEl);
+                const params = { block, newEl, tagName, cursors };
+                this.dispatchTo("before_set_tag_handlers", params);
+                if (this.delegateTo("set_block_overrides", params)) {
+                    continue;
+                }
+                newEl = this.setTagName(params.block, tagName);
+                cursors.remapNode(params.block, newEl);
                 // We want to be able to edit the case `<h2 class="h3">`
                 // but in that case, we want to display "Header 2" and
                 // not "Header 3" as it is more important to display
@@ -674,13 +689,13 @@ export class DomPlugin extends Plugin {
                 if (extraClass) {
                     newEl.classList.add(extraClass);
                 }
-                newEls.push(newEl);
             } else {
                 // eg do not change a <div> into a h1: insert the h1
                 // into it instead.
                 newCandidate.append(...childNodes(block));
                 block.append(newCandidate);
                 cursors.remapNode(block, newCandidate);
+                newCandidate = createNewCandidate();
             }
         }
         cursors.restore();

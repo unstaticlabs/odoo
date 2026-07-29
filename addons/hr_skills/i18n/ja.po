@@ -2,30 +2,29 @@
 # This file contains the translation of the following modules:
 # * hr_skills
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Ryoko Tsuda <ryoko@quartile.co>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Ryoko Tsuda <ryoko@quartile.co>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-07-01 17:41+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-04-23 11:53+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_skills/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_skills
 #. odoo-python
 #: code:addons/hr_skills/models/hr_skill_type.py:0
-#, fuzzy
 msgid "%(skill_type_name)s (copy)"
 msgstr "%(skill_type_name)s (コピー)"
 
@@ -55,7 +54,6 @@ msgid "ADD"
 msgstr "追加"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__active
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__active
 msgid "Active"
@@ -190,7 +188,6 @@ msgstr "Burtho Inc."
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_csharp
-#, fuzzy
 msgid "C#"
 msgstr "C#"
 
@@ -231,22 +228,26 @@ msgid "Category"
 msgstr "カテゴリー"
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_file
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_file
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_file
+#: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 msgid "Certificate"
 msgstr "証明書"
 
 #. module: hr_skills
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__certificate_filename
+#: model:ir.model.fields,field_description:hr_skills.field_hr_job_skill__certificate_filename
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__certificate_filename
 msgid "Certificate Filename"
 msgstr "証明書ファイル名"
 
 #. module: hr_skills
-#: model:ir.actions.act_window,name:hr_skills.hr_employee_certification_report_action
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__certification_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__is_certification
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_list
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
@@ -255,22 +256,9 @@ msgid "Certification"
 msgstr "検定"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-msgid "Certification Level"
-msgstr "認定レベル"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-msgid "Certification Type"
-msgstr "検定タイプ"
-
-#. module: hr_skills
 #: model:hr.skill.type,name:hr_skills.hr_skill_type_certifications
 #: model:ir.actions.act_window,name:hr_skills.action_hr_employee_skill_certification
 #: model:ir.ui.menu,name:hr_skills.hr_certification_menu
-#: model:ir.ui.menu,name:hr_skills.hr_employee_certification_report_menu
-#: model:mail.activity.type,name:hr_skills.mail_activity_data_upload_certification
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
 msgid "Certifications"
@@ -330,7 +318,7 @@ msgid "Communication"
 msgstr "コミュニケーション"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__company_id
+#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__company_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__company_id
 msgid "Company"
@@ -447,8 +435,6 @@ msgid "Current Job Skill"
 msgstr "現在の職務スキル"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_list
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_pivot
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_graph
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_pivot
 msgid "Current Level"
@@ -545,10 +531,8 @@ msgid "Demo Company Name"
 msgstr "デモ会社名"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__department_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__department_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 msgid "Department"
 msgstr "部門"
@@ -575,11 +559,6 @@ msgid "Digital advertising"
 msgstr "デジタル広告"
 
 #. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_cv_wizard_view_form
-msgid "Discard"
-msgstr "破棄"
-
-#. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_certification_page
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_certification_page
 msgid "Display Certification Page"
@@ -587,7 +566,6 @@ msgstr "認定ページを表示"
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__display_name
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__display_name
@@ -627,12 +605,12 @@ msgstr "ダグラス、トンプソン、コナー"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__duration
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
 msgid "Duration"
-msgstr "期間"
+msgstr "受講時間"
 
 #. module: hr_skills
 #: model:hr.resume.line.type,name:hr_skills.resume_type_education
 msgid "Education"
-msgstr "学歴"
+msgstr "教育"
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jve_ellinbank_primary_school
@@ -651,23 +629,16 @@ msgstr "メールマーケティング"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_employee
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__employee_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__employee_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_resume_line__employee_id
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form_inherit
 msgid "Employee"
 msgstr "従業員"
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_employee_certification_report
-msgid "Employee Certification Report"
-msgstr "従業員認定レポート"
 
 #. module: hr_skills
 #: model:ir.actions.report,name:hr_skills.action_report_employee_cv
@@ -724,8 +695,8 @@ msgid ""
 "future incomes/expenses. The application uses machine learning to train "
 "itself."
 msgstr ""
-"財務データを入力すると、アプリが将来の収入/支出を予測しようとします。この"
-"アプリは機械学習を使って自主学習します。"
+"財務データを入力すると、アプリが将来の収入/支出を予測しようとします。このアプ"
+"リは機械学習を使って自主学習します。"
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_qdp_evans_cooper_and_white
@@ -747,11 +718,6 @@ msgstr "経験"
 #: code:addons/hr_skills/static/src/components/internal_resume_lines/internal_resume_one2many.xml:0
 msgid "Experience -"
 msgstr "経験 -"
-
-#. module: hr_skills
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_certification_report_view_search
-msgid "Expired Certification"
-msgstr "有効期限切れの認定"
 
 #. module: hr_skills
 #: model:ir.model.fields.selection,name:hr_skills.selection__hr_resume_line__course_type__external
@@ -898,7 +864,6 @@ msgid "Harrington Park Public School"
 msgstr "ハリントンパーク公立学校"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__has_department_manager_access
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__has_department_manager_access
 msgid "Has Department Manager Access"
 msgstr "部門マネジャーアクセス権あり"
@@ -945,7 +910,6 @@ msgstr "人事担当"
 
 #. module: hr_skills
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__id
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_cv_wizard__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__id
@@ -1004,7 +968,8 @@ msgstr "ITテクニカルサポート担当"
 msgid ""
 "If checked, this level will be the default one selected when choosing this "
 "skill."
-msgstr "チェックした場合、このスキルの選択時にこのレベルがデフォルトで選択されます。"
+msgstr ""
+"チェックした場合、このスキルの選択時にこのレベルがデフォルトで選択されます。"
 
 #. module: hr_skills
 #. odoo-javascript
@@ -1097,8 +1062,8 @@ msgstr ""
 "職位: 開発チームリーダー\n"
 "- 様々なプロダクションサポートに関する問題(Java、Perl、Shellスクリプト、SQL)"
 "の調査と修正で技術業務をサポート。\n"
-"- 全体的なシステム構築や取引システムの変更/新規開発に関連する複数の同時進行"
-"プロジェクトの品質保証計画を主導。\n"
+"- 全体的なシステム構築や取引システムの変更/新規開発に関連する複数の同時進行プ"
+"ロジェクトの品質保証計画を主導。\n"
 "- ポートフォリオマネジャーからの提供を受け、MATLABとSQLを使用してビジネスに関"
 "わる重要なアルファ・モデルとリスクモデルを設定、リリース。"
 
@@ -1116,8 +1081,8 @@ msgstr ""
 "- 開発から生産まで、5つのシステム環境にまたがるソフトウェアのデプロイメントを"
 "調整、管理。\n"
 "- Javaレベルのプログラミング作業を支援するストアドプロシージャを開発。\n"
-"- 商業施設や防衛関連の複数の再生可能エネルギープラントのアーキテクチャを開発"
-"。"
+"- 商業施設や防衛関連の複数の再生可能エネルギープラントのアーキテクチャを開"
+"発。"
 
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_report_view_search
@@ -1215,7 +1180,6 @@ msgid "Leinster School"
 msgstr "レンスター校"
 
 #. module: hr_skills
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__level_progress
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__level_progress
 msgid "Level Progress"
@@ -1657,7 +1621,6 @@ msgstr "Python"
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_r
-#, fuzzy
 msgid "R"
 msgstr "R"
 
@@ -1674,7 +1637,12 @@ msgstr "ラミレス社"
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_react
 msgid "React"
-msgstr "React"
+msgstr "反応"
+
+#. module: hr_skills
+#: model:ir.model,name:hr_skills.model_resource_resource
+msgid "Resource"
+msgstr "リソース"
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_resourcefulness
@@ -1682,16 +1650,9 @@ msgid "Resourcefulness"
 msgstr "機転が利くこと"
 
 #. module: hr_skills
-#: model:ir.model,name:hr_skills.model_resource_resource
-msgid "Resources"
-msgstr "リソース"
-
-#. module: hr_skills
 #: model:ir.ui.menu,name:hr_skills.menu_human_resources_configuration_resume
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_form_inherit
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_public_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_form
-#: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_view_search
 #: model_terms:ir.ui.view,arch_db:hr_skills.resume_line_view_form
 msgid "Resume"
 msgstr "履歴書"
@@ -1872,7 +1833,6 @@ msgstr "シモンズ＝ウィルコックス"
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee__skill_ids
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_id
@@ -1893,7 +1853,6 @@ msgstr "スキル履歴レポート"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_level
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_level_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_level
 #: model:ir.model.fields,field_description:hr_skills.field_hr_individual_skill_mixin__skill_level_id
@@ -1910,7 +1869,6 @@ msgstr "スキルレベル"
 
 #. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_skill_type
-#: model:ir.model.fields,field_description:hr_skills.field_hr_employee_certification_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_history_report__skill_type_id
 #: model:ir.model.fields,field_description:hr_skills.field_hr_employee_skill_report__skill_type_id
@@ -1934,6 +1892,11 @@ msgid "Skill Types"
 msgstr "スキルタイプ"
 
 #. module: hr_skills
+#: model:ir.model,name:hr_skills.model_hr_job_skill
+msgid "Skill for job position"
+msgstr "職務に必要なスキル"
+
+#. module: hr_skills
 #: model:ir.model,name:hr_skills.model_hr_individual_skill_mixin
 msgid "Skill level"
 msgstr "スキルレベル"
@@ -1952,7 +1915,6 @@ msgstr "従業員用スキルレベル"
 #: model:ir.model.fields,field_description:hr_skills.field_hr_job__job_skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_hr_skill_type__skill_ids
 #: model:ir.model.fields,field_description:hr_skills.field_resource_resource__employee_skill_ids
-#: model:ir.ui.menu,name:hr_skills.hr_employee_skill_report_menu
 #: model_terms:ir.ui.view,arch_db:hr_skills.employee_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_employee_skill_type_view_form
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_job_skill_view_form
@@ -1983,11 +1945,6 @@ msgstr "スキル一覧"
 #: code:addons/hr_skills/static/src/fields/skills_one2many/skills_one2many.js:0
 msgid "Skills Report"
 msgstr "スキルレポート"
-
-#. module: hr_skills
-#: model:ir.model,name:hr_skills.model_hr_job_skill
-msgid "Skills for job positions"
-msgstr "職種別スキル"
 
 #. module: hr_skills
 #: model:ir.actions.server,name:hr_skills.hr_job_skills_cron_add_certification_activity_to_employees_ir_actions_server
@@ -2139,7 +2096,8 @@ msgstr "スキル %(name)s とスキルタイプ %(type)s が一致しません�
 #. odoo-python
 #: code:addons/hr_skills/models/hr_individual_skill_mixin.py:0
 msgid "The skill level %(level)s is not valid for skill type: %(type)s"
-msgstr "スキルレベル %(level)s は、スキルタイプ %(type)s に対して有効ではありません。"
+msgstr ""
+"スキルレベル %(level)s は、スキルタイプ %(type)s に対して有効ではありません。"
 
 #. module: hr_skills
 #: model:ir.model.constraint,message:hr_skills.constraint_hr_resume_line_date_check
@@ -2162,15 +2120,6 @@ msgstr "この従業員には履歴書明細がありません。"
 #: code:addons/hr_skills/static/src/fields/skills_one2many/skills_one2many.xml:0
 msgid "There are no skills defined in the library."
 msgstr "ライブラリで定義されたスキルはありません"
-
-#. module: hr_skills
-#: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_certification_report_action
-msgid ""
-"This report will give you an overview of the certification per Employee.\n"
-"                Create them in configuration and add them on the Employee."
-msgstr ""
-"このレポートでは、従業員ごとの認定概要がわかります。\n"
-"                設定で作成し、従業員に追加します。"
 
 #. module: hr_skills
 #: model_terms:ir.actions.act_window,help:hr_skills.hr_employee_skill_report_action
@@ -2234,7 +2183,7 @@ msgstr "研修参加状況"
 #. module: hr_skills
 #: model_terms:ir.ui.view,arch_db:hr_skills.hr_resume_line_list_view
 msgid "Training Title"
-msgstr "研修タイトル"
+msgstr "トレーニングタイトル"
 
 #. module: hr_skills
 #: model:hr.resume.line,name:hr_skills.employee_resume_jep_trinity_college
@@ -2285,9 +2234,10 @@ msgid "Update Skills"
 msgstr "スキルを更新"
 
 #. module: hr_skills
-#: model:mail.activity.type,summary:hr_skills.mail_activity_data_upload_certification
-msgid "Upload a certification"
-msgstr "証明書をアップロード"
+#. odoo-python
+#: code:addons/hr_skills/models/hr_employee.py:0
+msgid "Upload a document for a missing certification"
+msgstr "不足している証明書のドキュメントをアップロード"
 
 #. module: hr_skills
 #: model:hr.skill,name:hr_skills.hr_skill_urdu
@@ -2464,30 +2414,3 @@ msgstr "• %(skill_name)s (有効期間: %(valid_from)s から %(valid_to)s)"
 
 #~ msgid "2023"
 #~ msgstr "2023"
-
-#~ msgid "%s (copy)"
-#~ msgstr "%s (コピー)"
-
-#~ msgid "Classic"
-#~ msgstr "クラシック"
-
-#~ msgid "Display Type"
-#~ msgstr "表示タイプ"
-
-#~ msgid "Group By..."
-#~ msgstr "グループ化…"
-
-#~ msgid "Line Types"
-#~ msgstr "明細タイプ"
-
-#~ msgid "New Resume line"
-#~ msgstr "新規履歴書明細"
-
-#~ msgid "Resume Line Types"
-#~ msgstr "履歴書明細タイプ"
-
-#~ msgid "Social Media"
-#~ msgstr "ソーシャルメディア"
-
-#~ msgid "User"
-#~ msgstr "ユーザ"

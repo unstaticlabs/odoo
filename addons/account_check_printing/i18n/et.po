@@ -13,13 +13,13 @@
 # Martin Trigaux, 2022
 # Anna, 2023
 # JanaAvalah, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:52+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-11-08 19:02+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "account_check_printing/et/>\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: account_check_printing
 #. odoo-python
@@ -69,11 +69,6 @@ msgstr "Summa sõnadega"
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "Bills"
 msgstr "Ostuarved"
-
-#. module: account_check_printing
-#: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
-msgid "Cancel"
-msgstr "Tühista"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__bank_check_printing_layout
@@ -157,8 +152,8 @@ msgstr "Printmist ootavad tšekid"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
-msgid "Companies"
-msgstr "Ettevõtted"
+msgid "Company"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
@@ -286,19 +281,15 @@ msgid "None"
 msgstr "Pole"
 
 #. module: account_check_printing
-#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
-msgid "Payment Method"
-msgstr "Maksemeetod"
+#: model:ir.model,name:account_check_printing.model_account_payment
+msgid "Payment"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_account_payment_method
-msgid "Payment Methods"
-msgstr "Maksmise meetodid"
-
-#. module: account_check_printing
-#: model:ir.model,name:account_check_printing.model_account_payment
-msgid "Payments"
-msgstr "Maksed"
+#: model:ir.model.fields,field_description:account_check_printing.field_account_payment__payment_method_line_id
+msgid "Payment Method"
+msgstr "Maksemeetod"
 
 #. module: account_check_printing
 #. odoo-python
@@ -313,7 +304,8 @@ msgstr "Selleks, et saaks maksed trükkida kui..."
 msgid ""
 "Please enter the number of the first pre-printed check that you are about to "
 "print on."
-msgstr "Palun sisesta esimese eelprinditud tšeki number, mida soovite printiga."
+msgstr ""
+"Palun sisesta esimese eelprinditud tšeki number, mida soovite printiga."
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
@@ -395,8 +387,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/account_check_printing/models/account_journal.py:0
 msgid ""
-"The check number you entered (%(num)s) exceeds the maximum allowed value of %"
-"(max)d. Please enter a smaller number."
+"The check number you entered (%(num)s) exceeds the maximum allowed value of "
+"%(max)d. Please enter a smaller number."
 msgstr ""
 
 #. module: account_check_printing
@@ -490,42 +482,3 @@ msgstr ""
 #: code:addons/account_check_printing/models/account_payment.py:0
 msgid "sep"
 msgstr ""
-
-#~ msgid "Contact"
-#~ msgstr "Kontakt"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Andmiku kanne"
-
-#~ msgid ""
-#~ "Manual: Pay or Get paid by any method outside of Odoo.\n"
-#~ "Payment Providers: Each payment provider has its own Payment Method. "
-#~ "Request a transaction on/to a card thanks to a payment token saved by the "
-#~ "partner when buying or subscribing online.\n"
-#~ "Check: Pay bills by check and print it from Odoo.\n"
-#~ "Batch Deposit: Collect several customer checks at once generating and "
-#~ "submitting a batch deposit to your bank. Module account_batch_payment is "
-#~ "necessary.\n"
-#~ "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit "
-#~ "Transfer file to your bank. Module account_sepa is necessary.\n"
-#~ "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your "
-#~ "partner will have granted to you. Module account_sepa is necessary.\n"
-#~ msgstr ""
-#~ "Manual: Pay or Get paid by any method outside of Odoo.\n"
-#~ "Payment Providers: Each payment provider has its own Payment Method. "
-#~ "Request a transaction on/to a card thanks to a payment token saved by the "
-#~ "partner when buying or subscribing online.\n"
-#~ "Check: Pay bills by check and print it from Odoo.\n"
-#~ "Batch Deposit: Collect several customer checks at once generating and "
-#~ "submitting a batch deposit to your bank. Module account_batch_payment is "
-#~ "necessary.\n"
-#~ "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit "
-#~ "Transfer file to your bank. Module account_sepa is necessary.\n"
-#~ "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your "
-#~ "partner will have granted to you. Module account_sepa is necessary.\n"
-
-#~ msgid "Preferred Payment Method"
-#~ msgstr "Eelistatud makseviis"
-
-#~ msgid "Register Payment"
-#~ msgstr "Lisa makse"

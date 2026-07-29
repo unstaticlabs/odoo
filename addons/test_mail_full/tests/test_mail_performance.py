@@ -75,7 +75,7 @@ class TestMailPerformance(FullBaseMailPerformance):
         self.push_to_end_point_mocked.reset_mock()  # reset as executed twice
         self.flush_tracking()
 
-        with self.assertQueryCount(employee=108):  # test_mail_full: 106
+        with self.assertQueryCount(employee=110):  # test_mail_full: 108
             new_message = record_ticket.message_post(
                 attachment_ids=attachments.ids,
                 body=Markup('<p>Test Content</p>'),
@@ -143,7 +143,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
             {
                 'attachment_ids': [
                     (0, 0, {
-                        'datas': 'data',
+                        'raw': b'data',
                         'name': f'Test file {att_idx}',
                         'res_id': record.id,
                         'res_model': record._name,
@@ -189,7 +189,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
                 'res_id': record.id,
                 'subject': f'Test Rating {msg_idx}',
                 'subtype_id': comment_subtype_id,
-                'starred_partner_ids': [
+                'bookmarked_partner_ids': [
                     (4, cls.customers[(msg_idx * 2)].id),
                     (4, cls.customers[(msg_idx * 2) + 1].id),
                 ],
@@ -236,7 +236,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
     def test_portal_message_format_norating(self):
         messages_all = self.messages_all.with_user(self.env.user)
 
-        with self.assertQueryCount(employee=15):
+        with self.assertQueryCount(employee=11):
             # res = messages_all.portal_message_format(options=None)
             res = messages_all.portal_message_format(options={'rating_include': False})
 
@@ -275,7 +275,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
             )
             self.assertEqual(format_res["author_id"]["id"], record.customer_id.id)
             self.assertEqual(format_res["author_id"]["name"], record.customer_id.display_name)
-            self.assertEqual(format_res['author_avatar_url'], f'/web/image/mail.message/{message.id}/author_avatar/50x50')
+            self.assertEqual(format_res["author_id"]["avatar_128_access_token"], record.customer_id._get_avatar_128_access_token())
             self.assertEqual(format_res['date'], datetime(2023, 5, 15, 10, 30, 5))
             self.assertEqual(' '.join(format_res['published_date_str'].split()), '05/15/2023 10:30:05 AM')
             self.assertEqual(format_res['id'], message.id)
@@ -293,7 +293,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
     def test_portal_message_format_rating(self):
         messages_all = self.messages_all.with_user(self.env.user)
 
-        with self.assertQueryCount(employee=29):  # sometimes +1
+        with self.assertQueryCount(employee=26):  # 24, sometimes +1
             res = messages_all.portal_message_format(options={'rating_include': True})
 
         self.assertEqual(len(res), len(messages_all))
@@ -315,7 +315,7 @@ class TestPortalFormatPerformance(FullBaseMailPerformance):
     def test_portal_message_format_monorecord(self):
         message = self.messages_all[0].with_user(self.env.user)
 
-        with self.assertQueryCount(employee=20):  # randomness: 19+1
+        with self.assertQueryCount(employee=17):  # randomness: 15+1
             res = message.portal_message_format(options={'rating_include': True})
 
         self.assertEqual(len(res), 1)
@@ -425,25 +425,25 @@ class TestRatingPerformance(FullBaseMailPerformance):
     @users('employee')
     @warmup
     def test_rating_last_value_perfs(self):
-        with self.assertQueryCount(employee=274):  # tmf: 274
+        with self.assertQueryCount(employee=314):  # tmf: 274
             self.create_ratings('mail.test.rating.thread')
 
-        with self.assertQueryCount(employee=283):  # tmf: 283
+        with self.assertQueryCount(employee=323):  # tmf: 283
             self.apply_ratings(1)
 
-        with self.assertQueryCount(employee=242):  # tmf: 242
+        with self.assertQueryCount(employee=282):  # tmf: 242
             self.apply_ratings(5)
 
     @users('employee')
     @warmup
     def test_rating_last_value_perfs_with_rating_mixin(self):
-        with self.assertQueryCount(employee=317):  # tmf: 317
+        with self.assertQueryCount(employee=357):  # tmf: 297
             self.create_ratings('mail.test.rating')
 
-        with self.assertQueryCount(employee=325):  # tmf: 325
+        with self.assertQueryCount(employee=364):  # tmf: 325
             self.apply_ratings(1)
 
-        with self.assertQueryCount(employee=304):  # tmf: 304
+        with self.assertQueryCount(employee=343):  # tmf: 304
             self.apply_ratings(5)
 
         with self.assertQueryCount(employee=1):

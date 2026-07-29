@@ -1,16 +1,25 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
 from datetime import date, timedelta
 
+from freezegun import freeze_time
+
 from odoo import Command
-from odoo.tests import tagged, users
+from odoo.tests import users
 from odoo.tests.common import HttpCase, new_test_user
 from odoo.addons.mail.tests.common import MailCommon
 
 
-@tagged("post_install", "-at_install")
 class TestAvatarCardTour(MailCommon, HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # Freeze on a fixed mid-week day so the time off below (created relative
+        # to "today") always ends on a working day. When it ends on a Sat/Sun
+        # its date_to is the weekend's 00:00, so the "currently on leave" window
+        # closes at midnight and the avatar card's out-of-office indicator flakes
+        # away once the run crosses it (runbot 242512).
+        cls.startClassPatcher(freeze_time("2024-06-12"))
         new_test_user(
             cls.env,
             login="hr_user",
@@ -61,15 +70,17 @@ class TestAvatarCardTour(MailCommon, HttpCase):
         )
 
         # hr_holidays setup for multi-company
-        leave_type = (
-            cls.env["hr.leave.type"]
+        work_entry_type = (
+            cls.env['hr.work.entry.type']
             .with_company(cls.company_2)
             .create(
                 {
                     "name": "Time Off multi company",
-                    "company_id": cls.company_2.id,
-                    "time_type": "leave",
+                    "code": "TOMULTI",
+                    "count_as": "absence",
                     "requires_allocation": False,
+                    'request_unit': 'day',
+                    'unit_of_measure': 'day',
                 }
             )
         )
@@ -79,7 +90,7 @@ class TestAvatarCardTour(MailCommon, HttpCase):
             {
                 "name": "Test Leave",
                 "company_id": cls.company_2.id,
-                "holiday_status_id": leave_type.id,
+                "work_entry_type_id": work_entry_type.id,
                 "employee_id": cls.test_employee.id,
                 "request_date_from": (date.today() - timedelta(days=1)),
                 "request_date_to": (date.today() + timedelta(days=1)),
@@ -151,3 +162,32 @@ class TestAvatarCardTour(MailCommon, HttpCase):
             "avatar_card_tour_no_hr_access",
             login=self.env.user.login,
         )
+
+    @users("employee")
+    def test_get_employee_data_from_inaccessible_company(self):
+        self.authenticate(self.env.user.login, self.env.user.login)
+        channel = self.env["discuss.channel"]._get_or_create_chat(self.user_employee_c2.partner_id.id)
+        members_data = self.make_jsonrpc_request(
+            "/discuss/channel/members",
+            {"channel_id": channel.id, "known_member_ids": []},
+        )
+        avatar_card_data = self.make_jsonrpc_request(
+            "/mail/data",
+            {"fetch_params": [["avatar_card", {"id": self.user_employee_c2.id, "model": "res.users"}]]},
+        )
+        members_user = next(
+            user for user in members_data["res.users"] if user["id"] == self.user_employee_c2.id
+        )
+        avatar_card_user = next(
+            user for user in avatar_card_data["res.users"] if user["id"] == self.user_employee_c2.id
+        )
+        self.assertIn(
+            self.test_employee.id,
+            [employee["id"] for employee in members_data["hr.employee"]],
+        )
+        self.assertIn(
+            self.test_employee.id,
+            [employee["id"] for employee in avatar_card_data["hr.employee"]],
+        )
+        self.assertEqual(members_user["all_employee_ids"], [self.test_employee.id])
+        self.assertEqual(avatar_card_user["all_employee_ids"], [self.test_employee.id])

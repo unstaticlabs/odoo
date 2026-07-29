@@ -10,16 +10,16 @@
 # Karol Rybak <karolrybak85@gmail.com>, 2022
 # Natalia Gros <nag@odoo.com>, 2022
 # Tadeusz Karpiński <tadeuszkarpinski@gmail.com>, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 02:12+0000\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2026-02-14 12:10+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-1/"
 "hr_presence/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -28,13 +28,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.6.1\n"
-
-#. module: hr_presence
-#. odoo-python
-#: code:addons/hr_presence/models/hr_employee.py:0
-msgid "%(name)s has been noted as %(state)s today"
-msgstr "%(name)s został/a dzisiaj oznaczony/a jako %(state)s"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: hr_presence
 #: model:mail.template,body_html:hr_presence.mail_template_presence
@@ -70,26 +64,19 @@ msgstr ""
 "            "
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__absent
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__absent
 #: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
 msgid "Absent"
 msgstr "Nieobecny(a)"
 
 #. module: hr_presence
-#: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_log
-msgid "Add a log note"
-msgstr "Dodaj notatkę"
-
-#. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_company
-msgid "Companies"
-msgstr "Firmy"
+msgid "Company"
+msgstr "Firma"
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_res_config_settings
 msgid "Config Settings"
-msgstr "Konfiguracja ustawień"
+msgstr "Ustawienia konfiguracji"
 
 #. module: hr_presence
 #: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_time_off
@@ -149,12 +136,6 @@ msgid "Hr Presence Last Compute Date"
 msgstr "Obecność HR Data ostatniego obliczenia"
 
 #. module: hr_presence
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee__hr_presence_state_display
-#: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__hr_presence_state_display
-msgid "Hr Presence State Display"
-msgstr "Wyświetlacz stanu obecności HR"
-
-#. module: hr_presence
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee__id
 #: model:ir.model.fields,field_description:hr_presence.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_presence.field_ir_websocket__id
@@ -188,28 +169,10 @@ msgid "Manually Set Present"
 msgstr "Ręczne ustawianie obecności"
 
 #. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__out_of_working_hour
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__out_of_working_hour
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Off-Hours"
-msgstr "Poza godzinami pracy"
-
-#. module: hr_presence
 #. odoo-javascript
 #: code:addons/hr_presence/static/src/search/hr_presence_cog_menu/hr_presence_cog_menu.xml:0
 msgid "Presence Control"
 msgstr "Kontrola obecności"
-
-#. module: hr_presence
-#: model_terms:ir.ui.view,arch_db:hr_presence.hr_employee_view_search
-msgid "Presence/Absence"
-msgstr "Obecność/Nieobecność"
-
-#. module: hr_presence
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee__hr_presence_state_display__present
-#: model:ir.model.fields.selection,name:hr_presence.selection__hr_employee_public__hr_presence_state_display__present
-msgid "Present"
-msgstr "Obecny(a)"
 
 #. module: hr_presence
 #: model:ir.model,name:hr_presence.model_hr_employee_public
@@ -219,12 +182,8 @@ msgstr "Pracownik publiczny"
 #. module: hr_presence
 #. odoo-python
 #: code:addons/hr_presence/models/hr_employee.py:0
-msgid "Send SMS"
-msgstr "Wyślij SMS"
-
-#. module: hr_presence
 #: model:ir.actions.server,name:hr_presence.action_hr_employee_presence_sms
-msgid "Send a SMS"
+msgid "Send SMS"
 msgstr "Wyślij SMS"
 
 #. module: hr_presence
@@ -294,27 +253,3 @@ msgstr "Nie masz odpowiednich uprawnień. Skontaktuj się z administratorem."
 #: model:ir.model,name:hr_presence.model_ir_websocket
 msgid "websocket message handling"
 msgstr "obsługa komunikatów websocket"
-
-#~ msgid "Basic Employee"
-#~ msgstr "Podstawowy pracownik"
-
-#~ msgid "Compose Email"
-#~ msgstr "Utwórz wiadomość e-mail"
-
-#~ msgid "Create Uid"
-#~ msgstr "Utwórz Uid"
-
-#~ msgid "Employees"
-#~ msgstr "Pracownicy"
-
-#~ msgid "Log"
-#~ msgstr "Zapisz"
-
-#~ msgid "SMS"
-#~ msgstr "SMS"
-
-#~ msgid "Time Off"
-#~ msgstr "Dni wolne"
-
-#~ msgid "To Define"
-#~ msgstr "Do zdefiniowania"

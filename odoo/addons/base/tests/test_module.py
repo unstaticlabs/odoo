@@ -8,9 +8,10 @@ from unittest.mock import patch
 import odoo.addons
 from odoo.modules.module import Manifest
 from odoo.release import major_version
-from odoo.tests.common import BaseCase
+from odoo.tests.common import tagged, BaseCase
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestModuleManifest(BaseCase):
     @classmethod
     def setUpClass(cls):
@@ -51,6 +52,7 @@ class TestModuleManifest(BaseCase):
             'depends': ['base'],
             'description': '',
             'external_dependencies': {},
+            'iap_paid_service': False,
             'icon': '/base/static/description/icon.png',
             'init_xml': [],
             'installable': True,

@@ -44,7 +44,7 @@ const replaceIconByImage = function (url) {
         },
         {
             content: "Go to the Images tab in the media dialog",
-            trigger: ".o_select_media_dialog .o_notebook_headers .nav-item a:contains('Images')",
+            trigger: ".o_select_media_dialog .o_notebook_headers .nav-item button:contains('Images')",
             run: "click",
         },
         {
@@ -59,7 +59,7 @@ const replaceIconByImage = function (url) {
 
 const addNewSocialNetwork = function (optionIndex, linkIndex, url, replaceIcon = false) {
     const replaceIconByImageSteps = replaceIcon
-        ? replaceIconByImage("https://www.example.com")
+        ? [...replaceIconByImage("https://www.example.com")]
         : [];
     return [
         {
@@ -93,6 +93,7 @@ const addNewSocialNetwork = function (optionIndex, linkIndex, url, replaceIcon =
 registerWebsitePreviewTour(
     "snippet_social_media",
     {
+        undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
         url: "/",
         edition: true,
     },

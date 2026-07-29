@@ -3,15 +3,17 @@ import * as ProductScreenResto from "@pos_restaurant/../tests/tours/utils/produc
 const ProductScreen = { ...ProductScreenPos, ...ProductScreenResto };
 import * as Dialog from "@point_of_sale/../tests/generic_helpers/dialog_util";
 import * as PaymentScreen from "@point_of_sale/../tests/pos/tours/utils/payment_screen_util";
-import * as ReceiptScreen from "@point_of_sale/../tests/pos/tours/utils/receipt_screen_util";
+import * as FeedbackScreen from "@point_of_sale/../tests/pos/tours/utils/feedback_screen_util";
 import * as FloorScreen from "@pos_restaurant/../tests/tours/utils/floor_screen_util";
 import * as TicketScreen from "@point_of_sale/../tests/pos/tours/utils/ticket_screen_util";
-import * as TipScreen from "@pos_restaurant/../tests/tours/utils/tip_screen_util";
+import * as TipScreen from "@point_of_sale/../tests/pos/tours/utils/tip_screen_util";
 import * as NumberPopup from "@point_of_sale/../tests/generic_helpers/number_popup_util";
 import * as Chrome from "@point_of_sale/../tests/pos/tours/utils/chrome_util";
+import { negateStep } from "@point_of_sale/../tests/generic_helpers/utils";
 import { registry } from "@web/core/registry";
 
 registry.category("web_tour.tours").add("PosResTipScreenTour", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             // Create order that is synced when draft.
@@ -144,11 +146,11 @@ registry.category("web_tour.tours").add("PosResTipScreenTour", {
             PaymentScreen.emptyPaymentlines("5.0"),
             PaymentScreen.clickPaymentMethod("Cash"),
             PaymentScreen.clickValidate(),
-            ReceiptScreen.isShown(),
+            FeedbackScreen.isShown(),
 
             // order 5
             // Click directly on "settle" without selecting a Tip
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.clickNextOrder(),
             FloorScreen.clickTable("2"),
             ProductScreen.addOrderline("Minute Maid", "3", "2"),
             ProductScreen.totalAmountIs("6.0"),
@@ -158,13 +160,79 @@ registry.category("web_tour.tours").add("PosResTipScreenTour", {
             PaymentScreen.clickValidate(),
             TipScreen.isShown(),
             TipScreen.clickSettle(),
-            ReceiptScreen.isShown(),
-            ReceiptScreen.clickNextOrder(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickNextOrder(),
             FloorScreen.isShown(),
         ].flat(),
 });
 
+registry.category("web_tour.tours").add("test_edit_payments_with_tip", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            // tip from payment screen
+            FloorScreen.clickTable("2"),
+            ProductScreen.addOrderline("Minute Maid", "1", "3"),
+            ProductScreen.clickPayButton(false),
+            ProductScreen.discardOrderWarningDialog(),
+            PaymentScreen.clickTipButton(),
+            {
+                content: "click numpad button: 1",
+                trigger: ".modal div.numpad button:contains(/^1/)",
+                run: "click",
+            },
+            Dialog.confirm(),
+            PaymentScreen.clickPaymentMethod("Cash"),
+            PaymentScreen.selectedPaymentlineHas("Cash", "4.00"),
+            PaymentScreen.remainingIs("0"),
+            PaymentScreen.clickValidate(),
+            FeedbackScreen.isShown(),
+            FeedbackScreen.clickEditPayment(),
+            PaymentScreen.clickTipButton(),
+            {
+                content: "click numpad button: 5",
+                trigger: ".modal div.numpad button:contains(/^5/)",
+                run: "click",
+            },
+            Dialog.confirm(),
+            // The selected payment line amount should be updated
+            PaymentScreen.selectedPaymentlineHas("Cash", "8.00"),
+            PaymentScreen.remainingIs("0"),
+            // Edit paymentlines
+            PaymentScreen.clickPaymentlineDelButton("Cash", "8.00"),
+            PaymentScreen.enterPaymentLineAmount("Bank", "2"),
+            PaymentScreen.clickPaymentMethod("Cash"),
+            PaymentScreen.clickValidate(),
+            Chrome.clickOrders(),
+            TicketScreen.selectFilter("Paid"),
+            TicketScreen.selectOrder("000001"),
+            TicketScreen.clickControlButton("Details"),
+            // Check the order details dialog
+            TicketScreen.checkOrderDetailsDialog("000001", "$ 8.00", {
+                Bank: "$ 2.00",
+                Cash: "$ 6.00",
+            }),
+            Dialog.discard(),
+            // Tip after payment case
+            Chrome.clickPlanButton(),
+            FloorScreen.clickTable("2"),
+            ProductScreen.addOrderline("Minute Maid", "1", "3"),
+            ProductScreen.clickPayButton(false),
+            ProductScreen.discardOrderWarningDialog(),
+            PaymentScreen.clickPaymentMethod("Bank"),
+            PaymentScreen.clickValidate(),
+            TipScreen.isShown(),
+            TipScreen.setCustomTip("1.00"),
+            TipScreen.clickSettle(),
+            Dialog.confirm(),
+            // Edit payment button shouldn't be available for posted orders
+            negateStep({ trigger: ".feedback-screen .edit-order-payment:contains(Edit Payment)" }),
+        ].flat(),
+});
+
 registry.category("web_tour.tours").add("test_tip_after_payment", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () =>
         [
             Chrome.startPoS(),

@@ -2,13 +2,13 @@
 # This file contains the translation of the following modules:
 # * loyalty
 #
-# Oakarmin Iron <oakarminiron@gmail.com>, 2025, 2026.
+# Oakarmin Iron <oakarminiron@gmail.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-06-29 10:32+0000\n"
+"POT-Creation-Date: 2026-04-10 18:36+0000\n"
+"PO-Revision-Date: 2025-10-28 07:12+0000\n"
 "Last-Translator: Oakarmin Iron <oakarminiron@gmail.com>\n"
 "Language-Team: Burmese <https://translate.odoo.com/projects/odoo-19/loyalty/"
 "my/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_program__trigger
@@ -298,7 +298,7 @@ msgid ""
 "            <t t-if=\"reward.required_points &lt;= object.points\">\n"
 "                <span t-attf-style=\"font-size: 50px; color: "
 "{{object.program_id.company_id.email_secondary_color or '#875A7B'}}; font-"
-"weight: bold;\" t-esc=\"reward.description\">Reward Description</span>\n"
+"weight: bold;\" t-out=\"reward.description\">Reward Description</span>\n"
 "                <br/>\n"
 "            </t>\n"
 "        </t>\n"
@@ -333,12 +333,10 @@ msgid ""
 "        </t>\n"
 "        <br/>\n"
 "        Thank you,\n"
-"        <t t-if=\"object._get_signature()\" data-o-mail-quote-"
-"container=\"1\">\n"
+"        <t t-if=\"object._get_signature()\">\n"
 "            <br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object._get_signature() or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object._get_signature() or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </td>\n"
 "</tr>\n"
@@ -355,6 +353,12 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.constraint,message:loyalty.constraint_loyalty_card_card_code_unique
 msgid "A coupon/loyalty card must have a unique code."
+msgstr ""
+
+#. module: loyalty
+#. odoo-python
+#: code:addons/loyalty/models/loyalty_card.py:0
+msgid "A customer can only have one active loyalty card per program."
 msgstr ""
 
 #. module: loyalty
@@ -424,6 +428,12 @@ msgid "Add a rule"
 msgstr ""
 
 #. module: loyalty
+#. odoo-python
+#: code:addons/loyalty/models/loyalty_program.py:0
+msgid "Add money to your eWallet to pay for future orders."
+msgstr ""
+
+#. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__all_discount_product_ids
 msgid "All Discount Product"
 msgstr ""
@@ -460,6 +470,7 @@ msgid "Applies On"
 msgstr ""
 
 #. module: loyalty
+#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_view_form
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_search
 msgid "Archived"
@@ -535,12 +546,6 @@ msgid "Can not generate coupon, no program is set."
 msgstr ""
 
 #. module: loyalty
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_update_balance_form
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_generate_wizard_view_form
-msgid "Cancel"
-msgstr ""
-
-#. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card_update_balance__card_id
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_history__card_id
 msgid "Card"
@@ -554,7 +559,7 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_rule__product_category_id
 msgid "Categories"
-msgstr "အမျိုးအစားများ"
+msgstr ""
 
 #. module: loyalty
 #: model:ir.model.fields.selection,name:loyalty.selection__loyalty_reward__discount_applicability__cheapest
@@ -696,12 +701,12 @@ msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.actions.act_window,help:loyalty.loyalty_program_gift_ewallet_action
-msgid "Create a new one from scratch, or use one of the templates below."
+msgid "Create one from scratch, or use a template below."
 msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.actions.act_window,help:loyalty.loyalty_program_discount_loyalty_action
-msgid "Create one from scratch, or use a templates below:"
+msgid "Create one from scratch, or use one of the templates below:"
 msgstr ""
 
 #. module: loyalty
@@ -732,7 +737,7 @@ msgstr "ဖန်တီးသူ"
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__create_date
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_rule__create_date
 msgid "Created on"
-msgstr "ဖန်တီးသည့်အချိန်"
+msgstr ""
 
 #. module: loyalty
 #. odoo-python
@@ -790,7 +795,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_history_template
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_view_form
 msgid "Date"
-msgstr "နေ့ရက်"
+msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
@@ -809,7 +814,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_history_template
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_generate_wizard_view_form
 msgid "Description"
-msgstr "ဖော်ပြချက်"
+msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_form
@@ -872,11 +877,6 @@ msgstr ""
 #: code:addons/loyalty/models/loyalty_program.py:0
 #: model:loyalty.program,portal_point_name:loyalty.10_percent_with_code
 msgid "Discount point(s)"
-msgstr ""
-
-#. module: loyalty
-#: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_form
-msgid "Discount product"
 msgstr ""
 
 #. module: loyalty
@@ -964,12 +964,6 @@ msgstr ""
 
 #. module: loyalty
 #. odoo-python
-#: code:addons/loyalty/models/loyalty_card.py:0
-msgid "Expiration date cannot be set on a loyalty card."
-msgstr ""
-
-#. module: loyalty
-#. odoo-python
 #: code:addons/loyalty/models/loyalty_program.py:0
 msgid "Fidelity Card"
 msgstr ""
@@ -978,12 +972,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/loyalty/models/loyalty_program.py:0
 msgid "Fidelity Cards"
-msgstr ""
-
-#. module: loyalty
-#. odoo-python
-#: code:addons/loyalty/models/loyalty_program.py:0
-msgid "Fill in your eWallet, to pay future orders"
 msgstr ""
 
 #. module: loyalty
@@ -1744,7 +1732,7 @@ msgstr ""
 #. module: loyalty
 #. odoo-python
 #: code:addons/loyalty/models/loyalty_program.py:0
-msgid "Sell Gift Cards, that allows to purchase products"
+msgid "Sell gift cards that people can use to buy products."
 msgstr ""
 
 #. module: loyalty
@@ -1771,7 +1759,7 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__sequence
 msgid "Sequence"
-msgstr "စီးကွင့်"
+msgstr ""
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
@@ -1804,7 +1792,7 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__date_from
 msgid "Start Date"
-msgstr "စတင်သောနေ့"
+msgstr ""
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__currency_symbol
@@ -1980,7 +1968,7 @@ msgstr ""
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
 msgid "Visible to all"
-msgstr "အားလုံးမြင်နိုင်သည်"
+msgstr ""
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card__website_message_ids

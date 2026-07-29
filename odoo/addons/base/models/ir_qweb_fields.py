@@ -222,15 +222,16 @@ class IrQwebFieldFloat(models.AbstractModel):
         if 'decimal_precision' in options:
             precision = self.env['decimal.precision'].precision_get(options['decimal_precision'])
         elif options.get('precision') is None:
-            int_digits = int(math.log10(abs(value))) + 1 if value != 0 else 1
-            # Within 15 digits, we have a float with no parasite digits.
-            # 14 is chosen here, as float_round will add a digit when performing its computations.
-            max_dec_digits = max(14 - int_digits, 0)
-            # We display maximum 6 decimal digits or the number of significant decimal digits if it's lower
-            precision = min(6, max_dec_digits)
+            # We display maximum 6 decimal digits
+            precision = 6
             min_precision = min_precision or 1
         else:
             precision = options['precision']
+
+        # We use the precision or the maximum of relevent decimal digits if it's lower
+        int_digits = int(math.log10(abs(value))) + 1 if value != 0 else 1
+        max_dec_digits = max(14 - int_digits, 0)
+        precision = min(precision, max_dec_digits)
 
         fmt = f'%.{precision}f'
         if min_precision and min_precision < precision:
@@ -512,8 +513,8 @@ class IrQwebFieldMonetary(models.AbstractModel):
         options.update(
             from_currency=dict(type='model', params='res.currency', string=_('Original currency')),
             display_currency=dict(type='model', params='res.currency', string=_('Display currency'), required="value_to_html"),
-            date=dict(type='date', string=_('Date'), description=_('Date used for the original currency (only used for t-esc). by default use the current date.')),
-            company_id=dict(type='model', params='res.company', string=_('Company'), description=_('Company used for the original currency (only used for t-esc). By default use the user company')),
+            date=dict(type='date', string=_('Date'), description=_('Date used for the original currency (only used for t-out). by default use the current date.')),
+            company_id=dict(type='model', params='res.company', string=_('Company'), description=_('Company used for the original currency (only used for t-out). By default use the user company')),
         )
         return options
 

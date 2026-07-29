@@ -113,9 +113,8 @@ class MailTrackingDurationMixin(models.AbstractModel):
         # add "fake" tracking for time spent in the current value
         trackings.append({
             'create_date': self.env.cr.now(),
-            'old_value_integer': self[self._track_duration_field].id,
+            'old_value_integer': self[self._track_duration_field].id or 0,
         })
-
         for tracking in trackings:
             json[tracking['old_value_integer']] += int((tracking['create_date'] - previous_date).total_seconds())
             previous_date = tracking['create_date']
@@ -135,7 +134,7 @@ class MailTrackingDurationMixin(models.AbstractModel):
         Also consider overriding _get_rotting_depends_fields() and _get_rotting_domain().
 
         Certain views have access to widgets to display rotting status:
-            'rotting' for kanbans, 'rotting_statusbar_duration' for forms, 'badge_rotting' for lists.
+            'rotting' for kanbans, 'rotting_statusbar_duration' for forms, 'rotting' for lists.
 
         :return: bool: whether the rotting feature has been configured for this model
         """
@@ -216,7 +215,7 @@ class MailTrackingDurationMixin(models.AbstractModel):
             """
 
         # Items with a date_last_stage_update inferior to that number of months will not be returned by the search function.
-        max_rotting_months = int(self.env['ir.config_parameter'].sudo().get_param('crm.lead.rot.max.months', default=12))
+        max_rotting_months = self.env['ir.config_parameter'].sudo().get_int('crm.lead.rot.max.months') or 12
 
         # We use a F-string so that the from_add_join is added with its %s parameters before the query string is processed
         query = f"""

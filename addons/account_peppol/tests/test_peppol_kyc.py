@@ -172,6 +172,6 @@ class TestPeppolKYC(PeppolConnectorCommon, HttpCase):
 
     def test_connector_fails_in_demo(self):
         company = self.env.company
-        self.env['ir.config_parameter'].sudo().set_param('account_peppol.edi.mode', 'demo')
+        self.env['ir.config_parameter'].sudo().set_str('account_peppol.edi.mode', 'demo')
         with self.assertRaises(AssertionError):
             PeppolIAPConnector(company)

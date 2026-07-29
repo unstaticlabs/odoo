@@ -1,11 +1,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import pytz
-from datetime import datetime, date
+from datetime import datetime, date, UTC
+from zoneinfo import ZoneInfo
+
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError
 
-from odoo.tests import Form, TransactionCase
+from odoo.tests import tagged, Form, TransactionCase
 from freezegun import freeze_time
 
 
@@ -18,14 +19,14 @@ class TestRecurrentEvents(TransactionCase):
         lang.week_start = '1'  # Monday
 
     def assertEventDates(self, events, dates):
-        events = events.sorted('start')
-        self.assertEqual(len(events), len(dates), "Wrong number of events in the recurrence")
         self.assertTrue(all(events.mapped('active')), "All events should be active")
-        for event, (start, stop) in zip(events, dates):
-            self.assertEqual(event.start, start)
-            self.assertEqual(event.stop, stop)
+        self.assertEqual(
+            dates,
+            [(event.start, event.stop) for event in events.sorted('start')],
+        )
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestCreateRecurrentEvents(TestRecurrentEvents):
 
     @classmethod
@@ -44,6 +45,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'rrule_type': 'weekly',
             'tue': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'event_tz': 'UTC',
         })
@@ -63,6 +65,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 2,
             'rrule_type': 'weekly',
             'tue': True,
+            'end_type': 'count',
             'count': 2,
             'event_tz': 'UTC',
         })
@@ -81,6 +84,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 2,
             'rrule_type': 'weekly',
             'tue': True,
+            'end_type': 'count',
             'count': 2,
             'event_tz': 'UTC',
         })
@@ -195,6 +199,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
         self.event._apply_recurrence_values({
             'interval': 2,
             'rrule_type': 'yearly',
+            'end_type': 'count',
             'count': 2,
             'event_tz': 'UTC',
         })
@@ -213,6 +218,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 2,
             'rrule_type': 'weekly',
             'mon': True,
+            'end_type': 'count',
             'count': '2',
             'event_tz': 'America/New_York',  # DST change on 2002/10/27
         })
@@ -224,8 +230,8 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
 
     def test_ambiguous_dst_time_winter(self):
         """ Test hours stays the same, regardless of DST changes """
-        eastern = pytz.timezone('America/New_York')
-        dt = eastern.localize(datetime(2002, 10, 20, 1, 30, 00)).astimezone(pytz.utc).replace(tzinfo=None)
+        eastern = ZoneInfo('America/New_York')
+        dt = datetime(2002, 10, 20, 1, 30, 00, tzinfo=eastern).astimezone(UTC).replace(tzinfo=None)
         # Next occurence happens at 1:30am on 27th Oct 2002 which happened twice in the America/New_York
         # timezone when the clocks where put back at the end of Daylight Saving Time
         self.event.start = dt
@@ -234,6 +240,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 1,
             'rrule_type': 'weekly',
             'sun': True,
+            'end_type': 'count',
             'count': '2',
             'event_tz': 'America/New_York'  # DST change on 2002/4/7
         })
@@ -246,8 +253,8 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
 
     def test_ambiguous_dst_time_spring(self):
         """ Test hours stays the same, regardless of DST changes """
-        eastern = pytz.timezone('America/New_York')
-        dt = eastern.localize(datetime(2002, 3, 31, 2, 30, 00)).astimezone(pytz.utc).replace(tzinfo=None)
+        eastern = ZoneInfo('America/New_York')
+        dt = datetime(2002, 3, 31, 2, 30, 00, tzinfo=eastern).astimezone(UTC).replace(tzinfo=None)
         # Next occurence happens 2:30am on 7th April 2002 which never happened at all in the
         # America/New_York timezone, as the clocks where put forward at 2:00am skipping the entire hour
         self.event.start = dt
@@ -256,6 +263,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 1,
             'rrule_type': 'weekly',
             'sun': True,
+            'end_type': 'count',
             'count': '2',
             'event_tz': 'America/New_York'  # DST change on 2002/4/7
         })
@@ -278,6 +286,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'interval': 1,
             'rrule_type': 'weekly',
             'mon': True,
+            'end_type': 'count',
             'count': 2,
             'event_tz': 'Europe/Brussels'  # DST change on 2020/3/23
         })
@@ -317,8 +326,8 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
         # In Europe/Brussels: 26 March 2023 from winter to summer (from no DST to DST)
         # We are in the case where we create a recurring event after the time change (there is the DST).
         timezone = 'Europe/Brussels'
-        tz = pytz.timezone(timezone)
-        dt = tz.localize(datetime(2023, 3, 27, 9, 0, 00)).astimezone(pytz.utc).replace(tzinfo=None)
+        tz = ZoneInfo(timezone)
+        dt = datetime(2023, 3, 27, 9, 0, 00, tzinfo=tz).astimezone(UTC).replace(tzinfo=None)
         self.event.start = dt
         self.event.stop = dt + relativedelta(hours=1)
 
@@ -367,6 +376,7 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
             'rrule_type': 'weekly',
             'tue': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 2,
             'event_tz': 'UTC',
             'allday': True,
@@ -405,6 +415,8 @@ class TestCreateRecurrentEvents(TestRecurrentEvents):
         self.assertEqual(len(updated_events), 2, "It should have 2 events in the recurrence")
         self.assertTrue(updated_events[1].recurrency, "It should have recurrency in the updated events")
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUpdateRecurrentEvents(TestRecurrentEvents):
 
     @classmethod
@@ -418,6 +430,7 @@ class TestUpdateRecurrentEvents(TestRecurrentEvents):
             'rrule_type': 'weekly',
             'tue': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'event_tz': 'Etc/GMT-4',
         })
@@ -681,6 +694,7 @@ class TestUpdateRecurrentEvents(TestRecurrentEvents):
             'rrule_type': 'weekly',
             'tue': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'event_tz': 'Etc/GMT-4',
             'allday': True,
@@ -812,6 +826,7 @@ class TestUpdateRecurrentEvents(TestRecurrentEvents):
             'wed': True,
             'fri': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'event_tz': 'Etc/GMT-4',
         })
@@ -840,6 +855,8 @@ class TestUpdateRecurrentEvents(TestRecurrentEvents):
             (datetime(2019, 11, 6, 1, 0), datetime(2019, 11, 6, 2, 0)),
         ])
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUpdateMultiDayWeeklyRecurrentEvents(TestRecurrentEvents):
 
     @classmethod
@@ -854,6 +871,7 @@ class TestUpdateMultiDayWeeklyRecurrentEvents(TestRecurrentEvents):
             'tue': True,
             'fri': True,
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'event_tz': 'Etc/GMT-4',
         })
@@ -914,6 +932,7 @@ class TestUpdateMultiDayWeeklyRecurrentEvents(TestRecurrentEvents):
         self.assertEqual(event.recurrence_id.count, 2)
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUpdateMonthlyByDay(TestRecurrentEvents):
 
     @classmethod
@@ -926,6 +945,7 @@ class TestUpdateMonthlyByDay(TestRecurrentEvents):
             'recurrency': True,
             'rrule_type': 'monthly',
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'month_by': 'day',
             'weekday': 'TUE',
@@ -953,6 +973,7 @@ class TestUpdateMonthlyByDay(TestRecurrentEvents):
         ])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestUpdateMonthlyByDate(TestRecurrentEvents):
 
     @classmethod
@@ -965,6 +986,7 @@ class TestUpdateMonthlyByDate(TestRecurrentEvents):
             'recurrency': True,
             'rrule_type': 'monthly',
             'interval': 1,
+            'end_type': 'count',
             'count': 3,
             'month_by': 'date',
             'day': 22,
@@ -1009,6 +1031,7 @@ class TestUpdateMonthlyByDate(TestRecurrentEvents):
             calendar_form.name = 'test recurrence daily'
             calendar_form.recurrency = True
             calendar_form.rrule_type_ui = 'daily'
+            calendar_form.end_type = 'count'
             calendar_form.count = 2
             calendar_form.start = datetime(2019, 6, 23, 16)
             calendar_form.stop = datetime(2019, 6, 23, 17)
@@ -1025,6 +1048,7 @@ class TestUpdateMonthlyByDate(TestRecurrentEvents):
             calendar_form.name = 'test recurrence monthly'
             calendar_form.recurrency = True
             calendar_form.rrule_type_ui = 'monthly'
+            calendar_form.end_type = 'count'
             calendar_form.count = 2
             calendar_form.start = datetime(2019, 6, 11, 16)
             calendar_form.stop = datetime(2019, 6, 11, 17)
@@ -1042,6 +1066,7 @@ class TestUpdateMonthlyByDate(TestRecurrentEvents):
             calendar_form.name = 'test recurrence yearly'
             calendar_form.recurrency = True
             calendar_form.rrule_type_ui = 'yearly'
+            calendar_form.end_type = 'count'
             calendar_form.count = 2
             calendar_form.start = datetime(2019, 6, 11, 16)
             calendar_form.stop = datetime(2019, 6, 11, 17)

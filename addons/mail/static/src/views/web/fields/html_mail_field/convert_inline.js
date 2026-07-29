@@ -3,6 +3,7 @@ import { getAdjacentPreviousSiblings } from "@html_editor/utils/dom_traversal";
 import { loadImage } from "@html_editor/utils/image_processing";
 import { getImageSrc } from "@html_editor/utils/image";
 import { blendColors } from "@web/core/utils/colors";
+import { range } from "@web/core/utils/numbers";
 
 function parentsGet(node, root = undefined) {
     const parents = [];
@@ -1723,7 +1724,7 @@ function _computeStyleAndSpecificityOnRules(cssRules) {
  * @returns {Element[]}
  */
 function _createColumnGrid() {
-    return new Array(12).fill().map(() => document.createElement("td"));
+    return range(12).map(() => document.createElement("td"));
 }
 /**
  * Return a comment element with the given content, wrapped in an mso condition.

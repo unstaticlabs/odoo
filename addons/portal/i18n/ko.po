@@ -6,23 +6,23 @@
 # Martin Trigaux, 2022
 # JH CHOI <hwangtog@gmail.com>, 2022
 # Sarah Park, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Kwanghee Park (kwpa)" <kwpa@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 23:14+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-02-28 13:46+0000\n"
 "Last-Translator: \"Kwanghee Park (kwpa)\" <kwpa@odoo.com>\n"
-"Language-Team: Korean <https://translate.odoo.com/projects/odoo-19/portal/"
+"Language-Team: Korean <https://translate.odoo.com/projects/odoo-s19-2/portal/"
 "ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -34,6 +34,11 @@ msgstr "\" 작업을 승인합니다."
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "%s 일 기한 초과"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -59,10 +64,8 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> 로그아웃"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
@@ -115,16 +118,6 @@ msgstr "<i title=\"문서\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">국가</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">시/도</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid ""
 "<small class=\"form-text text-muted\">\n"
 "                            Changing VAT number is not allowed once "
@@ -151,8 +144,8 @@ msgid ""
 "                        </small>"
 msgstr ""
 "<small class=\"form-text text-muted\">\n"
-"                            부가가치세 번호는 회계 계정에서만 변경이 "
-"가능합니다.\n"
+"                            부가가치세 번호는 회계 계정에서만 변경이 가능합니"
+"다.\n"
 "                        </small>"
 
 #. module: portal
@@ -167,8 +160,8 @@ msgid ""
 msgstr ""
 "<small class=\"form-text text-muted\">\n"
 "                    계정에 대한 문서 발급이 완료된 후에는 국가를\n"
-"                    변경할 수 없습니다. 관련된 작업에 대해서는 직접 "
-"연락주시기\n"
+"                    변경할 수 없습니다. 관련된 작업에 대해서는 직접 연락주시"
+"기\n"
 "                    바랍니다.\n"
 "                </small>"
 
@@ -271,7 +264,7 @@ msgid "Add extra content to display in the email"
 msgstr "이메일에 표시할 추가 콘텐츠 만들기"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "주소 추가 및 삭제 또는 편집"
 
@@ -286,8 +279,8 @@ msgid "Address Management"
 msgstr "주소 관리"
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "주소"
 
@@ -324,10 +317,9 @@ msgid "Billing address"
 msgstr "청구지 주소"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "취소"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr "카테고리"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -341,8 +333,8 @@ msgid ""
 "Changing VAT number is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"계정에 대한 문서가 발급되면 VAT 번호를 변경할 수 없습니다. 이 경우 당사에 "
-"직접 연락해 주십시오."
+"계정에 대한 문서가 발급되면 VAT 번호를 변경할 수 없습니다. 이 경우 당사에 직"
+"접 연락해 주십시오."
 
 #. module: portal
 #. odoo-python
@@ -351,8 +343,8 @@ msgid ""
 "Changing your country is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"계정에 대한 문서가 발급되면 국가를 변경할 수 없습니다. 이 경우 직접 "
-"연락주시기 바랍니다."
+"계정에 대한 문서가 발급되면 국가를 변경할 수 없습니다. 이 경우 직접 연락주시"
+"기 바랍니다."
 
 #. module: portal
 #. odoo-javascript
@@ -386,12 +378,17 @@ msgid "Company Name"
 msgstr "회사명"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr "카드 환경설정"
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "환경 설정"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "연결 매개변수를 설정합니다."
 
@@ -408,7 +405,11 @@ msgid "Confirm Password"
 msgstr "비밀번호 확인"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr "연결 및 보안"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "연결 및 보안"
@@ -444,11 +445,17 @@ msgid "Country"
 msgstr "국가"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr "국가..."
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "고객 만들기"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -456,6 +463,7 @@ msgid "Created by"
 msgstr "작성자"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -510,6 +518,11 @@ msgid "Description"
 msgstr "설명"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr "카드 설명"
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "세부 정보"
@@ -537,11 +550,17 @@ msgstr ""
 "                                        </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr "작성 취소"
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -642,8 +661,8 @@ msgid ""
 "                Your login is still necessary for interactive usage."
 msgstr ""
 "다음은 새로운 API 키입니다, RPC 접속 시 비밀번호 대신 사용하시기 바랍니다.\n"
-"                인터랙티브 사용 목적으로는 계속 로그인 방식을 사용하셔야 "
-"합니다."
+"                인터랙티브 사용 목적으로는 계속 로그인 방식을 사용하셔야 합니"
+"다."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
@@ -656,6 +675,7 @@ msgstr "홈"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -674,13 +694,18 @@ msgid ""
 "backend. If you wish to change your name or email address, please do so in "
 "the account settings or contact your administrator."
 msgstr ""
-"외부인을 위한 주문은 백엔드를 통해 생성할 수 있습니다. 이름이나 이메일 "
-"주소를 수정하려면 계정 설정에서 변경하거나 관리자에게 문의하시기 바랍니다."
+"외부인을 위한 주문은 백엔드를 통해 생성할 수 있습니다. 이름이나 이메일 주소"
+"를 수정하려면 계정 설정에서 변경하거나 관리자에게 문의하시기 바랍니다."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
 msgstr "수정하려면 다음을 업데이트하세요."
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
+msgstr "이미지"
 
 #. module: portal
 #. odoo-javascript
@@ -747,6 +772,7 @@ msgstr ""
 "                있어야 하며,"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -754,6 +780,7 @@ msgid "Last Updated by"
 msgstr "최근 갱신한 사람"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -795,11 +822,11 @@ msgstr "메시지"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
 msgstr ""
-"%(field_name)s 필드가 없는 관계로 %(model_name)s 모델에서는 토큰 서명을 "
-"지원하지 않습니다."
+"%(field_name)s 필드가 없는 관계로 %(model_name)s 모델에서는 토큰 서명을 지원"
+"하지 않습니다."
 
 #. module: portal
 #. odoo-python
@@ -889,6 +916,11 @@ msgid "Phone"
 msgstr "전화번호"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr "자리 표시자 개수"
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -905,6 +937,11 @@ msgstr "포털 접근 권한 관리"
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "포털 접근 URL"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr "포털 들어가기"
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -936,7 +973,8 @@ msgstr "이전"
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid ""
 "Put my email and phone in a block list to make sure I'm never contacted again"
-msgstr "차단 목록에 나의 이메일과 전화번호를 넣어서 다시는 연락을 받지 않도록 합니다."
+msgstr ""
+"차단 목록에 나의 이메일과 전화번호를 넣어서 다시는 연락을 받지 않도록 합니다."
 
 #. module: portal
 #: model:ir.model,name:portal.model_ir_qweb
@@ -1031,8 +1069,8 @@ msgstr ""
 "연락처가 아래 목록에 포탈에 속하도록 선택합니다.\n"
 "                       각각 선택한 연락처의 이메일 주소가 고유하고 유효해야 "
 "합니다.\n"
-"                       필요하다면 목록에 있는 연락처의 이메일 주소에 직접 "
-"접근해서 해결할 수 있습니다."
+"                       필요하다면 목록에 있는 연락처의 이메일 주소에 직접 접"
+"근해서 해결할 수 있습니다."
 
 #. module: portal
 #. odoo-javascript
@@ -1056,6 +1094,11 @@ msgstr "문서 공유"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__customize_show
 msgid "Show As Optional Inherit"
 msgstr "선택사항으로 상속 보기"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr "포털에 표시하기"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
@@ -1087,6 +1130,11 @@ msgid "State / Province"
 msgstr "시 / 도"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "상태"
@@ -1095,6 +1143,11 @@ msgstr "상태"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "도로명, 번지 수"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr "대상 URL"
 
 #. module: portal
 #. odoo-javascript
@@ -1216,18 +1269,24 @@ msgid ""
 "This partner is linked to an internal User and already has access to the "
 "Portal."
 msgstr ""
-"내부 사용자에게 연결되어 있는 협력사이며 이미 포털에 대한 접근 권한이 "
-"있습니다."
+"내부 사용자에게 연결되어 있는 협력사이며 이미 포털에 대한 접근 권한이 있습니"
+"다."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "This text is included at the end of the email sent to new portal users."
-msgstr "이 문구는 새로운 포털 사용자에게 전송되는 이메일의 마지막 내용에 포함됩니다."
+msgstr ""
+"이 문구는 새로운 포털 사용자에게 전송되는 이메일의 마지막 내용에 포함됩니다."
 
 #. module: portal
 #: model:ir.model.fields,help:portal.field_portal_wizard__welcome_message
 msgid "This text is included in the email sent to new users of the portal."
 msgstr "새로운 포털 사용자에게 보내는 이메일에 포함된 문구."
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr "카드 제목"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
@@ -1296,9 +1355,9 @@ msgstr "화면"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1334,9 +1393,9 @@ msgstr "웹사이트 메시지"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1371,7 +1430,7 @@ msgstr "메시지 작성..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr "메시지 작성…"
 
@@ -1414,6 +1473,12 @@ msgstr "다음을 입력해야 합니다 \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "먼저 \"%s\" 협력사에 포털 접근 권한을 부여해야 합니다:"
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr "내 계정"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1463,9 +1528,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "비밀번호"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr "순서"
 
 #. module: portal
 #. odoo-javascript
@@ -1483,111 +1548,3 @@ msgstr "사용자 계정에서 안전하게 저장하는 것이 가장 중요합
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr "계정 세부 정보"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> My Account"
-#~ msgstr "<i class=\"fa fa-fw fa-id-card-o me-1 small text-muted\"/> 내 계정"
-
-#~ msgid "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> Logout"
-#~ msgstr "<i class=\"fa fa-fw fa-sign-out me-1 small text-muted\"/> 로그아웃"
-
-#~ msgid "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> Apps"
-#~ msgstr "<i class=\"fa fa-fw fa-th me-1 small text-muted\"/> 앱"
-
-#~ msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-#~ msgstr "<i class=\"fa fa-pencil mx-1\"/>보안 설정 편집"
-
-#~ msgid "<i class=\"fa fa-pencil\"/> Edit"
-#~ msgstr "<i class=\"fa fa-pencil\"/> 편집"
-
-#~ msgid ""
-#~ "<small class=\"form-text text-muted\">Changing company name or VAT number "
-#~ "is not allowed once document(s) have been issued for your account. <br/"
-#~ ">Please contact us directly for this operation.</small>"
-#~ msgstr ""
-#~ "<small class=\"form-text text-muted\">계정 관련된 문서 발급이 완료된 이후"
-#~ "에는 회사 이름 또는 VAT 번호를 변경할 수 없습니다. <br/>해당 내용에 대해 "
-#~ "궁금하신 내용은 직접 연락주시기 바랍니다. </small>"
-
-#~ msgid "Account Security"
-#~ msgstr "계정 보안"
-
-#~ msgid "An access token must be provided for each attachment."
-#~ msgstr "각 첨부 파일에 액세스 토큰이 제공되어야 합니다."
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "귀하의 계정에 대한 문서가 발급되면 회사 이름을 변경할 수 없습니다. 이 경"
-#~ "우 당사에 직접 연락해 주십시오."
-
-#~ msgid ""
-#~ "Confirm\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-#~ msgstr ""
-#~ "확인\n"
-#~ "                                <span class=\"fa fa-long-arrow-right\"/>"
-
-#~ msgid "Discard"
-#~ msgstr "작성 취소"
-
-#~ msgid "Documents"
-#~ msgstr "문서"
-
-#~ msgid "Internal Note"
-#~ msgstr "내부 노트"
-
-#~ msgid "Name"
-#~ msgstr "이름"
-
-#~ msgid "No Documents to display"
-#~ msgstr "표시할 문서가 없습니다"
-
-#~ msgid "Portal: User Invite"
-#~ msgstr "포털: 사용자 초대"
-
-#~ msgid "Prev"
-#~ msgstr "이전"
-
-#~ msgid "Published on %s"
-#~ msgstr "%s에 게시됨"
-
-#~ msgid "Street"
-#~ msgstr "도로명"
-
-#~ msgid ""
-#~ "The attachment %s does not exist or you do not have the rights to access "
-#~ "it."
-#~ msgstr "첨부 파일인 %s가 존재하지 않거나 사용자가 접근 권한이 없습니다."
-
-#~ msgid ""
-#~ "The document does not exist or you do not have the rights to access it."
-#~ msgstr "문서가 없거나 문서에 접근할 권한이 없습니다."
-
-#~ msgid "There are no comments for now."
-#~ msgstr "현재 의견이 없습니다."
-
-#~ msgid "VAT Number"
-#~ msgstr "부가가치세 번호"
-
-#~ msgid "Visible"
-#~ msgstr "표시 가능"
-
-#~ msgid "You are invited to access %s"
-#~ msgstr " %s에 접근하도록 초대되었습니다."
-
-#~ msgid "You have been invited to access the following document:"
-#~ msgstr "다음 문서에 접근하도록 초대되었습니다 :"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "우편 코드"
-
-#~ msgid "avatar"
-#~ msgstr "아바타"
-
-#~ msgid "comment"
-#~ msgstr "의견"
-
-#~ msgid "comments"
-#~ msgstr "의견"

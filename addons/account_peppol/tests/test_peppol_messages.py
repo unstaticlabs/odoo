@@ -27,7 +27,7 @@ class TestPeppolMessage(TestAccountMoveSendCommon, MailCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env['ir.config_parameter'].sudo().set_param('account_peppol.edi.mode', 'test')
+        cls.env['ir.config_parameter'].sudo().set_str('account_peppol.edi.mode', 'test')
         cls.mocked_incoming_invoice_fname = 'incoming_invoice'
 
         cls.env.company.write({
@@ -67,7 +67,7 @@ class TestPeppolMessage(TestAccountMoveSendCommon, MailCommon):
         }])
 
         cls.env['res.partner.bank'].create({
-            'acc_number': '0144748555',
+            'account_number': '0144748555',
             'partner_id': cls.env.company.partner_id.id,
             'allow_out_payment': True,
         })
@@ -897,7 +897,7 @@ class TestPeppolMessage(TestAccountMoveSendCommon, MailCommon):
         })
         self.env.user.group_ids |= self.env.ref('sales_team.group_sale_salesman')
 
-        self.env['ir.config_parameter'].sudo().set_param('sale.automatic_invoice', True)
+        self.env['ir.config_parameter'].sudo().set_bool('sale.automatic_invoice', True)
         so = self._create_sale_order_one_line(product_id=product, partner_id=partner)
 
         payment_method = self.env.ref('payment.payment_method_unknown')

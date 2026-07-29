@@ -6,30 +6,29 @@
 # Martin Trigaux, 2022
 # Thi Huong Nguyen, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Thi Huong Nguyen (thng)" <thng@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Deleted User <noreply+31@weblate.org>, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 20:26+0000\n"
-"Last-Translator: Deleted User <noreply+31@weblate.org>\n"
-"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-17 18:37+0000\n"
+"PO-Revision-Date: 2026-04-04 13:00+0000\n"
+"Last-Translator: \"Thi Huong Nguyen (thng)\" <thng@odoo.com>\n"
+"Language-Team: Vietnamese <https://translate.odoo.com/projects/odoo-s19-2/"
 "purchase_stock/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "% On-Time Delivery"
-msgstr "% Giao hàng đúng hạn"
+msgid "% On Time"
+msgstr ""
 
 #. module: purchase_stock
 #. odoo-python
@@ -59,7 +58,17 @@ msgstr "+ %d ngày"
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "+ %s day(s)"
-msgstr "+ %s ngày"
+msgstr ""
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted ms-1\"> / month</small>"
+msgstr ""
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "<small class=\"text-muted\">Demand: </small>"
+msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
@@ -83,18 +92,8 @@ msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "<span class=\"text-muted small me-1\">Monthly Demand:</span>"
-msgstr ""
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
 msgid "<span class=\"text-muted small ms-1\">Forecasted</span>"
 msgstr ""
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
-msgid "<span invisible=\"on_time_rate &gt;= 0\">No data yet</span>"
-msgstr "<span invisible=\"on_time_rate &gt;= 0\">Chưa có dữ liệu</span>"
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
@@ -214,13 +213,13 @@ msgstr "Mua để tái cung ứng"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr "Công ty"
 
 #. module: purchase_stock
 #: model:ir.model.fields,help:purchase_stock.field_purchase_order__effective_date
-msgid "Completion date of the first receipt order."
-msgstr "Ngày hoàn thành phiếu nhập kho đầu tiên."
+msgid "Completion date of the last receipt order."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_res_config_settings
@@ -257,6 +256,13 @@ msgstr "Mô tả tùy chỉnh"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_rfq__day
 msgid "Daily"
 msgstr "Hàng ngày"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order__date_promised
+msgid ""
+"Date promised by the vendor for at least 1 or more products to be delivered "
+"by."
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_picking__days_to_arrive
@@ -317,6 +323,13 @@ msgstr "Giới hạn mức độ chậm trễ"
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_type_id
 msgid "Deliver To"
 msgstr "Giao hàng đến"
+
+#. module: purchase_stock
+#: model:ir.model.fields,help:purchase_stock.field_purchase_order_line__date_promised
+msgid ""
+"Delivery Date promised by the vendor. If the vendor delivers products after "
+"this date, their On-Time rate will be negatively impacted."
+msgstr ""
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.product_supplierinfo_replenishment_tree_view
@@ -426,7 +439,7 @@ msgstr "Báo cáo dự báo"
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/product_catalog/search/search_panel.js:0
 msgid "Forecasted"
-msgstr ""
+msgstr "Dự báo"
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__forecasted_issue
@@ -437,11 +450,6 @@ msgstr "Vấn đề được dự báo"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__5
 msgid "Friday"
 msgstr "Thứ 6"
-
-#. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__full
-msgid "Fully Received"
-msgstr "Đã nhận hết"
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -532,8 +540,8 @@ msgstr "Địa điểm Incoterm"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "Tuyến cung ứng hàng tồn kho"
+msgid "Inventory Route"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__is_shipped
@@ -616,6 +624,12 @@ msgid "Minimum Inventory Rule"
 msgstr "Quy tắc tồn kho tối thiểu"
 
 #. module: purchase_stock
+#. odoo-python
+#: code:addons/purchase_stock/models/stock.py:0
+msgid "Missing products in receipt"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__1
 msgid "Monday"
 msgstr "Thứ 2"
@@ -654,17 +668,13 @@ msgid "No supplier has been found to replenish"
 msgstr "Không tìm thấy nhà cung cấp nào để bổ sung hàng"
 
 #. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__pending
-msgid "Not Received"
-msgstr "Chưa nhận"
-
-#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/purchase_dashboard/purchase_dashboard.xml:0
 msgid "OTD"
 msgstr "Giao hàng đúng hạn"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_partner_view_purchase_buttons_inherit
 msgid "On"
 msgstr "Bật"
@@ -704,6 +714,11 @@ msgid "On-time Rate"
 msgstr "Tỷ lệ đúng hạn"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Only"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "Order Deadline"
@@ -731,11 +746,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:purchase_stock.field_product_product__purchase_order_line_ids
 msgid "PO Lines"
 msgstr "Chi tiết đơn mua hàng"
-
-#. module: purchase_stock
-#: model:ir.model.fields.selection,name:purchase_stock.selection__purchase_order__receipt_status__partial
-msgid "Partially Received"
-msgstr "Đã nhận một phần"
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -768,6 +778,12 @@ msgstr "Mixin bổ sung sản phẩm"
 #: model:ir.model,name:purchase_stock.model_product_product
 msgid "Product Variant"
 msgstr "Biến thể sản phẩm"
+
+#. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__date_promised
+#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__date_promised
+msgid "Promised Date"
+msgstr ""
 
 #. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order_line__propagate_cancel
@@ -837,11 +853,6 @@ msgid "Receipt Date"
 msgstr ""
 
 #. module: purchase_stock
-#: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__receipt_status
-msgid "Receipt Status"
-msgstr "Trạng thái phiếu nhập kho"
-
-#. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.purchase_order_view_form_inherit
 msgid "Receive"
 msgstr "Nhận"
@@ -858,20 +869,14 @@ msgid "Received Qty Method"
 msgstr "Cách thức số lượng đã nhận"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "Received quantity is less than the expected quantity for transfer"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_purchase_order__picking_ids
 msgid "Receptions"
 msgstr "Nhận hàng"
-
-#. module: purchase_stock
-#: model:ir.model.fields,help:purchase_stock.field_purchase_order__receipt_status
-msgid ""
-"Red: Late\n"
-"            Orange: To process today\n"
-"            Green: On time"
-msgstr ""
-"Đỏ: Trễ\n"
-"            Cam: Cần xử lý hôm nay\n"
-"            Xanh: Đúng thời gian"
 
 #. module: purchase_stock
 #: model:ir.model,name:purchase_stock.model_stock_reference
@@ -1028,6 +1033,11 @@ msgid "Sunday"
 msgstr "Chủ nhật"
 
 #. module: purchase_stock
+#: model:ir.model.fields,field_description:purchase_stock.field_product_replenish__partner_id
+msgid "Supplier"
+msgstr ""
+
+#. module: purchase_stock
 #: model:ir.model.fields,field_description:purchase_stock.field_stock_warehouse_orderpoint__supplier_id_placeholder
 msgid "Supplier Id Placeholder"
 msgstr ""
@@ -1090,8 +1100,8 @@ msgid ""
 "Go on the product form and complete the list of vendors."
 msgstr ""
 "Không có giá nhập hàng phù hợp để tạo đơn mua hàng cho sản phẩm %s (không "
-"xác định nhà cung cấp, không đáp ứng số lượng tối thiểu, ngày không hợp lệ, "
-"...). Đi đến biểu mẫu sản phẩm và hoàn thiện danh sách nhà cung cấp."
+"xác định nhà cung cấp, không đáp ứng số lượng tối thiểu, ngày không hợp "
+"lệ, ...). Đi đến biểu mẫu sản phẩm và hoàn thiện danh sách nhà cung cấp."
 
 #. module: purchase_stock
 #: model_terms:ir.ui.view,arch_db:purchase_stock.res_config_settings_view_form_purchase
@@ -1185,11 +1195,6 @@ msgstr "Lệnh chuyển hàng"
 #: model:ir.model.fields.selection,name:purchase_stock.selection__res_partner__group_on__2
 msgid "Tuesday"
 msgstr "Thứ 3"
-
-#. module: purchase_stock
-#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
-msgid "Units"
-msgstr ""
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -1286,12 +1291,18 @@ msgid "You must set a Vendor Location for this partner %s"
 msgstr "Bạn phải thiết lập Vị trí nhà cung cấp cho đối tác này %s"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "and no backorder is planned. Manual action may be needed."
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-javascript
 #: code:addons/purchase_stock/static/src/product_catalog/search/search_panel.xml:0
 msgid "day(s)"
 msgstr "ngày"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
 #: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_po
 msgid "of"
 msgstr "của"
@@ -1302,10 +1313,20 @@ msgid "ordered instead of"
 msgstr "đã đặt thay vì"
 
 #. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.exception_on_picking
+msgid "received in contrast to the expected"
+msgstr ""
+
+#. module: purchase_stock
 #. odoo-python
 #: code:addons/purchase_stock/models/stock_rule.py:0
 msgid "this product should be manually replenished."
 msgstr "sản phẩm này phải được bổ sung thủ công."
+
+#. module: purchase_stock
+#: model_terms:ir.ui.view,arch_db:purchase_stock.product_view_kanban_catalog_purchase_only
+msgid "units"
+msgstr ""
 
 #. module: purchase_stock
 #. odoo-javascript
@@ -1315,135 +1336,3 @@ msgstr ""
 
 #~ msgid "Stock Valuation"
 #~ msgstr "Định giá tồn kho"
-
-#~ msgid ""
-#~ "Define if RFQ should be grouped         together based on expected "
-#~ "arrival.\n"
-#~ "         On Order: Replenishment needs will be grouped together except "
-#~ "for MTO.\n"
-#~ "         Daily: Replenishment needs will be grouped if the expected "
-#~ "arrival is the same day\n"
-#~ "         Weekly: Replenishment needs will be grouped if the expected "
-#~ "arrival is the same week or week day\n"
-#~ "         Always: Replenishment needs will always be grouped."
-#~ msgstr ""
-#~ "Xác định xem RFQ có nên được nhóm lại với nhau dựa trên thời gian giao "
-#~ "hàng dự kiến hay không.\n"
-#~ "         Trên đơn hàng: Nhu cầu bổ sung hàng sẽ được nhóm lại với nhau, "
-#~ "trừ trường hợp MTO.\n"
-#~ "         Hàng ngày: Nhu cầu bổ sung hàng sẽ được nhóm lại nếu thời gian "
-#~ "giao hàng dự kiến là cùng ngày.\n"
-#~ "         Hàng tuần: Nhu cầu bổ sung hàng sẽ được nhóm lại nếu thời gian "
-#~ "giao hàng dự kiến là cùng tuần hoặc cùng ngày trong tuần.\n"
-#~ "         Luôn luôn: Nhu cầu bổ sung hàng sẽ luôn được nhóm lại."
-
-#~ msgid "Requests for quotation"
-#~ msgstr "Yêu cầu báo giá"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">No On-time "
-#~ "Delivery Data</span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('on_time_rate', '&gt;=', 0)]}\">Không có dữ "
-#~ "liệu giao hàng đúng hẹn</span>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Địa chỉ giao hàng:</strong>"
-
-#~ msgid "Currency exchange rate difference"
-#~ msgstr "Chênh lệch tỉ giá tiền tệ"
-
-#~ msgid ""
-#~ "Depending on the modules installed, this will allow you to define the "
-#~ "route of the product: whether it will be bought, manufactured, "
-#~ "replenished on order, etc."
-#~ msgstr ""
-#~ "Phụ thuộc vào module đã được cài đặt, sẽ cho phép bạn xác định quy trình "
-#~ "của sản phẩm: liệu nó sẽ được mua, sản xuất, cung ứng theo đơn hàng,..."
-
-#~ msgid ""
-#~ "For the product %s, the warehouse of the operation type (%s) is "
-#~ "inconsistent with the location (%s) of the reordering rule (%s). Change "
-#~ "the operation type or cancel the request for quotation."
-#~ msgstr ""
-#~ "Đối với sản phẩm %s, kho hàng của loại hoạt động (%s) không tương thích "
-#~ "với vị trí (%s) của quy tắc tái đặt hàng (%s). Hãy thay đổi loại hoạt "
-#~ "động hoặc huỷ yêu cầu báo giá."
-
-#~ msgid "Incoterm"
-#~ msgstr "Incoterm"
-
-#~ msgid ""
-#~ "International Commercial Terms are a series of predefined commercial "
-#~ "terms used in international transactions."
-#~ msgstr ""
-#~ "Điều khoản Thương mại Quốc tế là một chuỗi các điều khoản thương mại được "
-#~ "định nghĩa trước để sử dụng trong các giao dịch quốc tế."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Biên độ sai lệch thời gian mua hàng. Khi hệ thống tạo các Đơn mua hàng để "
-#~ "tái đặt hàng sản phẩm, số ngày này sẽ được thêm vào thời gian mua hàng để "
-#~ "ngăn ngừa sự trễ hẹn không mong muốn từ phía nhà cung cấp."
-
-#~ msgid "Move forward expected request creation date by"
-#~ msgstr "Tăng ngày tạo yêu cầu dự kiến thêm "
-
-#~ msgid "No data yet"
-#~ msgstr "Chưa có dữ liệu nào"
-
-#~ msgid ""
-#~ "Odoo is not able to generate the anglo saxon entries. The total valuation "
-#~ "of %s is zero."
-#~ msgstr ""
-#~ "Odoo không thể tạo các bút toán anglo saxon. Tổng giá trị của %s là 0."
-
-#~ msgid ""
-#~ "Over the past 12 months; the number of products received on time divided "
-#~ "by the number of ordered products."
-#~ msgstr ""
-#~ "Trong 12 tháng qua; số lượng sản phẩm nhận được đúng hạn chia cho số "
-#~ "lượng sản phẩm đã đặt hàng."
-
-#~ msgid "Procurement Group"
-#~ msgstr "Nhóm cung ứng"
-
-#~ msgid "Product Supplier"
-#~ msgstr "Nhà cung cấp sản phẩm"
-
-#~ msgid "Purchase Security Lead Time"
-#~ msgstr "Thời gian mua hàng an toàn"
-
-#~ msgid "Purchase Visibility Days"
-#~ msgstr "Ngày khả năng hiển thị mua hàng"
-
-#~ msgid "Receive Products"
-#~ msgstr "Nhận sản phẩm"
-
-#~ msgid "Routes"
-#~ msgstr "Tuyến "
-
-#~ msgid "Schedule request for quotations earlier to avoid delays"
-#~ msgstr "Lên lịch yêu cầu báo giá sớm hơn để tránh trễ hạn"
-
-#~ msgid ""
-#~ "Unable to cancel purchase order %s as some receptions have already been "
-#~ "done."
-#~ msgstr ""
-#~ "Không thể huỷ đơn mua hàng %s khi đã nhận một phần hay toàn bộ sản phẩm."
-
-#~ msgid "Visibility Days applied on the purchase routes."
-#~ msgstr "Ngày khả năng hiển thị áp dụng cho tuyến mua hàng."
-
-#~ msgid ""
-#~ "You cannot decrease the ordered quantity below the received quantity.\n"
-#~ "Create a return first."
-#~ msgstr ""
-#~ "Bạn không thể giảm số lượng đặt hàng xuống dưới số lượng đã nhận.\n"
-#~ "Hãy tạo phiếu trả hàng trước."
-
-#~ msgid "days"
-#~ msgstr "ngày"

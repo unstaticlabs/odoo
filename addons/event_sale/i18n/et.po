@@ -17,13 +17,13 @@
 # Anna, 2023
 # JanaAvalah, 2023
 # Eneli Õigus <enelioigus@gmail.com>, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 04:46+0000\n"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-14 15:27+0000\n"
 "Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
 "event_sale/et/>\n"
@@ -32,7 +32,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
@@ -67,6 +67,11 @@ msgstr "<span>Registreerimise muutmine osalejatele:</span>"
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
 msgid "Add"
 msgstr "Lisa"
+
+#. module: event_sale
+#: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__additional_product_ids
+msgid "Additional Products"
+msgstr ""
 
 #. module: event_sale
 #: model_terms:ir.ui.view,arch_db:event_sale.event_configurator_view_form
@@ -573,6 +578,13 @@ msgid "Select an Event"
 msgstr "Vali sündmus"
 
 #. module: event_sale
+#: model:ir.model.fields,help:event_sale.field_event_event_configurator__additional_product_ids
+msgid ""
+"Select products to include with each registration. They will also show up "
+"separately on Sale Orders."
+msgstr ""
+
+#. module: event_sale
 #. odoo-python
 #: code:addons/event_sale/models/event_registration.py:0
 #: model:ir.model.fields,field_description:event_sale.field_event_event_configurator__event_slot_id
@@ -682,122 +694,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event_sale.event_registration_change_exception
 msgid "to"
 msgstr "kuni"
-
-#~ msgid ""
-#~ "<span>Not enough seats available. All registrations were created as "
-#~ "\"Unconfirmed\" and can be updated later on.</span>"
-#~ msgstr ""
-#~ "<span>Vabu kohti pole piisavalt. Kõik registreeringud loodi kui "
-#~ "\"Kinnitamata\" ja neid saab hiljem uuendada.</span>"
-
-#~ msgid ""
-#~ "A description of the ticket that you want to communicate to your "
-#~ "customers."
-#~ msgstr "Pileti kirjeldus, mille soovite oma klientidele edastada."
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Ladustatav toode on toode, millel haldate laovarusid. Alla peab olema "
-#~ "laetud Lao moodul.\n"
-#~ "Tarbitav toode on toode, millel ei hallata laovarusid.\n"
-#~ "Teenus on Teie poolt pakutav mittemateriaalne toode."
-
-#~ msgid "Cancel"
-#~ msgstr "Tühista"
-
-#~ msgid "Configure an event"
-#~ msgstr "Looge sündmus"
-
-#~ msgid "Currency"
-#~ msgstr "Valuuta"
-
-#~ msgid "Description"
-#~ msgstr "Kirjeldus"
-
-#~ msgid "Event Registration - Standard"
-#~ msgstr "Sündmuse registreerimine - Standard"
-
-#~ msgid "Event Registration - VIP"
-#~ msgstr "Sündmuse registreerimine - VIP"
-
-#~ msgid "Event Template Ticket"
-#~ msgstr "Sündmuse malli pilet"
-
-#~ msgid "Event Tickets"
-#~ msgstr "Sündmuse piletid"
-
-#~ msgid "Group By"
-#~ msgstr "Grupeeri"
-
-#~ msgid "Is Paid"
-#~ msgstr "On tasuline"
-
-#~ msgid "Journal Entry"
-#~ msgstr "Andmiku kanne"
-
-#~ msgid "Locked"
-#~ msgstr "Lukustatud"
-
-#~ msgid "Mobile"
-#~ msgstr "Mobiil"
-
-#~ msgid "Not Paid"
-#~ msgstr "Maksmata"
-
-#~ msgid "Not enough seats for all registrations"
-#~ msgstr "Kõigi registreerimiste jaoks ei jätku kohti"
-
-#~ msgid "Ok"
-#~ msgstr "Ok"
-
-#~ msgid "Order Ref"
-#~ msgstr "Ostu viide"
-
-#~ msgid "Paid"
-#~ msgstr "Makstud"
-
-#~ msgid "Price"
-#~ msgstr "Hind"
-
-#~ msgid "Price Reduce"
-#~ msgstr "Hinnaalandus"
-
-#~ msgid "Price Reduce Tax inc"
-#~ msgstr "Hinnalandus koos maksudega"
-
-#~ msgid "Product Type"
-#~ msgstr "Toote tüüp"
-
-#~ msgid "Product Variant"
-#~ msgstr "Toote variatsioon"
-
-#~ msgid "Quotation Template Line"
-#~ msgstr "Pakkumise põhja rida"
-
-#~ msgid "Quotation Template Option"
-#~ msgstr "Pakkumise põhja valik"
-
-#~ msgid "Sales (Tax Excluded)"
-#~ msgstr "Müük (maksudeta)"
-
-#~ msgid "Sales End"
-#~ msgstr "Müügi lõpp"
-
-#~ msgid "Sales Start"
-#~ msgstr "Müügi algus"
-
-#~ msgid "Skip"
-#~ msgstr "Jäta vahele"
-
-#~ msgid "Ticket changed from"
-#~ msgstr "Pilet muudetud"
-
-#~ msgid "Transaction"
-#~ msgstr "Tehing"
-
-#~ msgid "please give attendee details."
-#~ msgstr "palun andke osaleja andmed."

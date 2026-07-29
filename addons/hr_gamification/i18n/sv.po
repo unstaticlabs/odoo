@@ -14,10 +14,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-01 01:17+0000\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-22 14:47+0000\n"
 "Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
-"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_gamification/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -126,12 +126,6 @@ msgstr "Beskrivning"
 #: model:ir.model.fields,field_description:hr_gamification.field_hr_employee__direct_badge_ids
 msgid "Direct Badge"
 msgstr "Direktbricka"
-
-#. module: hr_gamification
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_badge_wizard_reward
-#: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
-msgid "Discard"
-msgstr "Avbryt"
 
 #. module: hr_gamification
 #: model:ir.model.fields,field_description:hr_gamification.field_gamification_badge__display_name
@@ -298,37 +292,3 @@ msgstr "Man kan inte skicka en bricka till sig själv."
 #: model_terms:ir.ui.view,arch_db:hr_gamification.view_current_badge_form
 msgid "on"
 msgstr "den"
-
-#~ msgid ""
-#~ "Badges are rewards of good work. Give them to people you believe deserve "
-#~ "it."
-#~ msgstr ""
-#~ "Emblem är belöningar för bra arbete. Ge dem till människor du tycker "
-#~ "förtjänar det."
-
-#~ msgid "Basic Employee"
-#~ msgstr "Grundläggande anställd"
-
-#~ msgid "Cancel"
-#~ msgstr "Avbryt"
-
-#~ msgid "Grant this employee his first badge"
-#~ msgstr "Ge den här medarbetaren sin första utmärkelse"
-
-#~ msgid "Received Badges"
-#~ msgstr "Mottagna emblem"
-
-#~ msgid "Related user name for the resource to manage its access."
-#~ msgstr ""
-#~ "Relaterat användarnamn för resursen vid administration av dess rättigheter"
-
-#~ msgid "Reward Employee"
-#~ msgstr "Belöna medarbetare"
-
-#~ msgid "You can send badges only to employees linked to a user."
-#~ msgstr ""
-#~ "Du kan endast skicka emblem till anställda som är kopplade till en "
-#~ "användare."
-
-#~ msgid "to reward this employee for a good action"
-#~ msgstr "att belöna denna anställd för ett bra åtgärd"

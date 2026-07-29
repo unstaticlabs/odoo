@@ -13,16 +13,14 @@
 # Hamed Mohammadi <hamed@dehongi.com>, 2023
 # Ali Reza Feizi Derakhshi, 2023
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
-# Omid Ghaffarinia <omid.ghaffarinia@gmail.com>, 2026.
-# Heshmatkhah <maheshmatkhah.soft@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-07-15 14:58+0000\n"
-"Last-Translator: Heshmatkhah <maheshmatkhah.soft@gmail.com>\n"
-"Language-Team: Persian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-13 18:27+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Persian <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_setup/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
@@ -168,11 +166,6 @@ msgid "Add fun feedback and motivate your employees"
 msgstr "بازخورد سرگرم کننده اضافه کنید و به کارکنان خود انگیزه دهید"
 
 #. module: base_setup
-#: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_mail_plugin
-msgid "Allow integration with the mail plugins"
-msgstr "اجازه ادغام با افزونه های ایمیل را بدهید"
-
-#. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_calendar
 msgid "Allow the users to synchronize their calendar  with Google Calendar"
 msgstr "به کاربران اجازه بده تقویم خود با تقویم گوگل هماهنگ سازی کنند."
@@ -223,7 +216,7 @@ msgstr "Cloudflare Turnstile"
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Companies"
-msgstr "شرکت‌ها"
+msgstr "شرکت"
 
 #. module: base_setup
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__company_id
@@ -323,6 +316,7 @@ msgstr "ویرایش طرح بندی"
 #. module: base_setup
 #. odoo-python
 #: code:addons/base_setup/models/res_config_settings.py:0
+#, fuzzy
 msgid "Edit new user default group"
 msgstr "ویرایش گروه پیش‌فرض کاربر جدید"
 
@@ -391,11 +385,6 @@ msgstr "ورود و خروج فایل"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Integrate with mail client plugins"
-msgstr "با پلاگین‌های ایمیل مشتری ادغام کنید."
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Integrations"
 msgstr "ادغامها"
 
@@ -429,11 +418,6 @@ msgstr "زبان‌ها"
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
 msgid "Layout"
 msgstr "طرح بندی"
-
-#. module: base_setup
-#: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
-msgid "Mail Plugin"
-msgstr "افزونه ایمیل"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -627,7 +611,7 @@ msgstr "کاربران"
 #. odoo-python
 #: code:addons/base_setup/models/res_config_settings.py:0
 msgid "VAT"
-msgstr "شناسه مالیاتی"
+msgstr "ارزش افزوده"
 
 #. module: base_setup
 #: model_terms:ir.ui.view,arch_db:base_setup.res_config_settings_view_form
@@ -643,6 +627,7 @@ msgstr ""
 #. module: base_setup
 #. odoo-python
 #: code:addons/base_setup/models/res_users.py:0
+#, fuzzy
 msgid "You have to install the Discuss application to use this feature."
 msgstr "باید برنامه گفتگو را نصب کنید تا بتوانید از این قابلیت استفاده کنید."
 
@@ -650,51 +635,3 @@ msgstr "باید برنامه گفتگو را نصب کنید تا بتوانی�
 #: model:ir.model.fields,field_description:base_setup.field_res_config_settings__module_google_recaptcha
 msgid "reCAPTCHA"
 msgstr "reCAPTCHA"
-
-#~ msgid "Asterisk (VoIP)"
-#~ msgstr "ستاره (VoIP)"
-
-#~ msgid ""
-#~ "Automatically generate counterpart documents for orders/invoices between "
-#~ "companies"
-#~ msgstr ""
-#~ "به طور خودکار اسناد مشابه برای سفارشات/فاکتورها بین شرکت ها تولید کنید"
-
-#~ msgid ""
-#~ "By default, new users get highest access rights for all installed apps."
-#~ msgstr ""
-#~ "به صورت پیش فرض کاربران جدید بالاترین حق دسترسی برای همه‌ی برنامه‌های نصب "
-#~ "شده می گیرند."
-
-#~ msgid "Default User Template not found."
-#~ msgstr "قالب کاربر پیش فرض یافت نشد."
-
-#~ msgid "Documentation"
-#~ msgstr "مستندات"
-
-#~ msgid "Geo Localization"
-#~ msgstr "محلی سازی جغرافیایی"
-
-#~ msgid "GeoLocalize your partners"
-#~ msgstr "شرکای خود را محلی سازی جغرافیایی کنید"
-
-#~ msgid "Get product pictures using barcode"
-#~ msgstr "تصاویر محصول را با استفاده از بارکد دریافت کنید"
-
-#~ msgid "Google Calendar"
-#~ msgstr "تقویم گوگل"
-
-#~ msgid "On Apple Store"
-#~ msgstr "روی فروشگاه اپل"
-
-#~ msgid "On Google Play"
-#~ msgstr "روی گوگل پلی"
-
-#~ msgid "Outlook Calendar"
-#~ msgstr "تقویم Outlook"
-
-#~ msgid "Synchronize your calendar with Google Calendar"
-#~ msgstr "تقویم خود را با تقویم گوگل همگام کنید"
-
-#~ msgid "Synchronize your calendar with Outlook"
-#~ msgstr "تقویم خود را با Outlook همگام کنید"

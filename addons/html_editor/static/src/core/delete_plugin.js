@@ -91,16 +91,19 @@ import { normalizeDeepCursorPosition, normalizeFakeBR } from "@html_editor/utils
  */
 
 // @todo @phoenix: move these predicates to different plugins
-export const unremovableNodePredicates = [
-    (node) => node.classList?.contains("oe_unremovable"),
-    // Monetary field
-    (node) => node.matches?.("[data-oe-type='monetary'] > span"),
-];
+export const unremovableNodePredicates = [(node) => node.classList?.contains("oe_unremovable")];
 
 export class DeletePlugin extends Plugin {
     static dependencies = ["baseContainer", "selection", "history", "input", "userCommand"];
     static id = "delete";
-    static shared = ["deleteBackward", "deleteForward", "deleteRange", "deleteSelection", "delete"];
+    static shared = [
+        "deleteBackward",
+        "deleteForward",
+        "deleteRange",
+        "deleteSelection",
+        "delete",
+        "isUnremovable",
+    ];
     /** @type {import("plugins").EditorResources} */
     resources = {
         user_commands: [
@@ -263,7 +266,7 @@ export class DeletePlugin extends Plugin {
             throw new Error("Invalid direction");
         }
         this.dispatchTo("delete_handlers");
-        this.dependencies.history.addStep();
+        this.dependencies.history.addStep({ batchable: true });
     }
 
     // --------------------------------------------------------------------------

@@ -18,12 +18,13 @@ from odoo.addons.test_mail.data.test_mail_data import MAIL_TEMPLATE, MAIL_TEMPLA
 from odoo.addons.test_mail.models.mail_test_ticket import MailTestTicket
 from odoo.addons.test_mail.models.test_mail_models import MailTestGateway, MailTestGatewayGroups
 from odoo.sql_db import Cursor
-from odoo.tests import Form, tagged, RecordCapturer
+from odoo.tests import Form, tagged, RecordCapturer, Like
 from odoo.tools import mute_logger
 from odoo.tools.mail import email_normalize, email_split_and_format, formataddr
 
 
 @tagged('mail_gateway')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestEmailParsing(MailCommon):
 
     def test_message_parse_and_replace_bad_content_type(self):
@@ -98,8 +99,42 @@ class TestEmailParsing(MailCommon):
 
         # Parsing the same email, but with content-type set to "pdf"
         mail_with_aliased_mime = self.format(test_mail_data.MAIL_PDF_MIME_TEMPLATE, pdf_mime="pdf")
-        res_alias = self.env['mail.thread'].message_parse(self.from_string(mail_with_aliased_mime))
+        with self.assertLogs('odoo.addons.mail.models.mail_thread') as log_catcher:
+            res_alias = self.env['mail.thread'].message_parse(self.from_string(mail_with_aliased_mime))
+        self.assertEqual(log_catcher.output, [
+                    Like("...Message containing an unexpected Content-Type 'pdf', assuming 'application/octet-stream'..."),
+                ])
         self.assertEqual(res_alias['attachments'][0].content, test_mail_data.PDF_PARSED, "Attachment with aliased Content-Type: pdf must parse without error")
+
+    def test_message_parse_attachment_no_slash_mime(self):
+        """Content-Type with no '/' (e.g. 'base64') must not corrupt binary attachments.
+
+        Some mailers send attachments with a bare token as Content-Type instead of a
+        proper 'type/subtype' pair:
+
+            Content-Type: base64; name="foo.pdf"
+            Content-Transfer-Encoding: base64
+
+        Python's email library normalises any MIME type without a '/' to 'text/plain',
+        which makes get_content() decode the binary payload as UTF-8 text and silently
+        replace invalid byte sequences with U+FFFD — corrupting the file.  The parser
+        must detect this before the text/plain branch runs and treat the part as binary.
+        """
+        for mime_type in ('base64', 'octet', 'data'):
+            with self.subTest(mime_type=mime_type):
+                received_mail = self.from_string(self.format(
+                    test_mail_data.MAIL_PDF_MIME_TEMPLATE, pdf_mime=mime_type))
+                with self.assertLogs('odoo.addons.mail.models.mail_thread') as log_catcher:
+                    res = self.env['mail.thread'].message_parse(received_mail)
+
+                [attachment] = res['attachments']
+                self.assertEqual(
+                    attachment.content, test_mail_data.PDF_PARSED,
+                    f"Attachment with Content-Type: {mime_type} must not be corrupted",
+                )
+                self.assertEqual(log_catcher.output, [
+                    Like(f"...Message containing an unexpected Content-Type '{mime_type}', assuming 'application/octet-stream'..."),
+                ])
 
     def test_message_parse_bugs(self):
         """ Various corner cases or message parsing """
@@ -246,6 +281,7 @@ class MailGatewayCommon(MailCommon):
 
 
 @tagged('mail_gateway')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailgateway(MailGatewayCommon):
 
     def test_assert_initial_values(self):
@@ -1041,7 +1077,7 @@ class TestMailgateway(MailGatewayCommon):
                 (test_domain, test_domain),
             ], [True, True, False, True]):
             with self.subTest(alias_right_part=alias_right_part, allowed_domain=allowed_domain):
-                self.env['ir.config_parameter'].set_param('mail.catchall.domain.allowed', allowed_domain)
+                self.env['ir.config_parameter'].set_str('mail.catchall.domain.allowed', allowed_domain)
 
                 subject = f'Test wigh {alias_right_part}-{allowed_domain}'
                 email_to = f'{self.alias.alias_name}@{self.alias_domain}, {new_alias_2.alias_name}@{alias_right_part}'
@@ -1072,6 +1108,22 @@ class TestMailgateway(MailGatewayCommon):
             )
         self.assertFalse(new_recs)
         self.assertNotSentEmail()
+
+    @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
+    def test_message_route_bounce_multi_company_alias_domain(self):
+        """Incoming emails: company-specific bounce alias from catchall"""
+        with self.mock_mail_gateway():
+            record = self.format_and_process(
+                MAIL_TEMPLATE, self.partner_1.email_formatted,
+                f'{self.alias_catchall_c2}@{self.alias_domain_c2_name}',
+                subject='Test multi-company routing alias',
+            )
+        self.assertFalse(record)
+        self.assertSentEmail(
+            f'"MAILER-DAEMON" <{self.alias_bounce_c2}@{self.alias_domain_c2_name}>',
+            ['whatever-2a840@postmaster.twitter.com'],
+            subject='Re: Test multi-company routing alias'
+        )
 
     @mute_logger('odoo.addons.mail.models.mail_thread', 'odoo.models')
     def test_message_route_bounce_other_recipients(self):
@@ -1219,8 +1271,10 @@ class TestMailgateway(MailGatewayCommon):
         self.assertEqual(self.test_record.message_bounce, 0)
 
         notification = self.env['mail.notification'].create({
+            'notification_type': 'email',
             'mail_message_id': self.fake_email.id,
             'res_partner_id': self.partner_1.id,
+            'mail_email_address': self.partner_1.email_normalized,
         })
 
         bounce_email_to = f'{self.alias_bounce}@{self.alias_domain}'
@@ -2021,13 +2075,14 @@ class TestMailgateway(MailGatewayCommon):
 
 
 @tagged('mail_gateway', 'mail_loop')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailGatewayLoops(MailGatewayCommon):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env['ir.config_parameter'].sudo().set_param('mail.gateway.loop.minutes', 30)
-        cls.env['ir.config_parameter'].sudo().set_param('mail.gateway.loop.threshold', 5)
+        cls.env['ir.config_parameter'].sudo().set_int('mail.gateway.loop.minutes', 30)
+        cls.env['ir.config_parameter'].sudo().set_int('mail.gateway.loop.threshold', 5)
 
         cls.env['mail.gateway.allowed'].create([
             {'email': 'Bob@EXAMPLE.com'},
@@ -2335,6 +2390,7 @@ class TestMailGatewayLoops(MailGatewayCommon):
 
 
 @tagged('mail_gateway', 'mail_tools')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailGatewayRecipients(MailGatewayCommon):
 
     @classmethod
@@ -2392,6 +2448,7 @@ class TestMailGatewayRecipients(MailGatewayCommon):
 
 
 @tagged('mail_gateway', 'mail_loop', 'mail_reply')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMailGatewayReplies(MailGatewayCommon):
     """ Check routing of replies, using headers, references, ... """
 
@@ -2736,46 +2793,3 @@ class TestMailGatewayReplies(MailGatewayCommon):
                 'subtype': 'mail.mt_comment',
             }],
         )
-
-
-@tagged('mail_gateway', 'mail_thread')
-class TestMailThreadCC(MailCommon):
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestMailThreadCC, cls).setUpClass()
-
-        cls.email_from = 'Sylvie Lelitre <test.sylvie.lelitre@agrolait.com>'
-        cls.alias = cls.env['mail.alias'].create({
-            'alias_contact': 'everyone',
-            'alias_domain_id': cls.mail_alias_domain.id,
-            'alias_model_id': cls.env['ir.model']._get('mail.test.cc').id,
-            'alias_name': 'cc_record',
-        })
-
-    @mute_logger('odoo.addons.mail.models.mail_thread')
-    def test_message_cc_new(self):
-        record = self.format_and_process(MAIL_TEMPLATE, self.email_from, f'cc_record@{self.alias_domain}',
-                                         cc='cc1@example.com, cc2@example.com', target_model='mail.test.cc')
-        cc = email_split_and_format(record.email_cc)
-        self.assertEqual(sorted(cc), ['cc1@example.com', 'cc2@example.com'])
-
-    @mute_logger('odoo.addons.mail.models.mail_thread')
-    def test_message_cc_update_with_old(self):
-        record = self.env['mail.test.cc'].create({'email_cc': 'cc1 <cc1@example.com>, cc2@example.com'})
-        self.alias.write({'alias_force_thread_id': record.id})
-
-        self.format_and_process(MAIL_TEMPLATE, self.email_from, f'cc_record@{self.alias_domain}',
-                                cc='cc2 <cc2@example.com>, cc3@example.com', target_model='mail.test.cc')
-        cc = email_split_and_format(record.email_cc)
-        self.assertEqual(sorted(cc), ['"cc1" <cc1@example.com>', 'cc2@example.com', 'cc3@example.com'], 'new cc should have been added on record (unique)')
-
-    @mute_logger('odoo.addons.mail.models.mail_thread')
-    def test_message_cc_update_no_old(self):
-        record = self.env['mail.test.cc'].create({})
-        self.alias.write({'alias_force_thread_id': record.id})
-
-        self.format_and_process(MAIL_TEMPLATE, self.email_from, f'cc_record@{self.alias_domain}',
-                                cc='cc2 <cc2@example.com>, cc3@example.com', target_model='mail.test.cc')
-        cc = email_split_and_format(record.email_cc)
-        self.assertEqual(sorted(cc), ['"cc2" <cc2@example.com>', 'cc3@example.com'], 'new cc should have been added on record (unique)')

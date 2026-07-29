@@ -2,14 +2,14 @@
 # This file contains the translation of the following modules:
 # * auth_passkey
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
-# "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
+# "Abe Manyo (abem)" <abem@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 04:36+0000\n"
+"POT-Creation-Date: 2026-02-04 18:35+0000\n"
+"PO-Revision-Date: 2025-10-16 01:44+0000\n"
 "Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
 "Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
 "auth_passkey/id/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: auth_passkey
 #: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_users_form
@@ -52,12 +52,6 @@ msgstr "Metode Autentikasi"
 #: model:ir.model.fields,field_description:auth_passkey.field_res_users__auth_passkey_key_ids
 msgid "Auth Passkey Key"
 msgstr "Kunci Passkey Autentikasi"
-
-#. module: auth_passkey
-#: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_create_view_form
-#: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_rename
-msgid "Cancel"
-msgstr "Batal"
 
 #. module: auth_passkey
 #: model_terms:ir.ui.view,arch_db:auth_passkey.auth_passkey_key_create_view_form
@@ -161,6 +155,8 @@ msgid "Or choose a different method:"
 msgstr "Atau pilih metode yang berbeda:"
 
 #. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
 #: model:ir.model,name:auth_passkey.model_auth_passkey_key
 #: model:ir.model.fields.selection,name:auth_passkey.selection__res_users_identitycheck__auth_method__webauthn
 msgid "Passkey"
@@ -231,21 +227,29 @@ msgid "Use a Passkey"
 msgstr "Gunakan Passkey"
 
 #. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "Use passkey"
+msgstr ""
+
+#. module: auth_passkey
 #: model_terms:ir.ui.view,arch_db:auth_passkey.res_users_identitycheck_view_form_passkey
 msgid "Use password"
 msgstr "Gunakan passwor"
+
+#. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "Use your passkey"
+msgstr ""
 
 #. module: auth_passkey
 #: model:ir.model,name:auth_passkey.model_res_users
 msgid "User"
 msgstr "Pengguna"
 
-#~ msgid "Created:"
-#~ msgstr "Dibuat:"
-
-#~ msgid ""
-#~ "Passkeys are a replacement for your username and password, offering a "
-#~ "more secure way of logging in."
-#~ msgstr ""
-#~ "Passkey adalah pengganti untuk username dan password Anda, menawarkan "
-#~ "cara yang lebih aman untuk login."
+#. module: auth_passkey
+#. odoo-javascript
+#: code:addons/auth_passkey/static/src/services/check_identity/check_identity.xml:0
+msgid "When you are ready, authenticate using the button below."
+msgstr ""

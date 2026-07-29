@@ -8,19 +8,19 @@
 # David Ramia, 2023
 # Pedro M. Baeza <pedro.baeza@tecnativa.com>, 2023
 # Iran Villalobos López, 2023
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Noemi Pla Garcia (nopl)" <nopl@odoo.com>, 2025, 2026.
-# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
+# "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:37+0000\n"
-"PO-Revision-Date: 2026-06-30 12:44+0000\n"
-"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
-"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-19/payment/"
-"es/>\n"
+"PO-Revision-Date: 2026-06-13 13:42+0000\n"
+"Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
+"Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-2/"
+"payment/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -234,11 +234,6 @@ msgstr "<strong>Advertencia</strong> Debe iniciar sesión para pagar."
 #: model:payment.method,name:payment.payment_method_ach_direct_debit
 msgid "ACH Direct Debit"
 msgstr "Domiciliación bancaria ACH"
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
-msgid "ACTIVATE"
-msgstr "ACTIVAR"
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_abitab
@@ -624,6 +619,11 @@ msgid "CMR"
 msgstr "CMR"
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.no_pms_available_warning
+msgid "CONNECT"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_cabal
 msgid "Cabal"
 msgstr "Cabal"
@@ -778,10 +778,6 @@ msgstr "Color"
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
-msgid "Companies"
-msgstr "Compañías"
-
-#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_provider__company_id
 #: model:ir.model.fields,field_description:payment.field_payment_token__company_id
@@ -802,12 +798,6 @@ msgstr "Opciones de configuración"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Configuration"
 msgstr "Configuración"
-
-#. module: payment
-#. odoo-javascript
-#: code:addons/payment/static/src/interactions/payment_form.js:0
-msgid "Confirm"
-msgstr "Confirmar"
 
 #. module: payment
 #. odoo-javascript
@@ -984,6 +974,7 @@ msgstr "Descubrir"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
+#: model:ir.model.fields,field_description:payment.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:payment.field_res_company__display_name
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:payment.field_res_country__display_name
@@ -1227,6 +1218,7 @@ msgstr "Humm"
 #: model:ir.model.fields,field_description:payment.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
+#: model:ir.model.fields,field_description:payment.field_portal_entry__id
 #: model:ir.model.fields,field_description:payment.field_res_company__id
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__id
 #: model:ir.model.fields,field_description:payment.field_res_country__id
@@ -1478,7 +1470,7 @@ msgstr ""
 "No es posible hacer una solicitud al proveedor porque está desactivado."
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
+#: model:portal.entry,description:payment.payment_methods_portal_entry
 msgid "Manage your payment methods"
 msgstr "Gestione sus métodos de pago"
 
@@ -1533,7 +1525,7 @@ msgid "Mercado Livre"
 msgstr "Mercado Livre"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__mercado_pago
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__mercado_pago
 #: model:payment.provider,name:payment.payment_provider_mercado_pago
 msgid "Mercado Pago"
 msgstr "Mercado Pago"
@@ -1553,6 +1545,11 @@ msgstr "Mensaje"
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Messages"
 msgstr "Mensajes"
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_payment_provider__minimum_amount
+msgid "Minimum Amount"
+msgstr ""
 
 #. module: payment
 #: model:payment.method,name:payment.payment_method_momo
@@ -1705,6 +1702,7 @@ msgid "OmanNet"
 msgstr "OmanNet"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__onboarding_payment_module
 #: model:ir.model.fields,field_description:payment.field_res_config_settings__onboarding_payment_module
 msgid "Onboarding Payment Module"
 msgstr "Onboarding del módulo de pagos"
@@ -1830,6 +1828,16 @@ msgid "Pay Later"
 msgstr "Pagar después"
 
 #. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_later_label
+msgid "Pay Later Label"
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,field_description:payment.field_res_company__pay_now_label
+msgid "Pay Now Label"
+msgstr ""
+
+#. module: payment
 #: model:payment.method,name:payment.payment_method_paybright
 msgid "PayBright"
 msgstr "PayBright"
@@ -1923,6 +1931,7 @@ msgstr "Código del método de pago"
 #. odoo-python
 #: code:addons/payment/models/payment_provider.py:0
 #: model:ir.actions.act_window,name:payment.action_payment_method
+#: model:portal.entry,name:payment.payment_methods_portal_entry
 #: model_terms:ir.ui.view,arch_db:payment.payment_methods
 #: model_terms:ir.ui.view,arch_db:payment.payment_provider_form
 msgid "Payment Methods"
@@ -2002,7 +2011,6 @@ msgstr "Método de pago"
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.availability_report
-#: model_terms:ir.ui.view,arch_db:payment.portal_my_home_payment
 msgid "Payment methods"
 msgstr "Métodos de pago"
 
@@ -2101,6 +2109,11 @@ msgid "Please wait..."
 msgstr "Por favor espere..."
 
 #. module: payment
+#: model:ir.model,name:payment.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Post-process"
 msgstr "Posprocesamiento"
@@ -2196,7 +2209,7 @@ msgid "Ratepay"
 msgstr "Ratepay"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__razorpay
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__razorpay
 #: model:payment.provider,name:payment.payment_provider_razorpay
 msgid "Razorpay"
 msgstr "Razorpay"
@@ -2310,6 +2323,11 @@ msgid "Samsung Pay"
 msgstr "Samsung Pay"
 
 #. module: payment
+#: model:payment.method,name:payment.payment_method_satispay
+msgid "Satispay"
+msgstr ""
+
+#. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.form
 msgid "Save"
 msgstr "Guardar"
@@ -2412,7 +2430,7 @@ msgid "Status"
 msgstr "Estado"
 
 #. module: payment
-#: model:ir.model.fields.selection,name:payment.selection__res_config_settings__onboarding_payment_module__stripe
+#: model:ir.model.fields.selection,name:payment.selection__res_company__onboarding_payment_module__stripe
 #: model:payment.provider,name:payment.payment_provider_stripe
 msgid "Stripe"
 msgstr "Stripe"
@@ -2661,6 +2679,20 @@ msgid "The internal reference of the transaction"
 msgstr "La referencia interna de la transacción"
 
 #. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_later_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Later' payment "
+"methods."
+msgstr ""
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_res_company__pay_now_label
+msgid ""
+"The label to be displayed on the payment buttons for 'Pay Now' payment "
+"methods."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__supported_country_ids
 msgid ""
 "The list of countries in which this payment method can be used (if the "
@@ -2734,6 +2766,13 @@ msgstr ""
 #: model:ir.model.fields,help:payment.field_payment_provider__pre_msg
 msgid "The message displayed to explain and help the payment process"
 msgstr "El mensaje que aparece para explicar y ayudar al proceso de pago"
+
+#. module: payment
+#: model:ir.model.fields,help:payment.field_payment_provider__minimum_amount
+msgid ""
+"The minimum payment amount that this payment provider is available for. "
+"Leave blank to make it available for any payment amount."
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_method__support_manual_capture
@@ -3261,6 +3300,12 @@ msgstr ""
 #. module: payment
 #. odoo-python
 #: code:addons/payment/models/payment_method.py:0
+msgid "You cannot delete a payment method linked to a provider."
+msgstr ""
+
+#. module: payment
+#. odoo-python
+#: code:addons/payment/models/payment_method.py:0
 msgid "You cannot delete the default payment method."
 msgstr "No puede eliminar el método de pago por defecto."
 
@@ -3529,8 +3574,8 @@ msgstr "no se admite la captura manual"
 #. module: payment
 #. odoo-python
 #: code:addons/payment/const.py:0
-msgid "maximum amount exceeded"
-msgstr "excede el importe máximo"
+msgid "minimum or maximum amount exceeded"
+msgstr ""
 
 #. module: payment
 #. odoo-python
@@ -3575,346 +3620,3 @@ msgstr "no se admite la tokenización sin pago"
 
 #~ msgid "JazzCash"
 #~ msgstr "JazzCash"
-
-#~ msgid "ACTIVATE STRIPE"
-#~ msgstr "ACTIVAR STRIPE"
-
-#~ msgid " Data Fetched"
-#~ msgstr " Datos obtenidos"
-
-#~ msgid "<b>Amount:</b>"
-#~ msgstr "<b>Importe:</b>"
-
-#~ msgid "<b>Reference:</b>"
-#~ msgstr "<b>Referencia:</b>"
-
-#~ msgid ""
-#~ "<h3>Please make a payment to: </h3><ul><li>Bank: %s</li><li>Account "
-#~ "Number: %s</li><li>Account Holder: %s</li></ul>"
-#~ msgstr ""
-#~ "<h3>Por favor haga su pago a:</h3><ul><li> Banco:%s</li><li> Número de "
-#~ "cuenta:%s</li><li> Titular de la cuenta:%s</li></ul>"
-
-#~ msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-#~ msgstr "<i class=\"fa fa-arrow-circle-right\"/> Ir a mi cuenta"
-
-#~ msgid "<i class=\"fa fa-trash\"/> Delete"
-#~ msgstr "<i class=\"fa fa-trash\"/> Eliminar"
-
-#~ msgid ""
-#~ "<strong>No suitable payment option could be found.</strong><br/>\n"
-#~ "                                If you believe that it is an error, "
-#~ "please contact the website administrator."
-#~ msgstr ""
-#~ "<strong>No se ha encontrado ninguna opción de pago adecuada.</strong><br/"
-#~ ">\n"
-#~ "                                Si cree que se trata de un error, póngase "
-#~ "en contacto con el administrador del sitio web."
-
-#~ msgid "<strong>No suitable payment provider could be found.</strong>"
-#~ msgstr ""
-#~ "<strong>No se ha podido encontrar un proveedor de pago adecuado.</strong>"
-
-#~ msgid ""
-#~ "<strong>Warning</strong> Make sure your are logged in as the right "
-#~ "partner before making this payment."
-#~ msgstr ""
-#~ "<strong>Advertencia</strong> Asegúrese de que inició sesión como el "
-#~ "partner adecuado antes de realizar el pago."
-
-#~ msgid "Account"
-#~ msgstr "Cuenta"
-
-#~ msgid "Account Number"
-#~ msgstr "Número de cuenta"
-
-#~ msgid "Add Extra Fees"
-#~ msgstr "Añadir cargos extra"
-
-#~ msgid "Allow Payment Provider"
-#~ msgstr "Permitir el proveedor de pago"
-
-#~ msgid "An error occurred during the processing of this payment."
-#~ msgstr "Se produjo un error al procesar este pago"
-
-#~ msgid "Apply"
-#~ msgstr "Aplicar"
-
-#~ msgid "Bank"
-#~ msgstr "Banco"
-
-#~ msgid "Bank Name"
-#~ msgstr "Nombre del banco"
-
-#~ msgid "Callback Document Model"
-#~ msgstr "Modelo de documento de devolver llamada"
-
-#~ msgid "Callback Done"
-#~ msgstr "Se devolvió la llamada"
-
-#~ msgid "Callback Hash"
-#~ msgstr "Hash de devolver llamada"
-
-#~ msgid "Callback Method"
-#~ msgstr "Método para devolver llamada"
-
-#~ msgid "Callback Record ID"
-#~ msgstr "ID de registro de llamadas"
-
-#~ msgid "Cancel"
-#~ msgstr "Cancelar"
-
-#~ msgid "Canceled Message"
-#~ msgstr "Mensaje cancelado"
-
-#~ msgid "Choose a payment method"
-#~ msgstr "Elige un método de pago"
-
-#~ msgid "Click here to be redirected to the confirmation page."
-#~ msgstr "Haz clic aquí para volver a la página de confirmación."
-
-#~ msgid "Credit & Debit Card"
-#~ msgstr "Tarjeta de crédito & débito"
-
-#~ msgid "Credit & Debit card (via Stripe)"
-#~ msgstr "Tarjeta de crédito (a través de Stripe)"
-
-#~ msgid "Credit Card (powered by Adyen)"
-#~ msgstr "Tarjeta de crédito (con tecnología de Adyen)"
-
-#~ msgid "Credit Card (powered by Authorize)"
-#~ msgstr "Tarjeta de crédito (con tecnología de Authorize)"
-
-#~ msgid "Credit Card (powered by Buckaroo)"
-#~ msgstr "Tarjeta de crédito (con tecnología de Buckaroo)"
-
-#~ msgid "Credit Card (powered by Sips)"
-#~ msgstr "Tarjeta de crédito (con tecnología de Sips)"
-
-#~ msgid "Custom payment instructions"
-#~ msgstr "Instrucciones de pago personalizadas"
-
-#~ msgid "Dismiss"
-#~ msgstr "Descartar"
-
-#~ msgid "Displayed as"
-#~ msgstr "Mostrado como"
-
-#~ msgid "Done"
-#~ msgstr "Hecho"
-
-#~ msgid "Error: %s"
-#~ msgstr "Error: %s"
-
-#~ msgid "Fees"
-#~ msgstr "Cargos"
-
-#~ msgid "Fixed domestic fees"
-#~ msgstr "Comisiones nacionales fijas"
-
-#~ msgid "Fixed international fees"
-#~ msgstr "Comisiones internacionales fijas"
-
-#~ msgid "From"
-#~ msgstr "Desde"
-
-#~ msgid "Group By"
-#~ msgstr "Agrupar por"
-
-#~ msgid "If the payment hasn't been confirmed you can contact us."
-#~ msgstr "Si el pago no ha sido confirmado, puede contactarnos."
-
-#~ msgid "Image displayed on the payment form"
-#~ msgstr "Imagen mostrada en el formulario de pago"
-
-#~ msgid "Internal server error"
-#~ msgstr "Error de servidor interno"
-
-#~ msgid "Just done"
-#~ msgstr "Recientemente realizado"
-
-#~ msgid "Manage payment methods"
-#~ msgstr "Gestionar métodos de pago"
-
-#~ msgid "Manual"
-#~ msgstr "Manual"
-
-#~ msgid "Method"
-#~ msgstr "Método"
-
-#~ msgid "Multiple payment options selected"
-#~ msgstr "Múltiples opciones de pago seleccionados"
-
-#~ msgid "No payment has been processed."
-#~ msgstr "No se procesó ningún pago."
-
-#~ msgid "No payment option selected"
-#~ msgstr "No se seleccionó una opción de pago"
-
-#~ msgid "Not done"
-#~ msgstr "Pendiente"
-
-#~ msgid "Not verified"
-#~ msgstr "No está verificado"
-
-#~ msgid "Ok"
-#~ msgstr "Aceptar"
-
-#~ msgid "Only administrators can access this data."
-#~ msgstr "Solo los administradores pueden acceder a estos datos."
-
-#~ msgid "Other"
-#~ msgstr "Otro"
-
-#~ msgid "PDT Identity Token"
-#~ msgstr "Token de identidad PDT (Payment Data Transfer)"
-
-#~ msgid "Payment Instructions"
-#~ msgstr "Instrucciones de pago"
-
-#~ msgid "Payment Ref"
-#~ msgstr "Referencia de pago"
-
-#~ msgid "Please select a payment option."
-#~ msgstr "Por favor, elija una opción de pago."
-
-#~ msgid "Please select only one payment option."
-#~ msgstr "Por favor, elija solamente una opción de pago."
-
-#~ msgid "Please set an amount smaller than %s."
-#~ msgstr "Establece una cantidad menor a %s."
-
-#~ msgid "Please wait ..."
-#~ msgstr "Por favor espera..."
-
-#~ msgid "Reason: %s"
-#~ msgstr "Motivo: %s"
-
-#~ msgid "Save Payment Method"
-#~ msgstr "Guardar método de pago"
-
-#~ msgid "Save my payment details"
-#~ msgstr "Guardar mis detalles de pago"
-
-#~ msgid "Selected onboarding payment method"
-#~ msgstr "Método de pago de incorporación seleccionado"
-
-#~ msgid "Server Error"
-#~ msgstr "Error en servidor"
-
-#~ msgid "Server error:"
-#~ msgstr "Error en servidor:"
-
-#~ msgid "Show Allow Tokenization"
-#~ msgstr "Mostrar permitir tokenización"
-
-#~ msgid "Show Auth Msg"
-#~ msgstr "Mostrar mensaje de autorización"
-
-#~ msgid "Show Cancel Msg"
-#~ msgstr "Mostrar cancelar mensaje"
-
-#~ msgid "Show Credentials Page"
-#~ msgstr "Mostrar página de credenciales"
-
-#~ msgid "Show Done Msg"
-#~ msgstr "Mostrar mensaje hecho"
-
-#~ msgid "Show Pending Msg"
-#~ msgstr "Mostrar mensaje pendiente"
-
-#~ msgid "Show Pre Msg"
-#~ msgstr "Mostrar mensaje previo"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "The access token is invalid."
-#~ msgstr "El token de acceso es inválido."
-
-#~ msgid ""
-#~ "The message displayed if the order is canceled during the payment process"
-#~ msgstr "El mensaje que aparece si se cancela la orden durante el proceso"
-
-#~ msgid ""
-#~ "The payment should either be direct, with redirection, or made by a token."
-#~ msgstr ""
-#~ "El mensaje debe ser directo y con redirección o debe ser creado por un "
-#~ "token"
-
-#~ msgid "The value of the payment amount must be positive."
-#~ msgstr "El valor del monto de pago debe ser positivo."
-
-#~ msgid "This payment method has been verified by our system."
-#~ msgstr "Este método de pago ha sido verificado por nuestro sistema."
-
-#~ msgid "This payment method has not been verified by our system."
-#~ msgstr "Este método de pago no ha sido verificado por nuestro sistema."
-
-#~ msgid "Tokenization Supported"
-#~ msgstr "Tokenización compatible"
-
-#~ msgid "Type of Refund Supported"
-#~ msgstr "Tipo de reembolso compatible"
-
-#~ msgid "Unable to contact the Odoo server."
-#~ msgstr "No se puede conectar con el servidor Odoo."
-
-#~ msgid "Variable fees must always be positive and below 100%."
-#~ msgstr "Las tarifas variables siempre deben ser positivas y menores a 100%."
-
-#~ msgid "Verified"
-#~ msgstr "Verificado"
-
-#~ msgid "We are not able to delete your payment method."
-#~ msgstr "No podemos eliminar su método de pago."
-
-#~ msgid "We are not able to find your payment, but don't worry."
-#~ msgstr "No hemos podido localizar tu pago, pero no te preocupes."
-
-#~ msgid "We are not able to process your payment."
-#~ msgstr "No podemos procesar su pago."
-
-#~ msgid "We are not able to save your payment method."
-#~ msgstr "No podemos guardar su método de pago."
-
-#~ msgid "We are processing your payment, please wait ..."
-#~ msgstr "Estamos procesando tu pago, espera..."
-
-#~ msgid "Whether the callback has already been executed"
-#~ msgstr "Si ya se devolvió la llamada"
-
-#~ msgid ""
-#~ "You should receive an email confirming your payment in a few minutes."
-#~ msgstr ""
-#~ "Deberías recibir un correo electrónico confirmando tu pago en unos "
-#~ "minutos."
-
-#~ msgid "You will be notified when the payment is confirmed."
-#~ msgstr "Se te notificará cuando se confirme el pago."
-
-#~ msgid "You will be notified when the payment is fully confirmed."
-#~ msgstr "Se te notificará cuando el pago esté completamente confirmado."
-
-#~ msgid "Your payment has been received but need to be confirmed manually."
-#~ msgstr "Tu pago ha sido recibido pero debe confirmarse manualmente."
-
-#~ msgid ""
-#~ "Your payment has been successfully processed but is waiting for approval."
-#~ msgstr ""
-#~ "Tu pago ha sido procesado con éxito pero está en espera de tu aprobación."
-
-#~ msgid "Your payment has been successfully processed. Thank you!"
-#~ msgstr "Tu pago se ha procesado con éxito. ¡Gracias!"
-
-#~ msgid "Your payment is in pending state."
-#~ msgstr "Tu pago está pendiente."
-
-#~ msgid "payment: post-process transactions"
-#~ msgstr "pago: transacciones posprocesadas"
-
-#~ msgid "show less"
-#~ msgstr "ver menos"
-
-#~ msgid "show more"
-#~ msgstr "ver más"

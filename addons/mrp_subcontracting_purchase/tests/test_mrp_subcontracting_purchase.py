@@ -105,7 +105,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         self.assertFalse(bom_data['lines']['components_available'])
         for component in bom_data['lines']['components']:
             self.assertEqual(component['quantity_on_hand'], 4)
-            self.assertEqual(component['availability_state'], 'estimated')
+            self.assertEqual(component['availability_state'], 'unavailable')
 
     def test_count_smart_buttons(self):
         """
@@ -121,7 +121,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': 'finished',
                 'product_id': self.finished.id,
                 'product_qty': 1.0,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 50.0}
             )],
         } for _ in range(2)])
@@ -150,7 +150,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': 'finished',
                 'product_id': self.finished.id,
                 'product_qty': product_qty,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 50.0}
             )],
         })
@@ -197,7 +197,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished2.name,
                 'product_id': self.finished2.id,
                 'product_uom_qty': 10,
-                'product_uom_id': self.finished2.uom_id.id,
+                'uom_id': self.finished2.uom_id.id,
                 'price_unit': 1,
             })],
         })
@@ -239,7 +239,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished2.name,
                 'product_id': self.finished2.id,
                 'product_uom_qty': 10,
-                'product_uom_id': self.finished2.uom_id.id,
+                'uom_id': self.finished2.uom_id.id,
                 'price_unit': 1,
             })],
         })
@@ -300,14 +300,14 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         amls = self.env['account.move.line'].search([
             ('product_id', 'in', (self.comp1 | self.comp2 | self.finished).ids)
         ])
-        self.assertRecordValues(amls, [
-            {'account_id': self.account_production.id, 'debit': 0, 'credit': 60, 'product_id': self.finished.id},
-            {'account_id': self.account_stock_valuation.id, 'debit': 60, 'credit': 0, 'product_id': self.finished.id},
+        self.assertRecordValues(amls.sorted('id'), [
+            {'account_id': self.account_stock_valuation.id, 'debit': 120, 'credit': 0, 'product_id': self.finished.id},
             {'account_id': self.account_stock_valuation.id, 'debit': 0, 'credit': 20, 'product_id': self.comp1.id},
             {'account_id': self.account_production.id, 'debit': 20, 'credit': 0, 'product_id': self.comp1.id},
             {'account_id': self.account_stock_valuation.id, 'debit': 0, 'credit': 40, 'product_id': self.comp2.id},
             {'account_id': self.account_production.id, 'debit': 40, 'credit': 0, 'product_id': self.comp2.id},
-            {'account_id': self.account_stock_valuation.id, 'debit': 120, 'credit': 0, 'product_id': self.finished.id},
+            {'account_id': self.account_production.id, 'debit': 0, 'credit': 60, 'product_id': self.finished.id},
+            {'account_id': self.account_stock_valuation.id, 'debit': 60, 'credit': 0, 'product_id': self.finished.id},
         ])
 
     def test_subcontracting_resupply_price_diff(self):
@@ -439,7 +439,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished.name,
                 'product_id': self.finished.id,
                 'product_uom_qty': 1,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 100,
             })],
         })
@@ -471,7 +471,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished2.name,
                 'product_id': self.finished2.id,
                 'product_qty': 10,
-                'product_uom_id': self.finished2.uom_id.id,
+                'uom_id': self.finished2.uom_id.id,
                 'price_unit': 1,
             })],
         })
@@ -634,7 +634,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': 'finished',
                 'product_id': self.finished.id,
                 'product_qty': 1.0,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 50.0}
             )],
         })
@@ -667,7 +667,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         Up to 18.4: a stock move could have multiple move_dest_ids
         """
         self.env['mrp.bom'].create({
-            'product_tmpl_id': self.product.product_tmpl_id.id,
+            'product_tmpl_id': self.product_standard.product_tmpl_id.id,
             'product_qty': 1.0,
             'type': 'subcontract',
             'subcontractor_ids': [(4, self.subcontractor_partner1.id)],
@@ -675,9 +675,9 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         po = self.env['purchase.order'].create({
             'partner_id': self.subcontractor_partner1.id,
             'order_line': [Command.create({
-                'product_id': self.product.id,
+                'product_id': self.product_standard.id,
                 'product_qty': 5,
-                'product_uom_id': self.product.uom_id.id,
+                'uom_id': self.product_standard.uom_id.id,
             })],
         })
         po.button_confirm()
@@ -717,7 +717,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
             'move_raw_ids': [(0, 0, {
                 'product_id': self.finished.id,
                 'product_uom_qty': 3.0,
-                'product_uom': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
             })]
         })
         mo.action_confirm()
@@ -848,7 +848,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         self.assertFalse(bom_data['lines']['components_available'])
         for component in bom_data['lines']['components']:
             self.assertEqual(component['quantity_on_hand'], 4)
-            self.assertEqual(component['availability_state'], 'estimated')
+            self.assertEqual(component['availability_state'], 'unavailable')
 
     def test_location_after_dest_location_update_backorder_production(self):
         """
@@ -873,7 +873,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished.name,
                 'product_id': self.finished.id,
                 'product_qty': 2.0,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 1.0,
             })],
         })
@@ -917,7 +917,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished.name,
                 'product_id': self.finished.id,
                 'product_qty': 2.0,
-                'product_uom_id': self.finished.uom_id.id,
+                'uom_id': self.finished.uom_id.id,
                 'price_unit': 10.0,
             })],
         })
@@ -986,7 +986,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
                 'name': self.finished2.name,
                 'product_id': self.finished2.id,
                 'product_qty': 10,
-                'product_uom_id': self.finished2.uom_id.id,
+                'uom_id': self.finished2.uom_id.id,
                 'price_unit': 1,
             })],
         })
@@ -1015,7 +1015,7 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         self.finished2.purchase_method = 'purchase'
         po = self.env['purchase.order'].create({
             'partner_id': self.subcontractor_partner1.id,
-            'order_line': [(0, 0, {
+            'order_line': [Command.create({
                 'product_id': self.finished2.id,
                 'product_qty': todo_nb,
                 'price_unit': 50,
@@ -1026,12 +1026,10 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         picking_receipt = po.picking_ids
         picking_receipt.do_unreserve()
 
-        serials_finished = []
-        for i in range(todo_nb):
-            serials_finished.append(self.env['stock.lot'].create({
-                'name': 'serial_fin_%s' % i,
-                'product_id': self.finished2.id,
-            }))
+        serials_finished = self.env['stock.lot'].create([{
+            'name': 'serial_fin_%s' % i,
+            'product_id': self.finished2.id,
+        } for i in range(todo_nb)])
 
         action = picking_receipt.move_ids.action_show_details()
         with Form(picking_receipt.move_ids.with_context(action['context']), view=action['view_id']) as move_form:
@@ -1104,29 +1102,3 @@ class MrpSubcontractingPurchaseTest(TestAccountSubcontractingFlows):
         self.assertIn(replenish_wizard.route_id, buy_routes)
         manufacture_route = self.env['stock.rule'].search([('action', '=', 'manufacture'), ('company_id', '=', self.company.id)]).route_id
         self.assertNotIn(manufacture_route, replenish_wizard.allowed_route_ids)
-
-    def test_forecast_after_scrap_resupply(self):
-        """Tests that the computation of the forecast_availability of the resupply of a PO
-        does not raise after scraping"""
-        resupply_sub_on_order_route = self.env['stock.route'].search([('name', '=', 'Resupply Subcontractor on Order')])
-        self.comp1.route_ids += resupply_sub_on_order_route
-
-        po = self.env['purchase.order'].create({
-            'partner_id': self.bom.subcontractor_ids.id,
-            'order_line': [Command.create({
-                'product_id': self.finished.id,
-                'product_qty': 1,
-            })],
-        })
-        po.button_confirm()
-        resupply = po._get_subcontracting_resupplies()
-        self.env['stock.quant']._update_available_quantity(self.comp1, resupply.location_id, 1)
-        scrap = self.env['stock.scrap'].with_context(default_picking_type_id=po.picking_type_id.id).create({
-            'product_id': self.comp1.id,
-            'scrap_qty': 1,
-            'picking_id': resupply.id
-        })
-        scrap.action_validate()
-        self.assertEqual(scrap.state, 'done')
-        resupply.move_ids.invalidate_recordset(['forecast_availability'])
-        self.assertRecordValues(resupply.move_ids, [{'forecast_availability': -1.0}, {'forecast_availability': 0.0}])

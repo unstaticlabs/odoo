@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Jolien De Paepe, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Manon Rondou (ronm)" <ronm@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.5alpha1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 20:57+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2026-01-15 12:32+0000\n"
 "Last-Translator: \"Manon Rondou (ronm)\" <ronm@odoo.com>\n"
-"Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: French <https://translate.odoo.com/projects/odoo-s19-1/"
 "website_customer/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : ((n != 0 && n % "
 "1000000 == 0) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.index
@@ -83,6 +83,16 @@ msgstr "Tous les secteurs d'activité"
 #: model_terms:ir.ui.view,arch_db:website_customer.res_partner_tag_view_search
 msgid "Archived"
 msgstr "Archivé"
+
+#. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__publish_on
+msgid "Auto publish on"
+msgstr "Publication automatique le"
+
+#. module: website_customer
+#: model:ir.model.fields,help:website_customer.field_res_partner_tag__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "Publier automatiquement la page à la date et à l’heure choisies."
 
 #. module: website_customer
 #: model_terms:ir.ui.view,arch_db:website_customer.details
@@ -285,6 +295,11 @@ msgid "Partners"
 msgstr "Partenaires"
 
 #. module: website_customer
+#: model:ir.model.fields,field_description:website_customer.field_res_partner_tag__published_date
+msgid "Published date"
+msgstr "Date de publication"
+
+#. module: website_customer
 #. odoo-python
 #: code:addons/website_customer/models/website.py:0
 #: model_terms:ir.ui.view,arch_db:website_customer.references_block
@@ -376,43 +391,3 @@ msgstr "Étiquettes du site web"
 #: model_terms:ir.ui.view,arch_db:website_customer.opt_country
 msgid "World Map"
 msgstr "Carte du monde"
-
-#~ msgid ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"External "
-#~ "link\" title=\"External link\"/>"
-#~ msgstr ""
-#~ "<span class=\"fa fa-external-link\" role=\"img\" aria-label=\"Lien "
-#~ "externe\" title=\"Lien externe\"/>"
-
-#~ msgid "Implemented By"
-#~ msgstr "Implémenté par"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Dernière modification le"
-
-#~ msgid "No result found"
-#~ msgstr "Aucun résultat trouvé"
-
-#~ msgid "Our References"
-#~ msgstr "Nos références"
-
-#~ msgid "References Page"
-#~ msgstr "Page de références"
-
-#~ msgid "References by Country"
-#~ msgstr "Références par pays"
-
-#~ msgid "References by Industries"
-#~ msgstr "Références par secteur d'activité"
-
-#~ msgid "References by Tag"
-#~ msgstr "Références par étiquette"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "L'URL complète pour accéder au document à travers le site web."
-
-#~ msgid "Trusted by millions worldwide"
-#~ msgstr "Recommandé par des millions d'utilisateurs dans le monde"
-
-#~ msgid "reference(s))"
-#~ msgstr "référence(s))"

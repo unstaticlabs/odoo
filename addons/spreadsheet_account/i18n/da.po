@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 04:19+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-01-04 18:36+0000\n"
+"PO-Revision-Date: 2026-06-23 13:40+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "spreadsheet_account/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -56,8 +56,8 @@ msgstr "Cellekontrol"
 
 #. module: spreadsheet_account
 #: model:ir.model,name:spreadsheet_account.model_res_company
-msgid "Companies"
-msgstr "Virksomheder"
+msgid "Company"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -76,6 +76,12 @@ msgstr "Kreditkort"
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Current Assets"
 msgstr "Omsætningsaktiver"
+
+#. module: spreadsheet_account
+#. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Current Fiscal Year"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript
@@ -112,6 +118,12 @@ msgstr "Egenkapital"
 #: code:addons/spreadsheet_account/static/src/account_group_auto_complete.js:0
 msgid "Expenses"
 msgstr "Udgifter"
+
+#. module: spreadsheet_account
+#. odoo-javascript
+#: code:addons/spreadsheet_account/static/src/fiscal_year_global_filter.js:0
+msgid "Fiscal Year"
+msgstr ""
 
 #. module: spreadsheet_account
 #. odoo-javascript

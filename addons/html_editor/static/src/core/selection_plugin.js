@@ -7,6 +7,7 @@ import {
     isProtecting,
     isSelfClosingElement,
     isUnprotecting,
+    selfClosingHtmlTags,
 } from "@html_editor/utils/dom_info";
 import {
     childNodes,
@@ -22,6 +23,7 @@ import { Plugin } from "../plugin";
 import { DIRECTIONS, leftPos, nodeSize, rightPos } from "../utils/position";
 import {
     getAdjacentCharacter,
+    getCursorDirection,
     normalizeDeepCursorPosition,
     normalizeFakeBR,
     normalizeNotEditableNode,
@@ -74,31 +76,8 @@ import { weakMemoize } from "@html_editor/utils/functions";
  * @property {number} offset
  */
 
-// https://developer.mozilla.org/en-US/docs/Glossary/Void_element
-const VOID_ELEMENT_NAMES = [
-    "AREA",
-    "BASE",
-    "BR",
-    "COL",
-    "EMBED",
-    "HR",
-    "IMG",
-    "INPUT",
-    "KEYGEN",
-    "LINK",
-    "META",
-    "PARAM",
-    "SOURCE",
-    "TRACK",
-    "WBR",
-];
-
-export function isArtificialVoidElement(node) {
-    return isMediaElement(node) || node.nodeName === "HR";
-}
-
 export function isNotAllowedContent(node) {
-    return isArtificialVoidElement(node) || VOID_ELEMENT_NAMES.includes(node.nodeName);
+    return isMediaElement(node) || selfClosingHtmlTags.includes(node.nodeName);
 }
 
 export const isHtmlContentSupported = weakMemoize(
@@ -183,6 +162,7 @@ function scrollToSelection(selection) {
  * @property { SelectionPlugin['isSelectionInEditable'] } isSelectionInEditable
  * @property { SelectionPlugin['isNodeEditable'] } isNodeEditable
  * @property { SelectionPlugin['selectAroundNonEditable'] } selectAroundNonEditable
+ * @property { SelectionPlugin['selectElement'] } selectElement
  */
 
 /**
@@ -221,6 +201,7 @@ export class SelectionPlugin extends Plugin {
         "isSelectionInEditable",
         "isNodeEditable",
         "selectAroundNonEditable",
+        "selectElement",
         "getCachedSelection",
         "setCachedSelection",
     ];
@@ -245,6 +226,9 @@ export class SelectionPlugin extends Plugin {
             }
             if (ev.detail && ev.detail % 3 === 0) {
                 this.onTripleClick(ev);
+            }
+            if (!ev.detail || ev.detail === 1) {
+                this.onClick(ev);
             }
         });
         this.addDomListener(this.editable, "keydown", (ev) => {
@@ -333,6 +317,12 @@ export class SelectionPlugin extends Plugin {
 
     resetSelection() {
         this.activeSelection = this.makeActiveSelection();
+    }
+
+    onClick(ev) {
+        if (this.delegateTo("click_overrides", ev)) {
+            return;
+        }
     }
 
     onDoubleClick(ev) {
@@ -1100,12 +1090,27 @@ export class SelectionPlugin extends Plugin {
             const screenDirection = ev.key === "ArrowLeft" ? "left" : "right";
             const isRtl = closestElement(selection.focusNode, "[dir]")?.dir === "rtl";
             const domDirection = (screenDirection === "left") ^ isRtl ? "previous" : "next";
+            const selectionDirection = getCursorDirection(
+                selection.anchorNode,
+                selection.anchorOffset,
+                selection.focusNode,
+                selection.focusOffset
+            );
+            const [edgeNode, edgeOffset] =
+                mode === "move" &&
+                (domDirection === "previous") ^ (selectionDirection === DIRECTIONS.LEFT)
+                    ? ["anchorNode", "anchorOffset"]
+                    : ["focusNode", "focusOffset"];
 
             // Whether the character next to the cursor should be skipped.
             const shouldSkipCallbacks = this.getResource(
                 "intangible_char_for_keyboard_navigation_predicates"
             );
-            let adjacentCharacter = getAdjacentCharacter(selection, domDirection, this.editable);
+            let adjacentCharacter = getAdjacentCharacter(
+                selection[edgeNode],
+                selection[edgeOffset],
+                domDirection
+            );
             let shouldSkip = shouldSkipCallbacks.some((cb) => cb(ev, adjacentCharacter));
 
             while (shouldSkip) {
@@ -1116,7 +1121,11 @@ export class SelectionPlugin extends Plugin {
                 const hasSelectionChanged =
                     nodeBefore !== selection.focusNode || offsetBefore !== selection.focusOffset;
                 const lastSkippedChar = adjacentCharacter;
-                adjacentCharacter = getAdjacentCharacter(selection, domDirection, this.editable);
+                adjacentCharacter = getAdjacentCharacter(
+                    selection[edgeNode],
+                    selection[edgeOffset],
+                    domDirection
+                );
 
                 shouldSkip =
                     hasSelectionChanged &&
@@ -1225,7 +1234,7 @@ export class SelectionPlugin extends Plugin {
         // Get up-to-date selection
         const { editableSelection } = this.getSelectionData();
         // Avoid setting the selection if it's not inside an uneditable element
-        const isInUneditable = (node) => !!closestElement(node, (elem) => !elem.isContentEditable);
+        const isInUneditable = (node) => !closestElement(node).isContentEditable;
         let { startContainer: start, endContainer: end } = editableSelection;
         if (!(isInUneditable(start) || (end !== start && isInUneditable(end)))) {
             return editableSelection;
@@ -1239,5 +1248,19 @@ export class SelectionPlugin extends Plugin {
             ? [start, startOffset, end, endOffset]
             : [end, endOffset, start, startOffset];
         return this.setSelection({ anchorNode, anchorOffset, focusNode, focusOffset });
+    }
+
+    /**
+     * @param {Element} element
+     */
+    selectElement(element) {
+        const [anchorNode, anchorOffset] = leftPos(element);
+        const [focusNode, focusOffset] = rightPos(element);
+        this.setSelection({
+            anchorNode,
+            anchorOffset,
+            focusNode,
+            focusOffset,
+        });
     }
 }

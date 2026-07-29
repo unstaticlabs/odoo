@@ -7,13 +7,13 @@
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
 # Emily Jia <eji@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:39+0000\n"
-"PO-Revision-Date: 2026-07-02 00:01+0000\n"
+"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"PO-Revision-Date: 2025-09-16 15:30+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
 "projects/odoo-19/snailmail/zh_Hans/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__attachment_error
@@ -115,10 +115,6 @@ msgstr "颜色"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_res_company
-msgid "Companies"
-msgstr "公司"
-
-#. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__company_id
 msgid "Company"
 msgstr "公司"
@@ -289,8 +285,8 @@ msgstr "消息"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_mail_notification
-msgid "Message Notifications"
-msgstr "消息通知"
+msgid "Message Notification"
+msgstr ""
 
 #. module: snailmail
 #. odoo-javascript
@@ -410,11 +406,6 @@ msgstr "传统信件"
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_color
 msgid "Snailmail Color"
 msgstr "实体邮寄颜色"
-
-#. module: snailmail
-#: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_cover_readonly
-msgid "Snailmail Cover Readonly"
-msgstr "蜗牛邮件封面只读"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__mail_notification__failure_type__sn_credit
@@ -605,8 +596,8 @@ msgid ""
 "You don't have an IAP account registered for this service.<br>Please go to "
 "<a href=%s target=\"new\">iap.odoo.com</a> to claim your free credits."
 msgstr ""
-"您没有为此服务注册的IAP账户。<br>请访问<a href=%s target=\"new\">"
-"iap.odoo.com</a>以获得免费信用。"
+"您没有为此服务注册的IAP账户。<br>请访问<a href=%s "
+"target=\"new\">iap.odoo.com</a>以获得免费信用。"
 
 #. module: snailmail
 #. odoo-python
@@ -615,105 +606,10 @@ msgid ""
 "You don't have enough credits to perform this operation.<br>Please go to "
 "your <a href=%s target=\"new\">iap account</a>."
 msgstr ""
-"您没有足够的积分来执行此操作.<br>请转到您的<a href=%s target=\"new\">iap账"
-"户</a>。"
+"您没有足够的积分来执行此操作.<br>请转到您的<a href=%s target=\"new\">iap账户"
+"</a>。"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__zip
 msgid "Zip"
 msgstr "邮政编码"
-
-#~ msgid "Address"
-#~ msgstr "地址"
-
-#~ msgid "An unknown error occurred. Please contact our"
-#~ msgstr "发生了一个未知的错误。请联系我们"
-
-#~ msgid "Buy credits"
-#~ msgstr "购买信用"
-
-#~ msgid "Cancel Letter"
-#~ msgstr "取消信"
-
-#~ msgid "Cancel letter"
-#~ msgstr "取消信件"
-
-#~ msgid "Cancel notification in failure"
-#~ msgstr "取消失败通知"
-
-#~ msgid "Canceled"
-#~ msgstr "已取消"
-
-#~ msgid "Close"
-#~ msgstr "关闭"
-
-#~ msgid "Failed letter"
-#~ msgstr "失败的邮件"
-
-#~ msgid "Format Error Sending a Snailmail Letter"
-#~ msgstr "发送蜗牛邮件格式错误"
-
-#~ msgid ""
-#~ "Message type: email for email message, notification for system message, "
-#~ "comment for other messages such as user replies"
-#~ msgstr ""
-#~ "消息类型：电子邮件用于邮件消息， 通知用户系统消息，评论用于其他消息，例如"
-#~ "用户回复"
-
-#~ msgid ""
-#~ "Our service cannot read your letter due to its format.<br/>\n"
-#~ "                Please modify the format of the template or update your "
-#~ "settings\n"
-#~ "                to automatically add a blank cover page to all letters."
-#~ msgstr ""
-#~ "由于信的格式问题，我们的服务无法阅读您的信。<br/>\n"
-#~ "                请修改模板的格式或更新设置\n"
-#~ "                自动为所有信件添加空白封面。"
-
-#~ msgid "Partner"
-#~ msgstr "业务伙伴"
-
-#~ msgid "Re-send letter"
-#~ msgstr "重新发送信件"
-
-#~ msgid "Street 2..."
-#~ msgstr "街道 2……"
-
-#~ msgid "Street..."
-#~ msgstr "街道..."
-
-#~ msgid ""
-#~ "The country to which you want to send the letter is not supported by our "
-#~ "service."
-#~ msgstr "我们的服务不支持您要邮寄的国家/地区。"
-
-#~ msgid ""
-#~ "The customer address is not complete. Update the address here and re-send "
-#~ "the letter."
-#~ msgstr "客户地址不完整。 在此处更新地址，然后重新发送信件。"
-
-#~ msgid ""
-#~ "The letter could not be sent due to insufficient credits on your IAP "
-#~ "account."
-#~ msgstr "由于您的IAP账户上的信用不足，该信无法发送。"
-
-#~ msgid "Update Config and Re-send"
-#~ msgstr "更新配置并重新发送"
-
-#~ msgid "Update address and re-send"
-#~ msgstr "更新地址并重新发送"
-
-#~ msgid "Update address of partner"
-#~ msgstr "更新合作伙伴地址"
-
-#~ msgid "You need credits on your IAP account to send a letter."
-#~ msgstr "您需要在您的IAP账户上有点数才能发信。"
-
-#~ msgid "ZIP"
-#~ msgstr "ZIP"
-
-#~ msgid "for further assistance."
-#~ msgstr "以获得进一步协助。"
-
-#~ msgid "support"
-#~ msgstr "支持"

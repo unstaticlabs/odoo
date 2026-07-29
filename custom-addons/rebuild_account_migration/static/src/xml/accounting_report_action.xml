@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="rebuild_account_migration.AccountingReportAction" class="o_action o_usl_accounting_report">
+        <t t-if="state.data">
+            <div t-att-class="reportWorkspaceClass" t-att-style="documentThemeStyle">
+            <div class="o_usl_report_header">
+                <div class="o_usl_report_identity">
+                    <div class="o_usl_report_company" t-esc="state.data.company_name"/>
+                    <h1 t-esc="state.data.title"/>
+                    <div class="o_usl_report_period">
+                        <strong t-esc="periodLabel"/>
+                        <span>
+                            <t t-esc="periodPresetLabel"/> ·
+                            <t t-esc="state.data.currency.name"/> ·
+                            <t t-esc="state.data.display_unit.label"/>
+                            (<t t-esc="displayUnitLabel"/>) ·
+                            <t t-esc="state.data.amount_rounding.label"/>
+                        </span>
+                    </div>
+                    <div class="o_usl_report_subtitle">
+                        <t t-esc="state.data.row_count"/> lignes · actualisé le
+                        <t t-esc="formatTimestamp(state.data.generated_at)"/> ·
+                        <t t-esc="state.data.variant.label"/>
+                    </div>
+                </div>
+                <div class="o_usl_report_exports">
+                    <button t-if="state.data.capabilities.pdf !== false" class="btn btn-outline-secondary"
+                            title="Télécharger en PDF le rapport affiché avec la même période, les mêmes filtres, la même hiérarchie et les mêmes totaux."
+                            t-on-click="() => this.exportReport('pdf')">
+                        <i class="fa fa-file-pdf-o me-1"/> PDF
+                    </button>
+                    <button t-if="state.data.capabilities.xlsx !== false" class="btn btn-primary"
+                            title="Télécharger en XLSX le rapport affiché avec la même période, les mêmes filtres, la même hiérarchie et les mêmes totaux."
+                            t-on-click="() => this.exportReport('xlsx')">
+                        <i class="fa fa-file-excel-o me-1"/> XLSX
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_usl_report_summary" t-if="state.data.summary.cards.length">
+                <div t-foreach="state.data.summary.cards" t-as="card" t-key="card.label"
+                     t-att-class="'o_usl_report_summary_card ' + (card.status ? 'o_usl_report_summary_' + card.status : '')">
+                    <span t-esc="summaryCardLabel(card)"/>
+                    <strong t-att-class="amountClass(card.value)" t-esc="formatCell(card.value, card.type)"/>
+                </div>
+            </div>
+
+            <div class="o_usl_report_filters">
+                <label t-if="showCompanyFilter">
+                    <span>Société</span>
+                    <select name="company_id" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.companies" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.company_id" t-esc="option.label"/>
+                        </t>
+                    </select>
+                </label>
+                <label class="o_usl_report_filter_period">
+                    <span>Période</span>
+                    <select name="period_preset" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.period_preset" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.period_preset" t-esc="filterOptionLabel('period_preset', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="state.filters.period_preset !== 'custom'">
+                    <span>Date de référence</span>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('period_anchor_date')"
+                        onChange="(value) => this.onDateFilterChange('period_anchor_date', value)"
+                    />
+                </label>
+                <label t-if="state.filters.period_preset === 'custom'">
+                    <span>Du</span>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('date_from')"
+                        onChange="(value) => this.onDateFilterChange('date_from', value)"
+                    />
+                </label>
+                <label t-if="state.filters.period_preset === 'custom'">
+                    <span>Au</span>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('date_to')"
+                        onChange="(value) => this.onDateFilterChange('date_to', value)"
+                    />
+                </label>
+                <label>
+                    <span>Écritures</span>
+                    <select name="target_move" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.target_move" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.target_move" t-esc="filterOptionLabel('target_move', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.comparison">
+                    <span>Comparaison</span>
+                    <select name="comparison_mode" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.comparison_mode" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.comparison_mode" t-esc="filterOptionLabel('comparison_mode', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.comparison and state.filters.comparison_mode === 'custom'">
+                    <span>Comparaison du</span>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('comparison_date_from')"
+                        onChange="(value) => this.onDateFilterChange('comparison_date_from', value)"
+                    />
+                </label>
+                <label t-if="capabilities.comparison and state.filters.comparison_mode === 'custom'">
+                    <span>Comparaison au</span>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('comparison_date_to')"
+                        onChange="(value) => this.onDateFilterChange('comparison_date_to', value)"
+                    />
+                </label>
+                <label t-if="capabilities.group_by">
+                    <span>Regrouper par</span>
+                    <select name="group_by" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.group_by" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.group_by" t-esc="filterOptionLabel('group_by', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.display_unit" class="o_usl_report_filter_unit">
+                    <span>Unité</span>
+                    <select name="display_unit" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.display_unit" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value"
+                                    t-att-selected="option.value === state.filters.display_unit"
+                                    t-esc="filterOptionLabel('display_unit', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.amount_rounding" class="o_usl_report_filter_unit">
+                    <span>Arrondi</span>
+                    <select name="amount_rounding" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.amount_rounding" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value"
+                                    t-att-selected="option.value === state.filters.amount_rounding"
+                                    t-esc="filterOptionLabel('amount_rounding', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.hide_zero_accounts"
+                       class="o_usl_report_filter_toggle">
+                    <span>Affichage</span>
+                    <span class="o_usl_report_checkbox">
+                        <input type="checkbox" name="hide_zero_accounts"
+                               t-att-checked="state.filters.hide_zero_accounts"
+                               t-on-change="onFilterChange"/>
+                        <span>Masquer les lignes à zéro</span>
+                    </span>
+                </label>
+                <button class="btn btn-outline-secondary o_usl_report_more_filters" type="button"
+                        title="Afficher ou masquer les filtres secondaires de journal, compte, partenaire et analytique."
+                        t-on-click="() => state.advancedOpen = !state.advancedOpen">
+                    <i class="fa fa-filter me-1"/>
+                    Filtres
+                    <span class="badge rounded-pill text-bg-primary ms-1" t-if="activeAdvancedFilterCount"
+                          t-esc="activeAdvancedFilterCount"/>
+                </button>
+                <form class="o_usl_report_search" t-on-submit="onSearch">
+                    <label>
+                        <span>Rechercher</span>
+                        <div class="input-group">
+                            <input name="search_text" type="search" placeholder="Compte, partenaire, écriture…" t-att-value="state.filters.search_text"/>
+                            <button class="btn btn-outline-secondary" type="submit" title="Appliquer la recherche">
+                                <i class="fa fa-search"/>
+                            </button>
+                        </div>
+                    </label>
+                </form>
+                <button t-if="hasOptionalFilters" class="btn btn-link o_usl_report_clear_filters"
+                        type="button" title="Effacer les filtres facultatifs en conservant la société, la période et le statut des écritures."
+                        t-on-click="clearOptionalFilters">
+                    Effacer
+                </button>
+            </div>
+
+            <div class="o_usl_report_advanced" t-if="state.advancedOpen">
+                <div class="o_usl_report_filter_group"
+                     t-foreach="advancedFilterGroups" t-as="group" t-key="group.field">
+                    <div class="o_usl_report_filter_group_title" t-esc="group.label"/>
+                    <div class="o_usl_report_filter_choices">
+                        <label t-foreach="state.data.options[group.option]" t-as="option"
+                               t-key="option.value" class="o_usl_report_filter_choice">
+                            <input type="checkbox" t-att-value="option.value"
+                                   t-att-checked="optionIsSelected(group.field, option.value)"
+                                   t-on-change="(event) => this.onManyFilterChange(event, group.field)"/>
+                            <span t-esc="option.label"/>
+                        </label>
+                        <div class="text-muted small p-2" t-if="!state.data.options[group.option].length">
+                            Aucune valeur disponible
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="o_usl_report_pills">
+                <span class="o_usl_report_scope_label">Périmètre actif</span>
+                <span class="badge rounded-pill text-bg-light">
+                    <t t-esc="periodLabel"/>
+                </span>
+                <span class="badge rounded-pill text-bg-light" t-if="state.filters.target_move === 'posted'">Écritures comptabilisées</span>
+                <span class="badge rounded-pill text-bg-light" t-else="">Brouillons inclus</span>
+                <span class="badge rounded-pill text-bg-light">
+                    Unité : <t t-esc="displayUnitLabel"/>
+                </span>
+                <span class="badge rounded-pill text-bg-light"
+                      t-if="state.filters.hide_zero_accounts">
+                    Lignes à zéro masquées
+                    <button type="button"
+                            t-on-click="() => this.removeFilter('hide_zero_accounts')"
+                            title="Afficher les lignes à zéro">
+                        <i class="fa fa-times"/>
+                    </button>
+                </span>
+                <span class="badge rounded-pill text-bg-light" t-if="state.data.variant.key !== 'standard'">
+                    <t t-esc="state.data.variant.label"/>
+                </span>
+                <span class="badge rounded-pill text-bg-light" t-if="state.filters.comparison_mode !== 'none'">
+                    Comparaison : <t t-esc="comparisonLabel"/>
+                    <button type="button" t-on-click="() => this.removeFilter('comparison_mode')" title="Supprimer la comparaison">
+                        <i class="fa fa-times"/>
+                    </button>
+                </span>
+                <t t-foreach="advancedFilterGroups" t-as="group" t-key="group.field">
+                    <span class="badge rounded-pill text-bg-light"
+                          t-foreach="state.filters[group.field]" t-as="recordId"
+                          t-key="group.field + '-' + recordId">
+                        <t t-esc="optionLabel(group.option, recordId)"/>
+                        <button type="button" t-on-click="() => this.removeFilter(group.field, recordId)"
+                                t-att-title="'Retirer ' + optionLabel(group.option, recordId)">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </span>
+                </t>
+                <span class="badge rounded-pill text-bg-light" t-if="state.filters.search_text">
+                    Recherche : <t t-esc="state.filters.search_text"/>
+                    <button type="button" t-on-click="() => this.removeFilter('search_text')" title="Effacer la recherche">
+                        <i class="fa fa-times"/>
+                    </button>
+                </span>
+            </div>
+
+            <div class="alert alert-warning mx-3" t-if="state.data.warning">
+                <i class="fa fa-exclamation-triangle me-2"/>
+                <t t-esc="state.data.warning"/>
+            </div>
+            <div class="alert alert-info mx-3" t-if="state.data.truncated">
+                <i class="fa fa-info-circle me-2"/>
+                Affichage des <t t-esc="state.data.lines.length"/> premières lignes sur
+                <t t-esc="state.data.row_count"/>. Utilisez la recherche ou les filtres pour cibler le rapport ;
+                les exports PDF et XLSX incluent toujours le résultat complet.
+            </div>
+
+            <div class="o_usl_report_table_wrap">
+                <table class="table o_usl_report_table">
+                    <thead>
+                        <tr>
+                            <th class="o_usl_report_label" t-esc="state.data.label_column"/>
+                            <th t-if="isDetailedLedger">Date</th>
+                            <th t-if="isDetailedLedger">Journal</th>
+                            <th t-if="isDetailedLedger">Écriture</th>
+                            <th class="text-end" t-if="isDetailedLedger">
+                                Solde d'ouverture <small>(<t t-esc="displayUnitLabel"/>)</small>
+                            </th>
+                            <th class="text-end" t-if="isDetailedLedger and showForeignCurrency">Devise d'origine</th>
+                            <th class="text-end" t-if="isTrialBalance">Ouverture <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Débit <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Crédit <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isDetailedLedger">Solde progressif <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance">Clôture <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isDetailedLedger and showResidual">Résiduel <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th t-if="isDetailedLedger and showMatching">Lettrage</th>
+                            <th t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
+                                t-key="column.key"
+                                t-att-class="column.type === 'currency' or column.type === 'number' ? 'text-end' : ''"
+                                t-esc="column.label"/>
+                            <th class="text-end" t-if="isTrialBalance and showComparison">Comparaison <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="o_usl_report_action"/>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.data.lines" t-as="line" t-key="line.id" t-att-class="rowClass(line)">
+                            <td class="o_usl_report_label" t-att-style="'padding-left:' + (0.75 + line.level * 1.25) + 'rem'">
+                                <button t-if="line.is_group" class="btn btn-sm btn-link o_usl_report_fold" t-on-click="() => this.toggleGroup(line)" title="Déplier ou replier">
+                                    <i t-att-class="'fa ' + (line.collapsed ? 'fa-chevron-right' : 'fa-chevron-down')"/>
+                                </button>
+                                <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
+                                <span t-esc="line.label"/>
+                                <small t-if="line.partner_name" class="d-block text-muted" t-esc="line.partner_name"/>
+                            </td>
+                            <td class="text-nowrap" t-if="isDetailedLedger" t-esc="formatDate(line.date)"/>
+                            <td t-if="isDetailedLedger" t-esc="line.journal_code"/>
+                            <td class="text-nowrap" t-if="isDetailedLedger">
+                                <span t-esc="line.move_name"/>
+                                <small class="d-block text-muted" t-if="line.move_ref" t-esc="line.move_ref"/>
+                            </td>
+                            <td t-att-class="amountClass(line.opening_balance)" t-if="isDetailedLedger"
+                                t-esc="line.opening_balance ? formatAmount(line.opening_balance) : ''"/>
+                            <td class="text-end text-nowrap" t-if="isDetailedLedger and showForeignCurrency"
+                                t-esc="line.currency ? formatForeignAmount(line.amount_currency, line.currency) : ''"/>
+                            <td t-att-class="amountClass(line.opening_balance)" t-if="isTrialBalance" t-esc="formatAmount(line.opening_balance)"/>
+                            <td t-att-class="amountClass(line.debit)" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.debit)"/>
+                            <td t-att-class="amountClass(line.credit)" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.credit)"/>
+                            <td t-att-class="amountClass(line.running_balance, 'fw-semibold')" t-if="isDetailedLedger" t-esc="formatAmount(line.running_balance)"/>
+                            <td t-att-class="amountClass(line.closing_balance, 'fw-semibold')" t-if="isTrialBalance" t-esc="formatAmount(line.closing_balance)"/>
+                            <td t-att-class="amountClass(line.residual, 'fw-semibold')" t-if="isDetailedLedger and showResidual" t-esc="formatAmount(line.residual)"/>
+                            <td t-if="isDetailedLedger and showMatching">
+                                <button t-if="line.matching_number"
+                                        type="button"
+                                        t-att-class="'o_usl_matching_chip ' + matchingColor(line.matching_number)"
+                                        t-att-title="'Open all journal items matched under ' + line.matching_number"
+                                        t-att-aria-label="'Open matching ' + line.matching_number"
+                                        t-on-click.stop="() => this.openMatchingItems(line)"
+                                        t-esc="line.matching_number"/>
+                            </td>
+                            <td t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
+                                t-key="column.key"
+                                t-att-class="column.type === 'currency' or column.type === 'number' ? amountClass(line.values[column.key]) : ''"
+                                t-esc="formatCell(line.values[column.key], column.type)"/>
+                            <td t-att-class="amountClass(line.comparison_value)" t-if="isTrialBalance and showComparison" t-esc="formatAmount(line.comparison_value)"/>
+                            <td class="text-end o_usl_report_action">
+                                <button t-if="line.can_drilldown" class="btn btn-sm btn-link"
+                                        t-on-click="() => this.openSources(line)" title="Ouvrir les écritures sources">
+                                    <i class="fa fa-external-link"/>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </t>
+        <div class="o_usl_report_loading" t-if="state.loading">
+            <i class="fa fa-circle-o-notch fa-spin"/>
+            <span>Actualisation du rapport…</span>
+        </div>
+    </div>
+</templates>

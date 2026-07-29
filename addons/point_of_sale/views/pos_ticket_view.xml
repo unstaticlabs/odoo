@@ -3,8 +3,7 @@
 
     <!-- This is the "validation" screen. Recap the ticket info, warn the user to check/set his address and eventually set localization fields if needed. -->
     <template id="ticket_validation_screen">
-        <t t-call="portal.portal_layout">
-            <t t-set="no_breadcrumbs" t-value="True"/>
+        <t t-call="portal.portal_layout" no_breadcrumbs="True">
             <div class="row justify-content-md-center o_customer_address_fill">
                 <form method="post" target="_self" t-att-action="'/pos/ticket/validate'" onsubmit="$('button:submit').attr('disabled', 'disabled')" class="address_autoformat">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -44,7 +43,7 @@
                             </div>
                             <div t-if="error_message" class="alert alert-danger" role="alert">
                                 <div class="col-lg-12">
-                                    <t t-foreach="error_message" t-as="err"><t t-esc="err"/><br /></t>
+                                    <t t-foreach="error_message" t-as="err"><t t-out="err"/><br /></t>
                                 </div>
                             </div>
                             <t t-if="not partner_address">
@@ -134,8 +133,7 @@
     </template>
 
     <template id="ticket_request_with_code" name="Invoice Request">
-        <t t-call="portal.portal_layout">
-            <t t-set="no_breadcrumbs" t-value="True"/>
+        <t t-call="portal.portal_layout" no_breadcrumbs="True">
             <div class="row justify-content-md-center">
                 <form method="post" target="_self" t-att-action="'/pos/ticket'">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -143,7 +141,7 @@
                         <div class="row">
                             <div t-if="banner_error" class="alert alert-danger" role="alert">
                                 <div class="col-lg-12">
-                                    <t t-esc="banner_error"/>
+                                    <t t-out="banner_error"/>
                                 </div>
                             </div>
                             <h2>Invoice Request</h2>

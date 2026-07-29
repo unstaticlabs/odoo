@@ -2,24 +2,24 @@
 # This file contains the translation of the following modules:
 # * hr_recruitment_skills
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Junko Augias (juau)" <juau@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:24+0000\n"
-"Last-Translator: \"Dylan Kiss (dyki)\" <dyki@odoo.com>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-04-04 12:50+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_recruitment_skills/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: hr_recruitment_skills
 #: model:ir.model,name:hr_recruitment_skills.model_hr_applicant
@@ -36,6 +36,16 @@ msgstr "求人に応募する"
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "Category"
 msgstr "カテゴリ"
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_file
+msgid "Certificate"
+msgstr "証明書"
+
+#. module: hr_recruitment_skills
+#: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__certificate_filename
+msgid "Certificate Filename"
+msgstr "証明書ファイル名"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant_skill__color
@@ -134,6 +144,13 @@ msgid "Matching Skills"
 msgstr "マッチングスキル"
 
 #. module: hr_recruitment_skills
+#. odoo-javascript
+#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.view_hr_job_kanban
+msgid "Matching Talents"
+msgstr "求めるスキル"
+
+#. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__missing_skill_ids
 msgid "Missing Skills"
 msgstr "不足しているスキル"
@@ -146,8 +163,8 @@ msgstr "この職位に移動"
 #. module: hr_recruitment_skills
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
-msgid "No Matching Applicants"
-msgstr "マッチする応募者がいません"
+msgid "No Matching Talents"
+msgstr "該当する人材が見つかりません"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,help:hr_recruitment_skills.field_hr_applicant_skill__levels_count
@@ -165,8 +182,6 @@ msgid "Progress from zero knowledge (0%) to fully mastered (100%)."
 msgstr "進捗は、知識ゼロ(0%)から完全習得(100%)まで。"
 
 #. module: hr_recruitment_skills
-#. odoo-javascript
-#: code:addons/hr_recruitment_skills/static/src/components/search_job_applicant_menu/search_job_applicant_menu.xml:0
 #: model:ir.actions.server,name:hr_recruitment_skills.action_applicant_search_applicant
 msgid "Search Matching Applicants"
 msgstr "マッチする応募者を検索"
@@ -199,9 +214,11 @@ msgstr "応募者用のスキルレベル"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,field_description:hr_recruitment_skills.field_hr_applicant__applicant_skill_ids
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.crm_case_tree_view_job
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_form
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search
+#: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_view_search_bis
 msgid "Skills"
 msgstr "スキル"
 
@@ -240,11 +257,9 @@ msgstr "検証中断"
 #. odoo-python
 #: code:addons/hr_recruitment_skills/models/hr_job.py:0
 msgid ""
-"We do not have any applicants who meet the skill requirements for this job "
+"We do not have any talents who meet the skill requirements for this job "
 "position in the database at the moment."
-msgstr ""
-"現在、この求人ポジションのスキル要件を満たす応募者はデータベースに登録されて"
-"いません。"
+msgstr "現在、データベースにはこの求人要件を満たす人材が登録されていません。"
 
 #. module: hr_recruitment_skills
 #: model:ir.model.fields,help:hr_recruitment_skills.field_hr_applicant_skill__is_certification
@@ -255,17 +270,3 @@ msgstr "チェックすると、このスキルタイプは認定タイプとし
 #: model_terms:ir.ui.view,arch_db:hr_recruitment_skills.hr_applicant_skill_view_form
 msgid "indefinite"
 msgstr "無期限"
-
-#~ msgid "Expected Skills"
-#~ msgstr "期待するスキル"
-
-#~ msgid "The skill %(name)s and skill type %(type)s doesn't match"
-#~ msgstr "スキル %(name)s とスキルレベル %(type)s が一致しません。"
-
-#~ msgid "The skill level %(level)s is not valid for skill type: %(type)s"
-#~ msgstr ""
-#~ "スキルレベル %(level)s は、スキルタイプ %(type)s に対して有効ではありませ"
-#~ "ん。"
-
-#~ msgid "Two levels for the same skill is not allowed"
-#~ msgstr "同じスキルに2つのレベルを設定することはできません"

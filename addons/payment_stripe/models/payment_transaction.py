@@ -12,7 +12,6 @@ from odoo.addons.payment_stripe import const
 from odoo.addons.payment_stripe import utils as stripe_utils
 from odoo.addons.payment_stripe.controllers.main import StripeController
 
-
 _logger = get_payment_logger(__name__, const.SENSITIVE_KEYS)
 
 

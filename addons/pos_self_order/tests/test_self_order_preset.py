@@ -33,7 +33,6 @@ class TestSelfOrderPreset(SelfOrderCommonTest):
     def test_preset_dine_in_tour(self):
         floor = self.env["restaurant.floor"].create({
             "name": 'Main Floor',
-            "background_color": 'rgb(249,250,251)',
             "table_ids": [(0, 0, {
                 "table_number": 1,
             })],
@@ -71,11 +70,9 @@ class TestSelfOrderPreset(SelfOrderCommonTest):
         resource_calendar = self.env['resource.calendar'].create({
             'name': 'Takeaway',
             'attendance_ids': [(0, 0, {
-                'name': 'Takeaway',
                 'dayofweek': str(day),
                 'hour_from': 0,
                 'hour_to': 24,
-                'day_period': 'morning',
             }) for day in range(0, 6)],
         })
         self.preset_takeaway.write({
@@ -98,11 +95,9 @@ class TestSelfOrderPreset(SelfOrderCommonTest):
         resource_calendar = self.env['resource.calendar'].create({
             'name': 'Takeaway',
             'attendance_ids': [(0, 0, {
-                'name': 'Takeaway',
                 'dayofweek': '0',
                 'hour_from': 0,
                 'hour_to': 24,
-                'day_period': 'morning',
             })],
         })
         self.preset_takeaway.write({

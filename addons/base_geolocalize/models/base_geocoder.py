@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 
 
 def get_google_map_api_key(env):
-    return env['ir.config_parameter'].sudo().get_param('base_geolocalize.google_map_api_key')
+    return env['ir.config_parameter'].sudo().get_str('base_geolocalize.google_map_api_key')
 
 
 class BaseGeo_Provider(models.Model):
@@ -31,7 +31,7 @@ class BaseGeocoder(models.AbstractModel):
 
     @api.model
     def _get_provider(self):
-        prov_id = self.env['ir.config_parameter'].sudo().get_param('base_geolocalize.geo_provider')
+        prov_id = self.env['ir.config_parameter'].sudo().get_int('base_geolocalize.geo_provider')
         if prov_id:
             provider = self.env['base.geo_provider'].browse(int(prov_id))
         if not prov_id or not provider.exists():

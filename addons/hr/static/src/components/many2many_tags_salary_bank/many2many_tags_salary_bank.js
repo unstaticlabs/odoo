@@ -1,22 +1,11 @@
 import {
-    many2ManyTagsFieldColorEditable,
-    Many2ManyTagsFieldColorEditable,
+    many2ManyTagsField,
+    Many2ManyTagsField,
 } from "@web/views/fields/many2many_tags/many2many_tags_field";
 import { registry } from "@web/core/registry";
-import { TagsList } from "@web/core/tags_list/tags_list";
 import { useService } from "@web/core/utils/hooks";
 
-export class FieldMany2ManyTagsSalaryBankTagsList extends TagsList {
-    static template = "web.TagsList";
-}
-
-export class FieldMany2ManyTagsSalaryBank extends Many2ManyTagsFieldColorEditable {
-    static template = "web.Many2ManyTagsField";
-    static components = {
-        ...Many2ManyTagsFieldColorEditable.components,
-        TagsList: FieldMany2ManyTagsSalaryBankTagsList,
-    };
-
+export class FieldMany2ManyTagsSalaryBank extends Many2ManyTagsField {
     setup() {
         super.setup();
         this.actionService = useService("action");
@@ -33,7 +22,7 @@ export class FieldMany2ManyTagsSalaryBank extends Many2ManyTagsFieldColorEditabl
     }
 
     getTagProps(record) {
-        var text = record.data?.display_name;
+        var text = record.data?.display_name || "";
         const amount = record.data?.employee_salary_amount;
         const has_multiple_bank_accounts = this.props.record.data["has_multiple_bank_accounts"];
         if (has_multiple_bank_accounts && amount) {
@@ -54,7 +43,7 @@ export class FieldMany2ManyTagsSalaryBank extends Many2ManyTagsFieldColorEditabl
 }
 
 export const fieldMany2ManyTagsSalaryBank = {
-    ...many2ManyTagsFieldColorEditable,
+    ...many2ManyTagsField,
     component: FieldMany2ManyTagsSalaryBank,
     relatedFields: () => [
         { name: "employee_salary_amount" },
@@ -62,16 +51,16 @@ export const fieldMany2ManyTagsSalaryBank = {
         { name: "display_name" },
         { name: "currency_symbol" },
     ],
-    additionalClasses: [
-        ...(many2ManyTagsFieldColorEditable.additionalClasses || []),
-        "o_field_many2many_tags",
+    supportedOptions: [
+        ...many2ManyTagsField.supportedOptions.filter((option) => option.name !== "color_field"),
     ],
+    additionalClasses: [...(many2ManyTagsField.additionalClasses || []), "o_field_many2many_tags"],
     extractProps({ options, attrs, string, placeholder }, dynamicInfo) {
-        const props = many2ManyTagsFieldColorEditable.extractProps(
+        const props = many2ManyTagsField.extractProps(
             { options, attrs, string, placeholder },
             dynamicInfo
         );
-        props.nameCreateField = "acc_number";
+        props.nameCreateField = "account_number";
         return props;
     },
 };

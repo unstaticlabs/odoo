@@ -17,11 +17,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-10-20 09:00:00",
             date_to: "2016-10-25 18:00:00",
-            holiday_status_id: 55,
+            work_entry_type_id: 55,
             state: "validate",
             number_of_days: 5,
             number_of_hours: 40,
-            leave_type_request_unit: "day",
+            work_entry_type_request_unit: "day",
         },
         {
             id: 13,
@@ -29,11 +29,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-10-02 09:00:00",
             date_to: "2016-10-02 18:00:00",
-            holiday_status_id: 55,
+            work_entry_type_id: 55,
             state: "validate",
             number_of_days: 1,
             number_of_hours: 8,
-            leave_type_request_unit: "day",
+            work_entry_type_request_unit: "day",
         },
         {
             id: 14,
@@ -41,11 +41,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-10-15 09:00:00",
             date_to: "2016-10-21 18:00:00",
-            holiday_status_id: 55,
+            work_entry_type_id: 55,
             state: "confirm",
             number_of_days: 8,
             number_of_hours: 64,
-            leave_type_request_unit: "day",
+            work_entry_type_request_unit: "day",
         },
         {
             id: 15,
@@ -53,11 +53,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-10-05 10:00:00",
             date_to: "2016-10-05 11:00:00",
-            holiday_status_id: 65,
+            work_entry_type_id: 65,
             state: "validate",
             number_of_days: 0,
             number_of_hours: 1,
-            leave_type_request_unit: "hour",
+            work_entry_type_request_unit: "hour",
         },
         {
             id: 16,
@@ -65,11 +65,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-09-11 09:00:00",
             date_to: "2016-09-12 18:00:00",
-            holiday_status_id: 55,
+            work_entry_type_id: 55,
             state: "validate",
             number_of_days: 2,
             number_of_hours: 16,
-            leave_type_request_unit: "day",
+            work_entry_type_request_unit: "day",
         },
         {
             id: 17,
@@ -77,11 +77,11 @@ beforeEach(() => {
             department_id: 11,
             date_from: "2016-10-16 09:00:00",
             date_to: "2016-10-16 11:00:00",
-            holiday_status_id: 65,
+            work_entry_type_id: 65,
             state: "validate",
             number_of_days: 0,
             number_of_hours: 2,
-            leave_type_request_unit: "hour",
+            work_entry_type_request_unit: "hour",
         },
     ];
 });
@@ -107,12 +107,12 @@ test("leave stats render correctly", async () => {
     expect(queryAll("span:contains(Legal Leave)", { root: individualLeaves })).toHaveCount(1);
     expect(queryAll("span:contains(2 days)", { root: individualLeaves })).toHaveCount(1);
     expect(queryAll("span:contains(Unpaid Leave)", { root: individualLeaves })).toHaveCount(1);
-    expect(queryAll("span:contains(01:00 hours)", { root: individualLeaves })).toHaveCount(1);
+    expect(queryAll("span:contains(1h)", { root: individualLeaves })).toHaveCount(1);
 
     // Displays all leaves for that department
     expect(queryAll("span:contains(Richard)", { root: DepartmentLeaves })).toHaveCount(2);
     expect(queryAll("span:contains(10/16/2016)", { root: DepartmentLeaves })).toHaveCount(1);
-    expect(queryAll("span:contains(02:00 hours)", { root: DepartmentLeaves })).toHaveCount(1);
+    expect(queryAll("span:contains(2h)", { root: DepartmentLeaves })).toHaveCount(1);
     expect(queryAll("span:contains(10/20/2016)", { root: DepartmentLeaves })).toHaveCount(1);
     expect(queryAll("span:contains(10/25/2016)", { root: DepartmentLeaves })).toHaveCount(1);
 

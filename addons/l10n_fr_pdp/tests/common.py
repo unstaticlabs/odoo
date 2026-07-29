@@ -37,7 +37,7 @@ class TestL10nFrPdpCommon(TestUblCiiCommon, TestAccountMoveSendCommon):
         cls.fakenow = datetime.datetime(2024, 12, 5)
         cls.startClassPatcher(freeze_time(cls.fakenow))
 
-        cls.env['ir.config_parameter'].sudo().set_param('account_peppol.edi.mode', 'test')
+        cls.env['ir.config_parameter'].sudo().set_str('account_peppol.edi.mode', 'test')
 
         company = cls.company_data['company']
         company.write({
@@ -49,9 +49,8 @@ class TestL10nFrPdpCommon(TestUblCiiCommon, TestAccountMoveSendCommon):
             'pdp_identifier': '968515759_96851575905899'  # Should set company_id, peppol_eas and peppol_endpoint
         })
         cls.env['res.partner.bank'].create({
-            'acc_type': 'iban',
+            'account_number': 'FR5000400440116243',
             'partner_id': cls.company_data['company'].partner_id.id,
-            'acc_number': 'FR5000400440116243',
             'allow_out_payment': True,
         })
 

@@ -21,10 +21,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 18:36+0000\n"
-"PO-Revision-Date: 2026-07-10 09:18+0000\n"
+"POT-Creation-Date: 2026-04-17 18:39+0000\n"
+"PO-Revision-Date: 2026-07-10 07:10+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sale_stock/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -102,14 +102,8 @@ msgstr "<strong>Odniesienie klienta</strong>"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.report_saleorder_document_inherit_sale_stock
 msgid "<strong>Incoterm</strong>"
 msgstr "<strong>Incoterm</strong>"
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order_line__is_storable
-msgid "A storable product is a product for which you manage stock."
-msgstr "Produkt magazynowany to produkt, którego zapasy są zarządzane."
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order_line__qty_delivered_method
@@ -150,8 +144,8 @@ msgstr "Zastosuj określone trasy"
 
 #. module: sale_stock
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__direct
-msgid "As soon as possible"
-msgstr "Najszybciej jak to możliwe"
+msgid "As soon as possible, with back orders"
+msgstr "Jak najszybciej, z zamówieniami oczekującymi"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -172,25 +166,14 @@ msgid "Available in stock"
 msgstr "Dostępne w magazynie"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__delivery_status
-msgid ""
-"Blue: Not Delivered/Started\n"
-"            Orange: Partially Delivered\n"
-"            Green: Fully Delivered"
-msgstr ""
-"Niebieski: Niedostarczone/Rozpoczęte\n"
-"            Pomarańczowy: Częściowo dostarczone\n"
-"            Zielony: Całkowicie dostarczone"
-
-#. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_stock_rules_report__so_route_ids
 msgid "Choose to apply SO lines specific routes."
 msgstr "Wybierz zastosowanie określonych tras pozycji SO."
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_res_company
-msgid "Companies"
-msgstr "Firmy"
+msgid "Company"
+msgstr "Firma"
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__effective_date
@@ -231,11 +214,6 @@ msgstr "Dostawa"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_count
 msgid "Delivery Orders"
 msgstr "Zamówienia dostawy"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__delivery_status
-msgid "Delivery Status"
-msgstr "Status dostawy"
 
 #. module: sale_stock
 #: model:ir.model.fields,help:sale_stock.field_sale_order__expected_date
@@ -321,14 +299,9 @@ msgid "Expected Delivery"
 msgstr "Spodziewana dostawa"
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.view_order_form_inherit_sale_stock
-msgid "Expected:"
-msgstr "Oczekiwana:"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__forecast_expected_date
 msgid "Forecast Expected Date"
-msgstr "Prognoza oczekiwanej daty"
+msgstr "Prognoza spodziewanej daty"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -340,11 +313,6 @@ msgstr "Prognozowane zapasy"
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__free_qty_today
 msgid "Free Qty Today"
 msgstr "Dostępna ilość dzisiaj"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__full
-msgid "Fully Delivered"
-msgstr "W pełni dostarczony"
 
 #. module: sale_stock
 #. odoo-javascript
@@ -383,30 +351,9 @@ msgid "ID"
 msgstr "ID"
 
 #. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
-msgid ""
-"If you deliver all products at once, the delivery order will be scheduled "
-"based on the greatest product lead time. Otherwise, it will be based on the "
-"shortest."
-msgstr ""
-"Jeśli dostarczasz wszystkie produkty jednocześnie, zlecenie dostawy zostanie "
-"zaplanowane na podstawie największego czasu realizacji produktu. W "
-"przeciwnym razie będzie ono oparte na najkrótszym."
-
-#. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.exception_on_so
 msgid "Impacted Transfer(s):"
 msgstr "Transfer(y), których to dotyczy:"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm
-msgid "Incoterm"
-msgstr "Incoterm"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order__incoterm_location
-msgid "Incoterm Location"
-msgstr "Lokalizacja Incoterm"
 
 #. module: sale_stock
 #: model_terms:ir.ui.view,arch_db:sale_stock.report_delivery_document_inherit_sale_stock
@@ -414,27 +361,19 @@ msgid "Incoterm details"
 msgstr "Szczegóły Incoterm"
 
 #. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.sale_order_portal_content_inherit_sale_stock
-msgid "Incoterm:"
-msgstr "Incoterm:"
-
-#. module: sale_stock
-#: model:ir.model.fields,help:sale_stock.field_sale_order__incoterm
-msgid ""
-"International Commercial Terms are a series of predefined commercial terms "
-"used in international transactions."
-msgstr ""
-"Międzynarodowe warunki handlowe są zestawem z góry zdefiniowanych procedur."
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_route
-msgid "Inventory Routes"
-msgstr "Trasy magazynowe"
+msgid "Inventory Route"
+msgstr "Trasa magazynowa"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_mto
 msgid "Is Mto"
 msgstr "Jest zamówieniem produkcji"
+
+#. module: sale_stock
+#: model:ir.model.fields,help:sale_stock.field_sale_order__picking_policy
+msgid "It specifies goods to be deliver partially or all at once"
+msgstr "Określa towary, które mają być wydane częściowo lub naraz"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__json_popover
@@ -528,7 +467,6 @@ msgid "Not Available"
 msgstr "Niedostępny/e"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__pending
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Not Delivered"
 msgstr "Nie dostarczono"
@@ -553,15 +491,9 @@ msgid "On"
 msgstr "Na"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__partial
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Partially Delivered"
 msgstr "Częściowo dostarczone"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__default_picking_policy
-msgid "Picking Policy"
-msgstr "Polityka kompletacji"
 
 #. module: sale_stock
 #: model:ir.model,name:sale_stock.model_product_template
@@ -572,11 +504,6 @@ msgstr "Produkt"
 #: model:ir.model,name:sale_stock.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
 msgstr "Przesunięcia produktu (pozycja przesunięcia zapasów)"
-
-#. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_available_today
-msgid "Qty Available Today"
-msgstr "Ilość dostępna dziś"
 
 #. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__qty_to_deliver
@@ -709,11 +636,6 @@ msgid "Schedule deliveries earlier to avoid delays"
 msgstr "Zaplanuj dostawy wcześniej, aby uniknąć opóźnień"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__scheduled_date
-msgid "Scheduled Date"
-msgstr "Zaplanowana data"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_res_config_settings__security_lead
 msgid "Security Lead Time"
 msgstr "Czas realizacji zabezpieczeń"
@@ -729,18 +651,6 @@ msgid "Selectable on Sales Order Line"
 msgstr "Do wyboru na pozycji zamówienia sprzedaży"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__one
-msgid "Ship all products at once"
-msgstr "Wyślij wszystkie produkty na raz"
-
-#. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__res_config_settings__default_picking_policy__direct
-msgid "Ship products as soon as available, with back orders"
-msgstr ""
-"Wysyłaj produkty tak szybko, jak to możliwe, z możliwością zamówień "
-"wstecznych"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__picking_policy
 msgid "Shipping Policy"
 msgstr "Zasady wysyłki"
@@ -751,7 +661,6 @@ msgid "Shipping Status"
 msgstr "Status wysyłki"
 
 #. module: sale_stock
-#: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__delivery_status__started
 #: model_terms:ir.ui.view,arch_db:sale_stock.portal_my_orders
 msgid "Started"
 msgstr "Rozpoczęte"
@@ -837,11 +746,6 @@ msgid "This product is replenished on demand."
 msgstr "Produkt ten jest uzupełniany na żądanie."
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__is_storable
-msgid "Track Inventory"
-msgstr "Śledź magazyn"
-
-#. module: sale_stock
 #: model:ir.model,name:sale_stock.model_stock_picking
 msgid "Transfer"
 msgstr "Transfer"
@@ -869,11 +773,6 @@ msgid "View Forecast"
 msgstr "Wyświetl prognozę"
 
 #. module: sale_stock
-#: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__virtual_available_at_date
-msgid "Virtual Available At Date"
-msgstr "Wirtualne dostępne w dniu"
-
-#. module: sale_stock
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_order_line__warehouse_id
 #: model:ir.model.fields,field_description:sale_stock.field_sale_report__warehouse_id
@@ -890,11 +789,6 @@ msgstr "Uwaga!"
 #: model:ir.model.fields.selection,name:sale_stock.selection__sale_order__picking_policy__one
 msgid "When all products are ready"
 msgstr "Kiedy wszystkie produkty są dostępne"
-
-#. module: sale_stock
-#: model_terms:ir.ui.view,arch_db:sale_stock.res_config_settings_view_form_stock
-msgid "When to start shipping"
-msgstr "Kiedy rozpocząć wysyłkę"
 
 #. module: sale_stock
 #. odoo-python
@@ -943,67 +837,3 @@ msgstr "spóźni się."
 
 #~ msgid "Stock Valuation"
 #~ msgstr "Wycena zapasów"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Preparation</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/><b>Przygotowanie</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-times\"/> <b>Cancelled</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-times\"/><b>Anulowane</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-truck\"/> <b>Shipped</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-truck\"/><b>Wysłane</b>"
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('display_delivery_alert', '=', False)]}\">\n"
-#~ "                    Some deliveries are already done. Returns can be "
-#~ "created from the Delivery Orders.\n"
-#~ "                </span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('display_delivery_alert', '=', False)]}\">\n"
-#~ "Niektóre dostawy są już wykonane. Zwroty mogą być tworzone z Zamówień na "
-#~ "dostawy.\n"
-#~ "</span>"
-
-#~ msgid "<strong>Customer Reference:</strong>"
-#~ msgstr "<strong>Odnośnik klienta:</strong>"
-
-#~ msgid "<strong>Delivery Orders</strong>"
-#~ msgstr "<strong>Zamówienia dostaw</strong>"
-
-#~ msgid "<strong>Incoterm: </strong>"
-#~ msgstr "<strong>Incoterm:</strong>"
-
-#~ msgid "Delivery Alert"
-#~ msgstr "Alert dostawy"
-
-#~ msgid "Display incoterms on Sales Order and related invoices"
-#~ msgstr "Wyświetlaj incoterms w zleceniu sprzedaży i powiązanych fakturach"
-
-#~ msgid "Incoterms"
-#~ msgstr "Incoterms"
-
-#~ msgid "Inventory"
-#~ msgstr "Magazynowanie"
-
-#~ msgid "Procurement Group"
-#~ msgstr "Grupa zapotrzebowań"
-
-#~ msgid "Route"
-#~ msgstr "Ścieżka"
-
-#~ msgid "Sale Order"
-#~ msgstr "Zamówienie sprzedaży"
-
-#~ msgid "Sales Order Cancel"
-#~ msgstr "Anulowanie zamówienia sprzedaży"
-
-#~ msgid ""
-#~ "The delivery address has been changed on the Sales Order<br/>\n"
-#~ "                        From <strong>\"%s\"</strong> To <strong>\"%s\"</"
-#~ "strong>,\n"
-#~ "                        You should probably update the partner on this "
-#~ "document."
-#~ msgstr ""
-#~ "Adres dostawy został zmieniony na Zamówieniu Sprzedaży <br/>\n"
-#~ "z <strong>\"%s\"</strong> na <strong>\"%s\"</strong>,\n"
-#~ "Prawdopodobnie powinieneś zaktualizować partnera na tym dokumencie."

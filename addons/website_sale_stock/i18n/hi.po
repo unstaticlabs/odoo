@@ -1,15 +1,16 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* website_sale_stock
+# * website_sale_stock
 #
+# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:38+0000\n"
-"PO-Revision-Date: 2026-07-01 22:48+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-06-13 18:21+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Hindi <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_sale_stock/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
@@ -26,8 +27,33 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#. odoo-python
+#: code:addons/website_sale_stock/models/product_product.py:0
+msgid "%(product_name)s is back in stock"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_wishlist
+msgid ""
+"<i class=\"fa fa-circle text-danger me-1\" aria-hidden=\"true\"/>\n"
+"                    Out of stock"
+msgstr ""
+
+#. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
 msgid "<span invisible=\"not default_show_availability\">units</span>"
+msgstr ""
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+msgid "Add to wishlist"
+msgstr ""
+
+#. module: website_sale_stock
+#. odoo-javascript
+#: code:addons/website_sale_stock/static/src/xml/website_sale_stock_product_availability.xml:0
+msgid "Added to your wishlist"
 msgstr ""
 
 #. module: website_sale_stock
@@ -43,8 +69,9 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__assign
+#, fuzzy
 msgid "Assign"
-msgstr ""
+msgstr "असाइन करें"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__stock_notification_partner_ids
@@ -58,8 +85,9 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_res_config_settings
+#, fuzzy
 msgid "Config Settings"
-msgstr ""
+msgstr "कॉन्फ़िगरेशन सेटिंग"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -69,11 +97,6 @@ msgstr ""
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__default_allow_out_of_stock_order
 msgid "Continue selling when out-of-stock"
-msgstr ""
-
-#. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Dear Customer,"
 msgstr ""
 
 #. module: website_sale_stock
@@ -94,18 +117,26 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Desk Combination"
+msgstr "डेस्क कॉम्बिनेशन"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__display_name
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__display_name
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr ""
+msgstr "डिस्प्ले नाम"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -114,30 +145,45 @@ msgid "Get notified when back in stock"
 msgstr ""
 
 #. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Hello"
+msgstr "नमस्ते"
+
+#. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_combo__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_feed__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_ribbon__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_template__id
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_sale_order_line__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__id
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__id
+#, fuzzy
 msgid "ID"
-msgstr ""
+msgstr "आईडी"
 
 #. module: website_sale_stock
 #. odoo-python
 #: code:addons/website_sale_stock/controllers/main.py:0
+#, fuzzy
 msgid "Invalid Email"
-msgstr ""
+msgstr "अमान्य ईमेल"
 
 #. module: website_sale_stock
 #. odoo-javascript
-#: code:addons/website_sale_stock/static/src/interactions/website_sale.js:0
+#: code:addons/website_sale_stock/static/src/interactions/product_page.js:0
 msgid "Invalid email"
 msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.product_template_form_view_inherit_website_sale_stock
+#, fuzzy
+msgid "Inventory"
+msgstr "इन्वेंट्री"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -146,8 +192,21 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Logo"
+msgstr "लोगो"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
+msgid "Mitchell Admin"
+msgstr "मिचेल एडमिन"
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+#, fuzzy
 msgid "Order Now"
-msgstr ""
+msgstr "अभी ऑर्डर करें"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -159,8 +218,9 @@ msgstr ""
 #. module: website_sale_stock
 #. odoo-javascript
 #: code:addons/website_sale_stock/static/src/js/product/product.xml:0
+#, fuzzy
 msgid "Out of stock"
-msgstr ""
+msgstr "स्टॉक खत्म"
 
 #. module: website_sale_stock
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
@@ -183,13 +243,15 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_sale_stock/models/product_product.py:0
 #: model:ir.model,name:website_sale_stock.model_product_template
+#, fuzzy
 msgid "Product"
-msgstr ""
+msgstr "उत्पाद"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_combo
+#, fuzzy
 msgid "Product Combo"
-msgstr ""
+msgstr "प्रॉडक्ट कॉम्बो"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_feed
@@ -198,7 +260,18 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_product_product
+#, fuzzy
 msgid "Product Variant"
+msgstr "उत्पाद प्रकार"
+
+#. module: website_sale_stock
+#: model:ir.model,name:website_sale_stock.model_product_wishlist
+msgid "Product Wishlist"
+msgstr ""
+
+#. module: website_sale_stock
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "Product image"
 msgstr ""
 
 #. module: website_sale_stock
@@ -212,19 +285,16 @@ msgid "Product: send email regarding products availability"
 msgstr ""
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "Regards,"
-msgstr ""
-
-#. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order
+#, fuzzy
 msgid "Sales Order"
-msgstr ""
+msgstr "सेल्स ऑर्डर"
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_sale_order_line
+#, fuzzy
 msgid "Sales Order Line"
-msgstr ""
+msgstr "बिक्री आदेश पंक्ति"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_product_product__allow_out_of_stock_order
@@ -265,14 +335,13 @@ msgid ""
 msgstr ""
 
 #. module: website_sale_stock
-#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
-msgid "The following product is now available."
+#: model:ir.model.fields,field_description:website_sale_stock.field_product_wishlist__stock_notification
+msgid "Stock Notification"
 msgstr ""
 
 #. module: website_sale_stock
-#. odoo-python
-#: code:addons/website_sale_stock/models/product_product.py:0
-msgid "The product '%(product_name)s' is now available"
+#: model_terms:ir.ui.view,arch_db:website_sale_stock.availability_email_body
+msgid "The product you were waiting for is now back in stock!"
 msgstr ""
 
 #. module: website_sale_stock
@@ -283,15 +352,17 @@ msgstr ""
 
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_stock_picking
+#, fuzzy
 msgid "Transfer"
-msgstr ""
+msgstr "स्थानांतरण"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,field_description:website_sale_stock.field_res_config_settings__website_warehouse_id
 #: model:ir.model.fields,field_description:website_sale_stock.field_website__warehouse_id
 #: model_terms:ir.ui.view,arch_db:website_sale_stock.res_config_settings_view_form
+#, fuzzy
 msgid "Warehouse"
-msgstr ""
+msgstr "वेयरहाउस"
 
 #. module: website_sale_stock
 #. odoo-javascript
@@ -302,8 +373,9 @@ msgstr ""
 #. module: website_sale_stock
 #: model:ir.model,name:website_sale_stock.model_website
 #: model:ir.model.fields,field_description:website_sale_stock.field_stock_picking__website_id
+#, fuzzy
 msgid "Website"
-msgstr ""
+msgstr "वेबसाइट"
 
 #. module: website_sale_stock
 #: model:ir.model.fields,help:website_sale_stock.field_stock_picking__website_id

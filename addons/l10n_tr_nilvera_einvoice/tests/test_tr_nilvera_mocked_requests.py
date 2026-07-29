@@ -1,9 +1,11 @@
 import re
 from base64 import b64encode
+from dateutil.relativedelta import relativedelta
 from functools import wraps
 from io import BytesIO
 from unittest.mock import MagicMock, call, patch
 
+from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests import freeze_time, tagged
 from odoo.tools import file_open
@@ -110,7 +112,7 @@ def mock_requests_request(method, url, *args, **kwargs):
                     'Content': [
                         {
                             'UUID': 'invoice_uuid',
-                            'CreatedDate': '2026-02-02',
+                            'CreatedDate': '2025-03-05',
                         },
                     ],
             }
@@ -243,11 +245,12 @@ class TestTRNilveraMockedRequests(TestUBLTRCommon):
             "The invoice status couldn't be retrieved from Nilvera.",
         )
 
-    @freeze_time('2026-02-02T12:00:00')
+    @freeze_time('2025-03-05')
     @patch_nilvera_request
     def test_fetching_einvoices(self, mocked_request):
         # EndDate is adjusted to match Europe/Istanbul timezone(UTC+3)
         with patch.object(self.env.cr, 'commit', autospec=True):
+            self.env
             self.env['account.move']._l10n_tr_nilvera_get_documents()
             self.env['account.move']._l10n_tr_nilvera_get_documents()
 
@@ -257,8 +260,8 @@ class TestTRNilveraMockedRequests(TestUBLTRCommon):
                     '/einvoice/Purchase',
                     params={
                         'StatusCode': ['succeed'],
-                        'StartDate': '2026-01-02',
-                        'EndDate': '2026-02-02T15:00:00',
+                        'StartDate': fields.Datetime.now() - relativedelta(months=1),
+                        'EndDate': '2025-03-05T03:00:00',
                         'DateFilterType': 'CreatedDate',
                         'SortColumn': 'CreationDateTime',
                         'SortType': 'ASC',
@@ -272,8 +275,8 @@ class TestTRNilveraMockedRequests(TestUBLTRCommon):
                     '/einvoice/Purchase',
                     params={
                         'StatusCode': ['succeed'],
-                        'StartDate': '2026-02-02',
-                        'EndDate': '2026-02-02T15:00:00',
+                        'StartDate': fields.Datetime.now(),
+                        'EndDate': '2025-03-05T03:00:00',
                         'DateFilterType': 'CreatedDate',
                         'SortColumn': 'CreationDateTime',
                         'SortType': 'ASC',
@@ -284,11 +287,10 @@ class TestTRNilveraMockedRequests(TestUBLTRCommon):
 
             invoice = self.env['account.move'].search([('l10n_tr_nilvera_uuid', '=', 'invoice_uuid')])
             self.assertEqual(len(invoice), 1)
-            self.assertListEqual(
-                [invoice.attachment_ids.mimetype, invoice.ubl_cii_xml_id.mimetype],
-                ['application/pdf', 'application/xml']
-            )
+            self.assertFalse(invoice.attachment_ids)
+            self.assertTrue(invoice.ubl_cii_xml_id)  # XML file used at import
+            self.assertTrue(invoice.l10n_tr_nilvera_pdf_id)
             self.assertTrue(
-                invoice.attachment_ids.raw.startswith(b'%PDF-'),
+                invoice.l10n_tr_nilvera_pdf_id.raw.startswith(b'%PDF-'),
                 "PDF attachment must contain decoded PDF bytes, not base64 text",
             )

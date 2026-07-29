@@ -6,8 +6,7 @@ from datetime import datetime
 from freezegun import freeze_time
 from lxml import etree
 
-from odoo import Command, fields
-from odoo.tests import Form, TransactionCase
+from odoo.tests import Command, tagged, Form, TransactionCase
 from odoo.exceptions import AccessError, UserError
 
 class TestMultiCompanyCommon(TransactionCase):
@@ -121,6 +120,8 @@ class TestMultiCompanyCommon(TransactionCase):
             context = dict(self.env.context, allowed_company_ids=old_companies)
             self.env = self.env(context=context)
 
+
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestMultiCompanyProject(TestMultiCompanyCommon):
 
     @classmethod
@@ -485,22 +486,19 @@ class TestMultiCompanyProject(TestMultiCompanyCommon):
                 with Form(task) as task_form:
                     task_form.name = "Testing changing name in a company I can not read/write"
 
-    @freeze_time("2019-5-28 08:00:00")
     def test_date_to_assign_project(self):
-        company_0, company_1 = self.env['res.company'].create([{
-            "name": "Test company 0",
-        },
-            {
-                "name": "Test company 1",
-            }])
+        company_0, company_1 = self.env['res.company'].create([
+            {'name': 'Test company 0'},
+            {'name': 'Test company 1'},
+        ])
 
         self.env['resource.calendar.leaves'].create([{
-            'name': "Public Holiday for company 0",
+            'name': 'Public Holiday for company 0',
             'company_id': company_0.id,
             'date_from': datetime(2019, 5, 27, 0, 0, 0),
             'date_to': datetime(2019, 5, 29, 23, 0, 0),
             'resource_id': False,
-            'time_type': "leave",
+            'count_as': 'absence'
         }])
         project = self.env['project.project'].with_company(company_1).create({'name': 'Project for company 1'})
         task = self.env['project.task'].with_company(company_1).create({
@@ -511,6 +509,6 @@ class TestMultiCompanyProject(TestMultiCompanyCommon):
         })
         with freeze_time("2019-05-28 14:00:00"):
             task.user_ids = [Command.set([self.user_employee_company_a.id])]
-            task.date_assign = fields.Datetime.now()
-            self.assertEqual(task.working_hours_open, 3.0)
-            self.assertEqual(task.working_days_open, 0.375)
+            task.date_assign = datetime.now()
+            self.assertEqual(task.working_hours_open, 4.0)
+            self.assertEqual(task.working_days_open, 0.5)

@@ -13,7 +13,7 @@ import { useMessageSearch } from "./message_search_hook";
 export class SearchMessagesPanel extends Component {
     static template = "mail.SearchMessagesPanel";
     static components = { ActionPanel, SearchMessageInput, SearchMessageResult };
-    static props = ["thread"];
+    static props = ["close?", "thread"];
 
     setup() {
         super.setup();
@@ -27,6 +27,6 @@ export class SearchMessagesPanel extends Component {
     }
 
     get title() {
-        return _t("Search Message");
+        return _t("Search Messages");
     }
 }

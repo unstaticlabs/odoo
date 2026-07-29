@@ -2,6 +2,7 @@ import { addSectionFromProductCatalog } from "@account/js/tours/tour_utils";
 import { registry } from "@web/core/registry";
 
 registry.category("web_tour.tours").add('sale_catalog', {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     steps: () => [
         {
             content: "Create a new SO",
@@ -56,12 +57,12 @@ registry.category("web_tour.tours").add('sale_catalog', {
         },
         {
             content: "Input a custom quantity",
-            trigger: '.o_kanban_record:contains("Restricted Product") .o_input',
+            trigger: '.o_kanban_record:contains("Restricted Product") input',
             run: "edit 6",
         },
         {
             content: "Increase the quantity",
-            trigger: '.o_kanban_record:contains("Restricted Product") .fa-plus',
+            trigger: '.o_kanban_record:contains("Restricted Product") .oi-plus',
             run: 'click',
         },
         {

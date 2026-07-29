@@ -5,6 +5,7 @@ import { _t } from "@web/core/l10n/translation";
 import { TableMenu } from "./table_menu";
 import { TablePicker } from "./table_picker";
 import { isHtmlContentSupported } from "@html_editor/core/selection_plugin";
+import { TableDragDrop } from "./table_drag_drop";
 import { registry } from "@web/core/registry";
 
 /**
@@ -56,6 +57,8 @@ export class TableUIPlugin extends Plugin {
         this.rowMenuOverlayKey = "table-row-menu";
         this.activeTd = null;
 
+        /** @type {import("@html_editor/core/overlay_plugin").Overlay} */
+        this.tableDragDropOverlay = this.dependencies.overlay.createOverlay(TableDragDrop);
         this.addDomListener(this.document, "pointermove", this.onMouseMove);
         const closeMenus = () => {
             if (this.isMenuOpened) {
@@ -158,17 +161,20 @@ export class TableUIPlugin extends Plugin {
             resetTableSize: withAddStep(this.dependencies.table.resetTableSize),
             clearColumnContent: withAddStep(this.dependencies.table.clearColumnContent),
             clearRowContent: withAddStep(this.dependencies.table.clearRowContent),
+            toggleAlternatingRows: withAddStep(this.dependencies.table.toggleAlternatingRows),
         };
         if (td.cellIndex === 0) {
             registry.category(this.config.localOverlayContainers.key).add(this.rowMenuOverlayKey, {
                 Component: TableMenu,
                 props: {
-                    document: this.document,
                     type: "row",
+                    tableDragDropOverlay: this.tableDragDropOverlay,
                     target: td,
                     dropdownState: this.createDropdownState(this.closeColumnMenu.bind(this)),
                     direction: this.config.direction || "ltr",
                     close: () => this.closeRowMenu(),
+                    document: this.document,
+                    editable: this.editable,
                     ...tableMethods,
                 },
             });
@@ -179,11 +185,13 @@ export class TableUIPlugin extends Plugin {
                 .add(this.columnMenuOverlayKey, {
                     Component: TableMenu,
                     props: {
-                        document: this.document,
                         type: "column",
                         target: td,
+                        tableDragDropOverlay: this.tableDragDropOverlay,
                         dropdownState: this.createDropdownState(this.closeRowMenu.bind(this)),
                         direction: this.config.direction || "ltr",
+                        document: this.document,
+                        editable: this.editable,
                         close: () => this.closeColumnMenu(),
                         ...tableMethods,
                     },

@@ -7,22 +7,23 @@
 # Martin Trigaux, 2022
 # Wichanon Jamwutthipreecha, 2022
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 22:15+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Thai <https://translate.odoo.com/projects/odoo-19/portal/th/>"
-"\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-01-16 06:57+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Thai <https://translate.odoo.com/projects/odoo-s19-1/portal/"
+"th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -34,6 +35,11 @@ msgstr "\" เพื่อตรวจสอบการดำเนินกา
 #: code:addons/portal/static/src/interactions/sidebar.js:0
 msgid "%s days overdue"
 msgstr "เกินกำหนด %s วัน"
+
+#. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_docs_entry
+msgid "'Icon for %s' % entry.name"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -58,8 +64,7 @@ msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
-msgid ""
-"<i class=\"fa fa-fw fa-sign-out me-1 small text-primary-emphasis\"/> Logout"
+msgid "<i class=\"fa fa-fw fa-sign-out small text-primary-emphasis\"/> Logout"
 msgstr ""
 
 #. module: portal
@@ -97,8 +102,8 @@ msgid ""
 "<i class=\"oi oi-chevron-right\" role=\"img\" aria-label=\"Next\" "
 "title=\"Next\"/>"
 msgstr ""
-"<i class=\"oi oi-chevron-right\" role=\"รูปภาพ\" aria-label=\"ถัดไป\" title=\"ถั"
-"ดไป\"/>"
+"<i class=\"oi oi-chevron-right\" role=\"รูปภาพ\" aria-label=\"ถัดไป\" "
+"title=\"ถัดไป\"/>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.my_addresses
@@ -113,16 +118,6 @@ msgstr "<i title=\"เอกสาร\" class=\"fa fa-fw o_button_icon fa-info-c
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">Country...</option>"
-msgstr "<option value=\"\">ประเทศ...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
-msgid "<option value=\"\">State / Province...</option>"
-msgstr "<option value=\"\">รัฐ / จังหวัด...</option>"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid ""
 "<small class=\"form-text text-muted\">\n"
 "                            Changing VAT number is not allowed once "
@@ -133,8 +128,7 @@ msgid ""
 "                        </small>"
 msgstr ""
 "<small class=\"form-text text-muted\">\n"
-"                            ไม่อนุญาตให้เปลี่ยนแปลงหมายเลขภาษีมูลค่าเพิ่มหลังจากออกเอกสา"
-"รสำหรับบัญชีของคุณแล้ว\n"
+"                            ไม่อนุญาตให้เปลี่ยนแปลงหมายเลขภาษีมูลค่าเพิ่มหลังจากออกเอกสารสำหรับบัญชีของคุณแล้ว\n"
 "                            โปรดติดต่อเราโดยตรงสำหรับการดำเนินการนี้\n"
 "                        </small>"
 
@@ -257,7 +251,7 @@ msgid "Add extra content to display in the email"
 msgstr "เพิ่มเนื้อหาเพิ่มเติมเพื่อแสดงในอีเมล"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_addresses
 msgid "Add, remove or modify your addresses"
 msgstr "เพิ่ม ลบ หรือแก้ไขที่อยู่ของคุณ"
 
@@ -272,8 +266,8 @@ msgid "Address Management"
 msgstr ""
 
 #. module: portal
+#: model:portal.entry,name:portal.portal_entry_addresses
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Addresses"
 msgstr "ที่อยู่"
 
@@ -310,10 +304,9 @@ msgid "Billing address"
 msgstr "ที่อยู่เรียกเก็บเงิน"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
-msgid "Cancel"
-msgstr "ยกเลิก"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__category
+msgid "Category"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
@@ -327,8 +320,8 @@ msgid ""
 "Changing VAT number is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"ไม่อนุญาตให้เปลี่ยนหมายเลข VAT เมื่อออกเอกสารสำหรับบัญชีของคุณแล้ว โปรดติดต่อเราโดยตรงสำหรับ"
-"การดำเนินการนี้"
+"ไม่อนุญาตให้เปลี่ยนหมายเลข VAT เมื่อออกเอกสารสำหรับบัญชีของคุณแล้ว "
+"โปรดติดต่อเราโดยตรงสำหรับการดำเนินการนี้"
 
 #. module: portal
 #. odoo-python
@@ -337,8 +330,8 @@ msgid ""
 "Changing your country is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"ไม่สามารถเปลี่ยนประเทศของคุณได้หลังจากที่มีการออกเอกสารสำหรับบัญชีของคุณแล้ว กรุณาติดต่อเราโดย"
-"ตรงหากต้องการดำเนินการนี้"
+"ไม่สามารถเปลี่ยนประเทศของคุณได้หลังจากที่มีการออกเอกสารสำหรับบัญชีของคุณแล้ว "
+"กรุณาติดต่อเราโดยตรงหากต้องการดำเนินการนี้"
 
 #. module: portal
 #. odoo-javascript
@@ -372,12 +365,17 @@ msgid "Company Name"
 msgstr "ชื่อบริษัท"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__is_config_card
+msgid "Config Card"
+msgstr ""
+
+#. module: portal
 #: model:ir.model,name:portal.model_res_config_settings
 msgid "Config Settings"
 msgstr "ตั้งค่าการกำหนดค่า"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,description:portal.portal_entry_base
 msgid "Configure your connection parameters"
 msgstr "กำหนดค่าพารามิเตอร์การเชื่อมต่อของคุณ"
 
@@ -394,7 +392,11 @@ msgid "Confirm Password"
 msgstr "ยืนยันรหัสผ่าน"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_home
+#: model:portal.entry,name:portal.portal_entry_base
+msgid "Connection & Security"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Connection &amp; Security"
 msgstr "การเชื่อมต่อ &amp; ความปลอดภัย"
@@ -430,11 +432,17 @@ msgid "Country"
 msgstr "ประเทศ"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "Country..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model,website_form_label:portal.model_res_partner
 msgid "Create a Customer"
 msgstr "สร้างลูกค้า"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_uid
@@ -442,6 +450,7 @@ msgid "Created by"
 msgstr "สร้างโดย"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__create_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__create_date
@@ -496,6 +505,11 @@ msgid "Description"
 msgstr "คำอธิบาย"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__description
+msgid "Description of Card"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Details"
 msgstr "รายละเอียด"
@@ -523,11 +537,17 @@ msgstr ""
 "                                        </b>"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
+msgid "Discard"
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_http__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_qweb__display_name
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_message__display_name
 #: model:ir.model.fields,field_description:portal.field_mail_thread__display_name
+#: model:ir.model.fields,field_description:portal.field_portal_entry__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__display_name
@@ -641,6 +661,7 @@ msgstr "หน้าแรก"
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:portal.field_mail_message__id
 #: model:ir.model.fields,field_description:portal.field_mail_thread__id
+#: model:ir.model.fields,field_description:portal.field_portal_entry__id
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__id
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__id
@@ -659,12 +680,18 @@ msgid ""
 "backend. If you wish to change your name or email address, please do so in "
 "the account settings or contact your administrator."
 msgstr ""
-"หากคุณกำลังสั่งซื้อสำหรับบุคคลภายนอก โปรดสั่งซื้อผ่านทางแบ็กเอนด์ หากคุณต้องการเปลี่ยนชื่อหรือที่อยู่อีเ"
-"มลของคุณ โปรดดำเนินการในการตั้งค่าบัญชีหรือติดต่อผู้ดูแลระบบของคุณ"
+"หากคุณกำลังสั่งซื้อสำหรับบุคคลภายนอก โปรดสั่งซื้อผ่านทางแบ็กเอนด์ "
+"หากคุณต้องการเปลี่ยนชื่อหรือที่อยู่อีเมลของคุณ "
+"โปรดดำเนินการในการตั้งค่าบัญชีหรือติดต่อผู้ดูแลระบบของคุณ"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "If you want to modify it, update"
+msgstr ""
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__image
+msgid "Image"
 msgstr ""
 
 #. module: portal
@@ -732,6 +759,7 @@ msgstr ""
 "                ชัดเจนและครบถ้วน"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_uid
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_uid
@@ -739,6 +767,7 @@ msgid "Last Updated by"
 msgstr "อัปเดตครั้งล่าสุดโดย"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_share__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__write_date
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__write_date
@@ -780,10 +809,9 @@ msgstr "ข้อความ"
 #. odoo-python
 #: code:addons/portal/models/mail_thread.py:0
 msgid ""
-"Model %(model_name)s does not support token signature, as it does not have %"
-"(field_name)s field."
-msgstr ""
-"โมเดล %(model_name)s ไม่รองรับลายเซ็นโทเค็น เนื่องจากไม่มีฟิลด์ %(field_name)s"
+"Model %(model_name)s does not support token signature, as it does not have "
+"%(field_name)s field."
+msgstr "โมเดล %(model_name)s ไม่รองรับลายเซ็นโทเค็น เนื่องจากไม่มีฟิลด์ %(field_name)s"
 
 #. module: portal
 #. odoo-python
@@ -873,6 +901,11 @@ msgid "Phone"
 msgstr "โทรศัพท์"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__placeholder_count
+msgid "Placeholder Count"
+msgstr ""
+
+#. module: portal
 #. odoo-javascript
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 msgid "Please enter your password to confirm you own this account"
@@ -889,6 +922,11 @@ msgstr "การจัดการการเข้าถึงพอร์ท
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
 msgstr "พอทัลสำหรับเข้าถึง URL"
+
+#. module: portal
+#: model:ir.model,name:portal.model_portal_entry
+msgid "Portal Entry"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
@@ -920,8 +958,7 @@ msgstr "ก่อนหน้า"
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid ""
 "Put my email and phone in a block list to make sure I'm never contacted again"
-msgstr ""
-"ใส่อีเมลและโทรศัพท์ของฉันไว้ในรายการบล็อก เพื่อให้แน่ใจว่าฉันจะไม่ได้รับการติดต่ออีก"
+msgstr "ใส่อีเมลและโทรศัพท์ของฉันไว้ในรายการบล็อก เพื่อให้แน่ใจว่าฉันจะไม่ได้รับการติดต่ออีก"
 
 #. module: portal
 #: model:ir.model,name:portal.model_ir_qweb
@@ -1041,6 +1078,11 @@ msgid "Show As Optional Inherit"
 msgstr "แสดงตัวเลือกในการสืบทอด"
 
 #. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__show_in_portal
+msgid "Show in Portal"
+msgstr ""
+
+#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
 msgstr "ลงชื่อเข้าใช้"
@@ -1056,8 +1098,7 @@ msgstr ""
 msgid ""
 "Some fields are required. Please make sure to write a message or attach a "
 "document"
-msgstr ""
-"ต้องระบุข้อมูลบางช่อง กรุณาตรวจสอบให้แน่ใจว่าได้เขียนข้อความหรือแนบเอกสาร"
+msgstr "ต้องระบุข้อมูลบางช่อง กรุณาตรวจสอบให้แน่ใจว่าได้เขียนข้อความหรือแนบเอกสาร"
 
 #. module: portal
 #. odoo-python
@@ -1071,6 +1112,11 @@ msgid "State / Province"
 msgstr "รัฐ / จังหวัด"
 
 #. module: portal
+#: model_terms:ir.ui.view,arch_db:portal.address_form_fields
+msgid "State / Province..."
+msgstr ""
+
+#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email_state
 msgid "Status"
 msgstr "สถานะ"
@@ -1079,6 +1125,11 @@ msgstr "สถานะ"
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "Street and Number"
 msgstr "ถนนและหมายเลข"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__url
+msgid "Target URL"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1179,8 +1230,7 @@ msgstr "พาร์ทเนอร์ \"%s\" ไม่มีการเข้�
 msgid ""
 "The template \"Portal: new user\" not found for sending email to the portal "
 "user."
-msgstr ""
-"ไม่พบเทมเพลต \"พอร์ทัล: ผู้ใช้ใหม่\" สำหรับการส่งอีเมลไปยังผู้ใช้พอร์ทัล"
+msgstr "ไม่พบเทมเพลต \"พอร์ทัล: ผู้ใช้ใหม่\" สำหรับการส่งอีเมลไปยังผู้ใช้พอร์ทัล"
 
 #. module: portal
 #. odoo-python
@@ -1209,6 +1259,11 @@ msgstr "ข้อความนี้รวมอยู่ท้ายอีเ
 #: model:ir.model.fields,help:portal.field_portal_wizard__welcome_message
 msgid "This text is included in the email sent to new users of the portal."
 msgstr "ข้อความนี้รวมอยู่ในอีเมลที่ส่งถึงผู้ใช้ใหม่ของพอร์ทัลแล้ว"
+
+#. module: portal
+#: model:ir.model.fields,field_description:portal.field_portal_entry__name
+msgid "Title of Card"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
@@ -1277,9 +1332,9 @@ msgstr "ดู"
 #: model:ir.model.fields,field_description:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,field_description:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,field_description:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,field_description:portal.field_maintenance_request__website_message_ids
@@ -1315,9 +1370,9 @@ msgstr "ข้อความเว็บไซต์"
 #: model:ir.model.fields,help:portal.field_mail_blacklist__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_blacklist__website_message_ids
-#: model:ir.model.fields,help:portal.field_mail_thread_cc__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_main_attachment__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_thread_phone__website_message_ids
+#: model:ir.model.fields,help:portal.field_mail_thread_subject_suggested__website_message_ids
 #: model:ir.model.fields,help:portal.field_mail_tracking_duration_mixin__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_equipment__website_message_ids
 #: model:ir.model.fields,help:portal.field_maintenance_request__website_message_ids
@@ -1352,7 +1407,7 @@ msgstr "เริ่มเขียนข้อความ..."
 
 #. module: portal
 #. odoo-javascript
-#: code:addons/portal/static/src/chatter/core/composer_patch.js:0
+#: code:addons/portal/static/src/chatter/portal_project/composer_patch.js:0
 msgid "Write a message…"
 msgstr ""
 
@@ -1395,6 +1450,12 @@ msgstr "คุณควรกรอก \""
 #: code:addons/portal/wizard/portal_wizard.py:0
 msgid "You should first grant the portal access to the partner \"%s\"."
 msgstr "คุณควรให้สิทธิ์การเข้าถึงพอร์ทัลกับพาร์ทเนอร์ \"%s\" ก่อน"
+
+#. module: portal
+#. odoo-python
+#: code:addons/portal/wizard/portal_wizard.py:0
+msgid "Your Account"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
@@ -1444,9 +1505,9 @@ msgid "odoo"
 msgstr "odoo"
 
 #. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "password"
-msgstr "รหัสผ่าน"
+#: model:ir.model.fields,field_description:portal.field_portal_entry__sequence
+msgid "sequence"
+msgstr ""
 
 #. module: portal
 #. odoo-javascript
@@ -1464,40 +1525,3 @@ msgstr "ไปยังบัญชีผู้ใช้ของคุณ ส�
 #: model_terms:ir.ui.view,arch_db:portal.address_form_fields
 msgid "your account details"
 msgstr ""
-
-#~ msgid "Account Security"
-#~ msgstr "ความปลอดภัยของบัญชี"
-
-#~ msgid ""
-#~ "Changing company name is not allowed once document(s) have been issued "
-#~ "for your account. Please contact us directly for this operation."
-#~ msgstr ""
-#~ "ไม่อนุญาตให้เปลี่ยนชื่อบริษัทเมื่อมีการออกเอกสารสำหรับบัญชีของคุณแล้ว "
-#~ "โปรดติดต่อเราโดยตรงสำหรับการดำเนินการนี้"
-
-#~ msgid "Discard"
-#~ msgstr "ละทิ้ง"
-
-#~ msgid "Documents"
-#~ msgstr "เอกสาร"
-
-#~ msgid "Internal Note"
-#~ msgstr "บันทึกย่อภายใน"
-
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgid "Prev"
-#~ msgstr "ก่อนหน้า"
-
-#~ msgid "Street"
-#~ msgstr "ถนน"
-
-#~ msgid "Visible"
-#~ msgstr "สามารถมองเห็น"
-
-#~ msgid "Zip / Postal Code"
-#~ msgstr "รหัสไปรษณีย์"
-
-#~ msgid "comment"
-#~ msgstr "ความเห็น"

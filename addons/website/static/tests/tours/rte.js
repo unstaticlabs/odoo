@@ -5,17 +5,10 @@ import {
     goToTheme,
     registerWebsitePreviewTour,
 } from "@website/js/tours/tour_utils";
-import { whenReady } from "@odoo/owl";
 import { editorsWeakMap, setSelection } from "@html_editor/../tests/tours/helpers/editor";
 
-registerWebsitePreviewTour(
-    "rte_translator",
-    {
-        url: "/",
-        edition: true,
-        wait_for: whenReady(),
-    },
-    () => [
+function installParseltongueAndOpenLangDropdown() {
+    return [
         ...goToTheme(),
         {
             content: "click on Add a language",
@@ -53,8 +46,20 @@ registerWebsitePreviewTour(
             run: "click",
         },
         {
+            content: "Check that the language of the page is Parseltongue",
             trigger: ':iframe html[lang*="pa-GB"]',
         },
+    ];
+}
+
+registerWebsitePreviewTour(
+    "rte_translator",
+    {
+        url: "/",
+        edition: true,
+    },
+    () => [
+        ...installParseltongueAndOpenLangDropdown(),
         {
             content: "go to english version",
             trigger: ':iframe .o_header_language_selector a[data-url_code="en"]',
@@ -168,9 +173,15 @@ registerWebsitePreviewTour(
             trigger: ':iframe html[lang*="en"]',
         },
         {
+            trigger: ':iframe .js_language_selector > button:contains(English)',
+        },
+        {
             content: "click on Parseltongue version",
             trigger: ':iframe .js_language_selector a[data-url_code="pa_GB"]',
             run: "click",
+        },
+        {
+            trigger: ':iframe .js_language_selector > button:contains(Parseltongue)',
         },
         {
             content: "edit",
@@ -196,6 +207,13 @@ registerWebsitePreviewTour(
         },
         {
             trigger: ".o_builder_sidebar_open",
+        },
+        {
+            content: "Check that the generic 'Translation' option is always visible",
+            trigger: ".o_customize_tab .options-container [data-label='Translate to']",
+        },
+        {
+            trigger: ':iframe .js_language_selector > button:contains(Parseltongue)',
         },
         {
             content: "translate text",
@@ -281,9 +299,28 @@ registerWebsitePreviewTour(
             run: "click",
         },
         {
+            trigger: ':iframe .js_language_selector > button:contains(English)',
+        },
+        {
+            content: "check: default value translation",
+            trigger: ':iframe input[placeholder="test translate placeholder"]',
+        },
+        {
             content: "Check body",
             trigger:
                 ":iframe body:not(:has(#wrap p font:first:text(paragraphs <b>describing</b>)))",
+        },
+        {
+            content: "return to Parseltongue version",
+            trigger: ':iframe .js_language_selector a[data-url_code="pa_GB"]',
+            run: "click",
+        },
+        {
+            content: "check: placeholder translation",
+            trigger: ':iframe input[placeholder="test Parseltongue placeholder"]',
+        },
+        {
+            trigger: ':iframe .js_language_selector > button:contains(Parseltongue)',
         },
         ...clickOnEditAndWaitEditModeInTranslatedPage(),
         {
@@ -337,11 +374,11 @@ registerWebsitePreviewTour(
                 );
                 el.dispatchEvent(mouseup);
             },
-            // This is disabled for now because it reveals a bug that is fixed
-            // in saas-15.1 and considered a tradeoff in 15.0. The bug concerns
-            // the invalidation of translations when inserting tags with more
-            // than one character. Whereas <u> didn't trigger an invalidation,
-            // <span style="text-decoration-line: underline;"> does.
+            // This is disabled for now because it reveals a bug that is fixed in saas-15.1
+            // and considered a tradeoff in 15.0. The bug concerns the invalidation of
+            // translations when inserting tags with more than one character. Whereas <u>
+            // didn't trigger an invalidation, <span style="text-decoration-line: underline;">
+            // does.
             // }, {
             //     content: "underline",
             //     trigger: '.oe-toolbar #underline',
@@ -405,4 +442,13 @@ registerWebsitePreviewTour(
             trigger: ":iframe body:not(.rte_translator_error)",
         },
     ]
+);
+
+registerWebsitePreviewTour(
+    "multiple_websites_add_language",
+    {
+        url: "/",
+        edition: true,
+    },
+    () => [...installParseltongueAndOpenLangDropdown()]
 );

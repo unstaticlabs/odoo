@@ -50,7 +50,6 @@ class TestPoSController(TestPointOfSaleHttpCommon):
             'access_token': self.pos_order.access_token,
             'name': self.new_partner.name,
             'email': "test@test.com",
-            'company_name': self.new_partner.company_name,
             'vat': self.new_partner.vat,
             'street': "Test street",
             'city': "Test City",
@@ -58,7 +57,7 @@ class TestPoSController(TestPointOfSaleHttpCommon):
             'country_id': self.new_partner.country_id.id,
             'state_id': self.new_partner.state_id.id,
             'phone': "123456789",
-            'csrf_token': odoo.http.Request.csrf_token(self)
+            'csrf_token': self.csrf_token()
         }
         self.url_open(f'/pos/ticket/validate?access_token={self.pos_order.access_token}', data=get_invoice_data)
         self.assertEqual(self.env['res.partner'].sudo().search_count([('name', '=', 'AAA Partner')]), 1)
@@ -199,7 +198,7 @@ class TestPoSController(TestPointOfSaleHttpCommon):
             'country_id': self.company.country_id.id,
             'phone': "123456789",
             'state_id': self.env['res.country.state'].search([], limit=1).id,
-            'csrf_token': odoo.http.Request.csrf_token(self)
+            'csrf_token': self.csrf_token()
         }
         self.url_open(f'/pos/ticket/validate?access_token={self.pos_order.access_token}', data=get_invoice_data, timeout=30000)
         self.assertEqual(self.partner_1.vat, 'VAT_TEST_NUMBER_123')

@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="web.PropertyValueTag">
+        <t t-if="this.props.imageUrl">
+            <AvatarTag imageUrl="this.props.imageUrl" onAvatarClick="this.props.onAvatarClick" onDelete="this.props.onDelete" text="this.props.text" t-on-click="(ev) => this.props.onClick?.(ev)"/>
+        </t>
+        <t t-else="">
+            <BadgeTag onClick="this.props.onClick" onDelete="this.props.onDelete" text="this.props.text"/>
+        </t>
+    </t>
+
     <t t-name="web.PropertyValue">
-        <t t-if="props.readonly and !['boolean', 'many2one', 'many2many', 'tags', 'html'].includes(props.type)">
+        <t t-if="props.readonly and !['boolean', 'many2one', 'many2many', 'tags', 'html', 'signature'].includes(props.type)">
             <span t-if="displayValue" t-out="displayValue"/>
         </t>
         <t t-else="">
@@ -106,37 +115,18 @@
                             t-else=""
                             t-out="propertyValue and propertyValue.display_name || ''" />
                     </t>
-                    <Many2XAutocomplete
-                        t-else=""
-                        t-key="props.id + '_' + props.comodel + '_' + props.string"
-                        value="propertyValue.display_name || ''"
-                        id="props.id"
-                        resModel="props.comodel"
-                        autoSelect="true"
-                        fieldString="props.string"
-                        update.bind="onValueChange"
-                        context="props.context"
-                        getDomain.bind="() => propertyDomain"
-                        quickCreate.bind="onQuickCreate"
-                        activeActions="{ create: true, createEdit: true, write: true }"
-                    />
-                    <button
-                        t-if="!props.readonly and propertyValue and propertyValue.id and hasAccess"
-                        type="button"
-                        class="btn btn-secondary oi oi-arrow-right o_external_button o_properties_external_button py-0"
-                        tabindex="-1"
-                        draggable="false"
-                        aria-label="Internal link"
-                        data-tooltip="Internal link"
-                        t-on-click="onExternalLinkClick"
-                    />
+                    <t t-else="">
+                        <Many2One t-key="props.id + '_' + props.comodel + '_' + props.string" cssClass="'w-100'" id="this.props.id" value="this.propertyValue" relation="this.props.comodel" update.bind="(val) => this.onValueChange([val])" string="this.props.string" context="this.props.context" domain="() => this.propertyDomain" canCreate="true" canCreateEdit="true" canWrite="true" canOpen="!this.props.readonly and this.hasAccess" openRecordAction.bind="this.onExternalLinkClick"/>
+                    </t>
                 </t>
             </div>
             <t t-elif="props.type === 'many2many'">
                 <div t-if="props.comodel" class="o_field_property_many2many_value d-flex flex-wrap flex-row gap-1 ms-0 pe-1 w-100 "
                     t-attf-class="o_field_widget o_field_many2many_tags {{showAvatar ? 'avatar' : ''}} {{props.readonly ? 'readonly' : ''}}">
                     <!-- Copy many2many tags style without duplicating all CSS -->
-                    <TagsList tags="propertyValue"/>
+                    <t t-foreach="propertyValue" t-as="tag" t-key="tag.id">
+                        <PropertyValueTag t-props="tag.props"/>
+                    </t>
                     <Many2XAutocomplete
                         t-if="!props.readonly"
                         t-key="props.id + '_' + props.comodel + '_' + props.string"
@@ -147,7 +137,7 @@
                         update.bind="onValueChange"
                         context="props.context"
                         getDomain.bind="() => propertyDomain"
-                        quickCreate.bind="onQuickCreate"
+                        quickCreate="(name) => this.onValueChange([{ display_name: name }])"
                         activeActions="{ create: true, createEdit: true, write: true }"
                         isToMany="true"
                     />
@@ -158,6 +148,9 @@
                     value="propertyValue || ''"
                     updateProperty="(event) => this.onValueChange(event.target.value)"
                 />
+            </t>
+            <t t-elif="props.type === 'signature'">
+                <SignatureViewer url="this.propertyValue" update.bind="this.onValueChange"/>
             </t>
             <t t-else="">
                 <input

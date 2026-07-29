@@ -128,7 +128,7 @@ test("Many2ManyTagsField with and without color on desktop", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="partner_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="partner_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                 <field name="timmy" widget="many2many_tags"/>
             </form>`,
     });
@@ -185,7 +185,7 @@ test("Many2ManyTagsField with and without color on mobile", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="partner_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="partner_ids" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                 <field name="timmy" widget="many2many_tags"/>
             </form>`,
     });
@@ -243,7 +243,7 @@ test("Many2ManyTagsField with color: rendering and edition on desktop", async ()
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True }"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color', 'no_create_edit': True }"/>
             </form>`,
         resId: 1,
     });
@@ -303,7 +303,7 @@ test("Many2ManyTagsField in list view on desktop", async () => {
         resModel: "partner",
         arch: `
             <list>
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                 <field name="foo"/>
             </list>`,
         selectRecord: () => {
@@ -341,7 +341,7 @@ test("Many2ManyTagsField in list view -- multi edit on desktop", async () => {
         resModel: "partner",
         arch: `
             <list multi_edit="1">
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                 <field name="foo"/>
             </list>`,
         selectRecord: () => {
@@ -368,6 +368,27 @@ test("Many2ManyTagsField in list view -- multi edit on desktop", async () => {
 
     expect(".o_selected_row").toHaveCount(1);
     expect(".o_colorlist").toHaveCount(0);
+});
+
+test.tags("desktop");
+test("Many2ManyTagsField in list view -- click on tag in editable mode should do onClick action", async () => {
+    Partner._records[0].timmy = [12, 14];
+
+    await mountView({
+        type: "list",
+        resModel: "partner",
+        arch: `
+            <list editable="top">
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
+                <field name="foo"/>
+            </list>`,
+    });
+
+    await contains(`.o_field_many2many_tags`).click();
+    expect(`.o_tag_popover`).toHaveCount(0);
+    expect(`.o_data_row:eq(0)`).toHaveClass("o_selected_row");
+    await contains(`.o_tag`).click();
+    expect(`.o_tag_popover`).toHaveCount(1);
 });
 
 test.tags("desktop");
@@ -620,7 +641,7 @@ test("Many2ManyTagsField: update color", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
             </form>`,
         resId: 1,
     });
@@ -672,7 +693,7 @@ test("Many2ManyTagsField: update color", async () => {
     */
 });
 
-test("Many2ManyTagsField with no_edit_color option", async () => {
+test("Many2ManyTagsField without on_tag_click option", async () => {
     Partner._records[0].timmy = [12];
 
     await mountView({
@@ -680,7 +701,7 @@ test("Many2ManyTagsField with no_edit_color option", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'no_edit_color': 1}"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
             </form>`,
         resId: 1,
     });
@@ -805,7 +826,7 @@ test("Many2ManyTagsField: toggle colorpicker with multiple tags", async () => {
         resModel: "partner",
         arch: `
                 <form>
-                    <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
                 </form>`,
         resId: 1,
     });
@@ -838,7 +859,7 @@ test("Many2ManyTagsField: toggle colorpicker multiple times", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="timmy" widget="many2many_tags" options="{'color_field': 'color', 'on_tag_click': 'edit_color'}"/>
             </form>`,
         resId: 1,
     });
@@ -1224,7 +1245,7 @@ test("Many2ManyTagsField: Save&New in many2many_tags with default_ keys in conte
 });
 
 test.tags("desktop");
-test("Many2ManyTagsField: conditional create/delete actions on desktop", async () => {
+test("Many2ManyTagsField: conditional create/delete attrs on desktop", async () => {
     Turtle._records[0].partner_ids = [2];
     for (let id = 101; id <= 110; id++) {
         Partner._records.push({ id, name: "Partner" + id });
@@ -1241,7 +1262,7 @@ test("Many2ManyTagsField: conditional create/delete actions on desktop", async (
             <form>
                 <field name="name"/>
                 <field name="turtle_bar"/>
-                <field name="partner_ids" options="{'create': [('turtle_bar', '=', True)], 'delete': [('turtle_bar', '=', True)]}" widget="many2many_tags"/>
+                <field name="partner_ids" create="turtle_bar == True" delete="turtle_bar == True" widget="many2many_tags"/>
             </form>`,
         resId: 1,
     });
@@ -1457,7 +1478,7 @@ test("Many2ManyTagsField supports 'create' props to be a Boolean on mobile", asy
     await mountView({
         type: "form",
         resModel: "partner",
-        arch: `<form><field name="timmy" widget="many2many_tags" placeholder="Placeholder" options="{'create': False }"/></form>`,
+        arch: `<form><field name="timmy" widget="many2many_tags" placeholder="Placeholder" create="False"/></form>`,
     });
 
     await contains(".o_field_many2many_tags input").click();
@@ -1502,16 +1523,14 @@ test("set a required many2many_tags and save directly", async () => {
     def = new Deferred();
     await clickFieldDropdown("timmy");
     await clickFieldDropdownItem("timmy", "gold");
-    expect(".o_tag").toHaveCount(1);
-    expect(".o_tag").toHaveText("", {
-        message: "The tag is displayed, but the web read is not finished yet",
-    });
+    expect(".o_tag").toHaveCount(0);
 
     await clickSave();
     expect("[name='timmy']").not.toHaveClass("o_field_invalid");
 
     def.resolve();
     await animationFrame();
+    expect(".o_tag").toHaveCount(1);
     expect(".o_tag").toHaveText("gold");
 });
 
@@ -1764,7 +1783,7 @@ test("Many2ManyTagsField doesn't use virtualId for 'web_name_search' on desktop"
             </field>
         </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(1);
 
     await contains(".modal [name='name'] input").edit("yop");
@@ -1800,7 +1819,7 @@ test("Many2ManyTagsField doesn't use virtualId for 'web_name_search' on mobile",
             </field>
         </form>`,
     });
-    await contains(".o_field_x2many_list_row_add a").click();
+    await contains(".o_field_x2many_list_row_add button").click();
     expect(".modal").toHaveCount(1);
 
     await contains(".modal [name='name'] input").edit("yop");
@@ -1881,7 +1900,7 @@ test("Many2ManyTagsField selected records still pickable and not duplicable on m
     expect(".o_tag").toHaveCount(0);
 });
 
-test("Many2ManyTagsField with edit_tags option", async () => {
+test("Many2ManyTagsField with on_tag_click option", async () => {
     expect.assertions(4);
 
     PartnerType._views = {
@@ -1904,7 +1923,7 @@ test("Many2ManyTagsField with edit_tags option", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'edit_tags': 1}"/>
+                <field name="timmy" widget="many2many_tags" options="{'on_tag_click': 'open_form'}"/>
             </form>`,
         resId: 1,
     });
@@ -1919,7 +1938,7 @@ test("Many2ManyTagsField with edit_tags option", async () => {
     await clickSave();
 });
 
-test("Many2ManyTagsField with edit_tags option overrides color edition", async () => {
+test("Many2ManyTagsField with on_tag_click option overrides color edition", async () => {
     expect.assertions(9);
 
     PartnerType._views = {
@@ -1942,7 +1961,7 @@ test("Many2ManyTagsField with edit_tags option overrides color edition", async (
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" options="{'edit_tags': 1, 'color_field': 'color'}"/>
+                <field name="timmy" widget="many2many_tags" options="{'on_tag_click': 'open_form', 'color_field': 'color'}"/>
             </form>`,
         resId: 1,
     });
@@ -2060,4 +2079,66 @@ test("Many2ManyTagsField: press backspace multiple times to remove tag", async (
     await animationFrame();
     expect(".o_field_many2many_tags .badge").toHaveCount(1);
     expect.verifySteps(["onchange [[3,14]]"]);
+});
+
+test.tags("desktop");
+test("Many2ManyTagsField: keyboard navigation", async () => {
+    // 1. Setup the records with the value already present
+    PartnerType._records = [
+        { id: 12, name: "gold", color: 2 },
+        { id: 14, name: "silver", color: 5 },
+        { id: 15, name: "platinium", color: 10 },
+    ];
+
+    Partner._records[0].timmy = [12, 14];
+
+    await mountView({
+        type: "form",
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="timmy" widget="many2many_tags"/>
+            </form>`,
+        resId: 1,
+    });
+
+    const input = ".o_field_many2many_tags input";
+
+    // 2. Test RIGHT arrow: Should close dropdown and focus the FIRST tag
+    await contains(input).click();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(1);
+    await press("ArrowRight");
+    expect(".o_tag:eq(0)").toBeFocused();
+
+    // Ensure dropdown closed
+    await animationFrame();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
+
+    // 3. Test LEFT arrow: Should close dropdown and focus the LAST tag
+    await contains(input).click();
+    await press("ArrowLeft");
+    expect(".o_tag:eq(1)").toBeFocused();
+
+    // Ensure dropdown closed
+    await animationFrame();
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
+
+    // 4. Test with non-empty input: Focus should NOT move to tags
+    await fieldInput("timmy").focus();
+    await fieldInput("timmy").click();
+    await fieldInput("timmy").edit("gold", { confirm: false });
+
+    // Press ArrowLeft while typing
+    await press("ArrowLeft");
+    expect(input).toBeFocused();
+    expect(".o_tag").not.toBeFocused();
+
+    // Press ArrowRight while typing
+    await press("ArrowRight");
+    await press("ArrowRight");
+    expect(input).toBeFocused();
+    expect(".o_tag").not.toBeFocused();
+
+    // Dropdown should still be visible (filtering)
+    expect(".o-autocomplete--dropdown-menu").toHaveCount(1);
 });

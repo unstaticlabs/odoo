@@ -6,17 +6,17 @@ import { MessageLinkPreviewList } from "@mail/core/common/message_link_preview_l
 import { MessageNotificationPopover } from "@mail/core/common/message_notification_popover";
 import { MessageReactionMenu } from "@mail/core/common/message_reaction_menu";
 import { MessageReactions } from "@mail/core/common/message_reactions";
+import { Poll } from "@mail/core/common/poll";
+import { PollResult } from "@mail/core/common/poll_result";
 import { RelativeTime } from "@mail/core/common/relative_time";
 import { htmlToTextContentInline } from "@mail/utils/common/format";
 import { isEventHandled, markEventHandled } from "@web/core/utils/misc";
 import { renderToElement } from "@web/core/utils/render";
+import { nbsp } from "@web/core/utils/strings";
 
 import {
     Component,
     onMounted,
-    onPatched,
-    onWillDestroy,
-    onWillUpdateProps,
     toRaw,
     useChildSubEnv,
     useEffect,
@@ -31,15 +31,17 @@ import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
 import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";
-import { useService } from "@web/core/utils/hooks";
+import { useChildRef, useService } from "@web/core/utils/hooks";
 import { createElementWithContent } from "@web/core/utils/html";
 import { getOrigin, url } from "@web/core/utils/urls";
 import { useMessageActions } from "./message_actions";
 import { discussComponentRegistry } from "./discuss_component_registry";
 import { NotificationMessage } from "./notification_message";
-import { useLongPress } from "@mail/utils/common/hooks";
+import { useForwardRefsToParent, useLongPress } from "@mail/utils/common/hooks";
 import { ActionList } from "@mail/core/common/action_list";
 import { loadCssFromBundle } from "@mail/utils/common/misc";
+import { MessageContextMenu } from "@mail/core/common/message_context_menu";
+import { Priority } from "@mail/core/common/priority";
 
 class MessageDropdown extends Dropdown {
     get isBottomSheet() {
@@ -55,6 +57,7 @@ class MessageDropdown extends Dropdown {
  * @property {import("models").Message} message
  * @property {boolean} [squashed]
  * @property {import("models").Thread} [thread]
+ * @property {ReturnType<import('@mail/utils/common/hooks').useMessageSelection>} [messageSelection]
  * @property {ReturnType<import('@mail/core/common/message_search_hook').useMessageSearch>} [messageSearch]
  * @property {String} [className]
  * @extends {Component<Props, Env>}
@@ -71,25 +74,28 @@ export class Message extends Component {
         Composer,
         Dropdown: MessageDropdown,
         ImStatus,
+        MessageContextMenu,
         MessageInReply,
         MessageLinkPreviewList,
         MessageReactions,
         Popover: MessageNotificationPopover,
+        Poll,
+        PollResult,
         RelativeTime,
         NotificationMessage,
+        Priority,
     };
     static defaultProps = {
         hasActions: true,
-        isInChatWindow: false,
         showDates: true,
     };
     static props = [
         "asCard?",
-        "registerMessageRef?",
         "hasActions?",
-        "isInChatWindow?",
         "onParentMessageClick?",
         "message",
+        "messageSelection?",
+        "messageRefs?",
         "previousMessage?",
         "squashed?",
         "thread?",
@@ -101,8 +107,16 @@ export class Message extends Component {
     ];
     static template = "mail.Message";
 
+    /**
+     * @type {boolean} Whether the right-click drodpown is being closed.
+     * Useful to detect when close comes from another right-click on the same message,
+     * in order to show the browser right-click instead.
+     */
+    isRightClickDropdownOngoingClose = false;
+
     setup() {
         super.setup();
+        this.nbsp = nbsp;
         this.store = useService("mail.store");
         this.popover = usePopover(this.constructor.components.Popover, { position: "top" });
         this.state = useState({
@@ -111,6 +125,15 @@ export class Message extends Component {
             expandOptions: false,
             emailHeaderOpen: false,
         });
+        this.rightClickDropdownState = useDropdownState({
+            onClose: async () => {
+                this.props.messageSelection?.clearSelected();
+                this.isRightClickDropdownOngoingClose = true;
+                await new Promise((resolve) => setTimeout(() => requestAnimationFrame(resolve)));
+                this.isRightClickDropdownOngoingClose = false;
+            },
+        });
+        this.rightClickAnchor = useChildRef("rightClickAnchor");
         /** @type {ShadowRoot} */
         this.shadowRoot;
         this.root = useRef("root");
@@ -120,13 +143,7 @@ export class Message extends Component {
                 predicate: () => !this.isEditing,
             });
         }
-        onWillUpdateProps((nextProps) => {
-            this.props.registerMessageRef?.(this.props.message, null);
-        });
-        onMounted(() => this.props.registerMessageRef?.(this.props.message, this.root));
-        onPatched(() => this.props.registerMessageRef?.(this.props.message, this.root));
-        onWillDestroy(() => this.props.registerMessageRef?.(this.props.message, null));
-        this.hasTouch = hasTouch;
+        useForwardRefsToParent("messageRefs", (props) => props.message.id, this.root);
         this.messageBody = useRef("body");
         this.messageActions = useMessageActions({
             message: () => this.message,
@@ -270,14 +287,16 @@ export class Message extends Component {
             "pt-1": !this.props.asCard && !this.props.squashed,
             "o-pt-0_5": !this.props.asCard && this.props.squashed,
             "o-selfAuthored": this.message.isSelfAuthored && !this.env.messageCard,
-            "o-selected": this.props.message.composerAsReplyToMessage?.thread.eq(this.props.thread),
+            "o-selected":
+                this.props.message.composerAsReplyToMessage?.thread.eq(this.props.thread) ||
+                this.props.messageSelection?.isSelected(this.props.message),
             "o-squashed": this.props.squashed,
             "mt-1":
                 !this.props.squashed &&
                 this.props.thread &&
                 !this.env.messageCard &&
                 !this.props.asCard,
-            "px-1": this.props.isInChatWindow,
+            "px-1": this.env.inChatWindow,
             "o-actionMenuMobileOpen": this.ui.isSmall && this.optionsDropdown.isOpen,
             "o-editing": this.isEditing,
         };
@@ -362,7 +381,9 @@ export class Message extends Component {
     }
 
     get isAlignedRight() {
-        return Boolean(this.env.inChatWindow && this.props.message.isSelfAuthored);
+        return Boolean(
+            this.env.inChatWindow && this.props.message.isSelfAuthored && !this.env.messageCard
+        );
     }
 
     get isMobileOS() {
@@ -376,6 +397,27 @@ export class Message extends Component {
             this.message.thread &&
             this.message.thread.notEq(this.props.thread)
         );
+    }
+
+    get onRightSwipe() {
+        if (this.props.thread?.eq(this.store.inbox)) {
+            return {
+                action: () => this.message.setDone(),
+                bgColor: "bg-success",
+                icon: "fa-check-circle",
+            };
+        }
+        if (
+            this.props.thread?.eq(this.store.history) &&
+            this.message.canMarkAsUnread(this.props.thread)
+        ) {
+            return {
+                action: () => this.message.markAsUnread(this.props.thread),
+                bgColor: "bg-secondary",
+                icon: "fa-eye-slash",
+            };
+        }
+        return undefined;
     }
 
     get translatedFromText() {
@@ -399,13 +441,13 @@ export class Message extends Component {
      * @returns {boolean}
      */
     get shouldDisplayAuthorName() {
-        if (!this.env.inChatWindow) {
+        if (!this.env.inChatWindow || this.env.messageCard) {
             return true;
         }
         if (this.message.isSelfAuthored) {
             return false;
         }
-        if (this.props.thread.channel_type === "chat") {
+        if (this.props.thread.channel?.channel_type === "chat") {
             return false;
         }
         return true;
@@ -441,13 +483,42 @@ export class Message extends Component {
         }
     }
 
+    onContextMenu(ev) {
+        if (!document.getSelection()?.isCollapsed || isMobileOS()) {
+            // text selection by-passes message actions on right-click.
+            // Mobile OS long press is handled with useLongPress()
+            return;
+        }
+        if (
+            ev.composedPath()[0].closest("a") ||
+            !this.props.hasActions ||
+            this.isEditing ||
+            this.rightClickDropdownState.isOpen ||
+            this.isRightClickDropdownOngoingClose
+        ) {
+            return;
+        }
+        this.showRightClickMessageActions(ev);
+    }
+
+    showRightClickMessageActions(ev) {
+        const el = this.rightClickAnchor.el;
+        el.style.left = ev.clientX + "px";
+        el.style.top = ev.clientY + "px";
+        this.rightClickDropdownState.open();
+        this.props.messageSelection?.setSelected(this.props.message);
+        ev.preventDefault();
+    }
+
     /** @param {HTMLElement} bodyEl */
     prepareMessageBody(bodyEl) {
         if (!bodyEl) {
             return;
         }
         const editedEl = bodyEl.querySelector(".o-mail-Message-edited");
-        editedEl?.replaceChildren(renderToElement("mail.Message.edited"));
+        editedEl?.replaceChildren(
+            renderToElement("mail.Message.edited", { message: this.message })
+        );
         const channelLinks = bodyEl.querySelectorAll("a.o_channel_redirect");
         this.store.handleValidChannelMention(Array.from(channelLinks));
         for (const el of bodyEl.querySelectorAll(".o_message_redirect")) {
@@ -495,20 +566,19 @@ export class Message extends Component {
     }
 
     openReactionMenu(reaction) {
-        const message = toRaw(this.props.message);
         this.dialog.add(
             MessageReactionMenu,
-            { message, initialReaction: reaction },
+            { message: this.props.message, initialReaction: reaction },
             { context: this }
         );
     }
 
-    async onClickToggleTranslation() {
-        toRaw(this.props.message).onClickToggleTranslation();
-    }
-
-    get shouldHideFromMessageListOnDelete() {
-        return false;
+    get showSubject() {
+        return (
+            this.message.subject &&
+            !this.message.isSubjectSimilarToThreadName &&
+            !this.message.isSubjectDefault
+        );
     }
 }
 

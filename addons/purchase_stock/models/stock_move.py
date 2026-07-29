@@ -29,12 +29,12 @@ class StockMove(models.Model):
     def _prepare_merge_negative_moves_excluded_distinct_fields(self):
         return super()._prepare_merge_negative_moves_excluded_distinct_fields() + ['created_purchase_line_ids']
 
-    @api.depends('purchase_line_id', 'purchase_line_id.product_uom_id')
+    @api.depends('purchase_line_id', 'purchase_line_id.uom_id')
     def _compute_packaging_uom_id(self):
         super()._compute_packaging_uom_id()
         for move in self:
             if move.purchase_line_id:
-                move.packaging_uom_id = move.purchase_line_id.product_uom_id
+                move.packaging_uom_id = move.purchase_line_id.uom_id
 
     def _compute_partner_id(self):
         # dropshipped moves should have their partner_ids directly set
@@ -54,6 +54,12 @@ class StockMove(models.Model):
                     vendor_reference = ''
                 no_variant_attributes = '\n'.join(f'{attribute.attribute_id.name}: {attribute.name}' for attribute in move.purchase_line_id.sudo().product_no_variant_attribute_value_ids)
                 move.description_picking = (no_variant_attributes + '\n' + vendor_reference + '\n' + current_description).strip()
+
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('date') and vals.get('state') != "done":
+            self._set_date_planned(vals.get('date'))
+        return res
 
     def _get_description(self):
         return self.purchase_line_id.name if self.purchase_line_id else super()._get_description()
@@ -81,7 +87,7 @@ class StockMove(models.Model):
                 'order_id': purchase_order.id,
                 'product_id': product.id,
                 'product_qty': 0,
-                'product_uom_id': move.product_uom.id,
+                'uom_id': move.uom_id.id,
                 'qty_received': quantity
             }
             if product.purchase_method == 'purchase':
@@ -150,6 +156,14 @@ class StockMove(models.Model):
             )
         return None, None
 
+    def _set_date_planned(self, date_planned):
+        already_set_ids = self.env.context.get('date_planned_set_ids', set())
+        for move in self:
+            if move.picking_id.picking_type_code != 'incoming' or move.picking_id.state in ('done', 'cancel') or move.purchase_line_id.id in already_set_ids:
+                continue
+            already_set_ids.update(move.purchase_line_id.ids)
+            move.with_context(date_planned_set_ids=already_set_ids).purchase_line_id.date_planned = date_planned
+
     # --------------------------------------------------------
     # Valuation
     # --------------------------------------------------------
@@ -195,7 +209,7 @@ class StockMove(models.Model):
             elif move.is_out:
                 other_candidates_qty -= -move._get_valued_qty()
 
-        if self.product_uom.compare(aml_quantity, other_candidates_qty) <= 0:
+        if self.uom_id.compare(aml_quantity, other_candidates_qty) <= 0:
             return valuation_data
 
         # Remove quantity from prior moves.
@@ -230,8 +244,9 @@ class StockMove(models.Model):
         # TODO: Start from global value
         if not self.purchase_line_id:
             return super()._get_value_from_quotation(quantity, at_date)
-        price_unit = self.purchase_line_id.with_context(conversion_date=self.date)._get_stock_move_price_unit()
-        quantity = min(quantity, self.product_uom._compute_quantity(self.quantity, self.product_id.uom_id))
+        price_unit = self.purchase_line_id._get_stock_move_price_unit(self.date)
+        uom_quantity = self.uom_id._compute_quantity(quantity, self.product_id.uom_id)
+        quantity = min(quantity, uom_quantity)
         cost_ratio = self._get_cost_ratio(quantity)
         value = price_unit * cost_ratio
         return {

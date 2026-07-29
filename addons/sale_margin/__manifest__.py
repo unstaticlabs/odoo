@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Margins in Sales Orders',
-    'version':'1.0',
     'category': 'Sales/Sales',
     'description': """
 This module adds the 'Margin' on sales order.
@@ -18,6 +16,7 @@ Price and Cost Price.
     ],
     'data':[
         'views/sale_order_views.xml',
+        'report/sale_report_views.xml',
     ],
     'author': 'Odoo S.A.',
     'license': 'LGPL-3',

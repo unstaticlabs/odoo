@@ -2,30 +2,46 @@
 # This file contains the translation of the following modules:
 # * website_sale_collect
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Patricia Gutiérrez (pagc)" <pagc@odoo.com>, 2025, 2026.
 # "Fernanda Alvarez (mfar)" <mfar@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 03:39+0000\n"
-"Last-Translator: \"Patricia Gutiérrez (pagc)\" <pagc@odoo.com>\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-05-16 16:58+0000\n"
+"Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
-"odoo-19/website_sale_collect/es_419/>\n"
+"odoo-s19-2/website_sale_collect/es_419/>\n"
 "Language: es_419\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/sale_order.py:0
 msgid "%(available_qty)s/%(line_qty)s available at this location"
 msgstr "%(available_qty)s/%(line_qty)s disponibles en esta ubicación"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<i class=\"fa fa-fw fa-heart\"/> In wishlist"
+msgstr "<i class=\"fa fa-fw fa-heart\"/> En la lista de deseos"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid ""
+"<i class=\"fa fa-fw fa-heart-o\" role=\"presentation\" aria-label=\"Add to "
+"Wishlist\"/>\n"
+"                                    Wishlist"
+msgstr ""
+"<i class=\"fa fa-fw fa-heart-o\" role=\"presentation\" aria-label=\"Agregar "
+"a la lista de deseos\"/>\n"
+"                                    Lista de deseos"
 
 #. module: website_sale_collect
 #: model_terms:payment.provider,pending_msg:website_sale_collect.payment_provider_on_site
@@ -37,9 +53,19 @@ msgstr ""
 "sus productos."
 
 #. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "<span class=\"small\">|</span>"
+msgstr "<span class=\"small\">|</span>"
+
+#. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.payment_confirmation_status
 msgid "<span class=\"text-muted\"> (In-store pickup)</span>"
 msgstr "<span class=\"text-muted\"> (recolección en la tienda)</span>"
+
+#. module: website_sale_collect
+#: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
+msgid "Add to Wishlist"
+msgstr "Agregar a la lista de deseos"
 
 #. module: website_sale_collect
 #. odoo-javascript
@@ -88,6 +114,11 @@ msgid "Delivery"
 msgstr "Entrega"
 
 #. module: website_sale_collect
+#: model:ir.model,name:website_sale_collect.model_delivery_carrier
+msgid "Delivery Method"
+msgstr "Método de entrega"
+
+#. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/res_config_settings.py:0
 msgid "Delivery Methods"
@@ -132,13 +163,6 @@ msgstr "Método de entrega en la tienda"
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 msgid "Not available"
 msgstr "No disponible"
-
-#. module: website_sale_collect
-#. odoo-javascript
-#: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
-#: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "Only"
-msgstr "Solo"
 
 #. module: website_sale_collect
 #: model:ir.model.fields,field_description:website_sale_collect.field_stock_warehouse__opening_hours
@@ -224,9 +248,10 @@ msgid "Select store"
 msgstr "Seleccione una tienda"
 
 #. module: website_sale_collect
-#: model:ir.model,name:website_sale_collect.model_delivery_carrier
-msgid "Shipping Methods"
-msgstr "Métodos de envío"
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.xml:0
+msgid "Selected country:"
+msgstr "País seleccionado:"
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -265,6 +290,13 @@ msgstr ""
 msgid "The delivery method must have at least one warehouse to be published."
 msgstr ""
 "El método de entrega debe tener al menos un almacén para poder publicarlo."
+
+#. module: website_sale_collect
+#. odoo-javascript
+#: code:addons/website_sale_collect/static/src/js/location_selector/location_selector_dialog/location_selector_dialog.js:0
+msgid "This address may require to recompute taxes."
+msgstr ""
+"Es probable que esta dirección requiera volver a calcular los impuestos."
 
 #. module: website_sale_collect
 #: model_terms:ir.ui.view,arch_db:website_sale_collect.unavailable_products_warning
@@ -314,14 +346,11 @@ msgstr "Tu pago ha sido procesado."
 #. odoo-javascript
 #: code:addons/website_sale_collect/static/src/js/click_and_collect_availability/click_and_collect_availability.xml:0
 #: code:addons/website_sale_collect/static/src/js/location_selector/location/location.xml:0
-msgid "available"
-msgstr "disponible"
+msgid "in stock"
+msgstr "en existencia"
 
 #. module: website_sale_collect
 #. odoo-python
 #: code:addons/website_sale_collect/models/payment_provider.py:0
 msgid "no in-store delivery methods available"
 msgstr "no hay métodos de recolección en la tienda disponibles"
-
-#~ msgid "%(available_qty)s/%(cart_qty)s available at this location"
-#~ msgstr "%(available_qty)s %(cart_qty)s disponibles en esta ubicación"

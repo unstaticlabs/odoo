@@ -30,10 +30,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-07-01 05:56+0000\n"
+"POT-Creation-Date: 2026-02-20 09:02+0000\n"
+"PO-Revision-Date: 2026-06-06 14:48+0000\n"
 "Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
-"Language-Team: Polish <https://translate.odoo.com/projects/odoo-19/"
+"Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-2/"
 "sales_team/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -57,7 +57,6 @@ msgid "%(user_names)s already in other teams (%(team_names)s)."
 msgstr "%(user_names)s jest już w innych zespołach (%(team_names)s)."
 
 #. module: sales_team
-#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 msgid ""
 "<i class=\"fa fa-envelope me-1\" role=\"img\" aria-label=\"Email\" "
@@ -80,6 +79,13 @@ msgstr "<i class=\"fa fa-fw me-1 fa-envelope text-primary\" title=\"E-mail\"/>"
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Phone\"/>"
 msgstr "<i class=\"fa fa-fw me-1 fa-phone text-primary\" title=\"Telefon\"/>"
+
+#. module: sales_team
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_kanban
+msgid "<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Sales Team\"/>"
+msgstr ""
+"<i class=\"fa fa-fw me-1 fa-users text-primary\" title=\"Zespół sprzedaży\"/>"
 
 #. module: sales_team
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_kanban_dashboard
@@ -267,6 +273,7 @@ msgstr "Nazwa wyświetlana"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__email
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Email"
 msgstr "E-mail"
 
@@ -458,6 +465,7 @@ msgstr "Inne"
 
 #. module: sales_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__phone
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 msgid "Phone"
 msgstr "Telefon"
 
@@ -503,6 +511,7 @@ msgstr "Sprzedawca"
 #: model:ir.model,name:sales_team.model_crm_team
 #: model:ir.model.fields,field_description:sales_team.field_crm_team__name
 #: model:ir.model.fields,field_description:sales_team.field_crm_team_member__crm_team_id
+#: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_member_view_search
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_form
 #: model_terms:ir.ui.view,arch_db:sales_team.crm_team_view_tree
@@ -750,8 +759,8 @@ msgstr "Pracujesz w wielu zespołach na raz?"
 #. odoo-python
 #: code:addons/sales_team/models/crm_team_member.py:0
 msgid ""
-"You are trying to create duplicate membership(s). We found that %"
-"(duplicates)s already exist(s)."
+"You are trying to create duplicate membership(s). We found that "
+"%(duplicates)s already exist(s)."
 msgstr ""
 "Próbujesz utworzyć zduplikowane członkostwo. Znaleziono że %(duplicates)s "
 "już istnieje."
@@ -794,72 +803,3 @@ msgid ""
 msgstr ""
 "użytkownik będzie miał dostęp do konfiguracji sprzedaży jak również raportów "
 "statystycznych"
-
-#~ msgid ""
-#~ "Adding %(user_name)s in this team would remove him/her from its current "
-#~ "team %(team_name)s."
-#~ msgstr ""
-#~ "Dodanie %(user_name)s do tego zespołu usunie go z obecnego zespołu %"
-#~ "(team_name)s."
-
-#~ msgid ""
-#~ "Adding %(user_name)s in this team would remove him/her from its current "
-#~ "teams %(team_names)s."
-#~ msgstr ""
-#~ "Dodanie %(user_name)s do tego zespołu usunie go z obecnych zespołów %"
-#~ "(team_names)s."
-
-#~ msgid ""
-#~ "Adding %(user_names)s in this team would remove them from their current "
-#~ "teams (%(team_names)s)."
-#~ msgstr ""
-#~ "Dodanie %(user_names)s do tego zespołu usunie go z obecnych zespołów (%"
-#~ "(team_names)s)"
-
-#~ msgid "Contact"
-#~ msgstr "Kontakt"
-
-#~ msgid "Dashboard Graph Data"
-#~ msgstr "Dane wykresu konsoli"
-
-#~ msgid ""
-#~ "Follow this salesteam to automatically track the events associated to "
-#~ "users of this team."
-#~ msgstr ""
-#~ "Obserwuj ten zespół sprzedaży, aby automatycznie śledzić wydarzenia "
-#~ "związane z użytkownikami tego zespołu."
-
-#~ msgid "Group By"
-#~ msgstr "Grupuj wg."
-
-#~ msgid "Group By..."
-#~ msgstr "Grupuj wg..."
-
-#~ msgid ""
-#~ "If set, this Sales Team will be used for sales and assignments related to "
-#~ "this partner"
-#~ msgstr ""
-#~ "Jeśli ustawiony, ten zespół sprzedaży będzie używany do sprzedaży i "
-#~ "zleceń związanych z tym partnerem."
-
-#~ msgid "Mobile"
-#~ msgstr "Tel. komórkowy"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Liczba wiadomości wymagających akcji"
-
-#~ msgid "Sample data"
-#~ msgstr "Przykładowe dane"
-
-#~ msgid ""
-#~ "To add a Salesperson into multiple Teams, activate the Multi-Team option "
-#~ "in settings."
-#~ msgstr ""
-#~ "Aby dodać sprzedawcę do wielu zespołów, aktywuj w ustawieniach opcję "
-#~ "wiele zespołów."
-
-#~ msgid "Undefined graph model for Sales Team: %s"
-#~ msgstr "Niezdefiniowany model grafu dla zespołu sprzedaży: %s"
-
-#~ msgid "eBay"
-#~ msgstr "eBay"

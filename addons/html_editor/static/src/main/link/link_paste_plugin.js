@@ -10,7 +10,7 @@ import { childNodeIndex } from "@html_editor/utils/position";
 
 export class LinkPastePlugin extends Plugin {
     static id = "linkPaste";
-    static dependencies = ["link", "clipboard", "selection", "dom", "history"];
+    static dependencies = ["link", "clipboard", "selection", "dom", "history", "delete"];
     /** @type {import("plugins").EditorResources} */
     resources = {
         before_paste_handlers: this.selectFullySelectedLink.bind(this),
@@ -61,7 +61,11 @@ export class LinkPastePlugin extends Plugin {
         if (this.delegateTo("paste_url_overrides", text, url)) {
             return;
         }
-        this.dependencies.link.insertLink(url, text);
+        const label =
+            !selection.isCollapsed && cleanZWChars(selection.textContent()).length
+                ? selection.textContent()
+                : text;
+        this.dependencies.link.insertLink(url, label);
     }
     /**
      * @param {string} text
@@ -108,14 +112,17 @@ export class LinkPastePlugin extends Plugin {
         if (
             link?.parentElement?.isContentEditable &&
             cleanZWChars(selection.textContent()) === cleanZWChars(link.innerText) &&
-            !this.getResource("unremovable_node_predicates").some((p) => p(link))
+            !this.dependencies.delete.isUnremovable(link)
         ) {
-            this.dependencies.selection.setSelection({
-                anchorNode: link.parentElement,
-                anchorOffset: childNodeIndex(link) + (selection.direction ? 0 : 1),
-                focusNode: link.parentElement,
-                focusOffset: childNodeIndex(link) + (selection.direction ? 1 : 0),
-            });
+            this.dependencies.selection.setSelection(
+                {
+                    anchorNode: link.parentElement,
+                    anchorOffset: childNodeIndex(link) + (selection.direction ? 0 : 1),
+                    focusNode: link.parentElement,
+                    focusOffset: childNodeIndex(link) + (selection.direction ? 1 : 0),
+                },
+                { normalize: false }
+            );
         }
     }
 }

@@ -13,7 +13,7 @@ class TestUblImportBis3InvoiceBEAutoGeneratePDF(TestUblImportBis3InvoiceBE):
             return file_content
 
         def _set_pdf_param(value):
-            self.env['ir.config_parameter'].sudo().set_param(
+            self.env['ir.config_parameter'].sudo().set_bool(
                 'account_edi_ubl_cii.disable_pdf_in_xml',
                 value
             )
@@ -36,8 +36,8 @@ class TestUblImportBis3InvoiceBEAutoGeneratePDF(TestUblImportBis3InvoiceBE):
         _import_and_assert(True)
 
         # Unabled conf -> No PDF
-        _set_pdf_param('True')
+        _set_pdf_param(True)
         _import_and_assert(False)
 
         # Return default behaviour
-        _set_pdf_param('False')
+        _set_pdf_param(False)

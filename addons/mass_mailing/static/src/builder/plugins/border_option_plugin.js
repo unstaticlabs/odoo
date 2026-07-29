@@ -29,7 +29,7 @@ export class BorderOption3 extends MassMailingBorderOption {
 export class BorderOption4 extends MassMailingBorderOption {
     static selector = ".row > div";
     static exclude = [
-        ".o_mail_wrapper_td, .s_image_gallery .row > div",
+        ".o_mail_wrapper_td, .s_image_gallery .row > div, .row > .s_record_snapshot",
         BorderOption1.selector,
         BorderOption2.selector,
         BorderOption3.selector,

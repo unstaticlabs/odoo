@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 23:52+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/sale_crm/"
-"uz/>\n"
+"POT-Creation-Date: 2026-02-20 09:01+0000\n"
+"PO-Revision-Date: 2025-10-08 18:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: sale_crm
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
@@ -37,18 +35,6 @@ msgstr "<span class=\"o_stat_text\"> Buyurtmalar</span>"
 #, fuzzy
 msgid "Associated Lead"
 msgstr "Bog‘liq mijoz"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-#, fuzzy
-msgid "Cancel"
-msgstr "Bekor qilish"
-
-#. module: sale_crm
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
-#, fuzzy
-msgid "Confirm"
-msgstr "Tasdiqlash"
 
 #. module: sale_crm
 #: model:ir.model.fields.selection,name:sale_crm.selection__crm_quotation_partner__action__create
@@ -116,6 +102,11 @@ msgid "Expected revenue has been updated based on the linked Sales Orders."
 msgstr "Kutilayotgan daromad bog‘langan Savdo buyurtmalari asosida yangilandi."
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Go to Quotation"
+msgstr ""
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_quotation_partner__id
 #: model:ir.model.fields,field_description:sale_crm.field_crm_team__id
@@ -155,9 +146,7 @@ msgid "My Quotations"
 msgstr "Mening takliflarim"
 
 #. module: sale_crm
-#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
 #: model_terms:ir.ui.view,arch_db:sale_crm.crm_case_form_view_oppor
-#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
 #, fuzzy
 msgid "New Quotation"
 msgstr "Yangi taklif"
@@ -230,6 +219,11 @@ msgid "Sales Team"
 msgstr "Savdo jamoasi"
 
 #. module: sale_crm
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Select a Customer"
+msgstr ""
+
+#. module: sale_crm
 #: model:ir.model.fields,field_description:sale_crm.field_crm_lead__sale_amount_total
 #, fuzzy
 msgid "Sum of Orders"
@@ -240,6 +234,12 @@ msgstr "Buyurtmalar yig‘indisi"
 #, fuzzy
 msgid "Untaxed Total of Confirmed Orders"
 msgstr "Tasdiqlangan buyurtmalarning soliqlarsiz umumiy summasi"
+
+#. module: sale_crm
+#: model:ir.actions.act_window,name:sale_crm.crm_quotation_partner_action
+#: model_terms:ir.ui.view,arch_db:sale_crm.crm_quotation_partner_view_form
+msgid "Who should be linked to this new Quotation?"
+msgstr ""
 
 #. module: sale_crm
 #. odoo-python

@@ -35,7 +35,7 @@ registry.category("web_tour.tours").add("avatar_card_tour", {
             trigger: ".o-mail-ActivityMenu-counter:text('2')",
         },
         {
-            trigger: ".o_switch_company_menu button",
+            trigger: "button.o_switch_company_menu",
             run: "click",
         },
         {

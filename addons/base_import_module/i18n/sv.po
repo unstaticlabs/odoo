@@ -10,16 +10,15 @@
 # Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2022
 # Kristoffer Grundström <lovaren@gmail.com>, 2022
 # Martin Trigaux, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Jakob Krabbe <jakob.krabbe@vertel.se>, 2025, 2026.
-# Hanna Kharraziha <hakha@odoo.com>, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Jakob Krabbe <jakob.krabbe@vertel.se>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~12.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 19:39+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2025-11-07 10:14+0000\n"
+"Last-Translator: Jakob Krabbe <jakob.krabbe@vertel.se>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-19/"
 "base_import_module/sv/>\n"
 "Language: sv\n"
@@ -27,7 +26,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: base_import_module
 #. odoo-python
@@ -57,11 +56,6 @@ msgstr "Aktivera"
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_module_filter_apps_inherit
 msgid "Apps"
 msgstr "Appar"
-
-#. module: base_import_module
-#: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
-msgid "Cancel"
-msgstr "Avbryt"
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
@@ -143,8 +137,9 @@ msgstr ""
 
 #. module: base_import_module
 #: model:ir.model,name:base_import_module.model_ir_http
+#, fuzzy
 msgid "HTTP Routing"
-msgstr "HTTP-routing"
+msgstr "HTTP Routing"
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__id
@@ -317,8 +312,8 @@ msgid ""
 "The assets path in the manifest of imported module '%(module_name)s' cannot "
 "contain glob wildcards (e.g., *, **)."
 msgstr ""
-"Sökvägen för tillgångar i manifestet för den importerade modulen '%"
-"(module_name)s' får inte innehålla glob-jokertecken (t.ex. *, **)."
+"Sökvägen för tillgångar i manifestet för den importerade modulen "
+"'%(module_name)s' får inte innehålla glob-jokertecken (t.ex. *, **)."
 
 #. module: base_import_module
 #. odoo-python
@@ -370,15 +365,3 @@ msgstr "klar"
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
 msgstr "init"
-
-#~ msgid "Import module"
-#~ msgstr "Importmodul"
-
-#~ msgid "Last Modified on"
-#~ msgstr "Senast redigerad den"
-
-#~ msgid "Open Modules"
-#~ msgstr "Öppna moduler"
-
-#~ msgid "Select module package to import (.zip file):"
-#~ msgstr "Välj modulpaket att importera (.zip fil)"

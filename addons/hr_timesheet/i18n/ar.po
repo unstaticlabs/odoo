@@ -6,17 +6,17 @@
 # Martin Trigaux, 2022
 # Niyas Raphy, 2022
 # Malaz Abuidris <msea@odoo.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-12 17:36+0000\n"
-"PO-Revision-Date: 2026-06-30 06:29+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-05-23 17:33+0000\n"
+"Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
+"Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-2/"
 "hr_timesheet/ar/>\n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -78,13 +78,13 @@ msgstr "%(project_name)s (%(days)sd)"
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid "%(project_name)s (%(sign)s%(hours)sh%(minutes)s)"
-msgstr "%(project_name)s (%(sign)s%(hours)sساعة/ساعات %(minutes)s دقيقة/دقائق)"
+msgstr ""
 
 #. module: hr_timesheet
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid "%(project_name)s (%(sign)s%(hours)sh)"
-msgstr "%(project_name)s (%(sign)s%(hours)s ساعة/ساعات)"
+msgstr ""
 
 #. module: hr_timesheet
 #. odoo-python
@@ -93,8 +93,8 @@ msgid ""
 "'%(missing_plan_names)s' analytic plan(s) required on the project '%"
 "(project_name)s' linked to the timesheet."
 msgstr ""
-"الخطط التحليلية '%(missing_plan_names)s' المطلوبة في المشروع '%(project_name)"
-"s' المرتبطة بالجدول الزمني."
+"الخطط التحليلية '%(missing_plan_names)s' المطلوبة في المشروع '%"
+"(project_name)s' المرتبطة بالجدول الزمني."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -125,11 +125,6 @@ msgid "2 hours"
 msgstr "ساعتان 2"
 
 #. module: hr_timesheet
-#: model_terms:digest.tip,tip_description:hr_timesheet.digest_tip_hr_timesheet_0
-msgid "<b class=\"tip_title\">Tip: Record your Timesheets faster</b>"
-msgstr "<b class=\"tip_title\">نصيحة: قم بتسجيل جداولك الزمنية بشكل أسرع</b>"
-
-#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_kanban_account_analytic_line
 msgid ""
 "<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Date\" "
@@ -137,6 +132,33 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-calendar me-1\" role=\"img\" aria-label=\"Date\" "
 "title=\"التاريخ \"/>"
+
+#. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
+msgid ""
+"<i class=\"fa fa-fw o_button_icon fa-clock-o\" title=\"Timesheets\" "
+"invisible=\"stat_success_rate\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"success\" title=\"On Due\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt;= 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"warning\" title=\"Warning\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt; 100 or stat_success_rate &lt; 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"danger\" title=\"Over Due\" invisible=\"not stat_success_rate or "
+"stat_success_rate &lt;= 100\"/>"
+msgstr ""
+"<i class=\"fa fa-fw o_button_icon fa-clock-o\" title=\"الجداول الزمنية\" "
+"invisible=\"stat_success_rate\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"success\" title=\"عند الاستحقاق\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt;= 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"warning\" title=\"تحذير\" invisible=\"not stat_success_rate or "
+"stat_success_rate &gt; 100 or stat_success_rate &lt; 80\"/>\n"
+"                        <i class=\"fa fa-fw o_button_icon fa-clock-o text-"
+"danger\" title=\"متأخر\" invisible=\"not stat_success_rate or "
+"stat_success_rate &lt;= 100\"/>"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_task
@@ -148,23 +170,6 @@ msgstr "<i class=\"fa fa-print\"/> عرض التفاصيل"
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_view_form_inherit_timesheet
 msgid "<span class=\"o_stat_text\">Timesheets</span>"
 msgstr "<span class=\"o_stat_text\">الجداول الزمنية</span>"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
-msgid "<span class=\"text-nowrap\">Time Spent on Sub-tasks:</span>"
-msgstr "<span class=\"text-nowrap\">الوقت المقضي في المهام الفرعية:</span>"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid ""
-"<span invisible=\"has_timesheet\">\n"
-"                        Are you sure you want to delete these employees?\n"
-"                    </span>"
-msgstr ""
-"<span invisible=\"has_timesheet\">\n"
-"                        هل أنت واثق من أنك ترغب في حذف هؤلاء الموظفين؟\n"
-"                    </span>"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
@@ -202,27 +207,27 @@ msgid "<strong>Progress:</strong>"
 msgstr "<strong>مدى التقدم:</strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 msgid "<strong>Time Remaining: </strong>"
 msgstr "<strong>الوقت المتبقي: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 msgid "<strong>Time recorded on sub-tasks: </strong>"
 msgstr "<strong>الوقت المسجل في المهام الفرعية: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 msgid "<strong>Total Days: </strong>"
 msgstr "<strong>إجمالي الأيام: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 msgid "<strong>Total Hours: </strong>"
 msgstr "<strong>إجمالي الساعات: </strong>"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_timesheet_table_with_total
 msgid "<strong>Total Time Spent: </strong>"
 msgstr "<strong>إجمالي الوقت المقضي: </strong>"
 
@@ -294,11 +299,6 @@ msgid "Approver Reminder"
 msgstr "تذكير مانح الموافقة"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Archive Employees"
-msgstr "أرشفة الموظفين"
-
-#. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.timesheet_table
 msgid "Audrey Peterson"
 msgstr "Audrey Peterson"
@@ -341,10 +341,6 @@ msgstr "المتعاونون في المشروع المُشارَك"
 
 #. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_res_company
-msgid "Companies"
-msgstr "الشركات"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_timesheets_analysis_report__company_id
 msgid "Company"
 msgstr "الشركة"
@@ -360,25 +356,17 @@ msgid "Configuration"
 msgstr "التهيئة"
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/hr_employee.py:0
-msgid "Confirmation"
-msgstr "التأكيد"
-
-#. module: hr_timesheet
 #: model:ir.model,website_form_label:hr_timesheet.model_project_task
 msgid "Create a Task"
 msgstr "إنشاء مهمة"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__create_uid
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__create_uid
 msgid "Created by"
 msgstr "أنشئ بواسطة"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__create_date
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__create_date
 msgid "Created on"
 msgstr "أنشئ في"
 
@@ -425,16 +413,6 @@ msgid ""
 msgstr "قم بتحديد التكلفة بالساعة للموظف لتتبع تكلفة وقته."
 
 #. module: hr_timesheet
-#: model:ir.actions.server,name:hr_timesheet.unlink_employee_action
-msgid "Delete"
-msgstr "حذف"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Delete Employee"
-msgstr "حذف الموظف"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_account_analytic_line__milestone_id
 #: model:ir.model.fields,help:hr_timesheet.field_timesheets_analysis_report__milestone_id
 msgid ""
@@ -466,16 +444,10 @@ msgid "Description"
 msgstr "الوصف"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Discard"
-msgstr "إهمال"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_applicability__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee__display_name
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_public__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_http__display_name
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_ui_menu__display_name
@@ -516,20 +488,9 @@ msgid "Employee"
 msgstr "الموظف"
 
 #. module: hr_timesheet
-#: model:ir.model,name:hr_timesheet.model_hr_employee_delete_wizard
-msgid "Employee Delete Wizard"
-msgstr "معالج حذف الموظفين"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_res_config_settings__reminder_user_allow
 msgid "Employee Reminder"
 msgstr "تذكير الموظف"
-
-#. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-msgid "Employee Termination"
-msgstr "فصل الموظف"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.view_kanban_account_analytic_line
@@ -537,19 +498,12 @@ msgid "Employee's image"
 msgstr ""
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-msgid "Employees' Timesheets"
-msgstr "جداول الموظفين الزمنية"
-
-#. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_res_config_settings__timesheet_encode_method
 msgid "Encoding Method"
 msgstr "طريقة التشفير"
 
 #. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/project_project.py:0
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
 msgid "Extra Time"
 msgstr "الوقت الإضافي"
 
@@ -583,7 +537,6 @@ msgstr "الساعات / الدقائق"
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee__id
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_public__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_http__id
 #: model:ir.model.fields,field_description:hr_timesheet.field_ir_ui_menu__id
@@ -631,13 +584,11 @@ msgstr "ربع السنة الماضي"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__write_uid
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__write_uid
 msgid "Last Updated by"
 msgstr "آخر تحديث بواسطة"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_account_analytic_line_calendar_employee__write_date
-#: model:ir.model.fields,field_description:hr_timesheet.field_hr_employee_delete_wizard__write_date
 msgid "Last Updated on"
 msgstr "آخر تحديث في"
 
@@ -755,9 +706,9 @@ msgid "Number of allocated hours minus the number of hours spent."
 msgstr "عدد الساعات المخصصة ناقص عدد الساعات المقضية."
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Ok"
-msgstr "موافق"
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Overrun Hours"
+msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_project_task__overtime
@@ -783,11 +734,6 @@ msgstr "الشريك"
 #. module: hr_timesheet
 #: model:ir.model,name:hr_timesheet.model_account_analytic_line_calendar_employee
 msgid "Personal Filters on Employees for the Calendar view"
-msgstr ""
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "Please first delete all of their timesheets."
 msgstr ""
 
 #. module: hr_timesheet
@@ -850,13 +796,9 @@ msgid "Record a new activity"
 msgstr "تسجيل نشاط جديد"
 
 #. module: hr_timesheet
-#: model_terms:digest.tip,tip_description:hr_timesheet.digest_tip_hr_timesheet_0
-msgid ""
-"Record your timesheets in an instant by pressing Shift + the corresponding "
-"hotkey to add 15min to your projects."
-msgstr ""
-"قم بتسجيل جداولك الزمنية في لحظات عن طريق الضغط على Shift+ مفتاح التشغيل "
-"السريع المناسب لإضافة 15 دقيقة إلى مشاريعك."
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Remaining Hours"
+msgstr "الساعات المتبقية"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_kanban_inherit_project_task_view_kanban
@@ -880,7 +822,7 @@ msgid "Research and Development/New Portal System"
 msgstr "البحث والتطوير/نظام البوابة الجديد"
 
 #. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_home_timesheet
+#: model:portal.entry,description:hr_timesheet.portal_timesheets
 msgid "Review all timesheets related to your projects"
 msgstr "قم بمراجعة كافة الجداول الزمنية المتعلقة بمشاريعك"
 
@@ -913,11 +855,6 @@ msgstr "البحث في المشاريع"
 #: code:addons/hr_timesheet/controllers/portal.py:0
 msgid "Search in Task"
 msgstr "البحث في المهام"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid "See Timesheets"
-msgstr "ألقِ نظرة على الجداول الزمنية"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1071,7 +1008,8 @@ msgstr ""
 #: code:addons/hr_timesheet/models/project_task.py:0
 msgid ""
 "This task cannot be private because there are some timesheets linked to it."
-msgstr "لا يمكن أن تكون هذه المهمة خاصة لوجود بعض الجداول الزمنية المرتبطة بها."
+msgstr ""
+"لا يمكن أن تكون هذه المهمة خاصة لوجود بعض الجداول الزمنية المرتبطة بها."
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1081,9 +1019,9 @@ msgid ""
 "someone with higher access to remove the timesheets first, and then you’ll "
 "be able to delete the task."
 msgstr ""
-"لا يمكن حذف هذه المهمة لأنها مرتبطة بجداول زمنية. يُرجى التواصل مع أحد الأشخاص "
-"الذين لديهم صلاحية وصول أعلى لإزالة الجداول الزمنية أولاً، وعندها ستتمكن من حذف "
-"المهمة."
+"لا يمكن حذف هذه المهمة لأنها مرتبطة بجداول زمنية. يُرجى التواصل مع أحد "
+"الأشخاص الذين لديهم صلاحية وصول أعلى لإزالة الجداول الزمنية أولاً، وعندها "
+"ستتمكن من حذف المهمة."
 
 #. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_res_company__project_time_mode_id
@@ -1163,6 +1101,12 @@ msgid "Time Spent on Sub-tasks"
 msgstr "الوقت المقضي في المهام الفرعية"
 
 #. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Time Spent on Sub-tasks:"
+msgstr ""
+
+#. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task__subtask_effective_hours
 msgid "Time spent on the sub-tasks (and their own sub-tasks) of this task."
 msgstr "الوقت المقضي في المهام الفرعية (ومهامها الفرعية) لهذه المهمة"
@@ -1226,7 +1170,6 @@ msgstr "وقت الجداول الزمنية"
 #. module: hr_timesheet
 #. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
-#: code:addons/hr_timesheet/models/project_project.py:0
 #: code:addons/hr_timesheet/models/project_task.py:0
 #: model:ir.actions.act_window,name:hr_timesheet.act_hr_timesheet_line_by_project
 #: model:ir.actions.act_window,name:hr_timesheet.timesheet_action_from_employee
@@ -1240,10 +1183,10 @@ msgstr "وقت الجداول الزمنية"
 #: model:ir.ui.menu,name:hr_timesheet.menu_hr_time_tracking
 #: model:ir.ui.menu,name:hr_timesheet.menu_timesheets_reports_timesheet
 #: model:ir.ui.menu,name:hr_timesheet.timesheet_menu_root
+#: model:portal.entry,name:hr_timesheet.portal_timesheets
 #: model:res.groups.privilege,name:hr_timesheet.res_groups_privilege_timesheets
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_department_view_kanban
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_layout
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_home_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_task
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.portal_my_timesheets
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
@@ -1337,20 +1280,9 @@ msgstr ""
 
 #. module: hr_timesheet
 #. odoo-python
-#: code:addons/hr_timesheet/wizard/hr_employee_delete_wizard.py:0
-msgid "Timesheets of %(name)s"
-msgstr "الجداول الزمنية لـ%(name)s"
-
-#. module: hr_timesheet
-#. odoo-python
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid "Timesheets successfully created"
 msgstr ""
-
-#. module: hr_timesheet
-#: model:digest.tip,name:hr_timesheet.digest_tip_hr_timesheet_0
-msgid "Tip: Record your Timesheets faster"
-msgstr "نصيحة: قم بتسجيل جداولك الزمنية بشكل أسرع"
 
 #. module: hr_timesheet
 #. odoo-python
@@ -1386,8 +1318,15 @@ msgstr "إجمالي الوقت المخصص"
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
 msgid "Total Days Spent"
 msgstr "إجمالي الأيام المقضية"
+
+#. module: hr_timesheet
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.project_sharing_inherit_project_task_view_form
+#: model_terms:ir.ui.view,arch_db:hr_timesheet.view_task_form2_inherited
+msgid "Total Hours Spent"
+msgstr ""
 
 #. module: hr_timesheet
 #: model:ir.model.fields,field_description:hr_timesheet.field_project_task__total_hours_spent
@@ -1417,23 +1356,6 @@ msgstr "تتبع ساعات عملك في كل مشروع كل يوم وقم ب�
 #: code:addons/hr_timesheet/models/res_company.py:0
 msgid "Training"
 msgstr "التدريب"
-
-#. module: hr_timesheet
-#: model_terms:ir.ui.view,arch_db:hr_timesheet.hr_employee_delete_wizard_form
-msgid ""
-"Uh-oh! The employee you’re trying to delete still has some timesheets "
-"hanging around and can’t be deleted.\n"
-"                        <span invisible=\"not has_active_employee\">\n"
-"                            So here are your two options: either delete "
-"those timesheets or consider archiving the employee instead.\n"
-"                        </span>"
-msgstr ""
-"أوه لا! الموظف لا يزال لدى الموظف الذي تحاول حذفه بعض الجداول الزمنية المعلقة "
-"ولا يمكن حذفه.\n"
-"                        <span invisible=\"not has_active_employee\">\n"
-"                            إذن، إليك خياران: إما حذف الجداول الزمنية تلك أو "
-"أرشفة الموظف عوضاً عن ذلك.\n"
-"                       </span>"
 
 #. module: hr_timesheet
 #: model:ir.model.fields,help:hr_timesheet.field_project_task__display_name
@@ -1501,12 +1423,6 @@ msgstr ""
 #: code:addons/hr_timesheet/models/hr_timesheet.py:0
 msgid "You cannot access timesheets that are not yours."
 msgstr "لا يمكنك الوصول إلى جداول زمنية لشخص آخر."
-
-#. module: hr_timesheet
-#. odoo-python
-#: code:addons/hr_timesheet/models/hr_employee.py:0
-msgid "You cannot delete employees who have timesheets."
-msgstr "لا يمكنك حذف موظفين لهم جداول زمنية."
 
 #. module: hr_timesheet
 #: model_terms:ir.ui.view,arch_db:hr_timesheet.project_invoice_form
@@ -1588,279 +1504,3 @@ msgstr ""
 
 #~ msgid "%(project_name)s (%(hours)sh)"
 #~ msgstr "%(project_name)s (%(hours)sh)"
-
-#~ msgid ""
-#~ "<span invisible=\"not has_timesheet\">\n"
-#~ "                        Uh-oh! The employee you’re trying to delete still "
-#~ "has some timesheets hanging around and can’t be deleted.\n"
-#~ "                        <span invisible=\"not has_active_employee\">\n"
-#~ "                            So here are your two options: either delete "
-#~ "those timesheets or consider archiving the employee instead.\n"
-#~ "                        </span>\n"
-#~ "                        <span invisible=\"has_active_employee\" "
-#~ "groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
-#~ "                            Please first delete all of their timesheets.\n"
-#~ "                        </span>\n"
-#~ "                    </span>\n"
-#~ "                    <span invisible=\"has_timesheet\">\n"
-#~ "                        Are you sure you want to delete these employees?\n"
-#~ "                    </span>"
-#~ msgstr ""
-#~ "<span invisible=\"not has_timesheet\">\n"
-#~ "                        أوه أوه! لا يزال لدى الموظف الذي تحاول حذفه بعض "
-#~ "الجداول الزمنية العالقة ولا يمكن حذفه.\n"
-#~ "                        <span invisible=\"not has_active_employee\">\n"
-#~ "                            لذا أمامك خياران: إما حذف تلك الجداول الزمنية "
-#~ "أو يمكنك النظر في أرشفة الموظف عوضاً عن ذلك.\n"
-#~ "                        </span>\n"
-#~ "                        <span invisible=\"has_active_employee\" "
-#~ "groups=\"hr_timesheet.group_hr_timesheet_approver\">\n"
-#~ "                             يرجى أولا حذف كافة الجداول الزمنية الخاصة "
-#~ "بهم.\n"
-#~ "                        </span>\n"
-#~ "                    </span>\n"
-#~ "                    <span invisible=\"has_timesheet\">\n"
-#~ "                        هل أنت متأكد من أنك ترغب في حذف هؤلاء الموظفين؟\n"
-#~ "                    </span>"
-
-#~ msgid "%s Spent"
-#~ msgstr "%s مقضي "
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> تنزيل "
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> طباعة"
-
-#~ msgid ""
-#~ "<span class=\"text-nowrap\" attrs=\"{'invisible' : "
-#~ "[('encode_uom_in_days', '=', True)]}\">Hours Spent on Sub-tasks:</span>\n"
-#~ "                                <span class=\"text-nowrap\" "
-#~ "attrs=\"{'invisible' : [('encode_uom_in_days', '=', False)]}\">Days Spent "
-#~ "on Sub-tasks:</span>"
-#~ msgstr ""
-#~ "<span class=\"text-nowrap\" attrs=\"{'invisible' : "
-#~ "[('encode_uom_in_days', '=', True)]}\">الساعات المقضية في المهام الفرعية:"
-#~ "</span>\n"
-#~ "                                <span class=\"text-nowrap\" "
-#~ "attrs=\"{'invisible' : [('encode_uom_in_days', '=', False)]}\">الأيام "
-#~ "المقضية في المهام الفرعية:</span> "
-
-#~ msgid "<span>Project</span>"
-#~ msgstr "<span>المشروع</span> "
-
-#~ msgid "<span>Task</span>"
-#~ msgstr "<span>المهام</span> "
-
-#~ msgid "<strong>Days Spent:</strong>"
-#~ msgstr "<strong>الأيام المقضية:</strong> "
-
-#~ msgid "<strong>Duration: </strong>"
-#~ msgstr "<strong>المدة: </strong>"
-
-#~ msgid "<strong>Hours Spent:</strong>"
-#~ msgstr "<strong>الساعات المقضية:</strong> "
-
-#~ msgid "Active Analytic Account"
-#~ msgstr "الحساب التحليلي الفعال "
-
-#~ msgid "Allocated Hours"
-#~ msgstr "الساعات المخصصة "
-
-#~ msgid "Allow timesheets"
-#~ msgstr "السماح بالجداول الزمنية "
-
-#~ msgid "Analytic Account"
-#~ msgstr "الحساب التحليلي"
-
-#~ msgid ""
-#~ "Analytic account to which this project, its tasks and its timesheets are "
-#~ "linked. \n"
-#~ "Track the costs and revenues of your project by setting this analytic "
-#~ "account on your related documents (e.g. sales orders, invoices, purchase "
-#~ "orders, vendor bills, expenses etc.).\n"
-#~ "This analytic account can be changed on each task individually if "
-#~ "necessary.\n"
-#~ "An analytic account is required in order to use timesheets."
-#~ msgstr ""
-#~ "الحساب التحليلي الذي يرتبط به هذا المشروع ومهامه وجداوله الزمنية. \n"
-#~ "تتبع كافة تكاليف وإيرادات مشاريعك عن طريق إعداد هذا الحساب التحليلي في "
-#~ "مستنداتك ذات الصلة (مثال: أوامر البيع، فواتير العملاء، أوامر الشراء، "
-#~ "فواتير الموردين، النفقات، إلخ...). \n"
-#~ "يمكن تغيير هذا الحساب التحليلي في كل مهمة على حدة، إذا لزم الأمر. \n"
-#~ "الحساب التحليلي مطلوب حتى تتمكن من استخدام الجداول الزمنية. "
-
-#~ msgid "Associated Timesheets"
-#~ msgstr "الجداول الزمنية المرتبطة "
-
-#~ msgid "Days Spent"
-#~ msgstr "الأيام المستغرقة "
-
-#~ msgid "Days recorded on sub-tasks:"
-#~ msgstr "الأيام المسجلة في المهام الفرعية: "
-
-#~ msgid "Download"
-#~ msgstr "تنزيل "
-
-#~ msgid "Duration"
-#~ msgstr "المدة"
-
-#~ msgid "Encode Uom In Days"
-#~ msgstr "ترميز وحدة القياس بالأيام "
-
-#~ msgid "Encoding Uom"
-#~ msgstr "وحدة قياس الترميز "
-
-#~ msgid "Group By"
-#~ msgstr "التجميع حسب "
-
-#~ msgid "Hours"
-#~ msgstr "الساعات"
-
-#~ msgid "Hours Spent"
-#~ msgstr "الساعات المستغرقة "
-
-#~ msgid "Hours recorded on sub-tasks:"
-#~ msgstr "الساعات المسجلة في المهام الفرعية: "
-
-#~ msgid "Initially Planned Hours"
-#~ msgstr "ساعات العمل المبدئية المخطط لها"
-
-#~ msgid "Invalid operator: %s"
-#~ msgstr "المشغّل غير صالح: %s"
-
-#~ msgid "Invalid value: %s"
-#~ msgstr "القيمة غير صالحة: %s"
-
-#~ msgid "Is Encode Uom Days"
-#~ msgstr "ترميز أيام وحدة القياس "
-
-#~ msgid "Is Internal Project"
-#~ msgstr "مشروع داخلي "
-
-#~ msgid "Job Title"
-#~ msgstr "المسمى الوظيفي"
-
-#~ msgid "Last month"
-#~ msgstr "الشهر الماضي"
-
-#~ msgid "Last week"
-#~ msgstr "الأسبوع الماضي "
-
-#~ msgid "Last year"
-#~ msgstr "العام الماضي"
-
-#~ msgid "My Department's Ratings"
-#~ msgstr "تقييمات إدارتي"
-
-#~ msgid "My Team's Ratings"
-#~ msgstr "تقييمات فريقي "
-
-#~ msgid "Print"
-#~ msgstr "طباعة"
-
-#~ msgid "Project in Overtime"
-#~ msgstr "المشروع في الوقت الإضافي "
-
-#~ msgid "Remaining Days"
-#~ msgstr "الأيام المتبقية"
-
-#~ msgid "Remaining Days:"
-#~ msgstr "الأيام المتبقية "
-
-#~ msgid "Remaining Hours"
-#~ msgstr "الساعات المتبقية"
-
-#~ msgid "Remaining Hours Percentage"
-#~ msgstr "نسبة الساعات المتبقية "
-
-#~ msgid "Remaining Hours:"
-#~ msgstr "الساعات المتبقية "
-
-#~ msgid "Remaining Invoiced Time"
-#~ msgstr "الوقت المفوتر المتبقي "
-
-#~ msgid "Search in All"
-#~ msgstr "البحث في الكل"
-
-#~ msgid "Sub-tasks Hours Spent"
-#~ msgstr "الساعات المستغرقة لإجراء المهام الفرعية"
-
-#~ msgid ""
-#~ "These tasks have some timesheet entries referencing them. Before removing "
-#~ "these tasks, you have to remove these timesheet entries."
-#~ msgstr ""
-#~ "لدى هذه المهام قيود جداول زمنية تشير إليها. عليك إزالة قيود الجداول "
-#~ "الزمنية هذه قبل إزالة المهام. "
-
-#~ msgid "This month"
-#~ msgstr "هذا الشهر"
-
-#~ msgid "This operator %s is not supported in this search method."
-#~ msgstr "هذا المشغل %s غير مدعوم في طريقة البحث هذا. "
-
-#~ msgid ""
-#~ "This task has some timesheet entries referencing it. Before removing this "
-#~ "task, you have to remove these timesheet entries."
-#~ msgstr ""
-#~ "لدى هذه المهمة قيود جداول زمنية تشير إليها. عليك إزالة قيود الجداول "
-#~ "الزمنية هذه قبل إزالة المهمة. "
-
-#~ msgid ""
-#~ "This task must be part of a project because there are some timesheets "
-#~ "linked to it."
-#~ msgstr ""
-#~ "يجب أن تكون هذه المهمة جزءًا من المشروع نظرًا لوجود بعض الجداول الزمنية "
-#~ "المرتبطة بها."
-
-#~ msgid "This week"
-#~ msgstr "هذا الأسبوع "
-
-#~ msgid "This year"
-#~ msgstr "هذا العام"
-
-#~ msgid "Timesheet by Date"
-#~ msgstr "ترتيب الجداول الزمنية حسب التاريخ "
-
-#~ msgid "Timesheets can be logged on this task."
-#~ msgstr "يمكن التسجيل في الجداول الزمنية لهذه المهمة. "
-
-#~ msgid "Total Days"
-#~ msgstr "إجمالي الأيام "
-
-#~ msgid "Total Hours"
-#~ msgstr "إجمالي عدد الساعات "
-
-#~ msgid "Total Timesheet Time"
-#~ msgstr "إجمالي وقت الجداول الزمنية "
-
-#~ msgid ""
-#~ "Total number of time (in the proper UoM) recorded in the project, rounded "
-#~ "to the unit."
-#~ msgstr ""
-#~ "إجمالي الوقت (بوحدة القياس المناسبة) مسجل في المشروع، مقرب إلى الوحدة. "
-
-#~ msgid "Widget"
-#~ msgstr "أداة ذكية "
-
-#~ msgid ""
-#~ "You cannot log timesheets on this project since it is linked to an "
-#~ "inactive analytic account. Please change this account, or reactivate the "
-#~ "current one to timesheet on the project."
-#~ msgstr ""
-#~ "لا يمكنك تسجيل الجداول الزمنية في هذا المشروع حيث أنه مرتبط بحساب تحليلي "
-#~ "غير نشط. يرجى تغيير هذا الحساب أو إعادة تنشيط الحساب الحالي لتسجيل "
-#~ "الجداول الزمنية في المشروع. "
-
-#~ msgid "You cannot set an archived employee to the existing timesheets."
-#~ msgstr ""
-#~ "لا يمكنك وضع موظف قد تمت أرشفته في الجداول الزمنية الموجودة بالفعل. "
-
-#~ msgid "You cannot use timesheets without an analytic account."
-#~ msgstr "لا يمكنك استخدام الجداول الزمنية دون حساب تحليليلي. "
-
-#~ msgid "days"
-#~ msgstr "أيام "
-
-#~ msgid "hours"
-#~ msgstr "ساعات"

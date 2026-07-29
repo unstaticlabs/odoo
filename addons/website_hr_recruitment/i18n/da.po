@@ -7,16 +7,16 @@
 # Mads Søndergaard, 2022
 # Sanne Kristensen <sanne@vkdata.dk>, 2022
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # "Kira Petersen François (peti)" <peti@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:38+0000\n"
-"PO-Revision-Date: 2026-06-30 08:01+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
-"Language-Team: Danish <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-04-10 18:35+0000\n"
+"PO-Revision-Date: 2026-06-23 16:18+0000\n"
+"Last-Translator: \"Kira Petersen François (peti)\" <peti@odoo.com>\n"
+"Language-Team: Danish <https://translate.odoo.com/projects/odoo-s19-2/"
 "website_hr_recruitment/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -49,12 +49,6 @@ msgstr ""
 "\n"
 "            <h6>4 dage efter samtalen</h6>\n"
 "        "
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid " In case of issue, contact %(contact_infos)s"
-msgstr " Hvis der opstår problemer, kontakt venligst %(contact_infos)s"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
@@ -193,27 +187,27 @@ msgstr ""
 "LinkedIn-profil.</span>"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Administrative Work</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Autonomy</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Customer Relationship</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Personal Evolution</strong>"
 msgstr ""
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_rating
 msgid "<strong class=\"s_rating_title\">Technical Expertise</strong>"
 msgstr ""
 
@@ -254,16 +248,6 @@ msgid "All websites"
 msgstr "Alle hjemmesider"
 
 #. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"An application already exists for %(value)s. Duplicates might be rejected. %"
-"(recruiter_contact)s"
-msgstr ""
-"Der findes allerede en ansøgning for %(value)s. Dubletter kan blive afvist. %"
-"(recruiter_contact)s"
-
-#. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_hr_applicant
 msgid "Applicant"
 msgstr "Ansøger"
@@ -295,39 +279,14 @@ msgid "Apply for a Job"
 msgstr "Ansøg om et job"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
-msgid ""
-"As an employee of our company, you will <b>collaborate with each department\n"
-"                        to create and deploy disruptive products.</b> Come "
-"work at a growing company\n"
-"                        that offers great benefits with opportunities to "
-"moving forward and learn\n"
-"                        alongside accomplished leaders. We're seeking an "
-"experienced and outstanding\n"
-"                        member of staff.\n"
-"                        <br/><br/>\n"
-"                        This position is both <b>creative and rigorous</b> "
-"by nature you need to think\n"
-"                        outside the box. We expect the candidate to be "
-"proactive and have a \"get it done\"\n"
-"                        spirit. To be successful, you will have solid "
-"solving problem skills."
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__publish_on
+msgid "Auto publish on"
 msgstr ""
-"Som medarbejder i vores virksomhed vil du <b>samarbejde med hver afdeling\n"
-"                        om at lave og udgive disruptive produkter.</b> Bliv "
-"en del af en virksomhed i vækst,\n"
-"                        der tilbyder fantastiske fordele og mulighed for at "
-"udvikle sig og lære\n"
-"                        af dygtige ledere. Vi leder efter en erfaren og "
-"dygtig\n"
-"                        medarbejder.\n"
-"                        <br/><br/>\n"
-"                        Denne stilling kræver både <b>kreativitet og hårdt "
-"arbejde</b>, og du skal kunne tænke \n"
-"                        ud af boksen. Vi forventer, at kandidaten er "
-"proaktiv og har gåpåmod.\n"
-"                        For at få stillingen skal du have solide "
-"problemløsningsevner."
+
+#. module: website_hr_recruitment
+#: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__publish_on
+msgid "Automatically publish the page on the chosen date and time."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -476,11 +435,6 @@ msgid "Experience in writing online content"
 msgstr "Erfaring med at skrive indhold til nettet"
 
 #. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Facebook"
-msgstr "Facebook"
-
-#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 msgid "Filter by country"
 msgstr "Filtrér efter land"
@@ -489,11 +443,6 @@ msgstr "Filtrér efter land"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.topbar_customizations
 msgid "Filters"
 msgstr "Filtre"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "Follow us"
-msgstr "Følg os"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -580,6 +529,7 @@ msgid "Industries Filter"
 msgstr "Branchefilter"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.detail
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "Insert a Job Description..."
 msgstr "Indsæt en jobbeskrivelse ..."
@@ -647,11 +597,6 @@ msgstr "Jobside"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "Lead the entire sales cycle"
 msgstr "Angiv hele salgscyklusen"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "LinkedIn"
-msgstr "LinkedIn"
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -726,8 +671,8 @@ msgstr "Andet"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
-msgid "Our Job Offers"
-msgstr "Vores jobtilbud"
+msgid "Our Job Opportunities"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -766,6 +711,18 @@ msgid "Play any sport with colleagues, <br/>the bill is covered."
 msgstr "Dyrk enhver sport med kolleger, <br/>vi dækker regningen."
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Ongoing Application"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid "Potential Duplicate Detected: Refused Application"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__job_details
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_form_inherit
 msgid "Process Details"
@@ -775,6 +732,11 @@ msgstr "Detaljer om ansættelsesproceduren"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
 msgid "Products"
 msgstr "Produkter"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Publish On"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -788,8 +750,8 @@ msgstr "Offentliggjort"
 
 #. module: website_hr_recruitment
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__published_date
-msgid "Published Date"
-msgstr "Udgivelsesdato"
+msgid "Published date"
+msgstr ""
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
@@ -833,6 +795,12 @@ msgstr "Begræns til en bestemt hjemmeside."
 #: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__is_seo_optimized
 msgid "SEO optimized"
 msgstr "SEO-optimeret"
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.hr_job_website_inherit
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_pages_tree_view
+msgid "Scheduled"
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -890,6 +858,22 @@ msgid "Strong analytical skills"
 msgstr "Stærke analytiske færdigheder"
 
 #. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following ongoing applications share an email address, phone number and/"
+"or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
+#. odoo-python
+#: code:addons/website_hr_recruitment/models/hr_applicant.py:0
+msgid ""
+"The following recently refused applications share an email address, phone "
+"number and/or linkedin profile with this application:"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model:ir.model.fields,help:website_hr_recruitment.field_hr_job__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr ""
@@ -909,8 +893,8 @@ msgstr "Joblinket er kopieret til udklipsholderen."
 #. module: website_hr_recruitment
 #. odoo-python
 #: code:addons/website_hr_recruitment/models/hr_applicant.py:0
-msgid "The job offer has been closed."
-msgstr "Jobtilbuddet er blevet lukket."
+msgid "The job opportunity has been closed."
+msgstr ""
 
 #. module: website_hr_recruitment
 #. odoo-javascript
@@ -951,6 +935,11 @@ msgid "Types"
 msgstr "Typer"
 
 #. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_website_published_button
+msgid "Unschedule"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_filter_base_mobile
 msgid "Unspecified"
@@ -978,26 +967,6 @@ msgstr ""
 "gennem innovative produkter.\n"
 "                               Vi skaber fantastiske løsninger, der hjælper "
 "med at løse dine forretningsmæssige udfordringer."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We found a recent application with a similar name, email, phone number. You "
-"can continue if it's not a mistake."
-msgstr ""
-"Der findes allerede en ansøgning med tilsvarende navn, e-mail og "
-"telefonnummer. Fortsæt kun, hvis dette ikke er en fejl."
-
-#. module: website_hr_recruitment
-#. odoo-python
-#: code:addons/website_hr_recruitment/controllers/main.py:0
-msgid ""
-"We've found a previous closed application in our system within the last 6 "
-"months. Please consider before applying in order not to duplicate efforts."
-msgstr ""
-"Der findes en afsluttet ansøgning fra de sidste 6 måneder i vores system. "
-"Tænk dig om, inden du sender en ny ansøgning, så vi undgår dobbeltarbejde."
 
 #. module: website_hr_recruitment
 #: model:ir.model,name:website_hr_recruitment.model_website
@@ -1046,6 +1015,11 @@ msgid "Website opengraph image"
 msgstr "Hjemmesidens opengraph-billede"
 
 #. module: website_hr_recruitment
+#: model:ir.model.fields,field_description:website_hr_recruitment.field_hr_job__website_rating
+msgid "Website rating"
+msgstr ""
+
+#. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What We Offer"
 msgstr "Det tilbyder vi"
@@ -1054,11 +1028,6 @@ msgstr "Det tilbyder vi"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.default_website_description
 msgid "What's great in the job?"
 msgstr "Hvad er godt ved jobbet?"
-
-#. module: website_hr_recruitment
-#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.job_right_side_bar
-msgid "X"
-msgstr "X"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.thankyou_ir_ui_view
@@ -1095,10 +1064,8 @@ msgstr "brødkrumme"
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.view_hr_job_form_inherit_website
 msgid ""
 "e.g. Summarize the position in one or two lines that will be displayed on "
-"the Jobs list page..."
+"the job page and the jobs list page..."
 msgstr ""
-"f.eks. opsummere stillingen i én eller to linjer, som vises på joboversigten "
-"..."
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.apply
@@ -1127,71 +1094,13 @@ msgstr "ledige stillinger"
 
 #. module: website_hr_recruitment
 #: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
+msgid "scheduled"
+msgstr ""
+
+#. module: website_hr_recruitment
+#: model_terms:ir.ui.view,arch_db:website_hr_recruitment.index
 msgid "unpublished"
 msgstr "ikke offentliggjort"
 
 #~ msgid "+1 (650) 555-0187"
 #~ msgstr "+1 (650) 555-0187"
-
-#~ msgid "%s's Application"
-#~ msgstr "%s's ansøgninger"
-
-#~ msgid "<small><b>READ</b></small>"
-#~ msgstr "<small><b>LÆS</b></small>"
-
-#~ msgid "Administrative Work"
-#~ msgstr "Administrativt arbejde"
-
-#~ msgid "All Countries"
-#~ msgstr "Alle lande"
-
-#~ msgid "All Departments"
-#~ msgstr "Alle afdelinger"
-
-#~ msgid "All Offices"
-#~ msgstr "Alle kontorer"
-
-#~ msgid "Autonomy"
-#~ msgstr "Selvstændighed"
-
-#~ msgid "Customer Relationship"
-#~ msgstr "kunderelation"
-
-#~ msgid ""
-#~ "Each employee has a chance to see the impact of his work.\n"
-#~ "                You can make a real contribution to the success of the "
-#~ "company.\n"
-#~ "                <br/>\n"
-#~ "                Several activities are often organized all over the year, "
-#~ "such as weekly\n"
-#~ "                sports sessions, team building events, monthly drink, and "
-#~ "much more"
-#~ msgstr ""
-#~ "Hver ansat har mulighed for at se indflydelsen af deres arbejde.\n"
-#~ "                Du kan lave et reelt bidrag til virksomhedens succes.\n"
-#~ "                 <br/>\n"
-#~ "                Flere aktiviteter er ofte organiseret hele året rundt, så "
-#~ "som ugentligt\n"
-#~ "                sports aktiviteter, hold bygnings arrangementer, månedlig "
-#~ "fest, og meget mere"
-
-#~ msgid "Not published"
-#~ msgstr "Ikke udgivet"
-
-#~ msgid "Personal Evolution"
-#~ msgstr "Personlig udvikling"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "Begræns udgivelse til denne hjemmeside."
-
-#~ msgid "Technical Expertise"
-#~ msgstr "Teknisk ekspertise"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "Den fulde URL for at få adgang til dokumentet via hjemmesiden."
-
-#~ msgid "Url Parameters"
-#~ msgstr "Url parametre"
-
-#~ msgid "share it"
-#~ msgstr "del det"

@@ -6,6 +6,7 @@ from odoo.tools import mute_logger
 from odoo import Command
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestORM(TransactionCase):
     """ test special behaviors of ORM CRUD functions """
 
@@ -148,8 +149,9 @@ class TestORM(TransactionCase):
         recs = partner.new({})
         self.assertTrue(recs.exists())
 
-        # check that there is no record with id 0
-        recs = partner.browse([0])
+        # check that there is no record with id -1
+        # (it is technically valid, but should not exist)
+        recs = partner.browse([-1])
         self.assertFalse(recs.exists())
 
     def test_lock_for_update(self):
@@ -227,24 +229,6 @@ class TestORM(TransactionCase):
 
     def test_create_multi(self):
         """ create for multiple records """
-        # assumption: 'res.bank' does not override 'create'
-        vals_list = [{'name': name} for name in ('Foo', 'Bar', 'Baz')]
-        vals_list[0]['email'] = 'foo@example.com'
-        for vals in vals_list:
-            record = self.env['res.bank'].create(vals)
-            self.assertEqual(len(record), 1)
-            self.assertEqual(record.name, vals['name'])
-            self.assertEqual(record.email, vals.get('email', False))
-
-        records = self.env['res.bank'].create([])
-        self.assertFalse(records)
-
-        records = self.env['res.bank'].create(vals_list)
-        self.assertEqual(len(records), len(vals_list))
-        for record, vals in zip(records, vals_list):
-            self.assertEqual(record.name, vals['name'])
-            self.assertEqual(record.email, vals.get('email', False))
-
         # create countries and states
         vals_list = [{
             'name': 'Foo',
@@ -270,6 +254,7 @@ class TestORM(TransactionCase):
         self.assertCountEqual(bar.mapped('state_ids.code'), ['NB', 'SB'])
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestInherits(TransactionCase):
     """ test the behavior of the orm for models that use _inherits;
         specifically: res.users, that inherits from res.partner

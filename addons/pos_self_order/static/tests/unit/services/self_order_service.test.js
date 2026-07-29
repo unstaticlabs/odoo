@@ -1,7 +1,9 @@
 import { test, describe, expect, beforeEach } from "@odoo/hoot";
 import { setupSelfPosEnv, getFilledSelfOrder, addComboProduct } from "../utils";
 import { mockDate } from "@odoo/hoot-mock";
+import { registry } from "@web/core/registry";
 import { definePosSelfModels } from "../data/generate_model_definitions";
+import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 definePosSelfModels();
 
@@ -74,6 +76,22 @@ describe("initProducts", () => {
         store.computeAvailableCategories();
         expect(store.availableCategories).toHaveLength(4);
         expect(store.isCategoryAvailable(unAvailableCatg)).toBeEmpty();
+    });
+});
+
+describe("initHardware", () => {
+    test("adds payment terminals", async () => {
+        const store = await setupSelfPosEnv();
+        const models = store.models;
+        const mockTerminalMethod = models["pos.payment.method"].create({
+            use_payment_terminal: "mock_terminal",
+        });
+        class MockTerminal {}
+        registry.category("electronic_payment_interfaces").add("mock_terminal", MockTerminal);
+
+        store.initHardware();
+
+        expect(mockTerminalMethod.payment_terminal).toBeInstanceOf(MockTerminal);
     });
 });
 
@@ -244,10 +262,10 @@ describe("addToCart", () => {
 
     test("With pricelist acting on variants", async () => {
         const store = await setupSelfPosEnv();
-        const productTemplate = store.models["product.template"].get(19);
+        const productTemplate = store.models["product.template"].get(101);
 
-        store.addToCart(productTemplate, 1, "", [1]);
-        store.addToCart(productTemplate, 1, "", [2]);
+        store.addToCart(productTemplate, 1, "", [101]);
+        store.addToCart(productTemplate, 1, "", [102]);
 
         expect(store.currentOrder.lines[0].price_unit).toBe(10);
         expect(store.currentOrder.lines[1].price_unit).toBe(15);
@@ -256,21 +274,21 @@ describe("addToCart", () => {
         store.currentOrder.removeOrderline(store.currentOrder.lines[0]);
         expect(store.currentOrder.lines).toHaveLength(0);
 
-        const pricelist = store.models["product.pricelist"].get(4);
+        const pricelist = store.models["product.pricelist"].get(101);
         store.config.pricelist_id = pricelist;
 
-        store.addToCart(productTemplate, 1, "", [1]);
-        store.addToCart(productTemplate, 1, "", [2]);
+        store.addToCart(productTemplate, 1, "", [101]);
+        store.addToCart(productTemplate, 1, "", [102]);
         expect(store.currentOrder.lines[0].price_unit).toBe(15);
         expect(store.currentOrder.lines[1].price_unit).toBe(20);
     });
 
     test("With price_extra for attribute create_variant='no_variant'", async () => {
         const store = await setupSelfPosEnv();
-        const productTemplate = store.models["product.template"].get(20);
+        const productTemplate = store.models["product.template"].get(102);
 
-        store.addToCart(productTemplate, 1, "", [3]);
-        store.addToCart(productTemplate, 1, "", [4]);
+        store.addToCart(productTemplate, 1, "", [103]);
+        store.addToCart(productTemplate, 1, "", [104]);
         expect(store.currentOrder.lines[0].price_unit).toBe(200);
         expect(store.currentOrder.lines[1].price_unit).toBe(210);
     });
@@ -298,7 +316,7 @@ test("sendDraftOrderToServer", async () => {
 });
 
 test("sendDraftOrderToServer updateLastOrderChange", async () => {
-    const store = await setupSelfPosEnv();
+    const store = await setupSelfPosEnv("mobile", "table", "meal");
     const order = await getFilledSelfOrder(store);
 
     const product1 = store.models["product.template"].get(8);
@@ -321,8 +339,8 @@ describe("setOrderPrices", () => {
         expect(comboLine1.price_subtotal).toBe(200);
         expect(comboLine1.price_subtotal_incl).toBe(250);
 
-        expect(comboLine2.price_subtotal).toBe(1500);
-        expect(comboLine2.price_subtotal_incl).toBe(1875);
+        expect(comboLine2.price_subtotal).toBe(200);
+        expect(comboLine2.price_subtotal_incl).toBe(250);
     });
 });
 
@@ -413,10 +431,43 @@ test("resetCategorySelection", async () => {
     expect(store.currentCategory.id).toBe(ctg1.id);
 });
 
-describe("getKioskPrintingCategoriesChanges", () => {
+describe("printOrderChanges", () => {
     beforeEach(async () => {
         const store = await setupSelfPosEnv();
+
         store.config.self_ordering_mode = "kiosk";
+        for (const relPrinter of store.models["pos.printer"].getAll()) {
+            relPrinter.delete();
+        }
+
+        this.posPrinter = store.models["pos.printer"].create({
+            product_categories_ids: [],
+            pos_config_ids: [store.config],
+            printer_type: "epson_epos",
+        });
+
+        store.config.preparation_printer_ids = [this.posPrinter];
+        await store.ticketPrinter.initPrinters();
+
+        const printedData = [];
+        patchWithCleanup(store.ticketPrinter, {
+            async generateIframe(template, data) {
+                printedData.push(data.changes.data.map((line) => line.name));
+                return document.createElement("iframe");
+            },
+            async generateImage() {
+                return "fake_image_data";
+            },
+            print() {
+                return { successful: true };
+            },
+        });
+
+        this.printedData = printedData;
+        this.getPrintedOrderLines = () => {
+            expect(this.printedData.length).toBe(1);
+            return this.printedData[0];
+        };
 
         const cat1 = store.models["pos.category"].get(1);
         const cat2 = store.models["pos.category"].get(2);
@@ -479,53 +530,54 @@ describe("getKioskPrintingCategoriesChanges", () => {
     });
 
     test("all matching lines", async () => {
-        const orderLines = this.store._getKioskPrintingCategoriesChanges(this.store.currentOrder, [
-            this.cat1,
-            this.cat2,
-        ]);
+        this.posPrinter.product_categories_ids = [this.cat1, this.cat2];
+        await this.store.ticketPrinter.printOrderChanges({ order: this.store.currentOrder });
+        const orderLines = this.getPrintedOrderLines();
         expect(orderLines.length).toBe(5);
-        expect(orderLines[0].product_id.id).toBe(this.comboTemplate.id);
-        expect(orderLines[1].product_id.id).toBe(this.comboProduct2.id);
-        expect(orderLines[2].product_id.id).toBe(this.comboProduct1.id);
-
-        expect(orderLines[3].product_id.id).toBe(this.testProduct1.id);
-        expect(orderLines[4].product_id.id).toBe(this.testProduct2.id);
+        expect(orderLines[0]).toInclude(this.comboTemplate.name);
+        expect(orderLines[1]).toInclude(this.comboProduct2.name);
+        expect(orderLines[2]).toInclude(this.comboProduct1.name);
+        expect(orderLines[3]).toInclude(this.testProduct1.name);
+        expect(orderLines[4]).toInclude(this.testProduct2.name);
     });
 
-    test("combo lines and other lines are filtered", async () => {
-        let orderLines = this.store._getKioskPrintingCategoriesChanges(this.store.currentOrder, [
-            this.cat1,
-        ]);
-
+    test("combo lines and other lines are filtered cat1", async () => {
+        this.posPrinter.product_categories_ids = [this.cat1];
+        await this.store.ticketPrinter.printOrderChanges({ order: this.store.currentOrder });
+        const orderLines = this.getPrintedOrderLines();
         expect(orderLines.length).toBe(3);
-        expect(orderLines[0].product_id.id).toBe(this.comboTemplate.id);
-        expect(orderLines[1].product_id.id).toBe(this.comboProduct1.id);
-        expect(orderLines[2].product_id.id).toBe(this.testProduct1.id);
+        expect(orderLines[0]).toInclude(this.comboTemplate.name);
+        expect(orderLines[1]).toInclude(this.comboProduct1.name);
+        expect(orderLines[2]).toInclude(this.testProduct1.name);
+    });
 
-        orderLines = this.store._getKioskPrintingCategoriesChanges(this.store.currentOrder, [
-            this.cat2,
-        ]);
+    test("combo lines and other lines are filtered cat2", async () => {
+        this.posPrinter.product_categories_ids = [this.cat2];
+        await this.store.ticketPrinter.printOrderChanges({ order: this.store.currentOrder });
+        const orderLines = this.getPrintedOrderLines();
         expect(orderLines.length).toBe(3);
-        expect(orderLines[0].product_id.id).toBe(this.comboTemplate.id);
-        expect(orderLines[1].product_id.id).toBe(this.comboProduct2.id);
-        expect(orderLines[2].product_id.id).toBe(this.testProduct2.id);
+        expect(orderLines[0]).toInclude(this.comboTemplate.name);
+        expect(orderLines[1]).toInclude(this.comboProduct2.name);
+        expect(orderLines[2]).toInclude(this.testProduct2.name);
     });
 
     test("no category matches", async () => {
-        const orderLines = this.store._getKioskPrintingCategoriesChanges(this.store.currentOrder, [
-            { id: 999 },
-        ]);
-
-        expect(orderLines.length).toBe(0);
+        const cat = this.store.models["pos.category"].create({
+            id: 999,
+            name: "Unmatched Category",
+        });
+        this.posPrinter.product_categories_ids = [cat];
+        await this.store.ticketPrinter.printOrderChanges({ order: this.store.currentOrder });
+        expect(this.printedData.length).toBe(0);
     });
 
     test("ignores combo root category", async () => {
         // The combo root category is not taken into account for printing, only the categories of the combo items are.
-        const orderLines = this.store._getKioskPrintingCategoriesChanges(this.store.currentOrder, [
-            this.comboTemplateCat,
-        ]);
+        this.posPrinter.product_categories_ids = [this.comboTemplateCat];
+        await this.store.ticketPrinter.printOrderChanges({ order: this.store.currentOrder });
+        const orderLines = this.getPrintedOrderLines();
         expect(orderLines.length).toBe(1);
-        expect(orderLines[0].product_id.id).toBe(this.testProduct2.id);
+        expect(orderLines[0]).toInclude(this.testProduct2.name);
     });
 });
 

@@ -12,17 +12,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~11.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 22:48+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Estonian <https://translate.odoo.com/projects/odoo-19/"
-"payment_custom/et/>\n"
+"POT-Creation-Date: 2025-10-08 18:39+0000\n"
+"PO-Revision-Date: 2018-08-24 09:22+0000\n"
+"Last-Translator: Martin Aavastik <martin@avalah.ee>, 2018\n"
+"Language-Team: Estonian (https://www.transifex.com/odoo/teams/41243/et/)\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: payment_custom
 #: model_terms:ir.ui.view,arch_db:payment_custom.custom_state_header
@@ -137,56 +135,3 @@ msgstr ""
 #: model:payment.method,name:payment_custom.payment_method_wire_transfer
 msgid "Wire Transfer"
 msgstr "Wire Transfer"
-
-#~ msgid "; multiple order found"
-#~ msgstr "; multiple order found"
-
-#~ msgid "; no order found"
-#~ msgstr "; no order found"
-
-#~ msgid ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-#~ msgstr ""
-#~ "<div>\n"
-#~ "<h3>Please use the following transfer details</h3>\n"
-#~ "<h4>%(bank_title)s</h4>\n"
-#~ "%(bank_accounts)s\n"
-#~ "<h4>Communication</h4>\n"
-#~ "<p>Please use the order name as communication reference.</p>\n"
-#~ "</div>"
-
-#~ msgid "Adyen"
-#~ msgstr "Adyen"
-
-#~ msgid "Buckaroo"
-#~ msgstr "Buckaroo"
-
-#~ msgid "Manual Configuration"
-#~ msgstr "Manual Configuration"
-
-#~ msgid "PayUmoney"
-#~ msgstr "PayUmoney"
-
-#~ msgid "Payment Acquirer"
-#~ msgstr "Makse saaja"
-
-#~ msgid "Paypal"
-#~ msgstr "Paypal"
-
-#~ msgid "Provider"
-#~ msgstr "Varustaja"
-
-#~ msgid "Sips"
-#~ msgstr "Sips"
-
-#~ msgid "Stripe"
-#~ msgstr "Stripe"
-
-#~ msgid "received data for reference %s"
-#~ msgstr "received data for reference %s"

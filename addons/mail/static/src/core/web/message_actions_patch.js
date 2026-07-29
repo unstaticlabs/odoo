@@ -1,4 +1,4 @@
-import { getNonEditableMentions, parseEmail } from "@mail/utils/common/format";
+import { prepareBodyForEditing, parseEmail } from "@mail/utils/common/format";
 import { registerMessageAction } from "@mail/core/common/message_actions";
 import { _t } from "@web/core/l10n/translation";
 import { renderToMarkup } from "@web/core/utils/render";
@@ -23,7 +23,7 @@ export function messageActionOpenFullComposer(title, context, component) {
         },
     };
     component.env.services.action.doAction(action, {
-        onClose: () => thread.fetchNewMessages(),
+        onClose: () => thread.fetchThreadData(thread.fullComposerCloseRequestList),
     });
 }
 
@@ -38,14 +38,16 @@ registerMessageAction("reply-all", {
             message_id: message.id,
         });
         const recipientIds = recipients.map((r) => r.id);
-        const emailFrom = message.author_id?.email || message.email_from;
+        // usually reply_to is what you want people to see as being "from"
+        // showing this avoids "leaking" the actual user when reply_to is an alias
+        const emailFrom = message.reply_to || message.email_from || message.author_id?.email;
         const [name, email] = emailFrom ? parseEmail(emailFrom) : ["", ""];
         const datetime = _t("%(date)s at %(time)s", {
             date: message.datetime.toFormat("ccc, MMM d, yyyy"),
             time: message.datetime.toFormat("hh:mm a"),
         });
         const body = renderToMarkup("mail.Message.bodyInReply", {
-            body: getNonEditableMentions(message.body),
+            body: prepareBodyForEditing(message.body),
             date: datetime,
             email,
             message,
@@ -68,14 +70,16 @@ registerMessageAction("forward", {
     icon: "fa fa-share",
     name: _t("Forward"),
     onSelected: async ({ message, owner, store, thread }) => {
-        const emailFrom = message.author_id?.email || message.email_from;
+        // usually reply_to is what you want people to see as being "from"
+        // showing this avoids "leaking" the actual user when reply_to is an alias
+        const emailFrom = message.reply_to || message.email_from || message.author_id?.email;
         const [name, email] = emailFrom ? parseEmail(emailFrom) : ["", ""];
         const datetime = _t("%(date)s at %(time)s", {
             date: message.datetime.toFormat("ccc, MMM d, yyyy"),
             time: message.datetime.toFormat("hh:mm a"),
         });
         const body = renderToMarkup("mail.Message.bodyInForward", {
-            body: getNonEditableMentions(message.body),
+            body: prepareBodyForEditing(message.body),
             date: datetime,
             email,
             message,

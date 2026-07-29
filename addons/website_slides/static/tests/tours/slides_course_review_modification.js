@@ -1,7 +1,7 @@
 import { registry } from "@web/core/registry";
-import { inputFiles } from "@web/../tests/utils";
 
 registry.category("web_tour.tours").add("course_review_modification", {
+    undeterministicTour_doNotCopy: true, // Remove this key to make the tour failed. ( It removes delay between steps )
     url: "/slides",
     steps: () => [
         {
@@ -43,7 +43,11 @@ registry.category("web_tour.tours").add("course_review_modification", {
         },
         {
             trigger: "#chatterRoot:shadow .o-mail-Message:contains(First review)",
-            run: "hover && click #chatterRoot:shadow .o-mail-Message [title='Delete']",
+            run: "hover && click #chatterRoot:shadow .o-mail-Message [title='Expand']",
+        },
+        {
+            trigger: "#chatterRoot:shadow .o-mail-Message-moreMenu",
+            run: "click #chatterRoot:shadow button[name='delete']",
         },
         {
             trigger: "#chatterRoot:shadow button:contains(Delete)",
@@ -95,6 +99,10 @@ registry.category("web_tour.tours").add("course_review_modification", {
             trigger:
                 "#chatterRoot:shadow .o-mail-Message:contains(Second review) .o_website_rating_static[title='3 stars on 5']",
         },
+        // If it fails here, it means that empty messages are also being fetched.
+        {
+            trigger: "#chatterRoot:shadow .o-mail-Chatter .o-mail-Message:count(1)",
+        },
         {
             trigger: "span:contains(Edit Review)",
             run: "click",
@@ -139,11 +147,14 @@ registry.category("web_tour.tours").add("course_review_modification", {
         },
         {
             trigger: "#chatterRoot:shadow .dropdown-item:contains('Attach Files')",
-            async run() {
-                const text = new File(["test"], "test.txt", { type: "text/plain" });
-                await inputFiles(".o-mail-Message .o_input_file", [text], {
-                    target: document.querySelector("#chatterRoot").shadowRoot,
-                });
+            async run({ queryFirst }) {
+                //FIXME: Would prefer to use setInputFiles(), but it doesn't work at the moment because of the Shadow DOM (:shadow).
+                const file = new File(["test"], "test.txt", { type: "text/plain" });
+                const dataTransfer = new window.DataTransfer();
+                dataTransfer.items.add(file);
+                const el = queryFirst("#chatterRoot:shadow .o-mail-Composer .o_input_file");
+                el.files = dataTransfer.files;
+                el.dispatchEvent(new Event("change"));
             },
         },
         {
@@ -179,7 +190,11 @@ registry.category("web_tour.tours").add("course_review_modification", {
         {
             trigger:
                 "#chatterRoot:shadow .o-mail-Message:contains(Second review is editable in rating composer after editing in message composer)",
-            run: "hover && click #chatterRoot:shadow .o-mail-Message [title='Delete']",
+            run: "hover && click #chatterRoot:shadow .o-mail-Message [title='Expand']",
+        },
+        {
+            trigger: "#chatterRoot:shadow .o-mail-Message-moreMenu",
+            run: "click #chatterRoot:shadow button[name='delete']",
         },
         {
             trigger: "#chatterRoot:shadow button:contains(Delete)",
@@ -239,6 +254,7 @@ registry.category("web_tour.tours").add("course_review_modification", {
 });
 
 registry.category("web_tour.tours").add("course_review_modification_by_admin", {
+    undeterministicTour_doNotCopy: true,
     url: "/slides",
     steps: () => [
         {

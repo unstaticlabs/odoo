@@ -1,17 +1,19 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import date, timedelta
+from zoneinfo import ZoneInfo
 
 from freezegun import freeze_time
-from pytz import timezone
 
 from odoo.exceptions import ValidationError
 from odoo.fields import Command, Datetime
 
+from odoo.tests import tagged
+
 from odoo.addons.payment.tests.common import PaymentCommon
 from odoo.addons.sale_loyalty.tests.common import TestSaleCouponCommon
 
-
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestProgramRules(TestSaleCouponCommon, PaymentCommon):
     # Test all the validity rules to allow a customer to have a reward.
     # The check based on the products is already done in the basic operations test
@@ -422,7 +424,7 @@ class TestProgramRules(TestSaleCouponCommon, PaymentCommon):
                 "Promo should not be applied if only valid in the customer's time zone",
             )
 
-        with freeze_time(timezone(self.env.company.partner_id.tz).localize(midnight)):
+        with freeze_time(midnight.replace(tzinfo=ZoneInfo(self.env.company.partner_id.tz))):
             # Try apply reward at London midnight (expired)
             self._auto_rewards(order, self.immediate_promotion_program)
             self.assertFalse(
@@ -431,7 +433,7 @@ class TestProgramRules(TestSaleCouponCommon, PaymentCommon):
             )
 
         self.partner.tz = 'Europe/Brussels'
-        with freeze_time(timezone(self.partner.tz).localize(midnight)):
+        with freeze_time(midnight.replace(tzinfo=ZoneInfo(self.partner.tz))):
             # Apply reward at Brussels midnight (still valid in company's time zone)
             self._auto_rewards(order, self.immediate_promotion_program)
             self.assertTrue(

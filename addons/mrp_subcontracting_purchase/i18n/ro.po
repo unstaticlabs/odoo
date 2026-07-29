@@ -3,14 +3,13 @@
 # * mrp_subcontracting_purchase
 #
 # Ciocoiu Beatrice-Flavia <ciocoiuflavia008@gmail.com>, 2025.
-# Busoi Cristina <elena.busoi@capps.ai>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-30 06:17+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2026-01-16 18:37+0000\n"
+"PO-Revision-Date: 2025-11-17 17:22+0000\n"
+"Last-Translator: Ciocoiu Beatrice-Flavia <ciocoiuflavia008@gmail.com>\n"
 "Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
 "mrp_subcontracting_purchase/ro/>\n"
 "Language: ro\n"
@@ -19,13 +18,13 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_move.py:0
 msgid "%(value)s for %(quantity)s %(unit)s from %(production)s"
-msgstr "%(valoare)s pentru %(cantitate)s %(unitate)s din %(producție)s"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
@@ -36,33 +35,33 @@ msgstr "+ %d zi(zile)"
 #. module: mrp_subcontracting_purchase
 #: model_terms:ir.ui.view,arch_db:mrp_subcontracting_purchase.purchase_order_form_mrp_subcontracting_purchase
 msgid "<span class=\"o_stat_text\">Resupply</span>"
-msgstr "<span class=\"o_stat_text\">Reaprovisionare</span>"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model_terms:ir.ui.view,arch_db:mrp_subcontracting_purchase.stock_picking_form_mrp_subcontracting
 msgid "<span class=\"o_stat_text\">Source PO</span>"
-msgstr "<span class=\"o_stat_text\">Sursa PO</span>"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_report_mrp_report_bom_structure
 msgid "BOM Overview Report"
-msgstr "Raport general LDM"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_purchase_order__subcontracting_resupply_picking_count
 msgid "Count of Subcontracting Resupply"
-msgstr "Număr de reaprovizionare subcontractare"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,help:mrp_subcontracting_purchase.field_purchase_order__subcontracting_resupply_picking_count
 msgid "Count of Subcontracting Resupply for component"
-msgstr "Număr de reaprovizionare subcontractare pentru componentă"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Days to Supply Components"
-msgstr "Zile pentru a furniza componente"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_account_move_line__display_name
@@ -73,7 +72,7 @@ msgstr "Zile pentru a furniza componente"
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_stock_picking__display_name
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_stock_rule__display_name
 msgid "Display Name"
-msgstr "Nume afişat"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_account_move_line__id
@@ -84,74 +83,74 @@ msgstr "Nume afişat"
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_stock_picking__id
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_stock_rule__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_account_move_line
 msgid "Journal Item"
-msgstr "Articol jurnal"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Manufacturing Lead Time"
-msgstr "Timp de livrare producție"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,field_description:mrp_subcontracting_purchase.field_stock_picking__subcontracting_source_purchase_count
 msgid "Number of subcontracting PO Source"
-msgstr "Număr de CA subcontractare sursă"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model.fields,help:mrp_subcontracting_purchase.field_stock_picking__subcontracting_source_purchase_count
 msgid "Number of subcontracting Purchase Order Source"
-msgstr "Număr de comenzi de achiziție subcontractare sursă"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_product_product
 msgid "Product Variant"
-msgstr "Varianta produsului"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Production Start Date"
-msgstr "Data de început a producției"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_purchase_order
 msgid "Purchase Order"
-msgstr "Comandă de achiziție"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Receipt Date"
-msgstr "Data primirii"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_picking.py:0
 msgid "Source PO of %s"
-msgstr "Sursa PO din %s"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_stock_move
 msgid "Stock Move"
-msgstr "Mutare stoc"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_stock_rule
 msgid "Stock Rule"
-msgstr "Regulă de stoc"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #: model:ir.model,name:mrp_subcontracting_purchase.model_stock_picking
 msgid "Transfer"
-msgstr "Transfer"
+msgstr ""
 
 #. module: mrp_subcontracting_purchase
 #. odoo-python
 #: code:addons/mrp_subcontracting_purchase/models/stock_rule.py:0
 msgid "Vendor Lead Time"
-msgstr "Termen livrare furnizor"
+msgstr ""

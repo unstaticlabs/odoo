@@ -309,7 +309,7 @@ class ProductTemplate(models.Model):
         """
         return any(v.is_custom for v in self.valid_product_template_attribute_line_ids.product_template_value_ids._only_active())
 
-    def _get_possible_variants_sorted(self, parent_combination=None):
+    def _get_possible_variants_sorted(self):
         """Return the sorted recordset of variants that are possible.
 
         The order is based on the order of the attributes and their values.
@@ -317,10 +317,6 @@ class ProductTemplate(models.Model):
         See `_get_possible_variants` for the limitations of this method with
         dynamic or no_variant attributes, and also for a warning about
         performances.
-
-        :param parent_combination: combination from which `self` is an
-            optional or accessory product
-        :type parent_combination: recordset `product.template.attribute.value`
 
         :return: the sorted variants that are possible
         :rtype: recordset of `product.product`
@@ -344,7 +340,7 @@ class ProductTemplate(models.Model):
                 keys.append(attribute.id)
             return keys
 
-        return self._get_possible_variants(parent_combination).sorted(_sort_key_variant)
+        return self._get_possible_variants().sorted(_sort_key_variant)
 
     def _get_previewed_attribute_values(self, category=None, product_query_params=None):
         """Compute previewed product attribute values for each product in the recordset.
@@ -390,7 +386,7 @@ class ProductTemplate(models.Model):
         if not self:
             return {}
 
-        pricelist = request.pricelist
+        pricelist = request.pricelist.with_context(self.env.context)
         currency = website.currency_id
         fiscal_position_sudo = request.fiscal_position
         date = fields.Date.context_today(self)
@@ -448,14 +444,10 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         return bool(self.filtered_domain(self.env['website']._product_domain()))
 
-    def _is_add_to_cart_possible(self, parent_combination=None):
+    def _is_add_to_cart_possible(self):
         """
         It's possible to add to cart (potentially after configuration) if
         there is at least one possible combination.
-
-        :param parent_combination: the combination from which `self` is an
-            optional or accessory product.
-        :type parent_combination: recordset `product.template.attribute.value`
 
         :return: True if it's possible to add to cart, else False
         :rtype: bool
@@ -464,7 +456,7 @@ class ProductTemplate(models.Model):
         if not self.active or not self._can_be_added_to_cart():
             # for performance: avoid calling `_get_possible_combinations`
             return False
-        return next(self._get_possible_combinations(parent_combination), False) is not False
+        return next(self._get_possible_combinations(), False) is not False
 
     def _get_combination_info(
         self, combination=False, product_id=False, add_qty=1.0, uom_id=False, only_template=False,
@@ -575,9 +567,7 @@ class ProductTemplate(models.Model):
                 in product_or_template.sudo().combo_ids.combo_item_ids.product_id.taxes_id
             )
         ):
-            combination_info['tax_disclaimer'] = _(
-                "Final price may vary based on selection. Tax will be calculated at checkout."
-            )
+            combination_info["tax_disclaimer"] = _("Taxes calculated at checkout.")
 
         return combination_info
 
@@ -660,13 +650,17 @@ class ProductTemplate(models.Model):
                     product_or_template,
                     website=website,
                 )
-
+        is_zero_price = float_is_zero(
+            combination_info['price'],
+            precision_rounding=currency.rounding,
+        )
+        prevent_sale = (
+            website.prevent_sale
+            and website._prevent_product_sale(product_or_template, is_zero_price)
+        )
         combination_info.update({
-            'prevent_zero_price_sale': website.prevent_zero_price_sale and float_is_zero(
-                combination_info['price'],
-                precision_rounding=currency.rounding,
-            ),
-
+            'prevent_sale': prevent_sale,
+            'hide_price': prevent_sale and is_zero_price,
             # additional info to simplify overrides
             'currency': currency,  # displayed currency
             'date': date,
@@ -683,9 +677,9 @@ class ProductTemplate(models.Model):
                 'base_unit_price': product_or_template._get_base_unit_price(price_per_product_uom),
             })
 
-        if combination_info['prevent_zero_price_sale']:
-            # If price is zero and prevent_zero_price_sale is enabled we don't want to send any
-            # price information regarding the product
+        if combination_info['hide_price']:
+            # If the price should be hidden, we don't want to send any price information regarding
+            # the product
             combination_info['compare_list_price'] = 0
 
         return combination_info
@@ -815,9 +809,9 @@ class ProductTemplate(models.Model):
 
     def _default_website_meta(self):
         res = super()._default_website_meta()
-        res['default_opengraph']['og:description'] = res['default_twitter']['twitter:description'] = self.description_sale
-        res['default_opengraph']['og:title'] = res['default_twitter']['twitter:title'] = self.name
-        res['default_opengraph']['og:image'] = res['default_twitter']['twitter:image'] = self.env['website'].image_url(self, 'image_1024')
+        res['default_opengraph']['og:description'] = self.description_sale
+        res['default_opengraph']['og:title'] = self.name
+        res['default_opengraph']['og:image'] = self.env['website'].image_url(self, 'image_1024')
         res['default_meta_description'] = self.description_sale
         return res
 
@@ -827,9 +821,17 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _get_product_types_allow_zero_price(self):
-        """
-        Returns a list of service_tracking (`product.template.service_tracking`) that can ignore the
-        `prevent_zero_price_sale` rule when buying products on a website.
+        """Return service_tracking types that can be sold at zero price.
+
+        When the website's `prevent_sale` is enabled with `prevent_sale_for='zero_price'`,
+        products with these service_tracking values are exempt and can still be added to cart
+        even with a zero price (e.g., event tickets, online courses).
+
+        Note: This exemption only applies to `prevent_sale_for='zero_price'` mode, not to
+        category-based prevention (`prevent_sale_for='specific_categories'`).
+
+        :return: List of service_tracking values that are allowed to have zero price.
+        :rtype: list
         """
         return []
 
@@ -872,6 +874,8 @@ class ProductTemplate(models.Model):
         min_price = options.get('min_price')
         max_price = options.get('max_price')
         attribute_value_dict = options.get('attribute_value_dict')
+        if extra_domain := options.get('extra_domain'):
+            domains.append(extra_domain)
         if category:
             domains.append([('public_categ_ids', 'child_of', self.env['ir.http']._unslug(category)[1])])
         if tags:
@@ -949,7 +953,7 @@ class ProductTemplate(models.Model):
         return results_data
 
     def _search_render_results_prices(self, mapping, combination_info):
-        if combination_info.get('prevent_zero_price_sale'):
+        if combination_info.get('hide_price'):
             return None, None
 
         monetary_options = {'display_currency': mapping['detail']['display_currency']}
@@ -992,7 +996,11 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         if not self.filtered_domain(self.env['website']._product_domain()):
             return False
-        return not request.website.prevent_zero_price_sale or self._get_contextual_price()
+        website = self.env['website'].get_current_website()
+        return not (
+            website.prevent_sale
+            and website._prevent_product_sale(self, not self._get_contextual_price())
+        )
 
     @api.model
     def _get_configurator_display_price(
@@ -1039,26 +1047,37 @@ class ProductTemplate(models.Model):
         self.ensure_one()
 
         if self.product_variant_count == 1:
-            return self.product_variant_id._to_markup_data(website)
-
-        # perf: temporal solution to avoid slowness when product have many variants and pricelist rules
-        limit = self.env['ir.config_parameter'].sudo().get_param('website_sale.markup_data_limit_variants', False)
-        if limit:
-            product_variant_ids = self.product_variant_ids[:int(limit)]
+            markup_data = self.product_variant_id._to_markup_data(website)
         else:
-            product_variant_ids = self.product_variant_ids
+            # perf: temporal solution to avoid slowness when product have many variants and
+            # pricelist rules
+            limit = self.env['ir.config_parameter'].sudo().get_int(
+                'website_sale.markup_data_limit_variants'
+            ) or None
+            if limit:
+                product_variant_ids = self.product_variant_ids[:limit]
+            else:
+                product_variant_ids = self.product_variant_ids
 
-        base_url = website.get_base_url()
-        markup_data = {
-            '@context': 'https://schema.org/',
-            '@type': 'ProductGroup',
-            'name': self.name,
-            'image': f'{base_url}{website.image_url(self, "image_1920")}',
-            'url': f'{base_url}{self.website_url}',
-            'hasVariant': [product._to_markup_data(website) for product in product_variant_ids]
-        }
-        if self.description_ecommerce:
-            markup_data['description'] = text_from_html(self.description_ecommerce)
+            base_url = website.get_base_url()
+            markup_data = {
+                '@context': 'https://schema.org',
+                '@type': 'ProductGroup',
+                'name': self.name,
+                'image': f'{base_url}{website.image_url(self, "image_1920")}',
+                'url': f'{base_url}{self.website_url}',
+                'hasVariant': [product._to_markup_data(website) for product in product_variant_ids]
+            }
+            if self.description_ecommerce:
+                markup_data['description'] = text_from_html(self.description_ecommerce)
+
+        if website.is_view_active('website_sale.product_comment') and self.rating_count:
+            markup_data['aggregateRating'] = {
+                '@type': 'AggregateRating',
+                # sudo: product.product - visitor can access product average rating
+                'ratingValue': self.sudo().rating_avg,
+                'reviewCount': self.rating_count,
+            }
         return markup_data
 
     def _get_ribbon(self, price_vals=None, auto_assign_ribbons=None, variant=None):
@@ -1129,3 +1148,8 @@ class ProductTemplate(models.Model):
             url = f'{url}?{urls.url_encode(query_params)}'
 
         return url
+
+    def _can_be_added_to_comparison(self):
+        self.ensure_one()
+
+        return bool(self.valid_product_template_attribute_line_ids)

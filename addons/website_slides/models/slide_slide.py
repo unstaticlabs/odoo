@@ -16,7 +16,7 @@ from odoo.exceptions import RedirectWarning, UserError, AccessError
 from odoo.http import request
 from odoo.tools import html2plaintext, sql
 from odoo.tools.pdf import PdfFileReader
-from odoo.addons.portal.controllers.portal_thread import PortalChatter
+from odoo.addons.portal.controllers.thread import PortalWebClientController
 
 _logger = logging.getLogger(__name__)
 
@@ -30,13 +30,13 @@ class SlideSlide(models.Model):
         'website.published.mixin',
         'website.searchable.mixin',
     ]
-    _description = 'Slides'
+    _description = 'Slide'
     _mail_post_access = 'read'
     _order_by_strategy = {
         'sequence': 'sequence asc, id asc',
         'most_viewed': 'total_views desc',
         'most_voted': 'likes desc',
-        'latest': 'date_published desc',
+        'latest': 'published_date desc',
     }
     _order = 'sequence asc, is_category asc, id asc'
     _partner_unfollow_enabled = True
@@ -143,7 +143,6 @@ class SlideSlide(models.Model):
     vimeo_id = fields.Char('Video Vimeo ID', compute='_compute_vimeo_id')
     # website
     website_id = fields.Many2one(related='channel_id.website_id', readonly=True)
-    date_published = fields.Datetime('Publish Date', readonly=True, tracking=False, copy=False)
     likes = fields.Integer('Likes', compute='_compute_like_info', store=True, compute_sudo=False)
     dislikes = fields.Integer('Dislikes', compute='_compute_like_info', store=True, compute_sudo=False)
     embed_code = fields.Html('Embed Code', readonly=True, compute='_compute_embed_code', sanitize=False)
@@ -184,10 +183,10 @@ class SlideSlide(models.Model):
             elif not slide.image_1920:
                 slide.image_1920 = False
 
-    @api.depends('date_published', 'is_published')
+    @api.depends('published_date', 'is_published')
     def _compute_is_new_slide(self):
         for slide in self:
-            slide.is_new_slide = slide.date_published > fields.Datetime.now() - relativedelta(days=7) if slide.is_published else False
+            slide.is_new_slide = slide.published_date > fields.Datetime.now() - relativedelta(days=7) if slide.is_published else False
 
     def _get_placeholder_filename(self, field):
         return self.channel_id._get_placeholder_filename(field)
@@ -244,7 +243,7 @@ class SlideSlide(models.Model):
     def _compute_comments_count(self):
         count_by_slide = dict(
             self.env["mail.message"]._read_group(
-                PortalChatter._get_portal_message_fetch_domain(self),
+                PortalWebClientController._get_portal_message_fetch_domain(self),
                 groupby=["res_id"],
                 aggregates=["__count"],
             )
@@ -569,13 +568,13 @@ class SlideSlide(models.Model):
             # Do not publish slide if user has not publisher rights
             if vals['channel_id'] not in can_publish_channel_ids:
                 # 'website_published' is handled by mixin
-                vals['date_published'] = False
+                vals['published_date'] = False
 
             if vals.get('is_category'):
                 vals['is_preview'] = True
                 vals['is_published'] = True
-            if vals.get('is_published') and not vals.get('date_published'):
-                vals['date_published'] = datetime.datetime.now()
+            if vals.get('is_published') and not vals.get('published_date'):
+                vals['published_date'] = datetime.datetime.now()
 
         slides = super().create(vals_list)
 
@@ -616,7 +615,7 @@ class SlideSlide(models.Model):
         res = super().write(values)
 
         if values.get('is_published'):
-            self.date_published = datetime.datetime.now()
+            self.published_date = datetime.datetime.now()
             self._post_publication()
 
         # avoid fetching external metadata when installing the module (i.e. for demo data)
@@ -1248,9 +1247,9 @@ class SlideSlide(models.Model):
 
     def _default_website_meta(self):
         res = super()._default_website_meta()
-        res['default_opengraph']['og:title'] = res['default_twitter']['twitter:title'] = self.name
-        res['default_opengraph']['og:description'] = res['default_twitter']['twitter:description'] = html2plaintext(self.description)
-        res['default_opengraph']['og:image'] = res['default_twitter']['twitter:image'] = self.env['website'].image_url(self, 'image_1024')
+        res['default_opengraph']['og:title'] = self.name
+        res['default_opengraph']['og:description'] = html2plaintext(self.description)
+        res['default_opengraph']['og:image'] = self.env['website'].image_url(self, 'image_1024')
         res['default_meta_description'] = html2plaintext(self.description)
         return res
 
@@ -1291,13 +1290,14 @@ class SlideSlide(models.Model):
     @api.model
     def _search_get_detail(self, website, order, options):
         with_description = options['displayDescription']
-        search_fields = ['name']
-        fetch_fields = ['id', 'name']
+        search_fields = ['name', 'tag_ids.name']
+        fetch_fields = ['id', 'name', 'tag_ids']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
             'website_url': {'name': 'url', 'type': 'text', 'truncate': False},
             'extra_link': {'name': 'course', 'type': 'text'},
             'extra_link_url': {'name': 'course_url', 'type': 'text', 'truncate': False},
+            'tags': {'name': 'tag_ids', 'type': 'tags', 'match': True},
         }
         if with_description:
             search_fields.append('description')
@@ -1329,6 +1329,7 @@ class SlideSlide(models.Model):
             data['url'] = slide.website_absolute_url
             data['course'] = _('Course: %s', slide.channel_id.name)
             data['course_url'] = slide.channel_id.website_absolute_url
+            data['tag_ids'] = slide.tag_ids.read(['name'])
         return results_data
 
     def get_base_url(self):

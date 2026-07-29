@@ -31,17 +31,17 @@
 # Konsta Aavaranta, 2023
 # Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
 # Mikko Salmela <salmemik@gmail.com>, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Saara Hakanen <sahak@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
+"POT-Creation-Date: 2026-06-12 17:35+0000\n"
 "PO-Revision-Date: 2026-07-17 08:09+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
-"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-19/purchase/"
-"fi/>\n"
+"Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-2/"
+"purchase/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -152,12 +152,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "            Acknowledge</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -171,33 +169,31 @@ msgstr ""
 "Interior</t>)\n"
 "        </t>\n"
 "        <br/><br/>\n"
-"        Tämä on muistutus, että ostotilauksen <span style=\"font-"
-"weight:bold;\" t-out=\"object.name or ''\">P00015</span> odotettu toimitus\n"
+"        Tässä muistutus ostotilauksen <span style=\"font-weight:bold;\" t-"
+"out=\"object.name or ''\">P00015</span>\n"
 "        <t t-if=\"object.partner_ref\">\n"
 "            <span style=\"font-weight:bold;\">(<t t-out=\"object.partner_ref "
 "or ''\">REF_XXX</t>)</span>\n"
 "        </t>\n"
-"        on \n"
+"        toimituksesta, jonka odotettu päivämäärä on \n"
 "        <t t-if=\"object.date_planned\">\n"
-"            <span style=\"font-weight:bold;\" t-out=\"format_date"
-"(object.date_planned) or ''\">05/05/2021</span>.\n"
+"            <span style=\"font-weight:bold;\" t-"
+"out=\"format_date(object.date_planned) or ''\">05.05.2021</span>.\n"
 "        </t>\n"
 "         <t t-else=\"\">\n"
 "            <span style=\"font-weight:bold;\">määrittelemätön</span>.\n"
 "        </t>\n"
-"        Vahvistathan, että se toimitetaan ajoissa?\n"
+"        Voisitko ystävällisesti vahvistaa, että se toimitetaan ajallaan?\n"
 "        <br/><br/>\n"
 "        <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
 "style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"            Ilmoita vastaanotosta</a>\n"
+"            Vahvista</a>\n"
 "        <br/><br/>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -236,12 +232,10 @@ msgid ""
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
 "                Acknowledge</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -255,35 +249,32 @@ msgstr ""
 "Interior</t>)\n"
 "        </t>\n"
 "        <br/><br/>\n"
-"        Tässä on liitteenä ostotilaus <span style=\"font-weight:bold;\" t-"
-"out=\"object.name or ''\">P00015</span>,\n"
+"        Liitteenä ostotilaus <span style=\"font-weight:bold;\" t-"
+"out=\"object.name or ''\">P00015</span>\n"
 "        <t t-if=\"object.partner_ref\">\n"
-"            jonka viite on: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-"\n"
+"            viitenumero: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>\n"
 "        </t>\n"
-"        ja jonka summa on <span style=\"font-weight:bold;\" t-"
-"out=\"format_amount(object.amount_total, object.currency_id) or ''\">$ "
-"10.00</span>\n"
-"        lähettäjältä <t t-out=\"object.company_id.name or ''\">YourCompany</"
+"        kokonaissumma: <span style=\"font-weight:bold;\" t-"
+"out=\"format_amount(object.amount_total, object.currency_id) or ''\">10,00 "
+"€</span>\n"
+"        lähettäjä: <t t-out=\"object.company_id.name or ''\">YrityksesiNimi</"
 "t>. \n"
 "        <br/><br/>\n"
 "        <t t-if=\"object.date_planned\">\n"
-"            Tilauksen odotettu toimitus on <span style=\"font-weight:bold;\" "
-"t-out=\"format_date(object.date_planned) or ''\">05/05/2021</span>.\n"
+"            Odotettu vastaanottoajankohta on <span style=\"font-weight:bold;"
+"\" t-out=\"format_date(object.date_planned) or ''\">05.05.2021</span>.\n"
 "            <br/><br/>\n"
-"            Vahvistathan, että toimitus on vastaanotettu?\n"
+"            Voisitko ystävällisesti vahvistaa tämän tilauksen vastaanoton?\n"
 "            <br/><br/>\n"
 "            <a t-att-href=\"object.get_acknowledge_url()\" target=\"_blank\" "
 "style=\"padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-"
 "color: #875A7B; border: 1px solid #875A7B; border-radius: 3px\">\n"
-"                Vahvista vastaanotto</a>\n"
+"                Vahvista</a>\n"
 "        </t>\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "        <br/><br/>\n"
 "    </p>\n"
@@ -311,12 +302,10 @@ msgid ""
 "        If you have any questions, please do not hesitate to contact us.\n"
 "        <br/><br/>\n"
 "        Best regards,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
@@ -330,23 +319,21 @@ msgstr ""
 "        </t>\n"
 "        <br/><br/>\n"
 "        Liitteenä tarjouspyyntö <span style=\"font-weight:bold;\" t-"
-"out=\"object.name or ''\">P00015</span>,\n"
+"out=\"object.name or ''\">P00015</span>\n"
 "        <t t-if=\"object.partner_ref\">\n"
-"            jonka viite on: <t t-out=\"object.partner_ref or ''\">REF_XXX</t>"
-",\n"
+"            viitenumerolla: <t t-out=\"object.partner_ref or ''\">REF_XXX</"
+"t>\n"
 "        </t>\n"
-"        lähettäjältä <t t-out=\"object.company_id.name or ''\">YourCompany</"
-"t>.\n"
+"        lähettäjältä <t t-out=\"object.company_id.name or "
+"''\">YrityksesiNimi</t>.\n"
 "        <br/><br/>\n"
-"        Jos sinulla on kysyttävää, ota rohkeasti yhteyttä.\n"
+"        Ethän epäröi ottaa meihin yhteyttä, mikäli sinulla on kysyttävää.\n"
 "        <br/><br/>\n"
 "        Parhain terveisin,\n"
-"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-"
-"quote-container=\"1\">\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\">\n"
 "            <br/><br/>\n"
 "            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
-"out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">Mitchell "
-"Admin</t></div>\n"
+"out=\"object.user_id.signature or ''\">Mitchell Admin</t></div>\n"
 "        </t>\n"
 "    </p>\n"
 "</div>"
@@ -436,8 +423,8 @@ msgid ""
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Purchase Order </span>"
 msgstr ""
-"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')\">"
-"Tarjouspyyntö </span>\n"
+"<span class=\"o_form_label\" invisible=\"state not in ('draft', 'sent')"
+"\">Tarjouspyyntö </span>\n"
 "                        <span class=\"o_form_label\" invisible=\"state in "
 "('draft', 'sent')\">Ostotilaus </span>"
 
@@ -461,6 +448,15 @@ msgstr "<span class=\"o_stat_text\">Ostojen täsmäytys</span>"
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "<span class=\"o_stat_text\">Purchased</span>"
 msgstr "<span class=\"o_stat_text\">Ostettu</span>"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
+msgid ""
+"<span class=\"o_stat_value text-muted\">\n"
+"                                    Incoming\n"
+"                                </span>"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
@@ -506,6 +502,11 @@ msgid "<strong class=\"d-block mb-1\">Invoices</strong>"
 msgstr "<strong class=\"d-block mb-1\">Laskut</strong>"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
+msgid "<strong class=\"d-block mb-1\">Shipping address:</strong>"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "<strong class=\"d-block mt-3\">Shipping address</strong>"
@@ -541,7 +542,7 @@ msgstr "<strong>Kuvaus</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "<strong>Disc.</strong>"
-msgstr "<strong>Ale.</strong>"
+msgstr "<strong>Levy.</strong>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
@@ -694,6 +695,11 @@ msgstr "Toiminnot, jotka liittyvät"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Toimenpiteen poikkeuksen tyyli"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_state
@@ -921,12 +927,6 @@ msgid "Auto-Complete"
 msgstr "Automaattinen täydennys"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
-#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
-msgid "Auto-complete"
-msgstr "Automaattinen täydennys"
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_account_bank_statement_line__purchase_id
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_id
 msgid "Auto-complete from a past purchase order."
@@ -937,8 +937,6 @@ msgstr "Automaattinen täydennys aikaisemmasta ostotilauksesta."
 #: model:ir.model.fields,help:purchase.field_account_move__purchase_vendor_bill_id
 msgid "Auto-complete from a previous bill, refund, or purchase order."
 msgstr ""
-"Automaattinen täydennys aikaisemmasta laskusta, hyvityksestä tai "
-"ostotilauksesta."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -1075,7 +1073,7 @@ msgstr "Tilassa \"%s\" olevaa ostotilausriviä ei voida poistaa."
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Catalog"
-msgstr "Katalogi"
+msgstr "Luettelo"
 
 #. module: purchase
 #: model:ir.ui.menu,name:purchase.menu_product_category_config_purchase
@@ -1099,10 +1097,6 @@ msgstr "Viestintähistoria"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_res_company
-msgid "Companies"
-msgstr "Yritykset"
-
-#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__company_id
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__company_id
@@ -1156,17 +1150,11 @@ msgid "Confirm your purchase."
 msgstr "Vahvista ostoksesi."
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_approve
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__date_approve
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date"
 msgstr "Vahvistuspvm"
-
-#. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
-msgid "Confirmation Date Last Year"
-msgstr "Vahvistuspäivä Viime vuosi"
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1262,7 +1250,7 @@ msgstr "Asiakasportaalin osoite"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__date
 msgid "Date"
-msgstr "Päivämäärä"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
@@ -1338,15 +1326,6 @@ msgstr ""
 "päivämäärä."
 
 #. module: purchase
-#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
-msgid ""
-"Delivery date promised by vendor. This date is used to determine expected "
-"arrival of products."
-msgstr ""
-"Toimittajan lupaama toimituspäivä. Tätä päivämäärää käytetään tuotteiden "
-"odotetun saapumisen määrittämiseen."
-
-#. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__date_order
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__date_order
 msgid ""
@@ -1365,7 +1344,7 @@ msgstr "Kuvaus"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "Disc.%"
-msgstr "Ale %"
+msgstr "Ale%"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__discount
@@ -1376,6 +1355,12 @@ msgstr "Alennus (%)"
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "Discount:"
 msgstr "Alennus:"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__display_auto_complete_field
+#: model:ir.model.fields,field_description:purchase.field_account_move__display_auto_complete_field
+msgid "Display Auto Complete Field"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_analytic_account__display_name
@@ -1467,6 +1452,12 @@ msgid "Expected Arrival"
 msgstr "Odotettu saapuminen"
 
 #. module: purchase
+#: model:ir.model.fields,help:purchase.field_purchase_order__date_planned
+msgid ""
+"Expected delivery date of goods by the vendor based on the latest information"
+msgstr ""
+
+#. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/purchase_order_line.py:0
 msgid "Extra line with %s "
@@ -1479,12 +1470,12 @@ msgid "Fiscal Position"
 msgstr "Verokantasääntö"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_purchase_orders
 msgid "Follow orders you have to fulfill"
 msgstr "Seuraa tilauksia, jotka sinun on täytettävä"
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,description:purchase.portal_rfq
 msgid "Follow your Requests for Quotation"
 msgstr "Seuraa omia tarjouspyyntöjä"
 
@@ -1524,6 +1515,11 @@ msgstr "Sähköisestä asiakirjasta"
 #: model:ir.model.fields.selection,name:purchase.selection__purchase_order__invoice_status__invoiced
 msgid "Fully Billed"
 msgstr "Laskutettu kokonaan"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__full
+msgid "Fully Received"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -1628,13 +1624,14 @@ msgstr ""
 msgid ""
 "If installed, the product variants will be added to purchase orders through "
 "a grid entry."
-msgstr "Jos asennettu, tuotevariantit lisätään ostotilaukselle taulukon kautta."
+msgstr ""
+"Jos asennettu, tuotevariantit lisätään ostotilaukselle taulukon kautta."
 
 #. module: purchase
 #. odoo-python
 #: code:addons/purchase/models/product.py:0
 msgid "Import Template for Products"
-msgstr "Tuo mallipohja tuotteille"
+msgstr "Tuo tuotteiden malli"
 
 #. module: purchase
 #. odoo-python
@@ -1667,7 +1664,7 @@ msgstr "Tilauksessa"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__incoterm_id
 msgid "Incoterm"
-msgstr "Incoterm"
+msgstr "Toimituslauseke"
 
 #. module: purchase
 #. odoo-javascript
@@ -1828,6 +1825,11 @@ msgstr "Rivin määrä"
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__line_uom_id
 msgid "Line Uom"
 msgstr "Rivin mittayksikkö"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
+msgid "Link RFQs together and compare them."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -2093,6 +2095,11 @@ msgid "Not Acknowledged"
 msgstr "Ei kuitattu"
 
 #. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__pending
+msgid "Not Received"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
 msgid "Not using Odoo?"
 msgstr "Etkö käytä Odoota?"
@@ -2194,25 +2201,27 @@ msgid "Order"
 msgstr "Tilaus"
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
-#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__date_approve
 msgid "Order Date"
 msgstr "Tilauksen pvm"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
-msgid "Order Date: Last 365 Days"
-msgstr "Myyty viimeisen 365 päivän aikana"
+msgid "Order DeadLine: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__date_order
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__date_order
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_rfqs
 msgid "Order Deadline"
 msgstr "Määräaika"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
+msgid "Order Deadline: Last 365 Days"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__order_line
@@ -2245,11 +2254,11 @@ msgstr "Erääntynyt tilaus %(date)s"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
-msgid "Other Information"
-msgstr "Lisätiedot"
+msgid "Other Info"
+msgstr ""
 
 #. module: purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
+#: model:portal.entry,name:purchase.portal_purchase_orders
 msgid "Our Orders"
 msgstr "Meidän tilauksemme"
 
@@ -2257,6 +2266,11 @@ msgstr "Meidän tilauksemme"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__parent_id
 msgid "Parent Section Line"
 msgstr "Pääosion rivi"
+
+#. module: purchase
+#: model:ir.model.fields.selection,name:purchase.selection__purchase_order__receipt_status__partial
+msgid "Partially Received"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_bill_to_po_wizard__partner_id
@@ -2357,7 +2371,7 @@ msgstr "Tuotekuvaus"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__product_tmpl_id
 msgid "Product Template"
-msgstr "Tuotepohja"
+msgstr "Tuotemalli"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_type
@@ -2377,13 +2391,13 @@ msgstr "Tuotteen mittayksikön lukumäärä"
 #. module: purchase
 #: model:ir.model,name:purchase.model_product_product
 msgid "Product Variant"
-msgstr "Tuotevariantti"
+msgstr "Tuotevariaatio"
 
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.product_product_action
 #: model:ir.ui.menu,name:purchase.product_product_menu
 msgid "Product Variants"
-msgstr "Tuotevariantit"
+msgstr "Tuotevariaatiot"
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_no_variant_attribute_value_ids
@@ -2411,7 +2425,6 @@ msgstr "Käyttöönota kaksivaiheinen hankintojen hyväksyminen"
 #: model:ir.ui.menu,name:purchase.menu_purchase_root
 #: model:ir.ui.menu,name:purchase.purchase_report
 #: model:res.groups.privilege,name:purchase.res_groups_privilege_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.product_template_search_view_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
 msgid "Purchase"
 msgstr "Ostot"
@@ -2420,6 +2433,11 @@ msgstr "Ostot"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_requisition
 msgid "Purchase Agreements"
 msgstr "Ostosopimukset"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_res_config_settings__module_purchase_alternative
+msgid "Purchase Alternative"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__purchase_amount_untaxed
@@ -2465,7 +2483,7 @@ msgstr "Ostohistoria %s"
 #: model:ir.model.fields,field_description:purchase.field_account_move_line__purchase_line_warn_msg
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__purchase_line_warn_msg
 msgid "Purchase Line Warn Msg"
-msgstr "Ostorivin varoitusviesti"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_line_match
@@ -2586,6 +2604,12 @@ msgid "Purchase Report"
 msgstr "Ostoraportti"
 
 #. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_vendor_bill_id
+#: model:ir.model.fields,field_description:purchase.field_account_move__purchase_vendor_bill_id
+msgid "Purchase Vendor Bill"
+msgstr ""
+
+#. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_account_bank_statement_line__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_account_move__purchase_warning_text
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__purchase_warning_text
@@ -2635,15 +2659,19 @@ msgstr "Osto: Myyjän muistutus"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_product_product__purchased_product_qty
 #: model:ir.model.fields,field_description:purchase.field_product_template__purchased_product_qty
+#: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_bill_line_match_tree
+#: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
 msgid "Purchased"
 msgstr "Ostettu"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.product_normal_form_view_inherit_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_product_template_purchase_buttons_from
-msgid "Purchased in the last 365 days"
-msgstr "Ostettu viimeisten 365 päivän aikana"
+msgid ""
+"Purchased in the last 365 days. Incoming represents confirmed purchase "
+"orders not received, or partially received"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -2656,7 +2684,7 @@ msgstr "Ostot"
 #. module: purchase
 #: model:ir.model,name:purchase.model_purchase_bill_union
 msgid "Purchases & Bills Union"
-msgstr "Ostot ja laskujen yhdistys"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__dest_address_id
@@ -2765,6 +2793,7 @@ msgstr "Tutustu dokumentaatioomme"
 #: model:ir.model.fields,field_description:purchase.field_res_config_settings__group_send_reminder
 #: model:ir.model.fields,field_description:purchase.field_res_partner__receipt_reminder_email
 #: model:ir.model.fields,field_description:purchase.field_res_users__receipt_reminder_email
+#: model_terms:ir.ui.view,arch_db:purchase.view_partner_property_form
 msgid "Receipt Reminder"
 msgstr "Muistutus toimituksesta"
 
@@ -2772,6 +2801,17 @@ msgstr "Muistutus toimituksesta"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_reminder_email
 msgid "Receipt Reminder Email"
 msgstr "Toimituksen muistutussähköposti"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__receipt_status
+msgid "Receipt Status"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_tree
+msgid "Receive"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__qty_received_at_date
@@ -2818,10 +2858,10 @@ msgstr "Viite"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_tree
 msgid "Reference Document"
-msgstr "Viitedokumentti"
+msgstr ""
 
 #. module: purchase
-#: model:ir.model.fields,field_description:purchase.field_purchase_report__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_report__uom_id
 msgid "Reference Unit of Measure"
 msgstr "Referenssiyksikkö"
 
@@ -2882,8 +2922,8 @@ msgstr "Tarjouspyynnöt"
 #: model:ir.actions.act_window,name:purchase.action_rfq_form
 #: model:ir.actions.act_window,name:purchase.purchase_rfq
 #: model:ir.ui.menu,name:purchase.menu_purchase_rfq
+#: model:portal.entry,name:purchase.portal_rfq
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_menu_purchase
-#: model_terms:ir.ui.view,arch_db:purchase.portal_my_home_purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Requests for Quotation"
 msgstr "Tarjouspyynnöt"
@@ -2926,7 +2966,7 @@ msgstr "Etsi ostotilaus"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_bill_union_filter
 msgid "Search Reference Document"
-msgstr "Hae viitedokumenttia"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -2997,6 +3037,11 @@ msgid "Send an automatic reminder email to confirm delivery"
 msgstr "Lähetä automaattinen muistutussähköposti toimituksen vahvistuksesta"
 
 #. module: purchase
+#: model:ir.actions.act_window,name:purchase.action_purchase_order_mass_mail
+msgid "Send by mail"
+msgstr ""
+
+#. module: purchase
 #. odoo-javascript
 #: code:addons/purchase/static/src/js/tours/purchase.js:0
 msgid "Send the request for quotation to your vendor."
@@ -3028,7 +3073,7 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__sequence
 msgid "Sequence"
-msgstr "Sekvenssi"
+msgstr "Järjestys"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -3050,6 +3095,11 @@ msgstr "Jaa"
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__show_comparison
 msgid "Show Comparison"
 msgstr "Näytä vertailu"
+
+#. module: purchase
+#: model:ir.model.fields,field_description:purchase.field_purchase_order__show_receive_button
+msgid "Show Receive Button"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_view_search
@@ -3241,7 +3291,7 @@ msgstr "Toimitusehdot"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__note
 msgid "Terms and Conditions"
-msgstr "Käyttöehdot"
+msgstr "Toimitusehdot"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order__country_code
@@ -3255,7 +3305,15 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_order_line__price_unit_product_uom
 msgid "The Price of one unit of the product's Unit of Measure"
-msgstr "Tuotteen mittayksikön hinta"
+msgstr ""
+
+#. module: purchase
+#. odoo-python
+#: code:addons/purchase/models/purchase_order.py:0
+msgid ""
+"The following purchase orders %(invalid_orders)s can't be received. "
+"Cancelled all receptions."
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.act_res_partner_2_purchase_order
@@ -3284,7 +3342,8 @@ msgstr "Tilillesi ei ole tällä hetkellä tarjouspyyntöjä."
 #: code:addons/purchase/wizard/bill_to_po_wizard.py:0
 msgid ""
 "There are no products to add to the Purchase Order. Are these Down Payments?"
-msgstr "Ostotilaukseen ei ole lisättäviä tuotteita. Ovatko nämä ennakkomaksuja?"
+msgstr ""
+"Ostotilaukseen ei ole lisättäviä tuotteita. Ovatko nämä ennakkomaksuja?"
 
 #. module: purchase
 #: model_terms:ir.actions.act_window,help:purchase.action_purchase_order_report_all
@@ -3420,7 +3479,7 @@ msgstr "Ostettu kokonaismäärä"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__translated_product_name
 msgid "Translated Product Name"
-msgstr "Tuotteen käännetty nimi"
+msgstr ""
 
 #. module: purchase
 #. odoo-javascript
@@ -3447,11 +3506,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Unable to cancel purchase order(s): %s. You must first unlock them."
-msgstr "Ostotilauksia ei voi peruuttaa: %s. Poista ensin niiden lukitus."
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_line_match__product_uom_id
-#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_uom_id
+#: model:ir.model.fields,field_description:purchase.field_purchase_order_line__uom_id
 msgid "Unit"
 msgstr "Yksikkö"
 
@@ -3470,7 +3529,7 @@ msgstr "Yksikköhinta (alennettu)"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__price_unit_product_uom
 msgid "Unit Price Product UoM"
-msgstr "Yksikköhinta tuotteen mittayksikössä"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
@@ -3492,7 +3551,7 @@ msgstr "Avaa lukitus"
 #. odoo-python
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "Unsupported operator"
-msgstr "Operaattoria ei tueta"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_kpis_tree
@@ -3566,7 +3625,7 @@ msgstr "Toimittaja"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_bill_union__vendor_bill_id
 msgid "Vendor Bill"
-msgstr "Toimittajan lasku"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3691,11 +3750,11 @@ msgid ""
 "dates and keep you informed in case of any delays. To get the vendor's "
 "performance statistics, click on the OTD rate."
 msgstr ""
-"Kun luot ostotilausta, katso toimittajan <i>Toimitettu ajallaan</i> -"
-"prosentti: ajallaan toimitettujen tuotteiden prosenttiosuus. Jos se on liian "
-"alhainen, aktivoi <i>automaattiset muistutukset</i>. Muutama päivä ennen "
-"erääntynyttä toimitusta Odoo lähettää toimittajalle sähköpostin, jossa se "
-"pyytää vahvistusta toimituspäivistä ja pitää sinut ajan tasalla, jos "
+"Kun luot ostotilausta, katso toimittajan <i>Toimitettu ajallaan</i> "
+"-prosentti: ajallaan toimitettujen tuotteiden prosenttiosuus. Jos se on "
+"liian alhainen, aktivoi <i>automaattiset muistutukset</i>. Muutama päivä "
+"ennen erääntynyttä toimitusta Odoo lähettää toimittajalle sähköpostin, jossa "
+"se pyytää vahvistusta toimituspäivistä ja pitää sinut ajan tasalla, jos "
 "viivästyksiä ilmenee. Saat myyjän suoritustilastot näkyviin napsauttamalla "
 "OTD-astetta."
 
@@ -3786,6 +3845,11 @@ msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "billing"
+msgstr ""
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "day(s) before"
 msgstr "päivä(ä) ennen"
 
@@ -3810,6 +3874,11 @@ msgstr "tai luo uusi"
 #: code:addons/purchase/models/purchase_order.py:0
 msgid "partner_id"
 msgstr "partner_id"
+
+#. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "purchase"
+msgstr ""
 
 #. module: purchase
 #. odoo-python
@@ -3841,6 +3910,11 @@ msgid "to learn all the ways to connect your software with"
 msgstr "oppiaksesi kaikki tavat yhdistää ohjelmistosi ja"
 
 #. module: purchase
+#: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
+msgid "tracking"
+msgstr ""
+
+#. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchasequotation_document
 msgid "with"
@@ -3852,414 +3926,3 @@ msgstr "kanssa"
 #: model:mail.template,subject:purchase.email_template_edi_purchase_reminder
 msgid "{{ object.company_id.name }} Order (Ref {{ object.name or 'n/a' }})"
 msgstr "{{ object.company_id.name }} Tilaus (Ref {{ object.name or 'n/a' }})"
-
-#~ msgid "%(amount)s due %(date)s"
-#~ msgstr "%(amount)serääntyy %(date)s"
-
-#~ msgid "%s confirmed the receipt will take place on %s."
-#~ msgstr "%s vahvisti, että vastaanotto tapahtuu %s."
-
-#~ msgid "<i class=\"fa fa-comment\"/> Send message"
-#~ msgstr "<i class=\"fa fa-comment\"/> Lähetä viesti"
-
-#~ msgid "<i class=\"fa fa-download\"/> Download"
-#~ msgstr "<i class=\"fa fa-download\"/> Lataa"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Done</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-check\" role=\"img\" aria-label=\"Done\" "
-#~ "title=\"Done\"/><span class=\"d-none d-md-inline\"> Valmis</span>"
-
-#~ msgid "<i class=\"fa fa-fw fa-check\"/> <b>Paid</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-check\"/><b>Maksettu</b>"
-
-#~ msgid "<i class=\"fa fa-fw fa-clock-o\"/> <b>Waiting Payment</b>"
-#~ msgstr "<i class=\"fa fa-fw fa-clock-o\"/><b>Odottaa maksua</b>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-"
-#~ "label=\"Purchases\" title=\"Purchases\"/>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-fw fa-credit-card\" role=\"img\" aria-label=\"Ostot\" "
-#~ "title=\"Ostot\"/>"
-
-#~ msgid "<i class=\"fa fa-print\"/> Print"
-#~ msgstr "<i class=\"fa fa-print\"/> Tulosta"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Request for Quotation </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Purchase Order "
-#~ "</span>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\" attrs=\"{'invisible': [('state','not in',"
-#~ "('draft','sent'))]}\">Tarjouspyyntö </span>\n"
-#~ "                        <span class=\"o_form_label\" "
-#~ "attrs=\"{'invisible': [('state','in',('draft','sent'))]}\">Ostotilaus </"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reception_confirmed','=', False)]}\">(toimittajan vahvistama)</"
-#~ "span>"
-
-#~ msgid ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
-#~ msgstr ""
-#~ "<span class=\"text-muted\" attrs=\"{'invisible': "
-#~ "[('mail_reminder_confirmed', '=', False)]}\">(toimittajan vahvistama)</"
-#~ "span>"
-
-#~ msgid "<strong class=\"text-muted\">Purchase Representative</strong>"
-#~ msgstr "<strong class=\"text-muted\">Oston vastuuhenkilö</strong>"
-
-#~ msgid "<strong>Date Req.</strong>"
-#~ msgstr "<strong>Tarvepvm</strong>"
-
-#~ msgid "<strong>Purchase Representative:</strong>"
-#~ msgstr "<strong>Oston vastuuhenkilö:</strong>"
-
-#~ msgid "<strong>Shipping address:</strong>"
-#~ msgstr "<strong>Toimitusosoite:</strong>"
-
-#~ msgid "<strong>This purchase has been canceled.</strong>"
-#~ msgstr "<strong>Tämä ostos on peruttu.</strong>"
-
-#~ msgid "<strong>Update Here</strong>"
-#~ msgstr "<strong>Päivitä täällä</strong>"
-
-#~ msgid "<strong>Your Order Reference:</strong>"
-#~ msgstr "<strong>Viitteenne:</strong>"
-
-#~ msgid ""
-#~ "A storable product is a product for which you manage stock. The Inventory "
-#~ "app has to be installed.\n"
-#~ "A consumable product is a product for which stock is not managed.\n"
-#~ "A service is a non-material product you provide."
-#~ msgstr ""
-#~ "Varastoitava tuote on tuote, jonka varastosaldoja hallitset. Tätä varten "
-#~ "on asennettava Varasto-sovellus.\n"
-#~ "Kulutustuote on fyysinen tuote, jonka varastoa ei hallita.\n"
-#~ "Palvelu on tarjonnassa oleva aineeton tuote."
-
-#~ msgid ""
-#~ "Ability to select a package type in purchase orders and to force a "
-#~ "quantity that is a multiple of the number of units per package."
-#~ msgstr ""
-#~ "Mahdollisuus valita pakettityyppi ostotilauksissa ja pakottaa määrä, joka "
-#~ "on moninkertainen pakettikohtaiseen kappalemäärään nähden."
-
-#~ msgid "Accept"
-#~ msgstr "Hyväksy"
-
-#~ msgid "All RFQs"
-#~ msgstr "Kaikki ostoehdotukset"
-
-#~ msgid "All Waiting RFQs"
-#~ msgstr "Kaikki odottavat ostoehdotukset"
-
-#~ msgid "Auto-complete from a past bill / purchase order."
-#~ msgstr "Automaattitäydennys olemassaolevasta laskusta tai ostotilauksesta."
-
-#~ msgid "Avg Order Value"
-#~ msgstr "Keskimääräinen tilauksen arvo"
-
-#~ msgid "Bill Control"
-#~ msgstr "Laskujen hallinta"
-
-#~ msgid "Blocking Message"
-#~ msgstr "Estoviesti"
-
-#~ msgid ""
-#~ "Calls for tenders are when you want to generate requests for quotations "
-#~ "with several vendors for a given set of products to compare offers."
-#~ msgstr ""
-#~ "Julkiset tarjouspyynnöt ovat käytössä tapauksissa, joissa halutaan laatia "
-#~ "tarjouspyyntöjä useille toimittajille tietystä tuoteryhmästä tarjousten "
-#~ "vertailemiseksi."
-
-#~ msgid "Cannot delete a purchase order line which is in state '%s'."
-#~ msgstr "Tilassa '%s' olevaa ostotilausriviä ei voi poistaa. "
-
-#~ msgid "Category"
-#~ msgstr "Kategoria"
-
-#~ msgid "Confirm"
-#~ msgstr "Vahvista"
-
-#~ msgid "Confirm Receipt Date"
-#~ msgstr "Vahvista saapumispäivä"
-
-#~ msgid ""
-#~ "Conversion between Units of Measure can only occur if they belong to the "
-#~ "same category. The conversion will be made based on the ratios."
-#~ msgstr ""
-#~ "Yksiköiden välinen muunnos onnistuu vain saman ryhmän (kategorian) "
-#~ "sisällä. Konversio tehdään käyttäen kertoimena suhdetta."
-
-#~ msgid "Create Bill"
-#~ msgstr "Luo ostolasku"
-
-#~ msgid "Create Vendor Bills"
-#~ msgstr "Luo ostolaskut"
-
-#~ msgid "Days"
-#~ msgstr "Päivää"
-
-#~ msgid "Done"
-#~ msgstr "Valmis"
-
-#~ msgid "Download"
-#~ msgstr "Lataa"
-
-#~ msgid "Draft RFQs"
-#~ msgstr "Ostoehdotusluonnokset"
-
-#~ msgid "Email composition wizard"
-#~ msgstr "Sähköpostin ohjattu koostaminen"
-
-#~ msgid "Extended Filters"
-#~ msgstr "Laajennetut suodattimet"
-
-#~ msgid "Group By"
-#~ msgstr "Ryhmittely"
-
-#~ msgid "History"
-#~ msgstr "Historia"
-
-#~ msgid "If true, the packaging can be used for purchase orders"
-#~ msgstr "Jos true, pakkausta voidaan käyttää ostotilauksissa"
-
-#~ msgid "Late RFQs"
-#~ msgstr "Myöhässä olevat ostoehdotukset"
-
-#~ msgid "Lead Time to Purchase"
-#~ msgstr "Oston läpimenoaika"
-
-#~ msgid "Manage your purchase agreements (call for tenders, blanket orders)"
-#~ msgstr "Hallinnoi ostosopimuksiasi (tarjouspyynnöt, yleistilaukset)"
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for procuring products, they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Toimittajien toimitusaikojen virhemarginaali. Kun järjestelmä luo "
-#~ "ostotilauksia tuotteiden hankintaa varten, ne ajoitetaan näin monta "
-#~ "päivää aikaisemmin, jotta voidaan varautua odottamattomiin toimittajien "
-#~ "viivästyksiin."
-
-#~ msgid ""
-#~ "Margin of error for vendor lead times. When the system generates Purchase "
-#~ "Orders for reordering products,they will be scheduled that many days "
-#~ "earlier to cope with unexpected vendor delays."
-#~ msgstr ""
-#~ "Toimittajien toimitusaikojen virhemarginaali. Kun järjestelmä luo "
-#~ "ostotilauksia tuotteiden uudelleen tilaamista varten, ne ajoitetaan näin "
-#~ "monta päivää aikaisemmin, jotta voidaan varautua odottamattomiin "
-#~ "toimittajien viivästyksiin."
-
-#~ msgid "My RFQs"
-#~ msgstr "Minun tarjouspyyntöni"
-
-#~ msgid "No Message"
-#~ msgstr "Ei viestiä"
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "Toimenpiteitä vaativien viestien määrä"
-
-#~ msgid "Ordered quantities"
-#~ msgstr "Tilattuihin määriin"
-
-#~ msgid "Packaging"
-#~ msgstr "Paketointi"
-
-#~ msgid "Packaging Quantity"
-#~ msgstr "Pakkausmäärä"
-
-#~ msgid "Print RFQ"
-#~ msgstr "Tulosta tarjouspyyntö"
-
-#~ msgid "Product Attributes"
-#~ msgstr "Tuotteen ominaisuudet"
-
-#~ msgid "Product Categories"
-#~ msgstr "Tuotekategoriat"
-
-#~ msgid "Product Packaging"
-#~ msgstr "Tuotepakkaukset"
-
-#~ msgid "Purchase History"
-#~ msgstr "Ostohistoria"
-
-#~ msgid "Purchase Lead Time"
-#~ msgstr "Oston läpimenoaika"
-
-#~ msgid "Purchase Order Line Warning"
-#~ msgstr "Ostotilausrivin varoitus"
-
-#~ msgid "Purchase Representative"
-#~ msgstr "Oston vastuuhenkilö"
-
-#~ msgid "Purchase products by multiple of unit # per package"
-#~ msgstr "Osta tuotteita yksikkömäärän kerrannaisina pakkausta kohti"
-
-#~ msgid "Purchased Last 7 Days"
-#~ msgstr "Ostettu viimeisen 7 päivän aikana"
-
-#~ msgid "Quantities billed by vendors"
-#~ msgstr "Toimittajien laskuttamat määrät"
-
-#~ msgid "RFQ Done"
-#~ msgstr "Tarjouspyyntö valmis"
-
-#~ msgid "RFQs"
-#~ msgstr "Tarjouspyynnöt"
-
-#~ msgid "RFQs Sent Last 7 Days"
-#~ msgstr "7pv sis. lähetetyt ostoehdotukset"
-
-#~ msgid "Ratio between the purchase order currency and the company currency"
-#~ msgstr "Oston ja yrityksen valuutan välinen suhde"
-
-#~ msgid "Re-Send by Email"
-#~ msgstr "Uudelleenlähetä sähköpostilla"
-
-#~ msgid "Received quantities"
-#~ msgstr "Vastaanotetut määrät"
-
-#~ msgid "Reception Confirmed"
-#~ msgstr "Vastaanotto vahvistettu"
-
-#~ msgid "Reminder Confirmed"
-#~ msgstr "Muistutus vahvistettu"
-
-#~ msgid "Security Lead Time for Purchase"
-#~ msgstr "Ostojen läpimenon varmuusaika"
-
-#~ msgid "Select a purchase order or an old bill"
-#~ msgstr "Valitse ostotilaus tai vanha ostolasku"
-
-#~ msgid ""
-#~ "Selecting the \"Warning\" option will notify user with the message, "
-#~ "Selecting \"Blocking Message\" will throw an exception with the message "
-#~ "and block the flow. The Message has to be written in the next field."
-#~ msgstr ""
-#~ "Valittaessa vaihtoehto:\n"
-#~ "  \"Varoitusviesti\", käyttäjälle näytetään varoitusviesti\n"
-#~ "  \"Estoviesti, käyttäjälle näytetään poikkeusviesti ja toimenpide "
-#~ "estetään.\n"
-#~ "Kirjoita näytettävä viesti seuraavaan kenttään."
-
-#~ msgid "Send PO by Email"
-#~ msgstr "Lähetä ostotilaus"
-
-#~ msgid "Send by Email"
-#~ msgstr "Lähetä sähköpostilla"
-
-#~ msgid "Show all records which has next action date is before today"
-#~ msgstr "Näytä kaikki tietueet joissa on toimenpide myöhässä."
-
-#~ msgid "Source Document"
-#~ msgstr "Lähde"
-
-#~ msgid "The order receipt has been acknowledged by %s."
-#~ msgstr "%s on kuitannut tilauksen vastaanottamisen."
-
-#~ msgid ""
-#~ "There is no invoiceable line. If a product has a control policy based on "
-#~ "received quantity, please make sure that a quantity has been received."
-#~ msgstr ""
-#~ "Laskutettavaa riviä ei ole. Jos tuotteella on vastaanotettuun määrään "
-#~ "perustuva valvontakäytäntö, varmista, että määrä on vastaanotettu."
-
-#~ msgid ""
-#~ "This currency will be used, instead of the default one, for purchases "
-#~ "from the current partner"
-#~ msgstr ""
-#~ "Tältä kumppanilta tehtyihin ostoihin käytetään oletusvaluutan sijaan tätä "
-#~ "valuuttaa"
-
-#~ msgid ""
-#~ "This default value is applied to any new product created. This can be "
-#~ "changed in the product detail form."
-#~ msgstr ""
-#~ "Tätä oletusarvoa sovelletaan kaikkiin luotuihin uusiin tuotteisiin. Tätä "
-#~ "voidaan muuttaa tuotetiedot-muodossa."
-
-#~ msgid ""
-#~ "This product is packaged by %(pack_size).2f %(pack_name)s. You should "
-#~ "purchase %(quantity).2f %(unit)s."
-#~ msgstr ""
-#~ "Tämän tuotteen on pakannut %(pack_size).2f %(pack_name)s. Sinun pitäisi "
-#~ "ostaa %(quantity).2f %(unit)s."
-
-#~ msgid "This vendor bill has been created from: %s"
-#~ msgstr "Tämä ostolasku on luotu perustuen: %s"
-
-#~ msgid "This vendor bill has been modified from: %s"
-#~ msgstr "Tätä ostolaskua on muokattu perustuen: %s"
-
-#~ msgid "To Send"
-#~ msgstr "Lähetettäväksi"
-
-#~ msgid "True if PO reception is confirmed by the vendor."
-#~ msgstr "True, jos myyjä on vahvistanut ostotilauksen vastaanoton."
-
-#~ msgid "True if the reminder email is confirmed by the vendor."
-#~ msgstr "True, jos tuotteen toimittaja on vahvistanut muistutussähköpostin."
-
-#~ msgid "Type a message..."
-#~ msgstr "Kirjoita viesti..."
-
-#~ msgid ""
-#~ "Unable to cancel this purchase order. You must first cancel the related "
-#~ "vendor bills."
-#~ msgstr ""
-#~ "Ostotilausta ei pystytty perumaan. Peru ensin siihen liittyvät ostolaskut."
-
-#~ msgid "Unit of Measure"
-#~ msgstr "Mittayksikkö"
-
-#~ msgid "Units of Measure"
-#~ msgstr "Mittayksiköt"
-
-#~ msgid "Units of Measure Categories"
-#~ msgstr "Mittayksikköjen kategoriat"
-
-#~ msgid "Units of Measures"
-#~ msgstr "Mittayksiköt"
-
-#~ msgid "UoM"
-#~ msgstr "Yksikkö"
-
-#~ msgid "Update Dates"
-#~ msgstr "Päivitä päivämäärät"
-
-#~ msgid "Waiting"
-#~ msgstr "Odottaa"
-
-#~ msgid "Waiting RFQs"
-#~ msgstr "Odottavat ostoehdotukset"
-
-#~ msgid "Warning"
-#~ msgstr "Varoitus"
-
-#~ msgid "Warning for %s"
-#~ msgstr "Varoitus %s"
-
-#~ msgid "Warning on the Purchase Order"
-#~ msgstr "Varoitus ostotilaukselle"
-
-#~ msgid "Warning when Purchasing this Product"
-#~ msgstr "Varoitus tätä tuotetta ostettaessa"
-
-#~ msgid "close"
-#~ msgstr "sulkemista"

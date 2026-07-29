@@ -1,89 +1,90 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* pos_cashdro
+# * pos_cashdro
 #
+# "Junko Augias (juau)" <juau@odoo.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-05 19:29+0000\n"
-"PO-Revision-Date: 2026-07-01 11:27+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-06-05 19:34+0000\n"
+"PO-Revision-Date: 2026-05-23 17:34+0000\n"
+"Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
+"Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-2/"
 "pos_cashdro/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.17\n"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cancellation failed"
-msgstr ""
+msgstr "キャンセルに失敗しました"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cash Machine Error"
-msgstr ""
+msgstr "キャッシュマシーンエラー"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/screens/payment_screen/payment_lines/payment_lines.xml:0
 msgid "Cash inserted:"
-msgstr ""
+msgstr "現金が投入されました:"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__cashdro_ip
 msgid "Cashdro IP"
-msgstr ""
+msgstr "Cashdro IP"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__cashdro_use_lna
 msgid "Cashdro Local Network Access"
-msgstr ""
+msgstr "Cashdroローカルネットワークへのアクセス"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__cashdro_password
 msgid "Cashdro Password"
-msgstr ""
+msgstr "Cashdro パスワード"
 
 #. module: pos_cashdro
 #: model_terms:ir.ui.view,arch_db:pos_cashdro.pos_payment_method_view_form_inherit_pos_cashdro
 msgid "Cashdro Settings"
-msgstr ""
+msgstr "Cashdroの管理設定"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__cashdro_username
 msgid "Cashdro Username"
-msgstr ""
+msgstr "Cashdroユーザ名"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cashdro cancellation failed: %s"
-msgstr ""
+msgstr "Cashdroのキャンセルに失敗しました：%s"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cashdro error: %s"
-msgstr ""
+msgstr "Cashdroエラー：%s"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cashdro machine is busy"
-msgstr ""
+msgstr "Cashdroマシンは使用中です"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Cashdro payment failed: %s"
-msgstr ""
+msgstr "Cashdroの支払いに失敗しました：%s"
 
 #. module: pos_cashdro
 #. odoo-javascript
@@ -92,45 +93,47 @@ msgid ""
 "Could not reach cash machine on the network, please check your IP and/or LNA "
 "settings."
 msgstr ""
+"ネットワーク上の自動釣銭機に接続できませんでした。IPアドレスおよび/またはLNA"
+"管理設定を確認してください。"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__display_name
 msgid "Display Name"
-msgstr ""
+msgstr "表示名"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/backend/cashdro_admin_buttons/cashdro_admin_buttons.xml:0
 msgid "Download Logs"
-msgstr ""
+msgstr "ログをダウンロード"
 
 #. module: pos_cashdro
 #: model:ir.model.fields,field_description:pos_cashdro.field_pos_payment_method__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "No"
-msgstr ""
+msgstr "いいえ"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/backend/cashdro_admin_buttons/cashdro_admin_buttons.xml:0
 msgid "Open Diagnostics Page"
-msgstr ""
+msgstr "診断ページを開く"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/backend/cashdro_admin_buttons/cashdro_admin_buttons.js:0
 msgid "Please configure the IP address before opening the diagnostics page"
-msgstr ""
+msgstr "診断ページを開く前に、IPアドレスを設定してください"
 
 #. module: pos_cashdro
 #: model:ir.model,name:pos_cashdro.model_pos_payment_method
-msgid "Point of Sale Payment Methods"
-msgstr ""
+msgid "Point of Sale Payment Method"
+msgstr "POS支払方法"
 
 #. module: pos_cashdro
 #. odoo-javascript
@@ -139,9 +142,13 @@ msgid ""
 "The cash machine is busy with another operation. Do you want to cancel it "
 "and retry?"
 msgstr ""
+"自動釣銭機は現在、別の操作を行っています。キャンセルして再試行しますか?"
 
 #. module: pos_cashdro
 #. odoo-javascript
 #: code:addons/pos_cashdro/static/src/app/payment_cashdro.js:0
 msgid "Yes"
-msgstr ""
+msgstr "はい"
+
+#~ msgid "Request sent"
+#~ msgstr "リクエストを送信しました"

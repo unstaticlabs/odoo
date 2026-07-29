@@ -158,6 +158,7 @@ export const websiteService = {
                         mainObject,
                         seoObject,
                         isPublished,
+                        publishOn,
                         canOptimizeSeo,
                         canPublish,
                         editableInBackend,
@@ -185,6 +186,7 @@ export const websiteService = {
                         mainObject: unslugHtmlDataObject(mainObject),
                         seoObject: unslugHtmlDataObject(seoObject),
                         isPublished: isPublished === "True",
+                        publishOn: publishOn || false,
                         canOptimizeSeo: canOptimizeSeo === "True",
                         canPublish: canPublish === "True",
                         editableInBackend: editableInBackend === "True",
@@ -262,7 +264,7 @@ export const websiteService = {
                 invalidateSnippetCache = value;
             },
 
-            goToWebsite({ websiteId, path, edition, translation, lang } = {}) {
+            async goToWebsite({ websiteId, path, edition, translation, lang } = {}) {
                 this.websiteRootInstance = undefined;
                 if (lang) {
                     invalidateSnippetCache = true;
@@ -270,7 +272,7 @@ export const websiteService = {
                         path
                     )}`;
                 }
-                action.doAction("website.website_preview", {
+                await action.doAction("website.website_preview", {
                     clearBreadcrumbs: true,
                     props: {
                         websiteId: websiteId || currentWebsiteId || false,

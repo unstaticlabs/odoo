@@ -2,7 +2,7 @@
 import psycopg2.errors
 from werkzeug.exceptions import NotFound
 
-from odoo import _, http
+from odoo import http
 from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.tools import consteq, email_normalize, replace_exceptions
@@ -55,8 +55,8 @@ class PublicPageController(http.Controller):
 
     @http.route("/discuss/channel/<int:channel_id>", methods=["GET"], type="http", auth="public")
     @add_guest_to_context
-    def discuss_channel(self, channel_id, *, highlight_message_id=None):
-        # highlight_message_id is used JS side by parsing the query string
+    def discuss_channel(self, channel_id, *, highlight_message_id=None, fullscreen=None):
+        # highlight_message_id and fullscreen are used JS side by parsing the query string
         channel = request.env["discuss.channel"].search([("id", "=", channel_id)])
         if not channel:
             raise NotFound()
@@ -64,7 +64,7 @@ class PublicPageController(http.Controller):
 
     def _response_discuss_channel_from_token(self, create_token, channel_name=None, default_display_mode=False):
         # sudo: ir.config_parameter - reading hard-coded key and using it in a simple condition
-        if not request.env["ir.config_parameter"].sudo().get_param("mail.chat_from_token"):
+        if not request.env["ir.config_parameter"].sudo().get_bool("mail.chat_from_token"):
             raise NotFound()
         # sudo: discuss.channel - channel access is validated with invitation_token
         channel_sudo = request.env["discuss.channel"].sudo().search([("uuid", "=", create_token)])
@@ -98,7 +98,7 @@ class PublicPageController(http.Controller):
         with replace_exceptions(UserError, by=NotFound()):
             # sudo: mail.guest - creating a guest and its member inside a channel of which they have the token
             __, guest = channel.sudo()._find_or_create_persona_for_channel(
-                guest_name=guest_email if guest_email else _("Guest"),
+                guest_name=guest_email or "",
                 country_code=request.geoip.country_code,
                 timezone=request.env["mail.guest"]._get_timezone_from_request(request),
             )
@@ -108,6 +108,8 @@ class PublicPageController(http.Controller):
         if guest and not guest_already_known:
             store.add_global_values(is_welcome_page_displayed=True)
             channel = channel.with_context(guest=guest)
+        if self.env.user._is_internal():
+            return request.redirect(f"/odoo/action-mail.action_discuss?active_id={channel.id}")
         return self._response_discuss_public_template(store, channel)
 
     def _response_discuss_public_template(self, store: Store, channel):
@@ -115,7 +117,11 @@ class PublicPageController(http.Controller):
             companyName=request.env.company.name,
             inPublicPage=True,
         )
-        store.add_singleton_values("DiscussApp", {"thread": store.One(channel)})
+        store.add(channel, "_store_channel_fields")
+        store.add_singleton_values(
+            "DiscussApp",
+            lambda res: res.one("thread", [], as_thread=True, value=channel),
+        )
         return request.render(
             "mail.discuss_public_channel_template",
             {

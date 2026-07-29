@@ -1,4 +1,5 @@
 import { after, afterEach, beforeEach, registerDebugInfo } from "@odoo/hoot";
+import { animationFrame } from "@odoo/hoot-mock";
 import { startRouter } from "@web/core/browser/router";
 import { createDebugContext } from "@web/core/debug/debug_context";
 import {
@@ -10,7 +11,8 @@ import { registry } from "@web/core/registry";
 import { pick } from "@web/core/utils/objects";
 import { patch } from "@web/core/utils/patch";
 import { makeEnv, startServices } from "@web/env";
-import { MockServer, makeMockServer } from "./mock_server/mock_server";
+import { MockServer, makeMockServer, onRpc } from "./mock_server/mock_server";
+import { rpc } from "@web/core/network/rpc";
 
 /**
  * @typedef {Record<keyof Services, any>} Dependencies
@@ -106,6 +108,19 @@ export async function makeMockEnv(partialEnv, options) {
         currentEnv = env;
         startRouter();
         after(() => {
+            // Ideally: this should be done in a stop of the service !!!
+            // This is done to remove the observer that disables the buttons.
+            if (currentEnv.services.offline) {
+                currentEnv.services.offline.offline = false;
+            }
+
+            // cleanup the rpc patch done in check_identity.js
+            // TODO: in master, the patch can be done in a Plugin, which has a cleanup function
+            if (rpc._originalRpc) {
+                rpc._rpc = rpc._originalRpc;
+                delete rpc._originalRpc;
+            }
+
             currentEnv = null;
 
             // Ideally: should be done in a patch of the localization service, but this
@@ -200,4 +215,23 @@ export function restoreRegistry(registry) {
     for (const subRegistry of Object.values(registry.subRegistries)) {
         restoreRegistry(subRegistry);
     }
+}
+
+/**
+ * Makes a function to set Offline all RPCs and set Offline the service.
+ *
+ * @returns {Function} setOffline
+ */
+export function mockOffline() {
+    let _offline = false;
+    onRpc("/*", () => {
+        if (_offline) {
+            return new Response("", { status: 502 });
+        }
+    });
+    return (offline) => {
+        _offline = offline;
+        getService("offline").offline = _offline;
+        return animationFrame();
+    };
 }

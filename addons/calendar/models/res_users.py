@@ -1,11 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import datetime
+from zoneinfo import ZoneInfo
 
 from odoo import api, fields, models, modules, _
 from odoo.exceptions import AccessError
-
-from pytz import timezone, UTC
 
 
 class ResUsers(models.Model):
@@ -17,15 +16,8 @@ class ResUsers(models.Model):
          ('confidential', 'Internal users only')],
         compute="_compute_calendar_default_privacy",
         inverse="_inverse_calendar_res_users_settings",
+        user_writeable=True,
     )
-
-    @property
-    def SELF_READABLE_FIELDS(self):
-        return super().SELF_READABLE_FIELDS + ['calendar_default_privacy']
-
-    @property
-    def SELF_WRITEABLE_FIELDS(self):
-        return super().SELF_WRITEABLE_FIELDS + ['calendar_default_privacy']
 
     def get_selected_calendars_partner_ids(self, include_user=True):
         """
@@ -49,7 +41,7 @@ class ResUsers(models.Model):
     @api.model
     def _default_user_calendar_default_privacy(self):
         """ Get the calendar default privacy from the Default User Template, set public as default. """
-        return self.env['ir.config_parameter'].sudo().get_param('calendar.default_privacy', 'public')
+        return self.env['ir.config_parameter'].sudo().get_str('calendar.default_privacy', 'public')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -126,15 +118,15 @@ class ResUsers(models.Model):
         #   |           |
         #   |           | <--- `stop_dt_utc` = `stop_dt` if user lives in an area of West longitude (positive shift compared to UTC, America for example)
         #   |           |
-        start_dt_utc = start_dt = datetime.datetime.now(UTC)
-        stop_dt_utc = UTC.localize(datetime.datetime.combine(start_dt_utc.date(), datetime.time.max))
+        start_dt_utc = start_dt = datetime.datetime.now(datetime.UTC)
+        stop_dt_utc = datetime.datetime.combine(start_dt_utc.date(), datetime.time.max.replace(tzinfo=datetime.UTC))
 
         tz = self.env.user.tz
         if tz:
-            user_tz = timezone(tz)
+            user_tz = ZoneInfo(tz)
             start_dt = start_dt_utc.astimezone(user_tz)
-            stop_dt = user_tz.localize(datetime.datetime.combine(start_dt.date(), datetime.time.max))
-            stop_dt_utc = stop_dt.astimezone(UTC)
+            stop_dt = datetime.datetime.combine(start_dt.date(), datetime.time.max.replace(tzinfo=user_tz, fold=1))
+            stop_dt_utc = stop_dt.astimezone(datetime.UTC)
 
         start_date = start_dt.date()
 
@@ -168,6 +160,7 @@ class ResUsers(models.Model):
                 'id': self.env['ir.model']._get('calendar.event').id,
                 'type': 'meeting',
                 'name': meeting_label,
+                'is_today_meetings': True,
                 'model': 'calendar.event',
                 'icon': modules.module.get_module_icon(EventModel._original_module),
                 'domain': [('active', 'in', [True, False])],

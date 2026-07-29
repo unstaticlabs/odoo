@@ -62,7 +62,7 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         cls.cash_journal = cls.company_data['default_journal_cash']
         cls.cash_journal.inbound_payment_method_line_ids.payment_account_id = cls.cash_journal.default_account_id.id
 
-        cls.env['ir.config_parameter'].sudo().set_param('l10n_pl_edi_ksef.mode', 'test')
+        cls.env['ir.config_parameter'].sudo().set_str('l10n_pl_edi_ksef.mode', 'test')
 
         def read_certificate_file(filename, b64=False):
             path = f'l10n_pl_edi/tests/certificate/{filename}'
@@ -372,9 +372,9 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         """
         # Create a Bank Account for the Company
         bank_acc = self.env['res.partner.bank'].create({
-            'acc_number': '12 3456 7890 0000 0000 1234 5678',
+            'account_number': '12 3456 7890 0000 0000 1234 5678',
             'partner_id': self.partner_pl.id,
-            'bank_id': self.env['res.bank'].create({'name': 'Test Bank PL'}).id,
+            'bank_name': "Test Bank PL",
             'allow_out_payment': True,
         })
 
@@ -523,8 +523,8 @@ class TestL10nPlEdi(AccountTestInvoicingCommon, CronMixinCase):
         amount of the supplied service.
         """
         service_tax = self.env['account.chart.template'].ref('vs_dostu')
-        service_product = self._create_product(name='EU Service', type='service', taxes_id=[(6, 0, [service_tax.id])])
-        invoice_line = self._prepare_invoice_line(product_id=service_product.id, quantity=1, price_unit=1000.0)
+        service_product = self._create_product(name='EU Service', type='service')
+        invoice_line = self._prepare_invoice_line(product_id=service_product.id, quantity=1, price_unit=1000.0, tax_ids=[(6, 0, [service_tax.id])])
         invoice = self._create_invoice(invoice_line_ids=[invoice_line], partner_id=self.partner_pl.id, post=True)
         xml = invoice._l10n_pl_edi_render_xml()
         self.assertEqual(self._get_xml_value(xml, "//ns:Fa/ns:P_13_9"), '1000.00')

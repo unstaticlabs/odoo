@@ -6,23 +6,24 @@
 # Abe Manyo, 2023
 # Martin Trigaux, 2023
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Abe Manyo (abem)" <abem@odoo.com>, 2025, 2026.
+# "Nurul Aini Akrima Sabila (nuaas)" <nuaas@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 17:36+0000\n"
-"PO-Revision-Date: 2026-07-01 00:42+0000\n"
-"Last-Translator: \"Abe Manyo (abem)\" <abem@odoo.com>\n"
-"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-19/"
+"PO-Revision-Date: 2026-04-18 13:41+0000\n"
+"Last-Translator: \"Nurul Aini Akrima Sabila (nuaas)\" <nuaas@odoo.com>\n"
+"Language-Team: Indonesian <https://translate.odoo.com/projects/odoo-s19-2/"
 "base_vat/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #. module: base_vat
 #. odoo-python
@@ -41,7 +42,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
 msgid "11111111111 (NIN) or 2222222222 (VKN)"
-msgstr ""
+msgstr "11111111111 (NIN) atau 2222222222 (VKN)"
 
 #. module: base_vat
 #. odoo-python
@@ -49,6 +50,7 @@ msgstr ""
 msgid ""
 "12345678 or UA12345678 (EDRPOU), 1234567890 (RNOPP) or 123456789012 (IPN)"
 msgstr ""
+"12345678 atau UA12345678 (EDRPOU), 1234567890 (RNOPP) atau 123456789012 (IPN)"
 
 #. module: base_vat
 #. odoo-python
@@ -83,7 +85,7 @@ msgstr "CHE-123.456.788 TVA atau CHE-123.456.788 MWST atau CHE-123.456.788 IVA"
 
 #. module: base_vat
 #: model:ir.model,name:base_vat.model_res_company
-msgid "Companies"
+msgid "Company"
 msgstr "Perusahaan"
 
 #. module: base_vat
@@ -211,7 +213,6 @@ msgstr "Lakukan Validasi Vies"
 #. module: base_vat
 #: model:ir.model.fields,field_description:base_vat.field_res_partner__vat
 #: model:ir.model.fields,field_description:base_vat.field_res_users__vat
-#: model_terms:ir.ui.view,arch_db:base_vat.view_partner_base_vat_form
 msgid "Tax ID"
 msgstr "ID Pajak"
 
@@ -255,10 +256,10 @@ msgstr ""
 #. module: base_vat
 #. odoo-python
 #: code:addons/base_vat/models/res_partner.py:0
-msgid "To explicitly indicate no (valid) VAT, use '/' instead. "
+msgid "To explicitly indicate no (valid) VAT, use '/', 'na' or 'NA' instead. "
 msgstr ""
-"Untuk secara eksplisit mengindikasikan tidak ada PPN (valid), alih-alih "
-"gunakan '/'. "
+"Untuk secara eksplisit mengindikasikan tidak ada PPN (valid), gunakan '/', "
+"'na' atau 'NA'. "
 
 #. module: base_vat
 #. odoo-python
@@ -319,24 +320,5 @@ msgstr "partner [%s]"
 #~ msgid "either 11 digits for CPF or 14 digits for CNPJ"
 #~ msgstr "baik 11 bilangan untuk CPF atau 14 bilangan untuk CNPJ"
 
-#~ msgid ""
-#~ "Connection with the VIES server failed. The VAT number %s could not be "
-#~ "validated."
-#~ msgstr ""
-#~ "Koneksi dengan server VIES gagal. Nomor PPN %s tidak dapat divalidasi."
-
-#~ msgid "The VAT number %s could not be interpreted by the VIES server."
-#~ msgstr "Nomor PPN %s tidak dapat ditafsirkan oleh server VIES."
-
-#~ msgid ""
-#~ "The request for VAT validation was not processed. VIES service has "
-#~ "responded with the following error: %s"
-#~ msgstr ""
-#~ "Permintaan untuk validasi PPN tidak diproses. Layanan VIES ditanggapi "
-#~ "dengan error berikut: %s"
-
-#~ msgid "17291716060 (NIN) or 1729171602 (VKN)"
-#~ msgstr "17291716060 (NIN) atau 1729171602 (VKN)"
-
-#~ msgid "Fiscal Position"
-#~ msgstr "Fiscal Position"
+#~ msgid "Error while checking the VAT number '%s' against the VIES service."
+#~ msgstr "Error selagi memeriksa nomor PPN '%s' terhadap layanan VIES."

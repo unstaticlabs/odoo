@@ -19,18 +19,18 @@ registry.category("web_tour.tours").add('survey_tour_test_survey_form_triggers',
         run: "edit Test survey",
     }, {
         content: "Add a first question",
-        trigger: "td.o_field_x2many_list_row_add a",
+        trigger: "td.o_field_x2many_list_row_add button",
         run: "click",
     }, {
         content: "Set the first question's title",
-        trigger: ".modal .modal-content .o_field_widget[name=title] input",
+        trigger: ".modal .modal-content .o_field_widget[name=title] textarea",
         run: "edit Question 1",
     },
     ...addTwoAnswers(),
     ...saveAndNew(),
     {
         content: "Set the second question's title",
-        trigger: ".modal .o_field_widget[name=title] input",
+        trigger: ".modal .o_field_widget[name=title] textarea",
         run: "edit Question 2",
     },
     ...addTwoAnswers(),
@@ -48,7 +48,7 @@ registry.category("web_tour.tours").add('survey_tour_test_survey_form_triggers',
     ...saveAndNew(),
     {
         content: "Set the third question's title",
-        trigger: ".modal .o_field_widget[name=title] input",
+        trigger: ".modal .o_field_widget[name=title] textarea",
         run: "edit Question 3",
     },
     ...addTwoAnswers(),
@@ -238,7 +238,7 @@ function addTwoAnswers() {
         {
             content: "Add the first answer",
             trigger:
-                ".modal div[name=suggested_answer_ids] .o_field_x2many_list_row_add a",
+                ".modal div[name=suggested_answer_ids] .o_field_x2many_list_row_add button",
             run: "click",
         },
         {
@@ -248,7 +248,7 @@ function addTwoAnswers() {
         {
             content: "Add the second answer",
             trigger:
-                ".modal div[name=suggested_answer_ids] .o_field_x2many_list_row_add a",
+                ".modal div[name=suggested_answer_ids] .o_field_x2many_list_row_add button",
             run: "click",
         },
         {
@@ -278,12 +278,12 @@ function changeTab(tabName) {
     return [
         {
             content: `Go to ${tabName} tab`,
-            trigger: `.modal .modal-content a[name=${tabName}].nav-link`,
+            trigger: `.modal .modal-content button[name=${tabName}].nav-link`,
             run: "click",
         },
         {
             content: `Wait for tab ${tabName} tab`,
-            trigger: `.modal .modal-content a[name=${tabName}].nav-link.active`,
+            trigger: `.modal .modal-content button[name=${tabName}].nav-link.active`,
         },
     ];
 }

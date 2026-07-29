@@ -10,18 +10,18 @@
 # Raymond Yu <cl_yu@hotmail.com>, 2022
 # digitalliuzg8888, 2022
 # Jeffery CHEN <jeffery9@gmail.com>, 2022
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
 # "Chloe Wang (chwa)" <chwa@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-19 17:35+0000\n"
-"PO-Revision-Date: 2026-06-30 23:48+0000\n"
-"Last-Translator: \"Chloe Wang (chwa)\" <chwa@odoo.com>\n"
+"POT-Creation-Date: 2026-07-03 17:35+0000\n"
+"PO-Revision-Date: 2026-06-13 17:35+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.odoo.com/"
-"projects/odoo-19/website_slides/zh_Hans/>\n"
+"projects/odoo-s19-2/website_slides/zh_Hans/>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -123,7 +123,6 @@ msgstr "% 已完成的内容"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_my
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
 msgid "&amp;nbsp;"
 msgstr "&amp;nbsp;"
 
@@ -159,7 +158,6 @@ msgstr "（例：https://youtube/ABC）。"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/slide_archive.js:0
-#: code:addons/website_slides/static/src/js/slides_course_slides_list.js:0
 msgid "(empty)"
 msgstr "(空白)"
 
@@ -240,15 +238,39 @@ msgid ""
 "out=\"object.channel_id.name or ''\">Basics of Gardening</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Click here to start the course </t> <t t-"
+"else=\"\"> Click here to get started </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Enjoy this exclusive content!\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        您好！<br/><br/>\n"
-"        您已报名参加一门新课程：<t t-out=\"object.channel_id.name or ''\">园"
-"艺基础</t>。\n"
-"    </p>\n"
+"        您好<br/><br/>\n"
+"        您已注册了一门新课程：<t t-out=\"object.channel_id.name or ''\">园艺"
+"基础</t> 。\n"
+"   </p>\n"
+"</div> \n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"       <t t-if=\"enroll_mode\"> 点击此处开始课程</t> <t t-else=\"\"> 点击此处"
+"开始</t>\n"
+"    </a>\n"
 "</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    尽情享受这些独家内容吧！\n"
+"</div>\n"
+"<div>&amp;nbsp;</div> \n"
 "            "
 
 #. module: website_slides
@@ -261,15 +283,39 @@ msgid ""
 "out=\"object.channel_id.name or ''\">Basics of Gardening</t>.\n"
 "    </p>\n"
 "</div>\n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"        <t t-if=\"enroll_mode\"> Click here to start the course </t> <t t-"
+"else=\"\"> Click here to get started </t>\n"
+"    </a>\n"
+"</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    Enjoy this exclusive content!\n"
+"</div>\n"
+"<div>&amp;nbsp;</div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
 "    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        您好！<br/><br/>\n"
-"        您已获邀查看此課程：<t t-out=\"object.channel_id.name or ''\">园艺基"
-"础</t>。\n"
-"    </p>\n"
+"        您好<br/><br/>\n"
+"        您已被邀请查看这门课程：<t t-out=\"object.channel_id.name or ''\">园"
+"艺基础</t>.\n"
+"   </p>\n"
+"</div> \n"
+"<div style=\"margin: 32px 0px 32px 0px;\">\n"
+"    <a t-att-href=\"object.invitation_link\" style=\"background-color: "
+"#875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; "
+"border-radius: 5px; font-size:13px;\">\n"
+"       <t t-if=\"enroll_mode\"> 点击此处开始课程</t> <t t-else=\"\"> 点击此处"
+"开始</t>\n"
+"    </a>\n"
 "</div>\n"
+"<div style=\"margin: 0px; padding: 0px; font-size:13px;\">\n"
+"    尽情享受这些独家内容吧！\n"
+"</div>\n"
+"<div>&amp;nbsp;</div> \n"
 "            "
 
 #. module: website_slides
@@ -296,47 +342,45 @@ msgid ""
 "                            </a>\n"
 "                        </div>\n"
 "                        Enjoy this exclusive content!\n"
-"                        <t t-if=\"object.channel_id.user_id.signature\" data-"
-"o-mail-quote-container=\"1\">\n"
+"                        <t t-if=\"object.channel_id.user_id.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\" data-o-"
-"mail-quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\">Mitchell "
+"Admin</t></div>\n"
 "                        </t>\n"
 "                    </div>\n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <div style=\"margin: 0px; padding: 0px; font-size: "
-"13px;\">\n"
-"                        <p style=\"margin: 0px;\"><t t-"
-"out=\"object.partner_id.name or ''\">Brandon Freeman</t> 您好！</p><br/>\n"
-"                        <p><b>恭喜！</b></p>\n"
-"                        <p>您已完成以下课程： <b t-"
-"out=\"object.channel_id.name or ''\">园艺基础</b></p>\n"
-"                        <p>看看其他可以报名的课程。</p><br/>\n"
+"                    <div style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                       <p style=\"margin: 0px;\"> 您好<t t-"
+"out=\"object.partner_id.name or ''\">Brandon Freeman</t>,</p><br/>\n"
+"                       <p><b> 恭喜！</b></p>\n"
+"                       <p> 您已完成课程<b t-out=\"object.channel_id.name or "
+"''\">园艺基础</b></p>\n"
+"                       <p> 查看其他可用课程。</p><br/>\n"
 "\n"
-"                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
+"                       <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
 "                            <a href=\"/slides\" t-attf-style=\"background-"
 "color: {{object.channel_id.user_id.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{object.channel_id.user_id.company_id.email_primary_color or '#FFFFFF'}}; "
-"border-radius: 5px;\">\n"
+"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
+"{{object.channel_id.user_id.company_id.email_primary_color or '#FFFFFF'}}; "
+"border-radius: 5px;\"> \n"
 "                                探索课程\n"
-"                            </a>\n"
-"                        </div>\n"
-"                        希望你喜欢这个独家内容！\n"
-"                        <t t-if=\"object.channel_id.user_id.signature\" data-"
-"o-mail-quote-container=\"1\">\n"
-"                            <br/>\n"
-"                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\" data-o-"
-"mail-quote=\"1\">Mitchell Admin</t></div>\n"
-"                        </t>\n"
-"                    </div>\n"
-"                </div>\n"
+"                           </a>\n"
+"                        </div> \n"
+"                        尽情享受这些独家内容！\n"
+"                       <t t-if=\"object.channel_id.user_id.signature\">\n"
+"                            <br/> \n"
+"                           <div data-o-mail-quote=\"1\"> --<br data-o-mail-"
+"quote=\"1\"/><t t-out=\"object.channel_id.user_id.signature or ''\">Mitchell "
+"Admin</t></div>\n"
+"                       </t>\n"
+"                    </div> \n"
+"               </div> \n"
 "            "
 
 #. module: website_slides
@@ -366,29 +410,27 @@ msgid ""
 "                                View <strong t-out=\"object.name or "
 "''\">Document</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        您好<br/><br/>\n"
-"                        <t t-out=\"user.name or ''\">Mitchell Admin</t>已与您"
-"分享 <strong t-out=\"object.name or ''\">文件</strong>！\n"
+"                        <t t-out=\"user.name or ''\">Mitchell Admin</t> 向您"
+"分享了文档：<strong t-out=\"object.name or ''\">document</strong>。\n"
 "                        </p><div style=\"margin: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
 "                            <a t-att-href=\"object.website_absolute_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.channel/{{ object.id }}/image_256\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.channel/{{ object.id }}/"
+"image_256\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
@@ -398,15 +440,13 @@ msgstr ""
 "'#875A7B'}}; padding: 8px 16px 8px 16px;                                 "
 "text-decoration: none; color: {{user.company_id.email_primary_color or "
 "'#FFFFFF'}}; border-radius: 5px;\">\n"
-"                                查看<strong t-out=\"object.name or ''\">文"
-"件</strong></a>\n"
+"                                查看 <strong t-out=\"object.name or ''\">文档"
+"</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-quote=\"1\">"
-"Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -440,47 +480,44 @@ msgid ""
 "{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;"
 "\">View <strong t-out=\"object.name or ''\">Trees</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        您好<br/><br/>\n"
-"                        <t t-out=\"user.name or ''\">Mitchell Admin</t> 与您"
+"                        <t t-out=\"user.name or ''\">Mitchell Admin</t> 向您"
 "分享了 <t t-out=\"object.slide_category or ''\">文档</t> <strong t-"
-"out=\"object.name or ''\">树</strong> ！\n"
+"out=\"object.name or ''\">Trees</strong>！\n"
 "                        </p><div style=\"margin: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
-"                            <a t-att-href=\"(object.website_share_url + "
-"'?fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                            <a t-att-href=\"(object.website_share_url + '?"
+"fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\">\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/"
+"image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
-"                            <a t-att-href=\"(object.website_share_url + "
-"'?fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\" t-"
+"                            <a t-att-href=\"(object.website_share_url + '?"
+"fullscreen=1') if ctx.get('fullscreen') else object.website_share_url\" t-"
 "attf-style=\"background-color: {{user.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;\">查"
-"看 <strong t-out=\"object.name or ''\">树</strong></a>\n"
+"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
+"{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;\">"
+"查看 <strong t-out=\"object.name or ''\">Trees</strong></a>\n"
 "                        </div>\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/></t>Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -518,51 +555,48 @@ msgid ""
 "radius: 5px;\">View content</a>\n"
 "                        </div>\n"
 "                        Enjoy this exclusive content!\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/><t t-out=\"user.signature or ''\" data-o-mail-"
-"quote=\"1\">Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
 "            "
 msgstr ""
 "<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
-"\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
 "                        您好<br/><br/>\n"
-"                        您正在学习的课程“<strong t-"
-"out=\"object.channel_id.name or ''\">树木、树林和花园</strong>” 有一些新内容"
-"：<br/><br/>\n"
-"                        </p><center><strong t-out=\"object.name or ''\">树</"
-"strong></center>\n"
+"                        您正在学习的课程 <strong t-"
+"out=\"object.channel_id.name or ''\">树木、木材与园艺</strong>有新内容更新："
+"<br/><br/>\n"
+"                        </p><center><strong t-out=\"object.name or ''\">树木"
+"</strong></center>\n"
 "                        <t t-if=\"object.image_1024\">\n"
 "                            <div style=\"padding: 16px 8px 16px 8px; text-"
 "align: center;\">\n"
 "                                <a t-att-href=\"object.website_share_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{"
-"{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" "
-"style=\"height:auto; width:150px; margin: 16px;\"/>\n"
+"                                <img t-att-alt=\"object.name\" t-attf-"
+"src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/"
+"image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
 "                            </a>\n"
 "                        </div>\n"
 "                        </t>\n"
 "                        <div style=\"padding: 16px 8px 16px 8px; text-align: "
 "center;\">\n"
 "                            <a t-att-href=\"object.website_share_url\" t-"
-"attf-style=\"background-color: {"
-"{object.user_id.company_id.email_secondary_color or '#875A7B'}}; padding: "
-"8px 16px 8px 16px; text-decoration: none; color: {"
-"{object.user_id.company_id.email_primary_color or '#FFFFFF'}}; border-"
+"attf-style=\"background-color: "
+"{{object.user_id.company_id.email_secondary_color or '#875A7B'}}; padding: "
+"8px 16px 8px 16px; text-decoration: none; color: "
+"{{object.user_id.company_id.email_primary_color or '#FFFFFF'}}; border-"
 "radius: 5px;\">查看内容</a>\n"
 "                        </div>\n"
-"                        享受独家内容！\n"
-"                        <t t-if=\"user.signature\" data-o-mail-quote-"
-"container=\"1\">\n"
+"                        祝您学习愉快！\n"
+"                        <t t-if=\"user.signature\">\n"
 "                            <br/>\n"
 "                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
-"quote=\"1\"/></t>Mitchell Admin</t></div>\n"
+"quote=\"1\"/><t t-out=\"user.signature or ''\">Mitchell Admin</t></div>\n"
 "                        </t>\n"
 "                    \n"
 "                </div>\n"
@@ -717,8 +751,8 @@ msgid ""
 "<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" title=\"Quiz\"/"
 ">"
 msgstr ""
-"<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" "
-"title=\"Quiz\"/>"
+"<i class=\"fa fa-flag me-2\" aria-label=\"Quiz\" role=\"img\" title=\"Quiz\"/"
+">"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_aside_training_category
@@ -1136,13 +1170,13 @@ msgid ""
 msgstr ""
 "<span id=\"zoomout\" class=\"d-inline ms-2 me-2\" title=\"Zoom out\" aria-"
 "label=\"Zoom out\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-minus\"/>"
-"\n"
+"                                            <i class=\"fa fa-search-minus\"/"
+">\n"
 "                                        </span>\n"
 "                                        <span id=\"zoomin\" class=\"d-"
 "inline\" title=\"Zoom in\" aria-label=\"Zoom in\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-plus\"/>"
-"\n"
+"                                            <i class=\"fa fa-search-plus\"/"
+">\n"
 "                                        </span>"
 
 #. module: website_slides
@@ -1151,8 +1185,8 @@ msgid ""
 "<span name=\"done_members_count_label\" class=\"text-muted text-truncate "
 "mw-100\" title=\"Finished\">Finished</span>"
 msgstr ""
-"<span name=\"done_members_count_label\" class=\"text-muted text-truncate mw-"
-"100\" title=\"Finished\">已完成</span>"
+"<span name=\"done_members_count_label\" class=\"text-muted text-truncate "
+"mw-100\" title=\"Finished\">已完成</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -1240,6 +1274,11 @@ msgstr "<strong>还没有参会者！</strong>"
 #: model_terms:ir.actions.act_window,help:website_slides.slide_channel_partner_action_report
 msgid "<strong>No Attendees Yet!</strong>"
 msgstr "<strong>还没有参会者！</strong>"
+
+#. module: website_slides
+#: model_terms:ir.actions.act_window,help:website_slides.slide_channel_partner_action_report_certified
+msgid "<strong>No Certified Attendees Yet!</strong>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
@@ -1428,6 +1467,12 @@ msgid "Activity Exception Decoration"
 msgstr "活动异常标示"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__activity_plans_ids
+#, fuzzy
+msgid "Activity Plans"
+msgstr "活动计划"
+
+#. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__activity_state
 msgid "Activity State"
 msgstr "活动状态"
@@ -1495,13 +1540,13 @@ msgstr "添加标签"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Add an answer below this one"
 msgstr "在此下方添加答案"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Add comment on this answer"
 msgstr "对该答案添加评价"
 
@@ -1565,7 +1610,7 @@ msgstr "您将会失去所有课程进度，除非您重新加入本课程。"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "All questions must be answered!"
 msgstr "必须回答所有问题！"
 
@@ -1733,7 +1778,7 @@ msgstr "您确定要删除此类别吗？"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 msgid "Are you sure you want to delete this question \"%(title)s\"?"
 msgstr ""
 
@@ -1777,6 +1822,11 @@ msgid "Attendee"
 msgstr "參加者"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_new_attendees
+msgid "Attendee Registrations"
+msgstr ""
+
+#. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__member_status
 msgid "Attendee Status"
 msgstr "出席者状态"
@@ -1807,6 +1857,22 @@ msgstr "与会者的 %s"
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__enroll_group_ids
 msgid "Auto Enroll Groups"
 msgstr "自动组队"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__publish_on
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_tag_group__publish_on
+#: model:ir.model.fields,field_description:website_slides.field_slide_slide__publish_on
+#, fuzzy
+msgid "Auto publish on"
+msgstr "自动发布于"
+
+#. module: website_slides
+#: model:ir.model.fields,help:website_slides.field_slide_channel__publish_on
+#: model:ir.model.fields,help:website_slides.field_slide_channel_tag_group__publish_on
+#: model:ir.model.fields,help:website_slides.field_slide_slide__publish_on
+#, fuzzy
+msgid "Automatically publish the page on the chosen date and time."
+msgstr "在选定的日期和时间自动发布该页面。"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__rating_avg
@@ -1929,12 +1995,7 @@ msgstr "不可以被标记为未完成"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/interactions/category_add.js:0
-#: code:addons/website_slides/static/src/interactions/category_delete.js:0
-#: code:addons/website_slides/static/src/interactions/enroll_email.js:0
-#: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
-#: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_invite_view_form
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Cancel"
 msgstr "取消"
 
@@ -1967,10 +2028,20 @@ msgid "Certifications"
 msgstr "认证"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_certified_attendees
+msgid "Certified Attendees"
+msgstr ""
+
+#. module: website_slides
 #: model:gamification.badge,name:website_slides.badge_data_certification
 #: model:gamification.goal.definition,name:website_slides.badge_data_certification_goal
 msgid "Certified Knowledge"
 msgstr "认证知识"
+
+#. module: website_slides
+#: model:ir.actions.act_window,name:website_slides.slide_channel_partner_action_report_certified
+msgid "Certified attendees"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_partner__channel_id
@@ -2004,8 +2075,8 @@ msgstr "频道类型"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag_group
-msgid "Channel/Course Groups"
-msgstr "频道/课程组"
+msgid "Channel/Course Group"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag
@@ -2081,17 +2152,6 @@ msgid "Click <b>Save</b> to create it."
 msgstr "点击<b>储存</b>以创建它。"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Click here to get started"
-msgstr "单击此处开始"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Click here to start the course"
-msgstr "点击这里开始课程"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.courses_home
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_search_results
 msgid "Click on \"New\" in the top-right corner to write your first course."
 msgstr "单击右上角的“新建”以编写您的第一个课程。"
@@ -2255,6 +2315,12 @@ msgid "Completion Time"
 msgstr "完成时间"
 
 #. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__completion_date
+#: model:ir.model.fields,help:website_slides.field_slide_channel_partner__completion_date
+msgid "Completion date"
+msgstr ""
+
+#. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_invite_view_form
 msgid "Compose Email"
 msgstr "撰写邮件"
@@ -2282,8 +2348,8 @@ msgid ""
 "available here. The tag \"<b>New</b>\" indicates that this lesson was "
 "created less than 7 days ago."
 msgstr ""
-"偶买噶，您真棒!  第一课可以上啦，现在咱们来看看可用选项吧。 这 \"<b>New</b>"
-"\" 标签表示这个课程是在7天前创建的。"
+"偶买噶，您真棒!  第一课可以上啦，现在咱们来看看可用选项吧。 这 \"<b>New</"
+"b>\" 标签表示这个课程是在7天前创建的。"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slides_home_user_profile_small
@@ -2814,7 +2880,7 @@ msgstr "删除分类"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 msgid "Delete Question"
 msgstr "删除题目"
 
@@ -2839,8 +2905,15 @@ msgid "Did you read the whole article?"
 msgstr "您读了整篇文章吗？"
 
 #. module: website_slides
+#: model:ir.model,name:website_slides.model_digest_digest
+#, fuzzy
+msgid "Digest"
+msgstr "摘要"
+
+#. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_unsubscribe_dialog/slide_unsubscribe_dialog.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
 msgid "Discard"
 msgstr "丢弃"
 
@@ -2865,6 +2938,7 @@ msgstr "显示"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_base_partner_merge_automatic_wizard__display_name
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:website_slides.field_gamification_challenge__display_name
 #: model:ir.model.fields,field_description:website_slides.field_gamification_karma_tracking__display_name
 #: model:ir.model.fields,field_description:website_slides.field_mail_activity__display_name
@@ -3119,11 +3193,6 @@ msgstr "结束课程"
 #: model:slide.slide,name:website_slides.slide_slide_demo_1_2
 msgid "Energy Efficiency Facts"
 msgstr "能源效率事实"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Enjoy this exclusive content!"
-msgstr "享受独家内容！"
 
 #. module: website_slides
 #. odoo-python
@@ -3455,7 +3524,7 @@ msgstr "Google 云端硬盘："
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/activity/activity_patch.xml:0
+#: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
 msgid "Grant Access"
 msgstr "授予访问权限"
 
@@ -3588,6 +3657,7 @@ msgstr "如何做"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_base_partner_merge_automatic_wizard__id
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__id
 #: model:ir.model.fields,field_description:website_slides.field_gamification_challenge__id
 #: model:ir.model.fields,field_description:website_slides.field_gamification_karma_tracking__id
 #: model:ir.model.fields,field_description:website_slides.field_mail_activity__id
@@ -3932,7 +4002,7 @@ msgstr ""
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "Join & Submit"
 msgstr "加入 & 提交"
 
@@ -3949,8 +4019,6 @@ msgid "Join the course to take the quiz and verify your answers!"
 msgstr "加入课程，参加测验并验证您的答案!"
 
 #. module: website_slides
-#. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 #: model_terms:ir.ui.view,arch_db:website_slides.join_course_link
 msgid "Join this Course"
@@ -4020,6 +4088,16 @@ msgid ""
 "Knowing wood characteristics is a requirement in order to know which kind of "
 "wood to use in a given situation."
 msgstr "了解木材特性是一项要求，以便知道在特定情况下使用哪种木材。"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_certified_attendees_value
+msgid "Kpi Nbr Of Certified Attendees Value"
+msgstr ""
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_digest_digest__kpi_nbr_of_new_attendees_value
+msgid "Kpi Nbr Of New Attendees Value"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__lang
@@ -4233,7 +4311,7 @@ msgstr "标记完成"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_non_fullscreen.js:0
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
 msgid "Mark To Do"
 msgstr "标记为待办事项"
@@ -4282,8 +4360,9 @@ msgstr "菜单项"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_base_partner_merge_automatic_wizard
+#, fuzzy
 msgid "Merge Partner Wizard"
-msgstr ""
+msgstr "合并业务伙伴向导"
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_mail_message
@@ -4323,8 +4402,8 @@ msgid ""
 "Mighty forest just don't appear in a few weeks. Learn how time made our "
 "forests mighty and mysterious."
 msgstr ""
-"伟大的森林不是在几个星期内出现的。了解时间是如何使我们的森林变得强大和神秘的"
-"。"
+"伟大的森林不是在几个星期内出现的。了解时间是如何使我们的森林变得强大和神秘"
+"的。"
 
 #. module: website_slides
 #. odoo-javascript
@@ -4469,7 +4548,7 @@ msgstr "下一课程"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_0_1
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_1_1
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_2_0_question_0_1
@@ -4491,7 +4570,6 @@ msgid "No Attendees Yet!"
 msgstr "还没有参会者!"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.courses_home
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_search_results
 msgid "No Course created yet."
 msgstr "尚未创建课程。"
@@ -4655,11 +4733,6 @@ msgid "Numbers of Questions"
 msgstr "问题数量"
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Odoo"
-msgstr "Odoo"
-
-#. module: website_slides
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_1_4
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_2_1
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_4_0
@@ -4706,12 +4779,15 @@ msgstr "打开"
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_invite__lang
+#, fuzzy
 msgid ""
 "Optional translation language (ISO code) to select when sending out an "
 "email. If not set, the main partner's language will be used. This should "
 "usually be a placeholder expression that provides the appropriate language, "
 "e.g. {{ object.partner_id.lang }}."
 msgstr ""
+"发送邮件时可选的翻译语言（ISO代码）。未设置时默认采用主联系人语言。推荐使用动"
+"态占位符如 {{ object.partner_id.lang }} 自动匹配语言。"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -4762,8 +4838,8 @@ msgstr "透视表"
 
 #. module: website_slides
 #. odoo-javascript
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
@@ -4805,7 +4881,7 @@ msgstr "请输入有效电子邮件地址"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz_question_form.js:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.js:0
 msgid "Please fill in the question"
 msgstr "请填写问题"
 
@@ -4825,11 +4901,6 @@ msgstr "积分奖励"
 #: model:gamification.goal.definition,name:website_slides.badge_data_course_goal
 msgid "Power User"
 msgstr "超级用户"
-
-#. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Powered by"
-msgstr "技术提供"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__prerequisite_of_channel_ids
@@ -4920,11 +4991,6 @@ msgid "Publication Date"
 msgstr "发布日期"
 
 #. module: website_slides
-#: model:ir.model.fields,field_description:website_slides.field_slide_slide__date_published
-msgid "Publish Date"
-msgstr "发布日期"
-
-#. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_kanban
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_search
@@ -4942,6 +5008,14 @@ msgstr "发布的内容"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_slide_form
 msgid "Published Date"
+msgstr "发布日期"
+
+#. module: website_slides
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel__published_date
+#: model:ir.model.fields,field_description:website_slides.field_slide_channel_tag_group__published_date
+#: model:ir.model.fields,field_description:website_slides.field_slide_slide__published_date
+#, fuzzy
+msgid "Published date"
 msgstr "发布日期"
 
 #. module: website_slides
@@ -5081,7 +5155,7 @@ msgstr "收件人"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/activity/activity_patch.xml:0
+#: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
 msgid "Refuse Access"
 msgstr "访问模式"
 
@@ -5098,13 +5172,13 @@ msgstr "相关的"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Remove the answer comment"
 msgstr "删除答案的评论"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Remove this answer"
 msgstr "删除此答案"
 
@@ -5201,6 +5275,7 @@ msgstr "重试"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.profile_access_denied
+#, fuzzy
 msgid "Return to the course."
 msgstr "返回课程。"
 
@@ -5291,7 +5366,7 @@ msgstr "示例"
 #: code:addons/website_slides/static/src/interactions/category_add.js:0
 #: code:addons/website_slides/static/src/js/public/components/slide_unsubscribe_dialog/slide_unsubscribe_dialog.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_category.xml:0
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Save"
 msgstr "保存"
 
@@ -5407,7 +5482,7 @@ msgstr "选择或创建标签"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Select the correct answer below:"
 msgstr "选择下方正确答案："
 
@@ -5640,6 +5715,7 @@ msgid "Signed In"
 msgstr "已登录"
 
 #. module: website_slides
+#: model:ir.model,name:website_slides.model_slide_slide
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide_resource__slide_id
 msgid "Slide"
 msgstr "幻灯片"
@@ -5691,7 +5767,6 @@ msgstr "提交所有好答案时，必须将带问题的幻灯片标记为已完
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/website_slides_fullscreen.xml:0
-#: model:ir.model,name:website_slides.model_slide_slide
 #: model_terms:ir.ui.view,arch_db:website_slides.res_config_settings_view_form
 msgid "Slides"
 msgstr "幻灯片"
@@ -6030,7 +6105,7 @@ msgstr "目前没有评论。赚取更多业力成为第一个发表评论的人
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "There was an error validating this quiz."
 msgstr "验证此测试时出错。"
 
@@ -6094,13 +6169,13 @@ msgstr "此邀请链接不用于此联系人。"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "This is the correct answer"
 msgstr "这就是正确答案"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "This is the correct answer, congratulations"
 msgstr "这是正确的答案，恭喜你"
 
@@ -6113,7 +6188,7 @@ msgstr "本题必须至少有一个正确答案和一个错误答案。"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "This quiz is already done. Retaking it is not possible."
 msgstr "这个测验已经做完了, 不允许重新开始。"
 
@@ -6273,7 +6348,7 @@ msgstr "未知的网站"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/slide_like.js:0
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_join.js:0
 msgid "Unknown error"
 msgstr "未知错误"
 
@@ -6299,7 +6374,7 @@ msgstr "未发布"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "Update"
 msgstr "更新"
 
@@ -6617,8 +6692,8 @@ msgid ""
 "Welcome on your course's home page. It's still empty for now. Click on "
 "\"<b>New</b>\" to write your first course."
 msgstr ""
-"欢迎来到您的课程主页。它现在还是空的。点击<b>\"新建</b>\"来编写您的第一个课程"
-"。"
+"欢迎来到您的课程主页。它现在还是空的。点击<b>\"新建</b>\"来编写您的第一个课"
+"程。"
 
 #. module: website_slides
 #: model:slide.question,question:website_slides.slide_slide_demo_0_4_question_0
@@ -6692,8 +6767,8 @@ msgid ""
 "Write one or two paragraphs describing your product or services. <br>To be "
 "successful your content needs to be useful to your readers."
 msgstr ""
-"写一或两段话来描述您的产品或服务。<br>要取得成功，您的内容需要对您的读者有用"
-"。"
+"写一或两段话来描述您的产品或服务。<br>要取得成功，您的内容需要对您的读者有"
+"用。"
 
 #. module: website_slides
 #: model_terms:slide.slide,html_content:website_slides.slide_slide_demo_1_4
@@ -6718,7 +6793,7 @@ msgstr "经验值"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/interactions/enroll_email.js:0
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz_edit.js:0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_0_0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_1_4_question_1_0
 #: model:slide.answer,text_value:website_slides.slide_slide_demo_2_0_question_0_0
@@ -6741,7 +6816,8 @@ msgstr "您不能为该课程添加成员。请联系课程负责人或管理员
 msgid ""
 "You can add <b>comments</b> on answers. This will be visible with the "
 "results if the user select this answer."
-msgstr "您可以在答案上添加<b>评论</b>。如果用户选择这个答案，这将与结果一起可见。"
+msgstr ""
+"您可以在答案上添加<b>评论</b>。如果用户选择这个答案，这将与结果一起可见。"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_slide_form
@@ -6793,7 +6869,8 @@ msgstr "如果您不是其成员之一，则无法将幻灯片标记为已视图
 msgid ""
 "You cannot mark a slide quiz as completed if you are not among its members "
 "or it is unpublished."
-msgstr "如果您不是幻灯片测验的成员，或者该测验尚未发布，则无法将其标记为已完成。"
+msgstr ""
+"如果您不是幻灯片测验的成员，或者该测验尚未发布，则无法将其标记为已完成。"
 
 #. module: website_slides
 #. odoo-python
@@ -6801,7 +6878,8 @@ msgstr "如果您不是幻灯片测验的成员，或者该测验尚未发布，
 msgid ""
 "You cannot mark a slide quiz as not completed if you are not among its "
 "members or it is unpublished."
-msgstr "如果您不是幻灯片测验的成员，或者该测验尚未发布，则无法将其标记为未完成。"
+msgstr ""
+"如果您不是幻灯片测验的成员，或者该测验尚未发布，则无法将其标记为未完成。"
 
 #. module: website_slides
 #. odoo-python
@@ -6849,7 +6927,7 @@ msgstr "您获得了"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_join.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_join.js:0
 msgid "You have already joined this channel"
 msgstr "您已加入此频道"
 
@@ -6881,7 +6959,7 @@ msgstr "您现在可以参加我们的在线学习。"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/js/slides_course_quiz.js:0
+#: code:addons/website_slides/static/src/interactions/slides_course_quiz.js:0
 msgid "You must be logged to submit the quiz."
 msgstr "您必须登录才能提交测验。"
 
@@ -6925,9 +7003,16 @@ msgid "YouTube:"
 msgstr "YouTube："
 
 #. module: website_slides
-#: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
-msgid "Your"
-msgstr "您的"
+#. odoo-python
+#: code:addons/website_slides/wizard/slide_channel_invite.py:0
+msgid "Your %s"
+msgstr ""
+
+#. module: website_slides
+#. odoo-python
+#: code:addons/website_slides/wizard/slide_channel_invite.py:0
+msgid "Your document"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.actions.act_window,help:website_slides.slide_channel_action_overview
@@ -7039,7 +7124,7 @@ msgstr "课程"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 msgid "create an account"
 msgstr "创建一个账户"
 
@@ -7090,7 +7175,7 @@ msgstr "例如：“介绍”"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
+#: code:addons/website_slides/static/src/js/public/components/slides_course_quiz_question_form/slides_course_quiz_question_form.xml:0
 msgid "e.g. \"Which animal cannot fly?\""
 msgstr "例如：“什么动物不能飞行？”"
 
@@ -7128,6 +7213,7 @@ msgstr "例如：您的水平"
 #: code:addons/website_slides/controllers/main.py:0
 #: model:ir.ui.menu,name:website_slides.website_slides_menu_root
 #: model:res.groups.privilege,name:website_slides.res_groups_privilege_elearning
+#: model_terms:ir.ui.view,arch_db:website_slides.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:website_slides.res_config_settings_view_form
 msgid "eLearning"
 msgstr "在线学习"
@@ -7167,15 +7253,15 @@ msgstr "参加"
 
 #. module: website_slides
 #. odoo-javascript
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "login"
 msgstr "登录"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 #: model_terms:ir.ui.view,arch_db:website_slides.course_join
 msgid "or"
 msgstr "或"
@@ -7242,7 +7328,7 @@ msgstr "报名参加。"
 
 #. module: website_slides
 #. odoo-javascript
-#: code:addons/website_slides/static/src/xml/slide_course_join.xml:0
+#: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
 msgid "to join this course"
 msgstr "参加本课程"
 
@@ -7289,411 +7375,3 @@ msgstr "{{ user.name }} 跟您分享 {{ object.slide_category }} ！"
 #: model_terms:ir.ui.view,arch_db:website_slides.course_nav
 msgid "└<span class=\"ms-1\">Uncategorized</span>"
 msgstr "└<span class=\"ms-1\">未分类的</span>"
-
-#~ msgid ""
-#~ "<a t-attf-href=\"/slides/course-#{request.params.get('channel_id')}\" "
-#~ "class=\"o_translate_inline\">Return to the course.</a>"
-#~ msgstr ""
-#~ "<a t-attf-href=\"/slides/course-#{request.params.get('channel_id')}\" "
-#~ "class=\"o_translate_inline\">返回课程。</a>"
-
-#~ msgid ""
-#~ "Please <a t-attf-href=\"/odoo?redirect=#{request.httprequest.url}\" "
-#~ "class=\"fw-bold o_translate_inline\"> login </a> to share this"
-#~ msgstr ""
-#~ "请<a t-attf-href=\"/odoo?redirect=#{request.httprequest.url}\" class=\"fw-"
-#~ "bold o_translate_inline\">登入</a>以分享"
-
-#~ msgid "<i class=\"fa fa-comments\"/> Comments ("
-#~ msgstr "<i class=\"fa fa-comments\"/>评价("
-
-#~ msgid ". This way, they will be secured."
-#~ msgstr ". 这样，他们将得到保护."
-
-#~ msgid ""
-#~ "<i class=\"fa fa-desktop me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Fullscreen</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-desktop me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">全屏</span>"
-
-#~ msgid "<i class=\"fa fa-eraser\"/> Clear filters"
-#~ msgstr "<i class=\"fa fa-eraser\"/> 清除筛选"
-
-#~ msgid "<i class=\"fa fa-flag-checkered text-warning me-2\"/>Quiz"
-#~ msgstr "<i class=\"fa fa-flag-checkered text-warning me-2\"/>测试"
-
-#~ msgid "<i class=\"fa fa-graduation-cap me-1\"/>All courses"
-#~ msgstr "<i class=\"fa fa-graduation-cap me-1\"/>所有课程"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-share-alt me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">Share</span>"
-#~ msgstr ""
-#~ "<i class=\"fa fa-share-alt me-2\"/>\n"
-#~ "                <span class=\"d-none d-sm-inline-block\">分享</span>"
-
-#~ msgid ""
-#~ "<i class=\"fa fa-tag me-2 text-muted\"/>\n"
-#~ "                      My Courses"
-#~ msgstr ""
-#~ "<i class=\"fa fa-tag me-2 text-muted\"/>\n"
-#~ "                   我的课程"
-
-#~ msgid ""
-#~ "<small><span class=\"badge rounded-pill text-bg-success fw-normal\"><i "
-#~ "class=\"fa fa-check\"/> Completed</span></small>"
-#~ msgstr ""
-#~ "<small><span class=\"badge rounded-pill text-bg-success fw-normal\"><i "
-#~ "class=\"fa fa-check\"/>已完成</span></small>"
-
-#~ msgid ""
-#~ "<span class=\"badge fw-bold px-2 py-1 m-1 text-bg-warning\">\n"
-#~ "                            <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
-#~ "                        </span>"
-#~ msgstr ""
-#~ "<span class=\"badge fw-bold px-2 py-1 m-1 text-bg-warning\">\n"
-#~ "                             <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
-#~ "                        </span>"
-
-#~ msgid ""
-#~ "<span class=\"badge rounded-pill text-bg-success pull-right py-1 "
-#~ "px-2\"><i class=\"fa fa-check\"/> Completed</span>"
-#~ msgstr ""
-#~ "<span class=\"badge rounded-pill text-bg-success pull-right py-1 "
-#~ "px-2\"><i class=\"fa fa-check\"/>已完成</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-info badge-arrow-right fw-normal px-2 py-1 "
-#~ "m-1\">New</span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-info badge-arrow-right fw-normal px-2 py-1 "
-#~ "m-1\">新的</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-light badge-hide border fw-normal px-2 py-1 "
-#~ "m-1\">Add Quiz</span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-light badge-hide border fw-normal px-2 py-1 "
-#~ "m-1\">添加测试</span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 "
-#~ "m-1\"><span>Preview</span></span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 m-1\"><span>预览</"
-#~ "span></span>"
-
-#~ msgid ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 m-1\">Preview</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span class=\"badge text-bg-success fw-normal px-2 py-1 m-1\">预览</span>"
-
-#~ msgid "<span class=\"fw-bold text-muted me-2\">Current rank:</span>"
-#~ msgstr "<span class=\"fw-bold text-muted me-2\">当前排名：</span>"
-
-#~ msgid ""
-#~ "<span class=\"o_form_label\">Slides</span>\n"
-#~ "                    <span class=\"fa fa-lg fa-globe\" title=\"Values set "
-#~ "here are website-specific.\" groups=\"website.group_multi_website\"/>"
-#~ msgstr ""
-#~ "<span class=\"o_form_label\">幻灯片</span>\n"
-#~ "                    <span class=\"fa fa-lg fa-globe\" title=\"Values set "
-#~ "here are website-specific.\" groups=\"website.group_multi_website\"/>"
-
-#~ msgid "<span class=\"o_wslides_arrow\">New Content</span>"
-#~ msgstr "<span class=\"o_wslides_arrow\">新内容</span>"
-
-#~ msgid ""
-#~ "<span class=\"oi oi-arrow-right\"/>\n"
-#~ "                                Create a Google Project and Get a Key"
-#~ msgstr ""
-#~ "<span class=\"oi oi-arrow-right\"/>\n"
-#~ "                                创建 谷歌 项目并获取密钥"
-
-#~ msgid "<span class=\"text-500 mx-2\">•</span>"
-#~ msgstr "<span class=\"text-500 mx-2\">-</span>"
-
-#~ msgid ""
-#~ "<span id=\"zoomout\" class=\"d-none d-sm-inline ms-2 me-2\" title=\"Zoom "
-#~ "out\" aria-label=\"Zoom out\" role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "minus\"/>\n"
-#~ "                                        </span>\n"
-#~ "                                        <span id=\"zoomin\" class=\"d-"
-#~ "none d-sm-inline\" title=\"Zoom in\" aria-label=\"Zoom in\" "
-#~ "role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "plus\"/>\n"
-#~ "                                        </span>"
-#~ msgstr ""
-#~ "<span id=\"zoomout\" class=\"d-none d-sm-inline ms-2 me-2\" title=\"Zoom "
-#~ "out\" aria-label=\"Zoom out\" role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "minus\"/>\n"
-#~ "                                        </span>\n"
-#~ "                                        <span id=\"zoomin\" class=\"d-"
-#~ "none d-sm-inline\" title=\"Zoom in\" aria-label=\"Zoom in\" "
-#~ "role=\"button\">\n"
-#~ "                                            <i class=\"fa fa-search-"
-#~ "plus\"/>\n"
-#~ "                                        </span>"
-
-#~ msgid ""
-#~ "<span name=\"done_members_count_label\" class=\"text-muted\">Finished</"
-#~ "span>"
-#~ msgstr ""
-#~ "<span name=\"done_members_count_label\" class=\"text-muted\">完成</span>"
-
-#~ msgid "<strong>Sharing is caring!</strong> Email(s) sent."
-#~ msgstr "<strong>分享就是关怀！</strong>电子邮件已发出"
-
-#~ msgid ""
-#~ "A good course has a structure. Pick a name for your first section and "
-#~ "click <b>Save</b> to create it."
-#~ msgstr ""
-#~ "一个好的课程有一个结构。为您的第一部分选一个名字，然后点击<b>\"保存</"
-#~ "b>\"来创建它。"
-
-#~ msgid "Already installing \"%s\"."
-#~ msgstr "已经安装 \"%s\"."
-
-#~ msgid "Certification"
-#~ msgstr "认证"
-
-#~ msgid "Change video privacy settings"
-#~ msgstr "改变视频隐私设置"
-
-#~ msgid "Clear filters"
-#~ msgstr "清除筛选"
-
-#~ msgid "Click on the <b>Create</b> button to create your first course."
-#~ msgstr "点击 \"<b>创建</b>\"按钮，创建您的第一个课程。"
-
-#~ msgid "Contact us"
-#~ msgstr "联系我们"
-
-#~ msgid "Create new %s '%s'"
-#~ msgstr "创建新 %s '%s'"
-
-#~ msgid "Creation Date"
-#~ msgstr "创建时间"
-
-#~ msgid "Discover more"
-#~ msgstr "发现更多"
-
-#~ msgid "Do you want to install the \"%s\" app?"
-#~ msgstr "您想安装 \"%s\"应用程序吗？"
-
-#~ msgid "Email(s) sent."
-#~ msgstr "已发送的电子邮件"
-
-#~ msgid "Failed to install \"%s\"."
-#~ msgstr "无法安装 \"%s\"."
-
-#~ msgid "First, upload the file on your Google Drive account."
-#~ msgstr "首先，将文件上传到您的 Google 云端硬盘帐户。"
-
-#~ msgid "First, upload your videos on Vimeo and mark them as"
-#~ msgstr "首先，在Vimeo上上传您的视频并将其标记为"
-
-#~ msgid "First, upload your videos on YouTube and mark them as"
-#~ msgstr "首先，在YouTube上上传您的视频，并将它们标记为"
-
-#~ msgid "Group By"
-#~ msgstr "分组方式"
-
-#~ msgid "How to plant a potted tree"
-#~ msgstr "如何种植一棵盆栽树"
-
-#~ msgid "How to upload your PowerPoint Presentations or Word Documents?"
-#~ msgstr "如何上传您的PowerPoint演示文稿或Word文档？"
-
-#~ msgid "How to use Google Drive?"
-#~ msgstr "如何使用谷歌云端硬盘？"
-
-#~ msgid ""
-#~ "If you want to use other types of files, you may want to use an external "
-#~ "source (Google Drive) instead."
-#~ msgstr ""
-#~ "如果您想使用其他类型的文件，则可能需要改用外部来源（Google 云端硬盘）。"
-
-#~ msgid "Installing \"%s\"."
-#~ msgstr "安装 \"%s\"."
-
-#~ msgid "Interesting Tree Facts"
-#~ msgstr "有趣的树木事实"
-
-#~ msgid "Most popular courses"
-#~ msgstr "最受欢迎的课程"
-
-#~ msgid "My Courses"
-#~ msgstr "我的课程"
-
-#~ msgid "New Certification"
-#~ msgstr "新认证"
-
-#~ msgid "New Content Ribbon"
-#~ msgstr "新内容功能区"
-
-#~ msgid "Newest courses"
-#~ msgstr "最新课程"
-
-#~ msgid "Next rank:"
-#~ msgstr "下一个排名："
-
-#~ msgid "Number of messages which requires an action"
-#~ msgstr "需要作业消息数量"
-
-#~ msgid "On Google Drive"
-#~ msgstr "Google网盘"
-
-#~ msgid "On Vimeo"
-#~ msgstr "Vimeo"
-
-#~ msgid "On YouTube"
-#~ msgstr "Youtube"
-
-#~ msgid ""
-#~ "Optional translation language (ISO code) to select when sending out an "
-#~ "email. If not set, the english version will be used. This should usually "
-#~ "be a placeholder expression that provides the appropriate language, e.g. "
-#~ "{{ object.partner_id.lang }}."
-#~ msgstr ""
-#~ "发送邮件时可选择的翻译代码（ISO 代码）。如果未设置，将使用英文版本。一般使"
-#~ "用占位符确定适当语言，例如{{ object.partner_id.lang }}。"
-
-#~ msgid ""
-#~ "Please <a href=\"/web/login?redirect=%s\">login</a> or <a href=\"/web/"
-#~ "signup?redirect=%s\">create an account</a> to vote for this lesson"
-#~ msgstr ""
-#~ "请 <a href=\"/web/login?redirect=%s\">登录</a> 或 <a href=\"/web/signup?"
-#~ "redirect=%s\">创建一个帐户</a> 为本课程投票"
-
-#~ msgid ""
-#~ "Please <a href=\"/web/login?redirect=%s\">login</a> to vote for this "
-#~ "lesson"
-#~ msgstr "请 <a href=\"/web/login?redirect=%s\">登录</a> 为本课程投票"
-
-#~ msgid "Question \"%s\" must have 1 correct answer"
-#~ msgstr "问题 \"%s\" 必须有1个正确答案"
-
-#~ msgid ""
-#~ "Question \"%s\" must have 1 correct answer and at least 1 incorrect answer"
-#~ msgstr "问题\"%s\"必须有1个正确答案和至少1个不正确答案"
-
-#~ msgid "Reach new heights"
-#~ msgstr "创造新记录"
-
-#~ msgid "Restrict publishing to this website."
-#~ msgstr "限制发布到本网站。"
-
-#~ msgid "Save & Publish"
-#~ msgstr "保存和发布"
-
-#~ msgid "Save your presentations or documents as PDF files and upload them."
-#~ msgstr "将您的演讲或文件保存为PDF文件并上传。"
-
-#~ msgid "Share This Course"
-#~ msgstr "分享此课程"
-
-#~ msgid "Share on Twitter"
-#~ msgstr "分享至 Twitter"
-
-#~ msgid ""
-#~ "Skill up and have an impact! Your business career starts here.<br/>Time "
-#~ "to start a course."
-#~ msgstr ""
-#~ "掌握技能并产生影响!您的商业生涯从这里开始。<br/>，是时候开始一个课程了。"
-
-#~ msgid "Start your online course today!"
-#~ msgstr "今天就开始您的线上课程!"
-
-#~ msgid "Tag Group (required for new tags)"
-#~ msgstr "标签组(新标签需要)"
-
-#~ msgid ""
-#~ "The Google Drive link to use here can be obtained by clicking the "
-#~ "\"Share\" button in the Google interface."
-#~ msgstr ""
-#~ "要在此处使用的Google Drive链接可以通过点击Google界面中的”共享“按钮获得。"
-
-#~ msgid "The full URL to access the document through the website."
-#~ msgstr "通过网站访问文档的完整网址。"
-
-#~ msgid ""
-#~ "The video link to input here can be obtained by using the 'share' button "
-#~ "in the Vimeo interface."
-#~ msgstr "这里输入的视频链接可以通过使用Vimeo界面中的\"共享\"按钮获得。"
-
-#~ msgid ""
-#~ "Then, go into the file permissions and set it as \"Anyone with the link\"."
-#~ msgstr "然后，进入文件权限并将其设置为\"任何有链接的人\"。"
-
-#~ msgid ""
-#~ "Through Google Drive, we support most common types of documents.\n"
-#~ "                                        Including regular documents "
-#~ "(Google Doc, .docx), Sheets (Google Sheet, .xlsx), PowerPoints, ..."
-#~ msgstr ""
-#~ "通过Google Drive，我们支持大多数常见类型的文档。\n"
-#~ "                                        包括常规文档（Google "
-#~ "Doc，.docx），表格（Google表格，。xlsx），Powerpoint，.."
-
-#~ msgid "Tree Infographic"
-#~ msgstr "树木信息图"
-
-#~ msgid "Tree planting in hanging bottles on wall"
-#~ msgstr "在墙上的吊瓶中植树"
-
-#~ msgid "What does"
-#~ msgstr "什么是"
-
-#~ msgid "What types of documents do we support?"
-#~ msgstr "我们支持什么类型的文档？"
-
-#~ msgid "When using local files, we only support PDF files."
-#~ msgstr "使用本地文件时，我们只支持PDF文件。"
-
-#~ msgid "Your Level"
-#~ msgstr "您的等级"
-
-#~ msgid "Your Role"
-#~ msgstr "您的角色"
-
-#~ msgid "achieved"
-#~ msgstr "达到"
-
-#~ msgid "for 'Private' videos and similar to"
-#~ msgstr "对于“私享”视频，以及类似"
-
-#~ msgid "for public ones."
-#~ msgstr "对于公共的。"
-
-#~ msgid "https://vimeo.com/558907333/30da9ff3d8"
-#~ msgstr "https://vimeo.com/558907333/30da9ff3d8"
-
-#~ msgid "https://vimeo.com/558907555"
-#~ msgstr "https://vimeo.com/558907555"
-
-#~ msgid ""
-#~ "mean? The Vimeo \"Private\" privacy setting means it is a video which can "
-#~ "be viewed only by the users with the link to it.\n"
-#~ "                                    Your video will never come up in the "
-#~ "search results nor on your channel."
-#~ msgstr ""
-#~ "意味 着？Vimeo“私人”隐私设置意味着它是一个视频，只能由带有链接的用户观"
-#~ "看。\n"
-#~ "                                    您的视频永远不会出现在搜索结果中，也不"
-#~ "会出现在您的频道中。"
-
-#~ msgid ""
-#~ "means? The YouTube \"unlisted\" means it is a video which can be viewed "
-#~ "only by the users with the link to it. Your video will never come up in "
-#~ "the search results nor on your channel."
-#~ msgstr ""
-#~ "是指？YouTube上的 “未列出 \"意味着它是一个只能由用户通过链接观看的视频。您"
-#~ "的视频将永远不会出现在搜索结果中，也不会出现在您的频道上。"
-
-#~ msgid "unlisted"
-#~ msgstr "未列名的"

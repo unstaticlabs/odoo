@@ -17,8 +17,8 @@ import { getContent, setSelection } from "./_helpers/selection";
 import { insertText, tripleClick } from "./_helpers/user_actions";
 import { unformat } from "./_helpers/format";
 import { withSequence } from "@html_editor/utils/resource";
-import { callbacksForCursorUpdate } from "@html_editor/utils/selection";
 import { SelectionPlugin } from "@html_editor/core/selection_plugin";
+import { callbacksForCursorUpdate } from "@html_editor/utils/selection";
 
 test("getEditableSelection should work, even if getSelection returns null", async () => {
     const { editor } = await setupEditor("<p>a[b]</p>");

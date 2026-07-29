@@ -1,32 +1,13 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
 
-from odoo import models, api, fields
-from odoo.tools import float_is_zero, float_compare
+from odoo import api, fields, models
 from odoo.tools.misc import formatLang
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
-
-    def _stock_account_get_last_step_stock_moves(self):
-        """ Overridden from stock_account.
-        Returns the stock moves associated to this invoice."""
-        rslt = super()._stock_account_get_last_step_stock_moves()
-        for invoice in self:
-            if invoice.move_type not in ['out_invoice', 'out_refund']:
-                continue
-            if (invoice.move_type == 'out_invoice' or (
-                invoice.move_type == 'out_refund' and any(invoice.invoice_line_ids.sale_line_ids.mapped('is_downpayment')))
-            ):
-                rslt += invoice.mapped('invoice_line_ids.sale_line_ids.move_ids').filtered(lambda x: x.state == 'done' and x.location_dest_id.usage == 'customer')
-            else:
-                rslt += invoice.mapped('reversed_entry_id.invoice_line_ids.sale_line_ids.move_ids').filtered(lambda x: x.state == 'done' and x.location_id.usage == 'customer')
-                # Add refunds generated from the SO
-                rslt += invoice.mapped('invoice_line_ids.sale_line_ids.move_ids').filtered(lambda x: x.state == 'done' and x.location_id.usage == 'customer')
-        return rslt
 
     def _get_invoiced_lot_values(self):
         """ Get and prepare data to show a table of invoiced lot on the invoice's report. """
@@ -69,7 +50,7 @@ class AccountMove(models.Model):
                 continue
             product = sml.product_id
             product_uom = product.uom_id
-            quantity = sml.product_uom_id._compute_quantity(sml.quantity, product_uom)
+            quantity = sml.uom_id._compute_quantity(sml.quantity, product_uom)
 
             # is it a stock return considering the document type (should it be it thought of as positively or negatively?)
             is_stock_return = (
@@ -98,18 +79,18 @@ class AccountMove(models.Model):
             # access the lot as a superuser in order to avoid an error
             # when a user prints an invoice without having the stock access
             lot = lot.sudo()
-            if lot.product_uom_id.is_zero(invoiced_qties[lot.product_id]) or lot.product_uom_id.compare(qty, 0) <= 0:
+            if lot.uom_id.is_zero(invoiced_qties[lot.product_id]) or lot.uom_id.compare(qty, 0) <= 0:
                 continue
             invoiced_lot_qty = min(qty, invoiced_qties[lot.product_id])
             invoiced_qties[lot.product_id] -= invoiced_lot_qty
             res.append({
                 'product_name': lot.product_id.display_name,
                 'quantity': formatLang(self.env, invoiced_lot_qty, dp='Product Unit'),
-                'uom_name': lot.product_uom_id.name,
+                'uom_name': lot.uom_id.name,
                 'lot_name': lot.name,
                 # The lot id is needed by localizations to inherit the method and add custom fields on the invoice's report.
                 'lot_id': lot.id,
-            })
+            } | self._extract_extra_invoiced_lot_values(lot))
 
         return res
 
@@ -123,16 +104,6 @@ class AccountMove(models.Model):
             # if multiple sale order we take the bigger effective_date
             if effective_date_res:
                 move.delivery_date = fields.Datetime.context_timestamp(self, effective_date_res)
-
-    @api.depends('line_ids.sale_line_ids.order_id')
-    def _compute_incoterm_location(self):
-        super()._compute_incoterm_location()
-        for move in self:
-            sale_locations = move.line_ids.sale_line_ids.order_id.mapped('incoterm_location')
-            incoterm_res = next((incoterm for incoterm in sale_locations if incoterm), False)
-            # if multiple purchase order we take an incoterm that is not false
-            if incoterm_res:
-                move.incoterm_location = incoterm_res
 
     def _get_anglo_saxon_price_ctx(self):
         ctx = super()._get_anglo_saxon_price_ctx()

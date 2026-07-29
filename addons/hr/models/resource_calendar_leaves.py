@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime
-from pytz import timezone, utc
+from datetime import datetime, UTC
+from zoneinfo import ZoneInfo
 
 from odoo import api, models
 
@@ -13,7 +13,7 @@ class ResourceCalendarLeaves(models.Model):
     def _compute_calendar_id(self):
         def date2datetime(date, tz):
             dt = datetime.fromordinal(date.toordinal())
-            return tz.localize(dt).astimezone(utc).replace(tzinfo=None)
+            return dt.replace(tzinfo=tz).astimezone(UTC).replace(tzinfo=None)
 
         leaves_by_contract = self.grouped(lambda leave: leave.resource_id.employee_id.version_id)
         # set aside leaves without version_id for super
@@ -22,7 +22,7 @@ class ResourceCalendarLeaves(models.Model):
             self.env['resource.calendar.leaves'],
         )
         for contract, leaves in leaves_by_contract.items():
-            tz = timezone(contract.resource_calendar_id.tz or 'UTC')
+            tz = ZoneInfo(contract._get_tz())
             start_dt = date2datetime(contract.date_start, tz)
             end_dt = date2datetime(contract.date_end, tz) if contract.date_end else datetime.max
             # only modify leaves that fall under the active contract

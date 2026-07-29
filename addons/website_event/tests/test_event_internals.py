@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timedelta
 
 from odoo.fields import Command, Datetime as FieldsDatetime
-from odoo.tests.common import users
+from odoo.tests.common import tagged, users
 from odoo.addons.website.tests.test_website_visitor import MockVisitor
 from odoo.addons.http_routing.tests.common import MockRequest
 from odoo.addons.website_event.controllers.main import WebsiteEventController
@@ -21,6 +21,7 @@ except ImportError:
     vobject = None
 
 
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestEventData(EventCase, MockVisitor):
 
     @classmethod

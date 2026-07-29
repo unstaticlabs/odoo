@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from odoo.tests import tagged
 
 @tagged('global_leaves')
+@tagged('at_install', '-post_install')  # LEGACY at_install
 class TestGlobalLeaves(TestHrHolidaysCommon):
     """ Test global leaves for a whole company, conflict resolutions """
 
@@ -18,37 +19,30 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         super().setUpClass()
         cls.calendar_1 = cls.env['resource.calendar'].create({
             'name': 'Classic 40h/week',
-            'tz': 'UTC',
             'hours_per_day': 8.0,
             'attendance_ids': [
-                (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Monday Lunch', 'dayofweek': '0', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Monday Afternoon', 'dayofweek': '0', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday Lunch', 'dayofweek': '1', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Tuesday Afternoon', 'dayofweek': '1', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Wednesday Morning', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Wednesday Lunch', 'dayofweek': '2', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Wednesday Afternoon', 'dayofweek': '2', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday Lunch', 'dayofweek': '3', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Thursday Afternoon', 'dayofweek': '3', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'}),
-                (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday Lunch', 'dayofweek': '4', 'hour_from': 12, 'hour_to': 13, 'day_period': 'lunch'}),
-                (0, 0, {'name': 'Friday Afternoon', 'dayofweek': '4', 'hour_from': 13, 'hour_to': 17, 'day_period': 'afternoon'})
+                (0, 0, {'dayofweek': '0', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 13, 'hour_to': 17}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 13, 'hour_to': 17})
             ]
         })
 
         cls.calendar_2 = cls.env['resource.calendar'].create({
             'name': 'Classic 20h/week',
-            'tz': 'UTC',
             'hours_per_day': 4.0,
             'attendance_ids': [
-                (0, 0, {'name': 'Monday Morning', 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Tuesday Morning', 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Wednesday Morning', 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Thursday Morning', 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
-                (0, 0, {'name': 'Friday Morning', 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12, 'day_period': 'morning'}),
+                (0, 0, {'dayofweek': '0', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '1', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '2', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '3', 'hour_from': 8, 'hour_to': 12}),
+                (0, 0, {'dayofweek': '4', 'hour_from': 8, 'hour_to': 12}),
             ]
         })
 
@@ -104,34 +98,6 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
                 'calendar_id': self.calendar_1.id,
             })
 
-    @freeze_time('2023-05-12')
-    def test_global_leave_timezone(self):
-        """
-            It is necessary to use the timezone of the calendar
-            for the global leaves (without resource).
-        """
-        calendar_asia = self.env['resource.calendar'].create({
-            'name': 'Asia calendar',
-            'tz': 'Asia/Kolkata', # UTC +05:30
-            'hours_per_day': 8.0,
-            'attendance_ids': []
-        })
-        self.env.user.tz = 'Europe/Brussels'
-        global_leave = self.env['resource.calendar.leaves'].with_user(self.env.user).create({
-            'name': 'Public holiday',
-            'date_from': "2023-05-15 06:00:00", # utc from 8:00:00 for Europe/Brussels (UTC +02:00)
-            'date_to': "2023-05-15 15:00:00", # utc from 17:00:00 for Europe/Brussels (UTC +02:00)
-            'calendar_id': calendar_asia.id,
-        })
-        # Expectation:
-        # 6:00:00 in UTC (data from the browser) --> 8:00:00 for Europe/Brussel (UTC +02:00)
-        # 8:00:00 for Asia/Kolkata (UTC +05:30) --> 2:30:00 in UTC
-        self.assertEqual(global_leave.date_from, datetime(2023, 5, 15, 2, 30))
-        self.assertEqual(global_leave.date_to, datetime(2023, 5, 15, 11, 30))
-        # Note:
-        # The user in Europe/Brussels timezone see 4:30 and not 2:30 because he is in UTC +02:00.
-        # The user in Asia/Kolkata timezone (determined via the browser) see 8:00 because he is in UTC +05:30
-
     def test_global_leave_working_schedule_without_company(self):
         """
         Check public holidays for a company apply to employees of this company
@@ -150,15 +116,16 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             'calendar_id': calendar_no_company.id,
             'company_id': self.employee_emp.company_id.id,
         })
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
             'name': 'Paid Time Off',
-            'time_type': 'leave',
+            'code': 'Test Paid Time Off',
+            'count_as': 'absence',
             'requires_allocation': False,
         })
         leave = self.env['hr.leave'].create({
             'name': 'Time Off',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': date(2024, 1, 2),
             'request_date_to': date(2024, 1, 4),
         })
@@ -176,17 +143,20 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             'date_to': datetime(2024, 1, 3, 19, 0, 0),
             'calendar_id': self.calendar_1.id,
         })
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
             'name': 'Paid Time Off',
-            'time_type': 'leave',
+            'code': 'Paid Time Off',
+            'count_as': 'absence',
             'requires_allocation': False,
+            'request_unit': 'day',
+            'unit_of_measure': 'day',
         })
         self.employee_emp.resource_calendar_id = self.calendar_1.id
 
         leave = self.env['hr.leave'].create({
             'name': 'Test new leave',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': global_leave.date_from,
             'request_date_to': global_leave.date_to,
         })
@@ -195,7 +165,7 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         leave = self.env['hr.leave'].new({
             'name': 'Test new leave',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': global_leave.date_from,
             'request_date_to': global_leave.date_to,
         })
@@ -204,7 +174,7 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         leave = self.env['hr.leave'].new({
             'name': 'Test new leave',
             'employee_id': self.employee_emp.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': global_leave.date_from - timedelta(days=1),
             'request_date_to': global_leave.date_to + timedelta(days=1),
         })
@@ -218,14 +188,16 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             should still have resource leaves linked to it.
         """
         employee = self.employee_emp
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
             'name': 'Paid Time Off',
+            'code': 'Paid Time Off',
             'request_unit': 'hour',
+            'unit_of_measure': 'hour',
             'leave_validation_type': 'both',
         })
         self.env['hr.leave.allocation'].create({
             'name': '20 days allocation',
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'number_of_days': 20,
             'employee_id': employee.id,
             'state': 'confirm',
@@ -236,7 +208,7 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         partially_covered_leave = self.env['hr.leave'].create({
             'name': 'Holiday 1 week',
             'employee_id': employee.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': datetime(2024, 12, 3, 7, 0),
             'request_date_to': datetime(2024, 12, 5, 18, 0),
         })
@@ -272,8 +244,8 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         """
-        user_david = mail_new_test_user(self.env, login='david', groups='base.group_user')
-        user_timeoff_officer_david = mail_new_test_user(self.env, login='timeoff_officer', groups='base.group_user')
+        user_david = mail_new_test_user(self.env, login='david', groups='base.group_user,hr_holidays.group_hr_holidays_employee')
+        user_timeoff_officer_david = mail_new_test_user(self.env, login='timeoff_officer', groups='base.group_user,hr_holidays.group_hr_holidays_employee')
 
         employee_david = self.env['hr.employee'].create({
             'name': 'David Employee',
@@ -283,17 +255,20 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             'department_id': self.rd_dept.id,
             'resource_calendar_id': self.calendar_1.id,
         })
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
             'name': 'Sick Time Off',
-            'time_type': 'leave',
+            'code': 'Sick Time Off',
+            'count_as': 'absence',
             'requires_allocation': False,
             'leave_validation_type': 'both',
+            'request_unit': 'day',
+            'unit_of_measure': 'day',
         })
 
         employee_leave = self.env['hr.leave'].create({
             'name': 'Holiday 5 days',
             'employee_id': employee_david.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': datetime(2025, 5, 12),
             'request_date_to': datetime(2025, 5, 16),
         })
@@ -331,21 +306,25 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         multi-day holidays in flexible schedules
         """
 
-        flex_cal = self.env['resource.calendar'].create({
-            'name': 'Flexible', 'tz': 'UTC', 'flexible_hours': True, 'hours_per_day': 8.0
+        flex_resource = self.env['resource.resource'].create({
+            'name': 'Flexible',
+            'calendar_id': False,
+            'hours_per_week': 40.0,
+            'hours_per_day': 8,
+            'tz': 'UTC',
         })
 
         # tuesday to thursday
         self.env['resource.calendar.leaves'].create({
-            'name': '3 day holiday', 'calendar_id': flex_cal.id,
-            'date_from': datetime(2024, 3, 5), 'date_to': date(2024, 3, 7)
+            'name': '3 day holiday', 'calendar_id': False,
+            'date_from': datetime(2024, 3, 5), 'date_to': datetime(2024, 3, 7, 23, 59, 59)
         })
 
         # monday to saturday
         start = datetime(2024, 3, 4)
         end = datetime(2024, 3, 10)
 
-        flex_days = flex_cal._get_unusual_days(start, end)
+        flex_days = self.env['resource.calendar']._get_unusual_days(start, end, resource=flex_resource)
 
         expected = {
             '2024-03-04': False,
@@ -361,15 +340,16 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
 
     def test_public_holidays_for_consecutive_allocations(self):
         employee = self.employee_emp
-        leave_type = self.env['hr.leave.type'].create({
+        work_entry_type = self.env['hr.work.entry.type'].create({
             'name': 'Paid Time Off',
-            'time_type': 'leave',
+            'code': 'Paid Time Off',
+            'count_as': 'absence',
             'requires_allocation': 'yes',
         })
         self.env['hr.leave.allocation'].create([
             {
                 'name': '2025 allocation',
-                'holiday_status_id': leave_type.id,
+                'work_entry_type_id': work_entry_type.id,
                 'number_of_days': 20,
                 'employee_id': employee.id,
                 'state': 'confirm',
@@ -378,7 +358,7 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
             },
             {
                 'name': '2026 allocation',
-                'holiday_status_id': leave_type.id,
+                'work_entry_type_id': work_entry_type.id,
                 'number_of_days': 20,
                 'employee_id': employee.id,
                 'state': 'confirm',
@@ -390,7 +370,7 @@ class TestGlobalLeaves(TestHrHolidaysCommon):
         leave = self.env['hr.leave'].create({
             'name': 'Holiday 1 week',
             'employee_id': employee.id,
-            'holiday_status_id': leave_type.id,
+            'work_entry_type_id': work_entry_type.id,
             'request_date_from': datetime(2025, 12, 8, 7, 0),
             'request_date_to': datetime(2026, 1, 3, 18, 0),
         })

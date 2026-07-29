@@ -19,13 +19,19 @@ import { useService } from "@web/core/utils/hooks";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { patch } from "@web/core/utils/patch";
 import { AvatarCardPopover } from "@mail/discuss/web/avatar_card/avatar_card_popover";
-import { messageActionOpenFullComposer } from "@mail/core/web/message_actions_patch";
 
 patch(Message.prototype, {
     setup() {
         super.setup(...arguments);
         this.action = useService("action");
         this.avatarCard = usePopover(AvatarCardPopover);
+    },
+    get attClass() {
+        return {
+            ...super.attClass,
+            "o-needaction-message o-rounded-bubble bg-view shadow-sm border pb-1 pt-sm-2":
+                this.message.needaction && this.env.inChatter,
+        };
     },
     get authorAvatarAttClass() {
         return {
@@ -49,7 +55,7 @@ patch(Message.prototype, {
         };
     },
     hasAuthorClickable() {
-        return this.message.author_id?.main_user_id;
+        return this.message.author_id;
     },
     onClickAuthor(ev) {
         if (this.hasAuthorClickable()) {
@@ -57,25 +63,11 @@ patch(Message.prototype, {
             const target = ev.currentTarget;
             if (!this.avatarCard.isOpen) {
                 this.avatarCard.open(target, {
-                    id: this.message.author_id.main_user_id.id,
+                    id: this.message.author_id.id,
+                    model: "res.partner"
                 });
             }
         }
-    },
-
-    /** @deprecated */
-    async onClickMessageForward() {
-        await this.messageActions.actions.find((a) => a.name === "forward")?.onClick();
-    },
-
-    /** @deprecated */
-    async onClickMessageReplyAll() {
-        await this.messageActions.actions.find((a) => a.name === "reply-all")?.onClick();
-    },
-
-    /** @deprecated */
-    openFullComposer(name, context) {
-        messageActionOpenFullComposer(name, context, this);
     },
 
     openRecord() {

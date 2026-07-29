@@ -20,9 +20,7 @@ class Website(models.Model):
 
 
 class IrModel(models.Model):
-    _name = 'ir.model'
-    _description = 'Models'
-    _inherit = ['ir.model']
+    _inherit = 'ir.model'
 
     website_form_access = fields.Boolean('Allowed to use in forms', help='Enable the form builder feature for this model.')
     website_form_default_field_id = fields.Many2one('ir.model.fields', 'Field for custom form data', domain="[('model', '=', model), ('ttype', '=', 'text')]", help="Specify the field which will contain meta and custom form fields datas.")
@@ -55,7 +53,10 @@ class IrModel(models.Model):
     def get_authorized_fields(self, model_name, property_origins):
         """ Return the fields of the given model name as a mapping like method `fields_get`. """
         model = self.env[model_name]
-        fields_get = model.fields_get()
+        fields_get = model.fields_get(attributes=[
+            'required', 'domain', 'readonly', 'type', 'relation', 'manual',
+            'definition_record', 'definition_record_field', 'string', 'selection',
+        ])
 
         for val in model._inherits.values():
             fields_get.pop(val, None)
@@ -73,7 +74,7 @@ class IrModel(models.Model):
             if 'domain' in fields_get[field] and isinstance(fields_get[field]['domain'], str):
                 del fields_get[field]['domain']
             if fields_get[field].get('readonly') or field in models.MAGIC_COLUMNS or \
-                    fields_get[field]['type'] in ('many2one_reference', 'json'):
+                    fields_get[field]['type'] in ('many2one_reference', 'json', 'reference'):
                 del fields_get[field]
             elif fields_get[field]['type'] == 'properties':
                 property_field = fields_get[field]
@@ -133,7 +134,6 @@ class IrModel(models.Model):
 
 class IrModelFields(models.Model):
     """ fields configuration for form builder """
-    _description = 'Fields'
     _inherit = 'ir.model.fields'
 
     def init(self):
@@ -151,6 +151,8 @@ class IrModelFields(models.Model):
 
     @api.ondelete(at_uninstall=False)
     def _check_if_used_in_website_form(self):
+        if self.env.context.get('force_delete'):
+            return
         """Prevent field deletion if used in a website form."""
         if not self:
             return

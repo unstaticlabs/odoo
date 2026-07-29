@@ -2,17 +2,17 @@
 # This file contains the translation of the following modules:
 # * pos_event
 #
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025, 2026.
+# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Larissa Manderfeld (lman)" <lman@odoo.com>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:36+0000\n"
-"PO-Revision-Date: 2026-07-06 06:18+0000\n"
+"PO-Revision-Date: 2026-07-06 12:59+0000\n"
 "Last-Translator: \"Larissa Manderfeld (lman)\" <lman@odoo.com>\n"
-"Language-Team: German <https://translate.odoo.com/projects/odoo-19/pos_event/"
-"de/>\n"
+"Language-Team: German <https://translate.odoo.com/projects/odoo-s19-2/"
+"pos_event/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -54,6 +54,11 @@ msgid "<span class=\"o_stat_text\">PoS Order</span>"
 msgstr "<span class=\"o_stat_text\">Kassenauftrag</span>"
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "<span class=\"o_stat_text\">PoS Sales</span>"
+msgstr "<span class=\"o_stat_text\">Kassenverkäufe</span>"
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/screens/product_screen/product_screen.js:0
 msgid "All slots are booked out for this event."
@@ -74,16 +79,16 @@ msgstr "Teilnehmer"
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Cancel"
-msgstr "Abbrechen"
+msgid "Confirm"
+msgstr "Bestätigen"
 
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.xml:0
-msgid "Confirm"
-msgstr "Bestätigen"
+msgid "Discard"
+msgstr "Verwerfen"
 
 #. module: pos_event
 #: model:ir.model.fields,field_description:pos_event.field_event_event__display_name
@@ -102,8 +107,6 @@ msgstr "Anzeigename"
 
 #. module: pos_event
 #. odoo-javascript
-#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
-#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 #: code:addons/pos_event/static/src/app/components/popup/event_slot_selection_popup/event_slot_selection_popup.js:0
 msgid "Error"
 msgstr "Fehler"
@@ -134,8 +137,6 @@ msgid "Event Registration Answer"
 msgstr "Antwort bei Veranstaltungsregistrierung"
 
 #. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
 #: model:ir.model.fields,field_description:pos_event.field_pos_order_line__event_registration_ids
 msgid "Event Registrations"
 msgstr "Veranstaltungsanmeldungen"
@@ -203,6 +204,13 @@ msgstr "Keine Zeitfenster"
 
 #. module: pos_event
 #. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.js:0
+#: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
+msgid "Oh snap !"
+msgstr "Huch!"
+
+#. module: pos_event
+#. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.js:0
 msgid "Please fill in all required fields"
 msgstr "Füllen Sie alle erforderlichen Felder aus"
@@ -229,36 +237,29 @@ msgid "PoS Order Line"
 msgstr "Kassenauftragsposition"
 
 #. module: pos_event
+#: model:ir.model.fields,field_description:pos_event.field_event_event__pos_price_total
+msgid "PoS Total (Tax Included)"
+msgstr "Kasse insgesamt (inkl. Steuern)"
+
+#. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_config
 msgid "Point of Sale Configuration"
 msgstr "Kassensystem-Konfiguration"
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order_line
-msgid "Point of Sale Order Lines"
-msgstr "Kassenauftragszeilen"
+#: model:ir.model,name:pos_event.model_pos_order
+msgid "Point of Sale Order"
+msgstr "Kassenauftrag"
 
 #. module: pos_event
-#: model:ir.model,name:pos_event.model_pos_order
-msgid "Point of Sale Orders"
-msgstr "Kassenaufträge"
+#: model:ir.model,name:pos_event.model_pos_order_line
+msgid "Point of Sale Order Line"
+msgstr "Kassenauftragszeile"
 
 #. module: pos_event
 #: model:ir.model,name:pos_event.model_pos_session
 msgid "Point of Sale Session"
 msgstr "Kassensitzung"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Badge"
-msgstr "Ausweis drucken"
-
-#. module: pos_event
-#. odoo-javascript
-#: code:addons/pos_event/static/src/app/screens/receipt_screen/receipt_screen.xml:0
-msgid "Print Full Page Ticket"
-msgstr "Ganzseitiges Ticket drucken"
 
 #. module: pos_event
 #. odoo-javascript
@@ -299,7 +300,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_registration_popup/event_registration_popup.xml:0
 msgid "Ticket #"
-msgstr "Ticket-Nr."
+msgstr "Ticket #"
 
 #. module: pos_event
 #. odoo-javascript
@@ -314,9 +315,13 @@ msgid "Tickets"
 msgstr "Tickets"
 
 #. module: pos_event
+#: model_terms:ir.ui.view,arch_db:pos_event.event_event_view_form_inherit_pos_event
+msgid "Total sales for this event from PoS"
+msgstr "Gesamtumsatz für diese Veranstaltung aus dem Kassensystem"
+
+#. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "Unlimited"
 msgstr "Unbegrenzt"
 
@@ -337,9 +342,14 @@ msgstr "für"
 #. module: pos_event
 #. odoo-javascript
 #: code:addons/pos_event/static/src/app/components/popup/event_configurator_popup/event_configurator_popup.xml:0
-#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "left"
 msgstr "links"
+
+#. module: pos_event
+#. odoo-javascript
+#: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
+msgid "seats"
+msgstr "Plätze"
 
 #. module: pos_event
 #. odoo-javascript
@@ -352,6 +362,3 @@ msgstr "Automat"
 #: code:addons/pos_event/static/src/app/components/product_card/product_card.xml:0
 msgid "slots"
 msgstr "Zeitfenster"
-
-#~ msgid "From %s"
-#~ msgstr "Aus %s"

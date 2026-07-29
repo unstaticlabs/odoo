@@ -20,7 +20,7 @@ FIGURE_TYPE_SELECTION_VALUES = [
 ]
 
 DOMAIN_REGEX = re.compile(r'(-?sum)\((.*)\)')
-CROSS_REPORT_REGEX = re.compile(r'^cross_report\((.+)\)$')
+CROSS_REPORT_REGEX = re.compile(r'^cross_report\((?P<report>[^,\s]+)(,\s*(?P<force_date_scope>force_date_scope))?\)$')
 
 ACCOUNT_CODES_ENGINE_SPLIT_REGEX = re.compile(r"(?=[+-])")
 ACCOUNT_CODES_ENGINE_TERM_REGEX = re.compile(
@@ -75,12 +75,11 @@ class AccountReport(models.Model):
         selection=[('country', "Country Matches"), ('coa', "Chart of Accounts Matches"), ('always', "Always")],
         compute='_compute_default_availability_condition', readonly=False, store=True,
     )
-    load_more_limit = fields.Integer(string="Load More Limit")
+    load_more_limit = fields.Integer(string="Load More Limit", default=500)
     search_bar = fields.Boolean(string="Search Bar")
-    prefix_groups_threshold = fields.Integer(string="Prefix Groups Threshold", default=4000)
     integer_rounding = fields.Selection(string="Integer Rounding", selection=[('HALF-UP', "Nearest"), ('UP', "Up"), ('DOWN', "Down")])
     allow_foreign_vat = fields.Boolean(
-        string="Allow Foreign VAT",
+        string="Allow Foreign Tax ID",
         compute=lambda x: x._compute_report_option_filter('allow_foreign_vat'),
         precompute=True, readonly=False, store=True, depends=['root_report_id', 'section_main_report_ids'],
     )
@@ -101,6 +100,12 @@ class AccountReport(models.Model):
         compute=lambda x: x._compute_report_option_filter('default_opening_date_filter', 'previous_month'),
         precompute=True,
         readonly=False, store=True, depends=['root_report_id', 'section_main_report_ids'],
+    )
+    use_fiscal_periods = fields.Boolean(
+        string="Fiscal Periods",
+        compute=lambda x: x._compute_report_option_filter('use_fiscal_periods', True),
+        precompute=True, readonly=False, store=True,
+        depends=['root_report_id', 'section_main_report_ids'],
     )
 
     currency_translation = fields.Selection(
@@ -162,11 +167,6 @@ class AccountReport(models.Model):
     filter_journals = fields.Boolean(
         string="Journals",
         compute=lambda x: x._compute_report_option_filter('filter_journals'), readonly=False,
-        precompute=True, store=True, depends=['root_report_id', 'section_main_report_ids'],
-    )
-    filter_analytic = fields.Boolean(
-        string="Analytic Filter",
-        compute=lambda x: x._compute_report_option_filter('filter_analytic'), readonly=False,
         precompute=True, store=True, depends=['root_report_id', 'section_main_report_ids'],
     )
     filter_hierarchy = fields.Selection(
@@ -593,11 +593,12 @@ class AccountReportExpression(models.Model):
             ('account_codes', "Prefix of Account Codes"),
             ('external', "External Value"),
             ('custom', "Custom Python Function"),
+            ('text', "Plain Text"),
         ],
         required=True
     )
-    formula = fields.Char(string="Formula", required=True)
-    subformula = fields.Char(string="Subformula")
+    formula = fields.Text(string="Formula", required=True)
+    subformula = fields.Text(string="Subformula")
     date_scope = fields.Selection(
         string="Date Scope",
         selection=[
@@ -656,7 +657,8 @@ class AccountReportExpression(models.Model):
                 raise_formula_error(expression)
 
         for expression in expressions_by_engine.get('account_codes', []):
-            for token in ACCOUNT_CODES_ENGINE_SPLIT_REGEX.split(expression.formula.replace(' ', '')):
+            cleaned_formula = re.sub(r'\s+', '', expression.formula)
+            for token in ACCOUNT_CODES_ENGINE_SPLIT_REGEX.split(cleaned_formula):
                 if token:  # e.g. if the first character of the formula is "-", the first token is ''
                     token_match = ACCOUNT_CODES_ENGINE_TERM_REGEX.match(token)
                     prefix = token_match and token_match['prefix']
@@ -664,7 +666,7 @@ class AccountReportExpression(models.Model):
                         raise_formula_error(expression)
 
         for expression in expressions_by_engine.get('aggregation', []):
-            if not AGGREGATION_ENGINE_FORMULA_REGEX.fullmatch(expression.formula):
+            if not AGGREGATION_ENGINE_FORMULA_REGEX.fullmatch(expression.formula.strip()):
                 raise_formula_error(expression)
 
 
@@ -688,10 +690,6 @@ class AccountReportExpression(models.Model):
     def _get_auditable_engines(self):
         return {'tax_tags', 'domain', 'account_codes', 'external', 'aggregation'}
 
-    def _strip_formula(self, vals):
-        if 'formula' in vals and isinstance(vals['formula'], str):
-            vals['formula'] = re.sub(r'\s+', ' ', vals['formula'].strip())
-
     def _create_tax_tags(self, tag_name, country):
         existing_tag = self.env['account.account.tag']._get_tax_tags(tag_name, country.id)
         if not existing_tag:
@@ -702,13 +700,11 @@ class AccountReportExpression(models.Model):
     def create(self, vals_list):
         # Overridden so that we create the corresponding account.account.tag objects when instantiating an expression
         # with engine 'tax_tags'.
-        for vals in vals_list:
-            self._strip_formula(vals)
 
         result = super().create(vals_list)
 
         for expression in result:
-            tag_name = expression.formula if expression.engine == 'tax_tags' else None
+            tag_name = re.sub(r'\s+', ' ', expression.formula.strip()) if expression.engine == 'tax_tags' else None
             if tag_name:
                 country = expression.report_line_id.report_id.country_id
                 self._create_tax_tags(tag_name, country)
@@ -717,8 +713,6 @@ class AccountReportExpression(models.Model):
 
     def write(self, vals):
 
-        self._strip_formula(vals)
-
         tax_tags_expressions = self.filtered(lambda x: x.engine == 'tax_tags')
 
         if vals.get('engine') == 'tax_tags':
@@ -726,6 +720,7 @@ class AccountReportExpression(models.Model):
             tags_create_vals = []
             for expression_with_new_engine in self - tax_tags_expressions:
                 tag_name = vals.get('formula') or expression_with_new_engine.formula
+                tag_name = re.sub(r'\s+', ' ', tag_name.strip())
                 country = expression_with_new_engine.report_line_id.report_id.country_id
                 if not self.env['account.account.tag']._get_tax_tags(tag_name, country.id):
                     tags_create_vals += self.env['account.report.expression']._get_tags_create_vals(
@@ -796,7 +791,6 @@ class AccountReportExpression(models.Model):
         for expr in self:
             expr.display_name = f'{expr.report_line_name} [{expr.label}]'
 
-
     def _expand_aggregations(self):
         """Return self and its full aggregation expression dependency"""
         result = self
@@ -818,7 +812,7 @@ class AccountReportExpression(models.Model):
                             raise UserError(_(
                                 "In report '%(report_name)s', on line '%(line_name)s', with label '%(label)s',\n"
                                 "The format of the cross report expression is invalid. \n"
-                                "Expected: cross_report(<report_id>|<xml_id>)"
+                                "Expected: cross_report(<report_id>|<xml_id>[,force_date_sope])"
                                 "Example:  cross_report(my_module.my_report) or cross_report(123)",
                                 report_name=candidate_expr.report_line_id.report_id.display_name,
                                 line_name=candidate_expr.report_line_name,

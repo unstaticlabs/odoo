@@ -1,7 +1,11 @@
 import { registries, chartHelpers } from "@odoo/o-spreadsheet";
 import { _t } from "@web/core/l10n/translation";
 import { OdooChart } from "./odoo_chart";
-import { onOdooChartItemHover, onWaterfallOdooChartItemClick } from "./odoo_chart_helpers";
+import {
+    onOdooChartItemHover,
+    onWaterfallOdooChartItemClick,
+    changeTypeToSpreadsheetChart,
+} from "./odoo_chart_helpers";
 
 const { chartRegistry } = registries;
 
@@ -60,7 +64,6 @@ chartRegistry.add("odoo_waterfall", {
 });
 
 function createOdooChartRuntime(chart, getters) {
-    const background = chart.background || "#FFFFFF";
     const { datasets, labels } = chart.dataSource.getData();
 
     const definition = chart.getDefinition();
@@ -85,13 +88,17 @@ function createOdooChartRuntime(chart, getters) {
                 title: getChartTitle(definition, getters),
                 legend: getWaterfallChartLegend(definition, chartData),
                 tooltip: getWaterfallChartTooltip(definition, chartData),
-                chartShowValuesPlugin: getWaterfallChartShowValues(definition, chartData),
+                chartShowValuesPlugin: getWaterfallChartShowValues(
+                    changeTypeToSpreadsheetChart(definition),
+                    chartData
+                ),
                 waterfallLinesPlugin: { showConnectorLines: definition.showConnectorLines },
+                background: { color: chart.background },
             },
             onHover: onOdooChartItemHover(),
             onClick: onWaterfallOdooChartItemClick(getters, chart),
         },
     };
 
-    return { background, chartJsConfig: config };
+    return { chartJsConfig: config };
 }

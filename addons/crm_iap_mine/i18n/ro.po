@@ -9,16 +9,17 @@
 # Martin Trigaux, 2022
 # Hongu Cosmin <cosmin513@gmail.com>, 2022
 # Claudia Baisan, 2023
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
+# Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:36+0000\n"
-"PO-Revision-Date: 2026-06-29 22:29+0000\n"
-"Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
-"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-19/"
+"POT-Creation-Date: 2026-02-04 18:36+0000\n"
+"PO-Revision-Date: 2026-01-16 05:39+0000\n"
+"Last-Translator: Odoo Translation Bot <c3p@odoo.com>\n"
+"Language-Team: Romanian <https://translate.odoo.com/projects/odoo-s19-1/"
 "crm_iap_mine/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +27,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #. module: crm_iap_mine
 #. odoo-python
@@ -37,6 +38,12 @@ msgid ""
 msgstr ""
 "%(credit_count)d credite vor fi consumate pentru a găsi %(company_count)d "
 "companii."
+
+#. module: crm_iap_mine
+#. odoo-python
+#: code:addons/crm_iap_mine/models/crm_iap_lead_helpers.py:0
+msgid "%s's opportunity"
+msgstr ""
 
 #. module: crm_iap_mine
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.enrich_company
@@ -154,14 +161,15 @@ msgid "CRM Lead Mining Request"
 msgstr "Cerere de extragere a pistelor CRM"
 
 #. module: crm_iap_mine
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-msgid "Cancel"
-msgstr "Anulează"
-
-#. module: crm_iap_mine
 #: model:crm.iap.lead.industry,name:crm_iap_mine.crm_iap_mine_industry_162
 msgid "Capital Goods"
 msgstr "Bunuri capitale"
+
+#. module: crm_iap_mine
+#. odoo-javascript
+#: code:addons/crm_iap_mine/static/src/js/tours/crm_iap_lead.js:0
+msgid "Click here to generate some leads."
+msgstr ""
 
 #. module: crm_iap_mine
 #: model:ir.model.fields,field_description:crm_iap_mine.field_crm_iap_lead_industry__color
@@ -359,11 +367,7 @@ msgstr "De la"
 #. module: crm_iap_mine
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_case_kanban_view_leads
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_lead
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_lead_view_tree_opportunity
-#: model_terms:ir.ui.view,arch_db:crm_iap_mine.view_crm_lead_kanban
 msgid "Generate Leads"
 msgstr "Generare Piste"
 
@@ -807,8 +811,8 @@ msgstr "Tip"
 #. odoo-python
 #: code:addons/crm_iap_mine/models/crm_iap_lead_mining_request.py:0
 msgid ""
-"Up to %(credit_count)d additional credits will be consumed to identify %"
-"(contact_count)d contacts per company."
+"Up to %(credit_count)d additional credits will be consumed to identify "
+"%(contact_count)d contacts per company."
 msgstr ""
 "Până la %(credit_count)d credite suplimentare vor fi consumate pentru a "
 "identifica %(contact_count)d contacte pe companie."
@@ -854,31 +858,3 @@ msgstr "manager"
 #: model_terms:ir.ui.view,arch_db:crm_iap_mine.crm_iap_lead_mining_request_view_form
 msgid "to"
 msgstr "la"
-
-#~ msgid "%d credits will be consumed to find %d companies."
-#~ msgstr "%d creditele vor fi consumate pentru a găsi %d companiile."
-
-#~ msgid ""
-#~ "<span attrs=\"{'invisible': [('error_type', '!=', 'no_result')]}\">Your "
-#~ "request did not return any result (no credits were used). Try removing "
-#~ "some filters.</span>"
-#~ msgstr ""
-#~ "<span attrs=\"{'invisible': [('error_type', '!=', 'no_result')]}"
-#~ "\">Cererea dvs. nu a returnat niciun rezultat (nu au fost utilizate "
-#~ "credite). Încercați să eliminați unele filtre.</span>"
-
-#~ msgid "Display Lead Label"
-#~ msgstr "Afișați eticheta pistei"
-
-#~ msgid "Group By"
-#~ msgstr "Grupează după"
-
-#~ msgid "Lead/Opportunity"
-#~ msgstr "Pista/Oportunitate"
-
-#~ msgid ""
-#~ "Up to %d additional credits will be consumed to identify %d contacts per "
-#~ "company."
-#~ msgstr ""
-#~ "Se vor consuma până la %d credite suplimentare pentru a identifica %d "
-#~ "contactele pe companie."

@@ -1,11 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import re
-
 from collections import defaultdict
 
 from odoo import _, api, fields, models, tools
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import float_compare, groupby, OrderedSet
 from odoo.tools.image import is_image_size_above
@@ -19,6 +18,11 @@ class ProductProduct(models.Model):
     _inherits = {'product.template': 'product_tmpl_id'}
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'default_code, name, id'
+    _clear_cache_name = 'default'
+    _clear_cache_on_fields = {
+        'active',  # _get_first_possible_variant_id
+        'product_template_attribute_value_ids',  # _get_variant_id_for_combination
+    }
     _check_company_domain = models.check_company_domain_parent_of
 
     # price_extra: catalog extra value only, sum of variant extra attributes
@@ -26,11 +30,15 @@ class ProductProduct(models.Model):
         'Variant Price Extra', compute='_compute_product_price_extra',
         min_display_digits='Product Price',
         help="This is the sum of the extra price of all attributes")
-    # lst_price: catalog value + extra, context dependent (uom)
+    # lst_price: catalog value + extra, or custom value
     lst_price = fields.Float(
-        'Sales Price', compute='_compute_product_lst_price',
-        min_display_digits='Product Price', inverse='_set_product_lst_price',
-        help="The sale price is managed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.")
+        'Sales Price',
+        compute='_compute_product_lst_price',
+        inverse='_inverse_product_lst_price',
+        min_display_digits='Product Price',
+        readonly=False,
+        store=True,
+        help="The sale price can be set manually or computed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.")
 
     default_code = fields.Char('Internal Reference', index=True)
     code = fields.Char('Reference', compute='_compute_product_code')
@@ -68,7 +76,16 @@ class ProductProduct(models.Model):
         Used to compute margins on sale orders.""")
     volume = fields.Float('Volume', digits='Volume')
     weight = fields.Float('Weight', digits='Stock Weight')
-
+    qty_available = fields.Float('Quantity On Hand', company_dependent=True, digits='Product Unit')
+    virtual_available = fields.Float(
+        'Forecasted Quantity', compute='_compute_quantities', compute_sudo=False, search='_search_virtual_available',
+        digits='Product Unit', help="Forecasted quantity if all confirmed sales and purchase orders were delivered.")
+    incoming_qty = fields.Float(
+        'Incoming', compute='_compute_quantities', compute_sudo=False, search='_search_incoming_qty', digits='Product Unit',
+        help="Quantity of planned incoming quantities from all confirmed purchase orders not received.")
+    outgoing_qty = fields.Float(
+        'Outgoing', compute='_compute_quantities', compute_sudo=False, search='_search_outgoing_qty', digits='Product Unit',
+        help="Quantity of planned outgoing quantities from all confirmed sale orders not delivered.")
     pricelist_rule_ids = fields.One2many(
         string="Pricelist Rules",
         comodel_name='product.pricelist.item',
@@ -122,7 +139,10 @@ class ProductProduct(models.Model):
 
     is_favorite = fields.Boolean(related='product_tmpl_id.is_favorite', readonly=False, store=True)
     _is_favorite_index = models.Index("(is_favorite) WHERE is_favorite IS TRUE")
-    is_in_selected_section_of_order = fields.Boolean(search='_search_is_in_selected_section_of_order')
+    is_in_selected_section_of_order = fields.Boolean(
+        search='_search_is_in_selected_section_of_order',
+        store=False,
+    )
 
     @api.depends('image_variant_1920', 'image_variant_1024')
     def _compute_can_image_variant_1024_be_zoomed(self):
@@ -305,34 +325,21 @@ class ProductProduct(models.Model):
     def _compute_is_product_variant(self):
         self.is_product_variant = True
 
-    @api.onchange('lst_price')
-    def _set_product_lst_price(self):
-        for product in self:
-            if self.env.context.get('uom'):
-                value = self.env['uom.uom'].browse(self.env.context['uom'])._compute_price(product.lst_price, product.uom_id)
-            else:
-                value = product.lst_price
-            value -= product.price_extra
-            product.write({'list_price': value})
-
     @api.depends("product_template_attribute_value_ids.price_extra")
     def _compute_product_price_extra(self):
         for product in self:
             product.price_extra = sum(product.product_template_attribute_value_ids.mapped('price_extra'))
 
     @api.depends('list_price', 'price_extra')
-    @api.depends_context('uom')
     def _compute_product_lst_price(self):
-        to_uom = None
-        if 'uom' in self.env.context:
-            to_uom = self.env['uom.uom'].browse(self.env.context['uom'])
-
         for product in self:
-            if to_uom:
-                list_price = product.uom_id._compute_price(product.list_price, to_uom)
-            else:
-                list_price = product.list_price
-            product.lst_price = list_price + product.price_extra
+            product.lst_price = product.list_price + product.price_extra
+
+    def _inverse_product_lst_price(self):
+        for product in self:
+            template = product.product_tmpl_id
+            if len(template.with_context(active_test=False).product_variant_ids) == 1 and not template.has_configurable_attributes:
+                template.list_price = product.lst_price
 
     @api.depends_context('partner_id')
     def _compute_product_code(self):
@@ -361,12 +368,60 @@ class ProductProduct(models.Model):
             else:
                 product.partner_ref = product.display_name
 
+    @api.depends_context('to_date')
+    def _compute_quantities(self):
+        """ Simple per company compute overriden by Stock._compute_quantities """
+        self.virtual_available = 0
+        self.incoming_qty = 0
+        self.outgoing_qty = 0
+
+        products = self.filtered(lambda p: p.type != 'service' and p.is_storable)
+        forecasted = products._compute_forecasted_without_stock()
+        for product in products:
+            vals = forecasted.get(product.id)
+            if not vals:
+                continue
+            product.virtual_available = vals['virtual_available']
+            product.incoming_qty = vals['incoming_qty']
+            product.outgoing_qty = vals['outgoing_qty']
+
+    def _compute_forecasted_without_stock(self):
+        """ Forecast = qty_available + qty purchased not received - qty sold not delivered"""
+        forecast = defaultdict(dict)
+        for product in self:
+            forecast[product.id]['virtual_available'] = product.qty_available
+            forecast[product.id]['incoming_qty'] = 0
+            forecast[product.id]['outgoing_qty'] = 0
+        return forecast
+
+    def _search_virtual_available(self, operator, value):
+        return self._search_product_quantity(operator, value, 'virtual_available')
+
+    def _search_incoming_qty(self, operator, value):
+        return self._search_product_quantity(operator, value, 'incoming_qty')
+
+    def _search_outgoing_qty(self, operator, value):
+        return self._search_product_quantity(operator, value, 'outgoing_qty')
+
+    def _search_product_quantity(self, operator, value, field):
+        # Order the search on `id` to prevent the default order on the product name which slows down the search.
+        ids = self.with_context(prefetch_fields=False).search_fetch([], [field], order='id').filtered_domain([(field, operator, value)]).ids
+        return [('id', 'in', ids)]
+
     def _compute_product_document_count(self):
         for product in self:
-            product.product_document_count = product.env['product.document'].search_count([
-                ('res_model', '=', 'product.product'),
-                ('res_id', 'in', product.ids),
-            ])
+            product.product_document_count = product.env['product.document'].search_count(
+                Domain.OR([
+                    Domain.AND([
+                        Domain('res_model', '=', 'product.product'),
+                        Domain('res_id', 'in', product.ids),
+                    ]),
+                    Domain.AND([
+                        Domain('res_model', '=', 'product.template'),
+                        Domain('res_id', 'in', product.product_tmpl_id.ids),
+                    ]),
+                ])
+            )
 
     @api.depends('product_tag_ids', 'additional_product_tag_ids')
     def _compute_all_product_tag_ids(self):
@@ -675,23 +730,18 @@ class ProductProduct(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        products = super(ProductProduct, self.with_context(create_product_product=False)).create(vals_list)
-        # `_get_variant_id_for_combination` depends on existing variants
-        self.env.registry.clear_cache()
-        return products
-
-    def write(self, vals):
-        res = super().write(vals)
-        if 'product_template_attribute_value_ids' in vals:
-            # `_get_variant_id_for_combination` depends on `product_template_attribute_value_ids`
-            self.env.registry.clear_cache()
-        elif 'active' in vals:
-            # `_get_first_possible_variant_id` depends on variants active state
-            self.env.registry.clear_cache()
-        return res
+        return super(ProductProduct, self.with_context(create_product_product=False)).create(vals_list)
 
     def action_archive(self):
         records = self.filtered('active')
+        combo_items = self.env['product.combo.item'].search([('product_id', 'in', records.ids)])
+        if combo_items:
+            combo_names = ', '.join(combo_items.combo_id.mapped('name'))
+            raise UserError(_(
+                "You cannot archive a product that is part of a combo. "
+                "Please remove it from the following combos first: %s",
+                combo_names,
+            ))
         super().action_archive()
         # We deactivate product templates which are active with no active variants.
         records.product_tmpl_id.filtered(
@@ -737,8 +787,6 @@ class ProductProduct(models.Model):
         # products due to ondelete='cascade'
         unlink_templates = self.env['product.template'].browse(unlink_templates_ids)
         unlink_templates.unlink()
-        # `_get_variant_id_for_combination` depends on existing variants
-        self.env.registry.clear_cache()
         return res
 
     def _filter_to_unlink(self):
@@ -884,6 +932,8 @@ class ProductProduct(models.Model):
                     product_domains.append([('default_code', '=', m.group(2))])
         elif operator.endswith('like') and is_positive:
             product_domains.append([('barcode', 'in', [value])])
+            if isinstance(value, str) and (m := re.search(r'\[(.*?)\]', value)):
+                product_domains.append([('default_code', '=', m.group(1))])
 
         supplier_domain = []
         if partner_id := self.env.context.get('partner_id'):
@@ -938,7 +988,7 @@ class ProductProduct(models.Model):
         products = self.browse()
         domain = Domain(domain or Domain.TRUE)
         if operator in positive_operators:
-            products = self.search_fetch(domain & Domain('default_code', '=', name), ['display_name'], limit=limit) \
+            products = self.search_fetch(domain & Domain('default_code', operator, name), ['display_name'], limit=limit) \
                 or self.search_fetch(domain & Domain('barcode', '=', name), ['display_name'], limit=limit)
         if not products:
             if is_positive:
@@ -1007,8 +1057,11 @@ class ProductProduct(models.Model):
         res['context'].update({
             'default_res_model': self._name,
             'default_res_id': self.id,
-            'search_default_context_variant': True,
         })
+        res['domain'] = ['|', '&', ('res_model', '=', 'product.product'),
+                            ('res_id', '=', self.id),
+                            '&', ('res_model', '=', 'product.template'),
+                            ('res_id', '=', self.product_tmpl_id.id)]
         return res
 
     #=== BUSINESS METHODS ===#
@@ -1028,14 +1081,14 @@ class ProductProduct(models.Model):
         for seller in sellers_filtered:
             # Set quantity in UoM of seller
             quantity_uom_seller = quantity
-            if quantity_uom_seller and uom_id and uom_id != seller.product_uom_id:
-                quantity_uom_seller = uom_id._compute_quantity(quantity_uom_seller, seller.product_uom_id)
+            if quantity_uom_seller and uom_id and uom_id != seller.uom_id:
+                quantity_uom_seller = uom_id._compute_quantity(quantity_uom_seller, seller.uom_id)
 
             if seller.date_start and seller.date_start > date:
                 continue
             if seller.date_end and seller.date_end < date:
                 continue
-            if params and params.get('force_uom') and seller.product_uom_id != uom_id and seller.product_uom_id != self.uom_id:
+            if params and params.get('force_uom') and seller.uom_id != uom_id and seller.uom_id != self.uom_id:
                 continue
             if partner_id and seller.partner_id not in [partner_id, partner_id.parent_id]:
                 continue
@@ -1064,11 +1117,7 @@ class ProductProduct(models.Model):
             }
             return [vals.get(key, record[key]) for key in sort_key]
         sellers = self._get_filtered_sellers(partner_id=partner_id, quantity=quantity, date=date, uom_id=uom_id, params=params)
-        res = self.env['product.supplierinfo']
-        for seller in sellers:
-            if not res or res.partner_id == seller.partner_id:
-                res |= seller
-        return res and res.sorted(sort_function)[:1]
+        return sellers.sorted(sort_function)[:1]
 
     def _get_product_price_context(self, combination):
         self.ensure_one()
@@ -1095,8 +1144,8 @@ class ProductProduct(models.Model):
 
     def _get_attributes_extra_price(self):
         self.ensure_one()
-
-        return self.price_extra + self.env.context.get('no_variant_attributes_price_extra', 0)
+        price_extra = self.lst_price - self.list_price
+        return price_extra + self.env.context.get('no_variant_attributes_price_extra', 0)
 
     def _price_compute(self, price_type, uom=None, currency=None, company=None, date=False):
         company = company or self.env.company
@@ -1135,7 +1184,7 @@ class ProductProduct(models.Model):
         self = self.with_context(
             empty_list_help_document_name=_("product"),
         )
-        return super(ProductProduct, self).get_empty_list_help(help_message)
+        return super().get_empty_list_help(help_message)
 
     def get_product_multiline_description_sale(self):
         """ Compute a multiline description of this product, in the context of sales
@@ -1148,21 +1197,20 @@ class ProductProduct(models.Model):
 
         return name
 
-    def _is_variant_possible(self, parent_combination=None):
+    def _is_variant_possible(self):
         """Return whether the variant is possible based on its own combination,
         and optionally a parent combination.
 
         See `_is_combination_possible` for more information.
 
-        :param parent_combination: combination from which `self` is an
-            optional or accessory product.
-        :type parent_combination: recordset `product.template.attribute.value`
-
         :return: ẁhether the variant is possible based on its own combination
         :rtype: bool
         """
         self.ensure_one()
-        return self.product_tmpl_id._is_combination_possible(self.product_template_attribute_value_ids, parent_combination=parent_combination, ignore_no_variant=True)
+        return self.product_tmpl_id._is_combination_possible(
+            self.product_template_attribute_value_ids,
+            ignore_no_variant=True,
+        )
 
     def get_contextual_price(self):
         return self._get_contextual_price()

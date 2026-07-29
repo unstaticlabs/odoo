@@ -6,6 +6,8 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     stock_move_ids = fields.One2many('stock.move', 'account_move_id', string='Stock Move')
+    inventory_closing = fields.Boolean(string='Inventory Closing', default=False)
+    closing_datetime = fields.Datetime(string='Closing Date')
 
     # -------------------------------------------------------------------------
     # OVERRIDE METHODS
@@ -166,11 +168,14 @@ class AccountMove(models.Model):
         """
         return self.env.context
 
-    def _stock_account_get_last_step_stock_moves(self):
-        """ To be overridden for customer invoices and vendor bills in order to
-        return the stock moves related to the invoices in self.
-        """
-        return self.env['stock.move']
-
     def _get_invoiced_lot_values(self):
         return []
+
+    def _extract_extra_invoiced_lot_values(self, lot):
+        lot.ensure_one()
+        # Compute lot properties
+        lot_properties = lot.product_id.lot_properties_definition
+        # Store the value of each property
+        for prop in lot_properties:
+            prop['value'] = lot.lot_properties.get(prop['name'])
+        return {'lot_properties': lot_properties}

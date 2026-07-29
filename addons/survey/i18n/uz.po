@@ -14,17 +14,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 18:37+0000\n"
-"PO-Revision-Date: 2026-06-30 03:34+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-19/survey/uz/>"
-"\n"
+"POT-Creation-Date: 2026-05-15 17:35+0000\n"
+"PO-Revision-Date: 2025-10-08 18:37+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.6.1\n"
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_survey__question_count
@@ -243,8 +241,8 @@ msgstr ""
 "logo.png?company={{ object.survey_id.create_uid.company_id.id }}\" "
 "style=\"vertical-align:baseline;max-width:100px;\"/></a> \n"
 "            </td><td style=\"text-align:right;vertical-align:middle;\"> \n"
-"                Sertifikat: <t t-out=\"object.survey_id.display_name or ''\">"
-"Fikr-mulohaza shakli</t> \n"
+"                Sertifikat: <t t-out=\"object.survey_id.display_name or "
+"''\">Fikr-mulohaza shakli</t> \n"
 "            </td></tr> \n"
 "        </tbody> \n"
 "    </table> \n"
@@ -256,8 +254,8 @@ msgstr ""
 "'ishtirokchi'\">ishtirokchi</span></p> \n"
 "                <p> \n"
 "                    Iltimos, ilova qilingan \n"
-"                    <strong t-out=\"object.survey_id.display_name or ''\">"
-"Mebel yaratish</strong> \n"
+"                    <strong t-out=\"object.survey_id.display_name or "
+"''\">Mebel yaratish</strong> \n"
 "                    sertifikatingizni qabul qiling \n"
 "                </p> \n"
 "                <p>Testdan <strong t-out=\"object.scoring_percentage\"/>% "
@@ -318,8 +316,8 @@ msgstr ""
 "va sizning fikringiz biz uchun muhim.         </t> </p><div style=\"margin: "
 "16px 0px 16px 0px;\"> <a t-att-href=\"(object.get_start_url())\" t-attf-"
 "style=\"background-color: {{user.company_id.email_secondary_color or "
-"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {"
-"{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; "
+"'#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: "
+"{{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; "
 "font-size:13px;\"> <t t-if=\"object.survey_id.certification\"> "
 "Sertifikatlashni boshlash </t> <t t-else=\"\"> So‘rovnomani boshlash </t> </"
 "a> </div> <t t-if=\"object.deadline\"> Iltimos, so‘rovnomani <t t-"
@@ -335,48 +333,10 @@ msgid "<i class=\"fa fa-bar-chart\"/> Results"
 msgstr "<i class=\"fa fa-bar-chart\"/> Natijalar"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<i class=\"fa fa-check-square-o fa-lg me-2\"/>answer"
-msgstr "<i class=\"fa fa-check-square-o fa-lg me-2\"/>javob"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<i class=\"fa fa-circle-o  fa-lg me-2\"/>answer"
-msgstr "<i class=\"fa fa-circle-o fa-lg me-2\"/>javob"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"<i class=\"fa fa-circle-o fa-lg\" role=\"img\" aria-label=\"Not checked\" "
-"title=\"Not checked\"/>"
-msgstr ""
-"<i class=\"fa fa-circle-o fa-lg\" role=\"img\" aria-label=\"Tekshirilmagan\" "
-"title=\"Tekshirilmagan\"/>"
-
-#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.user_input_session_manage_content
 #, fuzzy
 msgid "<i class=\"fa fa-close\"/> Close"
 msgstr "<i class=\"fa fa-close\"/> Yopish"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<i class=\"fa fa-dot-circle-o fa-lg me-2\"/>answer"
-msgstr "<i class=\"fa fa-dot-circle-o fa-lg me-2\"/>javob"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"<i class=\"fa fa-dot-circle-o fa-lg\" role=\"img\" aria-label=\"Checked\" "
-"title=\"Checked\"/>"
-msgstr ""
-"<i class=\"fa fa-dot-circle-o fa-lg\" role=\"img\" aria-"
-"label=\"Tekshirilgan\" title=\"Tekshirilgan\"/>"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_button_form_view
@@ -409,12 +369,6 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-long-arrow-right mx-2\" aria-label=\"O‘q belgisi\" "
 "title=\"O‘q\"/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<i class=\"fa fa-square-o fa-lg me-2\"/>answer"
-msgstr "<i class=\"fa fa-square-o fa-lg me-2\"/>javob"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_button_form_view
@@ -489,6 +443,11 @@ msgid "<span class=\"mx-1\">-</span>"
 msgstr "<span class=\"mx-1\">-</span>"
 
 #. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "<span class=\"mx-2 o_form_label\">to</span>"
+msgstr ""
+
+#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.res_partner_view_form
 #, fuzzy
 msgid ""
@@ -510,8 +469,8 @@ msgid ""
 "                        <span class=\"o_stat_text\" "
 "invisible=\"certifications_count &gt; 1\">Certification</span>"
 msgstr ""
-"<span class=\"o_stat_text\" invisible=\"certifications_count &lt; 2\">"
-"Sertifikatlar</span> <span class=\"o_stat_text\" "
+"<span class=\"o_stat_text\" invisible=\"certifications_count &lt; "
+"2\">Sertifikatlar</span> <span class=\"o_stat_text\" "
 "invisible=\"certifications_count &gt; 1\">Sertifikat</span>"
 
 #. module: survey
@@ -521,8 +480,8 @@ msgid ""
 "<span class=\"o_survey_enter fw-bold text-muted ms-2 d-none d-md-inline\">or "
 "press Enter</span>"
 msgstr ""
-"<span class=\"o_survey_enter fw-bold text-muted ms-2 d-none d-md-inline\">"
-"yoki Enter tugmasini bosing</span>"
+"<span class=\"o_survey_enter fw-bold text-muted ms-2 d-none d-md-"
+"inline\">yoki Enter tugmasini bosing</span>"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_selection_key
@@ -627,53 +586,10 @@ msgid "<span>Date</span>"
 msgstr "<span>Sana</span>"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<span>Do you like it?</span><br/>"
-msgstr "<span>Sizga yoqdimi?</span><br/>"
-
-#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_results_filters
 #, fuzzy
 msgid "<span>Failed only</span>"
 msgstr "<span>Faqat muvaffaqiyatsizlar</span>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"<span>How many ...?</span><br/>\n"
-"                                    <i class=\"fa fa-2x\" role=\"img\" aria-"
-"label=\"Numeric\" title=\"Numeric\">123 </i>\n"
-"                                    <i class=\"fa fa-2x fa-sort\" "
-"role=\"img\" aria-label=\"Numeric\"/>"
-msgstr ""
-"<span>Nechta ...?</span><br/> <i class=\"fa fa-2x\" role=\"img\" aria-"
-"label=\"Raqamli\" title=\"Raqamli\">123 </i> <i class=\"fa fa-2x fa-sort\" "
-"role=\"img\" aria-label=\"Raqamli\"/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"<span>Name all the animals</span><br/>\n"
-"                                    <i class=\"fa fa-align-justify fa-4x\" "
-"role=\"img\" aria-label=\"Multiple lines\" title=\"Multiple Lines\"/>"
-msgstr ""
-"<span>Barcha hayvonlarni sanab bering</span><br/> <i class=\"fa fa-align-"
-"justify fa-4x\" role=\"img\" aria-label=\"Bir necha qator\" title=\"Bir "
-"necha qator\"/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"<span>Name one animal</span><br/>\n"
-"                                    <i class=\"fa fa-minus fa-4x\" "
-"role=\"img\" aria-label=\"Single Line\" title=\"Single Line\"/>"
-msgstr ""
-"<span>Bitta hayvon nomini ayting</span><br/> <i class=\"fa fa-minus fa-4x\" "
-"role=\"img\" aria-label=\"Bitta qator\" title=\"Bitta qator\"/>"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_button_retake
@@ -706,30 +622,6 @@ msgstr "<span>Ushbu sertifikat</span> <br/>"
 #, fuzzy
 msgid "<span>Waiting for attendees...</span>"
 msgstr "<span>Ishtirokchilar kutilmoqda...</span>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<span>When does ... start?</span><br/>"
-msgstr "<span>... qachon boshlanadi?</span><br/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<span>When is Christmas?</span><br/>"
-msgstr "<span>Rojdestvo bayrami qachon?</span><br/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<span>Which are yellow?</span><br/>"
-msgstr "<span>Qaysilari sariq?</span><br/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "<span>Which is yellow?</span><br/>"
-msgstr "<span>Qaysi biri sariq?</span><br/>"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.certification_report_view_general
@@ -869,6 +761,12 @@ msgstr "Faoliyatlar"
 #, fuzzy
 msgid "Activity Exception Decoration"
 msgstr "Faoliyat istisnosi bezagi"
+
+#. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_survey__activity_plans_ids
+#: model:ir.model.fields,field_description:survey.field_survey_user_input__activity_plans_ids
+msgid "Activity Plans"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_survey__activity_state
@@ -1075,13 +973,6 @@ msgid "Archived"
 msgstr "Arxivlangan"
 
 #. module: survey
-#. odoo-javascript
-#: code:addons/survey/static/src/interactions/survey_form.js:0
-#, fuzzy
-msgid "Are you sure you want to submit the survey?"
-msgstr "Haqiqatan ham so‘rovnomani yubormoqchimisiz?"
-
-#. module: survey
 #: model:survey.question,title:survey.survey_demo_food_preferences_q1
 #, fuzzy
 msgid "Are you vegetarian?"
@@ -1099,6 +990,11 @@ msgstr "San'at va madaniyat"
 #, fuzzy
 msgid "Arthur B. McDonald"
 msgstr "Artur B. Makdonald"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "Ask something..."
+msgstr ""
 
 #. module: survey
 #. odoo-python
@@ -1218,6 +1114,16 @@ msgid "Avicii"
 msgstr "Avicii"
 
 #. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
+msgid "Background"
+msgstr ""
+
+#. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_survey__background_image_filename
+msgid "Background Filename"
+msgstr ""
+
+#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__background_image
 #: model:ir.model.fields,field_description:survey.field_survey_survey__background_image
 #, fuzzy
@@ -1280,6 +1186,11 @@ msgstr "Ammo avval boshlovchini tinglashda davom eting."
 #, fuzzy
 msgid "Cabinet with Doors"
 msgstr "Eshikli shkaf"
+
+#. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_survey__session_question_can_answer
+msgid "Can Answer Current Question"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_invite__can_edit_body
@@ -1389,6 +1300,7 @@ msgstr "Muvaffaqiyatli olingan sertifikatlar"
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
 #: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_kanban
+#: model_terms:ir.ui.view,arch_db:survey.survey_user_input_view_search
 #, fuzzy
 msgid "Certified"
 msgstr "Sertifikatlangan"
@@ -1398,6 +1310,12 @@ msgstr "Sertifikatlangan"
 #, fuzzy
 msgid "Certified Email Template"
 msgstr "Sertifikatlangan elektron pochta andozasi"
+
+#. module: survey
+#: model:ir.actions.act_window,name:survey.survey_user_input_action_certified
+#: model:ir.model.fields,field_description:survey.field_digest_digest__kpi_nbr_of_certified_participants
+msgid "Certified Participants"
+msgstr ""
 
 #. module: survey
 #: model:survey.question.answer,value:survey.vendor_certification_page_1_question_2_choice_1
@@ -1601,8 +1519,8 @@ msgstr "Konferensiya raisi"
 #, fuzzy
 msgid "Congratulations! You are now ready to collect feedback like a pro :-)"
 msgstr ""
-"Tabriklaymiz! Endi professional darajada fikr-mulohaza yig‘ishga tayyorsiz "
-":-)"
+"Tabriklaymiz! Endi professional darajada fikr-mulohaza yig‘ishga "
+"tayyorsiz :-)"
 
 #. module: survey
 #: model_terms:gamification.badge,description:survey.vendor_certification_badge
@@ -1923,8 +1841,6 @@ msgstr "O‘chirish"
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__description
 #: model:ir.model.fields,field_description:survey.field_survey_survey__description
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
 #, fuzzy
 msgid "Description"
 msgstr "Tavsif"
@@ -1943,12 +1859,18 @@ msgid "Detailed Answers"
 msgstr "Batafsil javoblar"
 
 #. module: survey
+#: model:ir.model,name:survey.model_digest_digest
+msgid "Digest"
+msgstr ""
+
+#. module: survey
 #: model:survey.question.answer,value:survey.survey_feedback_p2_q2_col2
 #, fuzzy
 msgid "Disagree"
 msgstr "Rozi emasman"
 
 #. module: survey
+#: model:ir.model.fields,field_description:survey.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:survey.field_gamification_badge__display_name
 #: model:ir.model.fields,field_description:survey.field_gamification_challenge__display_name
 #: model:ir.model.fields,field_description:survey.field_ir_http__display_name
@@ -2091,12 +2013,6 @@ msgid "Existing emails"
 msgstr "Mavjud elektron pochta manzillari"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Extremely likely"
-msgstr "Juda ehtimolga yaqin"
-
-#. module: survey
 #: model:survey.question.answer,value:survey.survey_demo_burger_quiz_p2_q3_sug2
 #, fuzzy
 msgid "Eyjafjallajökull (Iceland)"
@@ -2142,6 +2058,11 @@ msgstr "So‘rovnomalarni saralash"
 #, fuzzy
 msgid "Final Leaderboard"
 msgstr "Yakuniy peshqadamlar jadvali"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.user_input_session_manage_content
+msgid "Final Scoreboard"
+msgstr ""
 
 #. module: survey
 #: model:survey.question.answer,value:survey.survey_demo_food_preferences_q4_sug2
@@ -2440,6 +2361,7 @@ msgid "I've been noticing gravity since I was very young!"
 msgstr "Gravitatsiyani juda yoshligimdan beri kuzatib kelayapman!"
 
 #. module: survey
+#: model:ir.model.fields,field_description:survey.field_digest_digest__id
 #: model:ir.model.fields,field_description:survey.field_gamification_badge__id
 #: model:ir.model.fields,field_description:survey.field_gamification_challenge__id
 #: model:ir.model.fields,field_description:survey.field_ir_http__id
@@ -2669,6 +2591,11 @@ msgid "Integer updating comparison flag"
 msgstr "Butun sonlarni yangilash taqqoslash belgisi"
 
 #. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
+msgid "Intro Message"
+msgstr ""
+
+#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_user_input__invite_token
 #, fuzzy
 msgid "Invite token"
@@ -2736,7 +2663,8 @@ msgstr ""
 #: model:ir.model.fields,help:survey.field_survey_question__is_placed_before_trigger
 #, fuzzy
 msgid "Is this question placed before any of its trigger questions?"
-msgstr "Bu savol uning harakatlantiruvchi savollaridan oldin joylashtirilganmi?"
+msgstr ""
+"Bu savol uning harakatlantiruvchi savollaridan oldin joylashtirilganmi?"
 
 #. module: survey
 #: model:survey.question.answer,value:survey.survey_demo_burger_quiz_p2_q2_sug4
@@ -2770,7 +2698,8 @@ msgstr ""
 #: code:addons/survey/models/templates/survey_survey.py:0
 #, fuzzy
 msgid "It helps attendees remember the content of your presentation"
-msgstr "Bu tinglovchilarga taqdimotingiz mazmunini eslab qolishga yordam beradi"
+msgstr ""
+"Bu tinglovchilarga taqdimotingiz mazmunini eslab qolishga yordam beradi"
 
 #. module: survey
 #. odoo-python
@@ -2828,22 +2757,37 @@ msgid "Kim Jong-hyun"
 msgstr "Kim Jong-xyon"
 
 #. module: survey
+#: model:ir.model.fields,field_description:survey.field_digest_digest__kpi_nbr_of_answers_value
+msgid "Kpi Nbr Of Answers Value"
+msgstr ""
+
+#. module: survey
+#: model:ir.model.fields,field_description:survey.field_digest_digest__kpi_nbr_of_certified_participants_value
+msgid "Kpi Nbr Of Certified Participants Value"
+msgstr ""
+
+#. module: survey
 #: model:survey.question.answer,value:survey.survey_demo_burger_quiz_p5_q1_sug1
 #, fuzzy
 msgid "Kurt Cobain"
 msgstr "Kurt Kobeyn"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Label"
-msgstr "Yorliq"
-
-#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question_answer__sequence
 #, fuzzy
 msgid "Label Sequence order"
 msgstr "Yorliqlar ketma-ketligi"
+
+#. module: survey
+#. odoo-python
+#: code:addons/survey/models/survey_question.py:0
+msgid "Label for %s"
+msgstr ""
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "Labels"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,help:survey.field_survey_question__matrix_row_ids
@@ -2863,6 +2807,7 @@ msgstr ""
 "tanlov va matritsa ustunlari"
 
 #. module: survey
+#: model:ir.model,name:survey.model_res_lang
 #: model:ir.model.fields,field_description:survey.field_survey_invite__lang
 #: model:ir.model.fields,field_description:survey.field_survey_user_input__lang_id
 #: model:ir.model.fields,field_description:survey.field_survey_user_input_line__lang_id
@@ -2873,7 +2818,6 @@ msgid "Language"
 msgstr "Til"
 
 #. module: survey
-#: model:ir.model,name:survey.model_res_lang
 #: model:ir.model.fields,field_description:survey.field_survey_survey__lang_ids
 #, fuzzy
 msgid "Languages"
@@ -3046,6 +2990,11 @@ msgid "Login required"
 msgstr "Tizimga kirish talab etiladi"
 
 #. module: survey
+#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__text_box
+msgid "Long Text"
+msgstr ""
+
+#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_invite__template_id
 #, fuzzy
 msgid "Mail Template"
@@ -3085,6 +3034,11 @@ msgid "Matrix Type"
 msgstr "Matritsa turi"
 
 #. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_question__scale_max_label_placeholder
+msgid "Max Label Placeholder"
+msgstr ""
+
+#. module: survey
 #: model:ir.model.constraint,message:survey.constraint_survey_question_validation_date
 #, fuzzy
 msgid "Max date cannot be smaller than min date!"
@@ -3094,7 +3048,8 @@ msgstr "Maksimal sana minimal sanadan kichik bo‘lmasligi kerak!"
 #: model:ir.model.constraint,message:survey.constraint_survey_question_validation_datetime
 #, fuzzy
 msgid "Max datetime cannot be smaller than min datetime!"
-msgstr "Maksimal sana va vaqt minimal sana va vaqtdan kichik bo‘lmasligi kerak!"
+msgstr ""
+"Maksimal sana va vaqt minimal sana va vaqtdan kichik bo‘lmasligi kerak!"
 
 #. module: survey
 #: model:ir.model.constraint,message:survey.constraint_survey_question_validation_length
@@ -3161,9 +3116,15 @@ msgstr "Xabar yetkazib berishda xatolik"
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_survey__message_ids
 #: model:ir.model.fields,field_description:survey.field_survey_user_input__message_ids
+#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
 #, fuzzy
 msgid "Messages"
 msgstr "Xabarlar"
+
+#. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_question__scale_min_label_placeholder
+msgid "Min Label Placeholder"
+msgstr ""
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_question_form
@@ -3239,34 +3200,9 @@ msgid "Mount Teide (Spain - Tenerife)"
 msgstr "Teide tog‘i (Ispaniya - Tenerife)"
 
 #. module: survey
-#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__text_box
-#, fuzzy
-msgid "Multiple Lines Text Box"
-msgstr "Ko‘p qatorli matn maydoni"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Multiple choice with multiple answers"
-msgstr "Bir nechta javob tanlanadigan test"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Multiple choice with one answer"
-msgstr "Yagona javob tanlanadigan test"
-
-#. module: survey
 #: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__multiple_choice
-#, fuzzy
-msgid "Multiple choice: multiple answers allowed"
-msgstr "Ko‘p javobli test: bir nechta javob tanlash mumkin"
-
-#. module: survey
-#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__simple_choice
-#, fuzzy
-msgid "Multiple choice: only one answer"
-msgstr "Ko‘p javobli test: faqat bitta javob tanlash mumkin"
+msgid "Multi-Select"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields.selection,name:survey.selection__survey_question__matrix_subtype__multiple
@@ -3302,7 +3238,6 @@ msgstr "MyCompany yetkazib beruvchi sertifikati"
 #. module: survey
 #. odoo-python
 #: code:addons/survey/models/templates/survey_survey.py:0
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
 #, fuzzy
 msgid "Neutral"
 msgstr "Neytral"
@@ -3328,6 +3263,7 @@ msgid "New York"
 msgstr "Nyu-York"
 
 #. module: survey
+#: model:ir.model.fields.selection,name:survey.selection__hr_recruitment_survey_invite__existing_mode__new
 #: model:ir.model.fields.selection,name:survey.selection__survey_invite__existing_mode__new
 #, fuzzy
 msgid "New invite"
@@ -3376,12 +3312,6 @@ msgid "Next Activity Type"
 msgstr "Keyingi faoliyat turi"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_fill_form_in_progress
-#, fuzzy
-msgid "Next Skipped"
-msgstr "Keyingi o‘tkazib yuborildi"
-
-#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_user_input__nickname
 #, fuzzy
 msgid "Nickname"
@@ -3423,6 +3353,11 @@ msgid "No attempts left."
 msgstr "Urinishlar qolmadi."
 
 #. module: survey
+#: model_terms:ir.actions.act_window,help:survey.survey_user_input_action_certified
+msgid "No certified participant yet!"
+msgstr ""
+
+#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_void_content
 #, fuzzy
 msgid "No question yet, come back later."
@@ -3453,10 +3388,10 @@ msgid "No, it's too small for the human eye."
 msgstr "Yo‘q, u inson ko‘zi uchun juda kichik."
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Not likely at all"
-msgstr "Mutlaqo ehtimolsiz"
+#. odoo-javascript
+#: code:addons/survey/static/src/interactions/survey_form.js:0
+msgid "No, wait a minute"
+msgstr ""
 
 #. module: survey
 #. odoo-javascript
@@ -3473,6 +3408,7 @@ msgid "Now, use this shortcut to go back to the survey."
 msgstr "Endi so‘rovnomaga qaytish uchun ushbu yorliqdan foydalaning."
 
 #. module: survey
+#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__numerical_box
 #: model:ir.model.fields.selection,name:survey.selection__survey_survey__progression_mode__number
 #: model:ir.model.fields.selection,name:survey.selection__survey_user_input_line__answer_type__numerical_box
 #: model:ir.model.fields.selection,name:survey.selection__survey_user_input_line__answer_type__scale
@@ -3520,12 +3456,6 @@ msgstr "Amal talab qilinadigan xabarlar soni"
 #, fuzzy
 msgid "Number of messages with delivery error"
 msgstr "Yetkazib berishda xato bo‘lgan xabarlar soni"
-
-#. module: survey
-#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__numerical_box
-#, fuzzy
-msgid "Numerical Value"
-msgstr "Raqamli qiymat"
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_user_input_line__value_numerical_box
@@ -3700,6 +3630,11 @@ msgstr "Bo‘limni ochish"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "Option Name"
+msgstr ""
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
 #, fuzzy
 msgid "Optional previous answers required"
 msgstr "Ixtiyoriy oldingi javoblar talab qilinadi"
@@ -3715,8 +3650,15 @@ msgid ""
 msgstr ""
 "Elektron xat yuborishda tanlanadigan ixtiyoriy tarjima tili (ISO kodi). Agar "
 "belgilanmasa, asosiy hamkorning tili ishlatiladi. Bu odatda tegishli tilni "
-"ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan: {{ "
-"object.partner_id.lang }}"
+"ta'minlaydigan to‘ldiruvchi ifoda bo‘lishi kerak, masalan: "
+"{{ object.partner_id.lang }}"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid ""
+"Optional: provide extra guidelines, instructions, pictures... here, to help "
+"attendees answer"
+msgstr ""
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_question_form
@@ -3799,6 +3741,7 @@ msgstr "Ishtirokchi"
 
 #. module: survey
 #: model:ir.actions.act_window,name:survey.action_survey_user_input
+#: model:ir.model.fields,field_description:survey.field_digest_digest__kpi_nbr_of_answers
 #: model:ir.ui.menu,name:survey.menu_survey_type_form1
 #: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
 #, fuzzy
@@ -4230,6 +4173,7 @@ msgid "Resend Invitation"
 msgstr "Taklifnomani qayta yuborish"
 
 #. module: survey
+#: model:ir.model.fields.selection,name:survey.selection__hr_recruitment_survey_invite__existing_mode__resend
 #: model:ir.model.fields.selection,name:survey.selection__survey_invite__existing_mode__resend
 #, fuzzy
 msgid "Resend invite"
@@ -4289,24 +4233,6 @@ msgstr "Qator javobi"
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_question_form
 #, fuzzy
-msgid "Row1"
-msgstr "1-qator"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Row2"
-msgstr "2-qator"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Row3"
-msgstr "3-qator"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
 msgid "Rows"
 msgstr "Qatorlar"
 
@@ -4318,23 +4244,26 @@ msgid "SMS Delivery error"
 msgstr "SMS yuborishda xatolik"
 
 #. module: survey
+#: model:ir.model.fields,field_description:survey.field_survey_question__save_as_nickname
+msgid "Save as nickname"
+msgstr ""
+
+#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__save_as_email
 #, fuzzy
 msgid "Save as user email"
 msgstr "Foydalanuvchi elektron pochtasi sifatida saqlash"
 
 #. module: survey
-#: model:ir.model.fields,field_description:survey.field_survey_question__save_as_nickname
-#, fuzzy
-msgid "Save as user nickname"
-msgstr "Foydalanuvchi taxallusi sifatida saqlash"
-
-#. module: survey
 #: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__scale
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
 #, fuzzy
 msgid "Scale"
 msgstr "Shkala"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "Scale Maximim Value (0 to 10)"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__scale_max_label
@@ -4347,18 +4276,6 @@ msgstr "Shkala maksimal yorlig‘i"
 #, fuzzy
 msgid "Scale Maximum Value"
 msgstr "Shkala maksimal qiymati"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Scale Maximum Value (0 to 10)"
-msgstr "Shkala maksimal qiymati (0 dan 10 gacha)"
-
-#. module: survey
-#: model:ir.model.fields,field_description:survey.field_survey_question__scale_mid_label
-#, fuzzy
-msgid "Scale Middle Label"
-msgstr "Shkala o‘rta yorlig‘i"
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__scale_min_label
@@ -4377,6 +4294,11 @@ msgstr "Shkala minimal qiymati"
 #, fuzzy
 msgid "Scale Minimum Value (0 to 10)"
 msgstr "Shkala minimal qiymati (0 dan 10 gacha)"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
+msgid "Scale Range"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_user_input_line__value_scale
@@ -4413,6 +4335,11 @@ msgstr "Ball (%)"
 #, fuzzy
 msgid "Score value for a correct answer to this question."
 msgstr "Ushbu savolga to‘g‘ri javob uchun ball qiymati"
+
+#. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.user_input_session_manage_content
+msgid "Scoreboard"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__is_scored_question
@@ -4608,6 +4535,17 @@ msgid "Share a Survey"
 msgstr "So‘rovnomani ulashish"
 
 #. module: survey
+#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
+#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_search
+msgid "Shared with"
+msgstr ""
+
+#. module: survey
+#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__char_box
+msgid "Short Text"
+msgstr ""
+
+#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.question_table_pagination
 #, fuzzy
 msgid "Show All"
@@ -4636,6 +4574,12 @@ msgstr "Yakuniy yetakchilar jadvalini ko‘rsatish"
 #. module: survey
 #. odoo-javascript
 #: code:addons/survey/static/src/interactions/survey_session_manage.js:0
+msgid "Show Final Scoreboard"
+msgstr ""
+
+#. module: survey
+#. odoo-javascript
+#: code:addons/survey/static/src/interactions/survey_session_manage.js:0
 #, fuzzy
 msgid "Show Leaderboard"
 msgstr "Yetakchilar jadvalini ko‘rsatish"
@@ -4646,6 +4590,12 @@ msgstr "Yetakchilar jadvalini ko‘rsatish"
 #, fuzzy
 msgid "Show Results"
 msgstr "Natijalarni ko‘rsatish"
+
+#. module: survey
+#. odoo-javascript
+#: code:addons/survey/static/src/interactions/survey_session_manage.js:0
+msgid "Show Scoreboard"
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_survey__session_show_leaderboard
@@ -4667,10 +4617,9 @@ msgid "Show them slides with a ton of text they need to read fast"
 msgstr "Ularga tez o‘qishlari kerak bo‘lgan ko‘p matnli slaydlarni ko‘rsating"
 
 #. module: survey
-#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__char_box
-#, fuzzy
-msgid "Single Line Text Box"
-msgstr "Bir qatorli matn maydoni"
+#: model:ir.model.fields.selection,name:survey.selection__survey_question__question_type__simple_choice
+msgid "Single-Select"
+msgstr ""
 
 #. module: survey
 #. odoo-python
@@ -4811,9 +4760,16 @@ msgstr "Yuborish"
 #. module: survey
 #. odoo-javascript
 #: code:addons/survey/static/src/interactions/survey_form.js:0
-#, fuzzy
-msgid "Submit confirmation"
-msgstr "Yuborishni tasdiqlash"
+msgid "Submit survey"
+msgstr ""
+
+#. module: survey
+#. odoo-javascript
+#: code:addons/survey/static/src/interactions/survey_form.js:0
+msgid ""
+"Submit your survey? Once it's out, it is like a letter in the mail: it "
+"cannot be recalled."
+msgstr ""
 
 #. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_survey__success_count
@@ -4878,6 +4834,7 @@ msgstr "Taklif"
 #: model:ir.model.fields,field_description:survey.field_survey_user_input__survey_id
 #: model:ir.model.fields,field_description:survey.field_survey_user_input_line__survey_id
 #: model:ir.model.fields.selection,name:survey.selection__survey_survey__survey_type__survey
+#: model_terms:ir.ui.view,arch_db:survey.digest_digest_view_form
 #: model_terms:ir.ui.view,arch_db:survey.survey_question_search
 #: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_activity
 #: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
@@ -5502,12 +5459,6 @@ msgid "Time limit for this survey:"
 msgstr "Ushbu so‘rovnoma uchun vaqt chegarasi:"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "Time limits are only available for Live Sessions."
-msgstr "Vaqt chegaralari faqat jonli seanslar uchun mavjud."
-
-#. module: survey
 #: model:ir.model.fields,field_description:survey.field_survey_question__title
 #, fuzzy
 msgid "Title"
@@ -5813,6 +5764,12 @@ msgid "Waiting for attendees..."
 msgstr "Ishtirokchilar kutilmoqda..."
 
 #. module: survey
+#. odoo-python
+#: code:addons/survey/controllers/main.py:0
+msgid "We do not accept submissions for this question anymore."
+msgstr ""
+
+#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_fill_form_in_progress
 #, fuzzy
 msgid ""
@@ -6030,28 +5987,6 @@ msgid "Would you prefer a veggie meal if possible?"
 msgstr "Imkon bo‘lsa, vegetarian taomni afzal ko‘rasizmi?"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"YYYY-MM-DD\n"
-"                                        <i class=\"fa fa-calendar\" "
-"role=\"img\" aria-label=\"Calendar\" title=\"Calendar\"/>"
-msgstr ""
-"YYYY-MM-DD <i class=\"fa fa-calendar\" role=\"img\" aria-label=\"Calendar\" "
-"title=\"Calendar\"/>"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid ""
-"YYYY-MM-DD hh:mm:ss\n"
-"                                        <i class=\"fa fa-calendar\" "
-"role=\"img\" aria-label=\"Calendar\" title=\"Calendar\"/>"
-msgstr ""
-"YYYY-MM-DD hh:mm:ss <i class=\"fa fa-calendar\" role=\"img\" aria-"
-"label=\"Calendar\" title=\"Calendar\"/>"
-
-#. module: survey
 #. odoo-python
 #: code:addons/survey/models/templates/survey_survey.py:0
 #, fuzzy
@@ -6065,6 +6000,12 @@ msgstr "Sariq ruchka"
 #, fuzzy
 msgid "Yes"
 msgstr "Ha"
+
+#. module: survey
+#. odoo-javascript
+#: code:addons/survey/static/src/interactions/survey_form.js:0
+msgid "Yes, submit"
+msgstr ""
 
 #. module: survey
 #: model:survey.question.answer,value:survey.survey_demo_burger_quiz_p4_q3_sug1
@@ -6190,12 +6131,6 @@ msgid "[Question Title]"
 msgstr "[Savol sarlavhasi]"
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "ans"
-msgstr "javob"
-
-#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_progression
 #, fuzzy
 msgid "answered"
@@ -6235,24 +6170,10 @@ msgid "e.g. \"The following Survey will help us...\""
 msgstr "masalan, \"Quyidagi so‘rovnoma bizga yordam beradi...\""
 
 #. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "e.g. \"What is the...\""
-msgstr "masalan, \"Bu nima...\""
-
-#. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_session_code
 #, fuzzy
 msgid "e.g. 4812"
 msgstr "masalan, 4812"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_question_form
-#, fuzzy
-msgid "e.g. Guidelines, instructions, picture, ... to help attendees answer"
-msgstr ""
-"masalan, Ishtirokchilarga javob berishga yordam beruvchi yo‘riqnomalar, "
-"ko‘rsatmalar, rasm va boshqalar"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.gamification_badge_form_view_simplified
@@ -6277,12 +6198,6 @@ msgstr "masalan, Qoniqish so‘rovnomasi"
 #, fuzzy
 msgid "log in"
 msgstr "tizimga kirish"
-
-#. module: survey
-#: model_terms:ir.ui.view,arch_db:survey.survey_survey_view_form
-#, fuzzy
-msgid "minutes"
-msgstr "daqiqa"
 
 #. module: survey
 #: model_terms:ir.ui.view,arch_db:survey.survey_progression
@@ -6356,3 +6271,7 @@ msgid ""
 msgstr ""
 "⚠️ Ushbu savol uning ba'zi yoki barcha triggerlaridan oldin joylashgan "
 "bo‘lib, o‘tkazib yuborilishi mumkin."
+
+#, fuzzy
+#~ msgid "minutes"
+#~ msgstr "daqiqa"

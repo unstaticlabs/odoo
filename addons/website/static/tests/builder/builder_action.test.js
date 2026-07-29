@@ -1,14 +1,6 @@
 import { onWillStart, xml } from "@odoo/owl";
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import {
-    advanceTime,
-    animationFrame,
-    click,
-    Deferred,
-    press,
-    queryOne,
-    waitFor,
-} from "@odoo/hoot-dom";
+import { advanceTime, animationFrame, click, press, queryOne, waitFor } from "@odoo/hoot-dom";
 import { Builder } from "@html_builder/builder";
 import { Plugin } from "@html_editor/plugin";
 import { setSelection } from "@html_editor/../tests/_helpers/selection";
@@ -100,11 +92,11 @@ test("getRecordInfo retrieves the info from the #wrap element", async () => {
 });
 
 test("elements within iframe can't be clicked while the builder is being set up", async () => {
-    const def = new Deferred();
+    const def = Promise.withResolvers();
     patchWithCleanup(WebsiteBuilderClientAction.prototype, {
         async loadIframeAndBundles(isEditing) {
             super.loadIframeAndBundles(isEditing);
-            await def;
+            await def.promise;
         },
     });
     await setupWebsiteBuilder(
@@ -227,12 +219,12 @@ test("Builder is disabled when reloading", async () => {
     const { waitSidebarUpdated } = await setupWebsiteBuilder(
         `<section class="target">Section</section>`
     );
-    const def = new Deferred();
+    const builderStart = Promise.withResolvers();
     patchWithCleanup(Builder.prototype, {
         setup() {
             super.setup();
             onWillStart(async () => {
-                await def;
+                await builderStart.promise;
             });
         },
     });
@@ -245,7 +237,7 @@ test("Builder is disabled when reloading", async () => {
     await contains(".o-snippets-tabs [data-name='blocks']").click();
     expect(".o-snippets-tabs [data-name='customize']").toHaveClass("active");
     // new instance of the builder shouldn't be disabled
-    def.resolve();
+    builderStart.resolve();
     await waitSidebarUpdated();
     expect(".o-website-builder_sidebar .o_builder_disabled").toHaveCount(0);
     await contains(".o-snippets-tabs [data-name='blocks']").click();

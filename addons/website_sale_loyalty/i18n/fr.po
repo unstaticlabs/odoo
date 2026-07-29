@@ -2,13 +2,13 @@
 # This file contains the translation of the following modules:
 # * website_sale_loyalty
 #
-# "Tiffany Chang (tic)" <tic@odoo.com>, 2025, 2026.
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-25 18:37+0000\n"
-"PO-Revision-Date: 2026-06-29 10:35+0000\n"
+"POT-Creation-Date: 2025-12-16 18:37+0000\n"
+"PO-Revision-Date: 2025-09-17 17:29+0000\n"
 "Last-Translator: \"Tiffany Chang (tic)\" <tic@odoo.com>\n"
 "Language-Team: French <https://translate.odoo.com/projects/odoo-19/"
 "website_sale_loyalty/fr/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #. module: website_sale_loyalty
 #. odoo-python
@@ -75,12 +75,6 @@ msgid "Coupon"
 msgstr "Bon de réduction"
 
 #. module: website_sale_loyalty
-#. odoo-javascript
-#: code:addons/website_sale_loyalty/static/src/website_builder/coupon_option_plugin.js:0
-msgid "Coupon Snippet Options"
-msgstr "Options snippets bon de réduction"
-
-#. module: website_sale_loyalty
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.modify_code_form
 msgid "Coupons -"
 msgstr "Bons de réduction -"
@@ -116,16 +110,6 @@ msgstr "Remise & Fidélité"
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.reduction_coupon_code
 msgid "Discount code or gift card"
 msgstr "Code de remise ou carte cadeau"
-
-#. module: website_sale_loyalty
-#: model_terms:ir.ui.view,arch_db:website_sale_loyalty.cart_discount
-msgid "Discount:"
-msgstr "Remise :"
-
-#. module: website_sale_loyalty
-#: model_terms:ir.ui.view,arch_db:website_sale_loyalty.cart_discount
-msgid "Discounted amount"
-msgstr "Montant de la remise"
 
 #. module: website_sale_loyalty
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_coupon_share__display_name
@@ -285,12 +269,6 @@ msgstr "Partager le lien"
 #: model_terms:ir.ui.view,arch_db:website_sale_loyalty.coupon_share_view_form
 msgid "Share Loyalty Card"
 msgstr "Partager une carte de fidélité"
-
-#. module: website_sale_loyalty
-#. odoo-javascript
-#: code:addons/website_sale_loyalty/static/src/website_builder/coupon_option.xml:0
-msgid "Show Discount in Subtotal"
-msgstr "Afficher la remise dans le sous-total"
 
 #. module: website_sale_loyalty
 #: model:ir.model.fields,field_description:website_sale_loyalty.field_loyalty_program__show_non_published_product_warning
